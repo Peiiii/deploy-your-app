@@ -11,6 +11,11 @@ node_modules
 dist
 dist-ssr
 *.local
+server/**/*.js
+server/**/*.d.ts
+apps
+.deploy-builds
+*.tsbuildinfo
 
 # Editor directories and files
 .vscode/*
@@ -22,6 +27,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-
-.deploy-builds

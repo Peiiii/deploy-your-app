@@ -11,38 +11,9 @@ export class DeploymentManager {
   }
 
   handleAnalyzeCode = async () => {
-    const store = useDeploymentStore.getState();
-    const actions = store.actions;
-
-    actions.setIsAnalyzing(true);
-    actions.setExplanation('');
-
-    try {
-      // Delegate to provider, always using repo metadata so backend can clone and analyze real code.
-      const result = await this.provider.analyzeCode({
-        apiKey: store.apiKey,
-        repoUrl: store.sourceType === 'github' ? store.repoUrl : undefined,
-        analysisId: store.analysisId || undefined,
-      });
-
-      if (result.originalCode) {
-        actions.setSourceCode(result.originalCode);
-      }
-      if (result.analysisId) {
-        actions.setAnalysisId(result.analysisId);
-      }
-      if (result.sourceFilePath) {
-        actions.setSourceFilePath(result.sourceFilePath);
-      }
-
-      actions.setAnalyzedCode(result.refactoredCode);
-      actions.setExplanation(result.explanation);
-    } catch (e) {
-      console.error(e);
-      alert("Analysis failed. Check console or API key.");
-    } finally {
-      actions.setIsAnalyzing(false);
-    }
+    // AI analysis is temporarily disabled for the MVP.
+    // This method is kept for future use but does nothing.
+    console.warn('handleAnalyzeCode called, but AI analysis is currently disabled.');
   };
 
   startBuildSimulation = async (onComplete: () => void) => {

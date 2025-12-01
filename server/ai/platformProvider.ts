@@ -1,7 +1,20 @@
 import { PLATFORM_AI_PROVIDER, PLATFORM_AI_MODEL, DASHSCOPE_API_KEY } from '../config.js';
 
-class NoopPlatformProvider {
-  async analyzeUserCode({ sourceCode }) {
+export interface PlatformAIAnalyzeParams {
+  sourceCode: string;
+}
+
+export interface PlatformAIAnalyzeResult {
+  refactoredCode: string;
+  explanation: string;
+}
+
+export interface PlatformAIProvider {
+  analyzeUserCode(params: PlatformAIAnalyzeParams): Promise<PlatformAIAnalyzeResult>;
+}
+
+class NoopPlatformProvider implements PlatformAIProvider {
+  async analyzeUserCode({ sourceCode }: PlatformAIAnalyzeParams): Promise<PlatformAIAnalyzeResult> {
     return {
       refactoredCode: sourceCode,
       explanation:
@@ -10,7 +23,11 @@ class NoopPlatformProvider {
   }
 }
 
-class DashScopePlatformProvider {
+class DashScopePlatformProvider implements PlatformAIProvider {
+  private baseUrl: string;
+  private model: string;
+  private apiKey: string;
+
   constructor() {
     this.baseUrl =
       process.env.PLATFORM_AI_BASE_URL ||
@@ -19,7 +36,7 @@ class DashScopePlatformProvider {
     this.apiKey = DASHSCOPE_API_KEY;
   }
 
-  async analyzeUserCode({ sourceCode }) {
+  async analyzeUserCode({ sourceCode }: PlatformAIAnalyzeParams): Promise<PlatformAIAnalyzeResult> {
     if (!this.apiKey) {
       // Fail soft: keep product可用，即使平台 AI 未配置。
       return {
@@ -96,16 +113,16 @@ class DashScopePlatformProvider {
       );
     }
 
-    const data = await response.json();
+    const data: unknown = await response.json();
 
-    const choice = data.choices?.[0];
-    const message = choice?.message;
+    const choice = (data as { choices?: Array<{ message?: unknown }> }).choices?.[0];
+    const message = choice?.message as { content?: unknown } | undefined;
     if (!message) {
       throw new Error('DashScope response missing choices[0].message');
     }
 
-    let content = message.content;
-    let text;
+    const content = message?.content as unknown;
+    let text: string;
     if (typeof content === 'string') {
       text = content;
     } else if (Array.isArray(content)) {
@@ -152,4 +169,3 @@ export function createPlatformAIProvider() {
   // 默认退化为 no-op，后端依然可用，只是不给智能改写。
   return new NoopPlatformProvider();
 }
-

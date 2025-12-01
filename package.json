@@ -4,19 +4,20 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite --config frontend/vite.config.ts\" \"node server/index.js\"",
+    "dev": "concurrently \"vite --config frontend/vite.config.ts\" \"pnpm dev:server\"",
+    "dev:server": "tsx watch server/index.ts",
     "build": "tsc -b && vite build --config frontend/vite.config.ts",
     "lint": "eslint .",
     "preview": "vite preview --config frontend/vite.config.ts"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
     "lucide-react": "^0.555.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "zustand": "^5.0.9",
-    "cors": "^2.8.5",
-    "express": "^4.21.2"
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -24,11 +25,13 @@
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
+    "tsx": "^4.19.2",
     "concurrently": "^9.1.0",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "tsx": "^4.21.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "npm:rolldown-vite@7.2.5"

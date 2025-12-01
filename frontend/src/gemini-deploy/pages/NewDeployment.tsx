@@ -3,13 +3,12 @@ import { useDeploymentStore } from '../stores/deploymentStore';
 import { usePresenter } from '../contexts/PresenterContext';
 import { DeploymentStatus } from '../types';
 import { Terminal } from '../components/Terminal';
-import { ArrowRight, ShieldCheck, Cpu, Github, Globe, Loader2, Sparkles, FolderArchive, Upload, FileCode, X, Check, ExternalLink } from 'lucide-react';
+import { ArrowRight, Github, Globe, Loader2, FolderArchive, Upload, FileCode, X, Check, ExternalLink } from 'lucide-react';
 import { URLS } from '../constants';
 
 const STEPS = [
-    { id: 1, label: 'Source', desc: 'Connect code' },
-    { id: 2, label: 'Secure', desc: 'AI Proxy' },
-    { id: 3, label: 'Deploy', desc: 'Go Live' }
+  { id: 1, label: 'Source', desc: 'Connect code' },
+  { id: 3, label: 'Deploy', desc: 'Go Live' },
 ];
 
 export const NewDeployment: React.FC = () => {
@@ -20,6 +19,22 @@ export const NewDeployment: React.FC = () => {
   useEffect(() => {
     return () => presenter.deployment.resetWizard();
   }, []);
+
+  const handleDeployStart = () => {
+    presenter.deployment.startBuildSimulation(() => {
+      const identifier =
+        state.sourceType === 'github'
+          ? state.repoUrl
+          : state.zipFile?.name || 'archive.zip';
+      const url = URLS.getDeploymentUrl(state.projectName);
+      presenter.project.addProject(
+        state.projectName,
+        url,
+        state.sourceType,
+        identifier,
+      );
+    });
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -34,14 +49,6 @@ export const NewDeployment: React.FC = () => {
     }
   };
 
-  const handleDeployStart = () => {
-    presenter.deployment.startBuildSimulation(() => {
-       const identifier = state.sourceType === 'github' ? state.repoUrl : (state.zipFile?.name || 'archive.zip');
-       const url = URLS.getDeploymentUrl(state.projectName);
-       presenter.project.addProject(state.projectName, url, state.sourceType, identifier);
-    });
-  };
-
   return (
     <div className="max-w-5xl mx-auto p-8 animate-fade-in">
       {/* Header */}
@@ -54,26 +61,42 @@ export const NewDeployment: React.FC = () => {
       <div className="flex items-center justify-center mb-12 relative max-w-2xl mx-auto">
         {/* Connecting Line */}
         <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 dark:bg-gray-800 -z-10 rounded-full"></div>
-        <div className="absolute top-1/2 left-0 h-0.5 bg-brand-500 -z-10 rounded-full transition-all duration-500 ease-out" 
-             style={{ width: `${((state.step - 1) / (STEPS.length - 1)) * 100}%` }}></div>
+        <div
+          className="absolute top-1/2 left-0 h-0.5 bg-brand-500 -z-10 rounded-full transition-all duration-500 ease-out"
+          style={{ width: `${((state.step - 1) / (STEPS.length - 1)) * 100}%` }}
+        ></div>
 
         {STEPS.map((s, i) => {
-            const isActive = i + 1 === state.step;
-            const isCompleted = i + 1 < state.step;
-            return (
-                <div key={i} className="flex-1 flex flex-col items-center">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all duration-300 z-10 bg-white dark:bg-app-bg ${
-                        isActive ? 'border-brand-500 text-brand-600 dark:text-brand-400 shadow-[0_0_15px_rgba(56,189,248,0.4)] scale-110' : 
-                        isCompleted ? 'border-brand-500 bg-brand-500 text-white' : 'border-slate-300 dark:border-gray-700 text-slate-400 dark:text-gray-500'
-                    }`}>
-                        {isCompleted ? <Check className="w-5 h-5" /> : i + 1}
-                    </div>
-                    <div className={`mt-3 text-center transition-colors ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-gray-500'}`}>
-                        <span className="text-xs font-bold uppercase tracking-wider block">{s.label}</span>
-                        <span className="text-[10px] hidden sm:block">{s.desc}</span>
-                    </div>
-                </div>
-            )
+          const stepIndex = i === 0 ? 1 : 3;
+          const isActive = stepIndex === state.step;
+          const isCompleted = stepIndex < state.step;
+          return (
+            <div key={s.id} className="flex-1 flex flex-col items-center">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all duration-300 z-10 bg-white dark:bg-app-bg ${
+                  isActive
+                    ? 'border-brand-500 text-brand-600 dark:text-brand-400 shadow-[0_0_15px_rgba(56,189,248,0.4)] scale-110'
+                    : isCompleted
+                    ? 'border-brand-500 bg-brand-500 text-white'
+                    : 'border-slate-300 dark:border-gray-700 text-slate-400 dark:text-gray-500'
+                }`}
+              >
+                {isCompleted ? <Check className="w-5 h-5" /> : stepIndex}
+              </div>
+              <div
+                className={`mt-3 text-center transition-colors ${
+                  isActive
+                    ? 'text-slate-900 dark:text-white'
+                    : 'text-slate-400 dark:text-gray-500'
+                }`}
+              >
+                <span className="text-xs font-bold uppercase tracking-wider block">
+                  {s.label}
+                </span>
+                <span className="text-[10px] hidden sm:block">{s.desc}</span>
+              </div>
+            </div>
+          );
         })}
       </div>
 
@@ -173,124 +196,18 @@ export const NewDeployment: React.FC = () => {
             
             <div className="flex justify-end pt-6">
               <button 
-                onClick={() => (state.sourceType === 'github' ? state.repoUrl : state.zipFile) && state.actions.setStep(2)}
+                onClick={() => (state.sourceType === 'github' ? state.repoUrl : state.zipFile) && handleDeployStart()}
                 disabled={!(state.sourceType === 'github' ? state.repoUrl : state.zipFile)}
                 className="bg-brand-600 hover:bg-brand-500 text-white px-8 py-3 rounded-lg font-medium transition-all flex items-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:translate-x-1"
               >
-                Next Step <ArrowRight className="w-4 h-4" />
+                Start Deployment <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Step 2: Configure AI Proxy */}
-      {state.step === 2 && (
-        <div className="glass-card rounded-2xl p-8 animate-slide-up">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-                 <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <ShieldCheck className="w-6 h-6 text-green-600 dark:text-green-400" /> AI Security Analysis
-                 </h2>
-                 <p className="text-slate-500 dark:text-gray-400 text-sm mt-1">We'll scan your code and auto-inject a secure proxy configuration.</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left: Input */}
-            <div className="space-y-6">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-slate-600 dark:text-gray-300 font-medium text-sm flex items-center gap-2">
-                    <FileCode className="w-4 h-4 text-slate-400 dark:text-gray-500" /> Source Code Sample
-                    </h4>
-                </div>
-                <div className="relative rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 group">
-                    <div className="absolute top-0 left-0 right-0 h-8 bg-slate-100 dark:bg-[#1e293b] flex items-center px-3 gap-2 border-b border-slate-200 dark:border-gray-700">
-                        <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
-                        <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
-                        <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
-                        <span className="ml-2 text-xs text-slate-500 dark:text-gray-500 font-mono">
-                          {state.sourceFilePath}
-                        </span>
-                    </div>
-                    <textarea 
-                    value={state.sourceCode}
-                    readOnly
-                    className="w-full h-48 bg-white dark:bg-[#020617] text-slate-800 dark:text-gray-300 p-4 pt-10 text-xs font-mono focus:outline-none resize-none leading-relaxed"
-                    spellCheck="false"
-                    />
-                </div>
-                <button 
-                  onClick={() => presenter.deployment.handleAnalyzeCode()}
-                  disabled={state.isAnalyzing}
-                  className="mt-4 w-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm py-3 rounded-lg font-medium transition-all flex justify-center items-center gap-2 hover:border-brand-500/30"
-                >
-                  {state.isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin text-brand-600 dark:text-brand-400" /> : <Sparkles className="w-4 h-4 text-brand-600 dark:text-brand-400" />}
-                  {state.isAnalyzing ? 'AI Agent is analyzing...' : 'Analyze & Secure Code'}
-                </button>
-              </div>
-            </div>
-
-            {/* Right: Output Visualization */}
-            <div className="relative flex flex-col h-full min-h-[300px]">
-               <div className="absolute -inset-1 bg-gradient-to-b from-brand-500/20 to-purple-600/20 rounded-2xl blur-lg opacity-50"></div>
-               <div className="relative flex-1 bg-[#0d1117] rounded-xl border border-gray-800 overflow-hidden flex flex-col">
-                  {/* Editor Header */}
-                  <div className="bg-[#161b22] px-4 py-2 flex items-center justify-between border-b border-gray-800">
-                      <div className="flex gap-2">
-                         <span className="text-xs text-brand-400 font-mono">
-                           {state.sourceFilePath
-                             ? `diff --git a/${state.sourceFilePath} b/${state.sourceFilePath}`
-                             : 'diff --git a/<source> b/<source>'}
-                         </span>
-                      </div>
-                      {state.analyzedCode && <span className="text-[10px] bg-green-500/10 text-green-400 px-2 py-0.5 rounded border border-green-500/20">SECURED</span>}
-                  </div>
-
-                  {/* Editor Body */}
-                  <div className="relative flex-1 p-4 overflow-hidden font-mono text-xs">
-                      {state.isAnalyzing && (
-                        <div className="absolute inset-0 z-20 pointer-events-none">
-                            <div className="w-full h-0.5 bg-brand-500 shadow-[0_0_15px_#0ea5e9] animate-scan opacity-80"></div>
-                        </div>
-                      )}
-                      
-                      {state.analyzedCode ? (
-                         <div className="space-y-1 animate-fade-in">
-                            <div className="text-gray-500 select-none">// GeminiDeploy Auto-Generated Proxy</div>
-                            <pre className="text-green-300 whitespace-pre-wrap leading-relaxed">{state.analyzedCode}</pre>
-                         </div>
-                      ) : (
-                         <div className="h-full flex flex-col items-center justify-center text-gray-600 space-y-3">
-                            <Cpu className={`w-12 h-12 ${state.isAnalyzing ? 'text-brand-500 animate-pulse' : 'text-gray-700'}`} />
-                            <p className="text-center max-w-[200px]">{state.isAnalyzing ? 'Identifying insecure patterns...' : 'Waiting for analysis...'}</p>
-                         </div>
-                      )}
-                  </div>
-
-                  {/* Explanation Footer */}
-                  {state.explanation && (
-                     <div className="bg-[#161b22]/90 backdrop-blur p-3 border-t border-gray-800 text-[11px] text-gray-400 animate-slide-up">
-                        <span className="text-brand-400 font-bold">AI Note:</span> {state.explanation}
-                     </div>
-                  )}
-               </div>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center mt-8 pt-6 border-t border-slate-200 dark:border-white/5">
-             <button onClick={() => state.actions.setStep(1)} className="text-slate-500 hover:text-slate-900 dark:text-gray-500 dark:hover:text-white text-sm">Back</button>
-             <button 
-                onClick={handleDeployStart}
-                disabled={!state.analyzedCode}
-                className="bg-brand-600 hover:bg-brand-500 text-white px-8 py-3 rounded-lg font-medium transition-all shadow-lg hover:shadow-brand-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 disabled:shadow-none"
-              >
-                <RocketIcon className="w-4 h-4" /> Start Deployment
-              </button>
-          </div>
-        </div>
-      )}
+      {/* Step 2 (AI analysis) is temporarily disabled: we go directly to build & deploy */}
 
       {/* Step 3: Build & Deploy */}
       {state.step === 3 && (
@@ -345,7 +262,3 @@ export const NewDeployment: React.FC = () => {
     </div>
   );
 };
-
-const RocketIcon: React.FC<{className?: string}> = ({className}) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>
-)

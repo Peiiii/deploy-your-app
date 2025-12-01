@@ -37,11 +37,13 @@ export const URLS = {
   GITHUB_BASE: 'https://github.com/',
   getDeploymentUrl: (subdomain: string) => {
     const slug = subdomain.toLowerCase();
-    if (typeof window !== 'undefined') {
-      // In dev, Vite proxies /apps to the backend so this stays same-origin.
-      return `${window.location.origin}/apps/${encodeURIComponent(slug)}/`;
+    // In dev, we want to preview the deployed static app directly from the
+    // backend server (port 4173), independent of the frontend dev server.
+    if (typeof window !== 'undefined' && import.meta.env.DEV) {
+      return `http://localhost:4173/apps/${encodeURIComponent(slug)}/`;
     }
-    return `https://${slug}.${APP_CONFIG.DEPLOYMENT_DOMAIN}`;
+    // In production, the app will be served under the real deployment domain.
+    return `https://${slug}.${APP_CONFIG.DEPLOYMENT_DOMAIN}/`;
   },
   getProxyUrl: (id: string) => `https://proxy-${id}.${APP_CONFIG.DEPLOYMENT_DOMAIN}/v1`,
 };

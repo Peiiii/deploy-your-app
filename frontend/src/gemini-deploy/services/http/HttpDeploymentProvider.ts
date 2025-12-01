@@ -1,8 +1,4 @@
-import type {
-  IDeploymentProvider,
-  AnalyzeCodeParams,
-  AnalyzeCodeResult,
-} from '../interfaces';
+import type { IDeploymentProvider, AnalyzeCodeParams, AnalyzeCodeResult } from '../interfaces';
 import type { Project, BuildLog } from '../../types';
 import { DeploymentStatus } from '../../types';
 import { APP_CONFIG, API_ROUTES } from '../../constants';
@@ -12,32 +8,13 @@ export class HttpDeploymentProvider implements IDeploymentProvider {
 
   // 1. Send code / repo metadata to backend for security analysis
   async analyzeCode(params: AnalyzeCodeParams): Promise<AnalyzeCodeResult> {
-    const { apiKey, sourceCode, repoUrl, analysisId } = params;
-
-    try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      // We no longer rely on the user key for billing, but we can forward it as optional context if needed.
-      if (apiKey) {
-        headers['X-User-AI-Key'] = apiKey;
-      }
-
-      const response = await fetch(`${this.baseUrl}${API_ROUTES.ANALYZE}`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ sourceCode, repoUrl, analysisId }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Analysis failed: ${response.statusText}`);
-      }
-
-      return (await response.json()) as AnalyzeCodeResult;
-    } catch (error) {
-      console.error('Backend analysis error:', error);
-      throw error;
-    }
+    // AI analysis is temporarily disabled for the MVP.
+    // Return a no-op result so that future callers do not break.
+    console.warn('HttpDeploymentProvider.analyzeCode called, but AI analysis is currently disabled.');
+    return {
+      refactoredCode: params.sourceCode ?? '',
+      explanation: 'AI analysis is currently disabled. Code was not modified.',
+    };
   }
 
   // 2. Start deployment and stream logs via Server-Sent Events (SSE)

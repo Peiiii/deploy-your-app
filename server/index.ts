@@ -1,11 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import { randomUUID } from 'crypto';
-import path from 'path';
-import fs from 'fs';
+import * as path from 'path';
+import * as fs from 'fs';
 import { fileURLToPath } from 'url';
-import { spawn } from 'child_process';
-import { createPlatformAIProvider } from './ai/platformProvider.js';
+import { spawn, SpawnOptions } from 'child_process';
+import {
+  createPlatformAIProvider,
+  PlatformAIAnalyzeResult,
+} from './ai/platformProvider.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,11 +16,55 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.SERVER_PORT || 4173;
 
-// Simple in-memory stores for MVP
-const projects = [];
-const deployments = new Map(); // id -> { status, logs, project }
-const streams = new Map(); // id -> Set<res>
-const analysisSessions = new Map(); // analysisId -> { workDir, repoUrl, filePath }
+// ----------------------
+// Types & in-memory state
+// ----------------------
+
+type DeploymentStatus =
+  | 'IDLE'
+  | 'ANALYZING'
+  | 'BUILDING'
+  | 'DEPLOYING'
+  | 'SUCCESS'
+  | 'FAILED';
+
+type LogLevel = 'info' | 'error' | 'success' | 'warning';
+
+interface BuildLog {
+  timestamp: string;
+  message: string;
+  level: LogLevel;
+}
+
+interface Project {
+  id: string;
+  name: string;
+  repoUrl: string;
+  sourceType?: 'github' | 'zip';
+  analysisId?: string;
+  lastDeployed: string;
+  status: 'Live' | 'Building' | 'Failed' | 'Offline';
+  url?: string;
+  framework: 'React' | 'Vue' | 'Next.js' | 'Unknown';
+}
+
+interface DeploymentRecord {
+  status: DeploymentStatus;
+  logs: BuildLog[];
+  project: Project;
+  workDir: string | null;
+}
+
+interface AnalysisSession {
+  workDir: string;
+  repoUrl: string;
+  filePath: string;
+}
+
+const projects: Project[] = [];
+const deployments = new Map<string, DeploymentRecord>();
+const streams = new Map<string, Set<ReturnType<typeof express.response['write']>>>();
+const analysisSessions = new Map<string, AnalysisSession>();
 
 const rootDir = path.resolve(__dirname, '..');
 const buildsRoot = path.join(rootDir, '.deploy-builds');
@@ -34,7 +81,11 @@ app.use(express.json({ limit: '10mb' }));
 // Serve built apps under /apps/:project
 app.use('/apps', express.static(staticRoot));
 
-function broadcastEvent(id, payload) {
+// ----------------------
+// Helper functions
+// ----------------------
+
+function broadcastEvent(id: string, payload: unknown): void {
   const listeners = streams.get(id);
   if (!listeners) return;
   const data = `data: ${JSON.stringify(payload)}\n\n`;
@@ -43,16 +94,16 @@ function broadcastEvent(id, payload) {
   }
 }
 
-function appendLog(id, message, level = 'info') {
+function appendLog(id: string, message: string, level: LogLevel = 'info'): void {
   const deployment = deployments.get(id);
   if (!deployment) return;
   const timestamp = new Date().toISOString();
-  const logEntry = { timestamp, message, level };
+  const logEntry: BuildLog = { timestamp, message, level };
   deployment.logs.push(logEntry);
   broadcastEvent(id, { type: 'log', message, level });
 }
 
-function updateStatus(id, status) {
+function updateStatus(id: string, status: DeploymentStatus): void {
   const deployment = deployments.get(id);
   if (!deployment) return;
   deployment.status = status;
@@ -68,14 +119,16 @@ function updateStatus(id, status) {
   }
 }
 
-function slugify(name) {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '') || 'app';
+function slugify(name: string): string {
+  return (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'app'
+  );
 }
 
-async function copyDir(src, dest) {
+async function copyDir(src: string, dest: string): Promise<void> {
   await fs.promises.mkdir(dest, { recursive: true });
   const entries = await fs.promises.readdir(src, { withFileTypes: true });
   for (const entry of entries) {
@@ -89,8 +142,13 @@ async function copyDir(src, dest) {
   }
 }
 
-function runCommand(id, command, args, options) {
-  return new Promise((resolve, reject) => {
+function runCommand(
+  id: string,
+  command: string,
+  args: string[],
+  options: SpawnOptions,
+): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
     appendLog(id, `$ ${command} ${args.join(' ')}`, 'info');
 
     const child = spawn(command, args, {
@@ -99,18 +157,22 @@ function runCommand(id, command, args, options) {
       env: { ...process.env },
     });
 
-    child.stdout.on('data', (data) => {
-      const lines = data.toString().split(/\r?\n/).filter(Boolean);
-      for (const line of lines) appendLog(id, line, 'info');
-    });
+    if (child.stdout) {
+      child.stdout.on('data', (data) => {
+        const lines = data.toString().split(/\r?\n/).filter(Boolean);
+        for (const line of lines) appendLog(id, line, 'info');
+      });
+    }
 
-    child.stderr.on('data', (data) => {
-      const lines = data.toString().split(/\r?\n/).filter(Boolean);
-      for (const line of lines) appendLog(id, line, 'warning');
-    });
+    if (child.stderr) {
+      child.stderr.on('data', (data) => {
+        const lines = data.toString().split(/\r?\n/).filter(Boolean);
+        for (const line of lines) appendLog(id, line, 'warning');
+      });
+    }
 
     child.on('error', (err) => {
-      appendLog(id, `Command failed: ${err.message}`, 'error');
+      appendLog(id, `Command failed: ${String(err)}`, 'error');
       reject(err);
     });
 
@@ -127,18 +189,20 @@ function runCommand(id, command, args, options) {
 }
 
 // Best-effort scan to find a file in the repo that looks like an AI client.
-async function findAIClientFile(rootDir) {
-  const candidates = ['src', ''];
-  const seen = new Set();
+async function findAIClientFile(
+  repoRoot: string,
+): Promise<{ filePath: string; content: string } | null> {
+  const candidates: string[] = ['src', ''];
+  const seen = new Set<string>();
   const patterns = ['@google/genai', 'GoogleGenAI', '@google-ai/generativelanguage'];
 
   while (candidates.length > 0) {
-    const rel = candidates.shift();
-    const dir = path.join(rootDir, rel);
+    const rel = candidates.shift() as string;
+    const dir = path.join(repoRoot, rel);
     if (seen.has(dir)) continue;
     seen.add(dir);
 
-    let entries;
+    let entries: fs.Dirent[];
     try {
       entries = await fs.promises.readdir(dir, { withFileTypes: true });
     } catch {
@@ -147,7 +211,7 @@ async function findAIClientFile(rootDir) {
 
     for (const entry of entries) {
       const entryRel = path.join(rel, entry.name);
-      const full = path.join(rootDir, entryRel);
+      const full = path.join(repoRoot, entryRel);
 
       if (entry.isDirectory()) {
         if (entry.name === 'node_modules' || entry.name.startsWith('.')) {
@@ -156,7 +220,7 @@ async function findAIClientFile(rootDir) {
         candidates.push(entryRel);
       } else if (entry.isFile()) {
         if (!/\.(t|j)sx?$/.test(entry.name)) continue;
-        let content;
+        let content: string;
         try {
           content = await fs.promises.readFile(full, 'utf8');
         } catch {
@@ -175,7 +239,11 @@ async function findAIClientFile(rootDir) {
   return null;
 }
 
-async function prepareAnalysisSession(repoUrl) {
+async function prepareAnalysisSession(repoUrl: string): Promise<{
+  analysisId: string;
+  filePath: string;
+  sourceCode: string;
+}> {
   const analysisId = randomUUID();
   const workDir = path.join(buildsRoot, `analysis-${analysisId}`);
 
@@ -183,7 +251,7 @@ async function prepareAnalysisSession(repoUrl) {
 
   // Clone the repo into the analysis workdir
   const cloneArgs = ['clone', '--depth=1', repoUrl, workDir];
-  await new Promise((resolve, reject) => {
+  await new Promise<void>((resolve, reject) => {
     const child = spawn('git', cloneArgs, {
       cwd: buildsRoot,
       shell: false,
@@ -216,7 +284,7 @@ async function prepareAnalysisSession(repoUrl) {
   };
 }
 
-async function runDeployment(id) {
+async function runDeployment(id: string): Promise<void> {
   const deployment = deployments.get(id);
   if (!deployment) return;
 
@@ -257,7 +325,7 @@ async function runDeployment(id) {
     await runCommand(id, 'npm', ['run', 'build'], { cwd: workDir });
 
     const candidates = ['dist', 'build', 'out'];
-    let distPath = null;
+    let distPath: string | null = null;
     for (const candidate of candidates) {
       const full = path.join(workDir, candidate);
       if (fs.existsSync(full)) {
@@ -283,10 +351,12 @@ async function runDeployment(id) {
     );
 
     updateStatus(id, 'SUCCESS');
-  } catch (err) {
+  } catch (err: unknown) {
     appendLog(
       id,
-      `Deployment failed: ${err && err.message ? err.message : String(err)}`,
+      `Deployment failed: ${
+        err && (err as Error).message ? (err as Error).message : String(err)
+      }`,
       'error',
     );
     updateStatus(id, 'FAILED');
@@ -297,7 +367,9 @@ async function runDeployment(id) {
   }
 }
 
-// ---- API routes ----
+// ----------------------
+// API routes
+// ----------------------
 
 // Projects CRUD (MVP: in-memory)
 app.get('/api/v1/projects', (req, res) => {
@@ -305,7 +377,7 @@ app.get('/api/v1/projects', (req, res) => {
 });
 
 app.post('/api/v1/projects', (req, res) => {
-  const { name, url: _urlFromClient, sourceType, identifier } = req.body || {};
+  const { name, sourceType, identifier } = req.body || {};
 
   if (!name || !identifier) {
     return res.status(400).json({ error: 'name and identifier are required' });
@@ -313,15 +385,15 @@ app.post('/api/v1/projects', (req, res) => {
 
   const id = randomUUID();
   const now = new Date().toISOString();
-  const slug = slugify(name);
+  const slug = slugify(String(name));
 
   // We always compute the accessible URL relative to the current origin.
   const url = `/apps/${encodeURIComponent(slug)}/`;
 
-  const project = {
+  const project: Project = {
     id,
-    name,
-    repoUrl: identifier,
+    name: String(name),
+    repoUrl: String(identifier),
     sourceType,
     lastDeployed: now,
     status: 'Live',
@@ -338,16 +410,16 @@ app.post('/api/v1/analyze', async (req, res) => {
   try {
     const { sourceCode, repoUrl, analysisId } = req.body || {};
 
-    let effectiveAnalysisId = analysisId;
+    let effectiveAnalysisId: string | undefined = analysisId;
     let session = effectiveAnalysisId
       ? analysisSessions.get(effectiveAnalysisId)
       : null;
-    let codeToAnalyze;
+    let codeToAnalyze: string | undefined;
     let sourceFilePath = session?.filePath;
 
     // If we have a repo URL, always prefer analyzing real repo code.
     if (!session && repoUrl) {
-      const prepared = await prepareAnalysisSession(repoUrl);
+      const prepared = await prepareAnalysisSession(String(repoUrl));
       effectiveAnalysisId = prepared.analysisId;
       session = analysisSessions.get(effectiveAnalysisId);
       sourceFilePath = prepared.filePath;
@@ -370,7 +442,9 @@ app.post('/api/v1/analyze', async (req, res) => {
       });
     }
 
-    const result = await platformAI.analyzeUserCode({ sourceCode: codeToAnalyze });
+    const result: PlatformAIAnalyzeResult = await platformAI.analyzeUserCode({
+      sourceCode: codeToAnalyze,
+    });
 
     // If we have a prepared repo, write the refactored code back to the detected file.
     if (session && sourceFilePath) {
@@ -390,7 +464,9 @@ app.post('/api/v1/analyze', async (req, res) => {
     const headerHint =
       '// NOTE: Platform AI analysis failed. Returning your original code.\n';
     return res.status(500).json({
-      refactoredCode: `${headerHint}${typeof req.body?.sourceCode === 'string' ? req.body.sourceCode : ''}`,
+      refactoredCode: `${headerHint}${
+        typeof req.body?.sourceCode === 'string' ? req.body.sourceCode : ''
+      }`,
       explanation:
         'Platform AI analysis failed on the server. The code was returned unchanged; please check server logs or AI provider configuration.',
     });
@@ -399,7 +475,7 @@ app.post('/api/v1/analyze', async (req, res) => {
 
 // Start deployment job
 app.post('/api/v1/deploy', (req, res) => {
-  const project = req.body;
+  const project = req.body as Project & { analysisId?: string };
 
   if (!project || !project.name || !project.repoUrl) {
     return res
@@ -410,7 +486,7 @@ app.post('/api/v1/deploy', (req, res) => {
   const id = randomUUID();
   const workDirFromAnalysis =
     project.analysisId && analysisSessions.has(project.analysisId)
-      ? analysisSessions.get(project.analysisId).workDir
+      ? analysisSessions.get(project.analysisId)!.workDir
       : null;
 
   deployments.set(id, {
@@ -430,7 +506,7 @@ app.post('/api/v1/deploy', (req, res) => {
 
 // Deployment log stream (SSE)
 app.get('/api/v1/deployments/:id/stream', (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params as { id: string };
 
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
