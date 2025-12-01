@@ -15,6 +15,7 @@ server/**/*.js
 server/**/*.d.ts
 apps
 .deploy-builds
+data
 *.tsbuildinfo
 
 # Editor directories and files

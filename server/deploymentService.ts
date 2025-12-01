@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import * as path from 'path';
 import * as fs from 'fs';
 import { spawn, SpawnOptions } from 'child_process';
+import JSZip from 'jszip';
 import {
   deployments,
   analysisSessions,
@@ -12,6 +13,12 @@ import { buildsRoot, staticRoot } from './paths.js';
 import type { DeploymentStatus, LogLevel, BuildLog } from './types.js';
 import { slugify } from './utils.js';
 import { applyFixesForDeployment } from './fixPipeline.js';
+import {
+  DEPLOY_TARGET,
+  CLOUDFLARE_PAGES_PROJECT_PREFIX,
+  CLOUDFLARE_ACCOUNT_ID,
+  CLOUDFLARE_API_TOKEN,
+} from './config.js';
 
 // Broadcast an event payload to all SSE clients for a given deployment id.
 export function broadcastEvent(id: string, payload: unknown): void {
@@ -41,6 +48,233 @@ export function updateStatus(id: string, status: DeploymentStatus): void {
   if (!deployment) return;
   deployment.status = status;
   broadcastEvent(id, { type: 'status', status });
+}
+
+// Copy a built static directory into the local /apps/<slug>/ folder for
+// local preview / hosting by the Node server.
+async function deployToLocalStatic(opts: {
+  deploymentId: string;
+  slug: string;
+  distPath: string;
+}): Promise<string> {
+  const { deploymentId, slug, distPath } = opts;
+  const outputDir = path.join(staticRoot, slug);
+
+  appendLog(
+    deploymentId,
+    `Copying build output to local static dir: ${outputDir}`,
+    'info',
+  );
+  await fs.promises.rm(outputDir, { recursive: true, force: true });
+  await copyDir(distPath, outputDir);
+
+  // Local apps are served under /apps/<slug>/ by the Express server.
+  return `/apps/${slug}/`;
+}
+
+// Recursively add all files under "dir" into an in-memory ZIP archive.
+async function zipDirectoryToBuffer(dir: string): Promise<Buffer> {
+  const zip = new JSZip();
+
+  async function addDir(relative: string): Promise<void> {
+    const full = path.join(dir, relative);
+    const entries = await fs.promises.readdir(full, { withFileTypes: true });
+    for (const entry of entries) {
+      const relPath = path.join(relative, entry.name);
+      const fullPath = path.join(dir, relPath);
+      if (entry.isDirectory()) {
+        await addDir(relPath);
+      } else if (entry.isFile()) {
+        const data = await fs.promises.readFile(fullPath);
+        // Use forward slashes for ZIP paths.
+        const zipPath = relPath.replace(/\\/g, '/');
+        zip.file(zipPath, data);
+      }
+    }
+  }
+
+  await addDir('');
+
+  // Generate a Node.js Buffer with reasonable compression.
+  const buffer = (await zip.generateAsync({
+    type: 'nodebuffer',
+    compression: 'DEFLATE',
+    compressionOptions: { level: 6 },
+  })) as Buffer;
+
+  return buffer;
+}
+
+// Ensure a Cloudflare Pages project exists (idempotent).
+async function ensureCloudflarePagesProject(
+  deploymentId: string,
+  projectName: string,
+): Promise<void> {
+  if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
+    throw new Error(
+      'Cloudflare account id/token not configured. Please set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN in your environment.',
+    );
+  }
+
+  const baseUrl = 'https://api.cloudflare.com/client/v4';
+  const projectUrl = `${baseUrl}/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${projectName}`;
+
+  // Try to fetch the project; if it exists, we're done.
+  let resp;
+  try {
+    resp = await fetch(projectUrl, {
+      headers: {
+        Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (err) {
+    throw new Error(
+      `Failed to query Cloudflare Pages project "${projectName}": ${String(
+        err,
+      )}`,
+    );
+  }
+
+  if (resp.ok) {
+    return;
+  }
+
+  if (resp.status !== 404) {
+    const text = await resp.text().catch(() => '');
+    throw new Error(
+      `Cloudflare API error while checking project "${projectName}": ${resp.status} ${resp.statusText} ${text}`,
+    );
+  }
+
+  // Project not found → create it.
+  const createUrl = `${baseUrl}/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects`;
+  appendLog(
+    deploymentId,
+    `Creating Cloudflare Pages project "${projectName}" via API`,
+    'info',
+  );
+
+  const body = {
+    name: projectName,
+    production_branch: 'main',
+    build_config: {
+      build_command: '',
+      destination_dir: '',
+      root_dir: '',
+    },
+  };
+
+  let createResp;
+  try {
+    createResp = await fetch(createUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+  } catch (err) {
+    throw new Error(
+      `Failed to create Cloudflare Pages project "${projectName}": ${String(
+        err,
+      )}`,
+    );
+  }
+
+  if (!createResp.ok) {
+    const text = await createResp.text().catch(() => '');
+    throw new Error(
+      `Cloudflare API error while creating project "${projectName}": ${createResp.status} ${createResp.statusText} ${text}`,
+    );
+  }
+}
+
+// Deploy a built static directory to Cloudflare Pages using the HTTP API
+// (direct upload), without relying on the Cloudflare CLI.
+async function deployToCloudflarePages(opts: {
+  deploymentId: string;
+  slug: string;
+  distPath: string;
+}): Promise<{
+  publicUrl: string;
+  providerUrl: string;
+  projectName: string;
+}> {
+  const { deploymentId, slug, distPath } = opts;
+
+  const prefix = CLOUDFLARE_PAGES_PROJECT_PREFIX || 'deploy-your-app';
+  const projectName = `${prefix}-${slug}`.toLowerCase();
+
+  if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
+    throw new Error(
+      'Cloudflare account id/token not configured. Please set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN in your environment.',
+    );
+  }
+
+  appendLog(
+    deploymentId,
+    `Preparing Cloudflare Pages deployment for project "${projectName}" from ${distPath}`,
+    'info',
+  );
+
+  // Ensure the Pages project exists (idempotent).
+  await ensureCloudflarePagesProject(deploymentId, projectName);
+
+  appendLog(
+    deploymentId,
+    `Zipping build output directory for Cloudflare upload...`,
+    'info',
+  );
+
+  const zipBuffer = await zipDirectoryToBuffer(distPath);
+
+  const apiBase = 'https://api.cloudflare.com/client/v4';
+  const deployUrl = `${apiBase}/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${projectName}/deployments`;
+
+  appendLog(
+    deploymentId,
+    `Uploading deployment to Cloudflare Pages via API (${deployUrl})`,
+    'info',
+  );
+
+  let resp;
+  try {
+    // We send the ZIP file as the request body. Cloudflare interprets this
+    // as a direct-upload deployment for the given project.
+    resp = await fetch(deployUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
+        'Content-Type': 'application/zip',
+      },
+      // Buffer is accepted by Node's fetch implementation as a body.
+      body: zipBuffer,
+    });
+  } catch (err) {
+    throw new Error(
+      `Failed to upload deployment to Cloudflare Pages: ${String(err)}`,
+    );
+  }
+
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => '');
+    throw new Error(
+      `Cloudflare API error while creating deployment: ${resp.status} ${resp.statusText} ${text}`,
+    );
+  }
+
+  const providerUrl = `https://${projectName}.pages.dev/`;
+  const publicUrl = providerUrl;
+
+  appendLog(
+    deploymentId,
+    `Cloudflare Pages deployment successful: ${providerUrl}`,
+    'info',
+  );
+
+  return { publicUrl, providerUrl, projectName };
 }
 
 export async function copyDir(src: string, dest: string): Promise<void> {
@@ -215,8 +449,6 @@ export async function runDeployment(id: string): Promise<void> {
     deployment.workDir = workDir;
   }
 
-  const outputDir = path.join(staticRoot, slug);
-
   try {
     updateStatus(id, 'BUILDING');
     appendLog(id, `Starting deployment for "${project.name}"`, 'info');
@@ -258,18 +490,50 @@ export async function runDeployment(id: string): Promise<void> {
         'Could not find build output directory (tried dist/, build/, out/)',
       );
     }
-
     // Apply post-build fixes that operate on the output bundle (e.g. adjusting
     // asset paths for local preview).
     await applyFixesForDeployment(id, workDir, distPath);
 
-    appendLog(id, `Copying build output to ${outputDir}`, 'info');
-    await fs.promises.rm(outputDir, { recursive: true, force: true });
-    await copyDir(distPath, outputDir);
+    // Decide deployment target: prefer project-level setting, otherwise fall
+    // back to global default.
+    const target = project.deployTarget || DEPLOY_TARGET;
+
+    updateStatus(id, 'DEPLOYING');
+
+    let finalUrl: string;
+    let providerUrl: string | undefined;
+    let cloudflareProjectName: string | undefined;
+
+    if (target === 'cloudflare') {
+      const result = await deployToCloudflarePages({
+        deploymentId: id,
+        slug,
+        distPath,
+      });
+      finalUrl = result.publicUrl;
+      providerUrl = result.providerUrl;
+      cloudflareProjectName = result.projectName;
+    } else {
+      finalUrl = await deployToLocalStatic({
+        deploymentId: id,
+        slug,
+        distPath,
+      });
+    }
+
+    // Update project metadata with the final URLs.
+    project.url = finalUrl;
+    project.deployTarget = target;
+    if (providerUrl) {
+      project.providerUrl = providerUrl;
+    }
+    if (cloudflareProjectName) {
+      project.cloudflareProjectName = cloudflareProjectName;
+    }
 
     appendLog(
       id,
-      `Deployment complete. App is available at /apps/${slug}/`,
+      `Deployment complete. App is available at ${finalUrl}`,
       'success',
     );
 

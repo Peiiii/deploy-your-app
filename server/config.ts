@@ -8,6 +8,7 @@ const __dirname = path.dirname(__filename);
 // Minimal .env loader for the backend.
 // This ensures the Node server sees values from the root .env file
 // without adding an extra dependency.
+// NOTE: This runs as a side-effect when the backend starts.
 const envPath = path.resolve(__dirname, '..', '.env');
 try {
   const content = fs.readFileSync(envPath, 'utf8');
@@ -41,3 +42,26 @@ export const PLATFORM_AI_MODEL =
 // 我们平台自己的 DashScope Key，用于平台 AI 能力（不是用户自己的 key）
 export const DASHSCOPE_API_KEY =
   process.env.DASHSCOPE_API_KEY || process.env.DASHSCOPE_APIKEY || '';
+
+// ---------------------------------------------------------------------------
+// Deployment target & Cloudflare Pages configuration
+// ---------------------------------------------------------------------------
+
+export type DeployTarget = 'local' | 'cloudflare';
+
+// Where to deploy built apps by default.
+// - 'local': copy static assets to /apps/<slug>/ and serve from the Node server
+// - 'cloudflare': deploy to Cloudflare Pages (requires Cloudflare credentials)
+export const DEPLOY_TARGET: DeployTarget =
+  (process.env.DEPLOY_TARGET as DeployTarget) || 'local';
+
+// Cloudflare account / token for Pages API or wrangler CLI (future use).
+export const CLOUDFLARE_ACCOUNT_ID =
+  process.env.CLOUDFLARE_ACCOUNT_ID || '';
+export const CLOUDFLARE_API_TOKEN =
+  process.env.CLOUDFLARE_API_TOKEN || '';
+
+// Prefix for auto-generated Cloudflare Pages project names.
+// Final project name will be: <prefix>-<slug>
+export const CLOUDFLARE_PAGES_PROJECT_PREFIX =
+  process.env.CLOUDFLARE_PAGES_PROJECT_PREFIX || 'deploy-your-app';

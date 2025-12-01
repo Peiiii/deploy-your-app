@@ -14,6 +14,7 @@
     "@google/genai": "^1.30.0",
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.555.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

@@ -24,6 +24,12 @@ export interface Project {
   status: 'Live' | 'Building' | 'Failed' | 'Offline';
   url?: string;
   framework: 'React' | 'Vue' | 'Next.js' | 'Unknown';
+  // Where this project is deployed.
+  deployTarget?: 'local' | 'cloudflare';
+  // Provider-level URL (e.g. https://<project>.pages.dev) – mainly for debugging.
+  providerUrl?: string;
+  // Cloudflare Pages project name when using the Cloudflare provider.
+  cloudflareProjectName?: string;
 }
 
 export interface DeploymentRecord {
@@ -38,4 +44,3 @@ export interface AnalysisSession {
   repoUrl: string;
   filePath: string;
 }
-

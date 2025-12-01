@@ -1,10 +1,15 @@
 import { randomUUID } from 'crypto';
-import { projects } from './state.js';
 import type { Project } from './types.js';
 import { slugify } from './utils.js';
+import { DEPLOY_TARGET } from './config.js';
+import {
+  createProjectRecord,
+  type CreateProjectRecordInput,
+  getAllProjects,
+} from './projectRepository.js';
 
 export function getProjects(): Project[] {
-  return projects;
+  return getAllProjects();
 }
 
 interface CreateProjectInput {
@@ -22,7 +27,14 @@ export function createProject({
   const now = new Date().toISOString();
   const slug = slugify(name);
 
-  const url = `/apps/${encodeURIComponent(slug)}/`;
+  // For local deployments, we can compute the URL eagerly.
+  // For Cloudflare deployments, the final URL is only known after the first
+  // successful deploy, so we leave it undefined and let the deployment
+  // pipeline fill it in.
+  const url =
+    DEPLOY_TARGET === 'local'
+      ? `/apps/${encodeURIComponent(slug)}/`
+      : undefined;
 
   const project: Project = {
     id,
@@ -33,9 +45,23 @@ export function createProject({
     status: 'Live',
     url,
     framework: 'Unknown',
+    deployTarget: DEPLOY_TARGET,
+  };
+  const recordInput: CreateProjectRecordInput = {
+    id,
+    name,
+    repoUrl: identifier,
+    sourceType,
+    lastDeployed: now,
+    status: project.status,
+    url,
+    framework: project.framework,
+    deployTarget: project.deployTarget,
   };
 
-  projects.unshift(project);
+  // Persist to the local SQLite database so that project list survives
+  // backend restarts during development.
+  createProjectRecord(recordInput);
+
   return project;
 }
-
