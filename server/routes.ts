@@ -1,0 +1,145 @@
+import { randomUUID } from 'crypto';
+import { deployments, streams, analysisSessions, type StreamClient } from './state.js';
+import type { Project } from './types.js';
+import { runDeployment } from './deploymentService.js';
+import { createProject, getProjects } from './projectService.js';
+
+// Attach all API routes to the given Express app instance.
+export function registerRoutes(app: { get(path: string, handler: any): void; post(path: string, handler: any): void }): void {
+  // ----------------------
+  // Projects CRUD
+  // ----------------------
+
+  app.get('/api/v1/projects', (req, res) => {
+    res.json(getProjects());
+  });
+
+  app.post('/api/v1/projects', (req, res) => {
+    const { name, sourceType, identifier } = req.body || {};
+
+    if (!name || !identifier) {
+      return res.status(400).json({ error: 'name and identifier are required' });
+    }
+
+    const project = createProject({
+      name: String(name),
+      sourceType,
+      identifier: String(identifier),
+    });
+
+    res.json(project);
+  });
+
+  // ----------------------
+  // Code analysis (stubbed)
+  // ----------------------
+
+  app.post('/api/v1/analyze', async (req, res) => {
+    const { sourceCode } = req.body || {};
+
+    if (typeof sourceCode !== 'string') {
+      return res
+        .status(400)
+        .json({ error: 'sourceCode must be provided as a string.' });
+    }
+
+    // For now, we simply echo back the source and explain that analysis is disabled.
+    return res.json({
+      refactoredCode: sourceCode,
+      explanation:
+        'AI analysis is currently disabled for this environment. Code was not modified.',
+    });
+  });
+
+  // ----------------------
+  // Start deployment job
+  // ----------------------
+
+  app.post('/api/v1/deploy', (req, res) => {
+    const project = req.body as Project & { analysisId?: string };
+
+    if (!project || !project.name || !project.repoUrl) {
+      return res
+        .status(400)
+        .json({ error: 'project.name and project.repoUrl are required' });
+    }
+
+    const id = randomUUID();
+    const workDirFromAnalysis =
+      project.analysisId && analysisSessions.has(project.analysisId)
+        ? analysisSessions.get(project.analysisId)!.workDir
+        : null;
+
+    deployments.set(id, {
+      status: 'IDLE',
+      logs: [],
+      project,
+      workDir: workDirFromAnalysis,
+    });
+
+    res.json({ deploymentId: id });
+
+    // Fire and forget async job
+    runDeployment(id).catch((err) => {
+      console.error('Deployment job failed', err);
+    });
+  });
+
+  // ----------------------
+  // Deployment log stream (SSE)
+  // ----------------------
+
+  app.get('/api/v1/deployments/:id/stream', (req, res) => {
+    const { id } = req.params as { id: string };
+
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    });
+    res.write('\n');
+
+    let listeners = streams.get(id);
+    if (!listeners) {
+      listeners = new Set();
+      streams.set(id, listeners);
+    }
+    // Cast the Express response to our minimal StreamClient shape.
+    listeners.add(res as unknown as StreamClient);
+
+    // Send existing logs and status immediately
+    const deployment = deployments.get(id);
+    if (deployment) {
+      for (const log of deployment.logs) {
+        res.write(
+          `data: ${JSON.stringify({
+            type: 'log',
+            message: log.message,
+            level: log.level || 'info',
+          })}\n\n`,
+        );
+      }
+      res.write(
+        `data: ${JSON.stringify({
+          type: 'status',
+          status: deployment.status,
+        })}\n\n`,
+      );
+    }
+
+    const keepAlive = setInterval(() => {
+      res.write(':\n\n');
+    }, 15000);
+
+    req.on('close', () => {
+      clearInterval(keepAlive);
+      const set = streams.get(id);
+      if (set) {
+        set.delete(res);
+        if (set.size === 0) {
+          streams.delete(id);
+        }
+      }
+    });
+  });
+}

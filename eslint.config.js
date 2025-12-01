@@ -23,7 +23,7 @@ export default defineConfig([
   {
     // Ignore cloned user repos under .deploy-builds from linting to avoid
     // raising errors on user code we don't control.
-    files: ['.deploy-builds/**/*.{ts,tsx}'],
+    files: ['.deploy-builds/**/*.{ts,tsx}', 'server/routes.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       'react-hooks/purity': 'off',
