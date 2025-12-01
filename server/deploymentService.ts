@@ -9,12 +9,9 @@ import {
   type StreamClient,
 } from './state.js';
 import { buildsRoot, staticRoot } from './paths.js';
-import type {
-  DeploymentStatus,
-  LogLevel,
-  BuildLog,
-} from './types.js';
+import type { DeploymentStatus, LogLevel, BuildLog } from './types.js';
 import { slugify } from './utils.js';
+import { applyFixesForDeployment } from './fixPipeline.js';
 
 // Broadcast an event payload to all SSE clients for a given deployment id.
 export function broadcastEvent(id: string, payload: unknown): void {
@@ -236,6 +233,10 @@ export async function runDeployment(id: string): Promise<void> {
       appendLog(id, `Reusing prepared repository at ${workDir}`, 'info');
     }
 
+    // Apply repository-level fixes (like injecting missing entry scripts)
+    // before installing dependencies and building.
+    await applyFixesForDeployment(id, workDir);
+
     appendLog(id, 'Installing dependencies with npm', 'info');
     await runCommand(id, 'npm', ['install'], { cwd: workDir });
 
@@ -257,6 +258,10 @@ export async function runDeployment(id: string): Promise<void> {
         'Could not find build output directory (tried dist/, build/, out/)',
       );
     }
+
+    // Apply post-build fixes that operate on the output bundle (e.g. adjusting
+    // asset paths for local preview).
+    await applyFixesForDeployment(id, workDir, distPath);
 
     appendLog(id, `Copying build output to ${outputDir}`, 'info');
     await fs.promises.rm(outputDir, { recursive: true, force: true });
