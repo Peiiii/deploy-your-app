@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
+    "blake3-wasm": "^2.1.5",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "jszip": "^3.10.1",
