@@ -1,4 +1,8 @@
-import type { IDeploymentProvider } from '../interfaces';
+import type {
+  IDeploymentProvider,
+  AnalyzeCodeParams,
+  AnalyzeCodeResult,
+} from '../interfaces';
 import type { Project, BuildLog } from '../../types';
 import { DeploymentStatus } from '../../types';
 import { APP_CONFIG, API_ROUTES } from '../../constants';
@@ -6,25 +10,32 @@ import { APP_CONFIG, API_ROUTES } from '../../constants';
 export class HttpDeploymentProvider implements IDeploymentProvider {
   private baseUrl = APP_CONFIG.API_BASE_URL;
 
-  // 1. Send code to backend for security analysis
-  async analyzeCode(apiKey: string, sourceCode: string): Promise<{ refactoredCode: string; explanation: string }> {
+  // 1. Send code / repo metadata to backend for security analysis
+  async analyzeCode(params: AnalyzeCodeParams): Promise<AnalyzeCodeResult> {
+    const { apiKey, sourceCode, repoUrl, analysisId } = params;
+
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      // We no longer rely on the user key for billing, but we can forward it as optional context if needed.
+      if (apiKey) {
+        headers['X-User-AI-Key'] = apiKey;
+      }
+
       const response = await fetch(`${this.baseUrl}${API_ROUTES.ANALYZE}`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}` // Assuming the backend needs the key for billing or validation
-        },
-        body: JSON.stringify({ sourceCode })
+        headers,
+        body: JSON.stringify({ sourceCode, repoUrl, analysisId }),
       });
 
       if (!response.ok) {
         throw new Error(`Analysis failed: ${response.statusText}`);
       }
 
-      return await response.json();
+      return (await response.json()) as AnalyzeCodeResult;
     } catch (error) {
-      console.error("Backend analysis error:", error);
+      console.error('Backend analysis error:', error);
       throw error;
     }
   }

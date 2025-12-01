@@ -5,6 +5,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   return {
+    // This config file itself lives in the frontend root.
+    root: __dirname,
     plugins: [react()],
     server: {
       host: '0.0.0.0',

@@ -1,4 +1,4 @@
-import type { IDeploymentProvider } from '../interfaces';
+import type { IDeploymentProvider, AnalyzeCodeParams, AnalyzeCodeResult } from '../interfaces';
 import type { Project, BuildLog } from '../../types';
 import { DeploymentStatus } from '../../types';
 import { secureCodeForDeployment } from '../geminiService';
@@ -13,10 +13,15 @@ interface DetailedLog {
 }
 
 export class LocalDeploymentProvider implements IDeploymentProvider {
-  async analyzeCode(apiKey: string, sourceCode: string): Promise<{ refactoredCode: string; explanation: string }> {
+  async analyzeCode(params: AnalyzeCodeParams): Promise<AnalyzeCodeResult> {
+    const { apiKey, sourceCode = '' } = params;
     // Generate a fake proxy URL to simulate the backend infrastructure
     const proxyUrl = URLS.getProxyUrl(Math.random().toString(36).substring(7));
-    return secureCodeForDeployment(apiKey, sourceCode, proxyUrl);
+    const result = await secureCodeForDeployment(apiKey, sourceCode, proxyUrl);
+    return {
+      refactoredCode: result.refactoredCode,
+      explanation: result.explanation,
+    };
   }
 
   async startDeployment(

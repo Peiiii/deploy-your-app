@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
+import { createPlatformAIProvider } from './ai/platformProvider.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,6 +17,7 @@ const port = process.env.SERVER_PORT || 4173;
 const projects = [];
 const deployments = new Map(); // id -> { status, logs, project }
 const streams = new Map(); // id -> Set<res>
+const analysisSessions = new Map(); // analysisId -> { workDir, repoUrl, filePath }
 
 const rootDir = path.resolve(__dirname, '..');
 const buildsRoot = path.join(rootDir, '.deploy-builds');
@@ -23,6 +25,8 @@ const staticRoot = path.join(rootDir, 'apps');
 
 fs.mkdirSync(buildsRoot, { recursive: true });
 fs.mkdirSync(staticRoot, { recursive: true });
+
+const platformAI = createPlatformAIProvider();
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -122,15 +126,112 @@ function runCommand(id, command, args, options) {
   });
 }
 
+// Best-effort scan to find a file in the repo that looks like an AI client.
+async function findAIClientFile(rootDir) {
+  const candidates = ['src', ''];
+  const seen = new Set();
+  const patterns = ['@google/genai', 'GoogleGenAI', '@google-ai/generativelanguage'];
+
+  while (candidates.length > 0) {
+    const rel = candidates.shift();
+    const dir = path.join(rootDir, rel);
+    if (seen.has(dir)) continue;
+    seen.add(dir);
+
+    let entries;
+    try {
+      entries = await fs.promises.readdir(dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+
+    for (const entry of entries) {
+      const entryRel = path.join(rel, entry.name);
+      const full = path.join(rootDir, entryRel);
+
+      if (entry.isDirectory()) {
+        if (entry.name === 'node_modules' || entry.name.startsWith('.')) {
+          continue;
+        }
+        candidates.push(entryRel);
+      } else if (entry.isFile()) {
+        if (!/\.(t|j)sx?$/.test(entry.name)) continue;
+        let content;
+        try {
+          content = await fs.promises.readFile(full, 'utf8');
+        } catch {
+          continue;
+        }
+        if (patterns.some((p) => content.includes(p))) {
+          return {
+            filePath: entryRel.replace(/\\/g, '/'),
+            content,
+          };
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+async function prepareAnalysisSession(repoUrl) {
+  const analysisId = randomUUID();
+  const workDir = path.join(buildsRoot, `analysis-${analysisId}`);
+
+  await fs.promises.mkdir(workDir, { recursive: true });
+
+  // Clone the repo into the analysis workdir
+  const cloneArgs = ['clone', '--depth=1', repoUrl, workDir];
+  await new Promise((resolve, reject) => {
+    const child = spawn('git', cloneArgs, {
+      cwd: buildsRoot,
+      shell: false,
+      env: { ...process.env },
+    });
+    child.on('error', reject);
+    child.on('close', (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`git clone exited with code ${code}`));
+    });
+  });
+
+  const aiFile = await findAIClientFile(workDir);
+  if (!aiFile) {
+    throw new Error(
+      'Could not find any AI client file in the repo (looked for @google/genai / GoogleGenAI).',
+    );
+  }
+
+  analysisSessions.set(analysisId, {
+    workDir,
+    repoUrl,
+    filePath: aiFile.filePath,
+  });
+
+  return {
+    analysisId,
+    filePath: aiFile.filePath,
+    sourceCode: aiFile.content,
+  };
+}
+
 async function runDeployment(id) {
   const deployment = deployments.get(id);
   if (!deployment) return;
 
   const project = deployment.project;
   const repoUrl = project.repoUrl;
+  const analysisId = project.analysisId;
   const slug = slugify(project.name);
 
-  const workDir = path.join(buildsRoot, id);
+  // Reuse an existing prepared repo when analysis has been run, otherwise create a fresh workdir.
+  let workDir = deployment.workDir;
+  if (!workDir) {
+    workDir = path.join(buildsRoot, id);
+    deployment.workDir = workDir;
+  }
+
   const outputDir = path.join(staticRoot, slug);
 
   try {
@@ -139,10 +240,15 @@ async function runDeployment(id) {
 
     await fs.promises.mkdir(workDir, { recursive: true });
 
-    appendLog(id, `Cloning repository ${repoUrl}`, 'info');
-    await runCommand(id, 'git', ['clone', '--depth=1', repoUrl, workDir], {
-      cwd: buildsRoot,
-    });
+    const gitDir = path.join(workDir, '.git');
+    if (!fs.existsSync(gitDir)) {
+      appendLog(id, `Cloning repository ${repoUrl}`, 'info');
+      await runCommand(id, 'git', ['clone', '--depth=1', repoUrl, workDir], {
+        cwd: buildsRoot,
+      });
+    } else {
+      appendLog(id, `Reusing prepared repository at ${workDir}`, 'info');
+    }
 
     appendLog(id, 'Installing dependencies with npm', 'info');
     await runCommand(id, 'npm', ['install'], { cwd: workDir });
@@ -184,6 +290,10 @@ async function runDeployment(id) {
       'error',
     );
     updateStatus(id, 'FAILED');
+  } finally {
+    if (analysisId && analysisSessions.has(analysisId)) {
+      analysisSessions.delete(analysisId);
+    }
   }
 }
 
@@ -223,21 +333,68 @@ app.post('/api/v1/projects', (req, res) => {
   res.json(project);
 });
 
-// Code analysis (MVP: stub, does not call Gemini yet)
-app.post('/api/v1/analyze', (req, res) => {
-  const { sourceCode } = req.body || {};
-  if (typeof sourceCode !== 'string') {
-    return res.status(400).json({ error: 'sourceCode must be a string' });
+// Code analysis using platform AI (DashScope/Qwen by default)
+app.post('/api/v1/analyze', async (req, res) => {
+  try {
+    const { sourceCode, repoUrl, analysisId } = req.body || {};
+
+    let effectiveAnalysisId = analysisId;
+    let session = effectiveAnalysisId
+      ? analysisSessions.get(effectiveAnalysisId)
+      : null;
+    let codeToAnalyze;
+    let sourceFilePath = session?.filePath;
+
+    // If we have a repo URL, always prefer analyzing real repo code.
+    if (!session && repoUrl) {
+      const prepared = await prepareAnalysisSession(repoUrl);
+      effectiveAnalysisId = prepared.analysisId;
+      session = analysisSessions.get(effectiveAnalysisId);
+      sourceFilePath = prepared.filePath;
+      codeToAnalyze = prepared.sourceCode;
+    }
+
+    // If repo-based detection didn't succeed, fall back to the explicit snippet.
+    if (
+      !codeToAnalyze &&
+      typeof sourceCode === 'string' &&
+      sourceCode.length > 0
+    ) {
+      codeToAnalyze = sourceCode;
+    }
+
+    if (!codeToAnalyze) {
+      return res.status(400).json({
+        error:
+          'sourceCode is required when repoUrl or analysisId are not provided, or when no AI client file can be detected.',
+      });
+    }
+
+    const result = await platformAI.analyzeUserCode({ sourceCode: codeToAnalyze });
+
+    // If we have a prepared repo, write the refactored code back to the detected file.
+    if (session && sourceFilePath) {
+      const targetPath = path.join(session.workDir, sourceFilePath);
+      await fs.promises.writeFile(targetPath, result.refactoredCode, 'utf8');
+    }
+
+    return res.json({
+      refactoredCode: result.refactoredCode,
+      explanation: result.explanation,
+      analysisId: effectiveAnalysisId,
+      sourceFilePath,
+      originalCode: codeToAnalyze,
+    });
+  } catch (error) {
+    console.error('Platform AI analyze error:', error);
+    const headerHint =
+      '// NOTE: Platform AI analysis failed. Returning your original code.\n';
+    return res.status(500).json({
+      refactoredCode: `${headerHint}${typeof req.body?.sourceCode === 'string' ? req.body.sourceCode : ''}`,
+      explanation:
+        'Platform AI analysis failed on the server. The code was returned unchanged; please check server logs or AI provider configuration.',
+    });
   }
-
-  const headerHint =
-    '// TODO: Integrate real Gemini-based security hardening on the backend.\n';
-
-  res.json({
-    refactoredCode: `${headerHint}${sourceCode}`,
-    explanation:
-      'MVP stub: this backend currently echoes your code with a note. In the next step it will call Gemini and inject a secure proxy base URL.',
-  });
 });
 
 // Start deployment job
@@ -251,10 +408,16 @@ app.post('/api/v1/deploy', (req, res) => {
   }
 
   const id = randomUUID();
+  const workDirFromAnalysis =
+    project.analysisId && analysisSessions.has(project.analysisId)
+      ? analysisSessions.get(project.analysisId).workDir
+      : null;
+
   deployments.set(id, {
     status: 'IDLE',
     logs: [],
     project,
+    workDir: workDirFromAnalysis,
   });
 
   res.json({ deploymentId: id });
@@ -322,4 +485,3 @@ app.get('/api/v1/deployments/:id/stream', (req, res) => {
 app.listen(port, () => {
   console.log(`Backend server listening on http://localhost:${port}`);
 });
-

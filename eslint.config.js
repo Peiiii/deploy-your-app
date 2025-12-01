@@ -20,4 +20,16 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // Ignore cloned user repos under .deploy-builds from linting to avoid
+    // raising errors on user code we don't control.
+    files: ['.deploy-builds/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      'react-hooks/purity': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      'react-refresh/only-export-components': 'off',
+      'react-hooks/refs': 'off',
+    },
+  },
 ])

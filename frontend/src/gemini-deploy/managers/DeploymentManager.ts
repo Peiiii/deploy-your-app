@@ -14,17 +14,27 @@ export class DeploymentManager {
     const store = useDeploymentStore.getState();
     const actions = store.actions;
 
-    if (!store.apiKey) {
-      alert("Please provide a valid Gemini API Key to enable the security analysis.");
-      return;
-    }
-
     actions.setIsAnalyzing(true);
     actions.setExplanation('');
 
     try {
-      // Delegate to provider
-      const result = await this.provider.analyzeCode(store.apiKey, store.sourceCode);
+      // Delegate to provider, always using repo metadata so backend can clone and analyze real code.
+      const result = await this.provider.analyzeCode({
+        apiKey: store.apiKey,
+        repoUrl: store.sourceType === 'github' ? store.repoUrl : undefined,
+        analysisId: store.analysisId || undefined,
+      });
+
+      if (result.originalCode) {
+        actions.setSourceCode(result.originalCode);
+      }
+      if (result.analysisId) {
+        actions.setAnalysisId(result.analysisId);
+      }
+      if (result.sourceFilePath) {
+        actions.setSourceFilePath(result.sourceFilePath);
+      }
+
       actions.setAnalyzedCode(result.refactoredCode);
       actions.setExplanation(result.explanation);
     } catch (e) {
@@ -44,13 +54,17 @@ export class DeploymentManager {
     actions.clearLogs();
 
     const tempProject: Project = {
-        id: 'temp',
-        name: store.projectName,
-        repoUrl: store.sourceType === 'github' ? store.repoUrl : (store.zipFile?.name || 'archive.zip'),
-        sourceType: store.sourceType,
-        lastDeployed: '',
-        status: 'Building',
-        framework: 'Unknown'
+      id: 'temp',
+      name: store.projectName,
+      repoUrl:
+        store.sourceType === 'github'
+          ? store.repoUrl
+          : store.zipFile?.name || 'archive.zip',
+      sourceType: store.sourceType,
+      analysisId: store.analysisId || undefined,
+      lastDeployed: '',
+      status: 'Building',
+      framework: 'Unknown',
     };
 
     try {

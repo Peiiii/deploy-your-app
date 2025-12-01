@@ -1,18 +1,10 @@
 import { create } from 'zustand';
 import { DeploymentStatus } from '../types';
 import type { BuildLog } from '../types';
-import { APP_CONFIG } from '../constants';
 
-export const DEFAULT_CODE_SNIPPET = `import { GoogleGenAI } from "@google/genai";
-
-// This is unsafe for client-side!
-const ai = new GoogleGenAI({ 
-  apiKey: process.env.API_KEY 
-});
-
-const model = ai.models.getGenerativeModel({ 
-  model: "${APP_CONFIG.DEFAULT_AI_MODEL}" 
-});`;
+// No default sample code – content should always come from the user's repo
+// or from what the user manually pastes into the textarea.
+export const DEFAULT_CODE_SNIPPET = '';
 
 interface DeploymentState {
   step: number;
@@ -24,6 +16,9 @@ interface DeploymentState {
   deploymentStatus: DeploymentStatus;
   logs: BuildLog[];
   sourceCode: string;
+  // When analyzing a real repo, we track the backend session id and file path.
+  analysisId: string;
+  sourceFilePath: string;
   analyzedCode: string;
   explanation: string;
   isAnalyzing: boolean;
@@ -39,6 +34,8 @@ interface DeploymentState {
     addLog: (log: BuildLog) => void;
     clearLogs: () => void;
     setSourceCode: (code: string) => void;
+    setAnalysisId: (id: string) => void;
+    setSourceFilePath: (path: string) => void;
     setAnalyzedCode: (code: string) => void;
     setExplanation: (text: string) => void;
     setIsAnalyzing: (isAnalyzing: boolean) => void;
@@ -56,6 +53,8 @@ export const useDeploymentStore = create<DeploymentState>((set) => ({
   deploymentStatus: DeploymentStatus.IDLE,
   logs: [],
   sourceCode: DEFAULT_CODE_SNIPPET,
+  analysisId: '',
+  sourceFilePath: '',
   analyzedCode: '',
   explanation: '',
   isAnalyzing: false,
@@ -71,6 +70,8 @@ export const useDeploymentStore = create<DeploymentState>((set) => ({
     addLog: (log) => set((state) => ({ logs: [...state.logs, log] })),
     clearLogs: () => set({ logs: [] }),
     setSourceCode: (sourceCode) => set({ sourceCode }),
+    setAnalysisId: (analysisId) => set({ analysisId }),
+    setSourceFilePath: (sourceFilePath) => set({ sourceFilePath }),
     setAnalyzedCode: (analyzedCode) => set({ analyzedCode }),
     setExplanation: (explanation) => set({ explanation }),
     setIsAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
@@ -84,6 +85,8 @@ export const useDeploymentStore = create<DeploymentState>((set) => ({
       deploymentStatus: DeploymentStatus.IDLE,
       logs: [],
       sourceCode: DEFAULT_CODE_SNIPPET,
+      analysisId: '',
+      sourceFilePath: '',
       analyzedCode: '',
       explanation: '',
       isAnalyzing: false,

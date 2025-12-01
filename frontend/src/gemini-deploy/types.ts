@@ -12,6 +12,8 @@ export interface Project {
   name: string;
   repoUrl: string; // Used as source identifier (URL for git, filename for zip)
   sourceType?: 'github' | 'zip';
+  // Optional analysis session id that links this project to a prepared repo on the backend
+  analysisId?: string;
   lastDeployed: string;
   status: 'Live' | 'Building' | 'Failed' | 'Offline';
   url?: string;
