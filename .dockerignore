@@ -1,0 +1,16 @@
+node_modules
+server/node_modules
+frontend/node_modules
+
+dist
+server/dist
+frontend/dist
+
+.git
+.gitignore
+.DS_Store
+.vscode
+
+.deploy-builds
+data
+
