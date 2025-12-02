@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  server:
+    image: deploy-your-app-server:latest
+    container_name: deploy-your-app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-4173}:4173"
+    volumes:
+      - ./data:/data
+    environment:
+      - NODE_ENV=production
+      - DATA_DIR=/data
+      - PORT=4173
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4173/api/v1/projects"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+

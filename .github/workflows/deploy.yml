@@ -1,0 +1,54 @@
+name: Deploy to Aliyun Server
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t deploy-your-app-server:latest .
+
+      - name: Save Docker image
+        run: |
+          docker save deploy-your-app-server:latest | gzip > deploy-image.tar.gz
+
+      - name: Upload deployment files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.ALIYUN_HOST }}
+          username: ${{ secrets.ALIYUN_USER }}
+          key: ${{ secrets.ALIYUN_SSH_KEY }}
+          port: ${{ secrets.ALIYUN_PORT || 22 }}
+          source: "deploy-image.tar.gz,scripts/deploy.sh"
+          target: "/tmp/deploy-your-app"
+          strip_components: 0
+
+      - name: Execute deployment script
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.ALIYUN_HOST }}
+          username: ${{ secrets.ALIYUN_USER }}
+          key: ${{ secrets.ALIYUN_SSH_KEY }}
+          port: ${{ secrets.ALIYUN_PORT || 22 }}
+          script: |
+            mkdir -p /tmp/deploy-your-app
+            chmod +x /tmp/deploy-your-app/scripts/deploy.sh
+            /tmp/deploy-your-app/scripts/deploy.sh /tmp/deploy-your-app/deploy-image.tar.gz
+            # Cleanup
+            rm -f /tmp/deploy-your-app/deploy-image.tar.gz
+
