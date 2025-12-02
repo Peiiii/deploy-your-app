@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { staticRoot } from './paths.js';
+import { CONFIG } from './config.js';
 import { registerRoutes } from './routes.js';
 
 const app = express();
@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 // Serve built apps under /apps/:project
-app.use('/apps', express.static(staticRoot));
+app.use('/apps', express.static(CONFIG.paths.staticRoot));
 
 // Register API routes
 registerRoutes(app);

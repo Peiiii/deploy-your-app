@@ -1,8 +1,12 @@
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
 import type {
   AppConfig,
   DeployTarget,
   PlatformAIConfig,
   CloudflareConfig,
+  PathsConfig,
 } from './configTypes.js';
 import { getEnv, getEnvOrDefault, loadBackendEnv } from './env.js';
 
@@ -15,6 +19,7 @@ export type {
   AppConfig,
   CloudflareConfig,
   DeployTarget,
+  PathsConfig,
   PlatformAIConfig,
 } from './configTypes.js';
 
@@ -59,6 +64,41 @@ function parseCloudflareConfig(): CloudflareConfig {
   };
 }
 
+/**
+ * Calculate the root directory of the monorepo.
+ * - When running from TS in /server, __dirname is "<root>/server"
+ * - When running from compiled JS in /server/dist, __dirname is "<root>/server/dist"
+ * In both cases, going two levels up lands at the repo root.
+ */
+function getRootDir(): string {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  return path.resolve(__dirname, '..', '..');
+}
+
+function resolveFromRoot(relOrAbs: string, rootDir: string): string {
+  if (path.isAbsolute(relOrAbs)) return relOrAbs;
+  return path.join(rootDir, relOrAbs);
+}
+
+function parsePathsConfig(rootDir: string): PathsConfig {
+  // Only configure one base data directory - all other paths are subdirectories
+  const dataDirEnv = getEnvOrDefault('DATA_DIR', 'data');
+  const dataDir = resolveFromRoot(dataDirEnv, rootDir);
+
+  // All subdirectories are automatically created under dataDir
+  const buildsRoot = path.join(dataDir, 'builds');
+  const staticRoot = path.join(dataDir, 'apps');
+  const projectsFile = path.join(dataDir, 'projects.json');
+
+  return {
+    dataDir,
+    buildsRoot,
+    staticRoot,
+    projectsFile,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Central configuration object
 // ---------------------------------------------------------------------------
@@ -67,10 +107,19 @@ function parseCloudflareConfig(): CloudflareConfig {
  * Central, typed configuration object.
  * All other exports below are convenience aliases for existing call sites.
  */
+const rootDir = getRootDir();
+const pathsConfig = parsePathsConfig(rootDir);
+
+// Ensure base data directory and all subdirectories exist
+fs.mkdirSync(pathsConfig.dataDir, { recursive: true });
+fs.mkdirSync(pathsConfig.buildsRoot, { recursive: true });
+fs.mkdirSync(pathsConfig.staticRoot, { recursive: true });
+
 export const CONFIG: AppConfig = Object.freeze({
   deployTarget: parseDeployTarget(getEnv('DEPLOY_TARGET')),
   platformAI: parsePlatformAIConfig(),
   cloudflare: parseCloudflareConfig(),
+  paths: pathsConfig,
 });
 
 // ---------------------------------------------------------------------------

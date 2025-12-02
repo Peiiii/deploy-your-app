@@ -15,9 +15,19 @@ export interface CloudflareConfig {
   pagesProjectPrefix: string;
 }
 
+export interface PathsConfig {
+  // Base data directory - all other paths are subdirectories of this
+  dataDir: string;
+  // Subdirectories automatically created under dataDir
+  buildsRoot: string;
+  staticRoot: string;
+  projectsFile: string;
+}
+
 export interface AppConfig {
   deployTarget: DeployTarget;
   platformAI: PlatformAIConfig;
   cloudflare: CloudflareConfig;
+  paths: PathsConfig;
 }
 

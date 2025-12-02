@@ -7,6 +7,7 @@
     "dev": "concurrently \"pnpm --filter deploy-your-app-frontend dev\" \"pnpm --filter deploy-your-app-server dev\"",
     "dev:frontend": "pnpm --filter deploy-your-app-frontend dev",
     "dev:server": "pnpm --filter deploy-your-app-server dev",
+    "start": "pnpm --filter deploy-your-app-server start",
     "build": "pnpm --filter deploy-your-app-server build && pnpm --filter deploy-your-app-frontend build",
     "build:server": "pnpm --filter deploy-your-app-server build",
     "build:frontend": "pnpm --filter deploy-your-app-frontend build",

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch index.ts",
-    "build": "tsc -b"
+    "build": "tsc -b",
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",

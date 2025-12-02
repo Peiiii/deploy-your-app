@@ -8,7 +8,7 @@ import {
   streams,
   type StreamClient,
 } from './state.js';
-import { buildsRoot, staticRoot } from './paths.js';
+import { CONFIG } from './config.js';
 import type { DeploymentStatus, LogLevel, BuildLog } from './types.js';
 import { slugify } from './utils.js';
 import { applyFixesForDeployment } from './fixPipeline.js';
@@ -196,7 +196,7 @@ async function deployToLocalStatic(opts: {
   distPath: string;
 }): Promise<string> {
   const { deploymentId, slug, distPath } = opts;
-  const outputDir = path.join(staticRoot, slug);
+  const outputDir = path.join(CONFIG.paths.staticRoot, slug);
 
   appendLog(
     deploymentId,
@@ -330,7 +330,7 @@ export async function prepareAnalysisSession(repoUrl: string): Promise<{
   sourceCode: string;
 }> {
   const analysisId = randomUUID();
-  const workDir = path.join(buildsRoot, `analysis-${analysisId}`);
+  const workDir = path.join(CONFIG.paths.buildsRoot, `analysis-${analysisId}`);
 
   await fs.promises.mkdir(workDir, { recursive: true });
 
@@ -338,7 +338,7 @@ export async function prepareAnalysisSession(repoUrl: string): Promise<{
   const cloneArgs = ['clone', '--depth=1', repoUrl, workDir];
   await new Promise<void>((resolve, reject) => {
     const child = spawn('git', cloneArgs, {
-      cwd: buildsRoot,
+      cwd: CONFIG.paths.buildsRoot,
       shell: false,
       env: { ...process.env },
     });
@@ -380,7 +380,7 @@ export async function runDeployment(id: string): Promise<void> {
   // Reuse an existing prepared repo when analysis has been run, otherwise create a fresh workdir.
   let workDir = deployment.workDir;
   if (!workDir) {
-    workDir = path.join(buildsRoot, id);
+    workDir = path.join(CONFIG.paths.buildsRoot, id);
     deployment.workDir = workDir;
   }
 

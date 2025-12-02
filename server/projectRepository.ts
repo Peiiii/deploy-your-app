@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import type { Project } from './types.js';
-import { dataDir, projectsFile } from './paths.js';
+import { CONFIG } from './config.js';
 
 // For local Node/Express development we keep projects in a simple JSON file
 // under data/projects.json so that they survive backend restarts. The shape
@@ -26,15 +26,15 @@ export interface CreateProjectRecordInput {
 }
 
 function ensureStorage(): void {
-  fs.mkdirSync(dataDir, { recursive: true });
-  if (!fs.existsSync(projectsFile)) {
-    fs.writeFileSync(projectsFile, '[]', 'utf8');
+  fs.mkdirSync(CONFIG.paths.dataDir, { recursive: true });
+  if (!fs.existsSync(CONFIG.paths.projectsFile)) {
+    fs.writeFileSync(CONFIG.paths.projectsFile, '[]', 'utf8');
   }
 }
 
 function readAllRows(): ProjectRow[] {
   ensureStorage();
-  const raw = fs.readFileSync(projectsFile, 'utf8');
+  const raw = fs.readFileSync(CONFIG.paths.projectsFile, 'utf8');
   try {
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
@@ -48,7 +48,7 @@ function readAllRows(): ProjectRow[] {
 
 function writeAllRows(rows: ProjectRow[]): void {
   ensureStorage();
-  fs.writeFileSync(projectsFile, JSON.stringify(rows, null, 2), 'utf8');
+  fs.writeFileSync(CONFIG.paths.projectsFile, JSON.stringify(rows, null, 2), 'utf8');
 }
 
 export function createProjectRecord(input: CreateProjectRecordInput): Project {
