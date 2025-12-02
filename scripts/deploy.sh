@@ -61,23 +61,41 @@ echo "⏳ Waiting for container to start..."
 sleep 3
 
 # Check container status
-if docker ps | grep -q "$CONTAINER_NAME"; then
+echo ""
+echo "🔍 Checking container status..."
+if docker ps --filter "name=$CONTAINER_NAME" --format "{{.Names}}" | grep -q "$CONTAINER_NAME"; then
   echo "✅ Container is running!"
   echo ""
   echo "📋 Container status:"
-  docker ps --filter "name=$CONTAINER_NAME"
+  docker ps --filter "name=$CONTAINER_NAME" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
   echo ""
   echo "📝 Recent logs:"
-  docker logs --tail 20 "$CONTAINER_NAME"
+  docker logs --tail 20 "$CONTAINER_NAME" 2>&1
   echo ""
   echo "✅ Deployment completed successfully!"
   echo ""
-  echo "🌐 Service URL: http://$(hostname -I | awk '{print $1}'):${HOST_PORT}"
-  echo "📊 API endpoint: http://$(hostname -I | awk '{print $1}'):${HOST_PORT}/api/v1/projects"
+  SERVER_IP=$(hostname -I | awk '{print $1}' 2>/dev/null || echo "localhost")
+  echo "🌐 Service URL: http://${SERVER_IP}:${HOST_PORT}"
+  echo "📊 API endpoint: http://${SERVER_IP}:${HOST_PORT}/api/v1/projects"
 else
-  echo "❌ Container failed to start!"
-  echo "📝 Error logs:"
-  docker logs "$CONTAINER_NAME" || true
+  echo "❌ Container failed to start or does not exist!"
+  echo ""
+  echo "📋 Checking if container exists (stopped):"
+  if docker ps -a --filter "name=$CONTAINER_NAME" --format "{{.Names}}" | grep -q "$CONTAINER_NAME"; then
+    echo "Container exists but is not running:"
+    docker ps -a --filter "name=$CONTAINER_NAME" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+    echo ""
+    echo "📝 Container logs:"
+    docker logs "$CONTAINER_NAME" 2>&1 || echo "Failed to get logs"
+  else
+    echo "Container does not exist at all!"
+    echo ""
+    echo "📋 Checking Docker images:"
+    docker images | grep "$IMAGE_NAME" || echo "No images found for $IMAGE_NAME"
+    echo ""
+    echo "📋 All containers:"
+    docker ps -a
+  fi
   exit 1
 fi
 

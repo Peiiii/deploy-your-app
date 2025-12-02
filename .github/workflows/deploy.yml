@@ -62,27 +62,50 @@ jobs:
           script: |
             echo "🔍 Verifying deployment..."
             sleep 5
-            # Check container status
-            if docker ps --filter "name=deploy-your-app" | grep -q "deploy-your-app"; then
-              echo "✅ Container is running"
-              docker ps --filter "name=deploy-your-app" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+            
+            CONTAINER_NAME="deploy-your-app"
+            PORT=${PORT:-4173}
+            
+            # Check if container exists (running or stopped)
+            if docker ps -a --filter "name=${CONTAINER_NAME}" --format "{{.Names}}" | grep -q "${CONTAINER_NAME}"; then
+              echo "📋 Container exists"
+              # Check if container is running
+              if docker ps --filter "name=${CONTAINER_NAME}" --format "{{.Names}}" | grep -q "${CONTAINER_NAME}"; then
+                echo "✅ Container is running"
+                docker ps --filter "name=${CONTAINER_NAME}" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+              else
+                echo "❌ Container exists but is not running"
+                echo "📋 Container status:"
+                docker ps -a --filter "name=${CONTAINER_NAME}" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+                echo ""
+                echo "📝 Container logs:"
+                docker logs --tail 30 "${CONTAINER_NAME}" 2>&1 || echo "Failed to get logs"
+                exit 1
+              fi
             else
-              echo "❌ Container is not running"
-              docker ps -a --filter "name=deploy-your-app"
+              echo "❌ Container does not exist"
+              echo "📋 All containers:"
+              docker ps -a
+              echo ""
+              echo "📋 Available images:"
+              docker images | grep deploy-your-app || echo "No deploy-your-app images found"
               exit 1
             fi
+            
             # Test API endpoint
-            PORT=${PORT:-4173}
             echo ""
             echo "🧪 Testing API endpoint..."
-            if curl -f -s http://localhost:${PORT}/api/v1/projects > /dev/null; then
+            if curl -f -s http://localhost:${PORT}/api/v1/projects > /dev/null 2>&1; then
               echo "✅ API is responding (HTTP 200)"
               echo "🌐 Service URL: http://${{ secrets.ALIYUN_HOST }}:${PORT}"
               echo "📊 API endpoint: http://${{ secrets.ALIYUN_HOST }}:${PORT}/api/v1/projects"
             else
               echo "❌ API is not responding"
               echo "📝 Container logs:"
-              docker logs --tail 30 deploy-your-app
+              docker logs --tail 30 "${CONTAINER_NAME}" 2>&1 || echo "Failed to get logs"
+              echo ""
+              echo "🔍 Checking port binding:"
+              netstat -tulpn | grep ${PORT} || ss -tulpn | grep ${PORT} || echo "Port ${PORT} not found"
               exit 1
             fi
 
