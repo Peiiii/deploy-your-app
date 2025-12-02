@@ -10,7 +10,10 @@ IMAGE_NAME="deploy-your-app-server"
 CONTAINER_NAME="deploy-your-app"
 APP_DIR="/opt/deploy-your-app"
 DATA_DIR="/opt/deploy-your-app/data"
-PORT="${PORT:-4173}"
+# Host port (can be overridden via PORT environment variable)
+HOST_PORT="${PORT:-4173}"
+# Container internal port (always 4173 as defined in Dockerfile)
+CONTAINER_PORT=4173
 
 if [ -z "$IMAGE_TAR" ]; then
   echo "❌ Error: Docker image tar file path is required"
@@ -39,14 +42,16 @@ docker images "${IMAGE_NAME}" --format "{{.ID}}" | head -n -1 | xargs -r docker 
 
 # Start new container
 echo "🚀 Starting new container..."
+echo "   Host port: ${HOST_PORT}"
+echo "   Container port: ${CONTAINER_PORT}"
 docker run -d \
   --name "$CONTAINER_NAME" \
   --restart unless-stopped \
-  -p "${PORT}:4173" \
+  -p "${HOST_PORT}:${CONTAINER_PORT}" \
   -v "${DATA_DIR}:/data" \
   -e NODE_ENV=production \
   -e DATA_DIR=/data \
-  -e PORT=4173 \
+  -e PORT=${CONTAINER_PORT} \
   "${IMAGE_NAME}:latest"
 
 # Wait for container to start
