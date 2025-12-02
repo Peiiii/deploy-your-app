@@ -46,7 +46,18 @@ docker images "${IMAGE_NAME}" --format "{{.ID}}" | head -n -1 | xargs -r docker 
 echo "🚀 Starting new container..."
 echo "   Host port: ${HOST_PORT}"
 echo "   Container port: ${CONTAINER_PORT}"
-docker run -d \
+echo "   Image: ${IMAGE_NAME}:latest"
+
+# Check if image exists
+if ! docker images "${IMAGE_NAME}:latest" --format "{{.Repository}}:{{.Tag}}" | grep -q "${IMAGE_NAME}:latest"; then
+  echo "❌ Error: Docker image ${IMAGE_NAME}:latest not found!"
+  echo "Available images:"
+  docker images | grep "${IMAGE_NAME}" || echo "No images found"
+  exit 1
+fi
+
+# Try to start container
+CONTAINER_ID=$(docker run -d \
   --name "$CONTAINER_NAME" \
   --restart unless-stopped \
   -p "${HOST_PORT}:${CONTAINER_PORT}" \
@@ -54,11 +65,17 @@ docker run -d \
   -e NODE_ENV=production \
   -e DATA_DIR=/data \
   -e PORT=${CONTAINER_PORT} \
-  "${IMAGE_NAME}:latest"
+  "${IMAGE_NAME}:latest" 2>&1) || {
+  echo "❌ Failed to start container!"
+  echo "Error: $CONTAINER_ID"
+  exit 1
+}
+
+echo "✅ Container started with ID: ${CONTAINER_ID}"
 
 # Wait for container to start
 echo "⏳ Waiting for container to start..."
-sleep 3
+sleep 5
 
 # Check container status
 echo ""
@@ -85,8 +102,14 @@ else
     echo "Container exists but is not running:"
     docker ps -a --filter "name=$CONTAINER_NAME" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
     echo ""
-    echo "📝 Container logs:"
-    docker logs "$CONTAINER_NAME" 2>&1 || echo "Failed to get logs"
+    echo "📝 Container exit code:"
+    docker inspect "$CONTAINER_NAME" --format='{{.State.ExitCode}}' 2>/dev/null || echo "Unknown"
+    echo ""
+    echo "📝 Container logs (last 50 lines):"
+    docker logs --tail 50 "$CONTAINER_NAME" 2>&1 || echo "Failed to get logs"
+    echo ""
+    echo "🔍 Container state details:"
+    docker inspect "$CONTAINER_NAME" --format='State: {{.State.Status}}, ExitCode: {{.State.ExitCode}}, Error: {{.State.Error}}' 2>/dev/null || echo "Failed to inspect"
   else
     echo "Container does not exist at all!"
     echo ""
@@ -96,6 +119,9 @@ else
     echo "📋 All containers:"
     docker ps -a
   fi
+  echo ""
+  echo "🔍 Checking port availability:"
+  netstat -tulpn 2>/dev/null | grep ":${HOST_PORT} " || ss -tulpn 2>/dev/null | grep ":${HOST_PORT} " || echo "Port ${HOST_PORT} appears to be available"
   exit 1
 fi
 
