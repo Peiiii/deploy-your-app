@@ -22,6 +22,8 @@ if [ -z "$IMAGE_TAR" ]; then
 fi
 
 echo "🚀 Starting deployment..."
+echo "📅 Deployment time: $(date)"
+echo "🐳 Docker version: $(docker --version)"
 
 # Create application directory if it doesn't exist
 mkdir -p "$APP_DIR"
@@ -69,6 +71,9 @@ if docker ps | grep -q "$CONTAINER_NAME"; then
   docker logs --tail 20 "$CONTAINER_NAME"
   echo ""
   echo "✅ Deployment completed successfully!"
+  echo ""
+  echo "🌐 Service URL: http://$(hostname -I | awk '{print $1}'):${HOST_PORT}"
+  echo "📊 API endpoint: http://$(hostname -I | awk '{print $1}'):${HOST_PORT}/api/v1/projects"
 else
   echo "❌ Container failed to start!"
   echo "📝 Error logs:"
