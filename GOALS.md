@@ -1,4 +1,7 @@
-# 产品目标：deploy-your-app
+# 产品目标：Gemini2App
+
+**产品名称**: Gemini2App  
+**域名**: gemini2app.com
 
 ## 1. 产品定位
 - 面向对象：前端应用（以 Vite/React 为主），输出为静态构建产物（例如 `npm run build` → `dist/`）。
