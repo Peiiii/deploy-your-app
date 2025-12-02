@@ -52,3 +52,37 @@ jobs:
             # Cleanup
             rm -f /tmp/deploy-your-app/deploy-image.tar.gz
 
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.ALIYUN_HOST }}
+          username: ${{ secrets.ALIYUN_USER }}
+          key: ${{ secrets.ALIYUN_SSH_KEY }}
+          port: ${{ secrets.ALIYUN_PORT || 22 }}
+          script: |
+            echo "🔍 Verifying deployment..."
+            sleep 5
+            # Check container status
+            if docker ps --filter "name=deploy-your-app" | grep -q "deploy-your-app"; then
+              echo "✅ Container is running"
+              docker ps --filter "name=deploy-your-app" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+            else
+              echo "❌ Container is not running"
+              docker ps -a --filter "name=deploy-your-app"
+              exit 1
+            fi
+            # Test API endpoint
+            PORT=${PORT:-4173}
+            echo ""
+            echo "🧪 Testing API endpoint..."
+            if curl -f -s http://localhost:${PORT}/api/v1/projects > /dev/null; then
+              echo "✅ API is responding (HTTP 200)"
+              echo "🌐 Service URL: http://${{ secrets.ALIYUN_HOST }}:${PORT}"
+              echo "📊 API endpoint: http://${{ secrets.ALIYUN_HOST }}:${PORT}/api/v1/projects"
+            else
+              echo "❌ API is not responding"
+              echo "📝 Container logs:"
+              docker logs --tail 30 deploy-your-app
+              exit 1
+            fi
+

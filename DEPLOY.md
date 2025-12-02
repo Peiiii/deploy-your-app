@@ -86,6 +86,49 @@ cat ~/.ssh/aliyun_deploy
 2. 选择 `Deploy to Aliyun Server` workflow
 3. 点击 `Run workflow`
 
+## 确认部署成功
+
+### 方法 1: 查看 GitHub Actions 日志
+
+1. 进入 GitHub 仓库的 **Actions** 标签页
+2. 点击最新的工作流运行
+3. 查看 "Execute deployment script" 步骤的日志
+4. 如果看到 `✅ Deployment completed successfully!` 表示部署成功
+
+### 方法 2: 在服务器上运行检查脚本
+
+```bash
+# 上传检查脚本到服务器（如果还没有）
+# 或者直接在服务器上运行检查命令
+
+# 检查容器状态
+docker ps --filter "name=deploy-your-app"
+
+# 查看日志
+docker logs --tail 50 deploy-your-app
+
+# 测试 API
+curl http://localhost:4173/api/v1/projects
+```
+
+### 方法 3: 从外部测试 API
+
+```bash
+# 替换为你的服务器 IP
+curl http://<你的服务器IP>:4173/api/v1/projects
+
+# 应该返回项目列表的 JSON 数据
+```
+
+### 方法 4: 使用检查脚本（推荐）
+
+如果检查脚本已上传到服务器：
+
+```bash
+chmod +x /tmp/deploy-your-app/scripts/check-deployment.sh
+/tmp/deploy-your-app/scripts/check-deployment.sh
+```
+
 ## 服务器端管理
 
 ### 查看容器状态
