@@ -2,9 +2,10 @@
   "name": "deploy-your-app-server",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "scripts": {
     "dev": "tsx watch index.ts",
-    "build": "tsc -b ../tsconfig.server.json"
+    "build": "tsc -b"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",

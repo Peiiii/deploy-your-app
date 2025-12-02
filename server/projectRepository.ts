@@ -1,7 +1,6 @@
 import * as fs from 'fs';
-import * as path from 'path';
 import type { Project } from './types.js';
-import { rootDir } from './paths.js';
+import { dataDir, projectsFile } from './paths.js';
 
 // For local Node/Express development we keep projects in a simple JSON file
 // under data/projects.json so that they survive backend restarts. The shape
@@ -25,9 +24,6 @@ export interface CreateProjectRecordInput {
   providerUrl?: string;
   cloudflareProjectName?: string;
 }
-
-const dataDir = path.join(rootDir, 'data');
-const projectsFile = path.join(dataDir, 'projects.json');
 
 function ensureStorage(): void {
   fs.mkdirSync(dataDir, { recursive: true });

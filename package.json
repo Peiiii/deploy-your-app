@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"pnpm --filter deploy-your-app-frontend dev\" \"pnpm --filter deploy-your-app-server dev\"",
+    "dev:frontend": "pnpm --filter deploy-your-app-frontend dev",
     "dev:server": "pnpm --filter deploy-your-app-server dev",
     "build": "pnpm --filter deploy-your-app-server build && pnpm --filter deploy-your-app-frontend build",
+    "build:server": "pnpm --filter deploy-your-app-server build",
     "build:frontend": "pnpm --filter deploy-your-app-frontend build",
     "deploy:pages": "pnpm build:frontend && gh-pages -d frontend/dist -b gh-pages",
     "lint": "eslint .",
