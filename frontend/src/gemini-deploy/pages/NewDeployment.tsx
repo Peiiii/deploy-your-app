@@ -69,7 +69,7 @@ export const NewDeployment: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-8 animate-fade-in">
+    <div className="max-w-5xl mx-auto p-4 md:p-8 animate-fade-in">
       {/* Header */}
       <div className="mb-10 text-center">
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Deploy New Project</h1>
@@ -77,7 +77,7 @@ export const NewDeployment: React.FC = () => {
       </div>
 
       {/* Modern Stepper */}
-      <div className="flex items-center justify-center mb-12 relative max-w-2xl mx-auto">
+      <div className="flex items-center justify-center mb-8 md:mb-12 relative max-w-2xl mx-auto px-4">
         {/* Connecting Line */}
         <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 dark:bg-gray-800 -z-10 rounded-full"></div>
         <div
@@ -121,12 +121,12 @@ export const NewDeployment: React.FC = () => {
 
       {/* Step 1: Connect Source */}
       {state.step === 1 && (
-        <div className="glass-card rounded-2xl p-8 animate-slide-up">
+        <div className="glass-card rounded-2xl p-4 md:p-8 animate-slide-up">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
             <Github className="w-6 h-6 text-brand-500 dark:text-brand-400" /> Select Import Source
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
             <button 
                 onClick={() => state.actions.setSourceType('github')}
                 className={`relative group p-6 rounded-xl border-2 text-left transition-all duration-200 ${
@@ -230,7 +230,7 @@ export const NewDeployment: React.FC = () => {
 
       {/* Step 3: Build & Deploy */}
       {state.step === 3 && (
-        <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
+        <div className="space-y-4 md:space-y-6 animate-fade-in max-w-4xl mx-auto px-4">
            <div className="bg-[#0d1117] border border-gray-800 rounded-xl overflow-hidden shadow-2xl">
              <div className="bg-[#161b22] px-6 py-4 border-b border-gray-800 flex justify-between items-center">
                <div className="flex items-center gap-3">
@@ -247,11 +247,11 @@ export const NewDeployment: React.FC = () => {
                )}
              </div>
              
-             <Terminal logs={state.logs} className="min-h-[400px] border-none rounded-none" />
+             <Terminal logs={state.logs} className="min-h-[300px] md:min-h-[400px] border-none rounded-none" />
            </div>
 
            {state.deploymentStatus === DeploymentStatus.SUCCESS && (
-             <div className="glass-card border-green-500/30 rounded-xl p-8 animate-slide-up flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+             <div className="glass-card border-green-500/30 rounded-xl p-4 md:p-8 animate-slide-up flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 relative overflow-hidden">
                <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 blur-[100px] -z-10"></div>
                
                <div className="flex items-center gap-6">

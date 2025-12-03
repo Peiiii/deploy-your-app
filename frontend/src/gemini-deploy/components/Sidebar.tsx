@@ -1,11 +1,13 @@
 import React from 'react';
-import { LayoutDashboard, PlusCircle, Settings, Box, Github, Rocket, Wifi, Database } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Settings, Box, Github, Rocket, Wifi, Database, X } from 'lucide-react';
 import { useUIStore } from '../stores/uiStore';
 import { usePresenter } from '../contexts/PresenterContext';
 import { APP_CONFIG } from '../constants';
 
 export const Sidebar: React.FC = () => {
   const currentView = useUIStore((state) => state.currentView);
+  const sidebarOpen = useUIStore((state) => state.sidebarOpen);
+  const { setSidebarOpen } = useUIStore((state) => state.actions);
   const presenter = usePresenter();
 
   const navItems = [
@@ -18,8 +20,25 @@ export const Sidebar: React.FC = () => {
   const isMockMode = APP_CONFIG.USE_MOCK_ADAPTER;
 
   return (
-    <div className="w-64 h-screen fixed left-0 top-0 flex flex-col glass border-r-0 z-50">
-      <div className="p-8 pb-6 flex items-center gap-3">
+    <>
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
+      <div className={`w-64 h-screen fixed left-0 top-0 flex flex-col glass border-r-0 z-50 transition-transform duration-300 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } md:translate-x-0 md:flex`}>
+        <div className="p-8 pb-6 flex items-center gap-3 relative">
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="md:hidden absolute top-4 right-4 p-1 text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white"
+          >
+            <X className="w-5 h-5" />
+          </button>
         <div className="relative">
             <div className="absolute inset-0 bg-brand-500 blur opacity-40 rounded-lg"></div>
             <div className="relative w-9 h-9 bg-gradient-to-br from-brand-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg border border-white/10">
@@ -42,7 +61,13 @@ export const Sidebar: React.FC = () => {
           return (
             <button
               key={item.id}
-              onClick={() => presenter.ui.navigateTo(item.id)}
+              onClick={() => {
+                presenter.ui.navigateTo(item.id);
+                // Close sidebar on mobile after navigation
+                if (window.innerWidth < 768) {
+                  setSidebarOpen(false);
+                }
+              }}
               className={`group w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative overflow-hidden ${
                 isActive
                   ? 'text-slate-900 dark:text-white'
@@ -100,6 +125,7 @@ export const Sidebar: React.FC = () => {
           </div>
         </button>
       </div>
-    </div>
+      </div>
+    </>
   );
 };

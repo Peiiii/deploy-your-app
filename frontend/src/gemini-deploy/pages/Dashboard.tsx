@@ -9,7 +9,7 @@ export const Dashboard: React.FC = () => {
   const presenter = usePresenter();
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-fade-in">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
