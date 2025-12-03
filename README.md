@@ -1,20 +1,23 @@
-# Gemini2App
+# GemiGo
 
-**项目域名**: `gemini2app.com`
+**项目域名**: `gemigo.io`
 
-一个面向非专业用户的应用部署平台，通过 Gemini AI 提供安全检查和代码改写，支持一键将代码仓库或 ZIP 文件部署为可访问的 Web 应用。
+一个面向非专业用户的应用部署平台，通过 AI 提供安全检查和代码改写，支持一键将代码仓库或 ZIP 文件部署为可访问的 Web 应用。
 
 ## 项目信息
 
-- **产品名称**: Gemini2App
-- **域名**: gemini2app.com
+- **产品名称**: GemiGo
+- **域名**: gemigo.io
 - **定位**: 面向非专业用户的应用部署与增强平台
 - **核心功能**: 
   - 从 GitHub 仓库或 ZIP 文件一键部署前端应用
-  - 通过 Gemini AI 进行安全分析和代码改写
+  - 通过 AI 进行安全分析和代码改写
   - 自动构建并部署到静态托管平台（Cloudflare Pages 等）
 
-更多产品目标和技术细节，请参考 [GOALS.md](./GOALS.md)。
+更多信息请参考：
+- [功能文档](./docs/FEATURES.md) - 详细的功能说明
+- [产品目标](./docs/GOALS.md) - 产品规划和技术细节
+- [部署文档](./docs/DEPLOY.md) - 部署指南
 
 ---
 
