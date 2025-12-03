@@ -13,7 +13,7 @@ interface UIState {
 }
 
 export const useUIStore = create<UIState>((set) => ({
-  currentView: 'dashboard',
+  currentView: 'deploy',
   theme: 'light', // Default to light
   sidebarOpen: false, // Closed by default on mobile
   actions: {
