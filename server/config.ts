@@ -6,6 +6,7 @@ import type {
   DeployTarget,
   PlatformAIConfig,
   CloudflareConfig,
+  R2Config,
   PathsConfig,
 } from './configTypes.js';
 import { getEnv, getEnvOrDefault, loadBackendEnv } from './env.js';
@@ -37,6 +38,7 @@ loadBackendEnv();
 
 function parseDeployTarget(raw: string | undefined): DeployTarget {
   if (raw === 'cloudflare') return 'cloudflare';
+  if (raw === 'r2') return 'r2';
   // Default + fallback: keep product usable if env is misconfigured.
   return 'local';
 }
@@ -62,6 +64,28 @@ function parseCloudflareConfig(): CloudflareConfig {
       'deploy-your-app',
     ),
   };
+}
+
+function parseR2Config(): R2Config {
+  // For most setups the R2 account id is the same as the Cloudflare account id.
+  const accountId =
+    getEnv('R2_ACCOUNT_ID') ??
+    getEnv('CLOUDFLARE_ACCOUNT_ID') ??
+    '';
+
+  return {
+    accountId,
+    accessKeyId: getEnvOrDefault('R2_ACCESS_KEY_ID', ''),
+    secretAccessKey: getEnvOrDefault('R2_SECRET_ACCESS_KEY', ''),
+    bucketName: getEnvOrDefault('R2_BUCKET_NAME', ''),
+  };
+}
+
+function parseAppsRootDomain(): string {
+  // Root domain for user apps, e.g. "gemigo.app".
+  // If not provided, fall back to a placeholder so that URLs are still valid
+  // in dev environments.
+  return getEnvOrDefault('APPS_ROOT_DOMAIN', 'example.com');
 }
 
 /**
@@ -119,6 +143,8 @@ export const CONFIG: AppConfig = Object.freeze({
   deployTarget: parseDeployTarget(getEnv('DEPLOY_TARGET')),
   platformAI: parsePlatformAIConfig(),
   cloudflare: parseCloudflareConfig(),
+  r2: parseR2Config(),
+  appsRootDomain: parseAppsRootDomain(),
   paths: pathsConfig,
 });
 
@@ -134,6 +160,7 @@ export const DASHSCOPE_API_KEY = CONFIG.platformAI.apiKey;
 // Deployment target
 // - 'local': copy static assets to /apps/<slug>/ and serve from the Node server
 // - 'cloudflare': deploy to Cloudflare Pages (requires Cloudflare credentials)
+// - 'r2': upload build artifacts to Cloudflare R2, served via Worker gateway
 export const DEPLOY_TARGET: DeployTarget = CONFIG.deployTarget;
 
 // Cloudflare configuration
@@ -144,3 +171,12 @@ export const CLOUDFLARE_API_TOKEN = CONFIG.cloudflare.apiToken;
 // Final project name will be: <prefix>-<slug>
 export const CLOUDFLARE_PAGES_PROJECT_PREFIX =
   CONFIG.cloudflare.pagesProjectPrefix;
+
+// Cloudflare R2 configuration (for the "r2" deploy target).
+export const R2_ACCOUNT_ID = CONFIG.r2.accountId;
+export const R2_ACCESS_KEY_ID = CONFIG.r2.accessKeyId;
+export const R2_SECRET_ACCESS_KEY = CONFIG.r2.secretAccessKey;
+export const R2_BUCKET_NAME = CONFIG.r2.bucketName;
+
+// Root domain where apps are exposed, e.g. "gemigo.app".
+export const APPS_ROOT_DOMAIN = CONFIG.appsRootDomain;

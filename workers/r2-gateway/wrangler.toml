@@ -1,0 +1,17 @@
+name = "gemigo-apps-r2-gateway"
+main = "worker.ts"
+compatibility_date = "2025-01-01"
+
+# Route all app subdomains through this Worker.
+routes = [
+  "*.gemigo.app/*"
+]
+
+[vars]
+# Must match APPS_ROOT_DOMAIN used by the backend.
+APPS_ROOT_DOMAIN = "gemigo.app"
+
+[[r2_buckets]]
+binding = "ASSETS"
+bucket_name = "gemigo-apps"
+

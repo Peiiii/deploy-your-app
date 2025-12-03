@@ -25,7 +25,7 @@ export interface Project {
   url?: string;
   framework: 'React' | 'Vue' | 'Next.js' | 'Unknown';
   // Where this project is deployed.
-  deployTarget?: 'local' | 'cloudflare';
+  deployTarget?: 'local' | 'cloudflare' | 'r2';
   // Provider-level URL (e.g. https://<project>.pages.dev) – mainly for debugging.
   providerUrl?: string;
   // Cloudflare Pages project name when using the Cloudflare provider.

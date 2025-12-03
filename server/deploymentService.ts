@@ -14,6 +14,7 @@ import { slugify } from './utils.js';
 import { applyFixesForDeployment } from './fixPipeline.js';
 import { DEPLOY_TARGET } from './config.js';
 import { deployToCloudflarePages } from './cloudflarePagesProvider.js';
+import { deployToR2 } from './r2Provider.js';
 import AdmZip from 'adm-zip';
 import type { Project } from './types.js';
 
@@ -450,22 +451,32 @@ export async function runDeployment(id: string): Promise<void> {
     let providerUrl: string | undefined;
     let cloudflareProjectName: string | undefined;
 
-	    if (target === 'cloudflare') {
-	      const result = await deployToCloudflarePages({
-	        slug,
-	        distPath,
-	        log: (message, level = 'info') => appendLog(id, message, level),
-	      });
-	      finalUrl = result.publicUrl;
-	      providerUrl = result.providerUrl;
-	      cloudflareProjectName = result.projectName;
-	    } else {
-	      finalUrl = await deployToLocalStatic({
-	        deploymentId: id,
-	        slug,
-	        distPath,
-	      });
-	    }
+    if (target === 'cloudflare') {
+      const result = await deployToCloudflarePages({
+        slug,
+        distPath,
+        log: (message, level = 'info') => appendLog(id, message, level),
+      });
+      finalUrl = result.publicUrl;
+      providerUrl = result.providerUrl;
+      cloudflareProjectName = result.projectName;
+    } else if (target === 'r2') {
+      const result = await deployToR2({
+        slug,
+        distPath,
+        deploymentId: id,
+        log: (message, level = 'info') => appendLog(id, message, level),
+      });
+      finalUrl = result.publicUrl;
+      // For debugging: show where in R2 this deployment lives.
+      providerUrl = `r2://${result.storagePrefix}`;
+    } else {
+      finalUrl = await deployToLocalStatic({
+        deploymentId: id,
+        slug,
+        distPath,
+      });
+    }
 
     // Update project metadata with the final URLs.
     project.url = finalUrl;

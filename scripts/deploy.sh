@@ -113,6 +113,28 @@ if [ -n "${DEPLOY_TARGET}" ]; then
   ENV_ARGS+=(-e "DEPLOY_TARGET=${DEPLOY_TARGET}")
 fi
 
+# Add Cloudflare R2 configuration if provided
+if [ -n "${R2_ACCOUNT_ID}" ]; then
+  ENV_ARGS+=(-e "R2_ACCOUNT_ID=${R2_ACCOUNT_ID}")
+fi
+
+if [ -n "${R2_ACCESS_KEY_ID}" ]; then
+  ENV_ARGS+=(-e "R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}")
+fi
+
+if [ -n "${R2_SECRET_ACCESS_KEY}" ]; then
+  ENV_ARGS+=(-e "R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}")
+fi
+
+if [ -n "${R2_BUCKET_NAME}" ]; then
+  ENV_ARGS+=(-e "R2_BUCKET_NAME=${R2_BUCKET_NAME}")
+fi
+
+# Root domain for user apps served via Worker (e.g. gemigo.app)
+if [ -n "${APPS_ROOT_DOMAIN}" ]; then
+  ENV_ARGS+=(-e "APPS_ROOT_DOMAIN=${APPS_ROOT_DOMAIN}")
+fi
+
 # Try to start container
 CONTAINER_ID=$(docker run -d \
   --name "$CONTAINER_NAME" \
@@ -179,4 +201,3 @@ else
   netstat -tulpn 2>/dev/null | grep ":${HOST_PORT} " || ss -tulpn 2>/dev/null | grep ":${HOST_PORT} " || echo "Port ${HOST_PORT} appears to be available"
   exit 1
 fi
-

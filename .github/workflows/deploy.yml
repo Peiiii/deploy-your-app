@@ -45,7 +45,7 @@ jobs:
           username: ${{ secrets.ALIYUN_USER }}
           key: ${{ secrets.ALIYUN_SSH_KEY }}
           port: ${{ secrets.ALIYUN_PORT || 22 }}
-          envs: CLOUDFLARE_ACCOUNT_ID,CLOUDFLARE_API_TOKEN,DASHSCOPE_API_KEY,DEPLOY_TARGET,CLOUDFLARE_PAGES_PROJECT_PREFIX
+          envs: CLOUDFLARE_ACCOUNT_ID,CLOUDFLARE_API_TOKEN,DASHSCOPE_API_KEY,DEPLOY_TARGET,CLOUDFLARE_PAGES_PROJECT_PREFIX,R2_ACCOUNT_ID,R2_ACCESS_KEY_ID,R2_SECRET_ACCESS_KEY,R2_BUCKET_NAME,APPS_ROOT_DOMAIN
           script: |
             set -e
             echo "🔍 Pre-deployment checks..."
@@ -71,9 +71,15 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
+          # Cloudflare R2 credentials (S3-compatible)
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
           # Non-sensitive configuration - use Variables (fallback handled in code if not set)
           DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
           CLOUDFLARE_PAGES_PROJECT_PREFIX: ${{ vars.CLOUDFLARE_PAGES_PROJECT_PREFIX }}
+          APPS_ROOT_DOMAIN: ${{ vars.APPS_ROOT_DOMAIN }}
 
       - name: Verify deployment
         uses: appleboy/ssh-action@v1.0.3
@@ -137,4 +143,3 @@ jobs:
               netstat -tulpn | grep ${PORT} || ss -tulpn | grep ${PORT} || echo "Port ${PORT} not found"
               exit 1
             fi
-

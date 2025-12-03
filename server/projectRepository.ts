@@ -20,7 +20,7 @@ export interface CreateProjectRecordInput {
   status: Project['status'];
   url?: string;
   framework: Project['framework'];
-  deployTarget?: 'local' | 'cloudflare';
+  deployTarget?: Project['deployTarget'];
   providerUrl?: string;
   cloudflareProjectName?: string;
 }
