@@ -76,7 +76,7 @@ jobs:
             sleep 5
             
             CONTAINER_NAME="deploy-your-app"
-            PORT=${PORT:-4173}
+            PORT=${PORT:-80}
             
             # Check if container exists (running or stopped)
             if docker ps -a --filter "name=${CONTAINER_NAME}" --format "{{.Names}}" | grep -q "${CONTAINER_NAME}"; then

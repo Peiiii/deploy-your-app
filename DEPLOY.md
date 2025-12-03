@@ -108,14 +108,14 @@ docker ps --filter "name=deploy-your-app"
 docker logs --tail 50 deploy-your-app
 
 # 测试 API
-curl http://localhost:4173/api/v1/projects
+curl http://localhost/api/v1/projects
 ```
 
 ### 方法 3: 从外部测试 API
 
 ```bash
 # 替换为你的服务器 IP
-curl http://<你的服务器IP>:4173/api/v1/projects
+curl http://<你的服务器IP>/api/v1/projects
 
 # 应该返回项目列表的 JSON 数据
 ```
@@ -172,7 +172,7 @@ docker-compose logs -f
 ```bash
 # /opt/deploy-your-app/.env
 DATA_DIR=/opt/deploy-your-app/data
-PORT=4173
+PORT=80
 NODE_ENV=production
 ```
 
@@ -204,7 +204,7 @@ tar -czf backup-$(date +%Y%m%d).tar.gz /opt/deploy-your-app/data
 
 2. 检查端口占用：
    ```bash
-   netstat -tulpn | grep 4173
+   netstat -tulpn | grep 80
    ```
 
 3. 检查数据目录权限：

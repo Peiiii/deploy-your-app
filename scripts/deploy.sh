@@ -11,7 +11,8 @@ CONTAINER_NAME="deploy-your-app"
 APP_DIR="/opt/deploy-your-app"
 DATA_DIR="/opt/deploy-your-app/data"
 # Host port (can be overridden via PORT environment variable)
-HOST_PORT="${PORT:-4173}"
+# Default to 80 for standard HTTP access
+HOST_PORT="${PORT:-80}"
 # Container internal port (always 4173 as defined in Dockerfile)
 CONTAINER_PORT=4173
 

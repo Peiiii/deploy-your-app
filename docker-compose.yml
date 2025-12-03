@@ -6,7 +6,7 @@ services:
     container_name: deploy-your-app
     restart: unless-stopped
     ports:
-      - "${PORT:-4173}:4173"
+      - "${PORT:-80}:4173"
     volumes:
       - ./data:/data
     environment:
