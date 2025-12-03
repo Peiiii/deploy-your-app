@@ -17,7 +17,7 @@ export const Terminal: React.FC<TerminalProps> = ({ logs, className }) => {
     <div className={`bg-[#0d1117] flex flex-col font-mono text-sm ${className}`}>
       <div className="p-6 overflow-y-auto h-full terminal-scroll space-y-2">
         {logs.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full text-gray-700 opacity-50">
+            <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500 opacity-50">
                 <span className="text-4xl mb-2">⌨️</span>
                 <span>Initializing build sequence...</span>
             </div>

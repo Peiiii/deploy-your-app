@@ -131,8 +131,8 @@ export const NewDeployment: React.FC = () => {
                 onClick={() => state.actions.setSourceType('github')}
                 className={`relative group p-6 rounded-xl border-2 text-left transition-all duration-200 ${
                     state.sourceType === 'github' 
-                    ? 'bg-brand-500/10 border-brand-500 shadow-[0_0_20px_rgba(56,189,248,0.15)]' 
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? 'bg-brand-500/10 dark:bg-brand-500/20 border-brand-500 dark:border-brand-400 shadow-[0_0_20px_rgba(56,189,248,0.15)] dark:shadow-[0_0_20px_rgba(56,189,248,0.25)]' 
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-brand-500/50 dark:hover:border-brand-500/30 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
             >
                 <div className="flex justify-between items-start mb-4">
@@ -141,7 +141,7 @@ export const NewDeployment: React.FC = () => {
                     </div>
                     {state.sourceType === 'github' && <div className="w-6 h-6 rounded-full bg-brand-500 text-white flex items-center justify-center"><Check className="w-3 h-3" /></div>}
                 </div>
-                <h3 className={`text-lg font-bold mb-1 ${state.sourceType === 'github' ? 'text-brand-900 dark:text-white' : 'text-slate-700 dark:text-gray-300'}`}>GitHub Repository</h3>
+                <h3 className={`text-lg font-bold mb-1 ${state.sourceType === 'github' ? 'text-brand-900 dark:text-white' : 'text-slate-700 dark:text-gray-200'}`}>GitHub Repository</h3>
                 <p className="text-sm text-slate-500 dark:text-gray-500">Import directly from your Git repositories.</p>
             </button>
 
@@ -149,8 +149,8 @@ export const NewDeployment: React.FC = () => {
                 onClick={() => state.actions.setSourceType('zip')}
                 className={`relative group p-6 rounded-xl border-2 text-left transition-all duration-200 ${
                     state.sourceType === 'zip' 
-                    ? 'bg-brand-500/10 border-brand-500 shadow-[0_0_20px_rgba(56,189,248,0.15)]' 
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? 'bg-brand-500/10 dark:bg-brand-500/20 border-brand-500 dark:border-brand-400 shadow-[0_0_20px_rgba(56,189,248,0.15)] dark:shadow-[0_0_20px_rgba(56,189,248,0.25)]' 
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-brand-500/50 dark:hover:border-brand-500/30 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
             >
                 <div className="flex justify-between items-start mb-4">
@@ -159,7 +159,7 @@ export const NewDeployment: React.FC = () => {
                     </div>
                     {state.sourceType === 'zip' && <div className="w-6 h-6 rounded-full bg-brand-500 text-white flex items-center justify-center"><Check className="w-3 h-3" /></div>}
                 </div>
-                <h3 className={`text-lg font-bold mb-1 ${state.sourceType === 'zip' ? 'text-brand-900 dark:text-white' : 'text-slate-700 dark:text-gray-300'}`}>Upload Zip</h3>
+                <h3 className={`text-lg font-bold mb-1 ${state.sourceType === 'zip' ? 'text-brand-900 dark:text-white' : 'text-slate-700 dark:text-gray-200'}`}>Upload Zip</h3>
                 <p className="text-sm text-slate-500 dark:text-gray-500">Drag and drop your AI Studio export.</p>
             </button>
           </div>
@@ -178,7 +178,7 @@ export const NewDeployment: React.FC = () => {
                               presenter.deployment.autoProjectName(e.target.value, 'github');
                             }}
                             placeholder="github.com/username/project"
-                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-12 pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all placeholder:text-slate-400 dark:placeholder:text-gray-700"
+                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-12 pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all placeholder:text-slate-400 dark:placeholder:text-gray-500"
                         />
                     </div>
                 </div>
@@ -251,8 +251,8 @@ export const NewDeployment: React.FC = () => {
            </div>
 
            {state.deploymentStatus === DeploymentStatus.SUCCESS && (
-             <div className="glass-card border-green-500/30 rounded-xl p-4 md:p-8 animate-slide-up flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 blur-[100px] -z-10"></div>
+             <div className="glass-card border-green-500/30 dark:border-green-500/20 rounded-xl p-4 md:p-8 animate-slide-up flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 dark:bg-green-500/5 blur-[100px] -z-10"></div>
                
                <div className="flex items-center gap-6">
                    <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center text-white shadow-[0_0_20px_rgba(34,197,94,0.4)]">

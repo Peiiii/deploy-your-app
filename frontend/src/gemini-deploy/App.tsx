@@ -46,20 +46,20 @@ const MainLayout = () => {
           <div className="flex items-center gap-2 md:gap-4">
              <button 
                 onClick={toggleTheme}
-                className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 rounded-full transition-all"
+                className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all bg-transparent dark:bg-transparent"
                 title="Toggle Theme"
              >
                 {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
              </button>
              <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden md:block"></div>
-             <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 rounded-full transition-all hidden md:block">
+             <button className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all bg-transparent dark:bg-transparent hidden md:block" title="Help">
                 <HelpCircle className="w-5 h-5" />
              </button>
-             <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 rounded-full transition-all relative hidden md:block">
+             <button className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all bg-transparent dark:bg-transparent relative hidden md:block" title="Notifications">
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-app-bg"></span>
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 dark:bg-red-400 rounded-full border-2 border-app-bg dark:border-slate-900"></span>
              </button>
-             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-500 to-purple-600 border border-slate-200 dark:border-white/10 ring-2 ring-transparent hover:ring-brand-500/50 transition-all cursor-pointer"></div>
+             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-500 to-purple-600 border border-slate-200 dark:border-white/10 ring-2 ring-transparent hover:ring-brand-500/50 dark:hover:ring-brand-400/50 transition-all cursor-pointer"></div>
           </div>
         </header>
 
