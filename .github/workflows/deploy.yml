@@ -45,6 +45,7 @@ jobs:
           username: ${{ secrets.ALIYUN_USER }}
           key: ${{ secrets.ALIYUN_SSH_KEY }}
           port: ${{ secrets.ALIYUN_PORT || 22 }}
+          envs: CLOUDFLARE_ACCOUNT_ID,CLOUDFLARE_API_TOKEN,DASHSCOPE_API_KEY,DEPLOY_TARGET,CLOUDFLARE_PAGES_PROJECT_PREFIX
           script: |
             set -e
             echo "🔍 Pre-deployment checks..."
@@ -58,11 +59,21 @@ jobs:
             mkdir -p /tmp/deploy-your-app
             chmod +x /tmp/deploy-your-app/scripts/deploy.sh
             echo "Executing deployment script..."
+            # Sensitive secrets from GitHub Secrets and non-sensitive configs from Variables
+            # will be passed to the deployment script and then to Docker container
             /tmp/deploy-your-app/scripts/deploy.sh /tmp/deploy-your-app/deploy-image.tar.gz
             echo ""
             echo "✅ Deployment script completed"
             # Cleanup
             rm -f /tmp/deploy-your-app/deploy-image.tar.gz
+        env:
+          # Sensitive information - use Secrets
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
+          # Non-sensitive configuration - use Variables (fallback handled in code if not set)
+          DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
+          CLOUDFLARE_PAGES_PROJECT_PREFIX: ${{ vars.CLOUDFLARE_PAGES_PROJECT_PREFIX }}
 
       - name: Verify deployment
         uses: appleboy/ssh-action@v1.0.3

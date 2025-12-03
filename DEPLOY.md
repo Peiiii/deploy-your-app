@@ -167,16 +167,63 @@ docker-compose logs -f
 
 ## 环境变量配置
 
-在服务器上创建 `.env` 文件（可选）：
+### 在 GitHub 中配置环境变量
+
+**重要：** 敏感信息（API tokens、密钥）应该配置在 **Secrets** 中，非敏感配置可以放在 **Variables** 中。
+
+#### 需要配置的 Secrets（敏感信息）
+
+在 GitHub 仓库中，进入 **Settings** → **Secrets and variables** → **Actions** → **Secrets**，添加：
+
+1. **CLOUDFLARE_ACCOUNT_ID** - Cloudflare 账户 ID（虽然不算特别敏感，但建议放在 Secrets）
+2. **CLOUDFLARE_API_TOKEN** - Cloudflare API Token（**敏感**，必须放在 Secrets）
+3. **DASHSCOPE_API_KEY** - DashScope API Key（**敏感**，必须放在 Secrets）
+
+#### 需要配置的 Variables（非敏感配置，可选）
+
+在 **Settings** → **Secrets and variables** → **Actions** → **Variables**，可以添加：
+
+1. **DEPLOY_TARGET** - 部署目标（可选，如果不设置，代码默认使用 `local`，可选值：`local` 或 `cloudflare`）
+2. **CLOUDFLARE_PAGES_PROJECT_PREFIX** - Cloudflare Pages 项目名称前缀（可选，如果不设置，代码默认使用 `deploy-your-app`）
+
+**注意：** 这些 Variables 是可选的。如果不设置，代码会使用内置的默认值。只有在需要覆盖默认值时才需要配置。
+
+#### 如何添加
+
+**添加 Secrets：**
+1. 进入 GitHub 仓库页面
+2. 点击 **Settings** → **Secrets and variables** → **Actions**
+3. 点击 **Secrets** 标签页
+4. 点击 **New repository secret**
+5. 输入 Name 和 Value，点击 **Add secret**
+
+**添加 Variables：**
+1. 在同一个页面，点击 **Variables** 标签页
+2. 点击 **New repository variable**
+3. 输入 Name 和 Value，点击 **Add variable**
+
+**区别：**
+- **Secrets**：加密存储，在日志中会被隐藏，用于敏感信息
+- **Variables**：明文存储，在日志中可见，用于非敏感配置
+
+#### 工作原理
+
+- GitHub Actions 工作流会自动从 Secrets 中读取这些值
+- 通过 SSH 传递到阿里云服务器
+- 部署脚本将这些环境变量传递给 Docker 容器
+- 容器内的应用代码从环境变量中读取配置
+
+### 在服务器上配置环境变量（不推荐用于敏感信息）
+
+如果你需要在服务器上直接配置非敏感的环境变量，可以在部署脚本执行前设置：
 
 ```bash
-# /opt/deploy-your-app/.env
-DATA_DIR=/opt/deploy-your-app/data
-PORT=80
-NODE_ENV=production
+# 这些环境变量会在部署时传递给 Docker 容器
+export PORT=80
+export DATA_DIR=/opt/deploy-your-app/data
 ```
 
-或者在 Docker Compose 中配置环境变量。
+**注意：** 不要在服务器上创建包含敏感信息的 `.env` 文件，因为这些文件可能会被意外提交到代码仓库。
 
 ## 数据持久化
 

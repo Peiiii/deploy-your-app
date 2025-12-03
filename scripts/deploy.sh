@@ -83,15 +83,43 @@ if ! docker images "${IMAGE_NAME}:latest" --format "{{.Repository}}:{{.Tag}}" | 
   exit 1
 fi
 
+# Build environment variable arguments for Docker
+ENV_ARGS=(
+  -e NODE_ENV=production
+  -e DATA_DIR=/data
+  -e PORT=${CONTAINER_PORT}
+)
+
+# Add Cloudflare configuration if provided
+if [ -n "${CLOUDFLARE_ACCOUNT_ID}" ]; then
+  ENV_ARGS+=(-e "CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}")
+fi
+
+if [ -n "${CLOUDFLARE_API_TOKEN}" ]; then
+  ENV_ARGS+=(-e "CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}")
+fi
+
+if [ -n "${CLOUDFLARE_PAGES_PROJECT_PREFIX}" ]; then
+  ENV_ARGS+=(-e "CLOUDFLARE_PAGES_PROJECT_PREFIX=${CLOUDFLARE_PAGES_PROJECT_PREFIX}")
+fi
+
+# Add DashScope API key if provided
+if [ -n "${DASHSCOPE_API_KEY}" ]; then
+  ENV_ARGS+=(-e "DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY}")
+fi
+
+# Add deploy target if provided
+if [ -n "${DEPLOY_TARGET}" ]; then
+  ENV_ARGS+=(-e "DEPLOY_TARGET=${DEPLOY_TARGET}")
+fi
+
 # Try to start container
 CONTAINER_ID=$(docker run -d \
   --name "$CONTAINER_NAME" \
   --restart unless-stopped \
   -p "${HOST_PORT}:${CONTAINER_PORT}" \
   -v "${DATA_DIR}:/data" \
-  -e NODE_ENV=production \
-  -e DATA_DIR=/data \
-  -e PORT=${CONTAINER_PORT} \
+  "${ENV_ARGS[@]}" \
   "${IMAGE_NAME}:latest" 2>&1) || {
   echo "❌ Failed to start container!"
   echo "Error: $CONTAINER_ID"
