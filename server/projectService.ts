@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import type { Project } from './types.js';
 import { slugify } from './utils.js';
-import { DEPLOY_TARGET } from './config.js';
+import { DEPLOY_TARGET, APPS_ROOT_DOMAIN } from './config.js';
 import {
   createProjectRecord,
   type CreateProjectRecordInput,
@@ -28,13 +28,17 @@ export function createProject({
   const slug = slugify(name);
 
   // For local deployments, we can compute the URL eagerly.
-  // For Cloudflare deployments, the final URL is only known after the first
-  // successful deploy, so we leave it undefined and let the deployment
-  // pipeline fill it in.
-  const url =
-    DEPLOY_TARGET === 'local'
-      ? `/apps/${encodeURIComponent(slug)}/`
-      : undefined;
+  // For R2 deployments, the public URL is also deterministic:
+  //   https://<slug>.<APPS_ROOT_DOMAIN>/
+  // For legacy Cloudflare Pages deployments, the final URL is only known
+  // after the first successful deploy, so we leave it undefined and let the
+  // deployment pipeline fill it in.
+  let url: string | undefined;
+  if (DEPLOY_TARGET === 'local') {
+    url = `/apps/${encodeURIComponent(slug)}/`;
+  } else if (DEPLOY_TARGET === 'r2') {
+    url = `https://${slug}.${APPS_ROOT_DOMAIN}/`;
+  }
 
   const project: Project = {
     id,
