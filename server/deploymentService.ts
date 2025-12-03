@@ -231,7 +231,7 @@ export function runCommand(
   id: string,
   command: string,
   args: string[],
-  options: SpawnOptions,
+  options: SpawnOptions = {},
 ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     appendLog(id, `$ ${command} ${args.join(' ')}`, 'info');
@@ -239,7 +239,9 @@ export function runCommand(
     const child = spawn(command, args, {
       ...options,
       shell: false,
-      env: { ...process.env },
+      // Allow callers to override/extend env vars while always inheriting
+      // the base process environment.
+      env: { ...process.env, ...(options.env || {}) },
     });
 
     if (child.stdout) {
@@ -407,7 +409,14 @@ export async function runDeployment(id: string): Promise<void> {
     await applyFixesForDeployment(id, workDir);
 
     appendLog(id, 'Installing dependencies with npm', 'info');
-    await runCommand(id, 'npm', ['install'], { cwd: workDir });
+    await runCommand(id, 'npm', ['install'], {
+      cwd: workDir,
+      // Ensure devDependencies (like Vite) are always installed, even if
+      // the server runs with NODE_ENV=production or npm_config_production=true.
+      env: {
+        npm_config_production: 'false',
+      },
+    });
 
     appendLog(id, 'Building project (npm run build)', 'info');
     await runCommand(id, 'npm', ['run', 'build'], { cwd: workDir });
