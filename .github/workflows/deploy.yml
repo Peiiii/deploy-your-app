@@ -46,9 +46,21 @@ jobs:
           key: ${{ secrets.ALIYUN_SSH_KEY }}
           port: ${{ secrets.ALIYUN_PORT || 22 }}
           script: |
+            set -e
+            echo "🔍 Pre-deployment checks..."
+            echo "Docker version: $(docker --version)"
+            echo "Available disk space:"
+            df -h / | tail -1
+            echo ""
+            echo "Checking deployment files..."
+            ls -lh /tmp/deploy-your-app/ || echo "Directory does not exist yet"
+            echo ""
             mkdir -p /tmp/deploy-your-app
             chmod +x /tmp/deploy-your-app/scripts/deploy.sh
+            echo "Executing deployment script..."
             /tmp/deploy-your-app/scripts/deploy.sh /tmp/deploy-your-app/deploy-image.tar.gz
+            echo ""
+            echo "✅ Deployment script completed"
             # Cleanup
             rm -f /tmp/deploy-your-app/deploy-image.tar.gz
 

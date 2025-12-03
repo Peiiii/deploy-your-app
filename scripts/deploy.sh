@@ -36,10 +36,36 @@ docker rm "$CONTAINER_NAME" 2>/dev/null || true
 
 # Load Docker image
 echo "📦 Loading Docker image..."
-gunzip -c "$IMAGE_TAR" | docker load
+echo "   Image file: $IMAGE_TAR"
+if [ ! -f "$IMAGE_TAR" ]; then
+  echo "❌ Error: Image file not found: $IMAGE_TAR"
+  exit 1
+fi
+
+echo "   File size: $(du -h "$IMAGE_TAR" | cut -f1)"
+LOAD_OUTPUT=$(gunzip -c "$IMAGE_TAR" | docker load 2>&1) || {
+  echo "❌ Failed to load Docker image!"
+  echo "Error output: $LOAD_OUTPUT"
+  exit 1
+}
+echo "$LOAD_OUTPUT"
+
+# Verify image was loaded
+echo ""
+echo "🔍 Verifying image was loaded..."
+if docker images "${IMAGE_NAME}:latest" --format "{{.Repository}}:{{.Tag}}" | grep -q "${IMAGE_NAME}:latest"; then
+  echo "✅ Image loaded successfully: ${IMAGE_NAME}:latest"
+  docker images "${IMAGE_NAME}:latest" --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}"
+else
+  echo "❌ Error: Image ${IMAGE_NAME}:latest not found after loading!"
+  echo "Available images:"
+  docker images
+  exit 1
+fi
 
 # Clean up old image (after loading new one to avoid conflicts)
-echo "🧹 Cleaning up old image..."
+echo ""
+echo "🧹 Cleaning up old image versions..."
 docker images "${IMAGE_NAME}" --format "{{.ID}}" | head -n -1 | xargs -r docker rmi 2>/dev/null || true
 
 # Start new container
