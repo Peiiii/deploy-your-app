@@ -37,6 +37,9 @@ export interface DeploymentRecord {
   logs: BuildLog[];
   project: Project;
   workDir: string | null;
+  // Optional base64-encoded ZIP archive used when sourceType === 'zip'
+  // and the client uploads a ZIP file instead of providing a remote URL.
+  zipData?: string;
 }
 
 export interface AnalysisSession {

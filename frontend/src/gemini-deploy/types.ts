@@ -12,6 +12,9 @@ export interface Project {
   name: string;
   repoUrl: string; // Used as source identifier (URL for git, filename for zip)
   sourceType?: 'github' | 'zip';
+  // Optional base64-encoded ZIP content for one-off deployments when sourceType === 'zip'.
+  // This is only used for the deployment job and is not persisted in the project list.
+  zipData?: string;
   // Optional analysis session id that links this project to a prepared repo on the backend
   analysisId?: string;
   lastDeployed: string;

@@ -52,6 +52,32 @@ export function updateStatus(id: string, status: DeploymentStatus): void {
 // Source materialization
 // ----------------------
 
+// Extract a ZIP buffer into workDir and flatten a single top-level directory
+// (as is common for GitHub/exported archives).
+async function extractZipBufferToWorkDir(
+  buffer: Buffer,
+  workDir: string,
+): Promise<void> {
+  const zip = new AdmZip(buffer);
+  zip.extractAllTo(workDir, true);
+
+  // For archives like GitHub's, contents are under a single top-level folder.
+  // If that is the case, move everything up so that workDir becomes the repo root.
+  const entries = await fs.promises.readdir(workDir, { withFileTypes: true });
+  if (entries.length === 1 && entries[0].isDirectory()) {
+    const innerRoot = path.join(workDir, entries[0].name);
+    const innerEntries = await fs.promises.readdir(innerRoot, {
+      withFileTypes: true,
+    });
+    for (const entry of innerEntries) {
+      const from = path.join(innerRoot, entry.name);
+      const to = path.join(workDir, entry.name);
+      await fs.promises.rename(from, to);
+    }
+    await fs.promises.rmdir(innerRoot);
+  }
+}
+
 // Download a ZIP archive from the given URL and extract it into workDir.
 async function downloadAndExtractZip(
   deploymentId: string,
@@ -73,24 +99,7 @@ async function downloadAndExtractZip(
   }
 
   const buffer = Buffer.from(await resp.arrayBuffer());
-  const zip = new AdmZip(buffer);
-  zip.extractAllTo(workDir, true);
-
-  // For archives like GitHub's, contents are under a single top-level folder.
-  // If that is the case, move everything up so that workDir becomes the repo root.
-  const entries = await fs.promises.readdir(workDir, { withFileTypes: true });
-  if (entries.length === 1 && entries[0].isDirectory()) {
-    const innerRoot = path.join(workDir, entries[0].name);
-    const innerEntries = await fs.promises.readdir(innerRoot, {
-      withFileTypes: true,
-    });
-    for (const entry of innerEntries) {
-      const from = path.join(innerRoot, entry.name);
-      const to = path.join(workDir, entry.name);
-      await fs.promises.rename(from, to);
-    }
-    await fs.promises.rmdir(innerRoot);
-  }
+  await extractZipBufferToWorkDir(buffer, workDir);
 }
 
 function getGitHubZipUrls(repoUrl: string): string[] {
@@ -146,6 +155,26 @@ async function materializeSourceForDeployment(
   await fs.promises.mkdir(workDir, { recursive: true });
 
   if (sourceType === 'zip') {
+    const deploymentRecord = deployments.get(deploymentId);
+    const zipData = deploymentRecord?.zipData;
+
+    if (zipData) {
+      appendLog(
+        deploymentId,
+        'Using uploaded ZIP archive provided by the client.',
+        'info',
+      );
+      // zipData is a base64 string (optionally wrapped in a data: URL).
+      let base64 = zipData.trim();
+      const commaIndex = base64.indexOf(',');
+      if (base64.startsWith('data:') && commaIndex >= 0) {
+        base64 = base64.slice(commaIndex + 1);
+      }
+      const buffer = Buffer.from(base64, 'base64');
+      await extractZipBufferToWorkDir(buffer, workDir);
+      return;
+    }
+
     if (!/^https?:\/\//i.test(identifier)) {
       throw new Error(
         'For sourceType "zip", project.repoUrl must be an HTTP(s) URL to a .zip file.',

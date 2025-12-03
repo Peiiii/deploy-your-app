@@ -56,7 +56,11 @@ export function registerRoutes(app: { get(path: string, handler: any): void; pos
   // ----------------------
 
   app.post('/api/v1/deploy', (req, res) => {
-    const project = req.body as Project & { analysisId?: string };
+    const { zipData, ...rest } = (req.body || {}) as {
+      zipData?: string;
+    } & (Project & { analysisId?: string });
+
+    const project = rest as Project & { analysisId?: string };
 
     if (!project || !project.name || !project.repoUrl) {
       return res
@@ -75,6 +79,7 @@ export function registerRoutes(app: { get(path: string, handler: any): void; pos
       logs: [],
       project,
       workDir: workDirFromAnalysis,
+      zipData,
     });
 
     res.json({ deploymentId: id });

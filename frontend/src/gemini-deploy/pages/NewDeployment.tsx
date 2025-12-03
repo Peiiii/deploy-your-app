@@ -35,6 +35,12 @@ export const NewDeployment: React.FC = () => {
   }, [projects, state.projectName]);
 
   const handleDeployStart = () => {
+    const fallbackName =
+      state.projectName ||
+      (state.sourceType === 'github'
+        ? (state.repoUrl.split('/').filter(Boolean).pop() || 'my-app')
+        : state.zipFile?.name.replace(/\.zip$/i, '') || 'my-app');
+
     presenter.deployment.startBuildSimulation(() => {
       const identifier =
         state.sourceType === 'github'
@@ -42,7 +48,7 @@ export const NewDeployment: React.FC = () => {
           : state.zipFile?.name || 'archive.zip';
       // Don't pass URL - backend will set it after deployment completes
       presenter.project.addProject(
-        state.projectName,
+        fallbackName,
         state.sourceType,
         identifier,
       );
