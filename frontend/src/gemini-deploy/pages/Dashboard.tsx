@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, GitBranch, Clock, FolderArchive, Activity, Server, Zap, Plus, TrendingUp, FileText, GraduationCap, Wand2, Briefcase } from 'lucide-react';
+import { ExternalLink, GitBranch, Clock, FolderArchive, Zap, Plus, TrendingUp, FileText, GraduationCap, Wand2, Briefcase } from 'lucide-react';
 import { useProjectStore } from '../stores/projectStore';
 import { usePresenter } from '../contexts/PresenterContext';
 import { URLS } from '../constants';
@@ -14,15 +14,15 @@ export const Dashboard: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">Your Magic Spells</h2>
-          <p className="text-slate-500 dark:text-gray-400">Manage your live apps and summon new ones.</p>
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">My Projects</h2>
+          <p className="text-slate-500 dark:text-gray-400">Manage your live apps and deploy new ones.</p>
         </div>
         <button
           onClick={() => presenter.ui.navigateTo('deploy')}
           className="bg-green-600 hover:bg-green-500 text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:shadow-[0_0_30px_rgba(34,197,94,0.5)] flex items-center gap-2 group border border-green-500/50"
         >
           <Zap className="w-5 h-5" />
-          Create Magic
+          Deploy Your App
         </button>
       </div>
 
@@ -30,7 +30,7 @@ export const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard 
             icon={Zap} 
-            label="ACTIVE SPELLS" 
+            label="ACTIVE PROJECTS" 
             value={projects.filter(p => p.status === 'Live').length.toString()} 
             sublabel="Running on Edge" 
             color="text-green-600 dark:text-green-400"
@@ -46,7 +46,7 @@ export const Dashboard: React.FC = () => {
         />
         <StatCard 
             icon={FileText} 
-            label="MAGIC POWER" 
+            label="SYSTEM STATUS" 
             value="100%" 
             sublabel="Systems Operational" 
             color="text-orange-600 dark:text-orange-400"
@@ -126,7 +126,7 @@ export const Dashboard: React.FC = () => {
                 <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-gray-900 group-hover:bg-brand-100 dark:group-hover:bg-brand-900/30 flex items-center justify-center transition-colors">
                     <Plus className="w-6 h-6" />
                 </div>
-                <span className="font-medium">Import new project</span>
+                <span className="font-medium">Deploy App</span>
             </button>
         </div>
       </div>

@@ -12,7 +12,7 @@ export const Sidebar: React.FC = () => {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'deploy', label: 'Magic Box', icon: Package },
+    { id: 'deploy', label: 'Deploy App', icon: Package },
     { id: 'explore', label: 'Explore Apps', icon: Sparkles },
     { id: 'integrations', label: 'Integrations', icon: Github },
     { id: 'settings', label: 'Settings', icon: Settings },
@@ -53,7 +53,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       <div className="px-6 mb-2">
-         <p className="text-[10px] font-semibold text-slate-400 dark:text-gray-400 uppercase tracking-wider mb-2">MY MAGIC</p>
+         <p className="text-[10px] font-semibold text-slate-400 dark:text-gray-400 uppercase tracking-wider mb-2">MY PROJECTS</p>
       </div>
 
       <nav className="flex-1 px-4 space-y-1">

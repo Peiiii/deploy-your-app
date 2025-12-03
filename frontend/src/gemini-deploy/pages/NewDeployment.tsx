@@ -69,9 +69,9 @@ export const NewDeployment: React.FC = () => {
     <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
       {/* Elegant Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white mb-2 tracking-tight">
-          Create New Project
-        </h1>
+          <h1 className="text-3xl font-semibold text-slate-900 dark:text-white mb-2 tracking-tight">
+            Deploy Your App
+          </h1>
         <p className="text-slate-600 dark:text-slate-400 text-sm">
           Deploy your application in seconds. Connect a repository or upload your code.
         </p>
