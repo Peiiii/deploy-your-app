@@ -46,8 +46,8 @@ export const Sidebar: React.FC = () => {
             </div>
         </div>
         <div>
-            <h1 className="font-bold text-lg tracking-tight text-slate-900 dark:text-white leading-none">Gemini<span className="text-brand-600 dark:text-brand-400">Deploy</span></h1>
-            <span className="text-[10px] text-slate-500 dark:text-gray-500 font-mono tracking-wider uppercase">Enterprise</span>
+            <h1 className="font-bold text-lg tracking-tight text-slate-900 dark:text-white leading-none">Gemi<span className="text-brand-600 dark:text-brand-400">Go</span></h1>
+            <span className="text-[10px] text-slate-500 dark:text-gray-500 font-mono tracking-wider uppercase">Magic Edition</span>
         </div>
       </div>
 
