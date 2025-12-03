@@ -39,7 +39,7 @@ export class DeploymentManager {
     const store = useDeploymentStore.getState();
     const actions = store.actions;
 
-    actions.setStep(3);
+    actions.setStep(2);
     actions.setDeploymentStatus(DeploymentStatus.BUILDING);
     actions.clearLogs();
 

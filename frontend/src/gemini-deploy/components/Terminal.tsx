@@ -6,16 +6,56 @@ interface TerminalProps {
   className?: string;
 }
 
-export const Terminal: React.FC<TerminalProps> = ({ logs, className }) => {
-  const bottomRef = useRef<HTMLDivElement>(null);
+const SCROLL_THRESHOLD = 100; // pixels from bottom to consider "at bottom"
 
+export const Terminal: React.FC<TerminalProps> = ({ logs, className }) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const shouldAutoScrollRef = useRef(true);
+
+  // Check if user is near bottom of scroll
+  const checkIfNearBottom = () => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    const nearBottom = distanceFromBottom <= SCROLL_THRESHOLD;
+    
+    shouldAutoScrollRef.current = nearBottom;
+  };
+
+  // Auto scroll to bottom if user is near bottom
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (shouldAutoScrollRef.current && bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [logs]);
+
+  // Handle scroll events
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      checkIfNearBottom();
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Initial check when component mounts or logs change
+  useEffect(() => {
+    checkIfNearBottom();
   }, [logs]);
 
   return (
     <div className={`bg-[#0d1117] flex flex-col font-mono text-sm ${className}`}>
-      <div className="p-6 overflow-y-auto h-full terminal-scroll space-y-2">
+      <div 
+        ref={scrollContainerRef}
+        className="p-6 overflow-y-auto h-[420px] terminal-scroll space-y-2"
+      >
         {logs.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500 opacity-50">
                 <span className="text-4xl mb-2">⌨️</span>

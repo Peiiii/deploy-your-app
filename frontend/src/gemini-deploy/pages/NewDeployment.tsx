@@ -4,35 +4,33 @@ import { useProjectStore } from '../stores/projectStore';
 import { usePresenter } from '../contexts/PresenterContext';
 import { DeploymentStatus } from '../types';
 import { Terminal } from '../components/Terminal';
-import { ArrowRight, Github, Globe, Loader2, FolderArchive, Upload, FileCode, X, Check, ExternalLink } from 'lucide-react';
-
-const STEPS = [
-  { id: 1, label: 'Source', desc: 'Connect code' },
-  { id: 3, label: 'Deploy', desc: 'Go Live' },
-];
+import { Github, Globe, Loader2, FolderArchive, Upload, FileCode, X, Check, ExternalLink, ArrowRight, CheckCircle2, Terminal as TerminalIcon, ChevronDown, ChevronUp } from 'lucide-react';
 
 export const NewDeployment: React.FC = () => {
   const presenter = usePresenter();
   const state = useDeploymentStore();
   const projects = useProjectStore((s) => s.projects);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showBuildLog, setShowBuildLog] = React.useState(false);
+  const isDeploying = state.deploymentStatus === DeploymentStatus.DEPLOYING;
+  const isInProgress =
+    state.deploymentStatus === DeploymentStatus.BUILDING || isDeploying;
 
   useEffect(() => {
     return () => presenter.deployment.resetWizard();
   }, [presenter.deployment]);
 
-  // When deployment succeeds, reload projects to get the real URL from backend
+  const deploymentUrl = useMemo(() => {
+    const project = projects.find(p => p.name === state.projectName);
+    return project?.url;
+  }, [projects, state.projectName]);
+
+  // Load projects when deployment succeeds
   useEffect(() => {
     if (state.deploymentStatus === DeploymentStatus.SUCCESS) {
       presenter.project.loadProjects();
     }
   }, [state.deploymentStatus, presenter.project]);
-
-  // Get the real deployment URL from the project store (only from backend)
-  const deploymentUrl = useMemo(() => {
-    const project = projects.find(p => p.name === state.projectName);
-    return project?.url; // Only use backend-returned URL, no fallback
-  }, [projects, state.projectName]);
 
   const handleDeployStart = () => {
     const fallbackName =
@@ -46,7 +44,6 @@ export const NewDeployment: React.FC = () => {
         state.sourceType === 'github'
           ? state.repoUrl
           : state.zipFile?.name || 'archive.zip';
-      // Don't pass URL - backend will set it after deployment completes
       presenter.project.addProject(
         fallbackName,
         state.sourceType,
@@ -69,223 +66,332 @@ export const NewDeployment: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-4 md:p-8 animate-fade-in">
-      {/* Header */}
-      <div className="mb-10 text-center">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Deploy New Project</h1>
-        <p className="text-slate-500 dark:text-gray-400">Ship your Gemini AI application securely to the edge.</p>
+    <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
+      {/* Elegant Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white mb-2 tracking-tight">
+          Create New Project
+        </h1>
+        <p className="text-slate-600 dark:text-slate-400 text-sm">
+          Deploy your application in seconds. Connect a repository or upload your code.
+        </p>
       </div>
 
-      {/* Modern Stepper */}
-      <div className="flex items-center justify-center mb-8 md:mb-12 relative max-w-2xl mx-auto px-4">
-        {/* Connecting Line */}
-        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 dark:bg-gray-800 -z-10 rounded-full"></div>
-        <div
-          className="absolute top-1/2 left-0 h-0.5 bg-brand-500 -z-10 rounded-full transition-all duration-500 ease-out"
-          style={{ width: `${((state.step - 1) / (STEPS.length - 1)) * 100}%` }}
-        ></div>
-
-        {STEPS.map((s, i) => {
-          const stepIndex = i === 0 ? 1 : 3;
-          const isActive = stepIndex === state.step;
-          const isCompleted = stepIndex < state.step;
-          return (
-            <div key={s.id} className="flex-1 flex flex-col items-center">
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all duration-300 z-10 bg-white dark:bg-app-bg ${
-                  isActive
-                    ? 'border-brand-500 text-brand-600 dark:text-brand-400 shadow-[0_0_15px_rgba(56,189,248,0.4)] scale-110'
-                    : isCompleted
-                    ? 'border-brand-500 bg-brand-500 text-white'
-                    : 'border-slate-300 dark:border-gray-700 text-slate-400 dark:text-gray-500'
-                }`}
-              >
-                {isCompleted ? <Check className="w-5 h-5" /> : stepIndex}
+      {/* Show deployment result */}
+      {state.deploymentStatus === DeploymentStatus.SUCCESS ? (
+        <div className="space-y-4">
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-xl border border-green-200 dark:border-green-900/50 p-8 shadow-lg">
+            <div className="flex items-start gap-6">
+              <div className="flex-shrink-0">
+                <div className="w-14 h-14 bg-green-500 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30">
+                  <CheckCircle2 className="w-8 h-8 text-white" />
+                </div>
               </div>
-              <div
-                className={`mt-3 text-center transition-colors ${
-                  isActive
-                    ? 'text-slate-900 dark:text-white'
-                    : 'text-slate-400 dark:text-gray-500'
-                }`}
-              >
-                <span className="text-xs font-bold uppercase tracking-wider block">
-                  {s.label}
-                </span>
-                <span className="text-[10px] hidden sm:block">{s.desc}</span>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+                  Deployment successful!
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    {deploymentUrl ? (
+                      <>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                          Your application is now live at:
+                        </p>
+                        <a
+                          href={deploymentUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 text-sm font-mono text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:underline"
+                        >
+                          {deploymentUrl}
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      </>
+                    ) : (
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                        Deployment finished, preparing the public URL...
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 pt-2">
+                    <button
+                      onClick={() => deploymentUrl && window.open(deploymentUrl, '_blank')}
+                      disabled={!deploymentUrl}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      <Globe className="w-4 h-4" />
+                      {deploymentUrl ? 'Open Site' : 'Preparing URL...'}
+                    </button>
+                    <button
+                      onClick={() => presenter.ui.navigateTo('dashboard')}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      View Dashboard
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          );
-        })}
-      </div>
+          </div>
 
-      {/* Step 1: Connect Source */}
-      {state.step === 1 && (
-        <div className="glass-card rounded-2xl p-4 md:p-8 animate-slide-up">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-            <Github className="w-6 h-6 text-brand-500 dark:text-brand-400" /> Select Import Source
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-            <button 
-                onClick={() => state.actions.setSourceType('github')}
-                className={`relative group p-6 rounded-xl border-2 text-left transition-all duration-200 ${
-                    state.sourceType === 'github' 
-                    ? 'bg-brand-500/10 dark:bg-brand-500/20 border-brand-500 dark:border-brand-400 shadow-[0_0_20px_rgba(56,189,248,0.15)] dark:shadow-[0_0_20px_rgba(56,189,248,0.25)]' 
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-brand-500/50 dark:hover:border-brand-500/30 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-            >
-                <div className="flex justify-between items-start mb-4">
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center transition-colors ${state.sourceType === 'github' ? 'bg-brand-500 text-white' : 'bg-slate-100 dark:bg-gray-800 text-slate-400 dark:text-gray-400 group-hover:bg-slate-200 dark:group-hover:bg-gray-700'}`}>
-                        <Github className="w-6 h-6" />
-                    </div>
-                    {state.sourceType === 'github' && <div className="w-6 h-6 rounded-full bg-brand-500 text-white flex items-center justify-center"><Check className="w-3 h-3" /></div>}
+          {/* Build Log Toggle */}
+          {state.logs.length > 0 && (
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+              <button
+                onClick={() => setShowBuildLog(!showBuildLog)}
+                className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <TerminalIcon className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                  <span className="text-sm font-medium text-slate-900 dark:text-white">
+                    Build Log
+                  </span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    ({state.logs.length} entries)
+                  </span>
                 </div>
-                <h3 className={`text-lg font-bold mb-1 ${state.sourceType === 'github' ? 'text-brand-900 dark:text-white' : 'text-slate-700 dark:text-gray-200'}`}>GitHub Repository</h3>
-                <p className="text-sm text-slate-500 dark:text-gray-500">Import directly from your Git repositories.</p>
+                {showBuildLog ? (
+                  <ChevronUp className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+                )}
+              </button>
+              {showBuildLog && (
+                <div className="border-t border-slate-200 dark:border-slate-800">
+                  <div className="bg-slate-900 dark:bg-black">
+                    <div className="bg-slate-800 dark:bg-slate-950 px-6 py-3 border-b border-slate-700 dark:border-slate-800">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+                        <div>
+                          <h4 className="text-sm font-semibold text-slate-100">
+                            Build Log: {state.projectName}
+                          </h4>
+                          <p className="text-xs text-slate-400 font-mono mt-0.5">
+                            {state.sourceType === 'github' ? state.repoUrl : state.zipFile?.name}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <Terminal logs={state.logs} className="border-none rounded-none" />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      ) : isInProgress ? (
+        /* Show build log while deployment is in progress */
+        <div className="bg-slate-900 dark:bg-black rounded-xl border border-slate-800 dark:border-slate-900 overflow-hidden shadow-xl">
+          <div className="bg-slate-800 dark:bg-slate-950 px-6 py-4 border-b border-slate-700 dark:border-slate-800 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse shadow-[0_0_8px_rgba(234,179,8,0.6)]" />
+              <div>
+                <h3 className="text-sm font-semibold text-slate-100">
+                  {isDeploying ? 'Deploying' : 'Building'} {state.projectName}
+                </h3>
+                <p className="text-xs text-slate-400 font-mono mt-0.5">
+                  {state.sourceType === 'github' ? state.repoUrl : state.zipFile?.name}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-full">
+              <Loader2 className="w-3.5 h-3.5 text-purple-400 animate-spin" />
+              <span className="text-xs font-medium text-purple-400">
+                {isDeploying ? 'Deploying...' : 'Building...'}
+              </span>
+            </div>
+          </div>
+          <Terminal logs={state.logs} className="border-none rounded-none" />
+        </div>
+      ) : (
+        /* Source Selection - shown when not building and no URL yet */
+        <div className="space-y-6">
+          {/* Source Type Selection */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button
+              onClick={() => state.actions.setSourceType('github')}
+              className={`group relative p-6 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-lg ${
+                state.sourceType === 'github'
+                  ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-950/20 shadow-md'
+                  : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-purple-300 dark:hover:border-purple-800'
+              }`}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div
+                  className={`p-3 rounded-lg transition-colors ${
+                    state.sourceType === 'github'
+                      ? 'bg-purple-100 dark:bg-purple-900/40'
+                      : 'bg-slate-100 dark:bg-slate-800 group-hover:bg-purple-50 dark:group-hover:bg-purple-950/20'
+                  }`}
+                >
+                  <Github
+                    className={`w-6 h-6 ${
+                      state.sourceType === 'github'
+                        ? 'text-purple-600 dark:text-purple-400'
+                        : 'text-slate-600 dark:text-slate-400'
+                    }`}
+                  />
+                </div>
+                {state.sourceType === 'github' && (
+                  <div className="w-5 h-5 rounded-full bg-purple-600 dark:bg-purple-500 flex items-center justify-center">
+                    <Check className="w-3 h-3 text-white" />
+                  </div>
+                )}
+              </div>
+              <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
+                GitHub Repository
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Connect a repository from GitHub
+              </p>
             </button>
 
-            <button 
-                onClick={() => state.actions.setSourceType('zip')}
-                className={`relative group p-6 rounded-xl border-2 text-left transition-all duration-200 ${
-                    state.sourceType === 'zip' 
-                    ? 'bg-brand-500/10 dark:bg-brand-500/20 border-brand-500 dark:border-brand-400 shadow-[0_0_20px_rgba(56,189,248,0.15)] dark:shadow-[0_0_20px_rgba(56,189,248,0.25)]' 
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-brand-500/50 dark:hover:border-brand-500/30 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
+            <button
+              onClick={() => state.actions.setSourceType('zip')}
+              className={`group relative p-6 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-lg ${
+                state.sourceType === 'zip'
+                  ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-950/20 shadow-md'
+                  : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-purple-300 dark:hover:border-purple-800'
+              }`}
             >
-                <div className="flex justify-between items-start mb-4">
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center transition-colors ${state.sourceType === 'zip' ? 'bg-brand-500 text-white' : 'bg-slate-100 dark:bg-gray-800 text-slate-400 dark:text-gray-400 group-hover:bg-slate-200 dark:group-hover:bg-gray-700'}`}>
-                        <FolderArchive className="w-6 h-6" />
-                    </div>
-                    {state.sourceType === 'zip' && <div className="w-6 h-6 rounded-full bg-brand-500 text-white flex items-center justify-center"><Check className="w-3 h-3" /></div>}
+              <div className="flex items-start justify-between mb-4">
+                <div
+                  className={`p-3 rounded-lg transition-colors ${
+                    state.sourceType === 'zip'
+                      ? 'bg-purple-100 dark:bg-purple-900/40'
+                      : 'bg-slate-100 dark:bg-slate-800 group-hover:bg-purple-50 dark:group-hover:bg-purple-950/20'
+                  }`}
+                >
+                  <FolderArchive
+                    className={`w-6 h-6 ${
+                      state.sourceType === 'zip'
+                        ? 'text-purple-600 dark:text-purple-400'
+                        : 'text-slate-600 dark:text-slate-400'
+                    }`}
+                  />
                 </div>
-                <h3 className={`text-lg font-bold mb-1 ${state.sourceType === 'zip' ? 'text-brand-900 dark:text-white' : 'text-slate-700 dark:text-gray-200'}`}>Upload Zip</h3>
-                <p className="text-sm text-slate-500 dark:text-gray-500">Drag and drop your AI Studio export.</p>
+                {state.sourceType === 'zip' && (
+                  <div className="w-5 h-5 rounded-full bg-purple-600 dark:bg-purple-500 flex items-center justify-center">
+                    <Check className="w-3 h-3 text-white" />
+                  </div>
+                )}
+              </div>
+              <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
+                Upload Archive
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Upload a ZIP file from your computer
+              </p>
             </button>
           </div>
 
-          <div className="min-h-[160px] bg-slate-50 dark:bg-black/20 rounded-xl p-6 border border-slate-200 dark:border-white/5">
+          {/* Input Section */}
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
             {state.sourceType === 'github' ? (
-                <div className="animate-fade-in max-w-xl mx-auto">
-                    <label className="block text-sm font-medium text-slate-500 dark:text-gray-400 mb-2">Repository URL</label>
-                    <div className="relative group">
-                        <Github className="absolute left-4 top-3.5 w-5 h-5 text-slate-400 dark:text-gray-500 group-focus-within:text-brand-500 transition-colors" />
-                        <input 
-                            type="text" 
-                            value={state.repoUrl}
-                            onChange={(e) => {
-                              state.actions.setRepoUrl(e.target.value);
-                              presenter.deployment.autoProjectName(e.target.value, 'github');
-                            }}
-                            placeholder="github.com/username/project"
-                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-12 pr-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all placeholder:text-slate-400 dark:placeholder:text-gray-500"
-                        />
-                    </div>
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-slate-900 dark:text-white">
+                  Repository URL
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Github className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                  </div>
+                  <input
+                    type="text"
+                    value={state.repoUrl}
+                    onChange={(e) => {
+                      state.actions.setRepoUrl(e.target.value);
+                      presenter.deployment.autoProjectName(e.target.value, 'github');
+                    }}
+                    placeholder="github.com/username/repository"
+                    className="block w-full pl-12 pr-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent transition-all"
+                  />
                 </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Enter the full URL of your GitHub repository
+                </p>
+              </div>
             ) : (
-                <div 
-                    className="animate-fade-in border-2 border-dashed border-slate-300 dark:border-gray-700 hover:border-brand-500/50 rounded-xl h-40 flex flex-col items-center justify-center text-center transition-all cursor-pointer bg-white/50 dark:bg-app-bg/50 group"
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-slate-900 dark:text-white">
+                  Upload Archive
+                </label>
+                <div
+                  className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer group ${
+                    state.zipFile
+                      ? 'border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-950/20'
+                      : 'border-slate-300 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-700 bg-slate-50 dark:bg-slate-800/50'
+                  }`}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                    <input type="file" ref={fileInputRef} className="hidden" accept=".zip" onChange={handleFileChange} />
-                    
-                    {state.zipFile ? (
-                        <div className="flex flex-col items-center">
-                            <div className="w-12 h-12 bg-green-500/20 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mb-3">
-                                <FileCode className="w-6 h-6" />
-                            </div>
-                            <p className="text-slate-900 dark:text-white font-medium">{state.zipFile.name}</p>
-                            <p className="text-xs text-slate-500 dark:text-gray-500 mt-1">{(state.zipFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                            <button onClick={(e) => { e.stopPropagation(); state.actions.setZipFile(null); }} className="mt-3 text-xs text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 flex items-center gap-1 hover:underline">
-                                <X className="w-3 h-3" /> Remove file
-                            </button>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-gray-800 text-slate-400 dark:text-gray-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                <Upload className="w-5 h-5" />
-                            </div>
-                            <p className="text-slate-600 dark:text-gray-300 font-medium">Click to upload or drag .zip</p>
-                        </>
-                    )}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept=".zip"
+                    onChange={handleFileChange}
+                  />
+                  {state.zipFile ? (
+                    <div className="space-y-3">
+                      <div className="w-12 h-12 mx-auto bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center">
+                        <FileCode className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-slate-900 dark:text-white">
+                          {state.zipFile.name}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          {(state.zipFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          state.actions.setZipFile(null);
+                        }}
+                        className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium inline-flex items-center gap-1"
+                      >
+                        <X className="w-3 h-3" />
+                        Remove file
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="w-12 h-12 mx-auto bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center group-hover:bg-purple-100 dark:group-hover:bg-purple-900/40 transition-colors">
+                        <Upload className="w-6 h-6 text-slate-600 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-slate-900 dark:text-white">
+                          Drop your ZIP file here, or click to browse
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          Maximum file size: 100MB
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
+              </div>
             )}
-            
-            <div className="flex justify-end pt-6">
-              <button 
-                onClick={() => (state.sourceType === 'github' ? state.repoUrl : state.zipFile) && handleDeployStart()}
+
+            {/* Action Button */}
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() =>
+                  (state.sourceType === 'github' ? state.repoUrl : state.zipFile) &&
+                  handleDeployStart()
+                }
                 disabled={!(state.sourceType === 'github' ? state.repoUrl : state.zipFile)}
-                className="bg-brand-600 hover:bg-brand-500 text-white px-8 py-3 rounded-lg font-medium transition-all flex items-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:translate-x-1"
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 dark:bg-purple-500 text-white font-medium rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
               >
-                Start Deployment <ArrowRight className="w-4 h-4" />
+                Continue
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Step 2 (AI analysis) is temporarily disabled: we go directly to build & deploy */}
-
-      {/* Step 3: Build & Deploy */}
-      {state.step === 3 && (
-        <div className="space-y-4 md:space-y-6 animate-fade-in max-w-4xl mx-auto px-4">
-           <div className="bg-[#0d1117] border border-gray-800 rounded-xl overflow-hidden shadow-2xl">
-             <div className="bg-[#161b22] px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-               <div className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${state.deploymentStatus === DeploymentStatus.SUCCESS ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-yellow-500 animate-pulse'}`}></div>
-                  <div>
-                    <h2 className="text-sm font-bold text-gray-200">Build Log: {state.projectName}</h2>
-                    <p className="text-xs text-gray-500 font-mono mt-0.5">{state.sourceType === 'github' ? state.repoUrl : state.zipFile?.name}</p>
-                  </div>
-               </div>
-               {state.deploymentStatus === DeploymentStatus.BUILDING && (
-                 <span className="px-3 py-1 bg-brand-500/10 text-brand-400 text-xs rounded-full border border-brand-500/20 flex items-center gap-2">
-                   <Loader2 className="w-3 h-3 animate-spin" /> Compiling...
-                 </span>
-               )}
-             </div>
-             
-             <Terminal logs={state.logs} className="min-h-[300px] md:min-h-[400px] border-none rounded-none" />
-           </div>
-
-           {state.deploymentStatus === DeploymentStatus.SUCCESS && (
-             <div className="glass-card border-green-500/30 dark:border-green-500/20 rounded-xl p-4 md:p-8 animate-slide-up flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 dark:bg-green-500/5 blur-[100px] -z-10"></div>
-               
-               <div className="flex items-center gap-6">
-                   <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center text-white shadow-[0_0_20px_rgba(34,197,94,0.4)]">
-                        <Globe className="w-8 h-8" />
-                   </div>
-                   <div>
-                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Deployment Live!</h3>
-                        {deploymentUrl ? (
-                          <a href={deploymentUrl} target="_blank" rel="noreferrer" className="text-green-600 dark:text-green-400 hover:text-green-500 dark:hover:text-green-300 font-mono text-sm flex items-center gap-2 hover:underline">
-                            {deploymentUrl} <ExternalLink className="w-3 h-3" />
-                          </a>
-                        ) : (
-                          <span className="text-slate-500 dark:text-gray-400 text-sm">Loading deployment URL...</span>
-                        )}
-                   </div>
-               </div>
-               
-               <div className="flex gap-3">
-                    {deploymentUrl ? (
-                      <button onClick={() => window.open(deploymentUrl, '_blank')} className="px-6 py-2 bg-slate-900 dark:bg-white text-white dark:text-black rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-gray-200 transition-colors flex items-center gap-2">
-                        Open App <ExternalLink className="w-4 h-4" />
-                      </button>
-                    ) : (
-                      <button disabled className="px-6 py-2 bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-gray-500 rounded-lg font-medium cursor-not-allowed flex items-center gap-2">
-                        Open App <ExternalLink className="w-4 h-4" />
-                      </button>
-                    )}
-                    <button onClick={() => presenter.ui.navigateTo('dashboard')} className="px-6 py-2 bg-slate-200 dark:bg-white/5 text-slate-700 dark:text-white border border-slate-300 dark:border-white/10 rounded-lg font-medium hover:bg-slate-300 dark:hover:bg-white/10 transition-colors">
-                        Back to Dashboard
-                    </button>
-               </div>
-             </div>
-           )}
         </div>
       )}
     </div>
