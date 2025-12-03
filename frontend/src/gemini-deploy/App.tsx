@@ -4,7 +4,7 @@ import { Dashboard } from './pages/Dashboard';
 import { NewDeployment } from './pages/NewDeployment';
 import { PresenterProvider, usePresenter } from './contexts/PresenterContext';
 import { useUIStore } from './stores/uiStore';
-import { Bell, HelpCircle, Sun, Moon, Menu } from 'lucide-react';
+import { Bell, HelpCircle, Sun, Moon, Menu, Coins } from 'lucide-react';
 
 const MainLayout = () => {
   const { currentView, theme, actions: { toggleTheme, toggleSidebar } } = useUIStore((state) => state);
@@ -44,6 +44,10 @@ const MainLayout = () => {
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
+             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/30">
+               <Coins className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+               <span className="text-sm font-medium text-slate-900 dark:text-yellow-300">2,450 +</span>
+             </div>
              <button 
                 onClick={toggleTheme}
                 className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all bg-transparent dark:bg-transparent"

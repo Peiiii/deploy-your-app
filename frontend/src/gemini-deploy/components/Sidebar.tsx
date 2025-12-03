@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, PlusCircle, Settings, Box, Github, Rocket, Wifi, Database, X } from 'lucide-react';
+import { LayoutDashboard, Settings, Github, Rocket, Wifi, Database, X, Zap, Sparkles, Package } from 'lucide-react';
 import { useUIStore } from '../stores/uiStore';
 import { usePresenter } from '../contexts/PresenterContext';
 import { APP_CONFIG } from '../constants';
@@ -12,7 +12,8 @@ export const Sidebar: React.FC = () => {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'deploy', label: 'New Deployment', icon: PlusCircle },
+    { id: 'deploy', label: 'Magic Box', icon: Package },
+    { id: 'explore', label: 'Explore Apps', icon: Sparkles },
     { id: 'integrations', label: 'Integrations', icon: Github },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -40,19 +41,19 @@ export const Sidebar: React.FC = () => {
             <X className="w-5 h-5" />
           </button>
         <div className="relative">
-            <div className="absolute inset-0 bg-brand-500 blur opacity-40 rounded-lg"></div>
-            <div className="relative w-9 h-9 bg-gradient-to-br from-brand-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg border border-white/10">
-                <Box className="text-white w-5 h-5" />
+            <div className="absolute inset-0 bg-purple-500 blur opacity-40 rounded-lg"></div>
+            <div className="relative w-9 h-9 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg border border-white/10">
+                <Zap className="text-white w-5 h-5" />
             </div>
         </div>
         <div>
-            <h1 className="font-bold text-lg tracking-tight text-slate-900 dark:text-white leading-none">Gemi<span className="text-brand-600 dark:text-brand-400">Go</span></h1>
+            <h1 className="font-bold text-lg tracking-tight text-slate-900 dark:text-white leading-none">Gemi<span className="text-purple-600 dark:text-purple-400">Go</span></h1>
             <span className="text-[10px] text-slate-500 dark:text-gray-500 font-mono tracking-wider uppercase">Magic Edition</span>
         </div>
       </div>
 
       <div className="px-6 mb-2">
-         <p className="text-[10px] font-semibold text-slate-400 dark:text-gray-400 uppercase tracking-wider mb-2">Main Menu</p>
+         <p className="text-[10px] font-semibold text-slate-400 dark:text-gray-400 uppercase tracking-wider mb-2">MY MAGIC</p>
       </div>
 
       <nav className="flex-1 px-4 space-y-1">
@@ -75,9 +76,9 @@ export const Sidebar: React.FC = () => {
               }`}
             >
               {isActive && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-brand-500/10 dark:from-brand-500/20 to-transparent border-l-2 border-brand-500 dark:border-brand-400 opacity-100"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 dark:from-purple-500/20 to-transparent opacity-100"></div>
               )}
-              <item.icon className={`w-5 h-5 transition-colors ${isActive ? 'text-brand-500 dark:text-brand-400' : 'text-slate-400 group-hover:text-slate-600 dark:text-gray-500 dark:group-hover:text-gray-300'}`} />
+              <item.icon className={`w-5 h-5 transition-colors ${isActive ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 group-hover:text-slate-600 dark:text-gray-500 dark:group-hover:text-gray-300'}`} />
               <span className="relative z-10">{item.label}</span>
             </button>
           );
@@ -86,16 +87,13 @@ export const Sidebar: React.FC = () => {
 
       <div className="p-4 mx-4 mb-2 rounded-xl bg-gradient-to-b from-slate-100 to-transparent dark:from-white/5 border border-slate-200 dark:border-white/5">
         <div className="flex items-center gap-3">
-           <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300 flex items-center justify-center border border-indigo-500/20 dark:border-indigo-500/30">
+           <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-300 flex items-center justify-center border border-purple-500/20 dark:border-purple-500/30">
               <Rocket className="w-4 h-4" />
            </div>
            <div>
-              <p className="text-xs font-medium text-slate-900 dark:text-white">Pro Plan</p>
-              <p className="text-[10px] text-slate-500 dark:text-gray-400">8/10 Deploys used</p>
+              <p className="text-xs font-medium text-slate-900 dark:text-white">The Showcase</p>
+              <p className="text-[10px] text-slate-500 dark:text-gray-400">Pro Plan (Coming Soon)</p>
            </div>
-        </div>
-        <div className="w-full bg-slate-200 dark:bg-gray-800 h-1 mt-3 rounded-full overflow-hidden">
-            <div className="bg-brand-500 h-full w-[80%] rounded-full"></div>
         </div>
       </div>
 
@@ -121,7 +119,7 @@ export const Sidebar: React.FC = () => {
           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 ring-2 ring-white dark:ring-slate-800 group-hover:ring-purple-500/50 dark:group-hover:ring-purple-400/50 transition-all"></div>
           <div className="text-left">
             <p className="text-sm font-medium text-slate-900 dark:text-white">Indie Hacker</p>
-            <p className="text-xs text-slate-500 dark:text-gray-400">View Profile</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">The Playground</p>
           </div>
         </button>
       </div>

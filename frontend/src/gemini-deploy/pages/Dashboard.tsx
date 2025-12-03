@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, GitBranch, Clock, FolderArchive, Activity, Server, Zap, Plus } from 'lucide-react';
+import { ExternalLink, GitBranch, Clock, FolderArchive, Activity, Server, Zap, Plus, TrendingUp, FileText, GraduationCap, Wand2, Briefcase } from 'lucide-react';
 import { useProjectStore } from '../stores/projectStore';
 import { usePresenter } from '../contexts/PresenterContext';
 import { URLS } from '../constants';
@@ -14,50 +14,50 @@ export const Dashboard: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">Dashboard</h2>
-          <p className="text-slate-500 dark:text-gray-400">Overview of your deployed applications and services.</p>
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">Your Magic Spells</h2>
+          <p className="text-slate-500 dark:text-gray-400">Manage your live apps and summon new ones.</p>
         </div>
         <button
           onClick={() => presenter.ui.navigateTo('deploy')}
-          className="bg-brand-600 hover:bg-brand-500 text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)] flex items-center gap-2 group border border-brand-500/50"
+          className="bg-green-600 hover:bg-green-500 text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:shadow-[0_0_30px_rgba(34,197,94,0.5)] flex items-center gap-2 group border border-green-500/50"
         >
-          <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-          New Deployment
+          <Zap className="w-5 h-5" />
+          Create Magic
         </button>
       </div>
 
       {/* Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard 
-            icon={Server} 
-            label="Active Deploys" 
+            icon={Zap} 
+            label="ACTIVE SPELLS" 
             value={projects.filter(p => p.status === 'Live').length.toString()} 
-            sublabel="Running smoothly" 
+            sublabel="Running on Edge" 
             color="text-green-600 dark:text-green-400"
             bgColor="bg-green-500/10"
         />
         <StatCard 
-            icon={Activity} 
-            label="Total Requests" 
+            icon={TrendingUp} 
+            label="TOTAL VIEWS" 
             value="12.4k" 
-            sublabel="+18% from last week" 
-            color="text-brand-600 dark:text-brand-400"
-            bgColor="bg-brand-500/10"
-        />
-        <StatCard 
-            icon={Zap} 
-            label="Avg. Latency" 
-            value="42ms" 
-            sublabel="Global Edge Network" 
+            sublabel="People love your stuff" 
             color="text-purple-600 dark:text-purple-400"
             bgColor="bg-purple-500/10"
+        />
+        <StatCard 
+            icon={FileText} 
+            label="MAGIC POWER" 
+            value="100%" 
+            sublabel="Systems Operational" 
+            color="text-orange-600 dark:text-orange-400"
+            bgColor="bg-orange-500/10"
         />
       </div>
 
       {/* Projects Grid */}
       <div>
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-            Recent Projects <span className="text-xs bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 px-2 py-0.5 rounded-full">{projects.length}</span>
+            Recent Creations <span className="text-xs bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 px-2 py-0.5 rounded-full">{projects.length}</span>
         </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -108,8 +108,8 @@ export const Dashboard: React.FC = () => {
 
                 <div className="flex justify-between items-center pt-2">
                     {project.url ? (
-                        <a href={project.url} target="_blank" rel="noreferrer" className="text-brand-600 dark:text-brand-400 hover:text-brand-500 dark:hover:text-brand-300 text-sm font-medium flex items-center gap-1 transition-colors hover:underline decoration-brand-500/50">
-                            Visit Deployment <ExternalLink className="w-3 h-3" />
+                        <a href={project.url} target="_blank" rel="noreferrer" className="text-green-600 dark:text-green-400 hover:text-green-500 dark:hover:text-green-300 text-sm font-medium flex items-center gap-1 transition-colors hover:underline decoration-green-500/50">
+                            Visit App <ExternalLink className="w-3 h-3" />
                         </a>
                     ) : (
                         <span className="text-slate-400 dark:text-gray-600 text-sm italic">Not accessible</span>
@@ -128,6 +128,39 @@ export const Dashboard: React.FC = () => {
                 </div>
                 <span className="font-medium">Import new project</span>
             </button>
+        </div>
+      </div>
+
+      {/* What Will You Build Section */}
+      <div>
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">WHAT WILL YOU BUILD?</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="glass-card rounded-xl p-6 group hover:shadow-lg transition-all">
+            <div className="w-12 h-12 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4">
+              <GraduationCap className="w-6 h-6" />
+            </div>
+            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">FOR STUDENTS</h4>
+            <p className="text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">Showcase your Portfolio</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">Build and deploy your projects to impress recruiters and showcase your skills.</p>
+          </div>
+          
+          <div className="glass-card rounded-xl p-6 group hover:shadow-lg transition-all">
+            <div className="w-12 h-12 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-4">
+              <Wand2 className="w-6 h-6" />
+            </div>
+            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">FOR CREATORS</h4>
+            <p className="text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">Viral Content Machine</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">Create engaging AI-powered apps that captivate your audience and go viral.</p>
+          </div>
+          
+          <div className="glass-card rounded-xl p-6 group hover:shadow-lg transition-all">
+            <div className="w-12 h-12 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center mb-4">
+              <Briefcase className="w-6 h-6" />
+            </div>
+            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">FOR BUSINESS</h4>
+            <p className="text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">Internal Tools</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">Deploy internal tools and dashboards to streamline your team's workflow.</p>
+          </div>
         </div>
       </div>
     </div>
