@@ -2,7 +2,6 @@ import type { IDeploymentProvider, AnalyzeCodeParams, AnalyzeCodeResult } from '
 import type { Project, BuildLog } from '../../types';
 import { DeploymentStatus } from '../../types';
 import { secureCodeForDeployment } from '../geminiService';
-import { URLS } from '../../constants';
 
 type LogType = 'info' | 'error' | 'success' | 'warning';
 
@@ -16,7 +15,9 @@ export class LocalDeploymentProvider implements IDeploymentProvider {
   async analyzeCode(params: AnalyzeCodeParams): Promise<AnalyzeCodeResult> {
     const { apiKey, sourceCode = '' } = params;
     // Generate a fake proxy URL to simulate the backend infrastructure
-    const proxyUrl = URLS.getProxyUrl(Math.random().toString(36).substring(7));
+    // Note: This is only used in mock mode (USE_MOCK_ADAPTER: true)
+    const proxyId = Math.random().toString(36).substring(7);
+    const proxyUrl = `https://proxy-${proxyId}.example.com/v1`;
     const result = await secureCodeForDeployment(apiKey, sourceCode, proxyUrl);
     return {
       refactoredCode: result.refactoredCode,

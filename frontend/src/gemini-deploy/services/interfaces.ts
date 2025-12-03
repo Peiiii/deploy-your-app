@@ -26,7 +26,6 @@ export interface IProjectProvider {
   getProjects(): Promise<Project[]>;
   createProject(
     name: string,
-    url: string,
     sourceType: 'github' | 'zip',
     identifier: string,
   ): Promise<Project>;

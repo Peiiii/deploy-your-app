@@ -11,11 +11,11 @@ export class HttpProjectProvider implements IProjectProvider {
     return response.json();
   }
 
-  async createProject(name: string, url: string, sourceType: 'github' | 'zip', identifier: string): Promise<Project> {
+  async createProject(name: string, sourceType: 'github' | 'zip', identifier: string): Promise<Project> {
     const response = await fetch(`${this.baseUrl}${API_ROUTES.PROJECTS}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, url, sourceType, identifier })
+      body: JSON.stringify({ name, sourceType, identifier })
     });
     if (!response.ok) throw new Error("Failed to create project");
     return response.json();

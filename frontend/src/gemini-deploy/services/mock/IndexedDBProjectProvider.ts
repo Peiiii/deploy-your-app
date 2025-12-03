@@ -12,7 +12,7 @@ const SEED_PROJECTS: Project[] = [
     sourceType: 'github',
     lastDeployed: '2 hours ago',
     status: 'Live',
-    url: URLS.getDeploymentUrl('travel-planner'),
+    url: undefined, // URL should come from backend
     framework: 'React'
   },
   {
@@ -38,7 +38,7 @@ export class IndexedDBProjectProvider implements IProjectProvider {
     return db.getAll<Project>('projects');
   }
 
-  async createProject(name: string, url: string, sourceType: 'github' | 'zip', identifier: string): Promise<Project> {
+  async createProject(name: string, sourceType: 'github' | 'zip', identifier: string): Promise<Project> {
     const newProject: Project = {
       id: crypto.randomUUID(), // Use native browser UUID
       name: name,
@@ -46,7 +46,7 @@ export class IndexedDBProjectProvider implements IProjectProvider {
       sourceType: sourceType,
       lastDeployed: 'Just now',
       status: 'Live',
-      url: url,
+      url: undefined, // URL will be set by backend after deployment
       framework: 'React', // In a real app, this is detected during build
     };
     

@@ -23,12 +23,11 @@ export class ProjectManager {
 
   addProject = async (
     name: string,
-    url: string,
     sourceType: 'github' | 'zip',
     sourceIdentifier: string
   ) => {
     try {
-      const newProject = await this.provider.createProject(name, url, sourceType, sourceIdentifier);
+      const newProject = await this.provider.createProject(name, sourceType, sourceIdentifier);
       useProjectStore.getState().actions.addProject(newProject);
     } catch (error) {
       console.error("Failed to create project", error);
