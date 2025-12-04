@@ -11,6 +11,7 @@ export interface PlatformAIConfig {
   provider: string;
   model: string;
   apiKey: string;
+  baseUrl: string;
 }
 
 export interface CloudflareConfig {

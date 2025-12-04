@@ -21,6 +21,10 @@ export interface Project {
   status: 'Live' | 'Building' | 'Failed' | 'Offline';
   url?: string;
   framework: 'React' | 'Vue' | 'Next.js' | 'Unknown';
+  // High-level category used by Explore Apps (e.g. "Development", "Image Gen").
+  category?: string;
+   // Optional tags for finer-grained filtering/search (e.g. ["chatbot", "landing-page"]).
+  tags?: string[];
 }
 
 export interface BuildLog {

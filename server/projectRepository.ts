@@ -20,6 +20,8 @@ export interface CreateProjectRecordInput {
   status: Project['status'];
   url?: string;
   framework: Project['framework'];
+  category?: string;
+  tags?: string[];
   deployTarget?: Project['deployTarget'];
   providerUrl?: string;
   cloudflareProjectName?: string;
@@ -62,6 +64,8 @@ export function createProjectRecord(input: CreateProjectRecordInput): Project {
     status: input.status,
     url: input.url,
     framework: input.framework,
+    category: input.category,
+    tags: input.tags,
     deployTarget: input.deployTarget,
     providerUrl: input.providerUrl,
     cloudflareProjectName: input.cloudflareProjectName,
@@ -76,6 +80,11 @@ export function createProjectRecord(input: CreateProjectRecordInput): Project {
 
 export function getAllProjects(): Project[] {
   const rows = readAllRows();
-  // Return a shallow copy to avoid accidental mutation.
-  return rows.map((row) => ({ ...row }));
+  // Return a shallow copy to avoid accidental mutation and normalize fields
+  // for older records that may not have category/tags yet.
+  return rows.map((row) => ({
+    ...row,
+    category: row.category ?? 'Other',
+    tags: row.tags ?? [],
+  }));
 }

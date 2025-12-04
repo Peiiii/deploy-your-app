@@ -52,6 +52,10 @@ function parsePlatformAIConfig(): PlatformAIConfig {
       getEnv('DASHSCOPE_API_KEY') ??
       getEnv('DASHSCOPE_APIKEY') ??
       '',
+    baseUrl: getEnvOrDefault(
+      'PLATFORM_AI_BASE_URL',
+      'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    ),
   };
 }
 
@@ -156,6 +160,7 @@ export const CONFIG: AppConfig = Object.freeze({
 export const PLATFORM_AI_PROVIDER = CONFIG.platformAI.provider;
 export const PLATFORM_AI_MODEL = CONFIG.platformAI.model;
 export const DASHSCOPE_API_KEY = CONFIG.platformAI.apiKey;
+export const PLATFORM_AI_BASE_URL = CONFIG.platformAI.baseUrl;
 
 // Deployment target
 // - 'local': copy static assets to /apps/<slug>/ and serve from the Node server

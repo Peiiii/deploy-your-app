@@ -13,7 +13,8 @@ const SEED_PROJECTS: Project[] = [
     lastDeployed: '2 hours ago',
     status: 'Live',
     url: undefined, // URL should come from backend
-    framework: 'React'
+    framework: 'React',
+    category: 'Development',
   },
   {
     id: 'seed-2',
@@ -22,7 +23,8 @@ const SEED_PROJECTS: Project[] = [
     sourceType: 'github',
     lastDeployed: '1 day ago',
     status: 'Failed',
-    framework: 'Next.js'
+    framework: 'Next.js',
+    category: 'Development',
   }
 ];
 
@@ -48,6 +50,7 @@ export class IndexedDBProjectProvider implements IProjectProvider {
       status: 'Live',
       url: undefined, // URL will be set by backend after deployment
       framework: 'React', // In a real app, this is detected during build
+      category: 'Development',
     };
     
     await db.add('projects', newProject);

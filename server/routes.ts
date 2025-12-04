@@ -14,20 +14,24 @@ export function registerRoutes(app: { get(path: string, handler: any): void; pos
     res.json(getProjects());
   });
 
-  app.post('/api/v1/projects', (req, res) => {
+  app.post('/api/v1/projects', async (req, res) => {
     const { name, sourceType, identifier } = req.body || {};
 
     if (!name || !identifier) {
       return res.status(400).json({ error: 'name and identifier are required' });
     }
 
-    const project = createProject({
-      name: String(name),
-      sourceType,
-      identifier: String(identifier),
-    });
-
-    res.json(project);
+    try {
+      const project = await createProject({
+        name: String(name),
+        sourceType,
+        identifier: String(identifier),
+      });
+      res.json(project);
+    } catch (err) {
+      console.error('Failed to create project', err);
+      res.status(500).json({ error: 'Failed to create project' });
+    }
   });
 
   // ----------------------

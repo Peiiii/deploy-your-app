@@ -1,4 +1,9 @@
-import { PLATFORM_AI_PROVIDER, PLATFORM_AI_MODEL, DASHSCOPE_API_KEY } from '../config.js';
+import {
+  PLATFORM_AI_PROVIDER,
+  PLATFORM_AI_MODEL,
+  DASHSCOPE_API_KEY,
+  PLATFORM_AI_BASE_URL,
+} from '../config.js';
 
 export interface PlatformAIAnalyzeParams {
   sourceCode: string;
@@ -29,9 +34,7 @@ class DashScopePlatformProvider implements PlatformAIProvider {
   private apiKey: string;
 
   constructor() {
-    this.baseUrl =
-      process.env.PLATFORM_AI_BASE_URL ||
-      'https://dashscope.aliyuncs.com/compatible-mode/v1';
+    this.baseUrl = PLATFORM_AI_BASE_URL;
     this.model = PLATFORM_AI_MODEL;
     this.apiKey = DASHSCOPE_API_KEY;
   }

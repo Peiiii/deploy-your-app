@@ -24,6 +24,10 @@ export interface Project {
   status: 'Live' | 'Building' | 'Failed' | 'Offline';
   url?: string;
   framework: 'React' | 'Vue' | 'Next.js' | 'Unknown';
+  // High-level category used by the Explore Apps marketplace view.
+  category?: string;
+  // Optional tags for finer-grained filtering/search (e.g. ["chatbot", "landing-page"]).
+  tags?: string[];
   // Where this project is deployed.
   deployTarget?: 'local' | 'cloudflare' | 'r2';
   // Provider-level URL (e.g. https://<project>.pages.dev) – mainly for debugging.

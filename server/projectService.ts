@@ -1,28 +1,73 @@
 import { randomUUID } from 'crypto';
-import type { Project } from './types.js';
-import { slugify } from './utils.js';
-import { DEPLOY_TARGET, APPS_ROOT_DOMAIN } from './config.js';
+import * as fs from 'fs';
+import * as path from 'path';
+import {
+  APPS_ROOT_DOMAIN,
+  DEPLOY_TARGET,
+  CONFIG,
+} from './config.js';
 import {
   createProjectRecord,
   type CreateProjectRecordInput,
   getAllProjects,
 } from './projectRepository.js';
+import type { Project } from './types.js';
+import { slugify } from './utils.js';
+import { getAIService } from './ai/aiService.js';
 
-export function getProjects(): Project[] {
-  return getAllProjects();
-}
-
+// Type definitions
 interface CreateProjectInput {
   name: string;
   sourceType?: 'github' | 'zip';
   identifier: string;
 }
 
-export function createProject({
+export function getProjects(): Project[] {
+  return getAllProjects();
+}
+
+async function buildClassificationContext(slug: string): Promise<string | null> {
+  const appDir = path.join(CONFIG.paths.staticRoot, slug);
+  const snippets: string[] = [];
+
+  try {
+    const indexPath = path.join(appDir, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      const html = await fs.promises.readFile(indexPath, 'utf8');
+      const trimmed = html.slice(0, 1500);
+      snippets.push(`index.html (first ${trimmed.length} chars):\n${trimmed}`);
+    }
+
+    let fileNames: string[] = [];
+    try {
+      const entries = await fs.promises.readdir(appDir, { withFileTypes: true });
+      for (const entry of entries) {
+        const name = entry.isDirectory() ? `${entry.name}/` : entry.name;
+        fileNames.push(name);
+        if (fileNames.length >= 20) break;
+      }
+    } catch {
+      // If the directory doesn't exist (e.g. R2 deploy target), skip filenames.
+    }
+
+    if (fileNames.length > 0) {
+      snippets.push(`Top-level files:\n${fileNames.join(', ')}`);
+    }
+  } catch (err) {
+    console.error('Failed to build AI classification context:', err);
+  }
+
+  if (snippets.length === 0) return null;
+
+  const combined = snippets.join('\n\n');
+  return combined.length > 2000 ? combined.slice(0, 2000) : combined;
+}
+
+export async function createProject({
   name,
   sourceType,
   identifier,
-}: CreateProjectInput): Project {
+}: CreateProjectInput): Promise<Project> {
   const id = randomUUID();
   const now = new Date().toISOString();
   const slug = slugify(name);
@@ -40,6 +85,25 @@ export function createProject({
     url = `https://${slug}.${APPS_ROOT_DOMAIN}/`;
   }
 
+  // Default category when AI is unavailable or fails.
+  let category = 'Other';
+  let tags: string[] = [];
+
+  const aiService = getAIService();
+  const context = await buildClassificationContext(slug);
+  // Try to classify with platform AI; fall back silently on failure.
+  const aiResult = await aiService.classifyProjectCategoryAndTags(
+    name,
+    identifier,
+    context ?? undefined,
+  );
+  if (aiResult.category) {
+    category = aiResult.category;
+  }
+  if (aiResult.tags && aiResult.tags.length > 0) {
+    tags = aiResult.tags;
+  }
+
   const project: Project = {
     id,
     name,
@@ -49,6 +113,8 @@ export function createProject({
     status: 'Live',
     url,
     framework: 'Unknown',
+    category,
+    tags,
     deployTarget: DEPLOY_TARGET,
   };
   const recordInput: CreateProjectRecordInput = {
@@ -60,6 +126,8 @@ export function createProject({
     status: project.status,
     url,
     framework: project.framework,
+    category,
+    tags,
     deployTarget: project.deployTarget,
   };
 

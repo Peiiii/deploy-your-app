@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Search, Zap, Star, User, TrendingUp, Play } from 'lucide-react';
 import { useProjectStore } from '../stores/projectStore';
+import { usePresenter } from '../contexts/PresenterContext';
 import { URLS } from '../constants';
 import type { Project } from '../types';
 
@@ -15,6 +16,7 @@ interface ExploreAppCard {
   installs: string;
   color: string;
   url?: string;
+  tags?: string[];
 }
 
 const APP_META: Array<
@@ -88,23 +90,29 @@ function buildAuthor(project: Project): string {
 function mapProjectsToApps(projects: Project[]): ExploreAppCard[] {
   return projects.map((project, index) => {
     const meta = APP_META[index % APP_META.length];
+    const category =
+      project.category && project.category.trim().length > 0
+        ? project.category
+        : 'Other';
     return {
       id: project.id,
       name: project.name,
       description: buildDescription(project),
       author: buildAuthor(project),
       cost: meta.cost,
-      category: meta.category,
+      category,
       rating: meta.rating,
       installs: meta.installs,
       color: meta.color,
       url: project.url,
+      tags: project.tags,
     };
   });
 }
 
 export const ExploreApps: React.FC = () => {
   const projects = useProjectStore((state) => state.projects);
+  const presenter = usePresenter();
   const apps = mapProjectsToApps(projects);
   type CategoryFilter =
     | 'All Apps'
@@ -113,13 +121,44 @@ export const ExploreApps: React.FC = () => {
     | 'Productivity'
     | 'Marketing'
     | 'Legal'
-    | 'Fun';
+    | 'Fun'
+    | 'Other';
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All Apps');
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const filteredApps = useMemo(() => {
-    if (activeCategory === 'All Apps') return apps;
-    return apps.filter((app) => app.category === activeCategory);
-  }, [apps, activeCategory]);
+    const query = searchQuery.trim().toLowerCase();
+    return apps.filter((app) => {
+      if (activeCategory !== 'All Apps' && app.category !== activeCategory) {
+        return false;
+      }
+
+      if (activeTag) {
+        const tags = app.tags ?? [];
+        if (!tags.includes(activeTag)) {
+          return false;
+        }
+      }
+
+      if (query) {
+        const haystack = [
+          app.name,
+          app.description,
+          app.author,
+          ...(app.tags ?? []),
+        ]
+          .join(' ')
+          .toLowerCase();
+
+        if (!haystack.includes(query)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [apps, activeCategory, activeTag, searchQuery]);
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
@@ -143,6 +182,8 @@ export const ExploreApps: React.FC = () => {
           </div>
           <input
             type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search for AI apps..."
             className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all shadow-sm placeholder:text-slate-400 dark:placeholder:text-gray-500"
           />
@@ -166,7 +207,10 @@ export const ExploreApps: React.FC = () => {
             Publish your Gemini-powered applications to the marketplace. You earn 70% of the
             credit revenue every time someone uses your app.
           </p>
-          <button className="bg-white text-slate-900 px-6 py-3 rounded-xl font-bold hover:bg-slate-100 transition-colors">
+          <button
+            onClick={() => presenter.ui.navigateTo('deploy')}
+            className="bg-white text-slate-900 px-6 py-3 rounded-xl font-bold hover:bg-slate-100 transition-colors"
+          >
             Become a Creator
           </button>
         </div>
@@ -182,12 +226,17 @@ export const ExploreApps: React.FC = () => {
           'Marketing',
           'Legal',
           'Fun',
+          'Other',
         ].map((cat) => {
           const isActive = cat === activeCategory;
           return (
             <button
               key={cat}
-              onClick={() => setActiveCategory(cat as CategoryFilter)}
+              onClick={() => {
+                setActiveCategory(cat as CategoryFilter);
+                // Reset tag filter when switching category for a clearer UX
+                setActiveTag(null);
+              }}
               className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                 isActive
                   ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/20'
@@ -225,14 +274,39 @@ export const ExploreApps: React.FC = () => {
               {app.description}
             </p>
 
-            <div className="flex items-center gap-4 text-xs text-slate-400 dark:text-gray-500 mb-4 pb-4 border-b border-slate-100 dark:border-white/5">
-              <div className="flex items-center gap-1">
-                <User className="w-3 h-3" /> {app.author}
+            <div className="mb-4 pb-4 border-b border-slate-100 dark:border-white/5 space-y-2">
+              <div className="flex items-center gap-4 text-xs text-slate-400 dark:text-gray-500">
+                <div className="flex items-center gap-1">
+                  <User className="w-3 h-3" /> {app.author}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> {app.rating}
+                </div>
+                <div>{app.installs} uses</div>
               </div>
-              <div className="flex items-center gap-1">
-                <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> {app.rating}
-              </div>
-              <div>{app.installs} uses</div>
+
+              {app.tags && app.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {app.tags.map((tag) => {
+                    const isActiveTag = tag === activeTag;
+                    return (
+                      <button
+                        key={tag}
+                        onClick={() =>
+                          setActiveTag((current) => (current === tag ? null : tag))
+                        }
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors ${
+                          isActiveTag
+                            ? 'bg-brand-600 text-white border-brand-500'
+                            : 'bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-gray-400 border-slate-200 dark:border-white/10 hover:border-brand-500/50'
+                        }`}
+                      >
+                        #{tag}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <button
