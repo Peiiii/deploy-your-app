@@ -37,6 +37,61 @@ export {
   prepareAnalysisSession,
 };
 
+type PackageManagerName = 'npm' | 'pnpm' | 'yarn' | 'bun';
+
+interface PackageManagerInfo {
+  name: PackageManagerName;
+  reason: string;
+}
+
+function detectPackageManager(workDir: string): PackageManagerInfo {
+  // 1) package.json "packageManager" field, e.g. "pnpm@9.12.0"
+  const packageJsonPath = path.join(workDir, 'package.json');
+  try {
+    if (fs.existsSync(packageJsonPath)) {
+      const raw = fs.readFileSync(packageJsonPath, 'utf8');
+      const pkg = JSON.parse(raw) as { packageManager?: unknown };
+      if (typeof pkg.packageManager === 'string') {
+        const [rawName] = pkg.packageManager.split('@');
+        const name = rawName.trim();
+        if (name === 'pnpm' || name === 'yarn' || name === 'bun' || name === 'npm') {
+          return {
+            name,
+            reason: `packageManager field: ${pkg.packageManager}`,
+          };
+        }
+      }
+    }
+  } catch {
+    // Ignore parse / fs errors and fall back to lockfile detection.
+  }
+
+  // 2) Lockfiles
+  const lockCandidates: Array<{ name: PackageManagerName; file: string }> = [
+    { name: 'pnpm', file: 'pnpm-lock.yaml' },
+    { name: 'yarn', file: 'yarn.lock' },
+    { name: 'bun', file: 'bun.lockb' },
+    { name: 'npm', file: 'package-lock.json' },
+    { name: 'npm', file: 'npm-shrinkwrap.json' },
+  ];
+
+  for (const candidate of lockCandidates) {
+    const lockPath = path.join(workDir, candidate.file);
+    if (fs.existsSync(lockPath)) {
+      return {
+        name: candidate.name,
+        reason: `lockfile: ${candidate.file}`,
+      };
+    }
+  }
+
+  // 3) Fallback to npm as the most universally available choice.
+  return {
+    name: 'npm',
+    reason: 'default: no packageManager field or known lockfile',
+  };
+}
+
 export async function runDeployment(id: string): Promise<void> {
   const deployment = deployments.get(id);
   if (!deployment) return;
@@ -74,18 +129,55 @@ export async function runDeployment(id: string): Promise<void> {
     // before installing dependencies and building.
     await applyFixesForDeployment(id, workDir);
 
-    appendLog(id, 'Installing dependencies with npm', 'info');
-    await runCommand(id, 'npm', ['install'], {
-      cwd: workDir,
-      // Ensure devDependencies (like Vite) are always installed, even if
-      // the server runs with NODE_ENV=production or npm_config_production=true.
-      env: {
-        npm_config_production: 'false',
-      },
-    });
+    const packageManager = detectPackageManager(workDir);
+    appendLog(
+      id,
+      `Detected package manager: ${packageManager.name} (${packageManager.reason})`,
+      'info',
+    );
 
-    appendLog(id, 'Building project (npm run build)', 'info');
-    await runCommand(id, 'npm', ['run', 'build'], { cwd: workDir });
+    // Ensure devDependencies (like Vite) are always installed, even if
+    // the server runs with NODE_ENV=production or npm_config_production=true.
+    const installEnv =
+      packageManager.name === 'npm' || packageManager.name === 'pnpm'
+        ? { npm_config_production: 'false' }
+        : undefined;
+
+    if (packageManager.name === 'pnpm') {
+      appendLog(id, 'Installing dependencies with pnpm', 'info');
+      await runCommand(id, 'pnpm', ['install'], {
+        cwd: workDir,
+        env: installEnv,
+      });
+
+      appendLog(id, 'Building project (pnpm run build)', 'info');
+      await runCommand(id, 'pnpm', ['run', 'build'], { cwd: workDir });
+    } else if (packageManager.name === 'yarn') {
+      appendLog(id, 'Installing dependencies with yarn', 'info');
+      await runCommand(id, 'yarn', ['install'], {
+        cwd: workDir,
+      });
+
+      appendLog(id, 'Building project (yarn build)', 'info');
+      await runCommand(id, 'yarn', ['build'], { cwd: workDir });
+    } else if (packageManager.name === 'bun') {
+      appendLog(id, 'Installing dependencies with bun', 'info');
+      await runCommand(id, 'bun', ['install'], {
+        cwd: workDir,
+      });
+
+      appendLog(id, 'Building project (bun run build)', 'info');
+      await runCommand(id, 'bun', ['run', 'build'], { cwd: workDir });
+    } else {
+      appendLog(id, 'Installing dependencies with npm', 'info');
+      await runCommand(id, 'npm', ['install'], {
+        cwd: workDir,
+        env: installEnv,
+      });
+
+      appendLog(id, 'Building project (npm run build)', 'info');
+      await runCommand(id, 'npm', ['run', 'build'], { cwd: workDir });
+    }
 
     const candidates = ['dist', 'build', 'out'];
     let distPath: string | null = null;
