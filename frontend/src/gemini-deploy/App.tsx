@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
 import { NewDeployment } from './pages/NewDeployment';
+import { ExploreApps } from './pages/ExploreApps';
 import { PresenterProvider, usePresenter } from './contexts/PresenterContext';
 import { useUIStore } from './stores/uiStore';
 import { Bell, HelpCircle, Sun, Moon, Menu, Coins } from 'lucide-react';
@@ -70,15 +71,20 @@ const MainLayout = () => {
         <div className="p-0">
           {currentView === 'dashboard' && <Dashboard />}
           {currentView === 'deploy' && <NewDeployment />}
-          {currentView !== 'dashboard' && currentView !== 'deploy' && (
-            <div className="flex flex-col items-center justify-center h-[80vh] text-slate-500 dark:text-gray-500 animate-fade-in px-4">
-              <div className="w-16 h-16 rounded-full bg-slate-200/50 dark:bg-white/5 flex items-center justify-center mb-4">
-                 <span className="text-2xl">🚧</span>
+          {currentView === 'explore' && <ExploreApps />}
+          {currentView !== 'dashboard' &&
+            currentView !== 'deploy' &&
+            currentView !== 'explore' && (
+              <div className="flex flex-col items-center justify-center h-[80vh] text-slate-500 dark:text-gray-500 animate-fade-in px-4">
+                <div className="w-16 h-16 rounded-full bg-slate-200/50 dark:bg-white/5 flex items-center justify-center mb-4">
+                  <span className="text-2xl">🚧</span>
+                </div>
+                <h3 className="text-xl font-medium mb-2 text-slate-900 dark:text-white">
+                  Under Construction
+                </h3>
+                <p className="text-center">The {currentView} module is coming in the next update.</p>
               </div>
-              <h3 className="text-xl font-medium mb-2 text-slate-900 dark:text-white">Under Construction</h3>
-              <p className="text-center">The {currentView} module is coming in the next update.</p>
-            </div>
-          )}
+            )}
         </div>
       </main>
     </div>
