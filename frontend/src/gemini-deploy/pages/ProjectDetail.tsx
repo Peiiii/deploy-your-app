@@ -10,10 +10,13 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { APP_CONFIG, URLS } from '../constants';
+import { URLS } from '../constants';
 import { usePresenter } from '../contexts/PresenterContext';
+import { DeploymentSession } from '../components/DeploymentSession';
+import { useDeploymentStore } from '../stores/deploymentStore';
 import { useProjectStore } from '../stores/projectStore';
 import type { Project } from '../types';
+import { DeploymentStatus } from '../types';
 
 function formatRepoLabel(project: Project): string {
   const { repoUrl, sourceType } = project;
@@ -28,24 +31,6 @@ function formatRepoLabel(project: Project): string {
   return repoUrl;
 }
 
-async function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result === 'string') {
-        const commaIndex = result.indexOf(',');
-        resolve(commaIndex >= 0 ? result.slice(commaIndex + 1) : result);
-      } else {
-        reject(new Error('Unexpected FileReader result type'));
-      }
-    };
-    reader.onerror = () =>
-      reject(reader.error || new Error('Failed to read file'));
-    reader.readAsDataURL(file);
-  });
-}
-
 export const ProjectDetail: React.FC = () => {
   const presenter = usePresenter();
   const projects = useProjectStore((s) => s.projects);
@@ -57,6 +42,11 @@ export const ProjectDetail: React.FC = () => {
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
   const projectId = params.id ?? null;
+
+  const deploymentStatus = useDeploymentStore((s) => s.deploymentStatus);
+  const isDeploymentInProgress =
+    deploymentStatus === DeploymentStatus.BUILDING ||
+    deploymentStatus === DeploymentStatus.DEPLOYING;
 
   const project = useMemo(
     () => projects.find((p) => p.id === projectId) || null,
@@ -123,17 +113,11 @@ export const ProjectDetail: React.FC = () => {
         ...project,
         sourceType: 'github',
       };
-      const response = await fetch(`${APP_CONFIG.API_BASE_URL}/deploy`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      await presenter.deployment.redeployProject(payload, {
+        onComplete: () => {
+          presenter.project.loadProjects();
+        },
       });
-      if (!response.ok) {
-        const text = await response.text().catch(() => '');
-        throw new Error(
-          `Redeploy failed: ${response.status} ${response.statusText} ${text}`,
-        );
-      }
     } catch (err) {
       console.error(err);
       setError('Failed to trigger redeploy from GitHub.');
@@ -150,23 +134,16 @@ export const ProjectDetail: React.FC = () => {
     setError(null);
     setZipUploading(true);
     try {
-      const zipData = await fileToBase64(file);
-      const payload: Project & { zipData: string } = {
+      const payload: Project = {
         ...project,
         sourceType: 'zip',
-        zipData,
       };
-      const response = await fetch(`${APP_CONFIG.API_BASE_URL}/deploy`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      await presenter.deployment.redeployProject(payload, {
+        zipFile: file,
+        onComplete: () => {
+          presenter.project.loadProjects();
+        },
       });
-      if (!response.ok) {
-        const text = await response.text().catch(() => '');
-        throw new Error(
-          `ZIP deploy failed: ${response.status} ${response.statusText} ${text}`,
-        );
-      }
     } catch (err) {
       console.error(err);
       setError('Failed to deploy from ZIP archive.');
@@ -288,7 +265,11 @@ export const ProjectDetail: React.FC = () => {
               <div className="flex flex-wrap gap-3">
                 <button
                   onClick={handleRedeployFromGitHub}
-                  disabled={!canRedeployFromGitHub || isRedeploying}
+                  disabled={
+                    !canRedeployFromGitHub ||
+                    isRedeploying ||
+                    isDeploymentInProgress
+                  }
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-brand-500 hover:text-white hover:border-brand-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <RefreshCcw className="w-3 h-3" />
@@ -305,6 +286,10 @@ export const ProjectDetail: React.FC = () => {
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
+                      if (zipUploading || isDeploymentInProgress) {
+                        e.target.value = '';
+                        return;
+                      }
                       await handleZipUpload(file);
                       e.target.value = '';
                     }}
@@ -371,6 +356,8 @@ export const ProjectDetail: React.FC = () => {
           </div>
         )}
       </div>
+
+      <DeploymentSession projectUrlOverride={project.url} />
     </div>
   );
 };

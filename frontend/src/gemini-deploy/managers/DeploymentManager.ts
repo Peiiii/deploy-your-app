@@ -35,18 +35,34 @@ export class DeploymentManager {
     console.warn('handleAnalyzeCode called, but AI analysis is currently disabled.');
   };
 
-  startBuildSimulation = async (onComplete: () => void) => {
+  /**
+   * Internal helper to start a deployment job for a given project.
+   * This is used both for the initial "Magic Box" flow and for
+   * redeploying an existing project from the dashboard/project page.
+   */
+  private startDeploymentForProject = async (
+    project: Project,
+    zipFile: File | null,
+    onComplete?: () => void,
+  ): Promise<void> => {
     const store = useDeploymentStore.getState();
     const actions = store.actions;
 
     actions.setStep(2);
     actions.setDeploymentStatus(DeploymentStatus.BUILDING);
     actions.clearLogs();
+    actions.setProjectName(project.name);
+    actions.setRepoUrl(project.repoUrl);
+    actions.setSourceType(project.sourceType ?? 'github');
+    actions.setZipFile(zipFile);
+    if (project.analysisId) {
+      actions.setAnalysisId(project.analysisId);
+    }
 
     let zipData: string | undefined;
-    if (store.sourceType === 'zip' && store.zipFile) {
+    if (project.sourceType === 'zip' && zipFile) {
       try {
-        zipData = await this.fileToBase64(store.zipFile);
+        zipData = await this.fileToBase64(zipFile);
       } catch (err) {
         console.error('Failed to read ZIP file', err);
         actions.setDeploymentStatus(DeploymentStatus.FAILED);
@@ -58,6 +74,45 @@ export class DeploymentManager {
         return;
       }
     }
+
+    const payload: Project = {
+      ...project,
+      // For one-off ZIP uploads we send the content inline; the backend
+      // will prefer zipData over repoUrl when materializing the source.
+      ...(zipData ? { zipData } : {}),
+    };
+
+    try {
+      await this.provider.startDeployment(
+        payload,
+        (log) => actions.addLog(log),
+        (status) => actions.setDeploymentStatus(status),
+      );
+      if (onComplete) {
+        onComplete();
+      }
+    } catch (e) {
+      console.error('Deployment failed', e);
+      actions.setDeploymentStatus(DeploymentStatus.FAILED);
+    }
+  };
+
+  /**
+   * Public entrypoint for redeploying an existing project (from Dashboard / ProjectDetail).
+   * It reuses the same SSE-based deployment pipeline as the initial Magic Box flow so
+   * that the UI (logs, status transitions) stays consistent.
+   */
+  redeployProject = async (
+    project: Project,
+    options?: { zipFile?: File | null; onComplete?: () => void },
+  ): Promise<void> => {
+    const zipFile = options?.zipFile ?? null;
+    const onComplete = options?.onComplete;
+    await this.startDeploymentForProject(project, zipFile, onComplete);
+  };
+
+  startBuildSimulation = async (onComplete: () => void) => {
+    const store = useDeploymentStore.getState();
 
     const fallbackName =
       store.projectName ||
@@ -73,24 +128,17 @@ export class DeploymentManager {
           ? store.repoUrl
           : store.zipFile?.name || 'archive.zip',
       sourceType: store.sourceType,
-      zipData,
       analysisId: store.analysisId || undefined,
       lastDeployed: '',
       status: 'Building',
       framework: 'Unknown',
     };
 
-    try {
-      await this.provider.startDeployment(
-        tempProject,
-        (log) => actions.addLog(log),
-        (status) => actions.setDeploymentStatus(status)
-      );
-      onComplete();
-    } catch (e) {
-      console.error("Deployment failed", e);
-      actions.setDeploymentStatus(DeploymentStatus.FAILED);
-    }
+    await this.startDeploymentForProject(
+      tempProject,
+      store.sourceType === 'zip' ? store.zipFile : null,
+      onComplete,
+    );
   };
 
   resetWizard = () => {
