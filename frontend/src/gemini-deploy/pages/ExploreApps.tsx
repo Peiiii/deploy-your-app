@@ -10,7 +10,6 @@ const DEFAULT_AUTHOR = 'Indie Hacker';
 const DEFAULT_CATEGORY = 'Other';
 const CREATOR_REVENUE_SHARE = 70;
 const BETA_BADGE_TEXT = 'Beta';
-const THUMBNAIL_HEIGHT = 'h-24';
 
 export type CategoryFilter =
   | 'All Apps'
@@ -197,13 +196,12 @@ const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   };
 
   return (
-    <div className="glass-card rounded-xl p-5 hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group">
-      {showThumbnail ? (
-        <div className="mb-4">
+    <div className="glass-card relative overflow-hidden rounded-xl aspect-[4/5] hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group">
+      {/* Background: screenshot (if any) + gradient overlay per app + dark scrim */}
+      {showThumbnail && (
+        <>
           {!thumbLoaded && (
-            <div
-              className={`${THUMBNAIL_HEIGHT} w-full rounded-lg bg-slate-200 dark:bg-slate-800 animate-pulse`}
-            />
+            <div className="absolute inset-0 animate-pulse bg-slate-800" />
           )}
           <img
             src={app.thumbnailUrl}
@@ -211,75 +209,85 @@ const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
             loading="lazy"
             onLoad={() => setThumbLoaded(true)}
             onError={() => setThumbError(true)}
-            className={`w-full ${THUMBNAIL_HEIGHT} object-cover rounded-lg transition-opacity ${
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
               thumbLoaded ? 'opacity-100' : 'opacity-0'
             }`}
           />
-        </div>
-      ) : (
-        <div className="flex justify-between items-start mb-4 gap-3">
-          <div className="flex items-center gap-3">
-            <div
-              className={`w-14 h-14 rounded-xl bg-gradient-to-br ${app.color} flex items-center justify-center text-white shadow-lg`}
-            >
-              <Zap className="w-7 h-7" />
-            </div>
-            <span className="text-[11px] text-slate-400 dark:text-gray-500">
-              Preview not available yet
-            </span>
-          </div>
-          <div className="bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-lg flex items-center gap-1 text-xs font-semibold text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-white/5">
-            <span className="text-amber-500">⚡</span> {app.cost} Credits
-          </div>
-        </div>
+        </>
       )}
+      <div
+        className={`absolute inset-0 bg-gradient-to-br ${app.color} ${
+          showThumbnail ? 'mix-blend-multiply opacity-75' : ''
+        }`}
+      />
+      <div className="absolute inset-0 bg-slate-900/60" />
 
-      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-brand-500 transition-colors">
-        {app.name}
-      </h3>
-      <p className="text-sm text-slate-500 dark:text-gray-400 mb-4 h-10 line-clamp-2 leading-relaxed">
-        {app.description}
-      </p>
-
-      <div className="mb-4 pb-4 border-b border-slate-100 dark:border-white/5 space-y-2">
-        <div className="flex items-center gap-4 text-xs text-slate-400 dark:text-gray-500">
-          <div className="flex items-center gap-1">
-            <User className="w-3 h-3" /> {app.author}
+      {/* Foreground content */}
+      <div className="relative flex flex-col h-full gap-4 p-5">
+        {/* Top: name + description + credits */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0 space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-black/40 flex items-center justify-center text-white">
+                <Zap className="w-4 h-4" />
+              </div>
+              <span className="text-sm font-semibold text-white line-clamp-1">
+                {app.name}
+              </span>
+            </div>
+            <p className="text-xs text-white/85 line-clamp-2 leading-snug">
+              {app.description}
+            </p>
           </div>
-          <div className="flex items-center gap-1">
-            <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> {app.rating}
+          <div className="bg-black/45 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 font-semibold shrink-0">
+            <span>⚡</span> {app.cost} Credits
           </div>
-          <div>{app.installs} uses</div>
         </div>
 
-        {app.tags && app.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {app.tags.map((tag) => {
-              const isActiveTag = tag === activeTag;
-              return (
-                <button
-                  key={tag}
-                  onClick={() => handleTagClick(tag)}
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors ${
-                    isActiveTag
-                      ? 'bg-brand-600 text-white border-brand-500'
-                      : 'bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-gray-400 border-slate-200 dark:border-white/10 hover:border-brand-500/50'
-                  }`}
-                >
-                  #{tag}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
+        {/* Center: primary Launch CTA */}
+        <div className="flex-1 flex items-center justify-center">
+          <button
+            onClick={handleLaunchApp}
+            className="px-4 py-2 rounded-full bg-white/95 text-slate-900 font-semibold text-sm flex items-center gap-2 shadow-md shadow-black/30 hover:bg-white group-hover:scale-105 transition-all"
+          >
+            <Play className="w-4 h-4 fill-current" /> Launch App
+          </button>
+        </div>
 
-      <button
-        onClick={handleLaunchApp}
-        className="w-full py-2.5 rounded-lg border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300 font-medium text-sm hover:bg-brand-500 hover:text-white hover:border-brand-500 transition-all flex items-center justify-center gap-2 group-hover:shadow-lg group-hover:shadow-brand-500/20"
-      >
-        <Play className="w-4 h-4 fill-current" /> Launch App
-      </button>
+        {/* Bottom: meta + tags */}
+        <div className="pt-3 border-t border-white/15 space-y-2">
+          <div className="flex items-center gap-4 text-xs text-slate-100/90">
+            <div className="flex items-center gap-1">
+              <User className="w-3 h-3" /> {app.author}
+            </div>
+            <div className="flex items-center gap-1">
+              <Star className="w-3 h-3 text-amber-300 fill-amber-300" /> {app.rating}
+            </div>
+            <div>{app.installs} uses</div>
+          </div>
+
+          {app.tags && app.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {app.tags.slice(0, 3).map((tag) => {
+                const isActiveTag = tag === activeTag;
+                return (
+                  <button
+                    key={tag}
+                    onClick={() => handleTagClick(tag)}
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors ${
+                      isActiveTag
+                        ? 'bg-white text-slate-900 border-white'
+                        : 'bg-white/10 text-slate-100 border-white/20 hover:bg-white/20'
+                    }`}
+                  >
+                    #{tag}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
