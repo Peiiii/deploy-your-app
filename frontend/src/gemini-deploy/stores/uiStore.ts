@@ -13,7 +13,8 @@ interface UIState {
 }
 
 export const useUIStore = create<UIState>((set) => ({
-  currentView: 'deploy',
+  // Default to 'explore' so that the landing matches the Explore Apps page.
+  currentView: 'explore',
   theme: 'light', // Default to light
   sidebarOpen: false, // Closed by default on mobile
   actions: {
