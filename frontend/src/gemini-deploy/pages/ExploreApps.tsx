@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Search, Zap, Star, User, TrendingUp, Play } from 'lucide-react';
 import { useProjectStore } from '../stores/projectStore';
 import { URLS } from '../constants';
@@ -106,6 +106,20 @@ function mapProjectsToApps(projects: Project[]): ExploreAppCard[] {
 export const ExploreApps: React.FC = () => {
   const projects = useProjectStore((state) => state.projects);
   const apps = mapProjectsToApps(projects);
+  type CategoryFilter =
+    | 'All Apps'
+    | 'Development'
+    | 'Image Gen'
+    | 'Productivity'
+    | 'Marketing'
+    | 'Legal'
+    | 'Fun';
+  const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All Apps');
+
+  const filteredApps = useMemo(() => {
+    if (activeCategory === 'All Apps') return apps;
+    return apps.filter((app) => app.category === activeCategory);
+  }, [apps, activeCategory]);
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
@@ -160,25 +174,35 @@ export const ExploreApps: React.FC = () => {
 
       {/* Categories */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        {['All Apps', 'Development', 'Image Gen', 'Productivity', 'Marketing', 'Legal', 'Fun'].map(
-          (cat, i) => (
+        {[
+          'All Apps',
+          'Development',
+          'Image Gen',
+          'Productivity',
+          'Marketing',
+          'Legal',
+          'Fun',
+        ].map((cat) => {
+          const isActive = cat === activeCategory;
+          return (
             <button
               key={cat}
+              onClick={() => setActiveCategory(cat as CategoryFilter)}
               className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                i === 0
+                isActive
                   ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/20'
                   : 'bg-white dark:bg-white/5 text-slate-600 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-white/10 border border-slate-200 dark:border-white/5'
               }`}
             >
               {cat}
             </button>
-          ),
-        )}
+          );
+        })}
       </div>
 
       {/* App Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {apps.map((app) => (
+        {filteredApps.map((app) => (
           <div
             key={app.id}
             className="glass-card rounded-xl p-5 hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group"
@@ -227,4 +251,3 @@ export const ExploreApps: React.FC = () => {
     </div>
   );
 };
-
