@@ -11,9 +11,9 @@ export const Sidebar: React.FC = () => {
   const presenter = usePresenter();
 
   const navItems = [
+    { id: 'explore', label: 'Explore Apps', icon: Sparkles },
     { id: 'deploy', label: 'Deploy App', icon: Package },
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'explore', label: 'Explore Apps', icon: Sparkles },
     { id: 'integrations', label: 'Integrations', icon: Github },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
