@@ -21,7 +21,16 @@ export class HttpProjectProvider implements IProjectProvider {
     return response.json();
   }
 
-  async updateProject(id: string, patch: { name?: string; repoUrl?: string }): Promise<Project> {
+  async updateProject(
+    id: string,
+    patch: {
+      name?: string;
+      repoUrl?: string;
+      description?: string;
+      category?: string;
+      tags?: string[];
+    },
+  ): Promise<Project> {
     const response = await fetch(`${this.baseUrl}${API_ROUTES.PROJECTS}/${encodeURIComponent(id)}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

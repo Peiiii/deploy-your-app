@@ -23,6 +23,8 @@ export interface Project {
   lastDeployed: string;
   status: 'Live' | 'Building' | 'Failed' | 'Offline';
   url?: string;
+   // Short marketing-style summary shown on the Explore page.
+   description?: string;
   framework: 'React' | 'Vue' | 'Next.js' | 'Unknown';
   // High-level category used by the Explore Apps marketplace view.
   category?: string;

@@ -86,9 +86,11 @@ export async function createProject({
     url = `https://${slug}.${APPS_ROOT_DOMAIN}/`;
   }
 
-  // Default category when AI is unavailable or fails.
+  // Default metadata when AI is unavailable or fails.
+  let finalName = name;
   let category = 'Other';
   let tags: string[] = [];
+  let description: string | undefined;
 
   const aiService = getAIService();
   const context = await buildClassificationContext(slug);
@@ -98,21 +100,28 @@ export async function createProject({
     identifier,
     context ?? undefined,
   );
+  if (aiResult.name && aiResult.name.trim().length > 0) {
+    finalName = aiResult.name.trim();
+  }
   if (aiResult.category) {
     category = aiResult.category;
   }
   if (aiResult.tags && aiResult.tags.length > 0) {
     tags = aiResult.tags;
   }
+  if (aiResult.description && aiResult.description.trim().length > 0) {
+    description = aiResult.description.trim();
+  }
 
   const project: Project = {
     id,
-    name,
+    name: finalName,
     repoUrl: identifier,
     sourceType,
     lastDeployed: now,
     status: 'Live',
     url,
+    description,
     framework: 'Unknown',
     category,
     tags,
@@ -120,12 +129,13 @@ export async function createProject({
   };
   const recordInput: CreateProjectRecordInput = {
     id,
-    name,
+    name: finalName,
     repoUrl: identifier,
     sourceType,
     lastDeployed: now,
     status: project.status,
     url,
+    description,
     framework: project.framework,
     category,
     tags,
@@ -141,7 +151,13 @@ export async function createProject({
 
 export function updateProject(
   id: string,
-  input: { name?: string; repoUrl?: string },
+  input: {
+    name?: string;
+    repoUrl?: string;
+    description?: string;
+    category?: string;
+    tags?: string[];
+  },
 ): Project | null {
   return updateProjectRecord(id, input);
 }

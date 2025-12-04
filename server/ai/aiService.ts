@@ -26,7 +26,9 @@ interface ParsedCategory {
 }
 
 interface ParsedCategoryAndTags extends ParsedCategory {
+  name?: string;
   tags?: string[];
+  description?: string;
 }
 
 /**
@@ -170,16 +172,25 @@ export class AIService {
 
   /**
    * Classify project category and suggest tags using a single AI call.
+   * Additionally, this can suggest a nicer display name and a short
+   * marketing-style description for the Explore page.
+   *
    * This is used by the backend when creating a new project so that
-   * Explore Apps has both a stable category and richer tags.
+   * Explore Apps has both a stable category, richer tags and a
+   * human-friendly summary.
    */
   async classifyProjectCategoryAndTags(
     name: string,
     identifier: string,
     context?: string,
-  ): Promise<{ category: ProjectCategory | null; tags: string[] }> {
+  ): Promise<{
+    name: string | null;
+    category: ProjectCategory | null;
+    tags: string[];
+    description: string | null;
+  }> {
     if (!this.apiKey) {
-      return { category: null, tags: [] };
+      return { name: null, category: null, tags: [], description: null };
     }
 
     const allowedCategories: ProjectCategory[] = [
@@ -192,13 +203,16 @@ export class AIService {
     ];
 
     const systemPrompt =
-      'You are a product manager helping categorize AI and web apps into marketplace categories.\n' +
-      'You MUST respond with JSON only, with fields "category" and "tags".\n' +
+      'You are a product manager helping categorize AI and web apps into a marketplace.\n' +
+      'You MUST respond with JSON only, with fields "name", "category", "tags" and "description".\n' +
+      '"name" should be a short, human-friendly product name (max 40 characters).\n' +
       'The "category" value MUST be exactly one of the following strings:\n' +
       allowedCategories.map((c) => `- ${c}`).join('\n') +
       '\n' +
       'The "tags" field MUST be an array of 1-5 short, lowercase keywords (no spaces),\n' +
-      'for example ["chatbot", "landing-page", "analytics"].';
+      'for example ["chatbot", "landing-page", "analytics"].\n' +
+      '"description" should be a concise marketing-style summary (max 120 characters)\n' +
+      'explaining what this app does and why someone would use it.';
 
     const basePrompt =
       `App name: ${name}\n` +
@@ -213,8 +227,8 @@ export class AIService {
     const userPrompt =
       basePrompt +
       contextSection +
-      '\nBased on the intent, audience and typical use case, choose the best category from the list\n' +
-      'and suggest tags that would help users discover this app.';
+      '\nBased on the intent, audience and typical use case, choose the best category from the list,\n' +
+      'suggest tags that would help users discover this app, and propose a friendly name and description.';
 
     const body = {
       model: this.model,
@@ -229,6 +243,11 @@ export class AIService {
           schema: {
             type: 'object',
             properties: {
+              name: {
+                type: 'string',
+                description:
+                  'Short, human-friendly product name (max 40 characters).',
+              },
               category: {
                 type: 'string',
                 description:
@@ -239,6 +258,11 @@ export class AIService {
                 items: { type: 'string' },
                 description:
                   'Short, lowercase tags like ["chatbot", "landing-page", "analytics"].',
+              },
+              description: {
+                type: 'string',
+                description:
+                  'Concise marketing-style summary (max ~120 characters).',
               },
             },
             required: ['category'],
@@ -262,12 +286,12 @@ export class AIService {
       if (!response.ok) {
         const errorText = await response.text().catch(() => '');
         console.error(
-          'AI category+tags classification failed:',
+          'AI category+tags+metadata classification failed:',
           response.status,
           response.statusText,
           errorText,
         );
-        return { category: null, tags: [] };
+        return { name: null, category: null, tags: [], description: null };
       }
 
       const data: AIResponse = await response.json();
@@ -294,8 +318,21 @@ export class AIService {
       try {
         parsed = JSON.parse(text) as ParsedCategoryAndTags;
       } catch (err) {
-        console.error('Failed to parse AI category+tags JSON:', err, 'raw:', text);
-        return { category: null, tags: [] };
+        console.error(
+          'Failed to parse AI category+tags+metadata JSON:',
+          err,
+          'raw:',
+          text,
+        );
+        return { name: null, category: null, tags: [], description: null };
+      }
+
+      let nameResult: string | null = null;
+      if (typeof parsed.name === 'string') {
+        const trimmed = parsed.name.trim();
+        if (trimmed.length > 0 && trimmed.length <= 80) {
+          nameResult = trimmed;
+        }
       }
 
       const rawCategory = parsed?.category;
@@ -317,10 +354,18 @@ export class AIService {
           .slice(0, 5);
       }
 
-      return { category, tags };
+      let description: string | null = null;
+      if (typeof parsed.description === 'string') {
+        const trimmed = parsed.description.trim();
+        if (trimmed.length > 0 && trimmed.length <= 300) {
+          description = trimmed;
+        }
+      }
+
+      return { name: nameResult, category, tags, description };
     } catch (err) {
-      console.error('Error calling AI category+tags classifier:', err);
-      return { category: null, tags: [] };
+      console.error('Error calling AI category+tags+metadata classifier:', err);
+      return { name: null, category: null, tags: [], description: null };
     }
   }
 

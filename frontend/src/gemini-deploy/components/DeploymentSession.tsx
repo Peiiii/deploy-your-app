@@ -38,9 +38,27 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
   // Resolve deployment URL either from explicit override or from the project list.
   const deploymentUrl = useMemo(() => {
     if (projectUrlOverride) return projectUrlOverride;
-    const project = projects.find((p) => p.name === state.projectName);
+    // Prefer matching by source identifier so that it still works even if
+    // the backend AI renames the project to a nicer display name.
+    const project = projects.find((p) => {
+      if (state.sourceType === 'github') {
+        return p.repoUrl === state.repoUrl;
+      }
+      if (state.sourceType === 'zip') {
+        const identifier = state.zipFile?.name || 'archive.zip';
+        return p.repoUrl === identifier;
+      }
+      return p.name === state.projectName;
+    });
     return project?.url;
-  }, [projectUrlOverride, projects, state.projectName]);
+  }, [
+    projectUrlOverride,
+    projects,
+    state.projectName,
+    state.repoUrl,
+    state.sourceType,
+    state.zipFile,
+  ]);
 
   // Whenever a deployment succeeds, refresh projects so that URLs / metadata stay in sync.
   useEffect(() => {
@@ -195,4 +213,3 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
   // When no deployment is active, render nothing.
   return null;
 };
-

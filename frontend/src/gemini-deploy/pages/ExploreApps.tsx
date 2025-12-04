@@ -94,10 +94,14 @@ function mapProjectsToApps(projects: Project[]): ExploreAppCard[] {
       project.category && project.category.trim().length > 0
         ? project.category
         : 'Other';
+    const description =
+      project.description && project.description.trim().length > 0
+        ? project.description
+        : buildDescription(project);
     return {
       id: project.id,
       name: project.name,
-      description: buildDescription(project),
+      description,
       author: buildAuthor(project),
       cost: meta.cost,
       category,

@@ -57,7 +57,16 @@ export class IndexedDBProjectProvider implements IProjectProvider {
     return newProject;
   }
 
-  async updateProject(id: string, patch: { name?: string; repoUrl?: string }): Promise<Project> {
+  async updateProject(
+    id: string,
+    patch: {
+      name?: string;
+      repoUrl?: string;
+      description?: string;
+      category?: string;
+      tags?: string[];
+    },
+  ): Promise<Project> {
     const project = await db.get<Project>('projects', id);
     if (!project) {
       throw new Error(`Project with id ${id} not found`);
@@ -66,6 +75,11 @@ export class IndexedDBProjectProvider implements IProjectProvider {
       ...project,
       ...(patch.name !== undefined ? { name: patch.name } : {}),
       ...(patch.repoUrl !== undefined ? { repoUrl: patch.repoUrl } : {}),
+      ...(patch.description !== undefined
+        ? { description: patch.description }
+        : {}),
+      ...(patch.category !== undefined ? { category: patch.category } : {}),
+      ...(patch.tags !== undefined ? { tags: patch.tags.slice() } : {}),
     };
     await db.put('projects', updated);
     return updated;

@@ -1,15 +1,38 @@
 import { randomUUID } from 'crypto';
-import { deployments, streams, analysisSessions, type StreamClient } from './state.js';
+import {
+  deployments,
+  streams,
+  analysisSessions,
+  type StreamClient,
+} from './state.js';
 import type { Project } from './types.js';
 import { runDeployment } from './deploymentService.js';
 import { createProject, getProjects, updateProject } from './projectService.js';
 
+// Minimal request/response/app types so we don't pull in full Express types
+// but also avoid using `any`.
+type RequestLike = {
+  body?: unknown;
+  params?: Record<string, string>;
+  on: (event: 'close', listener: () => void) => void;
+};
+
+type ResponseLike = StreamClient & {
+  json: (body: unknown) => void;
+  status: (code: number) => ResponseLike;
+  writeHead: (statusCode: number, headers: Record<string, string>) => void;
+};
+
+type RouteHandler = (req: RequestLike, res: ResponseLike) => void | Promise<void>;
+
+type AppLike = {
+  get(path: string, handler: RouteHandler): void;
+  post(path: string, handler: RouteHandler): void;
+  patch?(path: string, handler: RouteHandler): void;
+};
+
 // Attach all API routes to the given Express app instance.
-export function registerRoutes(app: {
-  get(path: string, handler: any): void;
-  post(path: string, handler: any): void;
-  patch?(path: string, handler: any): void;
-}): void {
+export function registerRoutes(app: AppLike): void {
   // ----------------------
   // Projects CRUD
   // ----------------------
@@ -19,16 +42,28 @@ export function registerRoutes(app: {
   });
 
   app.post('/api/v1/projects', async (req, res) => {
-    const { name, sourceType, identifier } = req.body || {};
+    const body = (req.body ?? {}) as {
+      name?: unknown;
+      sourceType?: unknown;
+      identifier?: unknown;
+    };
+    const { name, sourceType, identifier } = body;
 
     if (!name || !identifier) {
       return res.status(400).json({ error: 'name and identifier are required' });
     }
 
+    const rawSourceType =
+      typeof sourceType === 'string' ? sourceType : undefined;
+    const normalizedSourceType =
+      rawSourceType === 'github' || rawSourceType === 'zip'
+        ? rawSourceType
+        : undefined;
+
     try {
       const project = await createProject({
         name: String(name),
-        sourceType,
+        sourceType: normalizedSourceType,
         identifier: String(identifier),
       });
       res.json(project);
@@ -41,24 +76,40 @@ export function registerRoutes(app: {
   const patch =
     typeof app.patch === 'function'
       ? app.patch.bind(app)
-      : (path: string, handler: any) => {
+      : (path: string, handler: RouteHandler) => {
           // If the host app没有实现 patch，我们退化为 post 兼容（主要为了类型通过）。
           app.post(path, handler);
         };
 
-  patch('/api/v1/projects/:id', (req: any, res: any) => {
+  patch('/api/v1/projects/:id', (req, res) => {
     const { id } = req.params as { id: string };
-    const { name, repoUrl } = req.body || {};
+    const { name, repoUrl, description, category, tags } = req.body || {};
 
-    if (name === undefined && repoUrl === undefined) {
+    if (
+      name === undefined &&
+      repoUrl === undefined &&
+      description === undefined &&
+      category === undefined &&
+      tags === undefined
+    ) {
       return res
         .status(400)
-        .json({ error: 'At least one of name or repoUrl must be provided' });
+        .json({
+          error:
+            'At least one of name, repoUrl, description, category or tags must be provided',
+        });
     }
 
     const project = updateProject(id, {
       ...(name !== undefined ? { name: String(name) } : {}),
       ...(repoUrl !== undefined ? { repoUrl: String(repoUrl) } : {}),
+      ...(description !== undefined
+        ? { description: String(description) }
+        : {}),
+      ...(category !== undefined ? { category: String(category) } : {}),
+      ...(Array.isArray(tags)
+        ? { tags: (tags as unknown[]).map((t) => String(t)) }
+        : {}),
     });
 
     if (!project) {
@@ -73,7 +124,8 @@ export function registerRoutes(app: {
   // ----------------------
 
   app.post('/api/v1/analyze', async (req, res) => {
-    const { sourceCode } = req.body || {};
+    const body = (req.body ?? {}) as { sourceCode?: unknown };
+    const { sourceCode } = body;
 
     if (typeof sourceCode !== 'string') {
       return res
@@ -147,8 +199,7 @@ export function registerRoutes(app: {
       listeners = new Set();
       streams.set(id, listeners);
     }
-    // Cast the Express response to our minimal StreamClient shape.
-    listeners.add(res as unknown as StreamClient);
+    listeners.add(res);
 
     // Send existing logs and status immediately
     const deployment = deployments.get(id);

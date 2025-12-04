@@ -35,8 +35,13 @@ export const ProjectDetail: React.FC = () => {
   const presenter = usePresenter();
   const projects = useProjectStore((s) => s.projects);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingMetadata, setIsSavingMetadata] = useState(false);
   const [isRedeploying, setIsRedeploying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [nameDraft, setNameDraft] = useState('');
+  const [descriptionDraft, setDescriptionDraft] = useState('');
+  const [categoryDraft, setCategoryDraft] = useState('');
+  const [tagsDraft, setTagsDraft] = useState('');
   const [repoUrlDraft, setRepoUrlDraft] = useState('');
   const [zipUploading, setZipUploading] = useState(false);
   const navigate = useNavigate();
@@ -61,10 +66,16 @@ export const ProjectDetail: React.FC = () => {
     }
   }, [projectId, project, projects.length, presenter.project]);
 
-  // Sync draft repo URL when project changes
+  // Sync draft fields when project changes
   useEffect(() => {
     if (project) {
       setRepoUrlDraft(project.repoUrl || '');
+      setNameDraft(project.name || '');
+      setDescriptionDraft(project.description || '');
+      setCategoryDraft(project.category || '');
+      setTagsDraft(
+        project.tags && project.tags.length > 0 ? project.tags.join(', ') : '',
+      );
     }
   }, [project]);
 
@@ -101,6 +112,34 @@ export const ProjectDetail: React.FC = () => {
       setError('Failed to update repository URL.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSaveMetadata = async () => {
+    if (!project) return;
+    setError(null);
+    setIsSavingMetadata(true);
+    try {
+      const trimmedName = nameDraft.trim();
+      const trimmedDescription = descriptionDraft.trim();
+      const trimmedCategory = categoryDraft.trim();
+      const tagsArray =
+        tagsDraft
+          .split(',')
+          .map((t) => t.trim())
+          .filter((t) => t.length > 0) ?? [];
+
+      await presenter.project.updateProject(project.id, {
+        ...(trimmedName ? { name: trimmedName } : {}),
+        ...(trimmedDescription ? { description: trimmedDescription } : {}),
+        ...(trimmedCategory ? { category: trimmedCategory } : {}),
+        ...(tagsArray.length > 0 ? { tags: tagsArray } : { tags: [] }),
+      });
+    } catch (err) {
+      console.error(err);
+      setError('Failed to update project metadata.');
+    } finally {
+      setIsSavingMetadata(false);
     }
   };
 
@@ -260,6 +299,72 @@ export const ProjectDetail: React.FC = () => {
 
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                Metadata
+              </h3>
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-slate-500 dark:text-gray-400">
+                  Display Name
+                </label>
+                <input
+                  type="text"
+                  value={nameDraft}
+                  onChange={(e) => setNameDraft(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  placeholder="Friendly app name shown in Explore"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-slate-500 dark:text-gray-400">
+                  Description
+                </label>
+                <textarea
+                  value={descriptionDraft}
+                  onChange={(e) => setDescriptionDraft(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-none"
+                  placeholder="Short summary used on the Explore Apps page"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <label className="block text-xs font-medium text-slate-500 dark:text-gray-400">
+                    Category
+                  </label>
+                  <input
+                    type="text"
+                    value={categoryDraft}
+                    onChange={(e) => setCategoryDraft(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    placeholder="e.g. Development"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-medium text-slate-500 dark:text-gray-400">
+                    Tags
+                  </label>
+                  <input
+                    type="text"
+                    value={tagsDraft}
+                    onChange={(e) => setTagsDraft(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    placeholder="Comma separated, e.g. chatbot,landing-page"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={handleSaveMetadata}
+                  disabled={isSavingMetadata}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50"
+                >
+                  <Save className="w-3 h-3" />
+                  Save metadata
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
                 Redeploy
               </h3>
               <div className="flex flex-wrap gap-3">
@@ -316,12 +421,6 @@ export const ProjectDetail: React.FC = () => {
                 <span className="text-slate-500 dark:text-gray-400">Framework</span>
                 <span className="text-slate-900 dark:text-white font-medium">
                   {project.framework}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-gray-400">Deploy Target</span>
-                <span className="text-slate-900 dark:text-white font-medium">
-                  {project.deployTarget || 'local'}
                 </span>
               </div>
             </div>

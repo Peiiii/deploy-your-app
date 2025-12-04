@@ -19,6 +19,7 @@ export interface CreateProjectRecordInput {
   lastDeployed: string;
   status: Project['status'];
   url?: string;
+  description?: string;
   framework: Project['framework'];
   category?: string;
   tags?: string[];
@@ -63,6 +64,7 @@ export function createProjectRecord(input: CreateProjectRecordInput): Project {
     lastDeployed: input.lastDeployed,
     status: input.status,
     url: input.url,
+    description: input.description,
     framework: input.framework,
     category: input.category,
     tags: input.tags,
@@ -91,7 +93,13 @@ export function getAllProjects(): Project[] {
 
 export function updateProjectRecord(
   id: string,
-  patch: { name?: string; repoUrl?: string },
+  patch: {
+    name?: string;
+    repoUrl?: string;
+    description?: string;
+    category?: string;
+    tags?: string[];
+  },
 ): Project | null {
   const rows = readAllRows();
   const idx = rows.findIndex((row) => row.id === id);
@@ -102,6 +110,13 @@ export function updateProjectRecord(
     ...current,
     ...(patch.name !== undefined ? { name: String(patch.name) } : {}),
     ...(patch.repoUrl !== undefined ? { repoUrl: String(patch.repoUrl) } : {}),
+    ...(patch.description !== undefined
+      ? { description: String(patch.description) }
+      : {}),
+    ...(patch.category !== undefined
+      ? { category: String(patch.category) }
+      : {}),
+    ...(patch.tags !== undefined ? { tags: patch.tags.slice() } : {}),
   };
 
   rows[idx] = updated;

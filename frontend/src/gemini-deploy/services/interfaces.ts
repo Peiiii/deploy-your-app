@@ -31,7 +31,13 @@ export interface IProjectProvider {
   ): Promise<Project>;
   updateProject(
     id: string,
-    patch: { name?: string; repoUrl?: string },
+    patch: {
+      name?: string;
+      repoUrl?: string;
+      description?: string;
+      category?: string;
+      tags?: string[];
+    },
   ): Promise<Project>;
 }
 

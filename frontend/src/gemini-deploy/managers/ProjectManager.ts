@@ -36,7 +36,13 @@ export class ProjectManager {
 
   updateProject = async (
     id: string,
-    patch: { name?: string; repoUrl?: string },
+    patch: {
+      name?: string;
+      repoUrl?: string;
+      description?: string;
+      category?: string;
+      tags?: string[];
+    },
   ) => {
     try {
       const updated = await this.provider.updateProject(id, patch);
