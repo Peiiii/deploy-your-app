@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useMemo } from 'react';
 import { useDeploymentStore } from '../stores/deploymentStore';
 import { useProjectStore } from '../stores/projectStore';
 import { usePresenter } from '../contexts/PresenterContext';
+import { useNavigate } from 'react-router-dom';
 import { DeploymentStatus } from '../types';
 import { Terminal } from '../components/Terminal';
 import { Github, Globe, Loader2, FolderArchive, Upload, FileCode, X, Check, ExternalLink, ArrowRight, CheckCircle2, Terminal as TerminalIcon, ChevronDown, ChevronUp } from 'lucide-react';
@@ -12,6 +13,7 @@ export const NewDeployment: React.FC = () => {
   const projects = useProjectStore((s) => s.projects);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showBuildLog, setShowBuildLog] = React.useState(false);
+  const navigate = useNavigate();
   const isDeploying = state.deploymentStatus === DeploymentStatus.DEPLOYING;
   const isInProgress =
     state.deploymentStatus === DeploymentStatus.BUILDING || isDeploying;
@@ -124,7 +126,7 @@ export const NewDeployment: React.FC = () => {
                       {deploymentUrl ? 'Open Site' : 'Preparing URL...'}
                     </button>
                     <button
-                      onClick={() => presenter.ui.navigateTo('dashboard')}
+                      onClick={() => navigate('/dashboard')}
                       className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                     >
                       View Dashboard

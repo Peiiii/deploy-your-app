@@ -1,0 +1,376 @@
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Clock,
+  ExternalLink,
+  GitBranch,
+  RefreshCcw,
+  Save,
+  Upload
+} from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { APP_CONFIG, URLS } from '../constants';
+import { usePresenter } from '../contexts/PresenterContext';
+import { useProjectStore } from '../stores/projectStore';
+import type { Project } from '../types';
+
+function formatRepoLabel(project: Project): string {
+  const { repoUrl, sourceType } = project;
+  if (!repoUrl) return 'Not configured';
+  if (sourceType === 'zip' && !repoUrl.startsWith('http')) {
+    return repoUrl;
+  }
+  if (repoUrl.startsWith(URLS.GITHUB_BASE)) {
+    const trimmed = repoUrl.replace(URLS.GITHUB_BASE, '');
+    return trimmed || repoUrl;
+  }
+  return repoUrl;
+}
+
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === 'string') {
+        const commaIndex = result.indexOf(',');
+        resolve(commaIndex >= 0 ? result.slice(commaIndex + 1) : result);
+      } else {
+        reject(new Error('Unexpected FileReader result type'));
+      }
+    };
+    reader.onerror = () =>
+      reject(reader.error || new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+}
+
+export const ProjectDetail: React.FC = () => {
+  const presenter = usePresenter();
+  const projects = useProjectStore((s) => s.projects);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isRedeploying, setIsRedeploying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [repoUrlDraft, setRepoUrlDraft] = useState('');
+  const [zipUploading, setZipUploading] = useState(false);
+  const navigate = useNavigate();
+  const params = useParams<{ id: string }>();
+  const projectId = params.id ?? null;
+
+  const project = useMemo(
+    () => projects.find((p) => p.id === projectId) || null,
+    [projects, projectId],
+  );
+
+  // Load projects if not available yet
+  useEffect(() => {
+    if (!projectId) return;
+    if (!project && projects.length === 0) {
+      presenter.project.loadProjects();
+    }
+  }, [projectId, project, projects.length, presenter.project]);
+
+  // Sync draft repo URL when project changes
+  useEffect(() => {
+    if (project) {
+      setRepoUrlDraft(project.repoUrl || '');
+    }
+  }, [project]);
+
+  if (!projectId) {
+    return (
+      <div className="p-8 max-w-3xl mx-auto">
+        <p className="text-sm text-red-500">Invalid project URL.</p>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="p-8 max-w-3xl mx-auto">
+        <p className="text-sm text-slate-500 dark:text-gray-400">
+          Loading project details...
+        </p>
+      </div>
+    );
+  }
+
+  const canRedeployFromGitHub =
+    !!project.repoUrl && project.repoUrl.startsWith(URLS.GITHUB_BASE);
+
+  const handleSaveRepoUrl = async () => {
+    setError(null);
+    setIsSaving(true);
+    try {
+      await presenter.project.updateProject(project.id, {
+        repoUrl: repoUrlDraft.trim(),
+      });
+    } catch (err) {
+      console.error(err);
+      setError('Failed to update repository URL.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRedeployFromGitHub = async () => {
+    if (!canRedeployFromGitHub) return;
+    setError(null);
+    setIsRedeploying(true);
+    try {
+      const payload: Project = {
+        ...project,
+        sourceType: 'github',
+      };
+      const response = await fetch(`${APP_CONFIG.API_BASE_URL}/deploy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(
+          `Redeploy failed: ${response.status} ${response.statusText} ${text}`,
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Failed to trigger redeploy from GitHub.');
+    } finally {
+      setIsRedeploying(false);
+    }
+  };
+
+  const handleZipUpload = async (file: File) => {
+    if (!file.name.endsWith('.zip')) {
+      setError('Please upload a .zip file.');
+      return;
+    }
+    setError(null);
+    setZipUploading(true);
+    try {
+      const zipData = await fileToBase64(file);
+      const payload: Project & { zipData: string } = {
+        ...project,
+        sourceType: 'zip',
+        zipData,
+      };
+      const response = await fetch(`${APP_CONFIG.API_BASE_URL}/deploy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(
+          `ZIP deploy failed: ${response.status} ${response.statusText} ${text}`,
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Failed to deploy from ZIP archive.');
+    } finally {
+      setZipUploading(false);
+    }
+  };
+
+  return (
+    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 md:space-y-8 animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </button>
+        <span className="text-xs px-2 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-gray-400 border border-slate-200 dark:border-white/10">
+          Project ID: {project.id}
+        </span>
+      </div>
+
+      {/* Project Overview */}
+      <div className="glass-card rounded-2xl p-6 md:p-8 flex flex-col gap-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center border shadow-inner bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
+              <span className="font-bold text-sm tracking-tighter">
+                {project.framework.slice(0, 2).toUpperCase()}
+              </span>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                {project.name}
+              </h1>
+              <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">
+                {project.category || 'Other'} ·{' '}
+                {project.tags && project.tags.length > 0
+                  ? project.tags.join(', ')
+                  : 'No tags'}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-1 text-xs">
+            <div
+              className={`inline-flex items-center gap-2 px-2 py-1 rounded-full border uppercase tracking-wider font-bold ${project.status === 'Live'
+                  ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20'
+                  : project.status === 'Failed'
+                    ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
+                    : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20'
+                }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${project.status === 'Live'
+                    ? 'bg-green-500 dark:bg-green-400 animate-pulse'
+                    : project.status === 'Failed'
+                      ? 'bg-red-500 dark:bg-red-400'
+                      : 'bg-yellow-500 dark:bg-yellow-400'
+                  }`}
+              />
+              {project.status}
+            </div>
+            <div className="flex items-center gap-1 text-slate-500 dark:text-gray-400">
+              <Clock className="w-3 h-3" /> Last deploy: {project.lastDeployed}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Source configuration */}
+          <div className="flex-1 space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-2">
+                GitHub Repository
+              </h3>
+              <div className="space-y-2">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={repoUrlDraft}
+                    onChange={(e) => setRepoUrlDraft(e.target.value)}
+                    placeholder="https://github.com/owner/repo"
+                    className="w-full pr-24 pl-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                  <button
+                    onClick={handleSaveRepoUrl}
+                    disabled={isSaving}
+                    className="absolute inset-y-1.5 right-1.5 px-3 text-xs font-semibold rounded-md bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50"
+                  >
+                    <Save className="w-3 h-3 inline-block mr-1" />
+                    Save
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-gray-400">
+                  This URL is used when you redeploy from GitHub. ZIP-based deployments
+                  do not overwrite this setting.
+                </p>
+                {project.repoUrl && (
+                  <a
+                    href={project.repoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-slate-600 dark:text-gray-300 hover:text-brand-500 dark:hover:text-brand-400"
+                  >
+                    <GitBranch className="w-3 h-3" />
+                    {formatRepoLabel(project)}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                Redeploy
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={handleRedeployFromGitHub}
+                  disabled={!canRedeployFromGitHub || isRedeploying}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-brand-500 hover:text-white hover:border-brand-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <RefreshCcw className="w-3 h-3" />
+                  Redeploy from GitHub
+                </button>
+
+                <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 hover:border-brand-500 hover:bg-slate-100 dark:hover:bg-slate-900 cursor-pointer transition-colors">
+                  <Upload className="w-3 h-3" />
+                  <span>{zipUploading ? 'Uploading...' : 'Upload ZIP & Deploy'}</span>
+                  <input
+                    type="file"
+                    accept=".zip"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      await handleZipUpload(file);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-gray-500">
+                ZIP deployments are one-off: the uploaded archive is only used for the current
+                deployment. Your GitHub URL stays configured and can be used again later.
+              </p>
+            </div>
+          </div>
+
+          {/* Runtime details */}
+          <div className="w-full md:w-64 space-y-4">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-4 space-y-3 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 dark:text-gray-400">Environment</span>
+                <span className="text-slate-900 dark:text-white font-medium">
+                  Production
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 dark:text-gray-400">Framework</span>
+                <span className="text-slate-900 dark:text-white font-medium">
+                  {project.framework}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 dark:text-gray-400">Deploy Target</span>
+                <span className="text-slate-900 dark:text-white font-medium">
+                  {project.deployTarget || 'local'}
+                </span>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-4 space-y-3 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 dark:text-gray-400">Public URL</span>
+              </div>
+              {project.url ? (
+                <a
+                  href={project.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-[11px] text-green-600 dark:text-green-400 hover:text-green-500 dark:hover:text-green-300 break-all"
+                >
+                  {project.url}
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              ) : (
+                <p className="text-[11px] text-slate-400 dark:text-gray-500">
+                  Not accessible yet.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {error && (
+          <div className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
+            <AlertTriangle className="w-3 h-3" />
+            <span>{error}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

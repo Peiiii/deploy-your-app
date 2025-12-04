@@ -1,21 +1,21 @@
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Settings, Github, Rocket, Wifi, Database, X, Zap, Sparkles, Package } from 'lucide-react';
 import { useUIStore } from '../stores/uiStore';
-import { usePresenter } from '../contexts/PresenterContext';
 import { APP_CONFIG } from '../constants';
 
 export const Sidebar: React.FC = () => {
-  const currentView = useUIStore((state) => state.currentView);
   const sidebarOpen = useUIStore((state) => state.sidebarOpen);
   const { setSidebarOpen } = useUIStore((state) => state.actions);
-  const presenter = usePresenter();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const navItems = [
-    { id: 'explore', label: 'Explore Apps', icon: Sparkles },
-    { id: 'deploy', label: 'Deploy App', icon: Package },
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'integrations', label: 'Integrations', icon: Github },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { path: '/explore', label: 'Explore Apps', icon: Sparkles },
+    { path: '/deploy', label: 'Deploy App', icon: Package },
+    { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/integrations', label: 'Integrations', icon: Github },
+    { path: '/settings', label: 'Settings', icon: Settings },
   ];
 
   const isMockMode = APP_CONFIG.USE_MOCK_ADAPTER;
@@ -58,12 +58,12 @@ export const Sidebar: React.FC = () => {
 
       <nav className="flex-1 px-4 space-y-1">
         {navItems.map((item) => {
-          const isActive = currentView === item.id;
+          const isActive = location.pathname.startsWith(item.path);
           return (
             <button
-              key={item.id}
+              key={item.path}
               onClick={() => {
-                presenter.ui.navigateTo(item.id);
+                navigate(item.path);
                 // Close sidebar on mobile after navigation
                 if (window.innerWidth < 768) {
                   setSidebarOpen(false);

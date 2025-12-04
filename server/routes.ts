@@ -2,10 +2,14 @@ import { randomUUID } from 'crypto';
 import { deployments, streams, analysisSessions, type StreamClient } from './state.js';
 import type { Project } from './types.js';
 import { runDeployment } from './deploymentService.js';
-import { createProject, getProjects } from './projectService.js';
+import { createProject, getProjects, updateProject } from './projectService.js';
 
 // Attach all API routes to the given Express app instance.
-export function registerRoutes(app: { get(path: string, handler: any): void; post(path: string, handler: any): void }): void {
+export function registerRoutes(app: {
+  get(path: string, handler: any): void;
+  post(path: string, handler: any): void;
+  patch?(path: string, handler: any): void;
+}): void {
   // ----------------------
   // Projects CRUD
   // ----------------------
@@ -32,6 +36,36 @@ export function registerRoutes(app: { get(path: string, handler: any): void; pos
       console.error('Failed to create project', err);
       res.status(500).json({ error: 'Failed to create project' });
     }
+  });
+
+  const patch =
+    typeof app.patch === 'function'
+      ? app.patch.bind(app)
+      : (path: string, handler: any) => {
+          // If the host app没有实现 patch，我们退化为 post 兼容（主要为了类型通过）。
+          app.post(path, handler);
+        };
+
+  patch('/api/v1/projects/:id', (req: any, res: any) => {
+    const { id } = req.params as { id: string };
+    const { name, repoUrl } = req.body || {};
+
+    if (name === undefined && repoUrl === undefined) {
+      return res
+        .status(400)
+        .json({ error: 'At least one of name or repoUrl must be provided' });
+    }
+
+    const project = updateProject(id, {
+      ...(name !== undefined ? { name: String(name) } : {}),
+      ...(repoUrl !== undefined ? { repoUrl: String(repoUrl) } : {}),
+    });
+
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    res.json(project);
   });
 
   // ----------------------

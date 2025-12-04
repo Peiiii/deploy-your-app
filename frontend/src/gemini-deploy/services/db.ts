@@ -63,6 +63,32 @@ export class DB {
        request.onerror = () => reject(request.error);
     });
   }
+
+  async get<T>(storeName: string, key: IDBValidKey): Promise<T | null> {
+    const db = await this.dbPromise;
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(storeName, 'readonly');
+      const store = transaction.objectStore(storeName);
+      const request = store.get(key);
+
+      request.onsuccess = () => {
+        resolve((request.result as T | undefined) ?? null);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async put<T>(storeName: string, item: T): Promise<T> {
+    const db = await this.dbPromise;
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(storeName, 'readwrite');
+      const store = transaction.objectStore(storeName);
+      const request = store.put(item);
+
+      request.onsuccess = () => resolve(item);
+      request.onerror = () => reject(request.error);
+    });
+  }
 }
 
 export const db = new DB();

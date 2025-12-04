@@ -33,4 +33,21 @@ export class ProjectManager {
       console.error("Failed to create project", error);
     }
   };
+
+  updateProject = async (
+    id: string,
+    patch: { name?: string; repoUrl?: string },
+  ) => {
+    try {
+      const updated = await this.provider.updateProject(id, patch);
+      const actions = useProjectStore.getState().actions;
+      actions.setProjects(
+        useProjectStore.getState().projects.map((p) =>
+          p.id === updated.id ? updated : p,
+        ),
+      );
+    } catch (error) {
+      console.error("Failed to update project", error);
+    }
+  };
 }

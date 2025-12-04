@@ -23,8 +23,14 @@ export interface Project {
   framework: 'React' | 'Vue' | 'Next.js' | 'Unknown';
   // High-level category used by Explore Apps (e.g. "Development", "Image Gen").
   category?: string;
-   // Optional tags for finer-grained filtering/search (e.g. ["chatbot", "landing-page"]).
+  // Optional tags for finer-grained filtering/search (e.g. ["chatbot", "landing-page"]).
   tags?: string[];
+  // Where this project is deployed (mirrors backend Project.deployTarget).
+  deployTarget?: 'local' | 'cloudflare' | 'r2';
+  // Optional provider-level URL (e.g. Cloudflare Pages / R2 prefix).
+  providerUrl?: string;
+  // Cloudflare Pages project name when using the Cloudflare provider.
+  cloudflareProjectName?: string;
 }
 
 export interface BuildLog {

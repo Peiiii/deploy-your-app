@@ -29,6 +29,10 @@ export interface IProjectProvider {
     sourceType: 'github' | 'zip',
     identifier: string,
   ): Promise<Project>;
+  updateProject(
+    id: string,
+    patch: { name?: string; repoUrl?: string },
+  ): Promise<Project>;
 }
 
 export interface IDeploymentProvider {

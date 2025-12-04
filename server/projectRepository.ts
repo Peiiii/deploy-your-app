@@ -88,3 +88,28 @@ export function getAllProjects(): Project[] {
     tags: row.tags ?? [],
   }));
 }
+
+export function updateProjectRecord(
+  id: string,
+  patch: { name?: string; repoUrl?: string },
+): Project | null {
+  const rows = readAllRows();
+  const idx = rows.findIndex((row) => row.id === id);
+  if (idx === -1) return null;
+
+  const current = rows[idx];
+  const updated: ProjectRow = {
+    ...current,
+    ...(patch.name !== undefined ? { name: String(patch.name) } : {}),
+    ...(patch.repoUrl !== undefined ? { repoUrl: String(patch.repoUrl) } : {}),
+  };
+
+  rows[idx] = updated;
+  writeAllRows(rows);
+
+  return {
+    ...updated,
+    category: updated.category ?? 'Other',
+    tags: updated.tags ?? [],
+  };
+}

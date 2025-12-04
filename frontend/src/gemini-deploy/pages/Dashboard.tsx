@@ -1,12 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ExternalLink, GitBranch, Clock, FolderArchive, Zap, Plus, TrendingUp, FileText, GraduationCap, Wand2, Briefcase } from 'lucide-react';
 import { useProjectStore } from '../stores/projectStore';
-import { usePresenter } from '../contexts/PresenterContext';
 import { URLS } from '../constants';
 
 export const Dashboard: React.FC = () => {
   const projects = useProjectStore((state) => state.projects);
-  const presenter = usePresenter();
+  const navigate = useNavigate();
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-fade-in">
@@ -18,7 +18,7 @@ export const Dashboard: React.FC = () => {
           <p className="text-slate-500 dark:text-gray-400">Manage your live apps and deploy new ones.</p>
         </div>
         <button
-          onClick={() => presenter.ui.navigateTo('deploy')}
+          onClick={() => navigate('/deploy')}
           className="bg-green-600 hover:bg-green-500 text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:shadow-[0_0_30px_rgba(34,197,94,0.5)] flex items-center gap-2 group border border-green-500/50"
         >
           <Zap className="w-5 h-5" />
@@ -107,20 +107,35 @@ export const Dashboard: React.FC = () => {
                 </div>
 
                 <div className="flex justify-between items-center pt-2">
-                    {project.url ? (
-                        <a href={project.url} target="_blank" rel="noreferrer" className="text-green-600 dark:text-green-400 hover:text-green-500 dark:hover:text-green-300 text-sm font-medium flex items-center gap-1 transition-colors hover:underline decoration-green-500/50">
-                            Visit App <ExternalLink className="w-3 h-3" />
-                        </a>
-                    ) : (
-                        <span className="text-slate-400 dark:text-gray-600 text-sm italic">Not accessible</span>
-                    )}
+                  {project.url ? (
+                    <a
+                      href={project.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-green-600 dark:text-green-400 hover:text-green-500 dark:hover:text-green-300 text-sm font-medium flex items-center gap-1 transition-colors hover:underline decoration-green-500/50"
+                    >
+                      Visit App <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    <span className="text-slate-400 dark:text-gray-600 text-sm italic">
+                      Not accessible
+                    </span>
+                  )}
+                  <button
+                    onClick={() =>
+                      navigate(`/projects/${encodeURIComponent(project.id)}`)
+                    }
+                    className="text-xs text-slate-500 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 underline-offset-2 hover:underline"
+                  >
+                    Manage
+                  </button>
                 </div>
             </div>
             ))}
 
             {/* Add New Project Card (Empty State) */}
             <button 
-                onClick={() => presenter.ui.navigateTo('deploy')}
+                onClick={() => navigate('/deploy')}
                 className="rounded-xl border border-dashed border-slate-300 dark:border-gray-800 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-brand-500/50 transition-all group flex flex-col items-center justify-center p-6 gap-3 text-slate-500 dark:text-gray-500 hover:text-brand-600 dark:hover:text-brand-400 min-h-[250px]"
             >
                 <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-gray-900 group-hover:bg-brand-100 dark:group-hover:bg-brand-900/30 flex items-center justify-center transition-colors">

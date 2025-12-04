@@ -1,8 +1,8 @@
+import { Play, Search, Star, TrendingUp, User, Zap } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
-import { Search, Zap, Star, User, TrendingUp, Play } from 'lucide-react';
-import { useProjectStore } from '../stores/projectStore';
-import { usePresenter } from '../contexts/PresenterContext';
+import { useNavigate } from 'react-router-dom';
 import { URLS } from '../constants';
+import { useProjectStore } from '../stores/projectStore';
 import type { Project } from '../types';
 
 interface ExploreAppCard {
@@ -22,49 +22,49 @@ interface ExploreAppCard {
 const APP_META: Array<
   Pick<ExploreAppCard, 'cost' | 'category' | 'rating' | 'installs' | 'color'>
 > = [
-  {
-    cost: 5,
-    category: 'Development',
-    rating: 4.8,
-    installs: '12k',
-    color: 'from-blue-500 to-cyan-400',
-  },
-  {
-    cost: 12,
-    category: 'Image Gen',
-    rating: 4.9,
-    installs: '8.5k',
-    color: 'from-purple-500 to-pink-500',
-  },
-  {
-    cost: 8,
-    category: 'Productivity',
-    rating: 4.6,
-    installs: '5k',
-    color: 'from-emerald-500 to-teal-400',
-  },
-  {
-    cost: 3,
-    category: 'Marketing',
-    rating: 4.5,
-    installs: '15k',
-    color: 'from-orange-500 to-amber-400',
-  },
-  {
-    cost: 20,
-    category: 'Legal',
-    rating: 4.9,
-    installs: '2k',
-    color: 'from-slate-600 to-slate-400',
-  },
-  {
-    cost: 10,
-    category: 'Development',
-    rating: 4.7,
-    installs: '4.2k',
-    color: 'from-indigo-500 to-violet-500',
-  },
-];
+    {
+      cost: 5,
+      category: 'Development',
+      rating: 4.8,
+      installs: '12k',
+      color: 'from-blue-500 to-cyan-400',
+    },
+    {
+      cost: 12,
+      category: 'Image Gen',
+      rating: 4.9,
+      installs: '8.5k',
+      color: 'from-purple-500 to-pink-500',
+    },
+    {
+      cost: 8,
+      category: 'Productivity',
+      rating: 4.6,
+      installs: '5k',
+      color: 'from-emerald-500 to-teal-400',
+    },
+    {
+      cost: 3,
+      category: 'Marketing',
+      rating: 4.5,
+      installs: '15k',
+      color: 'from-orange-500 to-amber-400',
+    },
+    {
+      cost: 20,
+      category: 'Legal',
+      rating: 4.9,
+      installs: '2k',
+      color: 'from-slate-600 to-slate-400',
+    },
+    {
+      cost: 10,
+      category: 'Development',
+      rating: 4.7,
+      installs: '4.2k',
+      color: 'from-indigo-500 to-violet-500',
+    },
+  ];
 
 function buildDescription(project: Project): string {
   const frameworkPart =
@@ -73,8 +73,8 @@ function buildDescription(project: Project): string {
     project.sourceType === 'zip'
       ? 'uploaded as a ZIP archive'
       : project.sourceType === 'github'
-      ? 'connected from GitHub'
-      : 'deployed with GemiGo';
+        ? 'connected from GitHub'
+        : 'deployed with GemiGo';
   return `Deployed ${frameworkPart} ${sourcePart}.`;
 }
 
@@ -112,7 +112,7 @@ function mapProjectsToApps(projects: Project[]): ExploreAppCard[] {
 
 export const ExploreApps: React.FC = () => {
   const projects = useProjectStore((state) => state.projects);
-  const presenter = usePresenter();
+  const navigate = useNavigate();
   const apps = mapProjectsToApps(projects);
   type CategoryFilter =
     | 'All Apps'
@@ -208,7 +208,7 @@ export const ExploreApps: React.FC = () => {
             credit revenue every time someone uses your app.
           </p>
           <button
-            onClick={() => presenter.ui.navigateTo('deploy')}
+            onClick={() => navigate('/deploy')}
             className="bg-white text-slate-900 px-6 py-3 rounded-xl font-bold hover:bg-slate-100 transition-colors"
           >
             Become a Creator
@@ -237,11 +237,10 @@ export const ExploreApps: React.FC = () => {
                 // Reset tag filter when switching category for a clearer UX
                 setActiveTag(null);
               }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                isActive
-                  ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/20'
-                  : 'bg-white dark:bg-white/5 text-slate-600 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-white/10 border border-slate-200 dark:border-white/5'
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${isActive
+                ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/20'
+                : 'bg-white dark:bg-white/5 text-slate-600 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-white/10 border border-slate-200 dark:border-white/5'
+                }`}
             >
               {cat}
             </button>
@@ -295,11 +294,10 @@ export const ExploreApps: React.FC = () => {
                         onClick={() =>
                           setActiveTag((current) => (current === tag ? null : tag))
                         }
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors ${
-                          isActiveTag
-                            ? 'bg-brand-600 text-white border-brand-500'
-                            : 'bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-gray-400 border-slate-200 dark:border-white/10 hover:border-brand-500/50'
-                        }`}
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors ${isActiveTag
+                          ? 'bg-brand-600 text-white border-brand-500'
+                          : 'bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-gray-400 border-slate-200 dark:border-white/10 hover:border-brand-500/50'
+                          }`}
                       >
                         #{tag}
                       </button>

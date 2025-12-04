@@ -20,4 +20,14 @@ export class HttpProjectProvider implements IProjectProvider {
     if (!response.ok) throw new Error("Failed to create project");
     return response.json();
   }
+
+  async updateProject(id: string, patch: { name?: string; repoUrl?: string }): Promise<Project> {
+    const response = await fetch(`${this.baseUrl}${API_ROUTES.PROJECTS}/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    });
+    if (!response.ok) throw new Error("Failed to update project");
+    return response.json();
+  }
 }

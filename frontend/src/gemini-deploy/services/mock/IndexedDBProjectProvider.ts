@@ -56,4 +56,18 @@ export class IndexedDBProjectProvider implements IProjectProvider {
     await db.add('projects', newProject);
     return newProject;
   }
+
+  async updateProject(id: string, patch: { name?: string; repoUrl?: string }): Promise<Project> {
+    const project = await db.get<Project>('projects', id);
+    if (!project) {
+      throw new Error(`Project with id ${id} not found`);
+    }
+    const updated: Project = {
+      ...project,
+      ...(patch.name !== undefined ? { name: patch.name } : {}),
+      ...(patch.repoUrl !== undefined ? { repoUrl: patch.repoUrl } : {}),
+    };
+    await db.put('projects', updated);
+    return updated;
+  }
 }

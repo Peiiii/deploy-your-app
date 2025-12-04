@@ -10,6 +10,7 @@ import {
   createProjectRecord,
   type CreateProjectRecordInput,
   getAllProjects,
+  updateProjectRecord,
 } from './projectRepository.js';
 import type { Project } from './types.js';
 import { slugify } from './utils.js';
@@ -38,7 +39,7 @@ async function buildClassificationContext(slug: string): Promise<string | null> 
       snippets.push(`index.html (first ${trimmed.length} chars):\n${trimmed}`);
     }
 
-    let fileNames: string[] = [];
+    const fileNames: string[] = [];
     try {
       const entries = await fs.promises.readdir(appDir, { withFileTypes: true });
       for (const entry of entries) {
@@ -136,4 +137,11 @@ export async function createProject({
   createProjectRecord(recordInput);
 
   return project;
+}
+
+export function updateProject(
+  id: string,
+  input: { name?: string; repoUrl?: string },
+): Project | null {
+  return updateProjectRecord(id, input);
 }

@@ -1,46 +1,25 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
 import { NewDeployment } from './pages/NewDeployment';
 import { ExploreApps } from './pages/ExploreApps';
+import { ProjectDetail } from './pages/ProjectDetail';
 import { PresenterProvider, usePresenter } from './contexts/PresenterContext';
 import { useUIStore } from './stores/uiStore';
 import { Bell, HelpCircle, Sun, Moon, Menu, Coins } from 'lucide-react';
 
-type ViewId = 'dashboard' | 'deploy' | 'explore';
-
-function pathToView(pathname: string): ViewId {
-  if (pathname.startsWith('/deploy')) return 'deploy';
-  if (pathname.startsWith('/dashboard')) return 'dashboard';
-  // Root "/" 以及其它未知路径都统一落到 Explore。
-  return 'explore';
-}
-
-function viewToPath(view: ViewId): string {
-  switch (view) {
-    case 'deploy':
-      return '/deploy';
-    case 'dashboard':
-      return '/dashboard';
-    case 'explore':
-    default:
-      return '/explore';
-  }
-}
-
 const MainLayout = () => {
   const {
-    currentView,
     theme,
-    actions: { toggleTheme, toggleSidebar, setCurrentView },
+    actions: { toggleTheme, toggleSidebar },
   } = useUIStore((state) => state);
   const presenter = usePresenter();
-  const hasPushedOnViewChangeRef = useRef(false);
 
   // Initial Data Load
   useEffect(() => {
     presenter.project.loadProjects();
-  }, []);
+  }, [presenter.project]);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -49,42 +28,6 @@ const MainLayout = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
-
-  // Sync initial view with URL, and normalize "/" 为 "/explore"
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const initialView = pathToView(window.location.pathname);
-    setCurrentView(initialView);
-    const expectedPath = viewToPath(initialView);
-    if (window.location.pathname !== expectedPath) {
-      window.history.replaceState({ view: initialView }, '', expectedPath);
-    }
-  }, [setCurrentView]);
-
-  // Keep currentView in sync when用户使用浏览器前进/后退
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const handler = () => {
-      const view = pathToView(window.location.pathname);
-      setCurrentView(view);
-    };
-    window.addEventListener('popstate', handler);
-    return () => window.removeEventListener('popstate', handler);
-  }, [setCurrentView]);
-
-  // When currentView changes (via sidebar / presenter), push a new history entry.
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    // Skip the very first run so that initial store default值不会覆盖 URL。
-    if (!hasPushedOnViewChangeRef.current) {
-      hasPushedOnViewChangeRef.current = true;
-      return;
-    }
-    const targetPath = viewToPath(currentView as ViewId);
-    if (window.location.pathname !== targetPath) {
-      window.history.pushState({ view: currentView }, '', targetPath);
-    }
-  }, [currentView]);
 
   return (
     <div className="flex w-full h-screen bg-app-bg text-slate-900 dark:text-gray-200 font-sans selection:bg-brand-500/30 selection:text-brand-700 dark:selection:text-brand-200 transition-colors duration-300 overflow-hidden">
@@ -131,22 +74,14 @@ const MainLayout = () => {
         </header>
 
         <div className="p-0">
-          {currentView === 'dashboard' && <Dashboard />}
-          {currentView === 'deploy' && <NewDeployment />}
-          {currentView === 'explore' && <ExploreApps />}
-          {currentView !== 'dashboard' &&
-            currentView !== 'deploy' &&
-            currentView !== 'explore' && (
-              <div className="flex flex-col items-center justify-center h-[80vh] text-slate-500 dark:text-gray-500 animate-fade-in px-4">
-                <div className="w-16 h-16 rounded-full bg-slate-200/50 dark:bg-white/5 flex items-center justify-center mb-4">
-                  <span className="text-2xl">🚧</span>
-                </div>
-                <h3 className="text-xl font-medium mb-2 text-slate-900 dark:text-white">
-                  Under Construction
-                </h3>
-                <p className="text-center">The {currentView} module is coming in the next update.</p>
-              </div>
-            )}
+          <Routes>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/deploy" element={<NewDeployment />} />
+            <Route path="/explore" element={<ExploreApps />} />
+            <Route path="/projects/:id" element={<ProjectDetail />} />
+            <Route path="/" element={<Navigate to="/explore" replace />} />
+            <Route path="*" element={<Navigate to="/explore" replace />} />
+          </Routes>
         </div>
       </main>
     </div>
