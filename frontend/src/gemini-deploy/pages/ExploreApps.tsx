@@ -204,21 +204,21 @@ const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
       {/* Image Section */}
       <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700/30 group-hover:border-transparent transition-colors">
         {showThumbnail ? (
-          <>
-            {!thumbLoaded && (
+        <>
+          {!thumbLoaded && (
               <div className="absolute inset-0 animate-pulse bg-slate-200 dark:bg-slate-800" />
-            )}
-            <img
-              src={app.thumbnailUrl}
-              alt={app.name}
-              loading="lazy"
-              onLoad={() => setThumbLoaded(true)}
-              onError={() => setThumbError(true)}
+          )}
+          <img
+            src={app.thumbnailUrl}
+            alt={app.name}
+            loading="lazy"
+            onLoad={() => setThumbLoaded(true)}
+            onError={() => setThumbError(true)}
               className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
-                thumbLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
-            />
-          </>
+              thumbLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        </>
         ) : (
           // Fallback pattern when no thumbnail
           <div className={`absolute inset-0 bg-gradient-to-br ${app.color} opacity-20`} />
@@ -233,7 +233,7 @@ const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
              <span>⚡</span> {app.cost}
           </div>
         </div>
-      </div>
+        </div>
 
       {/* Content Section */}
       <div className="flex flex-col flex-1 p-5">
@@ -248,11 +248,11 @@ const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
                      {app.name}
                    </h3>
                    <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5 truncate">
-                       <User className="w-3 h-3" /> {app.author}
-                   </div>
+              <User className="w-3 h-3" /> {app.author}
+            </div>
                </div>
-           </div>
-        </div>
+            </div>
+          </div>
 
         {/* Description */}
         <p className="text-sm text-slate-600 dark:text-slate-300/90 line-clamp-2 mb-4 flex-1 leading-relaxed">
@@ -260,23 +260,23 @@ const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
         </p>
 
         {/* Tags (First 2 only to save space) */}
-        {app.tags && app.tags.length > 0 && (
+          {app.tags && app.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-4">
             {app.tags.slice(0, 2).map((tag) => (
-              <button
-                key={tag}
+                  <button
+                    key={tag}
                 onClick={(e) => handleTagClick(e, tag)}
                 className={`px-2 py-0.5 rounded-md text-[10px] font-medium transition-colors border ${
                   tag === activeTag
                     ? 'bg-brand-50 text-brand-700 border-brand-200 dark:bg-brand-900/30 dark:text-brand-300 dark:border-brand-700'
                     : 'bg-slate-50 text-slate-600 border-slate-100 hover:bg-slate-100 dark:bg-slate-800/50 dark:text-slate-400 dark:border-slate-700 dark:hover:bg-slate-800'
-                }`}
-              >
-                #{tag}
-              </button>
+                    }`}
+                  >
+                    #{tag}
+                  </button>
             ))}
-          </div>
-        )}
+            </div>
+          )}
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700/50 mt-auto">
@@ -372,7 +372,7 @@ const FeaturedBanner: React.FC<FeaturedBannerProps> = ({ onNavigateToDeploy }) =
       <div className="absolute inset-0 opacity-20 mix-blend-soft-light bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent"></div>
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/20 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/3 group-hover:bg-brand-400/30 transition-colors duration-700" />
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-500/20 blur-[100px] rounded-full translate-y-1/3 -translate-x-1/3 group-hover:bg-purple-400/30 transition-colors duration-700" />
-      
+
       <div className="relative z-10 max-w-3xl">
         <div className="inline-flex items-center gap-2 mb-6 text-brand-300 font-medium px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
           <TrendingUp className="w-4 h-4" />
