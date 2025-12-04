@@ -2,6 +2,9 @@ type R2ObjectLike = {
   body: ReadableStream | null;
   writeHttpMetadata?: (headers: Headers) => void;
   httpEtag?: string;
+  // Actual R2 objects expose a `size` field; we include it here so we can
+  // detect obviously-invalid thumbnails (e.g. tiny 1x1 placeholder PNGs).
+  size?: number;
 };
 
 type R2PutOptionsLike = {
@@ -60,6 +63,17 @@ export default {
     if (url.pathname === '/__thumbnail.png') {
       const thumbKey = `apps/${subdomain}/thumbnail.png`;
       let thumb = await bucket.get(thumbKey);
+
+      // If a previous version of the screenshot pipeline saved a 1x1
+      // placeholder PNG, it will be very small (tens of bytes). Treat such
+      // tiny objects as "missing" so we can regenerate a real thumbnail.
+      if (thumb && typeof thumb.size === 'number' && thumb.size > 0 && thumb.size <= 80) {
+        console.log(
+          'Existing thumbnail is too small, treating as missing and regenerating',
+          { key: thumbKey, size: thumb.size },
+        );
+        thumb = null;
+      }
 
       // If thumbnail does not exist yet, try to generate it via an external
       // screenshot service (if configured). This keeps the worker generic:

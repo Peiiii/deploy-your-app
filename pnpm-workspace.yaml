@@ -1,4 +1,4 @@
 packages:
   - "frontend"
   - "server"
-
+  - "workers/*"

@@ -1,83 +1,91 @@
-type BrowserBinding = {
-  newPage(): Promise<BrowserPage>;
-};
-
-type BrowserPage = {
-  goto(url: string, options?: { waitUntil?: 'load' | 'domcontentloaded' | 'networkidle' }): Promise<void>;
-  setViewportSize(options: { width: number; height: number }): Promise<void>;
-  screenshot(options?: { type?: 'png' | 'jpeg' }): Promise<ArrayBuffer | ReadableStream>;
-  close(): Promise<void>;
-};
-
-type Env = {
-  // Cloudflare Browser Rendering binding (configured via wrangler / dashboard).
-  BROWSER: BrowserBinding;
-};
+import type { Browser } from '@cloudflare/puppeteer';
+import puppeteer, { type BrowserWorker } from '@cloudflare/puppeteer';
 
 interface ScreenshotRequestBody {
   url?: string;
 }
 
+interface Env {
+  BROWSER: BrowserWorker;
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return '未知错误';
+}
+
 export default {
-  /**
-   * Simple screenshot service used by the R2 gateway worker.
-   *
-   * - Accepts POST requests with JSON body: { "url": "https://example.com/" }
-   * - Uses Cloudflare Browser Rendering (BROWSER binding) to capture a PNG
-   *   screenshot of the given URL.
-   * - Returns the PNG as the response body with content-type image/png.
-   */
   async fetch(request: Request, env: Env): Promise<Response> {
-    if (request.method !== 'POST') {
-      return new Response('Method Not Allowed', { status: 405 });
-    }
+    const { searchParams } = new URL(request.url);
+    
+    let targetUrl = searchParams.get("url");
 
-    let payload: ScreenshotRequestBody;
-    try {
-      payload = (await request.json()) as ScreenshotRequestBody;
-    } catch {
-      return new Response('Invalid JSON body', { status: 400 });
-    }
-
-    const targetUrl = payload.url?.trim();
-    if (!targetUrl) {
-      return new Response('Missing "url" field in request body', {
-        status: 400,
-      });
-    }
-
-    let page: BrowserPage | null = null;
-
-    try {
-      const browser = env.BROWSER;
-      page = await browser.newPage();
-
-      // Set a reasonable viewport size for thumbnails.
-      await page.setViewportSize({ width: 1200, height: 675 });
-
-      // Navigate to the target URL and wait until the network is mostly idle.
-      await page.goto(targetUrl, { waitUntil: 'networkidle' });
-
-      const png = await page.screenshot({ type: 'png' });
-
-      return new Response(png, {
-        headers: {
-          'content-type': 'image/png',
-          'cache-control': 'public, max-age=600',
-        },
-      });
-    } catch (err) {
-      console.error('Screenshot service failed', err);
-      return new Response('Failed to capture screenshot', { status: 500 });
-    } finally {
-      if (page) {
-        try {
-          await page.close();
-        } catch {
-          // Ignore close errors
-        }
+    if (!targetUrl && request.method === 'POST') {
+      try {
+        const body = (await request.json()) as ScreenshotRequestBody;
+        targetUrl = body.url ?? null;
+      } catch {
+        // 忽略 JSON 解析错误，继续使用 URL 参数
       }
     }
-  },
-};
 
+    // 如果还没有拿到 URL，提示用户怎么用
+    if (!targetUrl) {
+      return new Response(
+        "请在网址后面加上 url 参数，例如：\n" + 
+        request.url + "?url=https://www.bilibili.com", 
+        { status: 400 }
+      );
+    }
+
+    // 补全 http 协议 (方便用户偷懒只输 www.baidu.com)
+    if (!targetUrl.startsWith("http")) {
+      targetUrl = "https://" + targetUrl;
+    }
+
+    if (!env.BROWSER) {
+      return new Response("未配置 Browser Rendering (BROWSER binding missing)", { status: 500 });
+    }
+
+    let browser: Browser | null = null;
+    try {
+      browser = await puppeteer.launch(env.BROWSER);
+      const page = await browser.newPage();
+
+      await page.setViewport({ width: 1280, height: 720 });
+
+      await page.goto(targetUrl, { 
+        waitUntil: 'networkidle0',
+        timeout: 20000 
+      });
+
+      const imgBuffer = await page.screenshot({ type: 'png' });
+
+      await browser.close();
+      browser = null;
+
+      const arrayBuffer = imgBuffer.buffer instanceof ArrayBuffer
+        ? imgBuffer.buffer.slice(imgBuffer.byteOffset, imgBuffer.byteOffset + imgBuffer.byteLength)
+        : new Uint8Array(imgBuffer).buffer;
+
+      return new Response(arrayBuffer, {
+        headers: {
+          'content-type': 'image/png',
+          'cache-control': 'public, max-age=600'
+        }
+      });
+
+    } catch (error: unknown) {
+      return new Response(`截图失败: ${getErrorMessage(error)}`, { status: 500 });
+    } finally {
+      if (browser) {
+        await browser.close();
+      }
+    }
+  }
+}
