@@ -4,13 +4,29 @@ type R2ObjectLike = {
   httpEtag?: string;
 };
 
+type R2PutOptionsLike = {
+  httpMetadata?: {
+    contentType?: string;
+  };
+};
+
 type R2BucketBinding = {
   get(key: string): Promise<R2ObjectLike | null>;
+  put(
+    key: string,
+    value: ArrayBuffer | ReadableStream | Blob,
+    options?: R2PutOptionsLike,
+  ): Promise<R2ObjectLike | null>;
 };
 
 type Env = {
   APPS_ROOT_DOMAIN?: string;
   ASSETS: R2BucketBinding;
+  // Optional external screenshot service the worker can call to generate
+  // thumbnails on first request. The service is expected to accept a JSON
+  // body { url: string } and return a PNG image.
+  SCREENSHOT_SERVICE_URL?: string;
+  SCREENSHOT_SERVICE_TOKEN?: string;
 };
 
 export default {
@@ -38,6 +54,60 @@ export default {
       return new Response('R2 bucket binding "ASSETS" is not configured', {
         status: 500,
       });
+    }
+
+    // Thumbnail endpoint: /__thumbnail.png on the app subdomain.
+    if (url.pathname === '/__thumbnail.png') {
+      const thumbKey = `apps/${subdomain}/thumbnail.png`;
+      let thumb = await bucket.get(thumbKey);
+
+      // If thumbnail does not exist yet, try to generate it via an external
+      // screenshot service (if configured). This keeps the worker generic:
+      // you can plug in Cloudflare Browser Rendering or any third-party API.
+      if (!thumb && env.SCREENSHOT_SERVICE_URL) {
+        try {
+          const targetUrl = `https://${subdomain}.${rootDomain}/`;
+          const screenshotResp = await fetch(env.SCREENSHOT_SERVICE_URL, {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              ...(env.SCREENSHOT_SERVICE_TOKEN
+                ? { authorization: `Bearer ${env.SCREENSHOT_SERVICE_TOKEN}` }
+                : {}),
+            },
+            body: JSON.stringify({ url: targetUrl }),
+          });
+
+          if (screenshotResp.ok) {
+            const buffer = await screenshotResp.arrayBuffer();
+            await bucket.put(thumbKey, buffer, {
+              httpMetadata: { contentType: 'image/png' },
+            });
+            thumb = await bucket.get(thumbKey);
+          }
+        } catch (err) {
+          // If screenshot generation fails, we simply fall back to 404 so
+          // the frontend can use a graceful placeholder.
+          console.error('Failed to generate thumbnail', err);
+        }
+      }
+
+      if (!thumb) {
+        return new Response('Thumbnail not available', { status: 404 });
+      }
+
+      const headers = new Headers();
+      if (typeof thumb.writeHttpMetadata === 'function') {
+        thumb.writeHttpMetadata(headers);
+      }
+      if (thumb.httpEtag) {
+        headers.set('etag', thumb.httpEtag);
+      }
+      if (!headers.has('content-type')) {
+        headers.set('content-type', 'image/png');
+      }
+
+      return new Response(thumb.body, { headers });
     }
 
     // This must match the prefix used by the backend R2 deployer:

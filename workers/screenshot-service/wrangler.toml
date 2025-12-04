@@ -1,0 +1,10 @@
+name = "gemigo-screenshot-service"
+main = "worker.ts"
+compatibility_date = "2025-01-01"
+
+# Cloudflare Browser Rendering binding.
+# After deploying, go to Cloudflare Dashboard → Workers & Pages → this Worker,
+# and enable Browser Rendering so that the BROWSER binding is available.
+[browser]
+binding = "BROWSER"
+

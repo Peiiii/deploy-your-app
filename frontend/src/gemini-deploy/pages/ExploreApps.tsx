@@ -17,6 +17,7 @@ interface ExploreAppCard {
   color: string;
   url?: string;
   tags?: string[];
+  thumbnailUrl?: string;
 }
 
 const APP_META: Array<
@@ -98,6 +99,23 @@ function mapProjectsToApps(projects: Project[]): ExploreAppCard[] {
       project.description && project.description.trim().length > 0
         ? project.description
         : buildDescription(project);
+
+    let thumbnailUrl: string | undefined;
+    if (project.url) {
+      try {
+        // For remote deployments (e.g. R2 + Worker gateway), project.url
+        // should be an absolute URL like https://<slug>.<domain>/.
+        // We derive a conventional thumbnail endpoint from it.
+        const u = new URL(project.url, window.location.origin);
+        u.pathname = '/__thumbnail.png';
+        u.search = '';
+        u.hash = '';
+        thumbnailUrl = u.toString();
+      } catch {
+        // Ignore invalid URLs and keep thumbnailUrl undefined.
+        thumbnailUrl = undefined;
+      }
+    }
     return {
       id: project.id,
       name: project.name,
@@ -110,9 +128,107 @@ function mapProjectsToApps(projects: Project[]): ExploreAppCard[] {
       color: meta.color,
       url: project.url,
       tags: project.tags,
+      thumbnailUrl,
     };
   });
 }
+
+const ExploreAppCardView: React.FC<{
+  app: ExploreAppCard;
+  activeTag: string | null;
+  setActiveTag: React.Dispatch<React.SetStateAction<string | null>>;
+}> = ({ app, activeTag, setActiveTag }) => {
+  const [thumbLoaded, setThumbLoaded] = useState(false);
+  const [thumbError, setThumbError] = useState(false);
+
+  const showThumbnail = app.thumbnailUrl && !thumbError;
+
+  return (
+    <div className="glass-card rounded-xl p-5 hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group">
+      {showThumbnail ? (
+        <div className="mb-4">
+          {!thumbLoaded && (
+            <div className="h-24 w-full rounded-lg bg-slate-200 dark:bg-slate-800 animate-pulse" />
+          )}
+          <img
+            src={app.thumbnailUrl}
+            alt={app.name}
+            loading="lazy"
+            onLoad={() => setThumbLoaded(true)}
+            onError={() => setThumbError(true)}
+            className={`w-full h-24 object-cover rounded-lg transition-opacity ${
+              thumbLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        </div>
+      ) : (
+        <div className="flex justify-between items-start mb-4">
+          <div
+            className={`w-14 h-14 rounded-xl bg-gradient-to-br ${app.color} flex items-center justify-center text-white shadow-lg`}
+          >
+            <Zap className="w-7 h-7" />
+          </div>
+          <div className="bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-lg flex items-center gap-1 text-xs font-semibold text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-white/5">
+            <span className="text-amber-500">⚡</span> {app.cost} Credits
+          </div>
+        </div>
+      )}
+
+      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-brand-500 transition-colors">
+        {app.name}
+      </h3>
+      <p className="text-sm text-slate-500 dark:text-gray-400 mb-4 h-10 line-clamp-2 leading-relaxed">
+        {app.description}
+      </p>
+
+      <div className="mb-4 pb-4 border-b border-slate-100 dark:border-white/5 space-y-2">
+        <div className="flex items-center gap-4 text-xs text-slate-400 dark:text-gray-500">
+          <div className="flex items-center gap-1">
+            <User className="w-3 h-3" /> {app.author}
+          </div>
+          <div className="flex items-center gap-1">
+            <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> {app.rating}
+          </div>
+          <div>{app.installs} uses</div>
+        </div>
+
+        {app.tags && app.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {app.tags.map((tag) => {
+              const isActiveTag = tag === activeTag;
+              return (
+                <button
+                  key={tag}
+                  onClick={() =>
+                    setActiveTag((current) => (current === tag ? null : tag))
+                  }
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors ${
+                    isActiveTag
+                      ? 'bg-brand-600 text-white border-brand-500'
+                      : 'bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-gray-400 border-slate-200 dark:border-white/10 hover:border-brand-500/50'
+                  }`}
+                >
+                  #{tag}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <button
+        onClick={() => {
+          if (app.url) {
+            window.open(app.url, '_blank', 'noopener,noreferrer');
+          }
+        }}
+        className="w-full py-2.5 rounded-lg border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300 font-medium text-sm hover:bg-brand-500 hover:text-white hover:border-brand-500 transition-all flex items-center justify-center gap-2 group-hover:shadow-lg group-hover:shadow-brand-500/20"
+      >
+        <Play className="w-4 h-4 fill-current" /> Launch App
+      </button>
+    </div>
+  );
+};
 
 export const ExploreApps: React.FC = () => {
   const projects = useProjectStore((state) => state.projects);
@@ -255,73 +371,12 @@ export const ExploreApps: React.FC = () => {
       {/* App Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredApps.map((app) => (
-          <div
+          <ExploreAppCardView
             key={app.id}
-            className="glass-card rounded-xl p-5 hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div
-                className={`w-14 h-14 rounded-xl bg-gradient-to-br ${app.color} flex items-center justify-center text-white shadow-lg`}
-              >
-                <Zap className="w-7 h-7" />
-              </div>
-              <div className="bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-lg flex items-center gap-1 text-xs font-semibold text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-white/5">
-                <span className="text-amber-500">⚡</span> {app.cost} Credits
-              </div>
-            </div>
-
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-brand-500 transition-colors">
-              {app.name}
-            </h3>
-            <p className="text-sm text-slate-500 dark:text-gray-400 mb-4 h-10 line-clamp-2 leading-relaxed">
-              {app.description}
-            </p>
-
-            <div className="mb-4 pb-4 border-b border-slate-100 dark:border-white/5 space-y-2">
-              <div className="flex items-center gap-4 text-xs text-slate-400 dark:text-gray-500">
-                <div className="flex items-center gap-1">
-                  <User className="w-3 h-3" /> {app.author}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> {app.rating}
-                </div>
-                <div>{app.installs} uses</div>
-              </div>
-
-              {app.tags && app.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {app.tags.map((tag) => {
-                    const isActiveTag = tag === activeTag;
-                    return (
-                      <button
-                        key={tag}
-                        onClick={() =>
-                          setActiveTag((current) => (current === tag ? null : tag))
-                        }
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors ${isActiveTag
-                          ? 'bg-brand-600 text-white border-brand-500'
-                          : 'bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-gray-400 border-slate-200 dark:border-white/10 hover:border-brand-500/50'
-                          }`}
-                      >
-                        #{tag}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={() => {
-                if (app.url) {
-                  window.open(app.url, '_blank', 'noopener,noreferrer');
-                }
-              }}
-              className="w-full py-2.5 rounded-lg border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300 font-medium text-sm hover:bg-brand-500 hover:text-white hover:border-brand-500 transition-all flex items-center justify-center gap-2 group-hover:shadow-lg group-hover:shadow-brand-500/20"
-            >
-              <Play className="w-4 h-4 fill-current" /> Launch App
-            </button>
-          </div>
+            app={app}
+            activeTag={activeTag}
+            setActiveTag={setActiveTag}
+          />
         ))}
       </div>
     </div>
