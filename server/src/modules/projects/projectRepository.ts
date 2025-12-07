@@ -1,6 +1,7 @@
 import * as fs from 'fs';
-import type { Project } from './types.js';
-import { CONFIG } from './config.js';
+import type { Project } from '../../common/types.js';
+import { SourceType } from '../../common/types.js';
+import { CONFIG } from '../../common/config/config.js';
 
 // For local Node/Express development we keep projects in a simple JSON file
 // under data/projects.json so that they survive backend restarts. The shape
@@ -14,7 +15,8 @@ export interface CreateProjectRecordInput {
   id: string;
   name: string;
   repoUrl: string;
-  sourceType?: 'github' | 'zip';
+  sourceType?: SourceType;
+  slug?: string;
   analysisId?: string;
   lastDeployed: string;
   status: Project['status'];
@@ -26,6 +28,7 @@ export interface CreateProjectRecordInput {
   deployTarget?: Project['deployTarget'];
   providerUrl?: string;
   cloudflareProjectName?: string;
+  htmlContent?: string;
 }
 
 function ensureStorage(): void {
@@ -60,6 +63,7 @@ export function createProjectRecord(input: CreateProjectRecordInput): Project {
     name: input.name,
     repoUrl: input.repoUrl,
     sourceType: input.sourceType,
+    slug: input.slug,
     analysisId: input.analysisId,
     lastDeployed: input.lastDeployed,
     status: input.status,
@@ -71,6 +75,7 @@ export function createProjectRecord(input: CreateProjectRecordInput): Project {
     deployTarget: input.deployTarget,
     providerUrl: input.providerUrl,
     cloudflareProjectName: input.cloudflareProjectName,
+    htmlContent: input.htmlContent,
   };
 
   const rows = readAllRows();

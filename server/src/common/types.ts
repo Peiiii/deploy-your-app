@@ -14,17 +14,24 @@ export interface BuildLog {
   level: LogLevel;
 }
 
+export enum SourceType {
+  GitHub = 'github',
+  Zip = 'zip',
+  Html = 'html',
+}
+
 export interface Project {
   id: string;
   name: string;
   repoUrl: string;
-  sourceType?: 'github' | 'zip';
+  sourceType?: SourceType;
+  slug?: string;
   analysisId?: string;
   lastDeployed: string;
   status: 'Live' | 'Building' | 'Failed' | 'Offline';
   url?: string;
-   // Short marketing-style summary shown on the Explore page.
-   description?: string;
+  // Short marketing-style summary shown on the Explore page.
+  description?: string;
   framework: 'React' | 'Vue' | 'Next.js' | 'Unknown';
   // High-level category used by the Explore Apps marketplace view.
   category?: string;
@@ -36,6 +43,8 @@ export interface Project {
   providerUrl?: string;
   // Cloudflare Pages project name when using the Cloudflare provider.
   cloudflareProjectName?: string;
+  // Inline HTML payload used when sourceType === SourceType.Html.
+  htmlContent?: string;
 }
 
 export interface DeploymentRecord {

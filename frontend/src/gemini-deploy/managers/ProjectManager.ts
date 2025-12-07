@@ -1,5 +1,6 @@
 import { useProjectStore } from '../stores/projectStore';
 import type { IProjectProvider } from '../services/interfaces';
+import { SourceType, type DeploymentMetadata } from '../types';
 
 export class ProjectManager {
   private provider: IProjectProvider;
@@ -23,11 +24,17 @@ export class ProjectManager {
 
   addProject = async (
     name: string,
-    sourceType: 'github' | 'zip',
-    sourceIdentifier: string
+    sourceType: SourceType,
+    sourceIdentifier: string,
+    options?: { htmlContent?: string; metadata?: DeploymentMetadata },
   ) => {
     try {
-      const newProject = await this.provider.createProject(name, sourceType, sourceIdentifier);
+      const newProject = await this.provider.createProject(
+        name,
+        sourceType,
+        sourceIdentifier,
+        options,
+      );
       useProjectStore.getState().actions.addProject(newProject);
     } catch (error) {
       console.error("Failed to create project", error);

@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import { CONFIG } from './config.js';
-import { registerRoutes } from './routes.js';
+import { CONFIG } from './common/config/config.js';
+import { registerRoutes } from './routes/index.js';
 
 const app = express();
 // Prefer Render's PORT, fall back to custom SERVER_PORT (for local dev) and

@@ -1,5 +1,6 @@
 import type { IProjectProvider } from '../interfaces';
 import type { Project } from '../../types';
+import { SourceType } from '../../types';
 import { db } from '../db';
 import { URLS } from '../../constants';
 
@@ -9,7 +10,7 @@ const SEED_PROJECTS: Project[] = [
     id: 'seed-1',
     name: 'travel-planner-ai',
     repoUrl: `${URLS.GITHUB_BASE}johndoe/travel-planner-ai`,
-    sourceType: 'github',
+    sourceType: SourceType.GITHUB,
     lastDeployed: '2 hours ago',
     status: 'Live',
     url: undefined, // URL should come from backend
@@ -20,7 +21,7 @@ const SEED_PROJECTS: Project[] = [
     id: 'seed-2',
     name: 'gemini-chatbot-v2',
     repoUrl: `${URLS.GITHUB_BASE}johndoe/gemini-chatbot`,
-    sourceType: 'github',
+    sourceType: SourceType.GITHUB,
     lastDeployed: '1 day ago',
     status: 'Failed',
     framework: 'Next.js',
@@ -40,7 +41,12 @@ export class IndexedDBProjectProvider implements IProjectProvider {
     return db.getAll<Project>('projects');
   }
 
-  async createProject(name: string, sourceType: 'github' | 'zip', identifier: string): Promise<Project> {
+  async createProject(
+    name: string,
+    sourceType: SourceType,
+    identifier: string,
+    options?: { htmlContent?: string },
+  ): Promise<Project> {
     const newProject: Project = {
       id: crypto.randomUUID(), // Use native browser UUID
       name: name,
@@ -51,6 +57,7 @@ export class IndexedDBProjectProvider implements IProjectProvider {
       url: undefined, // URL will be set by backend after deployment
       framework: 'React', // In a real app, this is detected during build
       category: 'Development',
+      htmlContent: options?.htmlContent,
     };
     
     await db.add('projects', newProject);

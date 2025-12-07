@@ -1,33 +1,17 @@
-import type { Project, BuildLog } from '../types';
-import { DeploymentStatus } from '../types';
+import type { Project, BuildLog, DeploymentMetadata } from '../types';
+import { DeploymentStatus, SourceType } from '../types';
 
-export interface AnalyzeCodeParams {
-  apiKey: string;
-  // Optional snippet the user provided/edited in the UI.
-  sourceCode?: string;
-  // Optional GitHub URL, used by the backend to clone and inspect the real repo.
-  repoUrl?: string;
-  // Optional existing analysis session id to reuse cloned repo.
-  analysisId?: string;
-}
-
-export interface AnalyzeCodeResult {
-  refactoredCode: string;
-  explanation: string;
-  // Id for the backend analysis session / cloned repo.
-  analysisId?: string;
-  // The concrete file path inside the repo that was analyzed.
-  sourceFilePath?: string;
-  // The original code that the platform AI saw (from the repo or the snippet).
-  originalCode?: string;
+export interface DeploymentResult {
+  metadata?: DeploymentMetadata;
 }
 
 export interface IProjectProvider {
   getProjects(): Promise<Project[]>;
   createProject(
     name: string,
-    sourceType: 'github' | 'zip',
+    sourceType: SourceType,
     identifier: string,
+    options?: { htmlContent?: string; metadata?: DeploymentMetadata },
   ): Promise<Project>;
   updateProject(
     id: string,
@@ -42,10 +26,9 @@ export interface IProjectProvider {
 }
 
 export interface IDeploymentProvider {
-  analyzeCode(params: AnalyzeCodeParams): Promise<AnalyzeCodeResult>;
   startDeployment(
     project: Project,
     onLog: (log: BuildLog) => void,
     onStatusChange: (status: DeploymentStatus) => void,
-  ): Promise<void>;
+  ): Promise<DeploymentResult | undefined>;
 }

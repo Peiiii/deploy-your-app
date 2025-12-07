@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDeploymentStore } from '../stores/deploymentStore';
 import { useProjectStore } from '../stores/projectStore';
 import { usePresenter } from '../contexts/PresenterContext';
-import { DeploymentStatus } from '../types';
+import { DeploymentStatus, SourceType } from '../types';
 import { Terminal } from './Terminal';
 import {
   CheckCircle2,
@@ -35,30 +35,37 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
   const isInProgress =
     state.deploymentStatus === DeploymentStatus.BUILDING || isDeploying;
 
-  // Resolve deployment URL either from explicit override or from the project list.
-  const deploymentUrl = useMemo(() => {
-    if (projectUrlOverride) return projectUrlOverride;
-    // Prefer matching by source identifier so that it still works even if
-    // the backend AI renames the project to a nicer display name.
-    const project = projects.find((p) => {
-      if (state.sourceType === 'github') {
+  const resolvedProject = useMemo(() => {
+    return projects.find((p) => {
+      if (state.sourceType === SourceType.GITHUB) {
         return p.repoUrl === state.repoUrl;
       }
-      if (state.sourceType === 'zip') {
+      if (state.sourceType === SourceType.ZIP) {
         const identifier = state.zipFile?.name || 'archive.zip';
         return p.repoUrl === identifier;
       }
+      if (state.sourceType === SourceType.HTML) {
+        const identifier = 'inline.html';
+        return p.repoUrl === identifier || p.name === state.projectName;
+      }
       return p.name === state.projectName;
-    });
-    return project?.url;
+    }) ?? null;
   }, [
-    projectUrlOverride,
     projects,
     state.projectName,
     state.repoUrl,
     state.sourceType,
     state.zipFile,
   ]);
+  const deploymentUrl = projectUrlOverride ?? resolvedProject?.url ?? null;
+  const finalProjectName = resolvedProject?.name ?? state.projectName;
+  const sourceLabel =
+    resolvedProject?.repoUrl ??
+    (state.sourceType === SourceType.GITHUB
+      ? state.repoUrl
+      : state.sourceType === SourceType.ZIP
+        ? state.zipFile?.name
+        : 'inline.html');
 
   // Whenever a deployment succeeds, refresh projects so that URLs / metadata stay in sync.
   useEffect(() => {
@@ -68,6 +75,17 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
   }, [state.deploymentStatus, presenter.project]);
 
   if (state.deploymentStatus === DeploymentStatus.SUCCESS) {
+    if (!resolvedProject && !projectUrlOverride) {
+      return (
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 text-center shadow">
+          <Loader2 className="w-8 h-8 text-purple-500 animate-spin mx-auto mb-3" />
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Finalizing your deployment... please wait while we prepare the live preview and metadata.
+          </p>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-4">
         <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-xl border border-green-200 dark:border-green-900/50 p-8 shadow-lg">
@@ -82,6 +100,14 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
                 Deployment successful!
               </h3>
               <div className="space-y-4">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Project
+                  </p>
+                  <p className="text-lg font-semibold text-slate-900 dark:text-white">
+                    {finalProjectName}
+                  </p>
+                </div>
                 <div>
                   {deploymentUrl ? (
                     <>
@@ -157,12 +183,10 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
                       <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
                       <div>
                         <h4 className="text-sm font-semibold text-slate-100">
-                          Build Log: {state.projectName}
+                          Build Log: {finalProjectName}
                         </h4>
                         <p className="text-xs text-slate-400 font-mono mt-0.5">
-                          {state.sourceType === 'github'
-                            ? state.repoUrl
-                            : state.zipFile?.name}
+                          {sourceLabel}
                         </p>
                       </div>
                     </div>
@@ -192,9 +216,11 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
                 {isDeploying ? 'Deploying' : 'Building'} {state.projectName}
               </h3>
               <p className="text-xs text-slate-400 font-mono mt-0.5">
-                {state.sourceType === 'github'
+                {state.sourceType === SourceType.GITHUB
                   ? state.repoUrl
-                  : state.zipFile?.name}
+                  : state.sourceType === SourceType.ZIP
+                    ? state.zipFile?.name
+                    : 'inline.html'}
               </p>
             </div>
           </div>

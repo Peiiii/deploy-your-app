@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import * as path from 'path';
 import * as fs from 'fs';
 import { spawn } from 'child_process';
-import { CONFIG } from '../config.js';
+import { CONFIG } from '../../../common/config/config.js';
 import { analysisSessions } from '../state.js';
 
 export async function findAIClientFile(
@@ -98,4 +98,3 @@ export async function prepareAnalysisSession(repoUrl: string): Promise<{
     sourceCode: aiFile.content,
   };
 }
-

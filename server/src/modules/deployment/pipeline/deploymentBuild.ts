@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import { spawn, SpawnOptions } from 'child_process';
-import { CONFIG } from '../config.js';
+import { CONFIG } from '../../../common/config/config.js';
 import { appendLog } from './deploymentEvents.js';
 
 export async function copyDir(src: string, dest: string): Promise<void> {
@@ -82,4 +82,3 @@ export async function deployToLocalStatic(opts: {
 
   return `/apps/${slug}/`;
 }
-

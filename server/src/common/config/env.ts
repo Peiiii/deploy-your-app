@@ -48,8 +48,7 @@ export function loadDotEnv(envFilePath: string): void {
 // When running from compiled JS, __dirname is "<root>/server/dist".
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const serverRootDir =
-  __dirname.endsWith('dist') ? path.resolve(__dirname, '..') : __dirname;
+const serverRootDir = path.resolve(__dirname, '..', '..', '..');
 
 /**
  * Load the backend's default .env file from the server package root

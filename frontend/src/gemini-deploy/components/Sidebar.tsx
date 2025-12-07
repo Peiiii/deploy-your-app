@@ -1,8 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Settings, Github, Rocket, Wifi, Database, X, Zap, Sparkles, Package } from 'lucide-react';
+import { LayoutDashboard, Rocket, Wifi, X, Zap, Sparkles, Package } from 'lucide-react';
 import { useUIStore } from '../stores/uiStore';
-import { APP_CONFIG } from '../constants';
 
 export const Sidebar: React.FC = () => {
   const sidebarOpen = useUIStore((state) => state.sidebarOpen);
@@ -14,11 +13,9 @@ export const Sidebar: React.FC = () => {
     { path: '/explore', label: 'Explore Apps', icon: Sparkles },
     { path: '/deploy', label: 'Deploy App', icon: Package },
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/integrations', label: 'Integrations', icon: Github },
-    { path: '/settings', label: 'Settings', icon: Settings },
+    // { path: '/integrations', label: 'Integrations', icon: Github },
+    // { path: '/settings', label: 'Settings', icon: Settings },
   ];
-
-  const isMockMode = APP_CONFIG.USE_MOCK_ADAPTER;
 
   return (
     <>
@@ -99,18 +96,12 @@ export const Sidebar: React.FC = () => {
 
       {/* Connection Status Indicator */}
       <div className="px-6 py-2">
-        <div className={`flex items-center justify-between text-[10px] font-mono border rounded px-2 py-1.5 ${
-            isMockMode 
-            ? 'border-yellow-500/30 bg-yellow-500/5 text-yellow-600 dark:text-yellow-400' 
-            : 'border-green-500/30 bg-green-500/5 text-green-600 dark:text-green-400'
-        }`}>
+        <div className="flex items-center justify-between text-[10px] font-mono border border-green-500/30 bg-green-500/5 text-green-600 dark:text-green-400 rounded px-2 py-1.5">
             <span className="flex items-center gap-1.5 font-bold">
-                {isMockMode ? <Database className="w-3 h-3" /> : <Wifi className="w-3 h-3" />}
-                {isMockMode ? 'MOCK DATA' : 'CONNECTED'}
+                <Wifi className="w-3 h-3" />
+                CONNECTED
             </span>
-            <span className={`w-1.5 h-1.5 rounded-full ${
-                isMockMode ? 'bg-yellow-500' : 'bg-green-500 animate-pulse'
-            }`}></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
         </div>
       </div>
 

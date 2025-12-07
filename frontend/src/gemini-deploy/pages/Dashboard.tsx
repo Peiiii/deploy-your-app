@@ -1,8 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ExternalLink, GitBranch, Clock, FolderArchive, Zap, Plus, TrendingUp, FileText, GraduationCap, Wand2, Briefcase } from 'lucide-react';
+import { ExternalLink, GitBranch, Clock, FolderArchive, Zap, Plus, TrendingUp, FileText, GraduationCap, Wand2, Briefcase, FileCode } from 'lucide-react';
 import { useProjectStore } from '../stores/projectStore';
 import { URLS } from '../constants';
+import { SourceType } from '../types';
 
 export const Dashboard: React.FC = () => {
   const projects = useProjectStore((state) => state.projects);
@@ -87,8 +88,18 @@ export const Dashboard: React.FC = () => {
                     <div>
                         <h3 className="font-bold text-slate-900 dark:text-white text-lg group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{project.name}</h3>
                         <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-gray-500 mt-1">
-                            {project.sourceType === 'zip' ? <FolderArchive className="w-3 h-3" /> : <GitBranch className="w-3 h-3" />}
-                            <span className="truncate max-w-[150px]">{project.repoUrl.replace(URLS.GITHUB_BASE, '')}</span>
+                            {project.sourceType === SourceType.ZIP ? (
+                              <FolderArchive className="w-3 h-3" />
+                            ) : project.sourceType === SourceType.HTML ? (
+                              <FileCode className="w-3 h-3" />
+                            ) : (
+                              <GitBranch className="w-3 h-3" />
+                            )}
+                            <span className="truncate max-w-[150px]">
+                              {project.repoUrl.startsWith(URLS.GITHUB_BASE)
+                                ? project.repoUrl.replace(URLS.GITHUB_BASE, '')
+                                : project.repoUrl}
+                            </span>
                         </div>
                     </div>
                 </div>

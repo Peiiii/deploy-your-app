@@ -5,8 +5,8 @@ import {
   CLOUDFLARE_ACCOUNT_ID,
   CLOUDFLARE_PAGES_API_TOKEN,
   CLOUDFLARE_PAGES_PROJECT_PREFIX,
-} from './config.js';
-import type { LogLevel } from './types.js';
+} from '../../../common/config/config.js';
+import type { LogLevel } from '../../../common/types.js';
 
 export type LogFn = (message: string, level?: LogLevel) => void;
 

@@ -1,7 +1,7 @@
 import { useDeploymentStore } from '../stores/deploymentStore';
-import { DeploymentStatus } from '../types';
+import { DeploymentStatus, SourceType } from '../types';
 import type { Project } from '../types';
-import type { IDeploymentProvider } from '../services/interfaces';
+import type { DeploymentResult, IDeploymentProvider } from '../services/interfaces';
 
 export class DeploymentManager {
   private provider: IDeploymentProvider;
@@ -29,12 +29,6 @@ export class DeploymentManager {
     });
   }
 
-  handleAnalyzeCode = async () => {
-    // AI analysis is temporarily disabled for the MVP.
-    // This method is kept for future use but does nothing.
-    console.warn('handleAnalyzeCode called, but AI analysis is currently disabled.');
-  };
-
   /**
    * Internal helper to start a deployment job for a given project.
    * This is used both for the initial "Magic Box" flow and for
@@ -43,8 +37,7 @@ export class DeploymentManager {
   private startDeploymentForProject = async (
     project: Project,
     zipFile: File | null,
-    onComplete?: () => void,
-  ): Promise<void> => {
+  ): Promise<DeploymentResult | undefined> => {
     const store = useDeploymentStore.getState();
     const actions = store.actions;
 
@@ -53,14 +46,11 @@ export class DeploymentManager {
     actions.clearLogs();
     actions.setProjectName(project.name);
     actions.setRepoUrl(project.repoUrl);
-    actions.setSourceType(project.sourceType ?? 'github');
+    actions.setSourceType(project.sourceType ?? SourceType.GITHUB);
     actions.setZipFile(zipFile);
-    if (project.analysisId) {
-      actions.setAnalysisId(project.analysisId);
-    }
 
     let zipData: string | undefined;
-    if (project.sourceType === 'zip' && zipFile) {
+    if (project.sourceType === SourceType.ZIP && zipFile) {
       try {
         zipData = await this.fileToBase64(zipFile);
       } catch (err) {
@@ -69,6 +59,20 @@ export class DeploymentManager {
         actions.addLog({
           timestamp: new Date().toISOString(),
           message: 'Failed to read ZIP file in browser.',
+          type: 'error',
+        });
+        return undefined;
+      }
+    }
+
+    if (project.sourceType === SourceType.HTML) {
+      const inlineHtml =
+        project.htmlContent ?? useDeploymentStore.getState().htmlContent;
+      if (!inlineHtml || inlineHtml.trim().length === 0) {
+        actions.setDeploymentStatus(DeploymentStatus.FAILED);
+        actions.addLog({
+          timestamp: new Date().toISOString(),
+          message: 'No HTML content provided. Please enter or upload HTML before deploying.',
           type: 'error',
         });
         return;
@@ -80,20 +84,28 @@ export class DeploymentManager {
       // For one-off ZIP uploads we send the content inline; the backend
       // will prefer zipData over repoUrl when materializing the source.
       ...(zipData ? { zipData } : {}),
+      ...(project.sourceType === SourceType.HTML
+        ? {
+            htmlContent:
+              project.htmlContent ?? useDeploymentStore.getState().htmlContent,
+          }
+        : {}),
     };
 
     try {
-      await this.provider.startDeployment(
+      const result = await this.provider.startDeployment(
         payload,
         (log) => actions.addLog(log),
         (status) => actions.setDeploymentStatus(status),
       );
-      if (onComplete) {
-        onComplete();
+      if (result?.metadata?.name) {
+        actions.setProjectName(result.metadata.name);
       }
+      return result;
     } catch (e) {
       console.error('Deployment failed', e);
       actions.setDeploymentStatus(DeploymentStatus.FAILED);
+      throw e;
     }
   };
 
@@ -104,40 +116,52 @@ export class DeploymentManager {
    */
   redeployProject = async (
     project: Project,
-    options?: { zipFile?: File | null; onComplete?: () => void },
+    options?: {
+      zipFile?: File | null;
+      onComplete?: (result?: DeploymentResult) => void;
+    },
   ): Promise<void> => {
     const zipFile = options?.zipFile ?? null;
-    const onComplete = options?.onComplete;
-    await this.startDeploymentForProject(project, zipFile, onComplete);
+    const result = await this.startDeploymentForProject(project, zipFile);
+    if (options?.onComplete) {
+      options.onComplete(result);
+    }
   };
 
-  startBuildSimulation = async (onComplete: () => void) => {
+  startDeploymentRun = async (): Promise<DeploymentResult | undefined> => {
     const store = useDeploymentStore.getState();
 
     const fallbackName =
       store.projectName ||
-      (store.sourceType === 'github'
+      (store.sourceType === SourceType.GITHUB
         ? (store.repoUrl.split('/').filter(Boolean).pop() || 'my-app')
-        : store.zipFile?.name.replace(/\.zip$/i, '') || 'my-app');
+        : store.sourceType === SourceType.ZIP
+          ? store.zipFile?.name.replace(/\.zip$/i, '') || 'my-app'
+          : store.projectName || 'my-html-app');
 
     const tempProject: Project = {
       id: 'temp',
       name: fallbackName,
       repoUrl:
-        store.sourceType === 'github'
+        store.sourceType === SourceType.GITHUB
           ? store.repoUrl
-          : store.zipFile?.name || 'archive.zip',
+          : store.sourceType === SourceType.ZIP
+            ? store.zipFile?.name || 'archive.zip'
+            : 'inline.html',
       sourceType: store.sourceType,
-      analysisId: store.analysisId || undefined,
       lastDeployed: '',
       status: 'Building',
       framework: 'Unknown',
+      ...(store.sourceType === SourceType.HTML
+        ? {
+            htmlContent: store.htmlContent,
+          }
+        : {}),
     };
 
-    await this.startDeploymentForProject(
+    return this.startDeploymentForProject(
       tempProject,
-      store.sourceType === 'zip' ? store.zipFile : null,
-      onComplete,
+      store.sourceType === SourceType.ZIP ? store.zipFile : null,
     );
   };
 
@@ -145,7 +169,7 @@ export class DeploymentManager {
     useDeploymentStore.getState().actions.reset();
   }
 
-  handleSourceChange = (type: 'github' | 'zip') => {
+  handleSourceChange = (type: SourceType) => {
     useDeploymentStore.getState().actions.setSourceType(type);
   }
 
@@ -166,11 +190,36 @@ export class DeploymentManager {
     }
   }
 
-  autoProjectName = (val: string, type: 'github' | 'zip') => {
-     if (type === 'github') {
-        const parts = val.split('/');
-        const name = parts[parts.length - 1]?.replace('.git', '') || '';
-        if(name) useDeploymentStore.getState().actions.setProjectName(name);
-     }
+  handleHtmlFileUpload = async (file: File) => {
+    if (!file.name.toLowerCase().endsWith('.html')) {
+      alert('Please upload an .html file');
+      return;
+    }
+    try {
+      const text = await file.text();
+      const actions = useDeploymentStore.getState().actions;
+      actions.setHtmlContent(text);
+      const currentName = useDeploymentStore.getState().projectName;
+      if (!currentName) {
+        const baseName = file.name.replace(/\.html$/i, '');
+        if (baseName) {
+          actions.setProjectName(baseName);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to read HTML file', err);
+      alert('Failed to read HTML file. Please try again.');
+    }
+  }
+
+  autoProjectName = (val: string, type: SourceType) => {
+    if (type === SourceType.GITHUB) {
+      const parts = val.split('/');
+      const name = parts[parts.length - 1]?.replace('.git', '') || '';
+      if (name) useDeploymentStore.getState().actions.setProjectName(name);
+    } else if (type === SourceType.ZIP) {
+      const baseName = val.replace(/\.zip$/i, '');
+      if (baseName) useDeploymentStore.getState().actions.setProjectName(baseName);
+    }
   }
 }

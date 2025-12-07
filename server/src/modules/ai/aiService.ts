@@ -2,7 +2,7 @@ import {
   DASHSCOPE_API_KEY,
   PLATFORM_AI_MODEL,
   PLATFORM_AI_BASE_URL,
-} from '../config.js';
+} from '../../common/config/config.js';
 
 // Type definitions
 interface AIResponse {
@@ -21,6 +21,15 @@ export type ProjectCategory =
   | 'Legal'
   | 'Fun';
 
+const MARKETPLACE_CATEGORIES: ProjectCategory[] = [
+  'Development',
+  'Image Gen',
+  'Productivity',
+  'Marketing',
+  'Legal',
+  'Fun',
+];
+
 interface ParsedCategory {
   category?: string;
 }
@@ -29,6 +38,125 @@ interface ParsedCategoryAndTags extends ParsedCategory {
   name?: string;
   tags?: string[];
   description?: string;
+  slug?: string;
+}
+
+export interface ProjectMetadataSuggestion {
+  name: string | null;
+  category: ProjectCategory | null;
+  tags: string[];
+  description: string | null;
+  slug: string | null;
+}
+
+function extractTextFromAIResponse(data: AIResponse): string | null {
+  const content = data?.choices?.[0]?.message?.content;
+  if (typeof content === 'string') {
+    return content;
+  }
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => {
+        if (typeof part === 'string') return part;
+        if (typeof part?.text === 'string') return part.text;
+        return '';
+      })
+      .join('');
+  }
+  if (content === undefined || content === null) {
+    return null;
+  }
+  return JSON.stringify(content);
+}
+
+function emptyMetadataSuggestion(): ProjectMetadataSuggestion {
+  return {
+    name: null,
+    category: null,
+    tags: [],
+    description: null,
+    slug: null,
+  };
+}
+
+const METADATA_RESPONSE_FORMAT = {
+  type: 'json_schema',
+  json_schema: {
+    name: 'AppMetadata',
+    schema: {
+      type: 'object',
+      properties: {
+        name: {
+          type: 'string',
+          description:
+            'Short, human-friendly product name (max 40 characters).',
+        },
+        category: {
+          type: 'string',
+          description: `One of: ${MARKETPLACE_CATEGORIES.join(', ')}`,
+        },
+        tags: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            'Short, lowercase tags like ["chatbot", "landing-page", "analytics"].',
+        },
+        description: {
+          type: 'string',
+          description: 'Concise marketing-style summary (~120 chars).',
+        },
+        slug: {
+          type: 'string',
+          description:
+            'Lowercase, URL-friendly identifier using only letters, numbers, and hyphens.',
+        },
+      },
+      required: ['category'],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
+} as const;
+
+const METADATA_SYSTEM_PROMPT =
+  'You are a product manager helping categorize AI and web apps into a marketplace.\n' +
+  'Respond with JSON only, containing fields "name", "category", "tags", "description" and "slug".\n' +
+  '"name" must be <= 40 characters. "category" must be one of:\n' +
+  MARKETPLACE_CATEGORIES.map((c) => `- ${c}`).join('\n') +
+  '\n' +
+  '"tags" must be an array of 1-5 short, lowercase keywords (no spaces).\n' +
+  '"description" should explain the app in <= 120 characters.\n' +
+  '"slug" must contain only lowercase letters, numbers, or hyphens.';
+
+function buildMetadataUserPrompt(
+  name: string,
+  identifier: string,
+  context?: string,
+): string {
+  const basePrompt =
+    `App name: ${name}\n` +
+    `Source identifier (repo URL or file name): ${identifier}\n`;
+  const contextSection = context
+    ? '\nAdditional context (snippets from deployed app):\n' +
+      context +
+      '\n'
+    : '';
+  return (
+    basePrompt +
+    contextSection +
+    '\nBased on the intent, audience and typical use case, choose the best category from the list,\n' +
+    'suggest tags that would help users discover this app, propose a friendly name/description,\n' +
+    'and provide a concise slug (letters, numbers, hyphens) suitable for URLs.'
+  );
+}
+
+function normalizeSlugCandidate(value?: string | null): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim().toLowerCase();
+  if (/^[a-z0-9-]{1,64}$/.test(trimmed)) {
+    return trimmed;
+  }
+  return null;
 }
 
 /**
@@ -60,20 +188,11 @@ export class AIService {
       return null;
     }
 
-    const allowedCategories: ProjectCategory[] = [
-      'Development',
-      'Image Gen',
-      'Productivity',
-      'Marketing',
-      'Legal',
-      'Fun',
-    ];
-
     const systemPrompt =
       'You are a product manager helping categorize AI and web apps into marketplace categories.\n' +
       'You MUST respond with JSON only, with a single field "category".\n' +
       'The value MUST be exactly one of the following strings:\n' +
-      allowedCategories.map((c) => `- ${c}`).join('\n');
+      MARKETPLACE_CATEGORIES.map((c) => `- ${c}`).join('\n');
 
     const userPrompt =
       `App name: ${name}\n` +
@@ -129,23 +248,9 @@ export class AIService {
       }
 
       const data: AIResponse = await response.json();
-      const choice = data?.choices?.[0];
-      const msg = choice?.message;
-      const content = msg?.content;
-
-      let text: string;
-      if (typeof content === 'string') {
-        text = content;
-      } else if (Array.isArray(content)) {
-        text = content
-          .map((part) => {
-            if (typeof part === 'string') return part;
-            if (typeof part?.text === 'string') return part.text;
-            return '';
-          })
-          .join('');
-      } else {
-        text = JSON.stringify(content ?? '');
+      const text = extractTextFromAIResponse(data);
+      if (!text) {
+        return null;
       }
 
       let parsed: ParsedCategory;
@@ -160,7 +265,7 @@ export class AIService {
       if (typeof rawCategory !== 'string') return null;
 
       const normalized = rawCategory.trim().toLowerCase();
-      const match = allowedCategories.find(
+      const match = MARKETPLACE_CATEGORIES.find(
         (c) => c.toLowerCase() === normalized,
       );
       return match ?? null;
@@ -179,98 +284,36 @@ export class AIService {
    * Explore Apps has both a stable category, richer tags and a
    * human-friendly summary.
    */
-  async classifyProjectCategoryAndTags(
+  /**
+   * Aggregate request that asks the platform AI to suggest nicer metadata
+   * for an uploaded project. The response may include:
+   *   - human friendly display name
+   *   - marketplace category + tags
+   *   - short marketing-style description
+   *   - a stable, URL-friendly slug
+   *
+   * This keeps the caller interface simple and lets the prompt evolve
+   * without touching every call site.
+   */
+  async generateProjectMetadata(
     name: string,
     identifier: string,
     context?: string,
-  ): Promise<{
-    name: string | null;
-    category: ProjectCategory | null;
-    tags: string[];
-    description: string | null;
-  }> {
+  ): Promise<ProjectMetadataSuggestion> {
     if (!this.apiKey) {
-      return { name: null, category: null, tags: [], description: null };
+      return emptyMetadataSuggestion();
     }
-
-    const allowedCategories: ProjectCategory[] = [
-      'Development',
-      'Image Gen',
-      'Productivity',
-      'Marketing',
-      'Legal',
-      'Fun',
-    ];
-
-    const systemPrompt =
-      'You are a product manager helping categorize AI and web apps into a marketplace.\n' +
-      'You MUST respond with JSON only, with fields "name", "category", "tags" and "description".\n' +
-      '"name" should be a short, human-friendly product name (max 40 characters).\n' +
-      'The "category" value MUST be exactly one of the following strings:\n' +
-      allowedCategories.map((c) => `- ${c}`).join('\n') +
-      '\n' +
-      'The "tags" field MUST be an array of 1-5 short, lowercase keywords (no spaces),\n' +
-      'for example ["chatbot", "landing-page", "analytics"].\n' +
-      '"description" should be a concise marketing-style summary (max 120 characters)\n' +
-      'explaining what this app does and why someone would use it.';
-
-    const basePrompt =
-      `App name: ${name}\n` +
-      `Source identifier (repo URL or file name): ${identifier}\n`;
-
-    const contextSection = context
-      ? '\nAdditional context from the deployed app (may be partial, do not echo verbatim):\n' +
-        context +
-        '\n'
-      : '';
-
-    const userPrompt =
-      basePrompt +
-      contextSection +
-      '\nBased on the intent, audience and typical use case, choose the best category from the list,\n' +
-      'suggest tags that would help users discover this app, and propose a friendly name and description.';
 
     const body = {
       model: this.model,
       messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      response_format: {
-        type: 'json_schema',
-        json_schema: {
-          name: 'AppCategoryAndTags',
-          schema: {
-            type: 'object',
-            properties: {
-              name: {
-                type: 'string',
-                description:
-                  'Short, human-friendly product name (max 40 characters).',
-              },
-              category: {
-                type: 'string',
-                description:
-                  'One of: Development, Image Gen, Productivity, Marketing, Legal, Fun',
-              },
-              tags: {
-                type: 'array',
-                items: { type: 'string' },
-                description:
-                  'Short, lowercase tags like ["chatbot", "landing-page", "analytics"].',
-              },
-              description: {
-                type: 'string',
-                description:
-                  'Concise marketing-style summary (max ~120 characters).',
-              },
-            },
-            required: ['category'],
-            additionalProperties: false,
-          },
-          strict: true,
+        { role: 'system', content: METADATA_SYSTEM_PROMPT },
+        {
+          role: 'user',
+          content: buildMetadataUserPrompt(name, identifier, context),
         },
-      },
+      ],
+      response_format: METADATA_RESPONSE_FORMAT,
     };
 
     try {
@@ -286,32 +329,18 @@ export class AIService {
       if (!response.ok) {
         const errorText = await response.text().catch(() => '');
         console.error(
-          'AI category+tags+metadata classification failed:',
+          'AI metadata generation failed:',
           response.status,
           response.statusText,
           errorText,
         );
-        return { name: null, category: null, tags: [], description: null };
+        return emptyMetadataSuggestion();
       }
 
       const data: AIResponse = await response.json();
-      const choice = data?.choices?.[0];
-      const msg = choice?.message;
-      const content = msg?.content;
-
-      let text: string;
-      if (typeof content === 'string') {
-        text = content;
-      } else if (Array.isArray(content)) {
-        text = content
-          .map((part) => {
-            if (typeof part === 'string') return part;
-            if (typeof part?.text === 'string') return part.text;
-            return '';
-          })
-          .join('');
-      } else {
-        text = JSON.stringify(content ?? '');
+      const text = extractTextFromAIResponse(data);
+      if (!text) {
+        return emptyMetadataSuggestion();
       }
 
       let parsed: ParsedCategoryAndTags;
@@ -324,7 +353,7 @@ export class AIService {
           'raw:',
           text,
         );
-        return { name: null, category: null, tags: [], description: null };
+        return emptyMetadataSuggestion();
       }
 
       let nameResult: string | null = null;
@@ -339,7 +368,7 @@ export class AIService {
       let category: ProjectCategory | null = null;
       if (typeof rawCategory === 'string') {
         const normalized = rawCategory.trim().toLowerCase();
-        const match = allowedCategories.find(
+        const match = MARKETPLACE_CATEGORIES.find(
           (c) => c.toLowerCase() === normalized,
         );
         category = match ?? null;
@@ -362,10 +391,12 @@ export class AIService {
         }
       }
 
-      return { name: nameResult, category, tags, description };
+      const slug = normalizeSlugCandidate(parsed.slug);
+
+      return { name: nameResult, category, tags, description, slug };
     } catch (err) {
-      console.error('Error calling AI category+tags+metadata classifier:', err);
-      return { name: null, category: null, tags: [], description: null };
+      console.error('Error calling AI metadata generator:', err);
+      return emptyMetadataSuggestion();
     }
   }
 

@@ -12,8 +12,8 @@ import {
   R2_ACCESS_KEY_ID,
   R2_BUCKET_NAME,
   R2_SECRET_ACCESS_KEY,
-} from './config.js';
-import type { LogLevel } from './types.js';
+} from '../../../common/config/config.js';
+import type { LogLevel } from '../../../common/types.js';
 
 export type LogFn = (message: string, level?: LogLevel) => void;
 

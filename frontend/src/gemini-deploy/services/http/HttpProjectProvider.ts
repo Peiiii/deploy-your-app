@@ -1,5 +1,6 @@
 import type { IProjectProvider } from '../interfaces';
-import type { Project } from '../../types';
+import type { Project, DeploymentMetadata } from '../../types';
+import { SourceType } from '../../types';
 import { APP_CONFIG, API_ROUTES } from '../../constants';
 
 export class HttpProjectProvider implements IProjectProvider {
@@ -11,11 +12,24 @@ export class HttpProjectProvider implements IProjectProvider {
     return response.json();
   }
 
-  async createProject(name: string, sourceType: 'github' | 'zip', identifier: string): Promise<Project> {
+  async createProject(
+    name: string,
+    sourceType: SourceType,
+    identifier: string,
+    options?: { htmlContent?: string; metadata?: DeploymentMetadata },
+  ): Promise<Project> {
     const response = await fetch(`${this.baseUrl}${API_ROUTES.PROJECTS}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, sourceType, identifier })
+      body: JSON.stringify({
+        name,
+        sourceType,
+        identifier,
+        ...(options?.htmlContent
+          ? { htmlContent: options.htmlContent }
+          : {}),
+        ...(options?.metadata ? { metadata: options.metadata } : {}),
+      }),
     });
     if (!response.ok) throw new Error("Failed to create project");
     return response.json();

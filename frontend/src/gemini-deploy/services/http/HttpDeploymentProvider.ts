@@ -1,4 +1,4 @@
-import type { IDeploymentProvider, AnalyzeCodeParams, AnalyzeCodeResult } from '../interfaces';
+import type { DeploymentResult, IDeploymentProvider } from '../interfaces';
 import type { Project, BuildLog } from '../../types';
 import { DeploymentStatus } from '../../types';
 import { APP_CONFIG, API_ROUTES } from '../../constants';
@@ -6,23 +6,12 @@ import { APP_CONFIG, API_ROUTES } from '../../constants';
 export class HttpDeploymentProvider implements IDeploymentProvider {
   private baseUrl = APP_CONFIG.API_BASE_URL;
 
-  // 1. Send code / repo metadata to backend for security analysis
-  async analyzeCode(params: AnalyzeCodeParams): Promise<AnalyzeCodeResult> {
-    // AI analysis is temporarily disabled for the MVP.
-    // Return a no-op result so that future callers do not break.
-    console.warn('HttpDeploymentProvider.analyzeCode called, but AI analysis is currently disabled.');
-    return {
-      refactoredCode: params.sourceCode ?? '',
-      explanation: 'AI analysis is currently disabled. Code was not modified.',
-    };
-  }
-
-  // 2. Start deployment and stream logs via Server-Sent Events (SSE)
+  // Start deployment and stream logs via Server-Sent Events (SSE)
   async startDeployment(
     project: Project,
     onLog: (log: BuildLog) => void,
     onStatusChange: (status: DeploymentStatus) => void
-  ): Promise<void> {
+  ): Promise<DeploymentResult | undefined> {
     
     // Step 1: Trigger the build job
     let deploymentId: string;
@@ -48,7 +37,7 @@ export class HttpDeploymentProvider implements IDeploymentProvider {
 
     // Step 2: Subscribe to the log stream using EventSource (SSE)
     // This allows the backend to push logs to our Terminal component in real-time.
-    return new Promise((resolve, reject) => {
+    return new Promise<DeploymentResult | undefined>((resolve, reject) => {
       const eventSource = new EventSource(`${this.baseUrl}/deployments/${deploymentId}/stream`);
 
       onStatusChange(DeploymentStatus.BUILDING);
@@ -77,7 +66,11 @@ export class HttpDeploymentProvider implements IDeploymentProvider {
             // Close connection on terminal states
             if (payload.status === DeploymentStatus.SUCCESS) {
               eventSource.close();
-              resolve();
+              resolve(
+                payload.projectMetadata
+                  ? { metadata: payload.projectMetadata }
+                  : undefined,
+              );
             } else if (payload.status === DeploymentStatus.FAILED) {
               if (payload.errorMessage) {
                 onLog({

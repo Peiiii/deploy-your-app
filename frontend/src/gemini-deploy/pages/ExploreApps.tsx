@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { URLS } from '../constants';
 import { useProjectStore } from '../stores/projectStore';
 import type { Project } from '../types';
+import { SourceType } from '../types';
 
 const THUMBNAIL_PATH = '/__thumbnail.png';
 const DEFAULT_AUTHOR = 'Indie Hacker';
@@ -104,16 +105,21 @@ function buildDescription(project: Project): string {
   const frameworkPart =
     project.framework === 'Unknown' ? 'AI app' : `${project.framework} app`;
   const sourcePart =
-    project.sourceType === 'zip'
+    project.sourceType === SourceType.ZIP
       ? 'uploaded as a ZIP archive'
-      : project.sourceType === 'github'
+      : project.sourceType === SourceType.GITHUB
         ? 'connected from GitHub'
+        : project.sourceType === SourceType.HTML
+          ? 'built from inline HTML'
         : 'deployed with GemiGo';
   return `Deployed ${frameworkPart} ${sourcePart}.`;
 }
 
 function buildAuthor(project: Project): string {
-  if (project.sourceType === 'github' && project.repoUrl.startsWith(URLS.GITHUB_BASE)) {
+  if (
+    project.sourceType === SourceType.GITHUB &&
+    project.repoUrl.startsWith(URLS.GITHUB_BASE)
+  ) {
     const rest = project.repoUrl.replace(URLS.GITHUB_BASE, '');
     const owner = rest.split('/')[0];
     if (owner) return owner;

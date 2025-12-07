@@ -2,7 +2,7 @@ import type {
   Project,
   DeploymentRecord,
   AnalysisSession,
-} from './types.js';
+} from '../../common/types.js';
 
 // Centralized in-memory state for the backend.
 

@@ -4,10 +4,12 @@ import {
   streams,
   analysisSessions,
   type StreamClient,
-} from './state.js';
-import type { Project } from './types.js';
-import { runDeployment } from './deploymentService.js';
-import { createProject, getProjects, updateProject } from './projectService.js';
+} from '../modules/deployment/state.js';
+import type { Project } from '../common/types.js';
+import { SourceType } from '../common/types.js';
+import { runDeployment } from '../modules/deployment/deploymentService.js';
+import { createProject, getProjects, updateProject } from '../modules/projects/projectService.js';
+import type { ProjectMetadataOverrides } from '../modules/metadata/index.js';
 
 // Minimal request/response/app types so we don't pull in full Express types
 // but also avoid using `any`.
@@ -31,6 +33,34 @@ type AppLike = {
   patch?(path: string, handler: RouteHandler): void;
 };
 
+function parseMetadataOverrides(value: unknown): ProjectMetadataOverrides | undefined {
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+  const input = value as Record<string, unknown>;
+  const metadata: ProjectMetadataOverrides = {};
+
+  if (typeof input.name === 'string') {
+    metadata.name = String(input.name);
+  }
+  if (typeof input.slug === 'string') {
+    metadata.slug = String(input.slug);
+  }
+  if (typeof input.description === 'string') {
+    metadata.description = String(input.description);
+  }
+  if (typeof input.category === 'string') {
+    metadata.category = String(input.category);
+  }
+  if (Array.isArray(input.tags)) {
+    metadata.tags = input.tags
+      .filter((tag): tag is string => typeof tag === 'string')
+      .map((tag) => String(tag));
+  }
+
+  return metadata;
+}
+
 // Attach all API routes to the given Express app instance.
 export function registerRoutes(app: AppLike): void {
   // ----------------------
@@ -46,8 +76,10 @@ export function registerRoutes(app: AppLike): void {
       name?: unknown;
       sourceType?: unknown;
       identifier?: unknown;
+      htmlContent?: unknown;
+      metadata?: unknown;
     };
-    const { name, sourceType, identifier } = body;
+    const { name, sourceType, identifier, htmlContent, metadata } = body;
 
     if (!name || !identifier) {
       return res.status(400).json({ error: 'name and identifier are required' });
@@ -56,15 +88,20 @@ export function registerRoutes(app: AppLike): void {
     const rawSourceType =
       typeof sourceType === 'string' ? sourceType : undefined;
     const normalizedSourceType =
-      rawSourceType === 'github' || rawSourceType === 'zip'
-        ? rawSourceType
+      rawSourceType &&
+      Object.values(SourceType).includes(rawSourceType as SourceType)
+        ? (rawSourceType as SourceType)
         : undefined;
+    const metadataOverrides = parseMetadataOverrides(metadata);
 
     try {
       const project = await createProject({
         name: String(name),
         sourceType: normalizedSourceType,
         identifier: String(identifier),
+        htmlContent:
+          typeof htmlContent === 'string' ? htmlContent : undefined,
+        metadata: metadataOverrides,
       });
       res.json(project);
     } catch (err) {

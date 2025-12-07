@@ -16,12 +16,15 @@ import { DeploymentSession } from '../components/DeploymentSession';
 import { useDeploymentStore } from '../stores/deploymentStore';
 import { useProjectStore } from '../stores/projectStore';
 import type { Project } from '../types';
-import { DeploymentStatus } from '../types';
+import { DeploymentStatus, SourceType } from '../types';
 
 function formatRepoLabel(project: Project): string {
   const { repoUrl, sourceType } = project;
   if (!repoUrl) return 'Not configured';
-  if (sourceType === 'zip' && !repoUrl.startsWith('http')) {
+  if (
+    (sourceType === SourceType.ZIP || sourceType === SourceType.HTML) &&
+    !repoUrl.startsWith('http')
+  ) {
     return repoUrl;
   }
   if (repoUrl.startsWith(URLS.GITHUB_BASE)) {
@@ -150,7 +153,7 @@ export const ProjectDetail: React.FC = () => {
     try {
       const payload: Project = {
         ...project,
-        sourceType: 'github',
+        sourceType: SourceType.GITHUB,
       };
       await presenter.deployment.redeployProject(payload, {
         onComplete: () => {
@@ -175,7 +178,7 @@ export const ProjectDetail: React.FC = () => {
     try {
       const payload: Project = {
         ...project,
-        sourceType: 'zip',
+        sourceType: SourceType.ZIP,
       };
       await presenter.deployment.redeployProject(payload, {
         zipFile: file,

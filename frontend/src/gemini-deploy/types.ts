@@ -7,16 +7,21 @@ export enum DeploymentStatus {
   FAILED = 'FAILED'
 }
 
+export enum SourceType {
+  GITHUB = 'github',
+  ZIP = 'zip',
+  HTML = 'html',
+}
+
 export interface Project {
   id: string;
   name: string;
   repoUrl: string; // Used as source identifier (URL for git, filename for zip)
-  sourceType?: 'github' | 'zip';
+  sourceType?: SourceType;
+  slug?: string;
   // Optional base64-encoded ZIP content for one-off deployments when sourceType === 'zip'.
   // This is only used for the deployment job and is not persisted in the project list.
   zipData?: string;
-  // Optional analysis session id that links this project to a prepared repo on the backend
-  analysisId?: string;
   lastDeployed: string;
   status: 'Live' | 'Building' | 'Failed' | 'Offline';
   url?: string;
@@ -33,6 +38,8 @@ export interface Project {
   providerUrl?: string;
   // Cloudflare Pages project name when using the Cloudflare provider.
   cloudflareProjectName?: string;
+  // Inline HTML payload used when sourceType === SourceType.HTML.
+  htmlContent?: string;
 }
 
 export interface BuildLog {
@@ -41,8 +48,11 @@ export interface BuildLog {
   type: 'info' | 'error' | 'success' | 'warning';
 }
 
-export interface GeminiRefactorResponse {
-  originalCode: string;
-  refactoredCode: string;
-  explanation: string;
+export interface DeploymentMetadata {
+  name: string;
+  slug: string;
+  description?: string;
+  category: string;
+  tags: string[];
+  url?: string;
 }

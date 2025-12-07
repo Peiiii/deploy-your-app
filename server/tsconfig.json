@@ -10,10 +10,9 @@
     "strict": false,
     "skipLibCheck": true,
     "noEmitOnError": true,
-    "rootDir": "./",
+    "rootDir": "./src",
     "outDir": "./dist"
   },
-  "include": ["./**/*.ts"],
-  "exclude": ["./dist", "./node_modules"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules"]
 }
-

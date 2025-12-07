@@ -3,7 +3,11 @@ import {
   streams,
   type StreamClient,
 } from '../state.js';
-import type { DeploymentStatus, LogLevel, BuildLog } from '../types.js';
+import type {
+  DeploymentStatus,
+  LogLevel,
+  BuildLog,
+} from '../../../common/types.js';
 
 export function broadcastEvent(id: string, payload: unknown): void {
   const listeners = streams.get(id);

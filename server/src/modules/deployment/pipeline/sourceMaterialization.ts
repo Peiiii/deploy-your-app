@@ -2,7 +2,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import AdmZip from 'adm-zip';
 import { deployments } from '../state.js';
-import type { Project } from '../types.js';
+import type { Project } from '../../../common/types.js';
+import { SourceType } from '../../../common/types.js';
 import { appendLog } from './deploymentEvents.js';
 
 async function extractZipBufferToWorkDir(
@@ -93,13 +94,30 @@ export async function materializeSourceForDeployment(
   project: Project,
   workDir: string,
 ): Promise<void> {
-  const sourceType = project.sourceType || 'github';
+  const sourceType = project.sourceType ?? SourceType.GitHub;
   const identifier = project.repoUrl;
 
   await fs.promises.rm(workDir, { recursive: true, force: true });
   await fs.promises.mkdir(workDir, { recursive: true });
 
-  if (sourceType === 'zip') {
+  if (sourceType === SourceType.Html) {
+    const htmlContent = project.htmlContent;
+    if (!htmlContent || htmlContent.trim().length === 0) {
+      throw new Error(
+        'No HTML content provided for sourceType "html". Please supply inline HTML.',
+      );
+    }
+    const fullPath = path.join(workDir, 'index.html');
+    await fs.promises.writeFile(fullPath, htmlContent, 'utf8');
+    appendLog(
+      deploymentId,
+      'Materialized inline HTML into index.html',
+      'info',
+    );
+    return;
+  }
+
+  if (sourceType === SourceType.Zip) {
     const deploymentRecord = deployments.get(deploymentId);
     const zipData = deploymentRecord?.zipData;
 
@@ -159,4 +177,3 @@ export async function materializeSourceForDeployment(
     }`,
   );
 }
-

@@ -3,7 +3,7 @@ import {
   PLATFORM_AI_MODEL,
   DASHSCOPE_API_KEY,
   PLATFORM_AI_BASE_URL,
-} from '../config.js';
+} from '../../common/config/config.js';
 
 export interface PlatformAIAnalyzeParams {
   sourceCode: string;
