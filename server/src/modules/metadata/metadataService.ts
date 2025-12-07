@@ -106,72 +106,76 @@ async function buildMetadataContext(opts: {
   return undefined;
 }
 
-async function requestMetadataFromAI(opts: MetadataRequestInput): Promise<ResolvedProjectMetadata> {
-  const aiService = getAIService();
-  const metadataContext = await buildMetadataContext({
-    sourceType: opts.sourceType,
-    htmlContent: opts.htmlContent,
-    workDir: opts.workDir,
-    slugSeed: opts.slugSeed,
-  });
-
-  const response = await aiService.generateProjectMetadata(
-    opts.seedName,
-    opts.identifier,
-    metadataContext,
-  );
-
-  const name = normalizeName(opts.seedName, response.name);
-  const description = normalizeDescription(response.description);
-  const category = normalizeCategory(response.category);
-  const tags = normalizeTags(response.tags);
-
-  const slugSeed = response.slug && response.slug.trim().length > 0
-    ? response.slug.trim()
-    : name !== opts.seedName
-      ? name
-      : opts.slugSeed ?? opts.seedName;
-
-  const slug = slugify(slugSeed);
-
-  return {
-    name,
-    slug,
-    description,
-    category,
-    tags,
-  };
-}
-
-function buildMetadataFromOverrides(
-  seedName: string,
-  slugSeed: string,
-  overrides?: ProjectMetadataOverrides,
-): ResolvedProjectMetadata {
-  const name = normalizeName(seedName, overrides?.name);
-  const description = normalizeDescription(overrides?.description);
-  const category = normalizeCategory(overrides?.category);
-  const tags = normalizeTags(overrides?.tags);
-  const slugCandidate = deriveSlugSeed(overrides, name, slugSeed);
-
-  return {
-    name,
-    description,
-    category,
-    tags,
-    slug: slugify(slugCandidate),
-  };
-}
-
-export async function ensureProjectMetadata(
-  input: MetadataRequestInput,
-): Promise<ResolvedProjectMetadata> {
-  const fallbackSlugSeed = input.slugSeed ?? slugify(input.seedName);
-  if (input.overrides) {
-    return buildMetadataFromOverrides(input.seedName, fallbackSlugSeed, input.overrides);
+export class MetadataService {
+  async ensureProjectMetadata(input: MetadataRequestInput): Promise<ResolvedProjectMetadata> {
+    const fallbackSlugSeed = input.slugSeed ?? slugify(input.seedName);
+    if (input.overrides) {
+      return this.buildMetadataFromOverrides(input.seedName, fallbackSlugSeed, input.overrides);
+    }
+    return this.requestMetadataFromAI({
+      ...input,
+      slugSeed: fallbackSlugSeed,
+    });
   }
-  return requestMetadataFromAI({
-    ...input,
-    slugSeed: fallbackSlugSeed,
-  });
+
+  private buildMetadataFromOverrides(
+    seedName: string,
+    slugSeed: string,
+    overrides?: ProjectMetadataOverrides,
+  ): ResolvedProjectMetadata {
+    const name = normalizeName(seedName, overrides?.name);
+    const description = normalizeDescription(overrides?.description);
+    const category = normalizeCategory(overrides?.category);
+    const tags = normalizeTags(overrides?.tags);
+    const slugCandidate = deriveSlugSeed(overrides, name, slugSeed);
+
+    return {
+      name,
+      description,
+      category,
+      tags,
+      slug: slugify(slugCandidate),
+    };
+  }
+
+  private async requestMetadataFromAI(
+    opts: MetadataRequestInput,
+  ): Promise<ResolvedProjectMetadata> {
+    const aiService = getAIService();
+    const metadataContext = await buildMetadataContext({
+      sourceType: opts.sourceType,
+      htmlContent: opts.htmlContent,
+      workDir: opts.workDir,
+      slugSeed: opts.slugSeed,
+    });
+
+    const response = await aiService.generateProjectMetadata(
+      opts.seedName,
+      opts.identifier,
+      metadataContext,
+    );
+
+    const name = normalizeName(opts.seedName, response.name);
+    const description = normalizeDescription(response.description);
+    const category = normalizeCategory(response.category);
+    const tags = normalizeTags(response.tags);
+
+    const slugSeed = response.slug && response.slug.trim().length > 0
+      ? response.slug.trim()
+      : name !== opts.seedName
+        ? name
+        : opts.slugSeed ?? opts.seedName;
+
+    const slug = slugify(slugSeed);
+
+    return {
+      name,
+      slug,
+      description,
+      category,
+      tags,
+    };
+  }
 }
+
+export const metadataService = new MetadataService();

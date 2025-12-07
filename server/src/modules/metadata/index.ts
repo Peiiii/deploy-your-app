@@ -1,8 +1,9 @@
 export {
-  ensureProjectMetadata,
-} from './metadataGenerator.js';
+  metadataService,
+  MetadataService,
+} from './metadataService.js';
 
 export type {
   ProjectMetadataOverrides,
   ResolvedProjectMetadata,
-} from './metadataGenerator.js';
+} from './metadataService.js';

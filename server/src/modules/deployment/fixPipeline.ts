@@ -1,4 +1,4 @@
-import { appendLog } from './deploymentService.js';
+import { appendLog } from './pipeline/deploymentEvents.js';
 import type { RepoFixContext } from './fixes/types.js';
 import { FIXES } from './fixes/index.js';
 

@@ -7,8 +7,8 @@ import {
 } from '../modules/deployment/state.js';
 import type { Project } from '../common/types.js';
 import { SourceType } from '../common/types.js';
-import { runDeployment } from '../modules/deployment/deploymentService.js';
-import { createProject, getProjects, updateProject } from '../modules/projects/projectService.js';
+import { deploymentService } from '../modules/deployment/deploymentService.js';
+import { projectService } from '../modules/projects/projectService.js';
 import type { ProjectMetadataOverrides } from '../modules/metadata/index.js';
 
 // Minimal request/response/app types so we don't pull in full Express types
@@ -68,7 +68,7 @@ export function registerRoutes(app: AppLike): void {
   // ----------------------
 
   app.get('/api/v1/projects', (req, res) => {
-    res.json(getProjects());
+    res.json(projectService.getProjects());
   });
 
   app.post('/api/v1/projects', async (req, res) => {
@@ -95,7 +95,7 @@ export function registerRoutes(app: AppLike): void {
     const metadataOverrides = parseMetadataOverrides(metadata);
 
     try {
-      const project = await createProject({
+      const project = await projectService.createProject({
         name: String(name),
         sourceType: normalizedSourceType,
         identifier: String(identifier),
@@ -137,7 +137,7 @@ export function registerRoutes(app: AppLike): void {
         });
     }
 
-    const project = updateProject(id, {
+    const project = projectService.updateProject(id, {
       ...(name !== undefined ? { name: String(name) } : {}),
       ...(repoUrl !== undefined ? { repoUrl: String(repoUrl) } : {}),
       ...(description !== undefined
@@ -212,7 +212,7 @@ export function registerRoutes(app: AppLike): void {
     res.json({ deploymentId: id });
 
     // Fire and forget async job
-    runDeployment(id).catch((err) => {
+    deploymentService.runDeployment(id).catch((err) => {
       console.error('Deployment job failed', err);
     });
   });
