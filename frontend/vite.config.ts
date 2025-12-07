@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
   // Load env vars from the frontend package root (frontend/.env*)
   const env = loadEnv(mode, __dirname, '');
+  const devApiProxyTarget = env.DEV_API_PROXY_TARGET || 'http://127.0.0.1:8787';
 
   return {
     // This config file itself lives in the frontend root.
@@ -13,7 +14,7 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       port: 5173,
       proxy: {
-        '/api': 'http://localhost:4173',
+        '/api': devApiProxyTarget,
         '/apps': 'http://localhost:4173',
       },
     },
