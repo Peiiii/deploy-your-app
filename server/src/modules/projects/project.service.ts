@@ -4,11 +4,9 @@ import {
   DEPLOY_TARGET,
 } from '../../common/config/config.js';
 import {
-  createProjectRecord,
+  projectRepository,
   type CreateProjectRecordInput,
-  getAllProjects,
-  updateProjectRecord,
-} from './projectRepository.js';
+} from './project.repository.js';
 import type { Project } from '../../common/types.js';
 import { SourceType } from '../../common/types.js';
 import { slugify } from '../../common/utils/strings.js';
@@ -28,7 +26,7 @@ interface CreateProjectInput {
 
 export class ProjectService {
   getProjects(): Project[] {
-    return getAllProjects();
+    return projectRepository.getAllProjects();
   }
 
   async createProject({
@@ -106,7 +104,7 @@ export class ProjectService {
 
     // Persist to the local SQLite database so that project list survives
     // backend restarts during development.
-    createProjectRecord(recordInput);
+    projectRepository.createProjectRecord(recordInput);
 
     return project;
   }
@@ -121,7 +119,7 @@ export class ProjectService {
       tags?: string[];
     },
   ): Project | null {
-    return updateProjectRecord(id, input);
+    return projectRepository.updateProjectRecord(id, input);
   }
 }
 

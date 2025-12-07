@@ -1,5 +1,5 @@
 import { CONFIG } from '../../common/config/config.js';
-import { getAIService } from '../ai/aiService.js';
+import { getAIService } from '../ai/ai.service.js';
 import {
   buildInlineHtmlContext,
   buildStoredAppContext,

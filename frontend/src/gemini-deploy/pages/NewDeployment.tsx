@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useDeploymentStore } from '../stores/deploymentStore';
 import { usePresenter } from '../contexts/PresenterContext';
@@ -39,6 +39,13 @@ export const NewDeployment: React.FC = () => {
   const htmlFileInputRef = useRef<HTMLInputElement>(null);
   const [htmlFieldTouched, setHtmlFieldTouched] = useState(false);
 
+  const handleSourceTypeSelect = useCallback((type: SourceType) => {
+    state.actions.setSourceType(type);
+    if (type !== SourceType.HTML) {
+      setHtmlFieldTouched(false);
+    }
+  }, [state.actions]);
+
   useEffect(() => {
     return () => presenter.deployment.resetWizard();
   }, [presenter.deployment]);
@@ -46,16 +53,11 @@ export const NewDeployment: React.FC = () => {
   useEffect(() => {
     const sourceType = location.state?.sourceType as SourceType | undefined;
     if (sourceType && Object.values(SourceType).includes(sourceType)) {
-      handleSourceTypeSelect(sourceType);
+      const rafId = requestAnimationFrame(() => handleSourceTypeSelect(sourceType));
+      return () => cancelAnimationFrame(rafId);
     }
-  }, [location.state]);
-
-  const handleSourceTypeSelect = (type: SourceType) => {
-    state.actions.setSourceType(type);
-    if (type !== SourceType.HTML) {
-      setHtmlFieldTouched(false);
-    }
-  };
+    return undefined;
+  }, [handleSourceTypeSelect, location.state]);
 
   const handleDeployStart = async () => {
     const fallbackName =

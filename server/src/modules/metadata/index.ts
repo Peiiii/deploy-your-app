@@ -1,9 +1,9 @@
 export {
   metadataService,
   MetadataService,
-} from './metadataService.js';
+} from './metadata.service.js';
 
 export type {
   ProjectMetadataOverrides,
   ResolvedProjectMetadata,
-} from './metadataService.js';
+} from './metadata.service.js';

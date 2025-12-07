@@ -7,8 +7,8 @@ import {
 } from '../modules/deployment/state.js';
 import type { Project } from '../common/types.js';
 import { SourceType } from '../common/types.js';
-import { deploymentService } from '../modules/deployment/deploymentService.js';
-import { projectService } from '../modules/projects/projectService.js';
+import { deploymentService } from '../modules/deployment/deployment.service.js';
+import { projectService } from '../modules/projects/project.service.js';
 import type { ProjectMetadataOverrides } from '../modules/metadata/index.js';
 
 // Minimal request/response/app types so we don't pull in full Express types
