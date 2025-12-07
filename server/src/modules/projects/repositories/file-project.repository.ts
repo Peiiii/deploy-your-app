@@ -1,7 +1,7 @@
 import * as fs from 'fs';
-import type { Project } from '../../common/types.js';
-import { SourceType } from '../../common/types.js';
-import { CONFIG } from '../../common/config/config.js';
+import type { Project } from '../../../common/types.js';
+import { SourceType } from '../../../common/types.js';
+import { CONFIG } from '../../../common/config/config.js';
 
 // For local Node/Express development we keep projects in a simple JSON file
 // under data/projects.json so that they survive backend restarts. The shape
@@ -31,7 +31,7 @@ export interface CreateProjectRecordInput {
   htmlContent?: string;
 }
 
-class ProjectRepository {
+export class FileProjectRepository {
   private ensureStorage(): void {
     fs.mkdirSync(CONFIG.paths.dataDir, { recursive: true });
     if (!fs.existsSync(CONFIG.paths.projectsFile)) {
@@ -58,7 +58,7 @@ class ProjectRepository {
     fs.writeFileSync(CONFIG.paths.projectsFile, JSON.stringify(rows, null, 2), 'utf8');
   }
 
-  createProjectRecord(input: CreateProjectRecordInput): Project {
+  async createProjectRecord(input: CreateProjectRecordInput): Promise<Project> {
     const project: Project = {
       id: input.id,
       name: input.name,
@@ -86,7 +86,7 @@ class ProjectRepository {
     return project;
   }
 
-  getAllProjects(): Project[] {
+  async getAllProjects(): Promise<Project[]> {
     const rows = this.readAllRows();
     return rows.map((row) => ({
       ...row,
@@ -95,7 +95,7 @@ class ProjectRepository {
     }));
   }
 
-  updateProjectRecord(
+  async updateProjectRecord(
     id: string,
     patch: {
       name?: string;
@@ -104,7 +104,7 @@ class ProjectRepository {
       category?: string;
       tags?: string[];
     },
-  ): Project | null {
+  ): Promise<Project | null> {
     const rows = this.readAllRows();
     const idx = rows.findIndex((row) => row.id === id);
     if (idx === -1) return null;
@@ -134,4 +134,4 @@ class ProjectRepository {
   }
 }
 
-export const projectRepository = new ProjectRepository();
+export type { CreateProjectRecordInput };

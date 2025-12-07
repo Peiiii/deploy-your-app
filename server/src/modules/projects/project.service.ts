@@ -6,7 +6,7 @@ import {
 import {
   projectRepository,
   type CreateProjectRecordInput,
-} from './project.repository.js';
+} from './repositories/index.js';
 import type { Project } from '../../common/types.js';
 import { SourceType } from '../../common/types.js';
 import { slugify } from '../../common/utils/strings.js';
@@ -25,7 +25,7 @@ interface CreateProjectInput {
 }
 
 export class ProjectService {
-  getProjects(): Project[] {
+  async getProjects(): Promise<Project[]> {
     return projectRepository.getAllProjects();
   }
 
@@ -104,12 +104,12 @@ export class ProjectService {
 
     // Persist to the local SQLite database so that project list survives
     // backend restarts during development.
-    projectRepository.createProjectRecord(recordInput);
+    await projectRepository.createProjectRecord(recordInput);
 
     return project;
   }
 
-  updateProject(
+  async updateProject(
     id: string,
     input: {
       name?: string;
@@ -118,7 +118,7 @@ export class ProjectService {
       category?: string;
       tags?: string[];
     },
-  ): Project | null {
+  ): Promise<Project | null> {
     return projectRepository.updateProjectRecord(id, input);
   }
 }

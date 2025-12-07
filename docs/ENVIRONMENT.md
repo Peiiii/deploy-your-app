@@ -20,7 +20,7 @@
 | `DASHSCOPE_API_KEY` | 平台后台使用的 DashScope API key（**不是用户自己的 key**），用于：项目分类 + 代码安全重写等。 | 推荐（若为空则 AI 相关功能降级为 no-op） | 无 |
 | `DASHSCOPE_APIKEY` | `DASHSCOPE_API_KEY` 的旧名字，保留兼容。只需设置其中一个即可。 | 否 | 无 |
 | `DEPLOY_TARGET` | 部署目标：<br/>- `local`：静态资源拷贝到本机 `/apps/<slug>/` 并由 Node 直出<br/>- `cloudflare`：走 Cloudflare Pages 部署<br/>- `r2`：在阿里云构建，静态资源上传到 Cloudflare R2，再由 Worker 网关提供访问 | 否 | `local` |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare 账户 ID。<br/>用于：Pages API 部署（`DEPLOY_TARGET=cloudflare`）以及 R2 账户 ID 的兜底。 | 只有当 `DEPLOY_TARGET` 为 `cloudflare` 或 `r2` 时推荐配置 | 空字符串 |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare 账户 ID。<br/>用于：Pages API 部署（`DEPLOY_TARGET=cloudflare`）、R2 账户 ID 的兜底，以及 D1 数据库的账户 ID（当 `STORAGE_TYPE=d1` 时）。 | 当 `DEPLOY_TARGET` 为 `cloudflare` 或 `r2`，或 `STORAGE_TYPE=d1` 时推荐配置 | 空字符串 |
 | `CLOUDFLARE_PAGES_API_TOKEN` | Cloudflare Pages API Token，仅在 `DEPLOY_TARGET=cloudflare` 时用于 Pages API（以及 WRANGLER 兼容流程）。需要具备 Pages 权限。 | 同上 | 空字符串 |
 | `CLOUDFLARE_PAGES_PROJECT_PREFIX` | Cloudflare Pages 项目名前缀，最终项目名为 `<prefix>-<slug>`。 | 否 | `deploy-your-app` |
 | `R2_ACCOUNT_ID` | Cloudflare R2 账户 ID，多数情况下与 `CLOUDFLARE_ACCOUNT_ID` 相同；如果不设，会回退到 `CLOUDFLARE_ACCOUNT_ID`。 | 当 `DEPLOY_TARGET = r2` 时必填 | 若不设，使用 `CLOUDFLARE_ACCOUNT_ID`，否则报错 |
@@ -29,6 +29,9 @@
 | `R2_BUCKET_NAME` | R2 中用于存放所有构建产物的 bucket 名（例如 `gemigo-apps`）。 | 当 `DEPLOY_TARGET = r2` 时必填 | 空字符串（会导致运行时报错） |
 | `APPS_ROOT_DOMAIN` | 用户应用暴露的根域名，例如 `gemigo.app`。<br/>- `local`：主要用于生成 URL，方便预览<br/>- `r2`：必须与 Cloudflare Worker / DNS 上的域名一致（`*.APPS_ROOT_DOMAIN` 走 Worker） | 否（本地可用默认值） | `example.com` |
 | `DATA_DIR` | 后端数据目录的根路径，内部会自动创建 `builds/`、`apps/`、`projects.json`。用于持久化构建缓存和项目列表。 | 否 | `data`（相对于仓库根目录） |
+| `STORAGE_TYPE` | 应用数据存储后端类型（用于项目、用户等数据）：<br/>- `file`：使用本地 JSON 文件存储（`data/projects.json` 等）<br/>- `d1`：使用 Cloudflare D1 数据库存储<br/>如果未设置，默认使用 `d1`。 | 否 | `d1` |
+| `CLOUDFLARE_D1_DATABASE_ID` | Cloudflare D1 数据库的数据库 ID，用于应用数据存储（项目、用户等）。当 `STORAGE_TYPE=d1` 时必需。 | 否 | 空 |
+| `CLOUDFLARE_D1_API_TOKEN` | Cloudflare D1 API Token，用于访问 D1 数据库。需要具备 D1 数据库的读写权限。当 `STORAGE_TYPE=d1` 时必需。 | 否 | 空 |
 
 > 开发建议：在 `server/.env` 中拷贝一次样例（当前 repo 已有一份），把其中的 DashScope key 和 R2/Cloudflare 部分替换成你自己的即可。
 
@@ -71,13 +74,15 @@ workflow 文件：`.github/workflows/deploy.yml`
 
 | 名称 | 对应后端变量 | 用途 |
 |------|--------------|------|
-| `CLOUDFLARE_ACCOUNT_ID` | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare 账号 ID，用于 Pages / R2 |
+| `CLOUDFLARE_ACCOUNT_ID` | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare 账号 ID，用于 Pages / R2 / D1 |
 | `CLOUDFLARE_PAGES_API_TOKEN` | `CLOUDFLARE_PAGES_API_TOKEN` | Cloudflare Pages API Token（必须具备 Pages 权限） |
 | `DASHSCOPE_API_KEY` | `DASHSCOPE_API_KEY` | 平台 DashScope key，后端 AI（分类、代码重写）使用 |
 | `R2_ACCOUNT_ID` | `R2_ACCOUNT_ID` | R2 账号 ID（可与 Cloudflare 账号相同） |
 | `R2_ACCESS_KEY_ID` | `R2_ACCESS_KEY_ID` | R2 S3 Access Key |
 | `R2_SECRET_ACCESS_KEY` | `R2_SECRET_ACCESS_KEY` | R2 S3 Secret Key |
 | `R2_BUCKET_NAME` | `R2_BUCKET_NAME` | R2 Bucket 名，需与 Cloudflare 控制台中创建的名字一致 |
+| `CLOUDFLARE_D1_DATABASE_ID` | `CLOUDFLARE_D1_DATABASE_ID` | D1 数据库 ID，用于应用数据存储（当 `STORAGE_TYPE=d1` 时） |
+| `CLOUDFLARE_D1_API_TOKEN` | `CLOUDFLARE_D1_API_TOKEN` | D1 API Token，需要具备 D1 数据库读写权限（当 `STORAGE_TYPE=d1` 时） |
 
 > 这些值会被 `scripts/deploy.sh` 传给容器，容器内再由 `server/config.ts` 读取。
 
@@ -86,6 +91,7 @@ workflow 文件：`.github/workflows/deploy.yml`
 | 名称 | 对应后端变量 | 用途 / 默认 |
 |------|--------------|------------|
 | `DEPLOY_TARGET` | `DEPLOY_TARGET` | 部署目标：`local` / `cloudflare` / `r2`。推荐生产用 `r2`。 |
+| `STORAGE_TYPE` | `STORAGE_TYPE` | 存储后端类型：`file` / `d1`。如果未设置，系统会自动检测。 |
 | `CLOUDFLARE_PAGES_PROJECT_PREFIX` | `CLOUDFLARE_PAGES_PROJECT_PREFIX` | Pages 项目前缀，不使用 Pages 时可以忽略。 |
 | `APPS_ROOT_DOMAIN` | `APPS_ROOT_DOMAIN` | 用户访问的根域名，例如 `gemigo.app`，需要与 Cloudflare DNS / Worker 保持一致。 |
 | （可选）`PORT` | 宿主机 HTTP 端口 | 在 `scripts/deploy.sh` 中作为 `HOST_PORT` 使用，默认 `80`。改成 `8080` 等可避免端口占用。 |
@@ -143,12 +149,14 @@ bucket_name = "gemigo-apps"
 
 这些不是 Worker 本身的变量，而是后端部署时用到的，已经在上一节 **GitHub Secrets** 中列出：
 
-- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_ACCOUNT_ID`（用于 Pages / R2 / D1）
 - `CLOUDFLARE_PAGES_API_TOKEN`
 - `R2_ACCOUNT_ID`
 - `R2_ACCESS_KEY_ID`
 - `R2_SECRET_ACCESS_KEY`
 - `R2_BUCKET_NAME`
+- `CLOUDFLARE_D1_DATABASE_ID`（当使用 D1 存储时）
+- `CLOUDFLARE_D1_API_TOKEN`（当使用 D1 存储时）
 
 ### 3.2 Cloudflare Pages（可选）
 
@@ -173,8 +181,8 @@ bucket_name = "gemigo-apps"
 
 **生产部署（R2 模式）推荐配置：**
 
-- GitHub Secrets：`ALIYUN_*` 系列、`DASHSCOPE_API_KEY`、`CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_PAGES_API_TOKEN`、`R2_*` 全套。
-- GitHub Variables：`DEPLOY_TARGET=r2`、`APPS_ROOT_DOMAIN`（如 `gemigo.app`）、`CLOUDFLARE_PAGES_PROJECT_PREFIX`（可保留默认）。
-- Cloudflare：创建名为 `R2_BUCKET_NAME` 的 R2 bucket；在 Worker `wrangler.toml` 中配置相同的 `bucket_name` 和匹配的 `APPS_ROOT_DOMAIN`；DNS 中为 `*.APPS_ROOT_DOMAIN` 配置到该 Worker。
+- GitHub Secrets：`ALIYUN_*` 系列、`DASHSCOPE_API_KEY`、`CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_PAGES_API_TOKEN`、`R2_*` 全套。如果使用 D1 存储，还需添加 `CLOUDFLARE_D1_DATABASE_ID` 和 `CLOUDFLARE_D1_API_TOKEN`。
+- GitHub Variables：`DEPLOY_TARGET=r2`、`STORAGE_TYPE`（如 `d1` 或 `file`，可选）、`APPS_ROOT_DOMAIN`（如 `gemigo.app`）、`CLOUDFLARE_PAGES_PROJECT_PREFIX`（可保留默认）。
+- Cloudflare：创建名为 `R2_BUCKET_NAME` 的 R2 bucket；在 Worker `wrangler.toml` 中配置相同的 `bucket_name` 和匹配的 `APPS_ROOT_DOMAIN`；DNS 中为 `*.APPS_ROOT_DOMAIN` 配置到该 Worker。如果使用 D1 存储，需要在 Cloudflare 控制台创建 D1 数据库。
 
 这样，你在本地和生产环境就都可以用同一份环境变量说明来对照和排查了。  

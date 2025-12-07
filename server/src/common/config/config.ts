@@ -8,6 +8,8 @@ import type {
   CloudflareConfig,
   R2Config,
   PathsConfig,
+  CloudflareD1Config,
+  StorageType,
 } from './configTypes.js';
 import { getEnv, getEnvOrDefault, loadBackendEnv } from './env.js';
 
@@ -21,7 +23,9 @@ export type {
   CloudflareConfig,
   DeployTarget,
   PathsConfig,
+  CloudflareD1Config,
   PlatformAIConfig,
+  StorageType,
 } from './configTypes.js';
 
 // ---------------------------------------------------------------------------
@@ -138,6 +142,17 @@ function parsePathsConfig(rootDir: string): PathsConfig {
  */
 const rootDir = getRootDir();
 const pathsConfig = parsePathsConfig(rootDir);
+const storageType = parseStorageType();
+const cloudflareD1Config = parseCloudflareD1Config();
+
+// Validate: if using D1 (explicitly set or default), D1 config must be available
+if (storageType === 'd1' && !cloudflareD1Config) {
+  throw new Error(
+    'STORAGE_TYPE is set to "d1" (or defaults to "d1") but Cloudflare D1 configuration is incomplete. ' +
+    'Please provide CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_D1_DATABASE_ID, and CLOUDFLARE_D1_API_TOKEN. ' +
+    'Alternatively, set STORAGE_TYPE=file to use local JSON storage.',
+  );
+}
 
 // Ensure base data directory and all subdirectories exist
 fs.mkdirSync(pathsConfig.dataDir, { recursive: true });
@@ -149,6 +164,8 @@ export const CONFIG: AppConfig = Object.freeze({
   platformAI: parsePlatformAIConfig(),
   cloudflare: parseCloudflareConfig(),
   r2: parseR2Config(),
+  cloudflareD1: cloudflareD1Config,
+  storageType,
   appsRootDomain: parseAppsRootDomain(),
   paths: pathsConfig,
 });
@@ -186,3 +203,29 @@ export const R2_BUCKET_NAME = CONFIG.r2.bucketName;
 
 // Root domain where apps are exposed, e.g. "gemigo.app".
 export const APPS_ROOT_DOMAIN = CONFIG.appsRootDomain;
+function parseStorageType(): StorageType {
+  const explicitType = getEnv('STORAGE_TYPE');
+  if (explicitType === 'd1' || explicitType === 'file') {
+    return explicitType;
+  }
+  
+  // Default to D1 if not explicitly set
+  return 'd1';
+}
+
+function parseCloudflareD1Config(): CloudflareD1Config | null {
+  // Use the unified Cloudflare account ID for D1
+  const accountId = getEnv('CLOUDFLARE_ACCOUNT_ID') ?? null;
+  const databaseId = getEnv('CLOUDFLARE_D1_DATABASE_ID');
+  const apiToken = getEnv('CLOUDFLARE_D1_API_TOKEN');
+
+  if (!accountId || !databaseId || !apiToken) {
+    return null;
+  }
+
+  return {
+    accountId,
+    databaseId,
+    apiToken,
+  };
+}

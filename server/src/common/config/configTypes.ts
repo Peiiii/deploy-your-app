@@ -7,6 +7,11 @@
 // - 'r2'         : build on Aliyun, upload to Cloudflare R2, serve via Worker gateway
 export type DeployTarget = 'local' | 'cloudflare' | 'r2';
 
+// Storage backend type for application data (projects, users, etc.).
+// - 'file' : store data in local JSON files (data/projects.json, etc.)
+// - 'd1'   : store data in Cloudflare D1 database
+export type StorageType = 'file' | 'd1';
+
 export interface PlatformAIConfig {
   provider: string;
   model: string;
@@ -18,6 +23,12 @@ export interface CloudflareConfig {
   accountId: string;
   apiToken: string;
   pagesProjectPrefix: string;
+}
+
+export interface CloudflareD1Config {
+  accountId: string;
+  databaseId: string;
+  apiToken: string;
 }
 
 // Configuration for Cloudflare R2 object storage used as the static asset source.
@@ -46,8 +57,10 @@ export interface AppConfig {
   cloudflare: CloudflareConfig;
   // Cloudflare R2 object storage configuration for the "r2" deploy target.
   r2: R2Config;
+  cloudflareD1?: CloudflareD1Config | null;
+  // Storage backend type for application data: 'file' (local JSON) or 'd1' (Cloudflare D1)
+  storageType: StorageType;
   // Apex/root domain for user apps, e.g. "gemigo.app".
   appsRootDomain: string;
   paths: PathsConfig;
 }
-

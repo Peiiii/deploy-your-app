@@ -67,8 +67,9 @@ export function registerRoutes(app: AppLike): void {
   // Projects CRUD
   // ----------------------
 
-  app.get('/api/v1/projects', (req, res) => {
-    res.json(projectService.getProjects());
+  app.get('/api/v1/projects', async (req, res) => {
+    const projects = await projectService.getProjects();
+    res.json(projects);
   });
 
   app.post('/api/v1/projects', async (req, res) => {
@@ -118,7 +119,7 @@ export function registerRoutes(app: AppLike): void {
           app.post(path, handler);
         };
 
-  patch('/api/v1/projects/:id', (req, res) => {
+  patch('/api/v1/projects/:id', async (req, res) => {
     const { id } = req.params as { id: string };
     const { name, repoUrl, description, category, tags } = req.body || {};
 
@@ -137,7 +138,7 @@ export function registerRoutes(app: AppLike): void {
         });
     }
 
-    const project = projectService.updateProject(id, {
+    const project = await projectService.updateProject(id, {
       ...(name !== undefined ? { name: String(name) } : {}),
       ...(repoUrl !== undefined ? { repoUrl: String(repoUrl) } : {}),
       ...(description !== undefined
