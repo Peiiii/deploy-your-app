@@ -410,8 +410,39 @@ const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   );
 };
 
+const ExploreSkeletonGrid: React.FC = () => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {Array.from({ length: 6 }).map((_, idx) => (
+        <div
+          key={idx}
+          className="flex flex-col rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden animate-pulse"
+        >
+          <div className="h-44 bg-slate-100 dark:bg-slate-800" />
+          <div className="p-5 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700" />
+              <div className="space-y-2 flex-1">
+                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
+                <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-1/2" />
+              </div>
+            </div>
+            <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-full" />
+            <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-5/6" />
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="w-24 h-3 bg-slate-100 dark:bg-slate-800 rounded" />
+              <div className="w-16 h-3 bg-slate-200 dark:bg-slate-700 rounded" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export const Home: React.FC = () => {
   const projects = useProjectStore((state) => state.projects);
+  const isLoadingProjects = useProjectStore((state) => state.isLoading);
   const navigate = useNavigate();
   const apps = mapProjectsToApps(projects);
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All Apps');
@@ -521,7 +552,9 @@ export const Home: React.FC = () => {
             onTagReset={() => setActiveTag(null)}
           />
 
-          {filteredApps.length > 0 ? (
+          {isLoadingProjects ? (
+            <ExploreSkeletonGrid />
+          ) : filteredApps.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredApps.map((app) => (
                 <ExploreAppCardView
