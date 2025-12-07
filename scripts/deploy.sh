@@ -90,50 +90,29 @@ ENV_ARGS=(
   -e PORT=${CONTAINER_PORT}
 )
 
-# Add Cloudflare configuration if provided
-if [ -n "${CLOUDFLARE_ACCOUNT_ID}" ]; then
-  ENV_ARGS+=(-e "CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}")
-fi
+# Append optional configuration env vars when provided
+OPTIONAL_ENV_VARS=(
+  CLOUDFLARE_ACCOUNT_ID
+  CLOUDFLARE_PAGES_API_TOKEN
+  CLOUDFLARE_PAGES_PROJECT_PREFIX
+  DASHSCOPE_API_KEY
+  DEPLOY_TARGET
+  R2_ACCOUNT_ID
+  R2_ACCESS_KEY_ID
+  R2_SECRET_ACCESS_KEY
+  R2_BUCKET_NAME
+  APPS_ROOT_DOMAIN
+  CLOUDFLARE_D1_DATABASE_ID
+  CLOUDFLARE_D1_API_TOKEN
+  STORAGE_TYPE
+)
 
-if [ -n "${CLOUDFLARE_PAGES_API_TOKEN}" ]; then
-  ENV_ARGS+=(-e "CLOUDFLARE_PAGES_API_TOKEN=${CLOUDFLARE_PAGES_API_TOKEN}")
-fi
-
-if [ -n "${CLOUDFLARE_PAGES_PROJECT_PREFIX}" ]; then
-  ENV_ARGS+=(-e "CLOUDFLARE_PAGES_PROJECT_PREFIX=${CLOUDFLARE_PAGES_PROJECT_PREFIX}")
-fi
-
-# Add DashScope API key if provided
-if [ -n "${DASHSCOPE_API_KEY}" ]; then
-  ENV_ARGS+=(-e "DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY}")
-fi
-
-# Add deploy target if provided
-if [ -n "${DEPLOY_TARGET}" ]; then
-  ENV_ARGS+=(-e "DEPLOY_TARGET=${DEPLOY_TARGET}")
-fi
-
-# Add Cloudflare R2 configuration if provided
-if [ -n "${R2_ACCOUNT_ID}" ]; then
-  ENV_ARGS+=(-e "R2_ACCOUNT_ID=${R2_ACCOUNT_ID}")
-fi
-
-if [ -n "${R2_ACCESS_KEY_ID}" ]; then
-  ENV_ARGS+=(-e "R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}")
-fi
-
-if [ -n "${R2_SECRET_ACCESS_KEY}" ]; then
-  ENV_ARGS+=(-e "R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}")
-fi
-
-if [ -n "${R2_BUCKET_NAME}" ]; then
-  ENV_ARGS+=(-e "R2_BUCKET_NAME=${R2_BUCKET_NAME}")
-fi
-
-# Root domain for user apps served via Worker (e.g. gemigo.app)
-if [ -n "${APPS_ROOT_DOMAIN}" ]; then
-  ENV_ARGS+=(-e "APPS_ROOT_DOMAIN=${APPS_ROOT_DOMAIN}")
-fi
+for var_name in "${OPTIONAL_ENV_VARS[@]}"; do
+  value="${!var_name}"
+  if [ -n "${value}" ]; then
+    ENV_ARGS+=(-e "${var_name}=${value}")
+  fi
+done
 
 # Try to start container
 CONTAINER_ID=$(docker run -d \

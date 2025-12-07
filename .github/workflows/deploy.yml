@@ -45,7 +45,7 @@ jobs:
           username: ${{ secrets.ALIYUN_USER }}
           key: ${{ secrets.ALIYUN_SSH_KEY }}
           port: ${{ secrets.ALIYUN_PORT || 22 }}
-          envs: CLOUDFLARE_ACCOUNT_ID,CLOUDFLARE_API_TOKEN,DASHSCOPE_API_KEY,DEPLOY_TARGET,CLOUDFLARE_PAGES_PROJECT_PREFIX,R2_ACCOUNT_ID,R2_ACCESS_KEY_ID,R2_SECRET_ACCESS_KEY,R2_BUCKET_NAME,APPS_ROOT_DOMAIN
+          envs: CLOUDFLARE_ACCOUNT_ID,CLOUDFLARE_API_TOKEN,DASHSCOPE_API_KEY,DEPLOY_TARGET,CLOUDFLARE_PAGES_PROJECT_PREFIX,R2_ACCOUNT_ID,R2_ACCESS_KEY_ID,R2_SECRET_ACCESS_KEY,R2_BUCKET_NAME,APPS_ROOT_DOMAIN,CLOUDFLARE_D1_DATABASE_ID,CLOUDFLARE_D1_API_TOKEN,STORAGE_TYPE
           script: |
             set -e
             echo "🔍 Pre-deployment checks..."
@@ -76,10 +76,13 @@ jobs:
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+          CLOUDFLARE_D1_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
           # Non-sensitive configuration - use Variables (fallback handled in code if not set)
           DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
           CLOUDFLARE_PAGES_PROJECT_PREFIX: ${{ vars.CLOUDFLARE_PAGES_PROJECT_PREFIX }}
           APPS_ROOT_DOMAIN: ${{ vars.APPS_ROOT_DOMAIN }}
+          STORAGE_TYPE: ${{ vars.STORAGE_TYPE }}
 
       - name: Verify deployment
         uses: appleboy/ssh-action@v1.0.3
