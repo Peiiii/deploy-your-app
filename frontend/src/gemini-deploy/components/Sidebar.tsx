@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Rocket, Wifi, X, Zap, Sparkles, Package } from 'lucide-react';
+import { LayoutDashboard, Rocket, Wifi, X, Zap, Sparkles, Package, Home } from 'lucide-react';
 import { useUIStore } from '../stores/uiStore';
 
 export const Sidebar: React.FC = () => {
@@ -10,6 +10,7 @@ export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
 
   const navItems = [
+    { path: '/', label: 'Home', icon: Home },
     { path: '/explore', label: 'Explore Apps', icon: Sparkles },
     { path: '/deploy', label: 'Deploy App', icon: Package },
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -55,7 +56,9 @@ export const Sidebar: React.FC = () => {
 
       <nav className="flex-1 px-4 space-y-1">
         {navItems.map((item) => {
-          const isActive = location.pathname.startsWith(item.path);
+          const isActive = item.path === '/' 
+            ? location.pathname === '/' 
+            : location.pathname.startsWith(item.path);
           return (
             <button
               key={item.path}

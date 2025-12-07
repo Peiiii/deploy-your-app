@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
+import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
 import { NewDeployment } from './pages/NewDeployment';
 import { ExploreApps } from './pages/ExploreApps';
@@ -96,12 +97,12 @@ const MainLayout = () => {
 
         <div className="p-0">
           <Routes>
+            <Route path="/" element={<Home />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/deploy" element={<NewDeployment />} />
             <Route path="/explore" element={<ExploreApps />} />
             <Route path="/projects/:id" element={<ProjectDetail />} />
-            <Route path="/" element={<Navigate to="/explore" replace />} />
-            <Route path="*" element={<Navigate to="/explore" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </main>

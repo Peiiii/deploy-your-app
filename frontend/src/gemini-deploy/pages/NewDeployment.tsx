@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useDeploymentStore } from '../stores/deploymentStore';
 import { usePresenter } from '../contexts/PresenterContext';
 import { DeploymentStatus, SourceType } from '../types';
@@ -33,6 +34,7 @@ const SIMPLE_HTML_TEMPLATE = `<!DOCTYPE html>
 export const NewDeployment: React.FC = () => {
   const presenter = usePresenter();
   const state = useDeploymentStore();
+  const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const htmlFileInputRef = useRef<HTMLInputElement>(null);
   const [htmlFieldTouched, setHtmlFieldTouched] = useState(false);
@@ -40,6 +42,13 @@ export const NewDeployment: React.FC = () => {
   useEffect(() => {
     return () => presenter.deployment.resetWizard();
   }, [presenter.deployment]);
+
+  useEffect(() => {
+    const sourceType = location.state?.sourceType as SourceType | undefined;
+    if (sourceType && Object.values(SourceType).includes(sourceType)) {
+      handleSourceTypeSelect(sourceType);
+    }
+  }, [location.state]);
 
   const handleSourceTypeSelect = (type: SourceType) => {
     state.actions.setSourceType(type);
