@@ -66,7 +66,7 @@
 
 #### 4.1 环境变量（Secrets）
 - ✅ `CLOUDFLARE_ACCOUNT_ID` - Cloudflare 账户 ID
-- ✅ `CLOUDFLARE_API_TOKEN` - Cloudflare API Token
+- ✅ `CLOUDFLARE_PAGES_API_TOKEN` - Cloudflare Pages API Token
 - ✅ `DASHSCOPE_API_KEY` - DashScope API Key（用于平台 AI 功能）
 
 #### 4.2 环境变量（Variables）
@@ -160,4 +160,3 @@
 ---
 
 *最后更新: 2024年*
-

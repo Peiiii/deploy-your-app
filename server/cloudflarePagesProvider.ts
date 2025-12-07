@@ -3,7 +3,7 @@ import * as path from 'path';
 import { hash as blake3hash } from 'blake3-wasm';
 import {
   CLOUDFLARE_ACCOUNT_ID,
-  CLOUDFLARE_API_TOKEN,
+  CLOUDFLARE_PAGES_API_TOKEN,
   CLOUDFLARE_PAGES_PROJECT_PREFIX,
 } from './config.js';
 import type { LogLevel } from './types.js';
@@ -80,9 +80,9 @@ async function ensureCloudflarePagesProject(
   projectName: string,
   log: LogFn,
 ): Promise<void> {
-  if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
+  if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_PAGES_API_TOKEN) {
     throw new Error(
-      'Cloudflare account id/token not configured. Please set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN in your environment.',
+      'Cloudflare account id/token not configured. Please set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_PAGES_API_TOKEN in your environment.',
     );
   }
 
@@ -94,7 +94,7 @@ async function ensureCloudflarePagesProject(
   try {
     resp = await fetch(projectUrl, {
       headers: {
-        Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
+        Authorization: `Bearer ${CLOUDFLARE_PAGES_API_TOKEN}`,
         'Content-Type': 'application/json',
       },
     });
@@ -136,7 +136,7 @@ async function ensureCloudflarePagesProject(
     createResp = await fetch(createUrl, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
+        Authorization: `Bearer ${CLOUDFLARE_PAGES_API_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
@@ -184,7 +184,7 @@ async function uploadAssetsAndGetManifest(
   try {
     const resp = await fetch(uploadTokenUrl, {
       headers: {
-        Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
+        Authorization: `Bearer ${CLOUDFLARE_PAGES_API_TOKEN}`,
       },
     });
     if (!resp.ok) {
@@ -341,9 +341,9 @@ export async function deployToCloudflarePages(opts: {
   const prefix = CLOUDFLARE_PAGES_PROJECT_PREFIX || 'deploy-your-app';
   const projectName = `${prefix}-${slug}`.toLowerCase();
 
-  if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
+  if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_PAGES_API_TOKEN) {
     throw new Error(
-      'Cloudflare account id/token not configured. Please set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN in your environment.',
+      'Cloudflare account id/token not configured. Please set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_PAGES_API_TOKEN in your environment.',
     );
   }
 
@@ -383,7 +383,7 @@ export async function deployToCloudflarePages(opts: {
     resp = await fetch(deployUrl, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
+        Authorization: `Bearer ${CLOUDFLARE_PAGES_API_TOKEN}`,
       },
       body: formData,
     });

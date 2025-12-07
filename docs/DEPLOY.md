@@ -176,7 +176,7 @@ docker-compose logs -f
 在 GitHub 仓库中，进入 **Settings** → **Secrets and variables** → **Actions** → **Secrets**，添加：
 
 1. **CLOUDFLARE_ACCOUNT_ID** - Cloudflare 账户 ID（虽然不算特别敏感，但建议放在 Secrets）
-2. **CLOUDFLARE_API_TOKEN** - Cloudflare API Token（**敏感**，必须放在 Secrets）
+2. **CLOUDFLARE_PAGES_API_TOKEN** - Cloudflare Pages API Token，用于部署时访问 Pages API（**敏感**，必须放在 Secrets）
 3. **DASHSCOPE_API_KEY** - DashScope API Key（**敏感**，必须放在 Secrets）
 
 #### 需要配置的 Variables（非敏感配置，可选）
@@ -296,4 +296,3 @@ tar -czf backup-$(date +%Y%m%d).tar.gz /opt/deploy-your-app/data
 - `scripts/deploy.sh` - 服务器端部署脚本
 
 修改后提交到仓库，下次部署时会自动使用新脚本。
-

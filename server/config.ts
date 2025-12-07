@@ -62,7 +62,7 @@ function parsePlatformAIConfig(): PlatformAIConfig {
 function parseCloudflareConfig(): CloudflareConfig {
   return {
     accountId: getEnvOrDefault('CLOUDFLARE_ACCOUNT_ID', ''),
-    apiToken: getEnvOrDefault('CLOUDFLARE_API_TOKEN', ''),
+    apiToken: getEnvOrDefault('CLOUDFLARE_PAGES_API_TOKEN', ''),
     pagesProjectPrefix: getEnvOrDefault(
       'CLOUDFLARE_PAGES_PROJECT_PREFIX',
       'deploy-your-app',
@@ -171,7 +171,7 @@ export const DEPLOY_TARGET: DeployTarget = CONFIG.deployTarget;
 // Cloudflare configuration
 // Account / token for Pages API or wrangler CLI (future use).
 export const CLOUDFLARE_ACCOUNT_ID = CONFIG.cloudflare.accountId;
-export const CLOUDFLARE_API_TOKEN = CONFIG.cloudflare.apiToken;
+export const CLOUDFLARE_PAGES_API_TOKEN = CONFIG.cloudflare.apiToken;
 // Prefix for auto-generated Cloudflare Pages project names.
 // Final project name will be: <prefix>-<slug>
 export const CLOUDFLARE_PAGES_PROJECT_PREFIX =

@@ -21,7 +21,7 @@
 | `DASHSCOPE_APIKEY` | `DASHSCOPE_API_KEY` 的旧名字，保留兼容。只需设置其中一个即可。 | 否 | 无 |
 | `DEPLOY_TARGET` | 部署目标：<br/>- `local`：静态资源拷贝到本机 `/apps/<slug>/` 并由 Node 直出<br/>- `cloudflare`：走 Cloudflare Pages 部署<br/>- `r2`：在阿里云构建，静态资源上传到 Cloudflare R2，再由 Worker 网关提供访问 | 否 | `local` |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare 账户 ID。<br/>用于：Pages API 部署（`DEPLOY_TARGET=cloudflare`）以及 R2 账户 ID 的兜底。 | 只有当 `DEPLOY_TARGET` 为 `cloudflare` 或 `r2` 时推荐配置 | 空字符串 |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API Token。用于 Pages API 和（未来）wrangler CLI。需要具备 Pages 与 R2 的访问权限。 | 同上 | 空字符串 |
+| `CLOUDFLARE_PAGES_API_TOKEN` | Cloudflare Pages API Token，仅在 `DEPLOY_TARGET=cloudflare` 时用于 Pages API（以及 WRANGLER 兼容流程）。需要具备 Pages 权限。 | 同上 | 空字符串 |
 | `CLOUDFLARE_PAGES_PROJECT_PREFIX` | Cloudflare Pages 项目名前缀，最终项目名为 `<prefix>-<slug>`。 | 否 | `deploy-your-app` |
 | `R2_ACCOUNT_ID` | Cloudflare R2 账户 ID，多数情况下与 `CLOUDFLARE_ACCOUNT_ID` 相同；如果不设，会回退到 `CLOUDFLARE_ACCOUNT_ID`。 | 当 `DEPLOY_TARGET = r2` 时必填 | 若不设，使用 `CLOUDFLARE_ACCOUNT_ID`，否则报错 |
 | `R2_ACCESS_KEY_ID` | R2 的 S3 兼容 Access Key ID，用于后端上传构建产物到 R2。 | 当 `DEPLOY_TARGET = r2` 时必填 | 空字符串（会导致运行时报错） |
@@ -72,7 +72,7 @@ workflow 文件：`.github/workflows/deploy.yml`
 | 名称 | 对应后端变量 | 用途 |
 |------|--------------|------|
 | `CLOUDFLARE_ACCOUNT_ID` | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare 账号 ID，用于 Pages / R2 |
-| `CLOUDFLARE_API_TOKEN` | `CLOUDFLARE_API_TOKEN` | Cloudflare API Token（必须具备 Pages + R2 权限） |
+| `CLOUDFLARE_PAGES_API_TOKEN` | `CLOUDFLARE_PAGES_API_TOKEN` | Cloudflare Pages API Token（必须具备 Pages 权限） |
 | `DASHSCOPE_API_KEY` | `DASHSCOPE_API_KEY` | 平台 DashScope key，后端 AI（分类、代码重写）使用 |
 | `R2_ACCOUNT_ID` | `R2_ACCOUNT_ID` | R2 账号 ID（可与 Cloudflare 账号相同） |
 | `R2_ACCESS_KEY_ID` | `R2_ACCESS_KEY_ID` | R2 S3 Access Key |
@@ -144,7 +144,7 @@ bucket_name = "gemigo-apps"
 这些不是 Worker 本身的变量，而是后端部署时用到的，已经在上一节 **GitHub Secrets** 中列出：
 
 - `CLOUDFLARE_ACCOUNT_ID`
-- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_PAGES_API_TOKEN`
 - `R2_ACCOUNT_ID`
 - `R2_ACCESS_KEY_ID`
 - `R2_SECRET_ACCESS_KEY`
@@ -157,7 +157,7 @@ bucket_name = "gemigo-apps"
 | 变量 | 作用 |
 |------|------|
 | `CLOUDFLARE_ACCOUNT_ID` | Pages 所在账号 ID |
-| `CLOUDFLARE_API_TOKEN` | 具备 Pages 权限的 API Token |
+| `CLOUDFLARE_PAGES_API_TOKEN` | 具备 Pages 权限、供部署脚本调用 Cloudflare Pages API 的 Token |
 | `CLOUDFLARE_PAGES_PROJECT_PREFIX` | Pages 项目前缀。服务端会生成 `<prefix>-<slug>` 的项目名并通过 API 创建 / 部署。 |
 
 目前推荐的新路径是 `DEPLOY_TARGET=r2` + Worker 网关，上述 Pages 变量主要用于兼容旧流程。
@@ -173,9 +173,8 @@ bucket_name = "gemigo-apps"
 
 **生产部署（R2 模式）推荐配置：**
 
-- GitHub Secrets：`ALIYUN_*` 系列、`DASHSCOPE_API_KEY`、`CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_API_TOKEN`、`R2_*` 全套。
+- GitHub Secrets：`ALIYUN_*` 系列、`DASHSCOPE_API_KEY`、`CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_PAGES_API_TOKEN`、`R2_*` 全套。
 - GitHub Variables：`DEPLOY_TARGET=r2`、`APPS_ROOT_DOMAIN`（如 `gemigo.app`）、`CLOUDFLARE_PAGES_PROJECT_PREFIX`（可保留默认）。
 - Cloudflare：创建名为 `R2_BUCKET_NAME` 的 R2 bucket；在 Worker `wrangler.toml` 中配置相同的 `bucket_name` 和匹配的 `APPS_ROOT_DOMAIN`；DNS 中为 `*.APPS_ROOT_DOMAIN` 配置到该 Worker。
 
 这样，你在本地和生产环境就都可以用同一份环境变量说明来对照和排查了。  
-
