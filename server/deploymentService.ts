@@ -253,14 +253,14 @@ export async function runDeployment(id: string): Promise<void> {
 
     updateStatus(id, 'SUCCESS');
   } catch (err: unknown) {
+    const errorMessage =
+      err && (err as Error).message ? (err as Error).message : String(err);
     appendLog(
       id,
-      `Deployment failed: ${
-        err && (err as Error).message ? (err as Error).message : String(err)
-      }`,
+      `Deployment failed: ${errorMessage}`,
       'error',
     );
-    updateStatus(id, 'FAILED');
+    updateStatus(id, 'FAILED', { errorMessage });
   } finally {
     if (analysisId && analysisSessions.has(analysisId)) {
       analysisSessions.delete(analysisId);

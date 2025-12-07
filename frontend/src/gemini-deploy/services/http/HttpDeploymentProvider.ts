@@ -73,14 +73,25 @@ export class HttpDeploymentProvider implements IDeploymentProvider {
           // Handle Status Updates
           if (payload.type === 'status') {
             onStatusChange(payload.status);
-            
+
             // Close connection on terminal states
             if (payload.status === DeploymentStatus.SUCCESS) {
               eventSource.close();
               resolve();
             } else if (payload.status === DeploymentStatus.FAILED) {
+              if (payload.errorMessage) {
+                onLog({
+                  timestamp: new Date().toLocaleTimeString(),
+                  message: payload.errorMessage,
+                  type: 'error',
+                });
+              }
               eventSource.close();
-              reject(new Error("Deployment reported failure"));
+              reject(
+                new Error(
+                  payload.errorMessage || 'Deployment reported failure',
+                ),
+              );
             }
           }
         } catch (e) {

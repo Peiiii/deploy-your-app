@@ -27,10 +27,17 @@ export function appendLog(
   broadcastEvent(id, { type: 'log', message, level });
 }
 
-export function updateStatus(id: string, status: DeploymentStatus): void {
+export function updateStatus(
+  id: string,
+  status: DeploymentStatus,
+  extra?: Record<string, unknown>,
+): void {
   const deployment = deployments.get(id);
   if (!deployment) return;
   deployment.status = status;
-  broadcastEvent(id, { type: 'status', status });
+  const payload =
+    extra && Object.keys(extra).length > 0
+      ? { type: 'status', status, ...extra }
+      : { type: 'status', status };
+  broadcastEvent(id, payload);
 }
-
