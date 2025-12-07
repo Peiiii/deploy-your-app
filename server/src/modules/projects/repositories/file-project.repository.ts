@@ -133,5 +133,3 @@ export class FileProjectRepository {
     };
   }
 }
-
-export type { CreateProjectRecordInput };
