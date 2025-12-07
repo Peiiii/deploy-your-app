@@ -8,6 +8,8 @@ import { ProjectDetail } from './pages/ProjectDetail';
 import { PresenterProvider, usePresenter } from './contexts/PresenterContext';
 import { useUIStore } from './stores/uiStore';
 import { Bell, HelpCircle, Sun, Moon, Menu, Coins } from 'lucide-react';
+import { CrispChat } from './components/CrispChat';
+import { Crisp } from 'crisp-sdk-web';
 
 const MainLayout = () => {
   const {
@@ -29,8 +31,23 @@ const MainLayout = () => {
     }
   }, [theme]);
 
+  const handleOpenChat = () => {
+    const websiteId = import.meta.env.VITE_CRISP_WEBSITE_ID;
+    if (!websiteId) {
+      console.warn('Crisp is not configured. Please set VITE_CRISP_WEBSITE_ID in your environment variables.');
+      return;
+    }
+    try {
+      Crisp.chat.open();
+      Crisp.chat.show();
+    } catch (error) {
+      console.error('Failed to open Crisp chat:', error);
+    }
+  };
+
   return (
     <div className="flex w-full h-screen bg-app-bg text-slate-900 dark:text-gray-200 font-sans selection:bg-brand-500/30 selection:text-brand-700 dark:selection:text-brand-200 transition-colors duration-300 overflow-hidden">
+      <CrispChat />
       <Sidebar />
       
       <main className="ml-0 md:ml-64 flex-1 w-full overflow-auto relative z-10 min-w-0">
@@ -62,7 +79,11 @@ const MainLayout = () => {
                 {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
              </button>
              <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden md:block"></div>
-             <button className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all bg-transparent dark:bg-transparent hidden md:block" title="Help">
+             <button 
+                onClick={handleOpenChat}
+                className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all bg-transparent dark:bg-transparent hidden md:block" 
+                title="Help"
+             >
                 <HelpCircle className="w-5 h-5" />
              </button>
              <button className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all bg-transparent dark:bg-transparent relative hidden md:block" title="Notifications">
