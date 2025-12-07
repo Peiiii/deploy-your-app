@@ -2,7 +2,7 @@ export const APP_CONFIG = {
   NAME: 'GeminiDeploy',
   DEFAULT_AI_MODEL: 'gemini-2.5-flash',
 
-  // The address of your backend API.
+  // The address of your backend API (always proxied via Pages/_worker.js).
   API_BASE_URL: '/api/v1',
 };
 

@@ -1,0 +1,26 @@
+name = "gemigo-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-15"
+
+# Uncomment and set your Cloudflare account ID once known.
+account_id = "adb27b39051202962038992eeaf8f6bb"
+
+[vars]
+# These mirror the Node backend defaults. Override per environment via
+# `wrangler secret put` or environment-specific sections when needed.
+APPS_ROOT_DOMAIN = "gemigo.app"
+DEPLOY_TARGET = "r2"
+PLATFORM_AI_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+PLATFORM_AI_MODEL = "qwen3-max"
+# URL of the Node deployment service used for /deploy requests.
+# Override per environment (e.g. via `wrangler secret|var put`) to point at the
+# real backend host. Local dev defaults to the Node dev server.
+DEPLOY_SERVICE_BASE_URL = "http://builderapi.gemigo.io/api/v1"
+
+[[d1_databases]]
+binding = "PROJECTS_DB"
+database_name = "gemigo-projects"
+# Replace the placeholder IDs with the actual Database IDs from Cloudflare.
+database_id = "e1e28d75-d0a0-4f8e-9b5d-714454686a4f"
+# Optional: configure a preview database for `wrangler dev`.
+preview_database_id = "e1e28d75-d0a0-4f8e-9b5d-714454686a4f"

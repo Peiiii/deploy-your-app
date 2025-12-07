@@ -1,0 +1,15 @@
+{
+  "name": "deploy-your-app-api-worker",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250109.0",
+    "typescript": "^5.4.0",
+    "wrangler": "^3.108.0"
+  }
+}

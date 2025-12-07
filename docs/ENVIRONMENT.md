@@ -170,6 +170,25 @@ bucket_name = "gemigo-apps"
 
 目前推荐的新路径是 `DEPLOY_TARGET=r2` + Worker 网关，上述 Pages 变量主要用于兼容旧流程。
 
+### 3.3 API Worker（/api/v1/*）
+
+目录：`workers/api`
+
+该 Worker 负责：
+
+- 直接读写 D1（`/api/v1/projects` CRUD）
+- 代理部署相关接口（`/api/v1/deploy`、`/api/v1/deployments/:id/stream`），再由 Node 服务执行真实构建
+
+`wrangler.toml` 里需要注意的字段：
+
+| 字段 | 说明 |
+|------|------|
+| `PROJECTS_DB`（D1 binding） | 绑定到 D1 中的 `projects` 数据库，供 Worker 直接 CRUD。`database_id` / `preview_database_id` 指向对应实例。 |
+| `APPS_ROOT_DOMAIN`、`DEPLOY_TARGET`、`PLATFORM_AI_*` | 与后端保持一致，用于 Worker 自身返回 URL 和调用 DashScope。 |
+| `DEPLOY_SERVICE_BASE_URL` | Worker 内部访问 Node 部署服务的地址，形如 `https://<你的服务器>/api/v1`。本地 `wrangler dev` 会回退到 `http://127.0.0.1:4173/api/v1`。**线上必须通过 `wrangler secret put DEPLOY_SERVICE_BASE_URL` 或 Cloudflare Dashboard → Worker → Settings → Variables/Secrets 设置为真实 Node API**（例如 `https://backend.gemigo.io/api/v1`），否则部署相关接口会找不到目标。 |
+
+前端在 `.env` 里配置 `VITE_API_BASE_URL=https://<worker-domain>/api/v1` 后，即可完全通过 Worker 访问后端，Node 服务只作为内部部署引擎。
+
 ---
 
 ## 四、小结 / 快速检查清单
@@ -184,5 +203,6 @@ bucket_name = "gemigo-apps"
 - GitHub Secrets：`ALIYUN_*` 系列、`DASHSCOPE_API_KEY`、`CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_PAGES_API_TOKEN`、`R2_*` 全套。如果使用 D1 存储，还需添加 `CLOUDFLARE_D1_DATABASE_ID` 和 `CLOUDFLARE_D1_API_TOKEN`。
 - GitHub Variables：`DEPLOY_TARGET=r2`、`STORAGE_TYPE`（如 `d1` 或 `file`，可选）、`APPS_ROOT_DOMAIN`（如 `gemigo.app`）、`CLOUDFLARE_PAGES_PROJECT_PREFIX`（可保留默认）。
 - Cloudflare：创建名为 `R2_BUCKET_NAME` 的 R2 bucket；在 Worker `wrangler.toml` 中配置相同的 `bucket_name` 和匹配的 `APPS_ROOT_DOMAIN`；DNS 中为 `*.APPS_ROOT_DOMAIN` 配置到该 Worker。如果使用 D1 存储，需要在 Cloudflare 控制台创建 D1 数据库。
+- API Worker：在 Cloudflare Worker（`gemigo-api`）中设置 `DEPLOY_SERVICE_BASE_URL` 指向阿里云 Node API（`https://<你的服务器>/api/v1`）。执行 `wrangler secret put DEPLOY_SERVICE_BASE_URL` 或在 Dashboard → Workers → Variables 中新增同名变量。没有这个变量，Worker 无法代理 `/api/v1/deploy` 等部署接口。
 
 这样，你在本地和生产环境就都可以用同一份环境变量说明来对照和排查了。  
