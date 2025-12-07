@@ -101,7 +101,8 @@ function parseAppsRootDomain(): string {
 function getRootDir(): string {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
-  return path.resolve(__dirname, '..', '..');
+  const serverRootDir = path.resolve(__dirname, '..', '..', '..');
+  return path.dirname(serverRootDir);
 }
 
 function resolveFromRoot(relOrAbs: string, rootDir: string): string {

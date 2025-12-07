@@ -10,6 +10,7 @@ export default defineConfig([
   globalIgnores([
     'dist',
     'server/dist',
+    'data',
     'data/builds',
   ]),
   {

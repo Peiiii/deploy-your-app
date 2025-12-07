@@ -48,6 +48,7 @@ export function loadDotEnv(envFilePath: string): void {
 // When running from compiled JS, __dirname is "<root>/server/dist".
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+// env.ts lives in server/src/common/config, so walking three levels up lands at server/
 const serverRootDir = path.resolve(__dirname, '..', '..', '..');
 
 /**

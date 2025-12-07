@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useDeploymentStore } from '../stores/deploymentStore';
 import { usePresenter } from '../contexts/PresenterContext';
 import { DeploymentStatus, SourceType } from '../types';
@@ -35,10 +35,18 @@ export const NewDeployment: React.FC = () => {
   const state = useDeploymentStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const htmlFileInputRef = useRef<HTMLInputElement>(null);
+  const [htmlFieldTouched, setHtmlFieldTouched] = useState(false);
 
   useEffect(() => {
     return () => presenter.deployment.resetWizard();
   }, [presenter.deployment]);
+
+  const handleSourceTypeSelect = (type: SourceType) => {
+    state.actions.setSourceType(type);
+    if (type !== SourceType.HTML) {
+      setHtmlFieldTouched(false);
+    }
+  };
 
   const handleDeployStart = async () => {
     const fallbackName =
@@ -98,6 +106,7 @@ export const NewDeployment: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     await presenter.deployment.handleHtmlFileUpload(file);
+    setHtmlFieldTouched(true);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -109,6 +118,7 @@ export const NewDeployment: React.FC = () => {
 
   const handleInsertTemplate = () => {
     state.actions.setHtmlContent(SIMPLE_HTML_TEMPLATE);
+    setHtmlFieldTouched(true);
     if (!state.projectName) {
       state.actions.setProjectName('landing-page');
     }
@@ -145,7 +155,7 @@ export const NewDeployment: React.FC = () => {
           {/* Source Type Selection */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
-              onClick={() => state.actions.setSourceType(SourceType.GITHUB)}
+              onClick={() => handleSourceTypeSelect(SourceType.GITHUB)}
               className={`group relative p-6 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-lg ${
                 state.sourceType === SourceType.GITHUB
                   ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-950/20 shadow-md'
@@ -183,7 +193,7 @@ export const NewDeployment: React.FC = () => {
             </button>
 
             <button
-              onClick={() => state.actions.setSourceType(SourceType.ZIP)}
+              onClick={() => handleSourceTypeSelect(SourceType.ZIP)}
               className={`group relative p-6 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-lg ${
                 state.sourceType === SourceType.ZIP
                   ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-950/20 shadow-md'
@@ -220,7 +230,7 @@ export const NewDeployment: React.FC = () => {
               </p>
             </button>
             <button
-              onClick={() => state.actions.setSourceType(SourceType.HTML)}
+              onClick={() => handleSourceTypeSelect(SourceType.HTML)}
               className={`group relative p-6 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-lg ${
                 state.sourceType === SourceType.HTML
                   ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-950/20 shadow-md'
@@ -358,6 +368,7 @@ export const NewDeployment: React.FC = () => {
                 <textarea
                   value={state.htmlContent}
                   onChange={(e) => state.actions.setHtmlContent(e.target.value)}
+                  onBlur={() => setHtmlFieldTouched(true)}
                   rows={10}
                   className="block w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800/40 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent transition-all font-mono text-sm"
                   placeholder="Paste your HTML markup here..."
@@ -387,7 +398,7 @@ export const NewDeployment: React.FC = () => {
                     onChange={handleHtmlFileChange}
                   />
                 </div>
-                {!htmlIsReady && (
+                {htmlFieldTouched && !htmlIsReady && (
                   <p className="text-xs text-red-500">
                     Please paste HTML content or import a file to continue.
                   </p>
