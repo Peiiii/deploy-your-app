@@ -1,5 +1,5 @@
 {
-  "name": "gemigo-screenshot-service",
+  "name": "deploy-your-app-r2-gateway",
   "version": "0.0.0",
   "private": true,
   "license": "UNLICENSED",
@@ -7,10 +7,7 @@
     "deploy": "wrangler deploy"
   },
   "devDependencies": {
-    "typescript": "^5.6.3",
     "wrangler": "^4.53.0"
-  },
-  "dependencies": {
-    "@cloudflare/puppeteer": "^1.0.4"
   }
 }
+
