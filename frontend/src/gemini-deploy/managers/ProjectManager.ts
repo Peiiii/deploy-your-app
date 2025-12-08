@@ -49,6 +49,7 @@ export class ProjectManager {
       description?: string;
       category?: string;
       tags?: string[];
+      isPublic?: boolean;
     },
   ) => {
     try {

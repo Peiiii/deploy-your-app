@@ -1,12 +1,13 @@
 import {
   AlertTriangle,
   ArrowLeft,
+  CheckCircle2,
   Clock,
   ExternalLink,
   GitBranch,
   RefreshCcw,
   Save,
-  Upload
+  Upload,
 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -138,9 +139,10 @@ export const ProjectDetail: React.FC = () => {
         ...(trimmedCategory ? { category: trimmedCategory } : {}),
         ...(tagsArray.length > 0 ? { tags: tagsArray } : { tags: [] }),
       });
+      presenter.ui.showSuccessToast('Metadata saved successfully.');
     } catch (err) {
       console.error(err);
-      setError('Failed to update project metadata.');
+      presenter.ui.showErrorToast('Failed to update project metadata.');
     } finally {
       setIsSavingMetadata(false);
     }
@@ -353,6 +355,43 @@ export const ProjectDetail: React.FC = () => {
                     placeholder="Comma separated, e.g. chatbot,landing-page"
                   />
                 </div>
+              </div>
+              <div className="flex items-center justify-between pt-1">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-slate-700 dark:text-gray-200">
+                    Show in Explore & recommendations
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-gray-400">
+                    Turn this off if you want to keep the app private to your dashboard.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setError(null);
+                    try {
+                      const nextValue = !(project.isPublic ?? true);
+                      await presenter.project.updateProject(project.id, {
+                        isPublic: nextValue,
+                      });
+                    } catch (err) {
+                      console.error(err);
+                      setError('Failed to update visibility.');
+                    }
+                  }}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full border transition-colors ${
+                    project.isPublic ?? true
+                      ? 'bg-green-500/80 border-green-500'
+                      : 'bg-slate-400/60 dark:bg-slate-700/80 border-slate-400 dark:border-slate-600'
+                  }`}
+                  aria-label="Toggle public visibility"
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                      project.isPublic ?? true ? 'translate-x-5' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
               </div>
               <div className="flex justify-end">
                 <button

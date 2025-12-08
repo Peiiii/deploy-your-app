@@ -443,7 +443,11 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 export const ExploreApps: React.FC = () => {
   const projects = useProjectStore((state) => state.projects);
   const navigate = useNavigate();
-  const apps = mapProjectsToApps(projects);
+  // Only show public projects in Explore.
+  const publicProjects = projects.filter(
+    (p) => p.isPublic === undefined || p.isPublic === true,
+  );
+  const apps = mapProjectsToApps(publicProjects);
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All Apps');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');

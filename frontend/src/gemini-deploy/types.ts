@@ -17,6 +17,9 @@ export interface Project {
   id: string;
   // Owner user ID for this project (undefined for legacy/public records).
   ownerId?: string;
+  // Whether this project should appear in public feeds (Explore, recommendations).
+  // Legacy projects without this flag are treated as public.
+  isPublic?: boolean;
   name: string;
   repoUrl: string; // Used as source identifier (URL for git, filename for zip)
   sourceType?: SourceType;

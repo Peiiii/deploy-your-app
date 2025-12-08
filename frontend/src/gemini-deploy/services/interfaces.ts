@@ -21,6 +21,7 @@ export interface IProjectProvider {
       description?: string;
       category?: string;
       tags?: string[];
+      isPublic?: boolean;
     },
   ): Promise<Project>;
 }

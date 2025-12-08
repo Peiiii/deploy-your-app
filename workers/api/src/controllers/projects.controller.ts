@@ -107,23 +107,29 @@ class ProjectsController {
   ): Promise<Response> {
     const body = await readJson(request);
 
-    const { name, repoUrl, description, category, tags } = body;
+    const { name, repoUrl, description, category, tags, isPublic } = body;
     if (
       name === undefined &&
       repoUrl === undefined &&
       description === undefined &&
       category === undefined &&
-      tags === undefined
+      tags === undefined &&
+      isPublic === undefined
     ) {
       throw new ValidationError(
-        'At least one of name, repoUrl, description, category or tags must be provided',
+        'At least one of name, repoUrl, description, category, tags or isPublic must be provided',
       );
+    }
+
+    if (isPublic !== undefined && typeof isPublic !== 'boolean') {
+      throw new ValidationError('isPublic must be a boolean');
     }
 
     const project = await projectService.updateProject(db, id, {
       ...(name !== undefined
         ? { name: validateRequiredString(name, 'name') }
         : {}),
+      ...(isPublic !== undefined ? { isPublic } : {}),
       ...(repoUrl !== undefined
         ? { repoUrl: validateRequiredString(repoUrl, 'repoUrl') }
         : {}),

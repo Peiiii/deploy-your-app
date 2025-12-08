@@ -41,7 +41,8 @@ class ProjectRepository {
           provider_url TEXT,
           cloudflare_project_name TEXT,
           html_content TEXT,
-          owner_id TEXT
+          owner_id TEXT,
+          is_public INTEGER
         )`,
       )
       .run();
@@ -61,6 +62,16 @@ class ProjectRepository {
       // Ignore error if column already exists.
     }
 
+    // Backfill is_public column for existing databases. We default to 1 (public)
+    // so that legacy projects continue to appear in Explore.
+    try {
+      await db
+        .prepare(`ALTER TABLE projects ADD COLUMN is_public INTEGER DEFAULT 1`)
+        .run();
+    } catch {
+      // Ignore error if column already exists.
+    }
+
     schemaEnsured = true;
   }
 
@@ -71,10 +82,22 @@ class ProjectRepository {
         ? (row.source_type as string)
         : undefined;
 
+    let isPublic: boolean | undefined;
+    if (typeof row.is_public === 'number') {
+      isPublic = !!row.is_public;
+    } else if (typeof row.is_public === 'string') {
+      const normalized = row.is_public.toLowerCase();
+      isPublic = normalized === '1' || normalized === 'true';
+    } else {
+      // Legacy rows without this column are treated as public.
+      isPublic = true;
+    }
+
     return {
       id: String(row.id),
       ownerId:
         typeof row.owner_id === 'string' ? (row.owner_id as string) : undefined,
+      isPublic,
       name: String(row.name),
       repoUrl: String(row.repo_url),
       sourceType: sourceTypeValue
@@ -122,8 +145,8 @@ class ProjectRepository {
         `INSERT INTO projects (
           id, name, repo_url, source_type, slug, analysis_id, last_deployed, status,
           url, description, framework, category, tags, deploy_target, provider_url,
-          cloudflare_project_name, html_content, owner_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          cloudflare_project_name, html_content, owner_id, is_public
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING *`,
       )
       .bind(
@@ -145,6 +168,7 @@ class ProjectRepository {
         input.cloudflareProjectName ?? null,
         input.htmlContent ?? null,
         input.ownerId ?? null,
+        input.isPublic === undefined ? 1 : input.isPublic ? 1 : 0,
       )
       .first<ProjectRow>();
 
@@ -173,6 +197,7 @@ class ProjectRepository {
       description?: string;
       category?: string;
       tags?: string[];
+      isPublic?: boolean;
     },
   ): Promise<Project | null> {
     await this.ensureSchema(db);
@@ -198,6 +223,10 @@ class ProjectRepository {
     if (patch.tags !== undefined) {
       statements.push('tags = ?');
       params.push(JSON.stringify(patch.tags));
+    }
+    if (patch.isPublic !== undefined) {
+      statements.push('is_public = ?');
+      params.push(patch.isPublic ? 1 : 0);
     }
 
     if (statements.length === 0) {

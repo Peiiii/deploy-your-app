@@ -43,6 +43,7 @@ export class HttpProjectProvider implements IProjectProvider {
       description?: string;
       category?: string;
       tags?: string[];
+      isPublic?: boolean;
     },
   ): Promise<Project> {
     const response = await fetch(`${this.baseUrl}${API_ROUTES.PROJECTS}/${encodeURIComponent(id)}`, {

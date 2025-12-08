@@ -16,6 +16,7 @@ interface CreateProjectInput {
   htmlContent?: string;
   metadata?: ProjectMetadataOverrides;
   ownerId?: string;
+  isPublic?: boolean;
 }
 
 class ProjectService {
@@ -57,6 +58,7 @@ class ProjectService {
     return projectRepository.createProjectRecord(db, {
       id,
       ownerId: input.ownerId,
+      isPublic: input.isPublic ?? true,
       name: metadata.name,
       repoUrl: input.identifier,
       sourceType: normalizedSourceType,
@@ -82,6 +84,7 @@ class ProjectService {
       description?: string;
       category?: string;
       tags?: string[];
+      isPublic?: boolean;
     },
   ): Promise<Project | null> {
     return projectRepository.updateProjectRecord(db, id, patch);

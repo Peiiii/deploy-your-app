@@ -10,6 +10,7 @@ import { PresenterProvider, usePresenter } from './contexts/PresenterContext';
 import { useUIStore } from './stores/uiStore';
 import { useAuthStore } from './stores/authStore';
 import { AuthModal } from './components/AuthModal';
+import { Toast } from './components/Toast';
 import {
   Bell,
   HelpCircle,
@@ -66,6 +67,7 @@ const MainLayout = () => {
       <CrispChat />
       <AuthModal />
       <Sidebar />
+      <Toast />
       
       <main className="ml-0 md:ml-64 flex-1 w-full overflow-auto relative z-10 min-w-0">
         <header className="h-16 border-b border-app-border bg-app-bg/50 backdrop-blur sticky top-0 z-20 flex items-center justify-between px-4 md:px-8">

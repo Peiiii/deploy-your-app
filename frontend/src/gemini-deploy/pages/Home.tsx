@@ -444,7 +444,11 @@ export const Home: React.FC = () => {
   const projects = useProjectStore((state) => state.projects);
   const isLoadingProjects = useProjectStore((state) => state.isLoading);
   const navigate = useNavigate();
-  const apps = mapProjectsToApps(projects);
+  // Only show public projects on the marketing / explore surfaces.
+  const publicProjects = projects.filter(
+    (p) => p.isPublic === undefined || p.isPublic === true,
+  );
+  const apps = mapProjectsToApps(publicProjects);
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All Apps');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
