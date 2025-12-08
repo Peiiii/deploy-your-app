@@ -80,6 +80,17 @@ export interface ProjectStats {
 }
 
 // ---------------------------------------------------------------------------
+// Reactions (likes / favorites)
+// ---------------------------------------------------------------------------
+
+export interface ProjectReactions {
+  likesCount: number;
+  favoritesCount: number;
+  likedByCurrentUser: boolean;
+  favoritedByCurrentUser: boolean;
+}
+
+// ---------------------------------------------------------------------------
 // Auth / User types (kept lightweight and aligned with backend PublicUser)
 // ---------------------------------------------------------------------------
 

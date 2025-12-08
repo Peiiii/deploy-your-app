@@ -3,6 +3,7 @@ import type {
   BuildLog,
   DeploymentMetadata,
   ProjectStats,
+  ProjectReactions,
 } from '../types';
 import { DeploymentStatus, SourceType } from '../types';
 
@@ -44,4 +45,14 @@ export interface IAnalyticsProvider {
     projectId: string,
     range: '7d' | '30d',
   ): Promise<ProjectStats>;
+}
+
+export interface IReactionProvider {
+  getReactionsForProject(projectId: string): Promise<ProjectReactions>;
+  setLike(projectId: string, liked: boolean): Promise<ProjectReactions>;
+  setFavorite(
+    projectId: string,
+    favorited: boolean,
+  ): Promise<ProjectReactions>;
+  getFavoriteProjectIdsForCurrentUser(): Promise<string[]>;
 }

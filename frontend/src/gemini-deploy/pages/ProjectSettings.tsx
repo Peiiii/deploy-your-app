@@ -4,9 +4,12 @@ import {
   Clock,
   ExternalLink,
   GitBranch,
+  Heart,
+  HeartOff,
   RefreshCcw,
   Save,
-  Upload
+  Star,
+  Upload,
 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -16,6 +19,8 @@ import { usePresenter } from '../contexts/PresenterContext';
 import { useDeploymentStore } from '../stores/deploymentStore';
 import { useProjectStore } from '../stores/projectStore';
 import { useAnalyticsStore } from '../stores/analyticsStore';
+import { useReactionStore } from '../stores/reactionStore';
+import { useAuthStore } from '../stores/authStore';
 import type { Project } from '../types';
 import { DeploymentStatus, SourceType } from '../types';
 
@@ -35,9 +40,10 @@ function formatRepoLabel(project: Project): string {
   return repoUrl;
 }
 
-export const ProjectDetail: React.FC = () => {
+export const ProjectSettings: React.FC = () => {
   const presenter = usePresenter();
   const projects = useProjectStore((s) => s.projects);
+  const user = useAuthStore((s) => s.user);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingMetadata, setIsSavingMetadata] = useState(false);
   const [isRedeploying, setIsRedeploying] = useState(false);
@@ -63,6 +69,9 @@ export const ProjectDetail: React.FC = () => {
   );
 
   const analyticsEntry = useAnalyticsStore((s) =>
+    project ? s.byProjectId[project.id] : undefined,
+  );
+  const reactionEntry = useReactionStore((s) =>
     project ? s.byProjectId[project.id] : undefined,
   );
 
@@ -92,6 +101,12 @@ export const ProjectDetail: React.FC = () => {
     if (!project) return;
     presenter.analytics.loadProjectStats(project.id, '7d');
   }, [project, presenter.analytics]);
+
+  // Load reactions once the project is available.
+  useEffect(() => {
+    if (!project || !user) return;
+    presenter.reaction.loadReactionsForProject(project.id);
+  }, [project, user, presenter.reaction]);
 
   if (!projectId) {
     return (
@@ -327,6 +342,62 @@ export const ProjectDetail: React.FC = () => {
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                   placeholder="Friendly app name shown in Explore"
                 />
+              </div>
+              <div className="flex items-center justify-between pt-1">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-slate-700 dark:text-gray-200">
+                    Like & favorite
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-gray-400">
+                    Express appreciation or save this app to your favorites.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!user) {
+                        presenter.auth.openAuthModal('login');
+                        return;
+                      }
+                      presenter.reaction.toggleLike(project.id);
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px] text-slate-700 dark:text-slate-200 hover:border-pink-500 hover:text-pink-600 dark:hover:text-pink-400"
+                  >
+                    {reactionEntry?.likedByCurrentUser ? (
+                      <Heart className="w-3 h-3 fill-pink-500 text-pink-500" />
+                    ) : (
+                      <HeartOff className="w-3 h-3" />
+                    )}
+                    <span>
+                      {reactionEntry?.likesCount ?? 0}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!user) {
+                        presenter.auth.openAuthModal('login');
+                        return;
+                      }
+                      presenter.reaction.toggleFavorite(project.id);
+                    }}
+                    className={`inline-flex items-center justify-center w-7 h-7 rounded-full border text-[11px] ${
+                      reactionEntry?.favoritedByCurrentUser
+                        ? 'bg-yellow-400/90 border-yellow-500 text-yellow-900'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300'
+                    }`}
+                    aria-label="Toggle favorite"
+                  >
+                    <Star
+                      className={`w-3 h-3 ${
+                        reactionEntry?.favoritedByCurrentUser
+                          ? 'fill-current'
+                          : ''
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="block text-xs font-medium text-slate-500 dark:text-gray-400">

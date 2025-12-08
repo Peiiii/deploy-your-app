@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ExternalLink, GitBranch, Clock, FolderArchive, Zap, Plus, TrendingUp, FileText, GraduationCap, Wand2, Briefcase, FileCode, Lock } from 'lucide-react';
+import { ExternalLink, GitBranch, Clock, FolderArchive, Zap, Plus, TrendingUp, FileText, GraduationCap, Wand2, Briefcase, FileCode, Lock, Star } from 'lucide-react';
 import { useProjectStore } from '../stores/projectStore';
 import { useAuthStore } from '../stores/authStore';
 import { useAnalyticsStore } from '../stores/analyticsStore';
+import { useReactionStore } from '../stores/reactionStore';
 import { usePresenter } from '../contexts/PresenterContext';
 import { URLS } from '../constants';
 import { SourceType } from '../types';
@@ -14,6 +15,8 @@ export const Dashboard: React.FC = () => {
   const presenter = usePresenter();
   const navigate = useNavigate();
   const analyticsByProject = useAnalyticsStore((s) => s.byProjectId);
+  const reactionsByProject = useReactionStore((s) => s.byProjectId);
+  const [showFavoritesOnly, setShowFavoritesOnly] = React.useState(false);
 
   const projects = React.useMemo(
     () => (user ? allProjects.filter((p) => p.ownerId === user.id) : []),
@@ -26,6 +29,11 @@ export const Dashboard: React.FC = () => {
       presenter.analytics.loadProjectStats(project.id, '7d');
     });
   }, [projects, presenter.analytics]);
+
+  React.useEffect(() => {
+    // Preload favorites for the current user so the dashboard can filter.
+    presenter.reaction.loadFavoritesForCurrentUser();
+  }, [presenter.reaction]);
 
   const totalViews7d = React.useMemo(() => {
     return projects.reduce((sum, project) => {
@@ -68,6 +76,31 @@ export const Dashboard: React.FC = () => {
         <div>
           <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">My Projects</h2>
           <p className="text-slate-500 dark:text-gray-400">Manage your live apps and deploy new ones.</p>
+          <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1 text-xs">
+            <button
+              type="button"
+              onClick={() => setShowFavoritesOnly(false)}
+              className={`px-2 py-1 rounded-full ${
+                !showFavoritesOnly
+                  ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow'
+                  : 'text-slate-500 dark:text-slate-400'
+              }`}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowFavoritesOnly(true)}
+              className={`px-2 py-1 rounded-full inline-flex items-center gap-1 ${
+                showFavoritesOnly
+                  ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow'
+                  : 'text-slate-500 dark:text-slate-400'
+              }`}
+            >
+              <Star className="w-3 h-3" />
+              Favorites
+            </button>
+          </div>
         </div>
         <button
           onClick={() => navigate('/deploy')}
@@ -109,11 +142,24 @@ export const Dashboard: React.FC = () => {
       {/* Projects Grid */}
       <div>
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-            Recent Creations <span className="text-xs bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 px-2 py-0.5 rounded-full">{projects.length}</span>
+            {showFavoritesOnly ? 'Favorite Projects' : 'Recent Creations'}{' '}
+            <span className="text-xs bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 px-2 py-0.5 rounded-full">
+              {projects.filter((p) =>
+                showFavoritesOnly
+                  ? reactionsByProject[p.id]?.favoritedByCurrentUser
+                  : true,
+              ).length}
+            </span>
         </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
+            {projects
+              .filter((project) =>
+                showFavoritesOnly
+                  ? reactionsByProject[project.id]?.favoritedByCurrentUser
+                  : true,
+              )
+              .map((project) => (
             <div key={project.id} className="glass-card rounded-xl p-6 group relative overflow-hidden transition-all duration-300">
                 {/* Status Indicator Dot */}
                 <div className={`absolute top-4 right-4 flex items-center gap-2 px-2 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider ${

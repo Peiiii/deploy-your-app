@@ -110,7 +110,7 @@ export class DeploymentManager {
   };
 
   /**
-   * Public entrypoint for redeploying an existing project (from Dashboard / ProjectDetail).
+   * Public entrypoint for redeploying an existing project (from Dashboard / ProjectSettings).
    * It reuses the same SSE-based deployment pipeline as the initial Magic Box flow so
    * that the UI (logs, status transitions) stays consistent.
    */

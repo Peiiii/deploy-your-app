@@ -5,6 +5,7 @@ import { deployController } from './controllers/deploy.controller';
 import { authController } from './controllers/auth.controller';
 import { projectsController } from './controllers/projects.controller';
 import { analyticsController } from './controllers/analytics.controller';
+import { engagementController } from './controllers/engagement.controller';
 
 /**
  * Build the API router for a given request/environment.
@@ -134,6 +135,61 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     method: 'GET',
     handler: (req, params) =>
       analyticsController.getProjectStats(req, env, requireDb(), params.id),
+  });
+
+  // -----------------
+  // Engagement routes (likes / favorites)
+  // -----------------
+
+  router.add({
+    path: '/api/v1/projects/:id/reactions',
+    method: 'GET',
+    handler: (req, params) =>
+      engagementController.getReactionsForProject(
+        req,
+        env,
+        requireDb(),
+        params.id,
+      ),
+  });
+
+  router.add({
+    path: '/api/v1/projects/:id/like',
+    method: 'POST',
+    handler: (req, params) =>
+      engagementController.likeProject(req, env, requireDb(), params.id),
+  });
+
+  router.add({
+    path: '/api/v1/projects/:id/like',
+    method: 'DELETE',
+    handler: (req, params) =>
+      engagementController.unlikeProject(req, env, requireDb(), params.id),
+  });
+
+  router.add({
+    path: '/api/v1/projects/:id/favorite',
+    method: 'POST',
+    handler: (req, params) =>
+      engagementController.favoriteProject(req, env, requireDb(), params.id),
+  });
+
+  router.add({
+    path: '/api/v1/projects/:id/favorite',
+    method: 'DELETE',
+    handler: (req, params) =>
+      engagementController.unfavoriteProject(req, env, requireDb(), params.id),
+  });
+
+  router.add({
+    path: '/api/v1/me/favorites',
+    method: 'GET',
+    handler: (req) =>
+      engagementController.listFavoritesForCurrentUser(
+        req,
+        env,
+        requireDb(),
+      ),
   });
 
   return router;

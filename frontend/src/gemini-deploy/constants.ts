@@ -12,6 +12,12 @@ export const API_ROUTES = {
   ANALYZE: '/analyze',
   STATUS: '/status',
   PROJECT_STATS: (id: string) => `/projects/${encodeURIComponent(id)}/stats`,
+  PROJECT_REACTIONS: (id: string) =>
+    `/projects/${encodeURIComponent(id)}/reactions`,
+  PROJECT_LIKE: (id: string) => `/projects/${encodeURIComponent(id)}/like`,
+  PROJECT_FAVORITE: (id: string) =>
+    `/projects/${encodeURIComponent(id)}/favorite`,
+  MY_FAVORITES: '/me/favorites',
 };
 
 export const SECURITY_CONSTANTS = {
