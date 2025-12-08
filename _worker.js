@@ -25,31 +25,43 @@ export default {
 
     // Only proxy API requests; everything else is a static asset.
     if (url.pathname.startsWith('/api/v1')) {
-      if (!env.BACKEND_ORIGIN) {
-        return new Response('BACKEND_ORIGIN is not configured', {
-          status: 500,
+      try {
+        if (!env.BACKEND_ORIGIN) {
+          return new Response('BACKEND_ORIGIN is not configured', {
+            status: 500,
+          });
+        }
+
+        // Build the target URL on the Aliyun backend.
+        // Example: BACKEND_ORIGIN = 'https://api.example.com'
+        //   /api/v1/projects → https://api.example.com/api/v1/projects
+        const backendOrigin = new URL(env.BACKEND_ORIGIN);
+        backendOrigin.pathname = url.pathname;
+        backendOrigin.search = url.search;
+
+        // Clone the incoming request but point it at the backend URL.
+        const backendRequest = new Request(backendOrigin.toString(), request);
+
+        // Optionally forward extra headers for logging/auditing.
+        backendRequest.headers.set('x-forwarded-host', url.host);
+        backendRequest.headers.set(
+          'x-forwarded-proto',
+          url.protocol.replace(':', ''),
+        );
+
+        // Important: return the fetch directly so streaming (SSE, etc.) still works.
+        return fetch(backendRequest);
+      } catch (err) {
+        // Log full error to Cloudflare logs to avoid opaque 1101 pages.
+        console.error('API proxy error in _worker.js:', err);
+        // Surface a simple error to the client so it is debuggable.
+        const message =
+          err && err.message ? err.message : String(err ?? 'Unknown error');
+        return new Response(`API proxy error: ${message}`, {
+          status: 502,
+          headers: { 'Content-Type': 'text/plain' },
         });
       }
-
-      // Build the target URL on the Aliyun backend.
-      // Example: BACKEND_ORIGIN = 'https://api.example.com'
-      //   /api/v1/projects → https://api.example.com/api/v1/projects
-      const backendOrigin = new URL(env.BACKEND_ORIGIN);
-      backendOrigin.pathname = url.pathname;
-      backendOrigin.search = url.search;
-
-      // Clone the incoming request but point it at the backend URL.
-      const backendRequest = new Request(backendOrigin.toString(), request);
-
-      // Optionally forward extra headers for logging/auditing.
-      backendRequest.headers.set(
-        'x-forwarded-host',
-        url.host,
-      );
-      backendRequest.headers.set('x-forwarded-proto', url.protocol.replace(':', ''));
-
-      // Important: return the fetch directly so streaming (SSE, etc.) still works.
-      return fetch(backendRequest);
     }
 
     // For non-API requests, fall back to the static asset handler.
@@ -57,4 +69,3 @@ export default {
     return env.ASSETS.fetch(request);
   },
 };
-
