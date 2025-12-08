@@ -1,6 +1,11 @@
-import type { IProjectProvider, IDeploymentProvider } from './interfaces';
+import type {
+  IProjectProvider,
+  IDeploymentProvider,
+  IAnalyticsProvider,
+} from './interfaces';
 import { HttpProjectProvider } from './http/HttpProjectProvider';
 import { HttpDeploymentProvider } from './http/HttpDeploymentProvider';
+import { HttpAnalyticsProvider } from './http/HttpAnalyticsProvider';
 
 export class ServiceFactory {
   static getProjectProvider(): IProjectProvider {
@@ -9,5 +14,9 @@ export class ServiceFactory {
 
   static getDeploymentProvider(): IDeploymentProvider {
     return new HttpDeploymentProvider();
+  }
+
+  static getAnalyticsProvider(): IAnalyticsProvider {
+    return new HttpAnalyticsProvider();
   }
 }

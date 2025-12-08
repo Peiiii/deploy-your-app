@@ -1,21 +1,21 @@
 import {
   AlertTriangle,
   ArrowLeft,
-  CheckCircle2,
   Clock,
   ExternalLink,
   GitBranch,
   RefreshCcw,
   Save,
-  Upload,
+  Upload
 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { DeploymentSession } from '../components/DeploymentSession';
 import { URLS } from '../constants';
 import { usePresenter } from '../contexts/PresenterContext';
-import { DeploymentSession } from '../components/DeploymentSession';
 import { useDeploymentStore } from '../stores/deploymentStore';
 import { useProjectStore } from '../stores/projectStore';
+import { useAnalyticsStore } from '../stores/analyticsStore';
 import type { Project } from '../types';
 import { DeploymentStatus, SourceType } from '../types';
 
@@ -62,6 +62,10 @@ export const ProjectDetail: React.FC = () => {
     [projects, projectId],
   );
 
+  const analyticsEntry = useAnalyticsStore((s) =>
+    project ? s.byProjectId[project.id] : undefined,
+  );
+
   // Load projects if not available yet
   useEffect(() => {
     if (!projectId) return;
@@ -82,6 +86,12 @@ export const ProjectDetail: React.FC = () => {
       );
     }
   }, [project]);
+
+  // Load analytics once the project is available.
+  useEffect(() => {
+    if (!project) return;
+    presenter.analytics.loadProjectStats(project.id, '7d');
+  }, [project, presenter.analytics]);
 
   if (!projectId) {
     return (
@@ -236,18 +246,18 @@ export const ProjectDetail: React.FC = () => {
           <div className="flex flex-col items-end gap-1 text-xs">
             <div
               className={`inline-flex items-center gap-2 px-2 py-1 rounded-full border uppercase tracking-wider font-bold ${project.status === 'Live'
-                  ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20'
-                  : project.status === 'Failed'
-                    ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
-                    : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20'
+                ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20'
+                : project.status === 'Failed'
+                  ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
+                  : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20'
                 }`}
             >
               <span
                 className={`w-1.5 h-1.5 rounded-full ${project.status === 'Live'
-                    ? 'bg-green-500 dark:bg-green-400 animate-pulse'
-                    : project.status === 'Failed'
-                      ? 'bg-red-500 dark:bg-red-400'
-                      : 'bg-yellow-500 dark:bg-yellow-400'
+                  ? 'bg-green-500 dark:bg-green-400 animate-pulse'
+                  : project.status === 'Failed'
+                    ? 'bg-red-500 dark:bg-red-400'
+                    : 'bg-yellow-500 dark:bg-yellow-400'
                   }`}
               />
               {project.status}
@@ -379,17 +389,15 @@ export const ProjectDetail: React.FC = () => {
                       setError('Failed to update visibility.');
                     }
                   }}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full border transition-colors ${
-                    project.isPublic ?? true
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full border transition-colors ${project.isPublic ?? true
                       ? 'bg-green-500/80 border-green-500'
                       : 'bg-slate-400/60 dark:bg-slate-700/80 border-slate-400 dark:border-slate-600'
-                  }`}
+                    }`}
                   aria-label="Toggle public visibility"
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                      project.isPublic ?? true ? 'translate-x-5' : 'translate-x-1'
-                    }`}
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${project.isPublic ?? true ? 'translate-x-5' : 'translate-x-1'
+                      }`}
                   />
                 </button>
               </div>
@@ -484,6 +492,50 @@ export const ProjectDetail: React.FC = () => {
               ) : (
                 <p className="text-[11px] text-slate-400 dark:text-gray-500">
                   Not accessible yet.
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-4 space-y-3 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 dark:text-gray-400">
+                  Views (last 7 days)
+                </span>
+                <span className="text-slate-900 dark:text-white font-medium">
+                  {analyticsEntry?.stats
+                    ? analyticsEntry.stats.views7d.toString()
+                    : analyticsEntry?.isLoading
+                      ? '...'
+                      : '0'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 dark:text-gray-400">
+                  Total views
+                </span>
+                <span className="text-slate-900 dark:text-white font-medium">
+                  {analyticsEntry?.stats
+                    ? analyticsEntry.stats.totalViews.toString()
+                    : analyticsEntry?.isLoading
+                      ? '...'
+                      : '0'}
+                </span>
+              </div>
+              {analyticsEntry?.stats?.lastViewAt && (
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 dark:text-gray-400">
+                    Last view
+                  </span>
+                  <span className="text-slate-900 dark:text-white font-medium">
+                    {new Date(
+                      analyticsEntry.stats.lastViewAt,
+                    ).toLocaleString()}
+                  </span>
+                </div>
+              )}
+              {analyticsEntry?.error && (
+                <p className="text-[11px] text-red-500 dark:text-red-400">
+                  {analyticsEntry.error}
                 </p>
               )}
             </div>

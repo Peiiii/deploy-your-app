@@ -14,6 +14,9 @@ APPS_ROOT_DOMAIN = "gemigo.app"
 ## After you deploy workers/screenshot-service, replace the value below with
 ## the deployed URL (e.g. "https://gemigo-screenshot-service.<account>.workers.dev").
 SCREENSHOT_SERVICE_URL = "https://gemigo-screenshot-service.15353764479037.workers.dev"
+## Optional: base URL of the API Worker for analytics.
+# For example: "https://gemigo-api.<account>.workers.dev/api/v1"
+ANALYTICS_API_BASE_URL = "https://gemigo-api.15353764479037.workers.dev/api/v1"
 
 ## Optional: shared secret for securing calls to the screenshot service.
 # SCREENSHOT_SERVICE_TOKEN = "change-me"

@@ -30,6 +30,9 @@ type Env = {
   // body { url: string } and return a PNG image.
   SCREENSHOT_SERVICE_URL?: string;
   SCREENSHOT_SERVICE_TOKEN?: string;
+  // Optional analytics API endpoint (e.g. https://gemigo-api.../api/v1).
+  // When configured, the gateway will POST page view events for each app.
+  ANALYTICS_API_BASE_URL?: string;
 };
 
 export default {
@@ -153,6 +156,13 @@ export default {
       return new Response('Not found', { status: 404 });
     }
 
+    // Fire-and-forget page view recording for top-level HTML / SPA routes.
+    if (isPageViewRequest(url)) {
+      recordPageView(env, subdomain).catch((err) => {
+        console.error('Failed to record page view', err);
+      });
+    }
+
     const headers = new Headers();
     if (typeof object.writeHttpMetadata === 'function') {
       object.writeHttpMetadata(headers);
@@ -200,4 +210,32 @@ function getContentTypeFromExt(ext: string): string {
     default:
       return 'application/octet-stream';
   }
+}
+
+function isPageViewRequest(url: URL): boolean {
+  const pathname = url.pathname;
+  if (!pathname || pathname === '/' || pathname === '/index.html') {
+    return true;
+  }
+  // Heuristic: treat SPA-style routes without a file extension as page views.
+  const lastSegment = pathname.split('/').pop() ?? '';
+  return !lastSegment.includes('.');
+}
+
+async function recordPageView(env: Env, slug: string): Promise<void> {
+  const base = env.ANALYTICS_API_BASE_URL;
+  if (!base) return;
+  const apiBase = base.replace(/\/+$/, '');
+  const url = `${apiBase}/analytics/pageview`;
+  const body = JSON.stringify({
+    slug,
+    timestamp: new Date().toISOString(),
+  });
+  await fetch(url, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body,
+  });
 }

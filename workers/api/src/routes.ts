@@ -4,6 +4,7 @@ import { createRouter, type Router } from './utils/routing';
 import { deployController } from './controllers/deploy.controller';
 import { authController } from './controllers/auth.controller';
 import { projectsController } from './controllers/projects.controller';
+import { analyticsController } from './controllers/analytics.controller';
 
 /**
  * Build the API router for a given request/environment.
@@ -117,6 +118,23 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
       projectsController.updateProject(req, env, requireDb(), params.id),
   });
 
+  // -----------------
+  // Analytics routes
+  // -----------------
+
+  router.add({
+    path: '/api/v1/analytics/pageview',
+    method: 'POST',
+    handler: (req) =>
+      analyticsController.recordPageView(req, env, requireDb()),
+  });
+
+  router.add({
+    path: '/api/v1/projects/:id/stats',
+    method: 'GET',
+    handler: (req, params) =>
+      analyticsController.getProjectStats(req, env, requireDb(), params.id),
+  });
+
   return router;
 }
-

@@ -63,6 +63,23 @@ export interface DeploymentMetadata {
 }
 
 // ---------------------------------------------------------------------------
+// Analytics types
+// ---------------------------------------------------------------------------
+
+export interface ProjectDailyStatsPoint {
+  date: string; // YYYY-MM-DD
+  views: number;
+}
+
+export interface ProjectStats {
+  slug: string;
+  totalViews: number;
+  views7d: number;
+  lastViewAt?: string;
+  points: ProjectDailyStatsPoint[];
+}
+
+// ---------------------------------------------------------------------------
 // Auth / User types (kept lightweight and aligned with backend PublicUser)
 // ---------------------------------------------------------------------------
 

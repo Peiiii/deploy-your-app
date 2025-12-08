@@ -11,6 +11,7 @@ export const API_ROUTES = {
   DEPLOY: '/deploy',
   ANALYZE: '/analyze',
   STATUS: '/status',
+  PROJECT_STATS: (id: string) => `/projects/${encodeURIComponent(id)}/stats`,
 };
 
 export const SECURITY_CONSTANTS = {

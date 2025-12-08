@@ -90,6 +90,10 @@ class ProjectService {
     return projectRepository.updateProjectRecord(db, id, patch);
   }
 
+  async getProjectById(db: D1Database, id: string): Promise<Project | null> {
+    return projectRepository.getProjectById(db, id);
+  }
+
   private buildProjectUrl(
     env: ApiWorkerEnv,
     slug: string,

@@ -246,6 +246,15 @@ class ProjectRepository {
       .first<ProjectRow>();
     return row ? this.mapRowToProject(row) : null;
   }
+
+  async getProjectById(db: D1Database, id: string): Promise<Project | null> {
+    await this.ensureSchema(db);
+    const row = await db
+      .prepare(`SELECT * FROM projects WHERE id = ?`)
+      .bind(id)
+      .first<ProjectRow>();
+    return row ? this.mapRowToProject(row) : null;
+  }
 }
 
 export const projectRepository = new ProjectRepository();

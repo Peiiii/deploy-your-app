@@ -1,4 +1,9 @@
-import type { Project, BuildLog, DeploymentMetadata } from '../types';
+import type {
+  Project,
+  BuildLog,
+  DeploymentMetadata,
+  ProjectStats,
+} from '../types';
 import { DeploymentStatus, SourceType } from '../types';
 
 export interface DeploymentResult {
@@ -32,4 +37,11 @@ export interface IDeploymentProvider {
     onLog: (log: BuildLog) => void,
     onStatusChange: (status: DeploymentStatus) => void,
   ): Promise<DeploymentResult | undefined>;
+}
+
+export interface IAnalyticsProvider {
+  getProjectStats(
+    projectId: string,
+    range: '7d' | '30d',
+  ): Promise<ProjectStats>;
 }
