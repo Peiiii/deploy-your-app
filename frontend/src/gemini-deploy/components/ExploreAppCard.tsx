@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { useState } from 'react';
 import { Heart, Play, Star, User, Zap } from 'lucide-react';
 import { URLS } from '../constants';
@@ -294,4 +295,3 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
     </div>
   );
 };
-

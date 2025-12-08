@@ -1,9 +1,3 @@
-type LikeRow = {
-  project_id: string;
-  user_id: string;
-  created_at: string;
-};
-
 type FavoriteRow = {
   project_id: string;
   user_id: string;
