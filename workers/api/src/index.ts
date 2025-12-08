@@ -91,6 +91,15 @@ async function handleRequest(
     return proxyDeployStream(request, env, streamMatch[1]);
   }
 
+  // All project-related routes require a configured D1 binding.
+  if (!env.PROJECTS_DB) {
+    console.error('PROJECTS_DB binding is missing in Worker environment.');
+    return jsonResponse(
+      { error: 'Database is not configured for this API worker.' },
+      500,
+    );
+  }
+
   const repository = new ProjectRepository(env.PROJECTS_DB);
   const metadataService = new MetadataService(env);
   const projectService = new ProjectService(
