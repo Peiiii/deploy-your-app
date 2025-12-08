@@ -105,21 +105,21 @@ jobs:
               if docker ps --filter "name=${CONTAINER_NAME}" --format "{{.Names}}" | grep -q "${CONTAINER_NAME}"; then
                 echo "✅ Container is running"
                 docker ps --filter "name=${CONTAINER_NAME}" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-            else
-              echo "❌ Container exists but is not running"
-              echo "📋 Container status:"
-              docker ps -a --filter "name=${CONTAINER_NAME}" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-              echo ""
-              echo "📝 Container exit code:"
-              docker inspect "${CONTAINER_NAME}" --format='{{.State.ExitCode}}' 2>/dev/null || echo "Unknown"
-              echo ""
-              echo "📝 Container logs (last 50 lines):"
-              docker logs --tail 50 "${CONTAINER_NAME}" 2>&1 || echo "Failed to get logs"
-              echo ""
-              echo "🔍 Container state details:"
-              docker inspect "${CONTAINER_NAME}" --format='State: {{.State.Status}}, ExitCode: {{.State.ExitCode}}, Error: {{.State.Error}}' 2>/dev/null || echo "Failed to inspect"
-              exit 1
-            fi
+              else
+                echo "❌ Container exists but is not running"
+                echo "📋 Container status:"
+                docker ps -a --filter "name=${CONTAINER_NAME}" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+                echo ""
+                echo "📝 Container exit code:"
+                docker inspect "${CONTAINER_NAME}" --format='{{.State.ExitCode}}' 2>/dev/null || echo "Unknown"
+                echo ""
+                echo "📝 Container logs (last 50 lines):"
+                docker logs --tail 50 "${CONTAINER_NAME}" 2>&1 || echo "Failed to get logs"
+                echo ""
+                echo "🔍 Container state details:"
+                docker inspect "${CONTAINER_NAME}" --format='State: {{.State.Status}}, ExitCode: {{.State.ExitCode}}, Error: {{.State.Error}}' 2>/dev/null || echo "Failed to inspect"
+                exit 1
+              fi
             else
               echo "❌ Container does not exist"
               echo "📋 All containers:"
@@ -129,16 +129,16 @@ jobs:
               docker images | grep deploy-your-app || echo "No deploy-your-app images found"
               exit 1
             fi
-            
-            # Test API endpoint
+
+            # Basic HTTP connectivity check (Node backend only exposes deploy APIs;
+            # projects CRUD is handled by the Cloudflare Worker now).
             echo ""
-            echo "🧪 Testing API endpoint..."
-            if curl -f -s http://localhost:${PORT}/api/v1/projects > /dev/null 2>&1; then
-              echo "✅ API is responding (HTTP 200)"
-              echo "🌐 Service URL: http://${{ secrets.ALIYUN_HOST }}:${PORT}"
-              echo "📊 API endpoint: http://${{ secrets.ALIYUN_HOST }}:${PORT}/api/v1/projects"
+            echo "🧪 Checking HTTP connectivity on port ${PORT}..."
+            if curl -s --max-time 5 -o /dev/null "http://localhost:${PORT}/"; then
+              echo "✅ HTTP endpoint is reachable"
+              echo "🌐 Service base URL: http://${{ secrets.ALIYUN_HOST }}:${PORT}"
             else
-              echo "❌ API is not responding"
+              echo "❌ HTTP endpoint is not reachable"
               echo "📝 Container logs:"
               docker logs --tail 30 "${CONTAINER_NAME}" 2>&1 || echo "Failed to get logs"
               echo ""
