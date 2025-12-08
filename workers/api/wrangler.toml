@@ -12,6 +12,8 @@ APPS_ROOT_DOMAIN = "gemigo.app"
 DEPLOY_TARGET = "r2"
 PLATFORM_AI_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 PLATFORM_AI_MODEL = "qwen3-max"
+# Where the frontend lives; used to build OAuth redirect URLs.
+AUTH_REDIRECT_BASE = "https://gemigo.io"
 # URL of the Node deployment service used for /deploy requests.
 # Override per environment (e.g. via `wrangler secret|var put`) to point at the
 # real backend host. Local dev defaults to the Node dev server.

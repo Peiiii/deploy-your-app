@@ -167,6 +167,8 @@ docker-compose logs -f
 
 ## 环境变量配置
 
+> 关于整体环境变量、Cloudflare Worker 与 Node 后端的对应关系，建议配合 `docs/ENVIRONMENT.md` 一起阅读；关于用户体系和 OAuth 的变量，详见 `docs/AUTH_SETUP.md`。
+
 ### 在 GitHub 中配置环境变量
 
 **重要：** 敏感信息（API tokens、密钥）应该配置在 **Secrets** 中，非敏感配置可以放在 **Variables** 中。
@@ -212,6 +214,23 @@ docker-compose logs -f
 - 通过 SSH 传递到阿里云服务器
 - 部署脚本将这些环境变量传递给 Docker 容器
 - 容器内的应用代码从环境变量中读取配置
+
+### API Worker（Cloudflare）环境变量（补充）
+
+部署完阿里云上的 Node 部署服务后，还需要确保 Cloudflare API Worker（`workers/api` → `gemigo-api`）的环境变量正确：
+
+- 在 `workers/api/wrangler.toml` 的 `[vars]` 中配置非敏感变量，例如：
+  - `APPS_ROOT_DOMAIN`、`DEPLOY_TARGET`、`PLATFORM_AI_*`、`AUTH_REDIRECT_BASE`
+  - `DEPLOY_SERVICE_BASE_URL`（指向阿里云 Node API，例如 `https://<你的服务器>/api/v1`）
+- 在 Cloudflare Dashboard → Workers & Pages → `gemigo-api` → Settings → Variables/Secrets 中配置敏感变量：
+  - `PASSWORD_SALT`
+  - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
+  - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`
+
+具体字段说明与配置步骤，参见：
+
+- `docs/ENVIRONMENT.md` 中的「3.3 API Worker」
+- `docs/AUTH_SETUP.md` 中的「Worker 环境变量（Auth 相关）」章节
 
 ### 在服务器上配置环境变量（不推荐用于敏感信息）
 
