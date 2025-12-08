@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ExternalLink, GitBranch, Clock, FolderArchive, Zap, Plus, TrendingUp, FileText, GraduationCap, Wand2, Briefcase, FileCode, Lock } from 'lucide-react';
 import { useProjectStore } from '../stores/projectStore';
 import { useAuthStore } from '../stores/authStore';
+import { useAnalyticsStore } from '../stores/analyticsStore';
 import { usePresenter } from '../contexts/PresenterContext';
 import { URLS } from '../constants';
 import { SourceType } from '../types';
@@ -12,11 +13,26 @@ export const Dashboard: React.FC = () => {
   const allProjects = useProjectStore((state) => state.projects);
   const presenter = usePresenter();
   const navigate = useNavigate();
+  const analyticsByProject = useAnalyticsStore((s) => s.byProjectId);
 
   const projects = React.useMemo(
     () => (user ? allProjects.filter((p) => p.ownerId === user.id) : []),
     [allProjects, user],
   );
+
+  React.useEffect(() => {
+    // Load analytics for each of the user's projects (Dashboard view).
+    projects.forEach((project) => {
+      presenter.analytics.loadProjectStats(project.id, '7d');
+    });
+  }, [projects, presenter.analytics]);
+
+  const totalViews7d = React.useMemo(() => {
+    return projects.reduce((sum, project) => {
+      const entry = analyticsByProject[project.id];
+      return sum + (entry?.stats?.views7d ?? 0);
+    }, 0);
+  }, [projects, analyticsByProject]);
 
   if (!user) {
     return (
@@ -75,8 +91,8 @@ export const Dashboard: React.FC = () => {
         <StatCard 
             icon={TrendingUp} 
             label="TOTAL VIEWS" 
-            value="12.4k" 
-            sublabel="People love your stuff" 
+            value={totalViews7d.toLocaleString()} 
+            sublabel="Last 7 days across all your apps" 
             color="text-purple-600 dark:text-purple-400"
             bgColor="bg-purple-500/10"
         />
