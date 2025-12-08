@@ -167,11 +167,11 @@ export class DeploymentManager {
 
   resetWizard = () => {
     useDeploymentStore.getState().actions.reset();
-  }
+  };
 
   handleSourceChange = (type: SourceType) => {
     useDeploymentStore.getState().actions.setSourceType(type);
-  }
+  };
 
   handleFileDrop = (file: File) => {
     if (file.name.endsWith('.zip')) {
@@ -188,7 +188,7 @@ export class DeploymentManager {
     } else {
       alert('Please upload a .zip file');
     }
-  }
+  };
 
   handleHtmlFileUpload = async (file: File) => {
     if (!file.name.toLowerCase().endsWith('.html')) {
@@ -210,7 +210,7 @@ export class DeploymentManager {
       console.error('Failed to read HTML file', err);
       alert('Failed to read HTML file. Please try again.');
     }
-  }
+  };
 
   autoProjectName = (val: string, type: SourceType) => {
     if (type === SourceType.GITHUB) {
@@ -221,5 +221,21 @@ export class DeploymentManager {
       const baseName = val.replace(/\.zip$/i, '');
       if (baseName) useDeploymentStore.getState().actions.setProjectName(baseName);
     }
-  }
+  };
+
+  setRepoUrl = (url: string): void => {
+    useDeploymentStore.getState().actions.setRepoUrl(url);
+  };
+
+  setHtmlContent = (html: string): void => {
+    useDeploymentStore.getState().actions.setHtmlContent(html);
+  };
+
+  setProjectName = (name: string): void => {
+    useDeploymentStore.getState().actions.setProjectName(name);
+  };
+
+  clearZipFile = (): void => {
+    useDeploymentStore.getState().actions.setZipFile(null);
+  };
 }

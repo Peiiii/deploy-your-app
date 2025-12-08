@@ -15,6 +15,8 @@ export enum SourceType {
 
 export interface Project {
   id: string;
+  // Owner user ID for this project (undefined for legacy/public records).
+  ownerId?: string;
   name: string;
   repoUrl: string; // Used as source identifier (URL for git, filename for zip)
   sourceType?: SourceType;
@@ -55,4 +57,22 @@ export interface DeploymentMetadata {
   category: string;
   tags: string[];
   url?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Auth / User types (kept lightweight and aligned with backend PublicUser)
+// ---------------------------------------------------------------------------
+
+export interface AuthProviders {
+  email: boolean;
+  google: boolean;
+  github: boolean;
+}
+
+export interface User {
+  id: string;
+  email: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
+  providers: AuthProviders;
 }

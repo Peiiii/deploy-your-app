@@ -5,8 +5,9 @@ import {
   type ProjectMetadataOverrides,
 } from '../types/project';
 import { slugify } from '../utils/strings';
-import { ProjectRepository } from '../repositories/project.repository';
-import { MetadataService } from './metadata.service';
+import { projectRepository } from '../repositories/project.repository';
+import { metadataService } from './metadata.service';
+import { configService } from './config.service';
 
 interface CreateProjectInput {
   name: string;
@@ -14,26 +15,34 @@ interface CreateProjectInput {
   sourceType?: SourceType;
   htmlContent?: string;
   metadata?: ProjectMetadataOverrides;
+  ownerId?: string;
 }
 
-export class ProjectService {
-  constructor(
-    private readonly repository: ProjectRepository,
-    private readonly metadataService: MetadataService,
-    private readonly env: ApiWorkerEnv,
-  ) {}
-
-  async getProjects(): Promise<Project[]> {
-    return this.repository.getAllProjects();
+class ProjectService {
+  async getProjects(db: D1Database): Promise<Project[]> {
+    return projectRepository.getAllProjects(db);
   }
 
-  async createProject(input: CreateProjectInput): Promise<Project> {
+  async getProjectsForUser(
+    db: D1Database,
+    ownerId: string,
+  ): Promise<Project[]> {
+    // Simple filter by owner on top of repository – keeps repository focused on persistence.
+    const all = await projectRepository.getAllProjects(db);
+    return all.filter((p) => p.ownerId === ownerId);
+  }
+
+  async createProject(
+    env: ApiWorkerEnv,
+    db: D1Database,
+    input: CreateProjectInput,
+  ): Promise<Project> {
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
     const normalizedSourceType = input.sourceType ?? SourceType.GitHub;
     const slugSeed = slugify(input.name);
 
-    const metadata = await this.metadataService.ensureProjectMetadata({
+    const metadata = await metadataService.ensureProjectMetadata(env, {
       seedName: input.name,
       identifier: input.identifier,
       sourceType: normalizedSourceType,
@@ -42,11 +51,12 @@ export class ProjectService {
       overrides: input.metadata,
     });
 
-    const deployTarget = this.resolveDeployTarget();
-    const url = this.buildProjectUrl(metadata.slug, deployTarget);
+    const deployTarget = configService.getDeployTarget(env);
+    const url = this.buildProjectUrl(env, metadata.slug, deployTarget);
 
-    return this.repository.createProjectRecord({
+    return projectRepository.createProjectRecord(db, {
       id,
+      ownerId: input.ownerId,
       name: metadata.name,
       repoUrl: input.identifier,
       sourceType: normalizedSourceType,
@@ -64,6 +74,7 @@ export class ProjectService {
   }
 
   async updateProject(
+    db: D1Database,
     id: string,
     patch: {
       name?: string;
@@ -73,18 +84,11 @@ export class ProjectService {
       tags?: string[];
     },
   ): Promise<Project | null> {
-    return this.repository.updateProjectRecord(id, patch);
-  }
-
-  private resolveDeployTarget(): Project['deployTarget'] {
-    const raw = this.env.DEPLOY_TARGET?.toLowerCase();
-    if (raw === 'cloudflare' || raw === 'local' || raw === 'r2') {
-      return raw;
-    }
-    return 'r2';
+    return projectRepository.updateProjectRecord(db, id, patch);
   }
 
   private buildProjectUrl(
+    env: ApiWorkerEnv,
     slug: string,
     target: Project['deployTarget'],
   ): string | undefined {
@@ -92,7 +96,7 @@ export class ProjectService {
       return `/apps/${encodeURIComponent(slug)}/`;
     }
     if (target === 'r2') {
-      const domain = this.env.APPS_ROOT_DOMAIN?.trim();
+      const domain = configService.getAppsRootDomain(env);
       if (domain) {
         return `https://${slug}.${domain}/`;
       }
@@ -100,3 +104,5 @@ export class ProjectService {
     return undefined;
   }
 }
+
+export const projectService = new ProjectService();

@@ -135,34 +135,30 @@ function emptySuggestion(): ProjectMetadataSuggestion {
   };
 }
 
-export class AIService {
-  private readonly baseUrl: string;
-  private readonly model: string;
-  private readonly apiKey: string;
-
-  constructor(env: ApiWorkerEnv) {
-    this.baseUrl =
-      env.PLATFORM_AI_BASE_URL ??
-      'https://dashscope.aliyuncs.com/compatible-mode/v1';
-    this.model = env.PLATFORM_AI_MODEL ?? 'qwen3-max';
-    this.apiKey = env.DASHSCOPE_API_KEY ?? '';
-  }
-
-  isEnabled(): boolean {
-    return this.apiKey.length > 0;
+class AIService {
+  isEnabled(env: ApiWorkerEnv): boolean {
+    const apiKey = env.DASHSCOPE_API_KEY?.trim() || '';
+    return apiKey.length > 0;
   }
 
   async generateProjectMetadata(
+    env: ApiWorkerEnv,
     name: string,
     identifier: string,
     context?: string,
   ): Promise<ProjectMetadataSuggestion> {
-    if (!this.isEnabled()) {
+    if (!this.isEnabled(env)) {
       return emptySuggestion();
     }
 
+    const baseUrl =
+      env.PLATFORM_AI_BASE_URL ??
+      'https://dashscope.aliyuncs.com/compatible-mode/v1';
+    const model = env.PLATFORM_AI_MODEL ?? 'qwen3-max';
+    const apiKey = env.DASHSCOPE_API_KEY ?? '';
+
     const body = {
-      model: this.model,
+      model,
       messages: [
         { role: 'system', content: METADATA_SYSTEM_PROMPT },
         {
@@ -174,11 +170,11 @@ export class AIService {
     };
 
     try {
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      const response = await fetch(`${baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify(body),
       });
@@ -241,3 +237,5 @@ export class AIService {
     }
   }
 }
+
+export const aiService = new AIService();

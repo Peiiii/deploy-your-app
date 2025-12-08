@@ -8,18 +8,33 @@ import { ExploreApps } from './pages/ExploreApps';
 import { ProjectDetail } from './pages/ProjectDetail';
 import { PresenterProvider, usePresenter } from './contexts/PresenterContext';
 import { useUIStore } from './stores/uiStore';
-import { Bell, HelpCircle, Sun, Moon, Menu, Coins } from 'lucide-react';
+import { useAuthStore } from './stores/authStore';
+import { AuthModal } from './components/AuthModal';
+import {
+  Bell,
+  HelpCircle,
+  Sun,
+  Moon,
+  Menu,
+  Coins,
+  Mail,
+  Github,
+  Globe,
+} from 'lucide-react';
 import { CrispChat } from './components/CrispChat';
 import { Crisp } from 'crisp-sdk-web';
 
 const MainLayout = () => {
-  const {
-    theme,
-    actions: { toggleTheme, toggleSidebar },
-  } = useUIStore((state) => state);
+  const theme = useUIStore((state) => state.theme);
   const presenter = usePresenter();
+  const user = useAuthStore((state) => state.user);
 
-  // Initial Data Load
+  // Load current user session on first mount
+  useEffect(() => {
+    presenter.auth.loadCurrentUser();
+  }, [presenter.auth]);
+
+  // Load projects for Explore/Home on first mount (public feed: all users' projects)
   useEffect(() => {
     presenter.project.loadProjects();
   }, [presenter.project]);
@@ -49,13 +64,14 @@ const MainLayout = () => {
   return (
     <div className="flex w-full h-screen bg-app-bg text-slate-900 dark:text-gray-200 font-sans selection:bg-brand-500/30 selection:text-brand-700 dark:selection:text-brand-200 transition-colors duration-300 overflow-hidden">
       <CrispChat />
+      <AuthModal />
       <Sidebar />
       
       <main className="ml-0 md:ml-64 flex-1 w-full overflow-auto relative z-10 min-w-0">
         <header className="h-16 border-b border-app-border bg-app-bg/50 backdrop-blur sticky top-0 z-20 flex items-center justify-between px-4 md:px-8">
           <div className="flex items-center gap-3">
             <button
-              onClick={toggleSidebar}
+              onClick={presenter.ui.toggleSidebar}
               className="md:hidden p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 rounded-lg transition-all"
               title="Toggle Menu"
             >
@@ -73,7 +89,7 @@ const MainLayout = () => {
                <span className="text-sm font-medium text-slate-900 dark:text-yellow-300">2,450 +</span>
              </div>
              <button 
-                onClick={toggleTheme}
+                onClick={presenter.ui.toggleTheme}
                 className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all bg-transparent dark:bg-transparent"
                 title="Toggle Theme"
              >
@@ -91,7 +107,54 @@ const MainLayout = () => {
                 <Bell className="w-5 h-5" />
                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 dark:bg-red-400 rounded-full border-2 border-app-bg dark:border-slate-900"></span>
              </button>
-             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-500 to-purple-600 border border-slate-200 dark:border-white/10 ring-2 ring-transparent hover:ring-brand-500/50 dark:hover:ring-brand-400/50 transition-all cursor-pointer"></div>
+             {user ? (
+               <div className="flex items-center gap-2">
+                 <div
+                   className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                   title={user.email || user.displayName || 'Account'}
+                 >
+                   <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-500 to-purple-600 border border-slate-200 dark:border-white/10 flex items-center justify-center text-xs font-semibold text-white">
+                     {(user.displayName || user.email || 'U')
+                       .toUpperCase()
+                       .charAt(0)}
+                   </div>
+                   <span className="hidden md:inline text-xs text-slate-700 dark:text-slate-200 max-w-[140px] truncate">
+                     {user.displayName || user.email || 'User'}
+                   </span>
+                 </div>
+                 <button
+                   onClick={() => presenter.auth.logout()}
+                   className="hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-all"
+                 >
+                   <span>Sign out</span>
+                 </button>
+               </div>
+             ) : (
+               <div className="flex items-center gap-2">
+                 <button
+                   onClick={() => presenter.auth.openAuthModal('login')}
+                   className="hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 transition-all"
+                 >
+                   <Mail className="w-3 h-3" />
+                   <span>Sign in with email</span>
+                 </button>
+                 <button
+                   onClick={() => presenter.auth.loginWithGoogle()}
+                   className="hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-white text-xs font-medium text-slate-700 border border-slate-200 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 transition-all"
+                   title="Sign in with Google"
+                 >
+                   <Globe className="w-3 h-3" />
+                   <span>Google</span>
+                 </button>
+                 <button
+                   onClick={() => presenter.auth.loginWithGithub()}
+                   className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 transition-all"
+                   title="Sign in with GitHub"
+                 >
+                   <Github className="w-4 h-4" />
+                 </button>
+               </div>
+             )}
           </div>
         </header>
 

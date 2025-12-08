@@ -18,12 +18,10 @@ function parseJsonArray<T>(value: unknown, fallback: T): T {
 
 let schemaEnsured = false;
 
-export class ProjectRepository {
-  constructor(private readonly db: D1Database) {}
-
-  private async ensureSchema(): Promise<void> {
+class ProjectRepository {
+  private async ensureSchema(db: D1Database): Promise<void> {
     if (schemaEnsured) return;
-    await this.db
+    await db
       .prepare(
         `CREATE TABLE IF NOT EXISTS projects (
           id TEXT PRIMARY KEY,
@@ -42,16 +40,26 @@ export class ProjectRepository {
           deploy_target TEXT,
           provider_url TEXT,
           cloudflare_project_name TEXT,
-          html_content TEXT
+          html_content TEXT,
+          owner_id TEXT
         )`,
       )
       .run();
 
-    await this.db
+    await db
       .prepare(
         `CREATE INDEX IF NOT EXISTS idx_projects_repo_url ON projects(repo_url)`,
       )
       .run();
+
+    // Backfill owner_id column if the table was created before this field existed.
+    try {
+      await db
+        .prepare(`ALTER TABLE projects ADD COLUMN owner_id TEXT`)
+        .run();
+    } catch {
+      // Ignore error if column already exists.
+    }
 
     schemaEnsured = true;
   }
@@ -65,6 +73,8 @@ export class ProjectRepository {
 
     return {
       id: String(row.id),
+      ownerId:
+        typeof row.owner_id === 'string' ? (row.owner_id as string) : undefined,
       name: String(row.name),
       repoUrl: String(row.repo_url),
       sourceType: sourceTypeValue
@@ -102,15 +112,18 @@ export class ProjectRepository {
     };
   }
 
-  async createProjectRecord(input: CreateProjectRecordInput): Promise<Project> {
-    await this.ensureSchema();
-    const row = await this.db
+  async createProjectRecord(
+    db: D1Database,
+    input: CreateProjectRecordInput,
+  ): Promise<Project> {
+    await this.ensureSchema(db);
+    const row = await db
       .prepare(
         `INSERT INTO projects (
           id, name, repo_url, source_type, slug, analysis_id, last_deployed, status,
           url, description, framework, category, tags, deploy_target, provider_url,
-          cloudflare_project_name, html_content
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          cloudflare_project_name, html_content, owner_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING *`,
       )
       .bind(
@@ -131,6 +144,7 @@ export class ProjectRepository {
         input.providerUrl ?? null,
         input.cloudflareProjectName ?? null,
         input.htmlContent ?? null,
+        input.ownerId ?? null,
       )
       .first<ProjectRow>();
 
@@ -141,9 +155,9 @@ export class ProjectRepository {
     return this.mapRowToProject(row);
   }
 
-  async getAllProjects(): Promise<Project[]> {
-    await this.ensureSchema();
-    const result = await this.db
+  async getAllProjects(db: D1Database): Promise<Project[]> {
+    await this.ensureSchema(db);
+    const result = await db
       .prepare(`SELECT * FROM projects ORDER BY datetime(last_deployed) DESC`)
       .all<ProjectRow>();
     const rows = result.results ?? [];
@@ -151,6 +165,7 @@ export class ProjectRepository {
   }
 
   async updateProjectRecord(
+    db: D1Database,
     id: string,
     patch: {
       name?: string;
@@ -160,7 +175,7 @@ export class ProjectRepository {
       tags?: string[];
     },
   ): Promise<Project | null> {
-    await this.ensureSchema();
+    await this.ensureSchema(db);
     const statements: string[] = [];
     const params: unknown[] = [];
 
@@ -186,7 +201,7 @@ export class ProjectRepository {
     }
 
     if (statements.length === 0) {
-      const row = await this.db
+      const row = await db
         .prepare(`SELECT * FROM projects WHERE id = ?`)
         .bind(id)
         .first<ProjectRow>();
@@ -194,7 +209,7 @@ export class ProjectRepository {
     }
 
     params.push(id);
-    const row = await this.db
+    const row = await db
       .prepare(
         `UPDATE projects SET ${statements.join(', ')} WHERE id = ? RETURNING *`,
       )
@@ -203,3 +218,5 @@ export class ProjectRepository {
     return row ? this.mapRowToProject(row) : null;
   }
 }
+
+export const projectRepository = new ProjectRepository();

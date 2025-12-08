@@ -1,13 +1,48 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ExternalLink, GitBranch, Clock, FolderArchive, Zap, Plus, TrendingUp, FileText, GraduationCap, Wand2, Briefcase, FileCode } from 'lucide-react';
+import { ExternalLink, GitBranch, Clock, FolderArchive, Zap, Plus, TrendingUp, FileText, GraduationCap, Wand2, Briefcase, FileCode, Lock } from 'lucide-react';
 import { useProjectStore } from '../stores/projectStore';
+import { useAuthStore } from '../stores/authStore';
+import { usePresenter } from '../contexts/PresenterContext';
 import { URLS } from '../constants';
 import { SourceType } from '../types';
 
 export const Dashboard: React.FC = () => {
-  const projects = useProjectStore((state) => state.projects);
+  const user = useAuthStore((state) => state.user);
+  const allProjects = useProjectStore((state) => state.projects);
+  const presenter = usePresenter();
   const navigate = useNavigate();
+
+  const projects = React.useMemo(
+    () => (user ? allProjects.filter((p) => p.ownerId === user.id) : []),
+    [allProjects, user],
+  );
+
+  if (!user) {
+    return (
+      <div className="p-4 md:p-8 max-w-4xl mx-auto flex items-center justify-center h-full animate-fade-in">
+        <div className="glass-card rounded-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur max-w-md w-full text-center space-y-4">
+          <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+            <Lock className="w-6 h-6 text-slate-500 dark:text-slate-300" />
+          </div>
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+            Sign in to view your projects
+          </h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Your dashboard is private. Please sign in to access your deployments and manage your apps.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <button
+              onClick={() => presenter.auth.openAuthModal('login')}
+              className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 transition-all min-w-[120px]"
+            >
+              Sign in
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-fade-in">

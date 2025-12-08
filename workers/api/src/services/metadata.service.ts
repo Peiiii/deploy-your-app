@@ -5,7 +5,7 @@ import {
   type ResolvedProjectMetadata,
 } from '../types/project';
 import { slugify, trimWhitespace } from '../utils/strings';
-import { AIService } from './ai.service';
+import { aiService } from './ai.service';
 
 const DEFAULT_CATEGORY = 'Other';
 
@@ -69,10 +69,9 @@ interface MetadataRequestInput {
   overrides?: ProjectMetadataOverrides;
 }
 
-export class MetadataService {
-  constructor(private readonly env: ApiWorkerEnv) {}
-
+class MetadataService {
   async ensureProjectMetadata(
+    env: ApiWorkerEnv,
     input: MetadataRequestInput,
   ): Promise<ResolvedProjectMetadata> {
     const slugSeed = input.slugSeed ?? slugify(input.seedName);
@@ -84,7 +83,7 @@ export class MetadataService {
       );
     }
 
-    return this.requestMetadataFromAI({
+    return this.requestMetadataFromAI(env, {
       ...input,
       slugSeed,
     });
@@ -111,10 +110,10 @@ export class MetadataService {
   }
 
   private async requestMetadataFromAI(
+    env: ApiWorkerEnv,
     opts: MetadataRequestInput & { slugSeed: string },
   ): Promise<ResolvedProjectMetadata> {
-    const aiService = new AIService(this.env);
-    if (!aiService.isEnabled()) {
+    if (!aiService.isEnabled(env)) {
       return {
         name: opts.seedName,
         slug: slugify(opts.slugSeed),
@@ -130,6 +129,7 @@ export class MetadataService {
         : undefined;
 
     const response = await aiService.generateProjectMetadata(
+      env,
       opts.seedName,
       opts.identifier,
       metadataContext,
@@ -155,3 +155,5 @@ export class MetadataService {
     };
   }
 }
+
+export const metadataService = new MetadataService();

@@ -1,6 +1,7 @@
 import { DeploymentManager } from "./managers/DeploymentManager";
 import { ProjectManager } from "./managers/ProjectManager";
 import { UIManager } from "./managers/UIManager";
+import { AuthManager } from "./managers/AuthManager";
 import { ServiceFactory } from "./services/ServiceFactory";
 
 // The Presenter now uses the Factory to get dependencies.
@@ -10,6 +11,7 @@ export class Presenter {
   ui: UIManager;
   project: ProjectManager;
   deployment: DeploymentManager;
+  auth: AuthManager;
 
   constructor() {
     // 1. Get Providers via Factory (Configuration driven)
@@ -20,6 +22,7 @@ export class Presenter {
     this.ui = new UIManager();
     this.project = new ProjectManager(projectProvider);
     this.deployment = new DeploymentManager(deploymentProvider);
+    this.auth = new AuthManager();
   }
 }
 

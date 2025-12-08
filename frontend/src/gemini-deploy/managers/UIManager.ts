@@ -1,22 +1,19 @@
+import { useUIStore } from '../stores/uiStore';
+
+// Manager for UI-related actions. State (theme, sidebar) is kept in uiStore.
 export class UIManager {
-  navigateTo = (view: string) => {
-    console.warn(
-      'UIManager.navigateTo is deprecated. Navigation is now handled by react-router.',
-      view,
-    );
+  toggleTheme = (): void => {
+    const { actions } = useUIStore.getState();
+    actions.toggleTheme();
   };
 
-  getCurrentView = () => {
-    console.warn(
-      'UIManager.getCurrentView is deprecated. View state is now derived from the router.',
-    );
-    return 'explore';
+  toggleSidebar = (): void => {
+    const { actions } = useUIStore.getState();
+    actions.toggleSidebar();
   };
 
-  openProject = (id: string) => {
-    console.warn(
-      'UIManager.openProject is deprecated. Use react-router navigation to /projects/:id instead.',
-      id,
-    );
+  setSidebarOpen = (open: boolean): void => {
+    const { actions } = useUIStore.getState();
+    actions.setSidebarOpen(open);
   };
 }

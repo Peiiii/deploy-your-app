@@ -6,4 +6,11 @@ export interface ApiWorkerEnv {
   PLATFORM_AI_MODEL?: string;
   DASHSCOPE_API_KEY?: string;
   DEPLOY_SERVICE_BASE_URL?: string;
+  // Auth / OAuth configuration
+  PASSWORD_SALT?: string;
+  AUTH_REDIRECT_BASE?: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  GITHUB_CLIENT_ID?: string;
+  GITHUB_CLIENT_SECRET?: string;
 }

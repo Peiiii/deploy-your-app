@@ -40,11 +40,11 @@ export const NewDeployment: React.FC = () => {
   const [htmlFieldTouched, setHtmlFieldTouched] = useState(false);
 
   const handleSourceTypeSelect = useCallback((type: SourceType) => {
-    state.actions.setSourceType(type);
+    presenter.deployment.handleSourceChange(type);
     if (type !== SourceType.HTML) {
       setHtmlFieldTouched(false);
     }
-  }, [state.actions]);
+  }, [presenter.deployment]);
 
   useEffect(() => {
     return () => presenter.deployment.resetWizard();
@@ -128,10 +128,10 @@ export const NewDeployment: React.FC = () => {
   };
 
   const handleInsertTemplate = () => {
-    state.actions.setHtmlContent(SIMPLE_HTML_TEMPLATE);
+    presenter.deployment.setHtmlContent(SIMPLE_HTML_TEMPLATE);
     setHtmlFieldTouched(true);
     if (!state.projectName) {
-      state.actions.setProjectName('landing-page');
+      presenter.deployment.setProjectName('landing-page');
     }
   };
 
@@ -294,7 +294,7 @@ export const NewDeployment: React.FC = () => {
                     type="text"
                     value={state.repoUrl}
                     onChange={(e) => {
-                      state.actions.setRepoUrl(e.target.value);
+                      presenter.deployment.setRepoUrl(e.target.value);
                       presenter.deployment.autoProjectName(
                         e.target.value,
                         SourceType.GITHUB,
@@ -346,7 +346,7 @@ export const NewDeployment: React.FC = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          state.actions.setZipFile(null);
+                          presenter.deployment.clearZipFile();
                         }}
                         className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium inline-flex items-center gap-1"
                       >
@@ -378,7 +378,9 @@ export const NewDeployment: React.FC = () => {
                 </label>
                 <textarea
                   value={state.htmlContent}
-                  onChange={(e) => state.actions.setHtmlContent(e.target.value)}
+                  onChange={(e) =>
+                    presenter.deployment.setHtmlContent(e.target.value)
+                  }
                   onBlur={() => setHtmlFieldTouched(true)}
                   rows={10}
                   className="block w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800/40 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent transition-all font-mono text-sm"
