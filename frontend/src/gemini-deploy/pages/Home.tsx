@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
   Github,
@@ -136,6 +137,7 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
+  const { t } = useTranslation();
   return (
     <div className="relative w-full md:w-96 group">
       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -145,7 +147,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Search apps..."
+        placeholder={t('explore.searchApps')}
         className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-full text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:bg-white dark:focus:bg-slate-800 transition-all shadow-sm hover:shadow-md placeholder:text-slate-400"
       />
     </div>
@@ -163,9 +165,24 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   onCategoryChange,
   onTagReset,
 }) => {
+  const { t } = useTranslation();
   const handleCategoryClick = (category: CategoryFilter) => {
     onCategoryChange(category);
     onTagReset();
+  };
+
+  const getCategoryLabel = (cat: CategoryFilter): string => {
+    const categoryMap: Record<CategoryFilter, string> = {
+      'All Apps': t('explore.allApps'),
+      'Development': t('explore.development'),
+      'Image Gen': t('explore.imageGen'),
+      'Productivity': t('explore.productivity'),
+      'Marketing': t('explore.marketing'),
+      'Legal': t('explore.legal'),
+      'Fun': t('explore.fun'),
+      'Other': t('explore.other'),
+    };
+    return categoryMap[cat] || cat;
   };
 
   return (
@@ -182,7 +199,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
             }`}
           >
-            {cat}
+            {getCategoryLabel(cat)}
           </button>
         );
       })}
@@ -221,6 +238,7 @@ const ExploreSkeletonGrid: React.FC = () => {
 };
 
 export const Home: React.FC = () => {
+  const { t } = useTranslation();
   const projects = useProjectStore((state) => state.projects);
   const isLoadingProjects = useProjectStore((state) => state.isLoading);
   const navigate = useNavigate();
@@ -264,10 +282,10 @@ export const Home: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                Deploy Your App
+                {t('deployment.deployYourApp')}
               </h2>
               <p className="text-slate-600 dark:text-gray-400">
-                Choose your deployment method
+                {t('deployment.chooseDeploymentMethod')}
               </p>
             </div>
           </div>
@@ -284,10 +302,10 @@ export const Home: React.FC = () => {
                 <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-purple-500 group-hover:translate-x-1 transition-all" />
               </div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                GitHub Repository
+                {t('deployment.githubRepository')}
               </h3>
               <p className="text-sm text-slate-600 dark:text-gray-400">
-                Connect your GitHub repo and deploy automatically
+                {t('deployment.connectGitHubRepo')}
               </p>
             </button>
 
@@ -302,10 +320,10 @@ export const Home: React.FC = () => {
                 <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
               </div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                Upload Archive
+                {t('deployment.uploadArchive')}
               </h3>
               <p className="text-sm text-slate-600 dark:text-gray-400">
-                Upload a ZIP file and deploy instantly
+                {t('deployment.uploadZipFile')}
               </p>
             </button>
 
@@ -320,10 +338,10 @@ export const Home: React.FC = () => {
                 <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-green-500 group-hover:translate-x-1 transition-all" />
               </div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                Inline HTML
+                {t('deployment.inlineHTML')}
               </h3>
               <p className="text-sm text-slate-600 dark:text-gray-400">
-                Paste HTML code and deploy in seconds
+                {t('deployment.pasteHTML')}
               </p>
             </button>
           </div>
@@ -334,10 +352,10 @@ export const Home: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                Explore Apps
+                {t('explore.exploreApps')}
               </h2>
               <p className="text-slate-600 dark:text-gray-400">
-                Discover applications from the community
+                {t('explore.discoverApps')}
               </p>
             </div>
             <SearchBar value={searchQuery} onChange={setSearchQuery} />
@@ -368,10 +386,10 @@ export const Home: React.FC = () => {
                 <Search className="w-8 h-8 text-slate-400" />
               </div>
               <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-                No apps found
+                {t('explore.noAppsFound')}
               </h4>
               <p className="text-sm text-slate-600 dark:text-gray-400">
-                Try adjusting your search or filter criteria
+                {t('explore.adjustSearch')}
               </p>
             </div>
           )}

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useDeploymentStore } from '../stores/deploymentStore';
 import { useProjectStore } from '../stores/projectStore';
@@ -25,6 +26,7 @@ interface DeploymentSessionProps {
 export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
   projectUrlOverride,
 }) => {
+  const { t } = useTranslation();
   const presenter = usePresenter();
   const state = useDeploymentStore();
   const projects = useProjectStore((s) => s.projects);
@@ -80,7 +82,7 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 text-center shadow">
           <Loader2 className="w-8 h-8 text-purple-500 animate-spin mx-auto mb-3" />
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Finalizing your deployment... please wait while we prepare the live preview and metadata.
+            {t('deployment.finalizingDeployment')}
           </p>
         </div>
       );
@@ -139,13 +141,13 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <Globe className="w-4 h-4" />
-                    {deploymentUrl ? 'Open Site' : 'Preparing URL...'}
+                    {deploymentUrl ? t('deployment.openSite') : t('deployment.preparingUrl')}
                   </button>
                   <button
                     onClick={() => navigate('/dashboard')}
                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                   >
-                    View Dashboard
+                    {t('deployment.viewDashboard')}
                   </button>
                 </div>
               </div>

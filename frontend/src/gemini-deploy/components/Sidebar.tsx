@@ -1,21 +1,21 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { LayoutDashboard, Rocket, Wifi, X, Zap, Sparkles, Package, Home } from 'lucide-react';
 import { useUIStore } from '../stores/uiStore';
 
 export const Sidebar: React.FC = () => {
+  const { t } = useTranslation();
   const sidebarOpen = useUIStore((state) => state.sidebarOpen);
   const { setSidebarOpen } = useUIStore((state) => state.actions);
   const location = useLocation();
   const navigate = useNavigate();
 
   const navItems = [
-    { path: '/', label: 'Home', icon: Home },
-    { path: '/explore', label: 'Explore Apps', icon: Sparkles },
-    { path: '/deploy', label: 'Deploy App', icon: Package },
-    { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    // { path: '/integrations', label: 'Integrations', icon: Github },
-    // { path: '/settings', label: 'Settings', icon: Settings },
+    { path: '/', label: t('navigation.home'), icon: Home },
+    { path: '/explore', label: t('navigation.exploreApps'), icon: Sparkles },
+    { path: '/deploy', label: t('navigation.deployApp'), icon: Package },
+    { path: '/dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard },
   ];
 
   return (
@@ -51,7 +51,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       <div className="px-6 mb-2">
-         <p className="text-[10px] font-semibold text-slate-400 dark:text-gray-400 uppercase tracking-wider mb-2">MY PROJECTS</p>
+         <p className="text-[10px] font-semibold text-slate-400 dark:text-gray-400 uppercase tracking-wider mb-2">{t('navigation.myProjects').toUpperCase()}</p>
       </div>
 
       <nav className="flex-1 px-4 space-y-1">
@@ -91,8 +91,8 @@ export const Sidebar: React.FC = () => {
               <Rocket className="w-4 h-4" />
            </div>
            <div>
-              <p className="text-xs font-medium text-slate-900 dark:text-white">The Showcase</p>
-              <p className="text-[10px] text-slate-500 dark:text-gray-400">Pro Plan (Coming Soon)</p>
+              <p className="text-xs font-medium text-slate-900 dark:text-white">{t('ui.theShowcase')}</p>
+              <p className="text-[10px] text-slate-500 dark:text-gray-400">{t('ui.proPlan')}</p>
            </div>
         </div>
       </div>
@@ -102,7 +102,7 @@ export const Sidebar: React.FC = () => {
         <div className="flex items-center justify-between text-[10px] font-mono border border-green-500/30 bg-green-500/5 text-green-600 dark:text-green-400 rounded px-2 py-1.5">
             <span className="flex items-center gap-1.5 font-bold">
                 <Wifi className="w-3 h-3" />
-                CONNECTED
+                {t('ui.connected')}
             </span>
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
         </div>
@@ -112,8 +112,8 @@ export const Sidebar: React.FC = () => {
         <button className="flex items-center gap-3 w-full bg-transparent dark:bg-transparent hover:bg-slate-200/50 dark:hover:bg-white/5 p-2 rounded-lg transition-colors group">
           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 ring-2 ring-white dark:ring-slate-800 group-hover:ring-purple-500/50 dark:group-hover:ring-purple-400/50 transition-all"></div>
           <div className="text-left">
-            <p className="text-sm font-medium text-slate-900 dark:text-white">Indie Hacker</p>
-            <p className="text-xs text-slate-500 dark:text-gray-400">The Playground</p>
+            <p className="text-sm font-medium text-slate-900 dark:text-white">{t('ui.indieHacker')}</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">{t('ui.thePlayground')}</p>
           </div>
         </button>
       </div>

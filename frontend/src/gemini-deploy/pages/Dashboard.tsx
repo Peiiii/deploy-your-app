@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ExternalLink, GitBranch, Clock, FolderArchive, Zap, Plus, TrendingUp, FileText, GraduationCap, Wand2, Briefcase, FileCode, Lock, Star } from 'lucide-react';
 import { useProjectStore } from '../stores/projectStore';
@@ -10,6 +11,7 @@ import { URLS } from '../constants';
 import { SourceType } from '../types';
 
 export const Dashboard: React.FC = () => {
+  const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
   const allProjects = useProjectStore((state) => state.projects);
   const presenter = usePresenter();
@@ -50,17 +52,17 @@ export const Dashboard: React.FC = () => {
             <Lock className="w-6 h-6 text-slate-500 dark:text-slate-300" />
           </div>
           <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-            Sign in to view your projects
+            {t('dashboard.signInToViewProjects')}
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Your dashboard is private. Please sign in to access your deployments and manage your apps.
+            {t('dashboard.dashboardPrivate')}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <button
               onClick={() => presenter.auth.openAuthModal('login')}
               className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 transition-all min-w-[120px]"
             >
-              Sign in
+              {t('common.signIn')}
             </button>
           </div>
         </div>
@@ -74,8 +76,8 @@ export const Dashboard: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">My Projects</h2>
-          <p className="text-slate-500 dark:text-gray-400">Manage your live apps and deploy new ones.</p>
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">{t('dashboard.myProjects')}</h2>
+          <p className="text-slate-500 dark:text-gray-400">{t('dashboard.manageLiveApps')}</p>
           <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1 text-xs">
             <button
               type="button"
@@ -86,7 +88,7 @@ export const Dashboard: React.FC = () => {
                   : 'text-slate-500 dark:text-slate-400'
               }`}
             >
-              All
+              {t('common.all')}
             </button>
             <button
               type="button"
@@ -98,7 +100,7 @@ export const Dashboard: React.FC = () => {
               }`}
             >
               <Star className="w-3 h-3" />
-              Favorites
+              {t('common.favorites')}
             </button>
           </div>
         </div>
@@ -107,7 +109,7 @@ export const Dashboard: React.FC = () => {
           className="bg-green-600 hover:bg-green-500 text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:shadow-[0_0_30px_rgba(34,197,94,0.5)] flex items-center gap-2 group border border-green-500/50"
         >
           <Zap className="w-5 h-5" />
-          Deploy Your App
+          {t('deployment.deployYourApp')}
         </button>
       </div>
 
@@ -115,25 +117,25 @@ export const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard 
             icon={Zap} 
-            label="ACTIVE PROJECTS" 
+            label={t('dashboard.activeProjects')} 
             value={projects.filter(p => p.status === 'Live').length.toString()} 
-            sublabel="Running on Edge" 
+            sublabel={t('dashboard.runningOnEdge')} 
             color="text-green-600 dark:text-green-400"
             bgColor="bg-green-500/10"
         />
         <StatCard 
             icon={TrendingUp} 
-            label="TOTAL VIEWS" 
+            label={t('dashboard.totalViews')} 
             value={totalViews7d.toLocaleString()} 
-            sublabel="Last 7 days across all your apps" 
+            sublabel={t('dashboard.last7Days')} 
             color="text-purple-600 dark:text-purple-400"
             bgColor="bg-purple-500/10"
         />
         <StatCard 
             icon={FileText} 
-            label="SYSTEM STATUS" 
+            label={t('dashboard.systemStatus')} 
             value="100%" 
-            sublabel="Systems Operational" 
+            sublabel={t('dashboard.systemsOperational')} 
             color="text-orange-600 dark:text-orange-400"
             bgColor="bg-orange-500/10"
         />
@@ -142,7 +144,7 @@ export const Dashboard: React.FC = () => {
       {/* Projects Grid */}
       <div>
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-            {showFavoritesOnly ? 'Favorite Projects' : 'Recent Creations'}{' '}
+            {showFavoritesOnly ? t('dashboard.favoriteProjects') : t('dashboard.recentCreations')}{' '}
             <span className="text-xs bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 px-2 py-0.5 rounded-full">
               {projects.filter((p) =>
                 showFavoritesOnly
@@ -203,11 +205,11 @@ export const Dashboard: React.FC = () => {
 
                 <div className="space-y-3 mb-6">
                     <div className="flex items-center justify-between text-sm py-2 border-b border-slate-100 dark:border-white/5">
-                        <span className="text-slate-500 dark:text-gray-500">Environment</span>
-                        <span className="text-slate-700 dark:text-gray-300">Production</span>
+                        <span className="text-slate-500 dark:text-gray-500">{t('dashboard.environment')}</span>
+                        <span className="text-slate-700 dark:text-gray-300">{t('dashboard.production')}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm py-2 border-b border-slate-100 dark:border-white/5">
-                        <span className="text-slate-500 dark:text-gray-500">Last Deploy</span>
+                        <span className="text-slate-500 dark:text-gray-500">{t('dashboard.lastDeploy')}</span>
                         <span className="text-slate-700 dark:text-gray-300 flex items-center gap-1">
                             <Clock className="w-3 h-3" /> {project.lastDeployed}
                         </span>
@@ -222,11 +224,11 @@ export const Dashboard: React.FC = () => {
                       rel="noreferrer"
                       className="text-green-600 dark:text-green-400 hover:text-green-500 dark:hover:text-green-300 text-sm font-medium flex items-center gap-1 transition-colors hover:underline decoration-green-500/50"
                     >
-                      Visit App <ExternalLink className="w-3 h-3" />
+                      {t('common.visit')} <ExternalLink className="w-3 h-3" />
                     </a>
                   ) : (
                     <span className="text-slate-400 dark:text-gray-600 text-sm italic">
-                      Not accessible
+                      {t('common.notAccessible')}
                     </span>
                   )}
                   <button
@@ -235,7 +237,7 @@ export const Dashboard: React.FC = () => {
                     }
                     className="text-xs text-slate-500 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 underline-offset-2 hover:underline"
                   >
-                    Manage
+                    {t('common.manage')}
                   </button>
                 </div>
             </div>
@@ -249,40 +251,40 @@ export const Dashboard: React.FC = () => {
                 <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-gray-900 group-hover:bg-brand-100 dark:group-hover:bg-brand-900/30 flex items-center justify-center transition-colors">
                     <Plus className="w-6 h-6" />
                 </div>
-                <span className="font-medium">Deploy App</span>
+                <span className="font-medium">{t('dashboard.deployApp')}</span>
             </button>
         </div>
       </div>
 
       {/* What Will You Build Section */}
       <div>
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">WHAT WILL YOU BUILD?</h3>
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{t('dashboard.whatWillYouBuild')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="glass-card rounded-xl p-6 group hover:shadow-lg transition-all">
             <div className="w-12 h-12 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4">
               <GraduationCap className="w-6 h-6" />
             </div>
-            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">FOR STUDENTS</h4>
-            <p className="text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">Showcase your Portfolio</p>
-            <p className="text-xs text-slate-500 dark:text-gray-400">Build and deploy your projects to impress recruiters and showcase your skills.</p>
+            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.forStudents')}</h4>
+            <p className="text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">{t('dashboard.showcasePortfolio')}</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">{t('dashboard.showcaseDescription')}</p>
           </div>
           
           <div className="glass-card rounded-xl p-6 group hover:shadow-lg transition-all">
             <div className="w-12 h-12 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-4">
               <Wand2 className="w-6 h-6" />
             </div>
-            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">FOR CREATORS</h4>
-            <p className="text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">Viral Content Machine</p>
-            <p className="text-xs text-slate-500 dark:text-gray-400">Create engaging AI-powered apps that captivate your audience and go viral.</p>
+            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.forCreators')}</h4>
+            <p className="text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">{t('dashboard.viralContentMachine')}</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">{t('dashboard.viralContentDescription')}</p>
           </div>
           
           <div className="glass-card rounded-xl p-6 group hover:shadow-lg transition-all">
             <div className="w-12 h-12 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center mb-4">
               <Briefcase className="w-6 h-6" />
             </div>
-            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">FOR BUSINESS</h4>
-            <p className="text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">Internal Tools</p>
-            <p className="text-xs text-slate-500 dark:text-gray-400">Deploy internal tools and dashboards to streamline your team's workflow.</p>
+            <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.forBusiness')}</h4>
+            <p className="text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">{t('dashboard.internalTools')}</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400">{t('dashboard.internalToolsDescription')}</p>
           </div>
         </div>
       </div>

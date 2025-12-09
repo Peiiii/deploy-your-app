@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { useDeploymentStore } from '../stores/deploymentStore';
 import { usePresenter } from '../contexts/PresenterContext';
@@ -32,6 +33,7 @@ const SIMPLE_HTML_TEMPLATE = `<!DOCTYPE html>
 </html>`;
 
 export const NewDeployment: React.FC = () => {
+  const { t } = useTranslation();
   const presenter = usePresenter();
   const state = useDeploymentStore();
   const location = useLocation();
@@ -152,10 +154,10 @@ export const NewDeployment: React.FC = () => {
       {/* Elegant Header */}
       <div className="mb-8">
           <h1 className="text-3xl font-semibold text-slate-900 dark:text-white mb-2 tracking-tight">
-            Deploy Your App
+            {t('deployment.deployYourApp')}
           </h1>
         <p className="text-slate-600 dark:text-slate-400 text-sm">
-          Deploy your application in seconds. Connect a repository or upload your code.
+          {t('deployment.deployDescription')}
         </p>
       </div>
 
@@ -196,10 +198,10 @@ export const NewDeployment: React.FC = () => {
                 )}
               </div>
               <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
-                GitHub Repository
+                {t('deployment.githubRepository')}
               </h3>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Connect a repository from GitHub
+                {t('deployment.connectRepoDescription')}
               </p>
             </button>
 
@@ -234,10 +236,10 @@ export const NewDeployment: React.FC = () => {
                 )}
               </div>
               <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
-                Upload Archive
+                {t('deployment.uploadArchive')}
               </h3>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Upload a ZIP file from your computer
+                {t('deployment.uploadZipDescription')}
               </p>
             </button>
             <button
@@ -271,10 +273,10 @@ export const NewDeployment: React.FC = () => {
                 )}
               </div>
               <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
-                Inline HTML
+                {t('deployment.inlineHTML')}
               </h3>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Paste or upload a single HTML file to deploy instantly
+                {t('deployment.pasteHTMLDescription')}
               </p>
             </button>
           </div>
@@ -284,7 +286,7 @@ export const NewDeployment: React.FC = () => {
             {state.sourceType === SourceType.GITHUB ? (
               <div className="space-y-4">
                 <label className="block text-sm font-medium text-slate-900 dark:text-white">
-                  Repository URL
+                  {t('project.repository')} URL
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -305,13 +307,13 @@ export const NewDeployment: React.FC = () => {
                   />
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Enter the full URL of your GitHub repository
+                  {t('deployment.connectRepoDescription')}
                 </p>
               </div>
             ) : state.sourceType === SourceType.ZIP ? (
               <div className="space-y-4">
                 <label className="block text-sm font-medium text-slate-900 dark:text-white">
-                  Upload Archive
+                  {t('deployment.uploadArchive')}
                 </label>
                 <div
                   className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer group ${
@@ -351,7 +353,7 @@ export const NewDeployment: React.FC = () => {
                         className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium inline-flex items-center gap-1"
                       >
                         <X className="w-3 h-3" />
-                        Remove file
+                        {t('common.delete')}
                       </button>
                     </div>
                   ) : (
@@ -361,7 +363,7 @@ export const NewDeployment: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-slate-900 dark:text-white">
-                          Drop your ZIP file here, or click to browse
+                          {t('deployment.uploadZipDescription')}
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                           Maximum file size: 100MB
@@ -374,7 +376,7 @@ export const NewDeployment: React.FC = () => {
             ) : (
               <div className="space-y-4">
                 <label className="block text-sm font-medium text-slate-900 dark:text-white">
-                  HTML Content
+                  HTML {t('common.content') || 'Content'}
                 </label>
                 <textarea
                   value={state.htmlContent}
@@ -384,7 +386,7 @@ export const NewDeployment: React.FC = () => {
                   onBlur={() => setHtmlFieldTouched(true)}
                   rows={10}
                   className="block w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800/40 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent transition-all font-mono text-sm"
-                  placeholder="Paste your HTML markup here..."
+                  placeholder={t('deployment.pasteHTMLDescription')}
                 />
                 <div className="flex flex-wrap gap-2">
                   <button
@@ -413,7 +415,7 @@ export const NewDeployment: React.FC = () => {
                 </div>
                 {htmlFieldTouched && !htmlIsReady && (
                   <p className="text-xs text-red-500">
-                    Please paste HTML content or import a file to continue.
+                    {t('deployment.pasteHTMLDescription')}
                   </p>
                 )}
               </div>
@@ -426,7 +428,7 @@ export const NewDeployment: React.FC = () => {
                 disabled={!canContinue}
                 className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 dark:bg-purple-500 text-white font-medium rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
               >
-                Continue
+                {t('common.continue') || 'Continue'}
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

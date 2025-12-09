@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Heart, Play, Star, User, Zap } from 'lucide-react';
 import { URLS } from '../constants';
 import { usePresenter } from '../contexts/PresenterContext';
@@ -119,6 +120,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   setActiveTag,
   onCardClick,
 }) => {
+  const { t } = useTranslation();
   const presenter = usePresenter();
   const user = useAuthStore((s) => s.user);
   const reactionEntry = useReactionStore((s) => s.byProjectId[app.id]);
@@ -287,7 +289,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
             onClick={handleLaunchApp}
             className="text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 text-sm font-bold flex items-center gap-1 group/btn px-3 py-1.5 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all"
           >
-            Open{' '}
+            {t('common.open')}{' '}
             <Play className="w-3 h-3 fill-current transition-transform group-hover/btn:translate-x-0.5" />
           </button>
         </div>

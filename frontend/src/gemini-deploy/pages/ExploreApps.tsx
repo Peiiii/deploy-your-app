@@ -1,5 +1,6 @@
 import { Play, Search, TrendingUp } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import type { ExploreAppCard } from '../components/ExploreAppCard';
 import {
@@ -11,7 +12,6 @@ import { useReactionStore } from '../stores/reactionStore';
 import { useAuthStore } from '../stores/authStore';
 import { usePresenter } from '../contexts/PresenterContext';
 const CREATOR_REVENUE_SHARE = 70;
-const BETA_BADGE_TEXT = 'Beta';
 
 export type CategoryFilter =
   | 'All Apps'
@@ -131,6 +131,7 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
+  const { t } = useTranslation();
   return (
     <div className="relative w-full md:w-96 group">
       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -140,7 +141,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Search apps..."
+        placeholder={t('explore.searchApps')}
         className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-full text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:bg-white dark:focus:bg-slate-800 transition-all shadow-sm hover:shadow-md placeholder:text-slate-400"
       />
     </div>
@@ -152,6 +153,7 @@ interface FeaturedBannerProps {
 }
 
 const FeaturedBanner: React.FC<FeaturedBannerProps> = ({ onNavigateToDeploy }) => {
+  const { t } = useTranslation();
   return (
     <div className="relative rounded-3xl overflow-hidden bg-slate-900 text-white p-8 md:p-16 shadow-2xl shadow-slate-900/20 group">
       {/* Background Effects */}
@@ -162,20 +164,20 @@ const FeaturedBanner: React.FC<FeaturedBannerProps> = ({ onNavigateToDeploy }) =
       <div className="relative z-10 max-w-3xl">
         <div className="inline-flex items-center gap-2 mb-6 text-brand-300 font-medium px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
           <TrendingUp className="w-4 h-4" />
-          <span className="text-sm tracking-wide uppercase">Creator Economy</span>
+          <span className="text-sm tracking-wide uppercase">{t('explore.creatorEconomy')}</span>
         </div>
         <h3 className="text-5xl md:text-6xl font-bold mb-6 leading-tight tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-white via-white to-slate-400">
-          Monetize Your <br/> AI Models
+          {t('explore.monetizeYour')} <br /> {t('explore.aiModels')}
         </h3>
         <p className="text-slate-300 text-lg md:text-xl mb-10 max-w-xl leading-relaxed">
-          Publish your Gemini-powered applications to the marketplace. You earn{' '}
-          <span className="text-white font-bold">{CREATOR_REVENUE_SHARE}%</span> of the credit revenue every time someone uses your app.
+          {t('explore.publishToMarketplace')}{' '}
+          <span className="text-white font-bold">{CREATOR_REVENUE_SHARE}%</span> {t('explore.ofCreditRevenue')}
         </p>
         <button
           onClick={onNavigateToDeploy}
           className="bg-white text-slate-900 px-8 py-4 rounded-full font-bold text-lg hover:bg-brand-50 hover:scale-105 transition-all shadow-xl shadow-brand-500/10 flex items-center gap-2"
         >
-          Become a Creator <Play className="w-4 h-4 fill-slate-900" />
+          {t('explore.becomeACreator')} <Play className="w-4 h-4 fill-slate-900" />
         </button>
       </div>
     </div>
@@ -193,9 +195,24 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   onCategoryChange,
   onTagReset,
 }) => {
+  const { t } = useTranslation();
   const handleCategoryClick = (category: CategoryFilter) => {
     onCategoryChange(category);
     onTagReset();
+  };
+
+  const getCategoryLabel = (cat: CategoryFilter): string => {
+    const categoryMap: Record<CategoryFilter, string> = {
+      'All Apps': t('explore.allApps'),
+      'Development': t('explore.development'),
+      'Image Gen': t('explore.imageGen'),
+      'Productivity': t('explore.productivity'),
+      'Marketing': t('explore.marketing'),
+      'Legal': t('explore.legal'),
+      'Fun': t('explore.fun'),
+      'Other': t('explore.other'),
+    };
+    return categoryMap[cat] || cat;
   };
 
   return (
@@ -212,7 +229,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
             }`}
           >
-            {cat}
+            {getCategoryLabel(cat)}
           </button>
         );
       })}
@@ -221,6 +238,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 };
 
 export const ExploreApps: React.FC = () => {
+  const { t } = useTranslation();
   const projects = useProjectStore((state) => state.projects);
   const reactionByProject = useReactionStore((s) => s.byProjectId);
   const user = useAuthStore((s) => s.user);
@@ -259,13 +277,13 @@ export const ExploreApps: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
           <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-            Explore Apps{' '}
+            {t('explore.exploreApps')}{' '}
             <span className="bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-xs px-2 py-1 rounded-full border border-brand-200 dark:border-brand-500/20">
-              {BETA_BADGE_TEXT}
+              {t('explore.beta')}
             </span>
           </h2>
           <p className="text-slate-500 dark:text-gray-400 mt-1">
-            Discover AI tools built by the community. Spend credits, support creators.
+            {t('explore.discoverApps')} {t('explore.spendCreditsSupportCreators')}
           </p>
         </div>
         <SearchBar value={searchQuery} onChange={setSearchQuery} />

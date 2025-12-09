@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Info, AlertTriangle, X } from 'lucide-react';
 import { useUIStore } from '../stores/uiStore';
 
 export const Toast: React.FC = () => {
+  const { t } = useTranslation();
   const toast = useUIStore((s) => s.toast);
   const clearToast = useUIStore((s) => s.actions.clearToast);
 
@@ -37,7 +39,7 @@ export const Toast: React.FC = () => {
         type="button"
         onClick={clearToast}
         className="ml-2 text-current opacity-60 hover:opacity-100"
-        aria-label="Close notification"
+        aria-label={t('common.close')}
       >
         <X className="w-3 h-3" />
       </button>

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Sidebar } from './components/Sidebar';
 import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
@@ -11,6 +12,7 @@ import { useUIStore } from './stores/uiStore';
 import { useAuthStore } from './stores/authStore';
 import { AuthModal } from './components/AuthModal';
 import { Toast } from './components/Toast';
+import { LanguageSwitcher } from './components/LanguageSwitcher';
 import {
   Bell,
   HelpCircle,
@@ -26,16 +28,34 @@ import { CrispChat } from './components/CrispChat';
 import { Crisp } from 'crisp-sdk-web';
 
 const MainLayout = () => {
+  const { i18n, t } = useTranslation();
   const theme = useUIStore((state) => state.theme);
+  const language = useUIStore((state) => state.language);
+  const setLanguage = useUIStore((state) => state.actions.setLanguage);
   const presenter = usePresenter();
   const user = useAuthStore((state) => state.user);
 
-  // Load current user session on first mount
+  useEffect(() => {
+    const storedLang = localStorage.getItem('i18nextLng') || i18n.language || 'en';
+    if (language !== storedLang) {
+      setLanguage(storedLang);
+      void i18n.changeLanguage(storedLang);
+    } else if (i18n.language !== language) {
+      void i18n.changeLanguage(language);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (language && i18n.language !== language) {
+      void i18n.changeLanguage(language);
+      localStorage.setItem('i18nextLng', language);
+    }
+  }, [language, i18n]);
+
   useEffect(() => {
     presenter.auth.loadCurrentUser();
   }, [presenter.auth]);
 
-  // Load projects for Explore/Home on first mount (public feed: all users' projects)
   useEffect(() => {
     presenter.project.loadProjects();
   }, [presenter.project]);
@@ -75,14 +95,14 @@ const MainLayout = () => {
             <button
               onClick={presenter.ui.toggleSidebar}
               className="md:hidden p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 rounded-lg transition-all"
-              title="Toggle Menu"
+              title={t('ui.toggleMenu')}
             >
               <Menu className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-gray-500">
-              <span className="hover:text-slate-800 dark:hover:text-gray-300 transition-colors cursor-pointer">Organization</span>
+              <span className="hover:text-slate-800 dark:hover:text-gray-300 transition-colors cursor-pointer">{t('navigation.organization')}</span>
               <span>/</span>
-              <span className="text-slate-900 dark:text-gray-200 font-medium">Personal Projects</span>
+              <span className="text-slate-900 dark:text-gray-200 font-medium">{t('navigation.personalProjects')}</span>
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
@@ -93,19 +113,20 @@ const MainLayout = () => {
              <button 
                 onClick={presenter.ui.toggleTheme}
                 className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all bg-transparent dark:bg-transparent"
-                title="Toggle Theme"
+                title={t('ui.toggleTheme')}
              >
                 {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
              </button>
+             <LanguageSwitcher />
              <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden md:block"></div>
              <button 
                 onClick={handleOpenChat}
                 className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all bg-transparent dark:bg-transparent hidden md:block" 
-                title="Help"
+                title={t('ui.help')}
              >
                 <HelpCircle className="w-5 h-5" />
              </button>
-             <button className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all bg-transparent dark:bg-transparent relative hidden md:block" title="Notifications">
+             <button className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all bg-transparent dark:bg-transparent relative hidden md:block" title={t('ui.notifications')}>
                 <Bell className="w-5 h-5" />
                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 dark:bg-red-400 rounded-full border-2 border-app-bg dark:border-slate-900"></span>
              </button>
@@ -113,7 +134,7 @@ const MainLayout = () => {
                <div className="flex items-center gap-2">
                  <div
                    className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
-                   title={user.email || user.displayName || 'Account'}
+                   title={user.email || user.displayName || t('ui.account')}
                  >
                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-500 to-purple-600 border border-slate-200 dark:border-white/10 flex items-center justify-center text-xs font-semibold text-white">
                      {(user.displayName || user.email || 'U')
@@ -121,14 +142,14 @@ const MainLayout = () => {
                        .charAt(0)}
                    </div>
                    <span className="hidden md:inline text-xs text-slate-700 dark:text-slate-200 max-w-[140px] truncate">
-                     {user.displayName || user.email || 'User'}
+                     {user.displayName || user.email || t('ui.account')}
                    </span>
                  </div>
                  <button
                    onClick={() => presenter.auth.logout()}
                    className="hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-all"
                  >
-                   <span>Sign out</span>
+                   <span>{t('common.signOut')}</span>
                  </button>
                </div>
              ) : (
@@ -138,12 +159,12 @@ const MainLayout = () => {
                    className="hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 transition-all"
                  >
                    <Mail className="w-3 h-3" />
-                   <span>Sign in with email</span>
+                   <span>{t('auth.signInWithEmail')}</span>
                  </button>
                  <button
                    onClick={() => presenter.auth.loginWithGoogle()}
                    className="hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-white text-xs font-medium text-slate-700 border border-slate-200 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 transition-all"
-                   title="Sign in with Google"
+                   title={t('auth.signInWithGoogle')}
                  >
                    <Globe className="w-3 h-3" />
                    <span>Google</span>
@@ -151,7 +172,7 @@ const MainLayout = () => {
                  <button
                    onClick={() => presenter.auth.loginWithGithub()}
                    className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 transition-all"
-                   title="Sign in with GitHub"
+                   title={t('auth.signInWithGithub')}
                  >
                    <Github className="w-4 h-4" />
                  </button>

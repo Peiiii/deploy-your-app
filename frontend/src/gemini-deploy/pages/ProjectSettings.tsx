@@ -12,6 +12,7 @@ import {
   Upload,
 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { DeploymentSession } from '../components/DeploymentSession';
 import { URLS } from '../constants';
@@ -41,6 +42,7 @@ function formatRepoLabel(project: Project): string {
 }
 
 export const ProjectSettings: React.FC = () => {
+  const { t } = useTranslation();
   const presenter = usePresenter();
   const projects = useProjectStore((s) => s.projects);
   const user = useAuthStore((s) => s.user);
@@ -120,7 +122,7 @@ export const ProjectSettings: React.FC = () => {
     return (
       <div className="p-8 max-w-3xl mx-auto">
         <p className="text-sm text-slate-500 dark:text-gray-400">
-          Loading project details...
+          {t('common.loadingProjectDetails')}
         </p>
       </div>
     );
@@ -230,7 +232,7 @@ export const ProjectSettings: React.FC = () => {
           className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          {t('common.back')}
         </button>
         <span className="text-xs px-2 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-gray-400 border border-slate-200 dark:border-white/10">
           Project ID: {project.id}
@@ -278,7 +280,7 @@ export const ProjectSettings: React.FC = () => {
               {project.status}
             </div>
             <div className="flex items-center gap-1 text-slate-500 dark:text-gray-400">
-              <Clock className="w-3 h-3" /> Last deploy: {project.lastDeployed}
+              <Clock className="w-3 h-3" /> {t('project.lastDeploy')}: {project.lastDeployed}
             </div>
           </div>
         </div>
@@ -288,7 +290,7 @@ export const ProjectSettings: React.FC = () => {
           <div className="flex-1 space-y-4">
             <div>
               <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-2">
-                GitHub Repository
+                {t('project.repository')}
               </h3>
               <div className="space-y-2">
                 <div className="relative">
@@ -305,12 +307,11 @@ export const ProjectSettings: React.FC = () => {
                     className="absolute inset-y-1.5 right-1.5 px-3 text-xs font-semibold rounded-md bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50"
                   >
                     <Save className="w-3 h-3 inline-block mr-1" />
-                    Save
+                    {t('common.save')}
                   </button>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-gray-400">
-                  This URL is used when you redeploy from GitHub. ZIP-based deployments
-                  do not overwrite this setting.
+                  {t('project.repoUrlDescription')}
                 </p>
                 {project.repoUrl && (
                   <a
@@ -329,27 +330,27 @@ export const ProjectSettings: React.FC = () => {
 
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
-                Metadata
+                {t('project.metadata')}
               </h3>
               <div className="space-y-2">
                 <label className="block text-xs font-medium text-slate-500 dark:text-gray-400">
-                  Display Name
+                  {t('project.displayName')}
                 </label>
                 <input
                   type="text"
                   value={nameDraft}
                   onChange={(e) => setNameDraft(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                  placeholder="Friendly app name shown in Explore"
+                  placeholder={t('project.displayNamePlaceholder')}
                 />
               </div>
               <div className="flex items-center justify-between pt-1">
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-slate-700 dark:text-gray-200">
-                    Like & favorite
+                    {t('project.likeAndFavorite')}
                   </p>
                   <p className="text-[11px] text-slate-500 dark:text-gray-400">
-                    Express appreciation or save this app to your favorites.
+                    {t('project.likeAndFavoriteDescription')}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -387,7 +388,7 @@ export const ProjectSettings: React.FC = () => {
                         ? 'bg-yellow-400/90 border-yellow-500 text-yellow-900'
                         : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300'
                     }`}
-                    aria-label="Toggle favorite"
+                    aria-label={t('project.toggleFavorite')}
                   >
                     <Star
                       className={`w-3 h-3 ${
@@ -401,49 +402,49 @@ export const ProjectSettings: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <label className="block text-xs font-medium text-slate-500 dark:text-gray-400">
-                  Description
+                  {t('project.description')}
                 </label>
                 <textarea
                   value={descriptionDraft}
                   onChange={(e) => setDescriptionDraft(e.target.value)}
                   rows={3}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-none"
-                  placeholder="Short summary used on the Explore Apps page"
+                  placeholder={t('project.descriptionPlaceholder')}
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <label className="block text-xs font-medium text-slate-500 dark:text-gray-400">
-                    Category
+                    {t('project.category')}
                   </label>
                   <input
                     type="text"
                     value={categoryDraft}
                     onChange={(e) => setCategoryDraft(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                    placeholder="e.g. Development"
+                    placeholder={t('project.categoryPlaceholder')}
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-medium text-slate-500 dark:text-gray-400">
-                    Tags
+                    {t('project.tags')}
                   </label>
                   <input
                     type="text"
                     value={tagsDraft}
                     onChange={(e) => setTagsDraft(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                    placeholder="Comma separated, e.g. chatbot,landing-page"
+                    placeholder={t('project.tagsPlaceholder')}
                   />
                 </div>
               </div>
               <div className="flex items-center justify-between pt-1">
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-slate-700 dark:text-gray-200">
-                    Show in Explore & recommendations
+                    {t('project.showInExplore')}
                   </p>
                   <p className="text-[11px] text-slate-500 dark:text-gray-400">
-                    Turn this off if you want to keep the app private to your dashboard.
+                    {t('project.showInExploreDescription')}
                   </p>
                 </div>
                 <button
@@ -457,14 +458,14 @@ export const ProjectSettings: React.FC = () => {
                       });
                     } catch (err) {
                       console.error(err);
-                      setError('Failed to update visibility.');
+                      setError(t('project.failedToUpdateVisibility'));
                     }
                   }}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full border transition-colors ${project.isPublic ?? true
                       ? 'bg-green-500/80 border-green-500'
                       : 'bg-slate-400/60 dark:bg-slate-700/80 border-slate-400 dark:border-slate-600'
                     }`}
-                  aria-label="Toggle public visibility"
+                  aria-label={t('project.togglePublicVisibility')}
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${project.isPublic ?? true ? 'translate-x-5' : 'translate-x-1'
@@ -479,7 +480,7 @@ export const ProjectSettings: React.FC = () => {
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50"
                 >
                   <Save className="w-3 h-3" />
-                  Save metadata
+                  {t('project.saveMetadata')}
                 </button>
               </div>
             </div>
@@ -533,13 +534,13 @@ export const ProjectSettings: React.FC = () => {
           <div className="w-full md:w-64 space-y-4">
             <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-4 space-y-3 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-gray-400">Environment</span>
+                <span className="text-slate-500 dark:text-gray-400">{t('dashboard.environment')}</span>
                 <span className="text-slate-900 dark:text-white font-medium">
-                  Production
+                  {t('dashboard.production')}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-gray-400">Framework</span>
+                <span className="text-slate-500 dark:text-gray-400">{t('project.framework')}</span>
                 <span className="text-slate-900 dark:text-white font-medium">
                   {project.framework}
                 </span>
@@ -548,7 +549,7 @@ export const ProjectSettings: React.FC = () => {
 
             <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-4 space-y-3 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-gray-400">Public URL</span>
+                <span className="text-slate-500 dark:text-gray-400">{t('project.publicUrl')}</span>
               </div>
               {project.url ? (
                 <a
@@ -570,7 +571,7 @@ export const ProjectSettings: React.FC = () => {
             <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-4 space-y-3 text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-slate-500 dark:text-gray-400">
-                  Views (last 7 days)
+                  {t('project.viewsLast7Days')}
                 </span>
                 <span className="text-slate-900 dark:text-white font-medium">
                   {analyticsEntry?.stats
@@ -582,7 +583,7 @@ export const ProjectSettings: React.FC = () => {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-500 dark:text-gray-400">
-                  Total views
+                  {t('project.totalViews')}
                 </span>
                 <span className="text-slate-900 dark:text-white font-medium">
                   {analyticsEntry?.stats
@@ -595,7 +596,7 @@ export const ProjectSettings: React.FC = () => {
               {analyticsEntry?.stats?.lastViewAt && (
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 dark:text-gray-400">
-                    Last view
+                    {t('project.lastView')}
                   </span>
                   <span className="text-slate-900 dark:text-white font-medium">
                     {new Date(
