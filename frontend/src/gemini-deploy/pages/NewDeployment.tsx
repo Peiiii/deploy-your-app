@@ -70,42 +70,177 @@ export const NewDeployment: React.FC = () => {
           ? state.zipFile?.name.replace(/\.zip$/i, '') || 'my-app'
           : 'my-html-app');
 
-    try {
-      const result = await presenter.deployment.startDeploymentRun();
-      const identifier =
-        state.sourceType === SourceType.GITHUB
-          ? state.repoUrl
-          : state.sourceType === SourceType.ZIP
-            ? state.zipFile?.name || 'archive.zip'
-            : 'inline.html';
-      const finalName = result?.metadata?.name ?? fallbackName;
-      const metadataOverrides = result?.metadata
-        ? {
-            name: result.metadata.name,
-            slug: result.metadata.slug,
-            description: result.metadata.description,
-            category: result.metadata.category,
-            tags: result.metadata.tags,
-          }
-        : undefined;
-      const requestOptions =
-        state.sourceType === SourceType.HTML
-          ? {
-              htmlContent: state.htmlContent,
-              ...(metadataOverrides ? { metadata: metadataOverrides } : {}),
-            }
-          : metadataOverrides
-            ? { metadata: metadataOverrides }
-            : undefined;
+    // GitHub: two-phase flow (analyze -> create project -> deploy) with
+    // duplicate-repo detection.
+    if (state.sourceType === SourceType.GITHUB) {
+      const trimmedRepo = state.repoUrl.trim();
+      if (!trimmedRepo) {
+        return;
+      }
 
-      await presenter.project.addProject(
-        finalName,
-        state.sourceType,
-        identifier,
-        requestOptions,
-      );
+      // 1) Check whether the current user already has a project for this repo.
+      try {
+        const existing =
+          await presenter.project.findExistingProjectForRepo(trimmedRepo);
+        if (existing) {
+          // Use a custom dialog instead of the browser confirm so that we
+          // can offer clear primary/secondary actions:
+          //   - primary: redeploy existing project (keep URL)
+          //   - secondary: create a new project with a new URL
+          const primaryChosen = await presenter.ui.showConfirm({
+            title: t('deployment.repoDuplicateTitle'),
+            message: t('deployment.repoDuplicateMessage', {
+              name: existing.name,
+            }),
+            primaryLabel: t('deployment.repoDuplicateRedeploy'),
+            secondaryLabel: t('deployment.repoDuplicateCreateNew'),
+          });
+
+          if (primaryChosen) {
+            await presenter.deployment.redeployProject(existing);
+            return;
+          }
+          // User explicitly chose "create new project" – fall through to the
+          // analysis + create + deploy flow below.
+        }
+      } catch (err) {
+        console.error(
+          'Failed to check for existing project before deployment',
+          err,
+        );
+      }
+
+      // 2) Analyze the repository to generate metadata (name, slug, tags)
+      //    from the actual source code, then create a project with a globally
+      //    unique slug, and finally deploy that project.
+      const store = useDeploymentStore.getState();
+      const actions = store.actions;
+
+      actions.setStep(2);
+      actions.setDeploymentStatus(DeploymentStatus.ANALYZING);
+      actions.clearLogs();
+      actions.setProjectName(fallbackName);
+      actions.setRepoUrl(trimmedRepo);
+      actions.setSourceType(SourceType.GITHUB);
+      actions.addLog({
+        timestamp: new Date().toISOString(),
+        message: t('deployment.analyzingRepository'),
+        type: 'info',
+      });
+
+      try {
+        const tempProject = {
+          id: 'temp',
+          name: fallbackName,
+          repoUrl: trimmedRepo,
+          sourceType: SourceType.GITHUB,
+          lastDeployed: '',
+          status: 'Building' as const,
+          framework: 'Unknown' as const,
+        };
+
+        const analysisResult =
+          await presenter.deployment.analyzeProject(tempProject);
+
+        const metadataOverrides = analysisResult.metadata
+          ? {
+              name: analysisResult.metadata.name,
+              slug: analysisResult.metadata.slug,
+              description: analysisResult.metadata.description,
+              category: analysisResult.metadata.category,
+              tags: analysisResult.metadata.tags,
+            }
+          : undefined;
+
+        const finalName =
+          analysisResult.metadata?.name ?? fallbackName;
+
+        const createdProject = await presenter.project.addProject(
+          finalName,
+          state.sourceType,
+          trimmedRepo,
+          metadataOverrides ? { metadata: metadataOverrides } : undefined,
+        );
+
+        if (!createdProject) {
+          return;
+        }
+
+        const projectForDeploy = {
+          ...createdProject,
+          ...(analysisResult.analysisId
+            ? { analysisId: analysisResult.analysisId }
+            : {}),
+        };
+
+        await presenter.deployment.redeployProject(projectForDeploy);
+      } catch (err) {
+        console.error('Failed to analyze and deploy project', err);
+        actions.addLog({
+          timestamp: new Date().toISOString(),
+          message: t('deployment.analysisFailedFallback'),
+          type: 'warning',
+        });
+
+        // Fallback: create a project without AI-enriched metadata and run a
+        // normal deployment so that users can still deploy even when the
+        // analysis step cannot download the repository ZIP (e.g. non-main
+        // default branch, network hiccups).
+        try {
+          const fallbackProject = await presenter.project.addProject(
+            fallbackName,
+            state.sourceType,
+            trimmedRepo,
+          );
+          if (!fallbackProject) {
+            return;
+          }
+          await presenter.deployment.redeployProject(fallbackProject);
+        } catch (deployErr) {
+          console.error(
+            'Fallback create-and-deploy flow also failed',
+            deployErr,
+          );
+        }
+      }
+
+      return;
+    }
+
+    // ZIP / HTML: create the project first so that the API worker assigns a
+    // globally unique slug, then deploy that project. For HTML the worker
+    // still looks at the HTML content when generating metadata.
+    try {
+      if (state.sourceType === SourceType.ZIP) {
+        const identifier = state.zipFile?.name || 'archive.zip';
+        const newProject = await presenter.project.addProject(
+          fallbackName,
+          state.sourceType,
+          identifier,
+        );
+        if (!newProject) {
+          return;
+        }
+        await presenter.deployment.redeployProject(newProject, {
+          zipFile: state.zipFile,
+        });
+      } else if (state.sourceType === SourceType.HTML) {
+        if (!state.htmlContent.trim()) {
+          return;
+        }
+        const newProject = await presenter.project.addProject(
+          fallbackName,
+          state.sourceType,
+          'inline.html',
+          { htmlContent: state.htmlContent },
+        );
+        if (!newProject) {
+          return;
+        }
+        await presenter.deployment.redeployProject(newProject);
+      }
     } catch (err) {
-      console.error('Failed to finalize deployment metadata', err);
+      console.error('Failed to create and deploy project', err);
     }
   };
 

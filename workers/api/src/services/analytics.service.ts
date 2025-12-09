@@ -79,6 +79,13 @@ class AnalyticsService {
     return this.getProjectStatsForSlug(db, slug, rangeDays);
   }
 
+  async deleteStatsForSlug(
+    db: D1Database,
+    slug: string,
+  ): Promise<void> {
+    await analyticsRepository.deleteStatsForSlug(db, slug);
+  }
+
   /**
    * Resolve the analytics slug for a project.
    *

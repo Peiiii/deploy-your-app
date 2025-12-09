@@ -11,6 +11,7 @@ import { PresenterProvider, usePresenter } from './contexts/PresenterContext';
 import { useUIStore } from './stores/uiStore';
 import { useAuthStore } from './stores/authStore';
 import { AuthModal } from './components/AuthModal';
+import { ConfirmDialog } from './components/ConfirmDialog';
 import { Toast } from './components/Toast';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import {
@@ -85,6 +86,7 @@ const MainLayout = () => {
     <div className="flex w-full h-screen bg-app-bg text-slate-900 dark:text-gray-200 font-sans selection:bg-brand-500/30 selection:text-brand-700 dark:selection:text-brand-200 transition-colors duration-300 overflow-hidden">
       <CrispChat />
       <AuthModal />
+      <ConfirmDialog />
       <Sidebar />
       <Toast />
       

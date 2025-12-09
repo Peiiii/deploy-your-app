@@ -8,6 +8,7 @@ export const APP_CONFIG = {
 
 export const API_ROUTES = {
   PROJECTS: '/projects',
+  PROJECT_BY_REPO: '/projects/by-repo',
   EXPLORE_PROJECTS: '/projects/explore',
   DEPLOY: '/deploy',
   ANALYZE: '/analyze',

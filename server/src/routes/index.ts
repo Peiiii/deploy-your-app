@@ -1,4 +1,6 @@
 import { randomUUID } from 'crypto';
+import * as path from 'path';
+import * as fs from 'fs';
 import {
   deployments,
   streams,
@@ -6,7 +8,12 @@ import {
   type StreamClient,
 } from '../modules/deployment/state.js';
 import type { Project } from '../common/types.js';
+import { SourceType } from '../common/types.js';
 import { deploymentService } from '../modules/deployment/deployment.service.js';
+import { metadataService } from '../modules/metadata/index.js';
+import { CONFIG } from '../common/config/config.js';
+import { slugify } from '../common/utils/strings.js';
+import { materializeSourceForDeployment } from '../modules/deployment/pipeline/sourceMaterialization.js';
 
 // Minimal request/response/app types so we don't pull in full Express types
 // but also avoid using `any`.
@@ -32,6 +39,101 @@ type AppLike = {
 
 // Attach all API routes to the given Express app instance.
 export function registerRoutes(app: AppLike): void {
+  // ----------------------
+  // Pre-deployment analysis
+  // ----------------------
+
+  app.post('/api/v1/analyze', async (req, res) => {
+    const project = (req.body || {}) as Project;
+
+    if (!project || !project.name || !project.repoUrl) {
+      return res
+        .status(400)
+        .json({ error: 'project.name and project.repoUrl are required' });
+    }
+
+    const normalizedSourceType = project.sourceType ?? SourceType.GitHub;
+
+    // For now we only perform a full repository-based analysis for GitHub
+    // sources. Other source types fall back to a lightweight metadata
+    // generation that does not require preparing a work directory.
+    if (normalizedSourceType !== SourceType.GitHub) {
+      const slugSeed = slugify(project.name);
+      const metadata = await metadataService.ensureProjectMetadata({
+        seedName: project.name,
+        identifier: project.repoUrl,
+        sourceType: normalizedSourceType,
+        htmlContent: project.htmlContent,
+        slugSeed,
+        workDir: null,
+      });
+      return res.json({ metadata });
+    }
+
+    const analysisId = randomUUID();
+    const workDir = path.join(
+      CONFIG.paths.buildsRoot,
+      `analysis-${analysisId}`,
+    );
+
+    try {
+      const tempProject: Project = {
+        id: analysisId,
+        name: project.name,
+        repoUrl: project.repoUrl,
+        sourceType: SourceType.GitHub,
+        slug: undefined,
+        analysisId,
+        lastDeployed: '',
+        status: 'Building',
+        url: undefined,
+        description: project.description,
+        framework: 'Unknown',
+        category: project.category,
+        tags: project.tags,
+        deployTarget: project.deployTarget,
+        providerUrl: undefined,
+        cloudflareProjectName: undefined,
+        htmlContent: project.htmlContent,
+      };
+
+      // Prepare a work directory with the repository contents so that the
+      // metadata service can build a context from the actual source code.
+      await materializeSourceForDeployment(analysisId, tempProject, workDir);
+
+      const slugSeed = slugify(project.name);
+      const metadata = await metadataService.ensureProjectMetadata({
+        seedName: project.name,
+        identifier: project.repoUrl,
+        sourceType: SourceType.GitHub,
+        htmlContent: project.htmlContent,
+        slugSeed,
+        workDir,
+      });
+
+      analysisSessions.set(analysisId, {
+        workDir,
+        repoUrl: project.repoUrl,
+        filePath: '',
+      });
+
+      return res.json({ analysisId, metadata });
+    } catch (err) {
+      // Best-effort cleanup of the analysis workdir if anything goes wrong
+      // before a deployment job reuses it.
+      try {
+        await fs.promises.rm(workDir, { recursive: true, force: true });
+      } catch {
+        // ignore cleanup errors
+      }
+      analysisSessions.delete(analysisId);
+
+      const message =
+        err && (err as Error).message ? (err as Error).message : String(err);
+      return res.status(500).json({ error: message });
+    }
+  });
+
   // ----------------------
   // Start deployment job
   // ----------------------

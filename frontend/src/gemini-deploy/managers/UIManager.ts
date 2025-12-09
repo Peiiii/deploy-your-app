@@ -1,4 +1,9 @@
-import { useUIStore, type ToastVariant } from '../stores/uiStore';
+import {
+  useUIStore,
+  type ToastVariant,
+  type ConfirmDialogState,
+} from '../stores/uiStore';
+import { confirmController } from '../services/confirmController';
 
 // Manager for UI-related actions. State (theme, sidebar) is kept in uiStore.
 export class UIManager {
@@ -28,5 +33,20 @@ export class UIManager {
 
   showErrorToast = (message: string): void => {
     this.showToast(message, 'error');
+  };
+
+  /**
+   * Generic confirm dialog helper. It renders a two-button modal with
+   * primary/secondary actions and resolves to true when the primary action
+   * is chosen, false otherwise.
+   */
+  showConfirm = async (dialog: Omit<ConfirmDialogState, 'resolve'>): Promise<boolean> => {
+    const { actions } = useUIStore.getState();
+    return new Promise<boolean>((resolve) => {
+      confirmController.setResolver((primary) => {
+        resolve(primary);
+      });
+      actions.openConfirmDialog(dialog);
+    });
   };
 }

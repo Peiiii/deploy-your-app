@@ -1,5 +1,5 @@
 import type { DeploymentResult, IDeploymentProvider } from '../interfaces';
-import type { Project, BuildLog } from '../../types';
+import type { Project, BuildLog, DeploymentMetadata } from '../../types';
 import { DeploymentStatus } from '../../types';
 import { APP_CONFIG, API_ROUTES } from '../../constants';
 
@@ -101,5 +101,43 @@ export class HttpDeploymentProvider implements IDeploymentProvider {
         reject(err);
       };
     });
+  }
+
+  // Pre-deployment analysis step: for GitHub repositories this allows the
+  // backend to clone the repo, inspect the source and propose richer
+  // metadata (name, slug, tags). For other source types the backend may
+  // simply echo metadata based on the provided fields.
+  async analyzeSource(
+    project: Project,
+  ): Promise<{ metadata?: DeploymentMetadata; analysisId?: string }> {
+    const response = await fetch(`${this.baseUrl}${API_ROUTES.ANALYZE}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(project),
+    });
+
+    if (!response.ok) {
+      // If the backend does not implement /analyze (e.g. older version
+      // in production returning "Cannot POST /api/v1/analyze"), we treat
+      // this as "analysis not available" and fall back to direct deploy
+      // without surfacing an error to the user.
+      if (response.status === 404 || response.status === 405) {
+        // Optionally log once for debugging.
+        console.info(
+          'Analyze endpoint is not available; skipping pre-deployment analysis.',
+        );
+        return {};
+      }
+
+      const errorText = await response.text().catch(() => '');
+      throw new Error(errorText || 'Failed to analyze project source');
+    }
+
+    const data = (await response.json().catch(() => ({}))) as {
+      metadata?: DeploymentMetadata;
+      analysisId?: string;
+    };
+
+    return data;
   }
 }

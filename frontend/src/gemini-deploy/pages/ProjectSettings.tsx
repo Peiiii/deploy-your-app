@@ -10,6 +10,7 @@ import {
   Save,
   Star,
   Upload,
+  Trash2,
 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -220,6 +221,26 @@ export const ProjectSettings: React.FC = () => {
       setError('Failed to deploy from ZIP archive.');
     } finally {
       setZipUploading(false);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    const confirmed = await presenter.ui.showConfirm({
+      title: t('project.dangerZone'),
+      message: t('project.deleteConfirm'),
+      primaryLabel: t('project.deleteProject'),
+      secondaryLabel: t('common.cancel'),
+    });
+    if (!confirmed) {
+      return;
+    }
+    setError(null);
+    try {
+      await presenter.project.deleteProject(project.id);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error(err);
+      setError(t('project.failedToDelete'));
     }
   };
 
@@ -609,6 +630,23 @@ export const ProjectSettings: React.FC = () => {
                   {analyticsEntry.error}
                 </p>
               )}
+            </div>
+
+            <div className="rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30 p-4 space-y-3 text-xs">
+              <p className="font-semibold text-red-600 dark:text-red-400">
+                {t('project.dangerZone')}
+              </p>
+              <p className="text-[11px] text-red-700/80 dark:text-red-300/80">
+                {t('project.deleteDescription')}
+              </p>
+              <button
+                type="button"
+                onClick={handleDeleteProject}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-semibold border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 hover:bg-red-600 hover:text-white dark:hover:bg-red-500 transition-colors"
+              >
+                <Trash2 className="w-3 h-3" />
+                {t('project.deleteProject')}
+              </button>
             </div>
           </div>
         </div>

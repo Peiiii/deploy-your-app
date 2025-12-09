@@ -82,7 +82,7 @@ class ProjectsController {
     const sort =
       sortParam === 'recent' || sortParam === 'popularity'
         ? sortParam
-        : 'recent';
+      : 'recent';
 
     const page = pageParam ? Number.parseInt(pageParam, 10) : 1;
     const pageSize = pageSizeParam ? Number.parseInt(pageSizeParam, 10) : 12;
@@ -97,6 +97,44 @@ class ProjectsController {
     });
 
     return jsonResponse(result);
+  }
+
+  // GET /api/v1/projects/by-repo?repoUrl=...
+  // Used by the deployment wizard to detect when the current user is trying
+  // to deploy a GitHub repository they already have a project for, so we can
+  // guide them towards redeploy instead of accidentally creating a new
+  // project with a conflicting slug / URL.
+  async findProjectByRepo(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+  ): Promise<Response> {
+    const sessionId = getSessionIdFromRequest(request);
+    if (!sessionId) {
+      throw new UnauthorizedError('Login required to inspect projects.');
+    }
+    const sessionWithUser = await authRepository.getSessionWithUser(
+      db,
+      sessionId,
+    );
+    if (!sessionWithUser) {
+      throw new UnauthorizedError('Login required to inspect projects.');
+    }
+
+    const url = new URL(request.url);
+    const rawRepoUrl = url.searchParams.get('repoUrl');
+    if (!rawRepoUrl) {
+      throw new ValidationError('Missing required query parameter: repoUrl');
+    }
+    const repoUrl = validateRequiredString(rawRepoUrl, 'repoUrl');
+
+    const project = await projectService.findProjectByRepoForUser(
+      db,
+      sessionWithUser.user.id,
+      repoUrl,
+    );
+
+    return jsonResponse({ project });
   }
 
   // POST /api/v1/projects
@@ -184,6 +222,38 @@ class ProjectsController {
     }
 
     return jsonResponse(project);
+  }
+
+  // DELETE /api/v1/projects/:id
+  async deleteProject(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    id: string,
+  ): Promise<Response> {
+    const sessionId = getSessionIdFromRequest(request);
+    if (!sessionId) {
+      throw new UnauthorizedError('Login required to delete a project.');
+    }
+    const sessionWithUser = await authRepository.getSessionWithUser(
+      db,
+      sessionId,
+    );
+    if (!sessionWithUser) {
+      throw new UnauthorizedError('Login required to delete a project.');
+    }
+
+    const deleted = await projectService.deleteProject(
+      db,
+      id,
+      sessionWithUser.user.id,
+    );
+
+    if (!deleted) {
+      throw new NotFoundError('Project not found');
+    }
+
+    return new Response(null, { status: 204 });
   }
 }
 

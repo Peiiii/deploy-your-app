@@ -7,11 +7,19 @@ export interface ToastState {
   variant: ToastVariant;
 }
 
+export interface ConfirmDialogState {
+  title?: string;
+  message: string;
+  primaryLabel: string;
+  secondaryLabel: string;
+}
+
 interface UIState {
   theme: 'dark' | 'light';
   sidebarOpen: boolean;
   toast: ToastState | null;
   language: string;
+  confirmDialog: ConfirmDialogState | null;
   actions: {
     toggleTheme: () => void;
     toggleSidebar: () => void;
@@ -19,6 +27,8 @@ interface UIState {
     showToast: (toast: ToastState) => void;
     clearToast: () => void;
     setLanguage: (lang: string) => void;
+    openConfirmDialog: (dialog: ConfirmDialogState) => void;
+    closeConfirmDialog: () => void;
   };
 }
 
@@ -35,6 +45,7 @@ export const useUIStore = create<UIState>((set) => ({
   sidebarOpen: false,
   toast: null,
   language: getInitialLanguage(),
+  confirmDialog: null,
   actions: {
     toggleTheme: () =>
       set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
@@ -49,5 +60,7 @@ export const useUIStore = create<UIState>((set) => ({
         localStorage.setItem('i18nextLng', lang);
       }
     },
+    openConfirmDialog: (dialog) => set({ confirmDialog: dialog }),
+    closeConfirmDialog: () => set({ confirmDialog: null }),
   },
 }));

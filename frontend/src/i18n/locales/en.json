@@ -84,7 +84,13 @@
     "finalizingDeployment": "Finalizing your deployment... please wait while we prepare the live preview and metadata.",
     "insertSampleTemplate": "Insert sample template",
     "importHtmlFile": "Import .html file",
-    "maximumFileSize": "Maximum file size: 100MB"
+    "maximumFileSize": "Maximum file size: 100MB",
+    "repoDuplicateTitle": "Repository already deployed",
+    "repoDuplicateMessage": "We found an existing project for this repository (\"{{name}}\"). You can redeploy that project to keep the same URL, or create a new project with a different URL.",
+    "repoDuplicateRedeploy": "Redeploy existing project",
+    "repoDuplicateCreateNew": "Create new project with new URL",
+    "analyzingRepository": "Analyzing repository to generate project name, slug and tags...",
+    "analysisFailedFallback": "Repository analysis failed, falling back to direct deployment without AI metadata."
   },
   "dashboard": {
     "signInToViewProjects": "Sign in to view your projects",
@@ -195,7 +201,12 @@
     "redeployFromGitHub": "Redeploy from GitHub",
     "uploadZipAndDeploy": "Upload ZIP & Deploy",
     "uploading": "Uploading...",
-    "zipDeploymentNote": "ZIP deployments are one-off: the uploaded archive is only used for the current deployment. Your GitHub URL stays configured and can be used again later."
+    "zipDeploymentNote": "ZIP deployments are one-off: the uploaded archive is only used for the current deployment. Your GitHub URL stays configured and can be used again later.",
+    "dangerZone": "Danger zone",
+    "deleteProject": "Delete project",
+    "deleteDescription": "Deleting a project hides it from your dashboard and public feeds. Its URL and analytics slug will remain reserved and cannot be reused.",
+    "deleteConfirm": "Are you sure you want to delete this project? This action cannot be undone.",
+    "failedToDelete": "Failed to delete project. Please try again."
   },
   "ui": {
     "toggleMenu": "Toggle Menu",
@@ -210,4 +221,3 @@
     "thePlayground": "The Playground"
   }
 }
-

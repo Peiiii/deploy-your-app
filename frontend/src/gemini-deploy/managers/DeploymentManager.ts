@@ -1,7 +1,10 @@
 import { useDeploymentStore } from '../stores/deploymentStore';
 import { DeploymentStatus, SourceType } from '../types';
-import type { Project } from '../types';
-import type { DeploymentResult, IDeploymentProvider } from '../services/interfaces';
+import type { Project, DeploymentMetadata } from '../types';
+import type {
+  DeploymentResult,
+  IDeploymentProvider,
+} from '../services/interfaces';
 
 export class DeploymentManager {
   private provider: IDeploymentProvider;
@@ -125,6 +128,24 @@ export class DeploymentManager {
     const result = await this.startDeploymentForProject(project, zipFile);
     if (options?.onComplete) {
       options.onComplete(result);
+    }
+  };
+
+  /**
+   * Run a lightweight pre-deployment analysis for the given project. This
+   * calls the /analyze endpoint via the HTTP deployment provider so that
+   * the backend can inspect the source (for GitHub repos) and propose
+   * richer metadata.
+   */
+  analyzeProject = async (
+    project: Project,
+  ): Promise<{ analysisId?: string; metadata?: DeploymentMetadata }> => {
+    try {
+      const result = await this.provider.analyzeSource(project);
+      return result;
+    } catch (err) {
+      console.error('Project analysis failed', err);
+      throw err;
     }
   };
 

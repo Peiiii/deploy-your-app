@@ -41,6 +41,11 @@ export class IndexedDBProjectProvider implements IProjectProvider {
     return db.getAll<Project>('projects');
   }
 
+  async findProjectByRepoUrl(repoUrl: string): Promise<Project | null> {
+    const all = await this.getProjects();
+    return all.find((p) => p.repoUrl === repoUrl) ?? null;
+  }
+
   async createProject(
     name: string,
     sourceType: SourceType,
@@ -90,5 +95,9 @@ export class IndexedDBProjectProvider implements IProjectProvider {
     };
     await db.put('projects', updated);
     return updated;
+  }
+
+  async deleteProject(id: string): Promise<void> {
+    await db.delete('projects', id);
   }
 }

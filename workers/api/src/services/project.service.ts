@@ -9,6 +9,7 @@ import { projectRepository } from '../repositories/project.repository';
 import { metadataService } from './metadata.service';
 import { configService } from './config.service';
 import { engagementService } from './engagement.service';
+import { analyticsService } from './analytics.service';
 
 interface CreateProjectInput {
   name: string;
@@ -53,8 +54,12 @@ class ProjectService {
       overrides: input.metadata,
     });
 
+    // Ensure slug is globally unique across all projects (including deleted),
+    // so that URLs and analytics remain stable over time.
+    const uniqueSlug = await this.ensureUniqueSlug(db, metadata.slug);
+
     const deployTarget = configService.getDeployTarget(env);
-    const url = this.buildProjectUrl(env, metadata.slug, deployTarget);
+    const url = this.buildProjectUrl(env, uniqueSlug, deployTarget);
 
     return projectRepository.createProjectRecord(db, {
       id,
@@ -63,7 +68,7 @@ class ProjectService {
       name: metadata.name,
       repoUrl: input.identifier,
       sourceType: normalizedSourceType,
-      slug: metadata.slug,
+      slug: uniqueSlug,
       lastDeployed: now,
       status: 'Live',
       url,
@@ -93,6 +98,38 @@ class ProjectService {
 
   async getProjectById(db: D1Database, id: string): Promise<Project | null> {
     return projectRepository.getProjectById(db, id);
+  }
+
+  async findProjectByRepoForUser(
+    db: D1Database,
+    ownerId: string,
+    repoUrl: string,
+  ): Promise<Project | null> {
+    return projectRepository.findByRepoUrlAndOwner(db, repoUrl, ownerId);
+  }
+
+  async deleteProject(
+    db: D1Database,
+    id: string,
+    ownerId: string,
+  ): Promise<boolean> {
+    const project = await projectRepository.getProjectById(db, id);
+    if (!project || !project.ownerId || project.ownerId !== ownerId) {
+      return false;
+    }
+
+    // Best-effort cleanup of engagement/analytics tied to this project.
+    if (project.id) {
+      await engagementService.deleteEngagementForProject(db, project.id);
+    }
+    if (project.slug) {
+      // Remove analytics time series for this slug so dashboards stay clean.
+      // We still keep the slug itself reserved via tombstones below.
+      await analyticsService.deleteStatsForSlug(db, project.slug);
+      await projectRepository.recordSlugTombstone(db, project.slug);
+    }
+
+    return projectRepository.hardDeleteProject(db, id, ownerId);
   }
 
   /**
@@ -192,6 +229,34 @@ class ProjectService {
       total,
       engagement,
     };
+  }
+
+  /**
+   * Generate a unique slug by appending a numeric suffix when needed, e.g.:
+   *   "typemaster" -> "typemaster-2" -> "typemaster-3" ...
+   */
+  private async ensureUniqueSlug(
+    db: D1Database,
+    baseSlug: string,
+  ): Promise<string> {
+    const normalized = slugify(baseSlug);
+    let candidate = normalized;
+    let suffix = 2;
+
+    // Limit the loop defensively; in practice we expect to exit almost
+    // immediately since slugs are already fairly unique, and D1 is small.
+    while (suffix < 1000) {
+      const exists = await projectRepository.slugExists(db, candidate);
+      if (!exists) {
+        return candidate;
+      }
+      candidate = `${normalized}-${suffix}`;
+      suffix += 1;
+    }
+
+    throw new Error(
+      `Failed to generate unique slug based on "${baseSlug}". Please try a different name.`,
+    );
   }
 
   private buildProjectUrl(

@@ -67,7 +67,14 @@ class AnalyticsRepository {
       .all<StatsRow>();
     return result.results ?? [];
   }
+
+  async deleteStatsForSlug(db: D1Database, slug: string): Promise<void> {
+    await this.ensureSchema(db);
+    await db
+      .prepare(`DELETE FROM project_daily_stats WHERE slug = ?`)
+      .bind(slug)
+      .run();
+  }
 }
 
 export const analyticsRepository = new AnalyticsRepository();
-

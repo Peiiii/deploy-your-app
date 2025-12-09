@@ -84,7 +84,13 @@
     "finalizingDeployment": "正在完成部署...请稍候，我们正在准备实时预览和元数据。",
     "insertSampleTemplate": "插入示例模板",
     "importHtmlFile": "导入 .html 文件",
-    "maximumFileSize": "最大文件大小：100MB"
+    "maximumFileSize": "最大文件大小：100MB",
+    "repoDuplicateTitle": "仓库已部署",
+    "repoDuplicateMessage": "检测到你已经有一个项目使用这个仓库（“{{name}}”）。你可以重新部署这个项目以保持访问地址不变，或者创建一个新的项目并使用新的访问地址。",
+    "repoDuplicateRedeploy": "重新部署已有项目",
+    "repoDuplicateCreateNew": "创建新项目（新地址）",
+    "analyzingRepository": "正在分析仓库代码，用于生成项目名称、Slug 和标签...",
+    "analysisFailedFallback": "仓库分析失败，将直接进入部署流程（不使用 AI 元数据）。"
   },
   "dashboard": {
     "signInToViewProjects": "登录以查看您的项目",
@@ -195,7 +201,12 @@
     "redeployFromGitHub": "从 GitHub 重新部署",
     "uploadZipAndDeploy": "上传 ZIP 并部署",
     "uploading": "上传中...",
-    "zipDeploymentNote": "ZIP 部署是一次性的：上传的压缩包仅用于当前部署。您的 GitHub URL 保持配置状态，稍后可以再次使用。"
+    "zipDeploymentNote": "ZIP 部署是一次性的：上传的压缩包仅用于当前部署。您的 GitHub URL 保持配置状态，稍后可以再次使用。",
+    "dangerZone": "危险操作",
+    "deleteProject": "删除项目",
+    "deleteDescription": "删除项目后，它会从你的仪表盘和公开列表中隐藏，但对应的访问地址和统计标识会被保留且不能再次复用。",
+    "deleteConfirm": "确定要删除这个项目吗？此操作不可撤销。",
+    "failedToDelete": "删除项目失败，请稍后重试。"
   },
   "ui": {
     "toggleMenu": "切换菜单",
@@ -210,4 +221,3 @@
     "thePlayground": "游乐场"
   }
 }
-

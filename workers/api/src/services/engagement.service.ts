@@ -97,6 +97,13 @@ class EngagementService {
   ): Promise<Record<string, { likesCount: number; favoritesCount: number }>> {
     return engagementRepository.getEngagementCountsForProjects(db, projectIds);
   }
+
+  async deleteEngagementForProject(
+    db: D1Database,
+    projectId: string,
+  ): Promise<void> {
+    await engagementRepository.deleteEngagementForProject(db, projectId);
+  }
 }
 
 export const engagementService = new EngagementService();

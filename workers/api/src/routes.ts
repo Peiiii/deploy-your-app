@@ -37,6 +37,12 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   });
 
   router.add({
+    path: '/api/v1/analyze',
+    method: 'POST',
+    handler: (req) => deployController.analyzeSource(req, env),
+  });
+
+  router.add({
     path: '/api/v1/deployments/:id/stream',
     method: 'GET',
     handler: (req, params) =>
@@ -106,6 +112,13 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   });
 
   router.add({
+    path: '/api/v1/projects/by-repo',
+    method: 'GET',
+    handler: (req) =>
+      projectsController.findProjectByRepo(req, env, requireDb()),
+  });
+
+  router.add({
     path: '/api/v1/projects',
     method: 'POST',
     handler: (req) =>
@@ -124,6 +137,13 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     method: 'PATCH',
     handler: (req, params) =>
       projectsController.updateProject(req, env, requireDb(), params.id),
+  });
+
+  router.add({
+    path: '/api/v1/projects/:id',
+    method: 'DELETE',
+    handler: (req, params) =>
+      projectsController.deleteProject(req, env, requireDb(), params.id),
   });
 
   // -----------------

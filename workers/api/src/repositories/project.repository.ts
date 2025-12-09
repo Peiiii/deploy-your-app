@@ -53,7 +53,8 @@ class ProjectRepository {
           cloudflare_project_name TEXT,
           html_content TEXT,
           owner_id TEXT,
-          is_public INTEGER
+          is_public INTEGER,
+          is_deleted INTEGER
         )`,
       )
       .run();
@@ -82,6 +83,26 @@ class ProjectRepository {
     } catch {
       // Ignore error if column already exists.
     }
+
+    try {
+      await db
+        .prepare(
+          `ALTER TABLE projects ADD COLUMN is_deleted INTEGER DEFAULT 0`,
+        )
+        .run();
+    } catch {
+      // Ignore error if column already exists.
+    }
+
+    // Tombstone table to remember which slugs have ever been used, so that
+    // future projects cannot reuse them even after hard deletion.
+    await db
+      .prepare(
+        `CREATE TABLE IF NOT EXISTS project_slug_tombstones (
+          slug TEXT PRIMARY KEY
+        )`,
+      )
+      .run();
 
     schemaEnsured = true;
   }
@@ -156,8 +177,8 @@ class ProjectRepository {
         `INSERT INTO projects (
           id, name, repo_url, source_type, slug, analysis_id, last_deployed, status,
           url, description, framework, category, tags, deploy_target, provider_url,
-          cloudflare_project_name, html_content, owner_id, is_public
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          cloudflare_project_name, html_content, owner_id, is_public, is_deleted
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
         RETURNING *`,
       )
       .bind(
@@ -193,7 +214,10 @@ class ProjectRepository {
   async getAllProjects(db: D1Database): Promise<Project[]> {
     await this.ensureSchema(db);
     const result = await db
-      .prepare(`SELECT * FROM projects ORDER BY datetime(last_deployed) DESC`)
+      .prepare(
+        `SELECT * FROM projects
+         ORDER BY datetime(last_deployed) DESC`,
+      )
       .all<ProjectRow>();
     const rows = result.results ?? [];
     return rows.map((row) => this.mapRowToProject(row));
@@ -337,10 +361,97 @@ class ProjectRepository {
   async getProjectById(db: D1Database, id: string): Promise<Project | null> {
     await this.ensureSchema(db);
     const row = await db
-      .prepare(`SELECT * FROM projects WHERE id = ?`)
+      .prepare(
+        `SELECT * FROM projects
+         WHERE id = ?`,
+      )
       .bind(id)
       .first<ProjectRow>();
     return row ? this.mapRowToProject(row) : null;
+  }
+
+  /**
+   * Find the most recently deployed project for a given repo URL owned by
+   * the specified user. This is used to detect when the user is trying to
+   * deploy a repository they already have a project for so that the UI can
+   * guide them to redeploy instead of creating a conflicting project.
+   */
+  async findByRepoUrlAndOwner(
+    db: D1Database,
+    repoUrl: string,
+    ownerId: string,
+  ): Promise<Project | null> {
+    await this.ensureSchema(db);
+    const row = await db
+      .prepare(
+        `SELECT * FROM projects
+         WHERE repo_url = ?
+           AND owner_id = ?
+           AND (is_deleted = 0 OR is_deleted IS NULL)
+         ORDER BY datetime(last_deployed) DESC
+         LIMIT 1`,
+      )
+      .bind(repoUrl, ownerId)
+      .first<ProjectRow>();
+
+    return row ? this.mapRowToProject(row) : null;
+  }
+
+  async slugExists(db: D1Database, slug: string): Promise<boolean> {
+    await this.ensureSchema(db);
+    const existingProject = await db
+      .prepare(
+        `SELECT * FROM projects
+         WHERE slug = ?
+         LIMIT 1`,
+      )
+      .bind(slug)
+      .first<ProjectRow>();
+
+    if (existingProject) {
+      return true;
+    }
+
+    const tombstone = await db
+      .prepare(
+        `SELECT slug FROM project_slug_tombstones
+         WHERE slug = ?
+         LIMIT 1`,
+      )
+      .bind(slug)
+      .first<{ slug: string }>();
+
+    return !!tombstone;
+  }
+
+  async recordSlugTombstone(db: D1Database, slug: string): Promise<void> {
+    await this.ensureSchema(db);
+    await db
+      .prepare(
+        `INSERT OR IGNORE INTO project_slug_tombstones (slug)
+         VALUES (?)`,
+      )
+      .bind(slug)
+      .run();
+  }
+
+  async hardDeleteProject(
+    db: D1Database,
+    id: string,
+    ownerId: string,
+  ): Promise<boolean> {
+    await this.ensureSchema(db);
+    const result = await db
+      .prepare(
+        `DELETE FROM projects
+         WHERE id = ? AND owner_id = ?`,
+      )
+      .bind(id, ownerId)
+      .run();
+
+    const meta = (result as unknown as { meta?: { changes?: number } }).meta;
+    const changes = meta?.changes ?? 0;
+    return changes > 0;
   }
 }
 

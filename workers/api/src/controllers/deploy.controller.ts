@@ -92,6 +92,14 @@ class DeployController {
     return this.proxyDeployRequest(env, request, '/deploy');
   }
 
+  // POST /api/v1/analyze
+  async analyzeSource(
+    request: Request,
+    env: ApiWorkerEnv,
+  ): Promise<Response> {
+    return this.proxyDeployRequest(env, request, '/analyze');
+  }
+
   // GET /api/v1/deployments/:id/stream
   async streamDeployment(
     request: Request,

@@ -89,6 +89,18 @@ export class DB {
       request.onerror = () => reject(request.error);
     });
   }
+
+  async delete(storeName: string, key: IDBValidKey): Promise<void> {
+    const db = await this.dbPromise;
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(storeName, 'readwrite');
+      const store = transaction.objectStore(storeName);
+      const request = store.delete(key);
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
 }
 
 export const db = new DB();

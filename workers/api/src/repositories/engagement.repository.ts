@@ -283,6 +283,21 @@ class EngagementRepository {
 
     return map;
   }
+
+  async deleteEngagementForProject(
+    db: D1Database,
+    projectId: string,
+  ): Promise<void> {
+    await this.ensureSchema(db);
+    await db
+      .prepare(`DELETE FROM project_likes WHERE project_id = ?`)
+      .bind(projectId)
+      .run();
+    await db
+      .prepare(`DELETE FROM project_favorites WHERE project_id = ?`)
+      .bind(projectId)
+      .run();
+  }
 }
 
 export const engagementRepository = new EngagementRepository();

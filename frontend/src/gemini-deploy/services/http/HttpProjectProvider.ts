@@ -12,6 +12,23 @@ export class HttpProjectProvider implements IProjectProvider {
     return response.json();
   }
 
+  async findProjectByRepoUrl(repoUrl: string): Promise<Project | null> {
+    const response = await fetch(
+      `${this.baseUrl}${API_ROUTES.PROJECT_BY_REPO}?repoUrl=${encodeURIComponent(
+        repoUrl,
+      )}`,
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+    if (!response.ok) {
+      throw new Error('Failed to inspect existing projects for repo');
+    }
+    const data = (await response.json()) as { project?: Project | null };
+    return data.project ?? null;
+  }
+
   async createProject(
     name: string,
     sourceType: SourceType,
@@ -46,12 +63,27 @@ export class HttpProjectProvider implements IProjectProvider {
       isPublic?: boolean;
     },
   ): Promise<Project> {
-    const response = await fetch(`${this.baseUrl}${API_ROUTES.PROJECTS}/${encodeURIComponent(id)}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(patch),
-    });
-    if (!response.ok) throw new Error("Failed to update project");
+    const response = await fetch(
+      `${this.baseUrl}${API_ROUTES.PROJECTS}/${encodeURIComponent(id)}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      },
+    );
+    if (!response.ok) throw new Error('Failed to update project');
     return response.json();
+  }
+
+  async deleteProject(id: string): Promise<void> {
+    const response = await fetch(
+      `${this.baseUrl}${API_ROUTES.PROJECTS}/${encodeURIComponent(id)}`,
+      {
+        method: 'DELETE',
+      },
+    );
+    if (!response.ok) {
+      throw new Error('Failed to delete project');
+    }
   }
 }
