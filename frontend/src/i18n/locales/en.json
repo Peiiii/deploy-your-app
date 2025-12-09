@@ -131,7 +131,12 @@
     "publishToMarketplace": "Publish your Gemini-powered applications to the marketplace. You earn",
     "ofCreditRevenue": "of the credit revenue every time someone uses your app.",
     "becomeACreator": "Become a Creator",
-    "spendCreditsSupportCreators": "Spend credits, support creators."
+    "spendCreditsSupportCreators": "Spend credits, support creators.",
+    "sortBy": "Sort by",
+    "sortByPopularity": "Popularity",
+    "sortByRecent": "Recent",
+    "popularity": "Popularity",
+    "recent": "Recent"
   },
   "project": {
     "projectSettings": "Project Settings",

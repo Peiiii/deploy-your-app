@@ -131,7 +131,12 @@
     "publishToMarketplace": "将您的 Gemini 驱动应用发布到市场。每次有人使用您的应用时，您将获得",
     "ofCreditRevenue": "的信用收入。",
     "becomeACreator": "成为创作者",
-    "spendCreditsSupportCreators": "花费积分，支持创作者。"
+    "spendCreditsSupportCreators": "花费积分，支持创作者。",
+    "sortBy": "排序方式",
+    "sortByPopularity": "按热度",
+    "sortByRecent": "按时间",
+    "popularity": "热度",
+    "recent": "最新"
   },
   "project": {
     "projectSettings": "项目设置",

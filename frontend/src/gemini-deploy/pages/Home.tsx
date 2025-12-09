@@ -7,6 +7,8 @@ import {
   FileCode,
   ArrowRight,
   Search,
+  TrendingUp,
+  Clock,
 } from 'lucide-react';
 import type { ExploreAppCard } from '../components/ExploreAppCard';
 import {
@@ -16,7 +18,6 @@ import {
 import { usePresenter } from '../contexts/PresenterContext';
 import { useProjectStore } from '../stores/projectStore';
 import { useReactionStore } from '../stores/reactionStore';
-import { useAuthStore } from '../stores/authStore';
 import { SourceType } from '../types';
 
 export type CategoryFilter =
@@ -237,6 +238,8 @@ const ExploreSkeletonGrid: React.FC = () => {
   );
 };
 
+export type SortOption = 'popularity' | 'recent';
+
 export const Home: React.FC = () => {
   const { t } = useTranslation();
   const projects = useProjectStore((state) => state.projects);
@@ -244,7 +247,6 @@ export const Home: React.FC = () => {
   const navigate = useNavigate();
   const presenter = usePresenter();
   const reactionByProject = useReactionStore((s) => s.byProjectId);
-  const user = useAuthStore((s) => s.user);
   // Only show public projects on the marketing / explore surfaces.
   const publicProjects = projects.filter(
     (p) => p.isPublic === undefined || p.isPublic === true,
@@ -253,25 +255,48 @@ export const Home: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All Apps');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('popularity');
 
   const filteredApps = useMemo(
     () => filterApps(apps, activeCategory, activeTag, searchQuery),
     [apps, activeCategory, activeTag, searchQuery],
   );
 
+  const sortedApps = useMemo(() => {
+    const appsWithProjectData = filteredApps.map((app) => {
+      const project = publicProjects.find((p) => p.id === app.id);
+      const reactions = reactionByProject[app.id];
+      return {
+        app,
+        project,
+        likesCount: reactions?.likesCount ?? 0,
+        lastDeployed: project?.lastDeployed ? new Date(project.lastDeployed).getTime() : 0,
+      };
+    });
+
+    if (sortBy === 'popularity') {
+      return appsWithProjectData
+        .sort((a, b) => b.likesCount - a.likesCount)
+        .map((item) => item.app);
+    } else {
+      return appsWithProjectData
+        .sort((a, b) => b.lastDeployed - a.lastDeployed)
+        .map((item) => item.app);
+    }
+  }, [filteredApps, sortBy, publicProjects, reactionByProject]);
+
   const handleQuickDeploy = (sourceType: SourceType) => {
     navigate('/deploy', { state: { sourceType } });
   };
 
-  // Preload reactions for visible projects when the user is logged in.
+  // Preload reactions for all public projects (needed for sorting by popularity)
   React.useEffect(() => {
-    if (!user) return;
     publicProjects.forEach((project) => {
       if (!reactionByProject[project.id]) {
         presenter.reaction.loadReactionsForProject(project.id);
       }
     });
-  }, [user, publicProjects, presenter.reaction, reactionByProject]);
+  }, [publicProjects, presenter.reaction, reactionByProject]);
 
   return (
     <div className="min-h-screen bg-app-bg">
@@ -358,7 +383,36 @@ export const Home: React.FC = () => {
                 {t('explore.discoverApps')}
               </p>
             </div>
-            <SearchBar value={searchQuery} onChange={setSearchQuery} />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
+              <SearchBar value={searchQuery} onChange={setSearchQuery} />
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-500 dark:text-gray-400">{t('explore.sortBy')}:</span>
+                <div className="inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1">
+                  <button
+                    onClick={() => setSortBy('popularity')}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                      sortBy === 'popularity'
+                        ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <TrendingUp className="w-3 h-3" />
+                    {t('explore.sortByPopularity')}
+                  </button>
+                  <button
+                    onClick={() => setSortBy('recent')}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                      sortBy === 'recent'
+                        ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <Clock className="w-3 h-3" />
+                    {t('explore.sortByRecent')}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <CategoryFilter
@@ -369,9 +423,9 @@ export const Home: React.FC = () => {
 
           {isLoadingProjects ? (
             <ExploreSkeletonGrid />
-          ) : filteredApps.length > 0 ? (
+          ) : sortedApps.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredApps.map((app) => (
+              {sortedApps.map((app) => (
                 <ExploreAppCardView
                   key={app.id}
                   app={app}
