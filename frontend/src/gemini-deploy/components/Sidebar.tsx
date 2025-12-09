@@ -48,13 +48,13 @@ export const Sidebar: React.FC = () => {
             <h1 className="font-bold text-lg tracking-tight text-slate-900 dark:text-white leading-none">Gemi<span className="text-purple-600 dark:text-purple-400">Go</span></h1>
             <span className="text-[10px] text-slate-500 dark:text-gray-500 font-mono tracking-wider uppercase">Magic Edition</span>
         </div>
-      </div>
+        </div>
 
-      <div className="px-6 mb-2">
-         <p className="text-[10px] font-semibold text-slate-400 dark:text-gray-400 uppercase tracking-wider mb-2">{t('navigation.myProjects').toUpperCase()}</p>
-      </div>
+        <div className="px-6 mb-2">
+           <p className="text-[10px] font-semibold text-slate-400 dark:text-gray-400 uppercase tracking-wider mb-2">{t('navigation.myProjects').toUpperCase()}</p>
+        </div>
 
-      <nav className="flex-1 px-4 space-y-1">
+        <nav className="flex-1 px-4 space-y-1">
         {navItems.map((item) => {
           const isActive = item.path === '/' 
             ? location.pathname === '/' 
@@ -69,7 +69,7 @@ export const Sidebar: React.FC = () => {
                   setSidebarOpen(false);
                 }
               }}
-              className={`group w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative overflow-hidden ${
+              className={`group w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative overflow-hidden min-h-[44px] ${
                 isActive
                   ? 'text-slate-900 dark:text-white bg-slate-100/50 dark:bg-white/5'
                   : 'text-slate-500 dark:text-gray-400 bg-transparent dark:bg-transparent hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
@@ -78,8 +78,8 @@ export const Sidebar: React.FC = () => {
               {isActive && (
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 dark:from-purple-500/20 to-transparent opacity-100"></div>
               )}
-              <item.icon className={`w-5 h-5 transition-colors ${isActive ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 group-hover:text-slate-600 dark:text-gray-500 dark:group-hover:text-gray-300'}`} />
-              <span className="relative z-10">{item.label}</span>
+              <item.icon className={`w-5 h-5 flex-shrink-0 transition-colors ${isActive ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 group-hover:text-slate-600 dark:text-gray-500 dark:group-hover:text-gray-300'}`} />
+              <span className="relative z-10 whitespace-nowrap flex-shrink-0">{item.label}</span>
             </button>
           );
         })}
