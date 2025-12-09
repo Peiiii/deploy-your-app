@@ -75,13 +75,39 @@ class AnalyticsService {
     project: Project,
     rangeDays: number,
   ): Promise<ProjectStats> {
-    const slug =
-      typeof project.slug === 'string' && project.slug.trim().length > 0
-        ? project.slug
-        : project.id;
+    const slug = this.resolveSlugForProject(project);
     return this.getProjectStatsForSlug(db, slug, rangeDays);
+  }
+
+  /**
+   * Resolve the analytics slug for a project.
+   *
+   * Primary source is the explicit `project.slug` field. For legacy rows
+   * where this might be missing, fall back to parsing the subdomain from
+   * the deployed public URL (e.g. https://slug.gemigo.app/). As a final
+   * fallback, use the project ID so we always have a stable key.
+   */
+  private resolveSlugForProject(project: Project): string {
+    const explicit = (project.slug ?? '').trim();
+    if (explicit) return explicit;
+
+    if (project.url) {
+      try {
+        const url = new URL(project.url);
+        const host = url.hostname;
+        const parts = host.split('.');
+        if (parts.length >= 3) {
+          // Handles patterns like slug.gemigo.app
+          const subdomain = parts[0].trim();
+          if (subdomain) return subdomain;
+        }
+      } catch {
+        // Ignore invalid URLs and fall back to project.id below.
+      }
+    }
+
+    return project.id;
   }
 }
 
 export const analyticsService = new AnalyticsService();
-
