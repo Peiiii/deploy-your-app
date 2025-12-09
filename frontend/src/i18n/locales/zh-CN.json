@@ -30,7 +30,9 @@
     "open": "打开",
     "back": "返回",
     "loading": "加载中...",
-    "loadingProjectDetails": "加载项目详情..."
+    "loadingProjectDetails": "加载项目详情...",
+    "copyUrl": "复制链接",
+    "copied": "已复制"
   },
   "navigation": {
     "home": "首页",
@@ -107,7 +109,20 @@
     "viralContentDescription": "创建引人入胜的 AI 驱动应用，吸引您的受众并传播开来。",
     "forBusiness": "面向企业",
     "internalTools": "内部工具",
-    "internalToolsDescription": "部署内部工具和仪表板，简化团队的工作流程。"
+    "internalToolsDescription": "部署内部工具和仪表板，简化团队的工作流程。",
+    "searchProjects": "搜索项目...",
+    "sortBy": "排序",
+    "recent": "最近",
+    "name": "名称",
+    "status": "状态",
+    "noProjectsFound": "未找到项目",
+    "tryDifferentSearch": "尝试使用不同的搜索词",
+    "getStartedDeploy": "开始部署您的第一个应用",
+    "views7d": "7 天访问量",
+    "noProjects": "还没有项目",
+    "noFavoriteProjects": "还没有收藏的项目",
+    "noFavoriteProjectsDesc": "您还没有收藏任何项目。在探索页面发现喜欢的应用时可以收藏它们。",
+    "viewAllProjects": "查看所有项目"
   },
   "explore": {
     "exploreApps": "探索应用",

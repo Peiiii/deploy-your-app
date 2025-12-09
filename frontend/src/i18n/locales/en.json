@@ -30,7 +30,9 @@
     "open": "Open",
     "back": "Back",
     "loading": "Loading...",
-    "loadingProjectDetails": "Loading project details..."
+    "loadingProjectDetails": "Loading project details...",
+    "copyUrl": "Copy URL",
+    "copied": "Copied"
   },
   "navigation": {
     "home": "Home",
@@ -107,7 +109,20 @@
     "viralContentDescription": "Create engaging AI-powered apps that captivate your audience and go viral.",
     "forBusiness": "FOR BUSINESS",
     "internalTools": "Internal Tools",
-    "internalToolsDescription": "Deploy internal tools and dashboards to streamline your team's workflow."
+    "internalToolsDescription": "Deploy internal tools and dashboards to streamline your team's workflow.",
+    "searchProjects": "Search projects...",
+    "sortBy": "Sort by",
+    "recent": "Recent",
+    "name": "Name",
+    "status": "Status",
+    "noProjectsFound": "No projects found",
+    "tryDifferentSearch": "Try a different search term",
+    "getStartedDeploy": "Get started by deploying your first app",
+    "views7d": "Views (7d)",
+    "noProjects": "No projects yet",
+    "noFavoriteProjects": "No favorite projects yet",
+    "noFavoriteProjectsDesc": "You haven't favorited any projects yet. You can favorite apps you like from the Explore page.",
+    "viewAllProjects": "View All Projects"
   },
   "explore": {
     "exploreApps": "Explore Apps",
