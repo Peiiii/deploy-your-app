@@ -167,7 +167,12 @@
     "toggleFavorite": "Toggle favorite",
     "togglePublicVisibility": "Toggle public visibility",
     "publicUrl": "Public URL",
-    "lastDeploy": "Last deploy"
+    "lastDeploy": "Last deploy",
+    "redeploy": "Redeploy",
+    "redeployFromGitHub": "Redeploy from GitHub",
+    "uploadZipAndDeploy": "Upload ZIP & Deploy",
+    "uploading": "Uploading...",
+    "zipDeploymentNote": "ZIP deployments are one-off: the uploaded archive is only used for the current deployment. Your GitHub URL stays configured and can be used again later."
   },
   "ui": {
     "toggleMenu": "Toggle Menu",

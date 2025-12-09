@@ -19,7 +19,6 @@ import {
   Sun,
   Moon,
   Menu,
-  Coins,
   Mail,
   Github,
   Globe,
@@ -106,10 +105,11 @@ const MainLayout = () => {
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
-             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/30">
+             {/* Credits display - hidden until backend support is ready */}
+             {/* <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/30">
                <Coins className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
                <span className="text-sm font-medium text-slate-900 dark:text-yellow-300">2,450 +</span>
-             </div>
+             </div> */}
              <button 
                 onClick={presenter.ui.toggleTheme}
                 className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all bg-transparent dark:bg-transparent"
