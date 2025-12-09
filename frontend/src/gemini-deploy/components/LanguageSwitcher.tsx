@@ -1,10 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Globe } from 'lucide-react';
+import { Languages } from 'lucide-react';
 import { useUIStore } from '../stores/uiStore';
 
 export const LanguageSwitcher: React.FC = () => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const language = useUIStore((state) => state.language);
   const setLanguage = useUIStore((state) => state.actions.setLanguage);
   const [isOpen, setIsOpen] = React.useState(false);
@@ -27,9 +27,9 @@ export const LanguageSwitcher: React.FC = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all bg-transparent dark:bg-transparent hidden md:flex items-center gap-1.5"
-        title="Change Language"
+        title={t('ui.changeLanguage') || 'Change Language'}
       >
-        <Globe className="w-4 h-4" />
+        <Languages className="w-4 h-4" />
         <span className="text-xs">{currentLanguage.label}</span>
       </button>
 
