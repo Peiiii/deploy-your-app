@@ -266,17 +266,26 @@ export const Home: React.FC = () => {
     const appsWithProjectData = filteredApps.map((app) => {
       const project = publicProjects.find((p) => p.id === app.id);
       const reactions = reactionByProject[app.id];
+      const likesCount = reactions?.likesCount ?? 0;
+      const favoritesCount = reactions?.favoritesCount ?? 0;
       return {
         app,
         project,
-        likesCount: reactions?.likesCount ?? 0,
+        likesCount,
+        favoritesCount,
+        popularityScore: likesCount + favoritesCount * 1.5,
         lastDeployed: project?.lastDeployed ? new Date(project.lastDeployed).getTime() : 0,
       };
     });
 
     if (sortBy === 'popularity') {
       return appsWithProjectData
-        .sort((a, b) => b.likesCount - a.likesCount)
+        .sort((a, b) => {
+          if (b.popularityScore !== a.popularityScore) {
+            return b.popularityScore - a.popularityScore;
+          }
+          return b.likesCount - a.likesCount;
+        })
         .map((item) => item.app);
     } else {
       return appsWithProjectData
