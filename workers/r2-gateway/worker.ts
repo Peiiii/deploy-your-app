@@ -120,6 +120,9 @@ export default {
       if (thumb.httpEtag) {
         headers.set('etag', thumb.httpEtag);
       }
+      // Debug/diagnostic header so we can verify that requests are
+      // actually flowing through this R2 gateway worker.
+      headers.set('x-gemigo-gateway', 'r2');
       if (!headers.has('content-type')) {
         headers.set('content-type', 'image/png');
       }
@@ -156,11 +159,15 @@ export default {
       return new Response('Not found', { status: 404 });
     }
 
-    // Fire-and-forget page view recording for top-level HTML / SPA routes.
+    // Record page views for top-level HTML / SPA routes.
+    // We await this so that analytics are reliably persisted before
+    // the Worker finishes handling the request.
     if (isPageViewRequest(url)) {
-      recordPageView(env, subdomain).catch((err) => {
+      try {
+        await recordPageView(env, subdomain);
+      } catch (err) {
         console.error('Failed to record page view', err);
-      });
+      }
     }
 
     const headers = new Headers();
@@ -176,6 +183,10 @@ export default {
       const ext = objectKey.split('.').pop()?.toLowerCase() ?? '';
       headers.set('content-type', getContentTypeFromExt(ext));
     }
+
+    // Debug/diagnostic header so we can verify in curl/DevTools
+    // that this Worker handled the request.
+    headers.set('x-gemigo-gateway', 'r2');
 
     return new Response(object.body, {
       headers,
@@ -226,16 +237,9 @@ async function recordPageView(env: Env, slug: string): Promise<void> {
   const base = env.ANALYTICS_API_BASE_URL;
   if (!base) return;
   const apiBase = base.replace(/\/+$/, '');
-  const url = `${apiBase}/analytics/pageview`;
-  const body = JSON.stringify({
-    slug,
-    timestamp: new Date().toISOString(),
-  });
+  const url = `${apiBase}/analytics/ping/${encodeURIComponent(slug)}`;
+  console.log('recordPageView: sending analytics ping', { slug, url });
   await fetch(url, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body,
+    method: 'GET',
   });
 }

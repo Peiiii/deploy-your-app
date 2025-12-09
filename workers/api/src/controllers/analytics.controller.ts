@@ -1,35 +1,43 @@
 import type { ApiWorkerEnv } from '../types/env';
-import { jsonResponse, readJson, emptyResponse } from '../utils/http';
-import { ValidationError, UnauthorizedError } from '../utils/error-handler';
+import { jsonResponse, emptyResponse } from '../utils/http';
+import { ValidationError } from '../utils/error-handler';
 import { analyticsService } from '../services/analytics.service';
+import { analyticsRepository } from '../repositories/analytics.repository';
 import { projectService } from '../services/project.service';
-import { getSessionIdFromRequest } from '../utils/auth';
-import { authRepository } from '../repositories/auth.repository';
 
 class AnalyticsController {
-  // Internal endpoint – called by the R2 gateway Worker to record page views.
-  // POST /api/v1/analytics/pageview
-  async recordPageView(
+  // Internal endpoint – used by the R2 gateway Worker to record page views.
+  // GET /api/v1/analytics/ping/:slug
+  async pingPageView(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    slug: string,
+  ): Promise<Response> {
+    const normalizedSlug = slug.trim();
+    if (!normalizedSlug) {
+      throw new ValidationError('slug is required');
+    }
+    const now = new Date();
+    await analyticsService.recordPageView(db, normalizedSlug, now);
+    return emptyResponse(204);
+  }
+
+  // Debug endpoint: inspect raw rows for a given slug.
+  // GET /api/v1/analytics/debug/raw?slug=...&from=YYYY-MM-DD
+  async debugRawStats(
     request: Request,
     env: ApiWorkerEnv,
     db: D1Database,
   ): Promise<Response> {
-    const body = await readJson(request);
-    const slug = typeof body.slug === 'string' ? body.slug.trim() : '';
+    const url = new URL(request.url);
+    const slug = (url.searchParams.get('slug') || '').trim();
     if (!slug) {
       throw new ValidationError('slug is required');
     }
-
-    const timestamp =
-      typeof body.timestamp === 'string'
-        ? new Date(body.timestamp)
-        : new Date();
-    if (Number.isNaN(timestamp.getTime())) {
-      throw new ValidationError('Invalid timestamp');
-    }
-
-    await analyticsService.recordPageView(db, slug, timestamp);
-    return emptyResponse(204);
+    const from = url.searchParams.get('from') || '1970-01-01';
+    const rows = await analyticsRepository.getStatsForSlug(db, slug, from);
+    return jsonResponse({ slug, from, rows });
   }
 
   // GET /api/v1/projects/:id/stats?range=7d
@@ -39,24 +47,9 @@ class AnalyticsController {
     db: D1Database,
     projectId: string,
   ): Promise<Response> {
-    const sessionId = getSessionIdFromRequest(request);
-    if (!sessionId) {
-      throw new UnauthorizedError('Login required to view project stats.');
-    }
-    const sessionWithUser = await authRepository.getSessionWithUser(
-      db,
-      sessionId,
-    );
-    if (!sessionWithUser) {
-      throw new UnauthorizedError('Login required to view project stats.');
-    }
-
     const project = await projectService.getProjectById(db, projectId);
     if (!project) {
       throw new ValidationError('Project not found');
-    }
-    if (project.ownerId && project.ownerId !== sessionWithUser.user.id) {
-      throw new UnauthorizedError('You do not own this project.');
     }
 
     const url = new URL(request.url);
@@ -73,4 +66,3 @@ class AnalyticsController {
 }
 
 export const analyticsController = new AnalyticsController();
-

@@ -38,17 +38,24 @@ export function withSetCookie(response: Response, cookie: string): Response {
 export type JsonBody = Record<string, unknown>;
 
 export async function readJson(req: Request): Promise<JsonBody> {
-  if (
-    !req.headers.get('content-type')?.includes('application/json') &&
-    req.headers.get('content-length')
-  ) {
-    throw new Error('Expected application/json request');
-  }
+  const contentType = req.headers.get('content-type') || '';
+  const isJson = contentType.includes('application/json');
 
-  if (req.headers.get('content-length') === null) {
+  // If the request declares a non-JSON content type but has a body,
+  // treat this as a protocol error for our API.
+  if (!isJson) {
+    const contentLength = req.headers.get('content-length');
+    if (contentLength !== null && contentLength !== '0') {
+      throw new Error('Expected application/json request');
+    }
+    // No JSON body expected; return an empty object.
     return {};
   }
 
+  // For JSON requests, always attempt to parse the body, regardless of
+  // whether a Content-Length header is present. This ensures that
+  // Worker-to-Worker fetch() calls (which may use chunked encoding)
+  // are handled correctly.
   try {
     const data = (await req.json()) as JsonBody;
     return data;

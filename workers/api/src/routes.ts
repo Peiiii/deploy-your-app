@@ -124,10 +124,18 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   // -----------------
 
   router.add({
-    path: '/api/v1/analytics/pageview',
-    method: 'POST',
+    path: '/api/v1/analytics/ping/:slug',
+    method: 'GET',
+    handler: (req, params) =>
+      analyticsController.pingPageView(req, env, requireDb(), params.slug),
+  });
+
+  // Debug: raw analytics rows by slug (no auth, read-only).
+  router.add({
+    path: '/api/v1/analytics/debug/raw',
+    method: 'GET',
     handler: (req) =>
-      analyticsController.recordPageView(req, env, requireDb()),
+      analyticsController.debugRawStats(req, env, requireDb()),
   });
 
   router.add({
