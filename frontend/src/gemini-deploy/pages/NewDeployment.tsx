@@ -366,7 +366,7 @@ export const NewDeployment: React.FC = () => {
                           {t('deployment.uploadZipDescription')}
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                          Maximum file size: 100MB
+                          {t('deployment.maximumFileSize')}
                         </p>
                       </div>
                     </div>
@@ -395,7 +395,7 @@ export const NewDeployment: React.FC = () => {
                     className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-purple-600 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/30 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/50"
                   >
                     <FileCode className="w-3 h-3" />
-                    Insert sample template
+                    {t('deployment.insertSampleTemplate')}
                   </button>
                   <button
                     type="button"
@@ -403,7 +403,7 @@ export const NewDeployment: React.FC = () => {
                     className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
                   >
                     <Upload className="w-3 h-3" />
-                    Import .html file
+                    {t('deployment.importHtmlFile')}
                   </button>
                   <input
                     ref={htmlFileInputRef}

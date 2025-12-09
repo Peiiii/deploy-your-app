@@ -81,7 +81,10 @@
     "openSite": "Open Site",
     "preparingUrl": "Preparing URL...",
     "viewDashboard": "View Dashboard",
-    "finalizingDeployment": "Finalizing your deployment... please wait while we prepare the live preview and metadata."
+    "finalizingDeployment": "Finalizing your deployment... please wait while we prepare the live preview and metadata.",
+    "insertSampleTemplate": "Insert sample template",
+    "importHtmlFile": "Import .html file",
+    "maximumFileSize": "Maximum file size: 100MB"
   },
   "dashboard": {
     "signInToViewProjects": "Sign in to view your projects",

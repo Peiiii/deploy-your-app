@@ -81,7 +81,10 @@
     "openSite": "打开网站",
     "preparingUrl": "准备 URL...",
     "viewDashboard": "查看仪表板",
-    "finalizingDeployment": "正在完成部署...请稍候，我们正在准备实时预览和元数据。"
+    "finalizingDeployment": "正在完成部署...请稍候，我们正在准备实时预览和元数据。",
+    "insertSampleTemplate": "插入示例模板",
+    "importHtmlFile": "导入 .html 文件",
+    "maximumFileSize": "最大文件大小：100MB"
   },
   "dashboard": {
     "signInToViewProjects": "登录以查看您的项目",
