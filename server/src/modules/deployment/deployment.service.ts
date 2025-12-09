@@ -335,6 +335,33 @@ export class DeploymentService {
       if (analysisId && analysisSessions.has(analysisId)) {
         analysisSessions.delete(analysisId);
       }
+
+      // Best-effort cleanup of the per-deployment working directory so we don't
+      // accumulate cloned repos / node_modules under data/builds over time.
+      if (workDir) {
+        try {
+          const buildsRoot = path.resolve(CONFIG.paths.buildsRoot);
+          const normalizedWorkDir = path.resolve(workDir);
+
+          // Guard against accidentally deleting outside the configured builds root.
+          if (normalizedWorkDir.startsWith(buildsRoot)) {
+            await fs.promises.rm(normalizedWorkDir, {
+              recursive: true,
+              force: true,
+            });
+          }
+        } catch (cleanupErr) {
+          appendLog(
+            id,
+            `Warning: failed to clean up build directory: ${
+              cleanupErr && (cleanupErr as Error).message
+                ? (cleanupErr as Error).message
+                : String(cleanupErr)
+            }`,
+            'warning',
+          );
+        }
+      }
     }
   }
 }
