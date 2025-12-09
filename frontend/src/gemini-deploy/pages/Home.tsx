@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -11,13 +11,10 @@ import {
   Clock,
 } from 'lucide-react';
 import type { ExploreAppCard } from '../components/ExploreAppCard';
-import {
-  ExploreAppCardView,
-  mapProjectsToApps,
-} from '../components/ExploreAppCard';
+import { ExploreAppCardView, mapProjectsToApps } from '../components/ExploreAppCard';
 import { usePresenter } from '../contexts/PresenterContext';
-import { useProjectStore } from '../stores/projectStore';
-import { useReactionStore } from '../stores/reactionStore';
+import { useAuthStore } from '../stores/authStore';
+import { fetchExploreProjects } from '../services/http/exploreApi';
 import { SourceType } from '../types';
 
 export type CategoryFilter =
@@ -93,44 +90,6 @@ const APP_META: readonly AppMeta[] = [
     color: 'from-indigo-500 to-violet-500',
   },
 ] as const;
-
-function matchesCategory(app: ExploreAppCard, category: CategoryFilter): boolean {
-  return category === 'All Apps' || app.category === category;
-}
-
-function matchesTag(app: ExploreAppCard, tag: string | null): boolean {
-  if (!tag) return true;
-  const tags = app.tags ?? [];
-  return tags.includes(tag);
-}
-
-function matchesSearchQuery(app: ExploreAppCard, query: string): boolean {
-  if (!query) return true;
-  const searchableText = [
-    app.name,
-    app.description,
-    app.author,
-    ...(app.tags ?? []),
-  ]
-    .join(' ')
-    .toLowerCase();
-  return searchableText.includes(query.toLowerCase());
-}
-
-function filterApps(
-  apps: ExploreAppCard[],
-  category: CategoryFilter,
-  tag: string | null,
-  searchQuery: string,
-): ExploreAppCard[] {
-  const query = searchQuery.trim();
-  return apps.filter(
-    (app) =>
-      matchesCategory(app, category) &&
-      matchesTag(app, tag) &&
-      matchesSearchQuery(app, query),
-  );
-}
 
 interface SearchBarProps {
   value: string;
@@ -242,70 +201,73 @@ export type SortOption = 'popularity' | 'recent';
 
 export const Home: React.FC = () => {
   const { t } = useTranslation();
-  const projects = useProjectStore((state) => state.projects);
-  const isLoadingProjects = useProjectStore((state) => state.isLoading);
   const navigate = useNavigate();
   const presenter = usePresenter();
-  const reactionByProject = useReactionStore((s) => s.byProjectId);
-  // Only show public projects on the marketing / explore surfaces.
-  const publicProjects = projects.filter(
-    (p) => p.isPublic === undefined || p.isPublic === true,
-  );
-  const apps = mapProjectsToApps(publicProjects, APP_META);
+  const user = useAuthStore((s) => s.user);
+  const [apps, setApps] = useState<ExploreAppCard[]>([]);
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All Apps');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('popularity');
+  const [isLoadingExplore, setIsLoadingExplore] = useState(false);
 
-  const filteredApps = useMemo(
-    () => filterApps(apps, activeCategory, activeTag, searchQuery),
-    [apps, activeCategory, activeTag, searchQuery],
-  );
+  React.useEffect(() => {
+    let cancelled = false;
 
-  const sortedApps = useMemo(() => {
-    const appsWithProjectData = filteredApps.map((app) => {
-      const project = publicProjects.find((p) => p.id === app.id);
-      const reactions = reactionByProject[app.id];
-      const likesCount = reactions?.likesCount ?? 0;
-      const favoritesCount = reactions?.favoritesCount ?? 0;
-      return {
-        app,
-        project,
-        likesCount,
-        favoritesCount,
-        popularityScore: likesCount + favoritesCount * 1.5,
-        lastDeployed: project?.lastDeployed ? new Date(project.lastDeployed).getTime() : 0,
-      };
-    });
+    const load = async () => {
+      setIsLoadingExplore(true);
+      try {
+        const result = await fetchExploreProjects({
+          search: searchQuery.trim() || undefined,
+          category: activeCategory !== 'All Apps' ? activeCategory : undefined,
+          tag: activeTag,
+          sort: sortBy,
+          page: 1,
+          pageSize: 12,
+        });
 
-    if (sortBy === 'popularity') {
-      return appsWithProjectData
-        .sort((a, b) => {
-          if (b.popularityScore !== a.popularityScore) {
-            return b.popularityScore - a.popularityScore;
-          }
-          return b.likesCount - a.likesCount;
-        })
-        .map((item) => item.app);
-    } else {
-      return appsWithProjectData
-        .sort((a, b) => b.lastDeployed - a.lastDeployed)
-        .map((item) => item.app);
-    }
-  }, [filteredApps, sortBy, publicProjects, reactionByProject]);
+        if (cancelled) return;
+
+        const projects = result.items;
+        setApps(mapProjectsToApps(projects, APP_META));
+
+        // Seed aggregated counts into the reaction store so cards can display
+        // likes/favorites without extra per-project requests.
+        if (result.engagement) {
+          const projectsWithCounts = projects.map((p) => {
+            const counts = result.engagement?.[p.id];
+            return {
+              ...p,
+              likesCount: counts?.likesCount ?? 0,
+              favoritesCount: counts?.favoritesCount ?? 0,
+            };
+          });
+          presenter.reaction.seedCountsFromProjects(projectsWithCounts);
+        }
+
+        if (user) {
+          const ids = projects.map((p) => p.id);
+          presenter.reaction.loadReactionsForProjectsBulk(ids);
+        }
+      } catch (error) {
+        console.error('Failed to load explore apps for Home', error);
+      } finally {
+        if (!cancelled) {
+          setIsLoadingExplore(false);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeCategory, activeTag, searchQuery, sortBy, presenter.reaction, user]);
 
   const handleQuickDeploy = (sourceType: SourceType) => {
     navigate('/deploy', { state: { sourceType } });
   };
-
-  // Preload reactions for all public projects (needed for sorting by popularity)
-  React.useEffect(() => {
-    publicProjects.forEach((project) => {
-      if (!reactionByProject[project.id]) {
-        presenter.reaction.loadReactionsForProject(project.id);
-      }
-    });
-  }, [publicProjects, presenter.reaction, reactionByProject]);
 
   return (
     <div className="min-h-screen bg-app-bg">
@@ -430,11 +392,11 @@ export const Home: React.FC = () => {
             onTagReset={() => setActiveTag(null)}
           />
 
-          {isLoadingProjects ? (
+          {isLoadingExplore ? (
             <ExploreSkeletonGrid />
-          ) : sortedApps.length > 0 ? (
+          ) : apps.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {sortedApps.map((app) => (
+              {apps.map((app) => (
                 <ExploreAppCardView
                   key={app.id}
                   app={app}

@@ -90,6 +90,13 @@ class EngagementService {
   ): Promise<string[]> {
     return engagementRepository.getFavoriteProjectIdsForUser(db, userId);
   }
+
+  async getEngagementCountsForProjects(
+    db: D1Database,
+    projectIds: string[],
+  ): Promise<Record<string, { likesCount: number; favoritesCount: number }>> {
+    return engagementRepository.getEngagementCountsForProjects(db, projectIds);
+  }
 }
 
 export const engagementService = new EngagementService();

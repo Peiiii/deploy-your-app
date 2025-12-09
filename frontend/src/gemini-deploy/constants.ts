@@ -8,12 +8,14 @@ export const APP_CONFIG = {
 
 export const API_ROUTES = {
   PROJECTS: '/projects',
+  EXPLORE_PROJECTS: '/projects/explore',
   DEPLOY: '/deploy',
   ANALYZE: '/analyze',
   STATUS: '/status',
   PROJECT_STATS: (id: string) => `/projects/${encodeURIComponent(id)}/stats`,
   PROJECT_REACTIONS: (id: string) =>
     `/projects/${encodeURIComponent(id)}/reactions`,
+  PROJECT_REACTIONS_BULK: '/projects/reactions',
   PROJECT_LIKE: (id: string) => `/projects/${encodeURIComponent(id)}/like`,
   PROJECT_FAVORITE: (id: string) =>
     `/projects/${encodeURIComponent(id)}/favorite`,

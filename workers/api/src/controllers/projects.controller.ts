@@ -64,6 +64,41 @@ class ProjectsController {
     return jsonResponse(projects);
   }
 
+  // GET /api/v1/projects/explore
+  async listExploreProjects(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+  ): Promise<Response> {
+    const url = new URL(request.url);
+
+    const search = url.searchParams.get('search') ?? undefined;
+    const category = url.searchParams.get('category') ?? undefined;
+    const tag = url.searchParams.get('tag') ?? undefined;
+    const sortParam = url.searchParams.get('sort') ?? undefined;
+    const pageParam = url.searchParams.get('page') ?? undefined;
+    const pageSizeParam = url.searchParams.get('pageSize') ?? undefined;
+
+    const sort =
+      sortParam === 'recent' || sortParam === 'popularity'
+        ? sortParam
+        : 'recent';
+
+    const page = pageParam ? Number.parseInt(pageParam, 10) : 1;
+    const pageSize = pageSizeParam ? Number.parseInt(pageSizeParam, 10) : 12;
+
+    const result = await projectService.getExploreProjects(db, {
+      search: search?.trim() || undefined,
+      category: category?.trim() || undefined,
+      tag: tag?.trim() || undefined,
+      sort,
+      page: Number.isFinite(page) && page > 0 ? page : 1,
+      pageSize: Number.isFinite(pageSize) && pageSize > 0 ? pageSize : 12,
+    });
+
+    return jsonResponse(result);
+  }
+
   // POST /api/v1/projects
   async createProject(
     request: Request,

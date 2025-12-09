@@ -23,6 +23,38 @@ export class HttpReactionProvider implements IReactionProvider {
     return (await res.json()) as ProjectReactions;
   }
 
+  async getReactionsForProjectsBulk(
+    projectIds: string[],
+  ): Promise<Record<string, ProjectReactions>> {
+    if (projectIds.length === 0) {
+      return {};
+    }
+
+    const params = new URLSearchParams();
+    params.set('ids', projectIds.join(','));
+
+    const res = await fetch(
+      this.buildUrl(
+        `${API_ROUTES.PROJECT_REACTIONS_BULK}?${params.toString()}`,
+      ),
+      {
+        method: 'GET',
+        credentials: 'include',
+      },
+    );
+
+    if (res.status === 401) {
+      // Not logged in – caller typically treats this as "no reactions".
+      return {};
+    }
+
+    if (!res.ok) {
+      throw new Error('Failed to load reactions (bulk)');
+    }
+
+    return (await res.json()) as Record<string, ProjectReactions>;
+  }
+
   async setLike(
     projectId: string,
     liked: boolean,
@@ -71,4 +103,3 @@ export class HttpReactionProvider implements IReactionProvider {
     return data.projectIds ?? [];
   }
 }
-

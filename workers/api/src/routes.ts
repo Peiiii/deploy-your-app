@@ -113,6 +113,13 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   });
 
   router.add({
+    path: '/api/v1/projects/explore',
+    method: 'GET',
+    handler: (req) =>
+      projectsController.listExploreProjects(req, env, requireDb()),
+  });
+
+  router.add({
     path: '/api/v1/projects/:id',
     method: 'PATCH',
     handler: (req, params) =>
@@ -159,6 +166,13 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
         requireDb(),
         params.id,
       ),
+  });
+
+  router.add({
+    path: '/api/v1/projects/reactions',
+    method: 'GET',
+    handler: (req) =>
+      engagementController.getReactionsForProjectsBulk(req, env, requireDb()),
   });
 
   router.add({

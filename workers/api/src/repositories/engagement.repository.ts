@@ -4,6 +4,11 @@ type FavoriteRow = {
   created_at: string;
 };
 
+type CountRow = {
+  project_id: string;
+  cnt: number;
+};
+
 let engagementSchemaEnsured = false;
 
 class EngagementRepository {
@@ -211,6 +216,72 @@ class EngagementRepository {
       .all<FavoriteRow>();
     const rows = result.results ?? [];
     return rows.map((row) => String(row.project_id));
+  }
+
+  /**
+   * Bulk-fetch engagement counts (likes / favorites) for a set of projects.
+   * This is used for backend-side "popularity" sorting in the explore feed.
+   */
+  async getEngagementCountsForProjects(
+    db: D1Database,
+    projectIds: string[],
+  ): Promise<Record<string, { likesCount: number; favoritesCount: number }>> {
+    await this.ensureSchema(db);
+
+    if (projectIds.length === 0) {
+      return {};
+    }
+
+    const placeholders = projectIds.map(() => '?').join(', ');
+
+    const likesResult = await db
+      .prepare(
+        `SELECT project_id, COUNT(*) as cnt
+         FROM project_likes
+         WHERE project_id IN (${placeholders})
+         GROUP BY project_id`,
+      )
+      .bind(...projectIds)
+      .all<CountRow>();
+    const likeRows = likesResult.results ?? [];
+
+    const favoritesResult = await db
+      .prepare(
+        `SELECT project_id, COUNT(*) as cnt
+         FROM project_favorites
+         WHERE project_id IN (${placeholders})
+         GROUP BY project_id`,
+      )
+      .bind(...projectIds)
+      .all<CountRow>();
+    const favoriteRows = favoritesResult.results ?? [];
+
+    const map: Record<
+      string,
+      { likesCount: number; favoritesCount: number }
+    > = {};
+
+    for (const id of projectIds) {
+      map[id] = { likesCount: 0, favoritesCount: 0 };
+    }
+
+    likeRows.forEach((row) => {
+      const id = String(row.project_id);
+      if (!map[id]) {
+        map[id] = { likesCount: 0, favoritesCount: 0 };
+      }
+      map[id].likesCount = Number(row.cnt ?? 0);
+    });
+
+    favoriteRows.forEach((row) => {
+      const id = String(row.project_id);
+      if (!map[id]) {
+        map[id] = { likesCount: 0, favoritesCount: 0 };
+      }
+      map[id].favoritesCount = Number(row.cnt ?? 0);
+    });
+
+    return map;
   }
 }
 

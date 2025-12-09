@@ -1,16 +1,12 @@
 import { Play, Search, TrendingUp } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import type { ExploreAppCard } from '../components/ExploreAppCard';
-import {
-  ExploreAppCardView,
-  mapProjectsToApps,
-} from '../components/ExploreAppCard';
-import { useProjectStore } from '../stores/projectStore';
-import { useReactionStore } from '../stores/reactionStore';
+import { ExploreAppCardView, mapProjectsToApps } from '../components/ExploreAppCard';
 import { useAuthStore } from '../stores/authStore';
 import { usePresenter } from '../contexts/PresenterContext';
+import { fetchExploreProjects } from '../services/http/exploreApi';
 const CREATOR_REVENUE_SHARE = 70;
 
 export type CategoryFilter =
@@ -86,44 +82,6 @@ const APP_META: readonly AppMeta[] = [
     color: 'from-indigo-500 to-violet-500',
   },
 ] as const;
-
-function matchesCategory(app: ExploreAppCard, category: CategoryFilter): boolean {
-  return category === 'All Apps' || app.category === category;
-}
-
-function matchesTag(app: ExploreAppCard, tag: string | null): boolean {
-  if (!tag) return true;
-  const tags = app.tags ?? [];
-  return tags.includes(tag);
-}
-
-function matchesSearchQuery(app: ExploreAppCard, query: string): boolean {
-  if (!query) return true;
-  const searchableText = [
-    app.name,
-    app.description,
-    app.author,
-    ...(app.tags ?? []),
-  ]
-    .join(' ')
-    .toLowerCase();
-  return searchableText.includes(query.toLowerCase());
-}
-
-function filterApps(
-  apps: ExploreAppCard[],
-  category: CategoryFilter,
-  tag: string | null,
-  searchQuery: string,
-): ExploreAppCard[] {
-  const query = searchQuery.trim();
-  return apps.filter(
-    (app) =>
-      matchesCategory(app, category) &&
-      matchesTag(app, tag) &&
-      matchesSearchQuery(app, query),
-  );
-}
 
 interface SearchBarProps {
   value: string;
@@ -239,38 +197,77 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 
 export const ExploreApps: React.FC = () => {
   const { t } = useTranslation();
-  const projects = useProjectStore((state) => state.projects);
-  const reactionByProject = useReactionStore((s) => s.byProjectId);
   const user = useAuthStore((s) => s.user);
   const presenter = usePresenter();
   const navigate = useNavigate();
-  // Only show public projects in Explore.
-  const publicProjects = projects.filter(
-    (p) => p.isPublic === undefined || p.isPublic === true,
-  );
-  const apps = mapProjectsToApps(publicProjects, APP_META);
+  const [apps, setApps] = useState<ExploreAppCard[]>([]);
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All Apps');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const filteredApps = useMemo(
-    () => filterApps(apps, activeCategory, activeTag, searchQuery),
-    [apps, activeCategory, activeTag, searchQuery],
+  const PAGE_SIZE = 12;
+
+  const loadPage = React.useCallback(
+    async (pageToLoad: number, append: boolean) => {
+      setIsLoading(true);
+      try {
+        const result = await fetchExploreProjects({
+          search: searchQuery.trim() || undefined,
+          category: activeCategory !== 'All Apps' ? activeCategory : undefined,
+          tag: activeTag,
+          sort: 'recent',
+          page: pageToLoad,
+          pageSize: PAGE_SIZE,
+        });
+
+        const projects = result.items;
+        const pageApps = mapProjectsToApps(projects, APP_META);
+        setApps((prev) =>
+          append ? [...prev, ...pageApps] : pageApps,
+        );
+        setPage(result.page);
+        setHasMore(result.page * PAGE_SIZE < result.total);
+
+        if (user) {
+          const ids = projects.map((p) => p.id);
+          presenter.reaction.loadReactionsForProjectsBulk(ids);
+        }
+
+        if (result.engagement) {
+          const projectsWithCounts = projects.map((p) => {
+            const counts = result.engagement?.[p.id];
+            return {
+              ...p,
+              likesCount: counts?.likesCount ?? 0,
+              favoritesCount: counts?.favoritesCount ?? 0,
+            };
+          });
+          presenter.reaction.seedCountsFromProjects(projectsWithCounts);
+        }
+      } catch (error) {
+        console.error('Failed to load explore apps', error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [searchQuery, activeCategory, activeTag, user, presenter.reaction],
   );
+
+  React.useEffect(() => {
+    void loadPage(1, false);
+  }, [loadPage]);
 
   const handleNavigateToDeploy = () => {
     navigate('/deploy');
   };
 
-  // Preload reactions for visible projects when the user is logged in.
-  React.useEffect(() => {
-    if (!user) return;
-    publicProjects.forEach((project) => {
-      if (!reactionByProject[project.id]) {
-        presenter.reaction.loadReactionsForProject(project.id);
-      }
-    });
-  }, [user, publicProjects, presenter.reaction, reactionByProject]);
+  const handleLoadMore = () => {
+    if (!hasMore || isLoading) return;
+    void loadPage(page + 1, true);
+  };
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
@@ -293,20 +290,68 @@ export const ExploreApps: React.FC = () => {
 
       <CategoryFilter
         activeCategory={activeCategory}
-        onCategoryChange={setActiveCategory}
+        onCategoryChange={(cat) => {
+          setActiveCategory(cat);
+          setPage(1);
+        }}
         onTagReset={() => setActiveTag(null)}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredApps.map((app) => (
-          <ExploreAppCardView
-            key={app.id}
-            app={app}
-            activeTag={activeTag}
-            setActiveTag={setActiveTag}
-          />
-        ))}
-      </div>
+      {apps.length === 0 && isLoading ? (
+        <div className="mt-6">
+          {/* Simple skeleton reuse from Home */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="flex flex-col rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden animate-pulse"
+              >
+                <div className="h-44 bg-slate-100 dark:bg-slate-800" />
+                <div className="p-5 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700" />
+                    <div className="space-y-2 flex-1">
+                      <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
+                      <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-1/2" />
+                    </div>
+                  </div>
+                  <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-full" />
+                  <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-5/6" />
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <div className="w-24 h-3 bg-slate-100 dark:bg-slate-800 rounded" />
+                    <div className="w-16 h-3 bg-slate-200 dark:bg-slate-700 rounded" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {apps.map((app) => (
+              <ExploreAppCardView
+                key={app.id}
+                app={app}
+                activeTag={activeTag}
+                setActiveTag={setActiveTag}
+              />
+            ))}
+          </div>
+          {hasMore && (
+            <div className="flex justify-center mt-8">
+              <button
+                type="button"
+                onClick={handleLoadMore}
+                disabled={isLoading}
+                className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+              >
+                {isLoading ? t('common.loading') : t('explore.loadMore')}
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

@@ -8,6 +8,7 @@ import { slugify } from '../utils/strings';
 import { projectRepository } from '../repositories/project.repository';
 import { metadataService } from './metadata.service';
 import { configService } from './config.service';
+import { engagementService } from './engagement.service';
 
 interface CreateProjectInput {
   name: string;
@@ -92,6 +93,105 @@ class ProjectService {
 
   async getProjectById(db: D1Database, id: string): Promise<Project | null> {
     return projectRepository.getProjectById(db, id);
+  }
+
+  /**
+   * Public explore feed: returns a paginated list of projects visible on
+   * marketing / explore surfaces, with backend-side filtering / sorting.
+   */
+  async getExploreProjects(
+    db: D1Database,
+    options: {
+      search?: string;
+      category?: string;
+      tag?: string;
+      sort?: 'recent' | 'popularity';
+      page?: number;
+      pageSize?: number;
+    },
+  ): Promise<{
+    items: Project[];
+    page: number;
+    pageSize: number;
+    total: number;
+    engagement: Record<string, { likesCount: number; favoritesCount: number }>;
+  }> {
+    const page = Math.max(1, options.page ?? 1);
+    const pageSize = Math.max(1, Math.min(50, options.pageSize ?? 12));
+
+    const allPublic = await projectRepository.queryProjects(db, {
+      search: options.search,
+      category: options.category,
+      tag: options.tag,
+      onlyPublic: true,
+    });
+
+    const idList = allPublic.map((p) => p.id);
+    const counts = await engagementService.getEngagementCountsForProjects(
+      db,
+      idList,
+    );
+
+    let sorted: Project[];
+    if (options.sort === 'popularity') {
+      sorted = [...allPublic].sort((a, b) => {
+        const aCounts = counts[a.id] ?? {
+          likesCount: 0,
+          favoritesCount: 0,
+        };
+        const bCounts = counts[b.id] ?? {
+          likesCount: 0,
+          favoritesCount: 0,
+        };
+        const aScore = aCounts.likesCount + aCounts.favoritesCount * 1.5;
+        const bScore = bCounts.likesCount + bCounts.favoritesCount * 1.5;
+        if (bScore !== aScore) {
+          return bScore - aScore;
+        }
+        if (bCounts.likesCount !== aCounts.likesCount) {
+          return bCounts.likesCount - aCounts.likesCount;
+        }
+        return (
+          new Date(b.lastDeployed).getTime() -
+          new Date(a.lastDeployed).getTime()
+        );
+      });
+    } else {
+      // Default sort: most recently deployed first.
+      sorted = [...allPublic].sort(
+        (a, b) =>
+          new Date(b.lastDeployed).getTime() -
+          new Date(a.lastDeployed).getTime(),
+      );
+    }
+
+    const total = sorted.length;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const items = sorted.slice(start, end);
+
+    const engagement: Record<
+      string,
+      { likesCount: number; favoritesCount: number }
+    > = {};
+    items.forEach((project) => {
+      const entry = counts[project.id] ?? {
+        likesCount: 0,
+        favoritesCount: 0,
+      };
+      engagement[project.id] = {
+        likesCount: entry.likesCount,
+        favoritesCount: entry.favoritesCount,
+      };
+    });
+
+    return {
+      items,
+      page,
+      pageSize,
+      total,
+      engagement,
+    };
   }
 
   private buildProjectUrl(

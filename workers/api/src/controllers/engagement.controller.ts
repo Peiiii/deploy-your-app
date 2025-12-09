@@ -45,6 +45,56 @@ class EngagementController {
     return jsonResponse(reactions);
   }
 
+  // GET /api/v1/projects/reactions?ids=1,2,3
+  async getReactionsForProjectsBulk(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+  ): Promise<Response> {
+    const { userId } = await this.requireUser(request, db);
+    const url = new URL(request.url);
+    const idsParam = url.searchParams.get('ids');
+
+    if (!idsParam) {
+      return jsonResponse({});
+    }
+
+    const rawIds = idsParam
+      .split(',')
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0);
+
+    const uniqueIds = Array.from(new Set(rawIds));
+    if (uniqueIds.length === 0) {
+      return jsonResponse({});
+    }
+
+    const result: Record<string, Awaited<
+      ReturnType<typeof engagementService.getReactionsForProject>
+    >> = {};
+
+    for (const projectId of uniqueIds) {
+      try {
+        const reactions = await engagementService.getReactionsForProject(
+          db,
+          projectId,
+          userId,
+        );
+        result[projectId] = reactions;
+      } catch (error) {
+        // Swallow errors for individual projects so that one bad ID
+        // doesn't break the whole batch.
+        console.error(
+          'Failed to load reactions for project in bulk call',
+          projectId,
+          error,
+        );
+      }
+    }
+
+    return jsonResponse(result);
+  }
+
   // POST /api/v1/projects/:id/like
   async likeProject(
     request: Request,
@@ -143,4 +193,3 @@ class EngagementController {
 }
 
 export const engagementController = new EngagementController();
-

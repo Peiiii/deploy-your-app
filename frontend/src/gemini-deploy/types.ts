@@ -91,6 +91,18 @@ export interface ProjectReactions {
 }
 
 // ---------------------------------------------------------------------------
+// Explore feed (public projects list)
+// ---------------------------------------------------------------------------
+
+export interface ExploreProjectsResponse {
+  items: Project[];
+  page: number;
+  pageSize: number;
+  total: number;
+  engagement?: Record<string, { likesCount: number; favoritesCount: number }>;
+}
+
+// ---------------------------------------------------------------------------
 // Auth / User types (kept lightweight and aligned with backend PublicUser)
 // ---------------------------------------------------------------------------
 

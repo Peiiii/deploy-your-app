@@ -18,6 +18,17 @@ function parseJsonArray<T>(value: unknown, fallback: T): T {
 
 let schemaEnsured = false;
 
+export interface ProjectQueryOptions {
+  search?: string;
+  category?: string;
+  tag?: string;
+  onlyPublic?: boolean;
+  ownerId?: string;
+  sort?: 'recent' | 'name';
+  limit?: number;
+  offset?: number;
+}
+
 class ProjectRepository {
   private async ensureSchema(db: D1Database): Promise<void> {
     if (schemaEnsured) return;
@@ -184,6 +195,82 @@ class ProjectRepository {
     const result = await db
       .prepare(`SELECT * FROM projects ORDER BY datetime(last_deployed) DESC`)
       .all<ProjectRow>();
+    const rows = result.results ?? [];
+    return rows.map((row) => this.mapRowToProject(row));
+  }
+
+  /**
+   * Flexible project query with basic search / filtering / sorting.
+   * This is used by the public Explore/Home feeds so that most of the
+   * heavy lifting happens in D1 rather than in the frontend.
+   */
+  async queryProjects(
+    db: D1Database,
+    options: ProjectQueryOptions,
+  ): Promise<Project[]> {
+    await this.ensureSchema(db);
+
+    const where: string[] = [];
+    const params: unknown[] = [];
+
+    if (options.onlyPublic) {
+      where.push('is_public = 1');
+    }
+
+    if (options.ownerId) {
+      where.push('owner_id = ?');
+      params.push(options.ownerId);
+    }
+
+    if (options.category) {
+      where.push('category = ?');
+      params.push(options.category);
+    }
+
+    if (options.search) {
+      const q = `%${options.search.toLowerCase()}%`;
+      where.push(
+        `(
+          LOWER(name) LIKE ?
+          OR LOWER(IFNULL(description, '')) LIKE ?
+          OR LOWER(IFNULL(category, '')) LIKE ?
+          OR LOWER(IFNULL(tags, '')) LIKE ?
+        )`,
+      );
+      params.push(q, q, q, q);
+    }
+
+    if (options.tag) {
+      // tags is stored as a JSON array; we approximate tag matching by
+      // searching for the tag name inside the JSON string.
+      where.push('tags LIKE ?');
+      params.push(`%${options.tag}%`);
+    }
+
+    let sql = 'SELECT * FROM projects';
+    if (where.length > 0) {
+      sql += ' WHERE ' + where.join(' AND ');
+    }
+
+    const sort = options.sort ?? 'recent';
+    if (sort === 'name') {
+      sql += ' ORDER BY LOWER(name) ASC';
+    } else {
+      // Default sort: most recently deployed first.
+      sql += ' ORDER BY datetime(last_deployed) DESC';
+    }
+
+    if (typeof options.limit === 'number') {
+      sql += ' LIMIT ?';
+      params.push(options.limit);
+    }
+    if (typeof options.offset === 'number') {
+      sql += ' OFFSET ?';
+      params.push(options.offset);
+    }
+
+    const stmt = db.prepare(sql);
+    const result = await stmt.bind(...params).all<ProjectRow>();
     const rows = result.results ?? [];
     return rows.map((row) => this.mapRowToProject(row));
   }

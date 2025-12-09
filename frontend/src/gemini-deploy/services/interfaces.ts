@@ -49,6 +49,9 @@ export interface IAnalyticsProvider {
 
 export interface IReactionProvider {
   getReactionsForProject(projectId: string): Promise<ProjectReactions>;
+  getReactionsForProjectsBulk(
+    projectIds: string[],
+  ): Promise<Record<string, ProjectReactions>>;
   setLike(projectId: string, liked: boolean): Promise<ProjectReactions>;
   setFavorite(
     projectId: string,
