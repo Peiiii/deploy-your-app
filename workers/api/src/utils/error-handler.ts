@@ -60,6 +60,10 @@ export function handleError(error: unknown): Response {
       {
         error: 'Internal Server Error',
         code: 'INTERNAL_ERROR',
+        // Expose message/stack for easier debugging during early-stage
+        // development. If needed later, we can gate this behind an env flag.
+        message: error.message,
+        stack: error.stack,
       },
       500,
     );
@@ -86,4 +90,3 @@ export function tryCatch<T>(
     return handleError(error);
   });
 }
-
