@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# 禁止爬取 API 和内部路径
+Disallow: /api/
+Disallow: /_worker.js
+
+# Sitemap
+Sitemap: https://gemigo.io/sitemap.xml
+
