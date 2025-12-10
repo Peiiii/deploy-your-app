@@ -203,7 +203,6 @@ export const Home: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const presenter = usePresenter();
-  const user = useAuthStore((s) => s.user);
   const [apps, setApps] = useState<ExploreAppCard[]>([]);
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All Apps');
   const [activeTag, setActiveTag] = useState<string | null>(null);
@@ -245,7 +244,8 @@ export const Home: React.FC = () => {
           presenter.reaction.seedCountsFromProjects(projectsWithCounts);
         }
 
-        if (user) {
+        const currentUser = useAuthStore.getState().user;
+        if (currentUser) {
           const ids = projects.map((p) => p.id);
           presenter.reaction.loadReactionsForProjectsBulk(ids);
         }
@@ -263,7 +263,7 @@ export const Home: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [activeCategory, activeTag, searchQuery, sortBy, presenter.reaction, user]);
+  }, [activeCategory, activeTag, searchQuery, sortBy, presenter.reaction]);
 
   const handleQuickDeploy = (sourceType: SourceType) => {
     navigate('/deploy', { state: { sourceType } });
