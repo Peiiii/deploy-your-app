@@ -31,6 +31,7 @@ const MainLayout = () => {
   const { i18n, t } = useTranslation();
   const theme = useUIStore((state) => state.theme);
   const language = useUIStore((state) => state.language);
+  const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const setLanguage = useUIStore((state) => state.actions.setLanguage);
   const presenter = usePresenter();
   const user = useAuthStore((state) => state.user);
@@ -90,7 +91,9 @@ const MainLayout = () => {
       <Sidebar />
       <Toast />
       
-      <main className="ml-0 md:ml-64 flex-1 w-full overflow-auto relative z-10 min-w-0">
+      <main className={`ml-0 flex-1 w-full overflow-auto relative z-10 min-w-0 transition-all duration-300 ${
+        sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
+      }`}>
         <header className="h-16 border-b border-app-border bg-app-bg/50 backdrop-blur sticky top-0 z-20 flex items-center justify-between px-4 md:px-8">
           <div className="flex items-center gap-3">
             <button

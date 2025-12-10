@@ -17,6 +17,7 @@ export interface ConfirmDialogState {
 interface UIState {
   theme: 'dark' | 'light';
   sidebarOpen: boolean;
+  sidebarCollapsed: boolean;
   toast: ToastState | null;
   language: string;
   confirmDialog: ConfirmDialogState | null;
@@ -24,6 +25,8 @@ interface UIState {
     toggleTheme: () => void;
     toggleSidebar: () => void;
     setSidebarOpen: (open: boolean) => void;
+    toggleSidebarCollapsed: () => void;
+    setSidebarCollapsed: (collapsed: boolean) => void;
     showToast: (toast: ToastState) => void;
     clearToast: () => void;
     setLanguage: (lang: string) => void;
@@ -43,6 +46,7 @@ const getInitialLanguage = (): string => {
 export const useUIStore = create<UIState>((set) => ({
   theme: 'light',
   sidebarOpen: false,
+  sidebarCollapsed: false,
   toast: null,
   language: getInitialLanguage(),
   confirmDialog: null,
@@ -52,6 +56,9 @@ export const useUIStore = create<UIState>((set) => ({
     toggleSidebar: () =>
       set((state) => ({ sidebarOpen: !state.sidebarOpen })),
     setSidebarOpen: (open) => set({ sidebarOpen: open }),
+    toggleSidebarCollapsed: () =>
+      set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+    setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
     showToast: (toast) => set({ toast }),
     clearToast: () => set({ toast: null }),
     setLanguage: (lang) => {

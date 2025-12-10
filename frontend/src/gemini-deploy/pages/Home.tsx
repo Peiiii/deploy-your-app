@@ -9,11 +9,15 @@ import {
   Search,
   TrendingUp,
   Clock,
+  X,
+  Zap,
+  ExternalLink,
 } from 'lucide-react';
 import type { ExploreAppCard } from '../components/ExploreAppCard';
 import { ExploreAppCardView, mapProjectsToApps } from '../components/ExploreAppCard';
 import { usePresenter } from '../contexts/PresenterContext';
 import { useAuthStore } from '../stores/authStore';
+import { useUIStore } from '../stores/uiStore';
 import { fetchExploreProjects } from '../services/http/exploreApi';
 import { SourceType } from '../types';
 
@@ -203,12 +207,15 @@ export const Home: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const presenter = usePresenter();
+  const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
+  const setSidebarCollapsed = useUIStore((state) => state.actions.setSidebarCollapsed);
   const [apps, setApps] = useState<ExploreAppCard[]>([]);
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All Apps');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('popularity');
   const [isLoadingExplore, setIsLoadingExplore] = useState(false);
+  const [selectedApp, setSelectedApp] = useState<ExploreAppCard | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -269,9 +276,29 @@ export const Home: React.FC = () => {
     navigate('/deploy', { state: { sourceType } });
   };
 
+  const handleCardClick = (app: ExploreAppCard) => {
+    if (app.url) {
+      setSelectedApp(app);
+      if (!sidebarCollapsed) {
+        setSidebarCollapsed(true);
+      }
+    }
+  };
+
+  const handleClosePreview = () => {
+    setSelectedApp(null);
+  };
+
+  const handleOpenInNewTab = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
-    <div className="min-h-screen bg-app-bg">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8 space-y-8">
+    <div className="h-full bg-app-bg">
+      <div className={`flex gap-6 ${selectedApp ? 'max-w-full' : 'max-w-7xl'} mx-auto px-4 md:px-8 py-6 md:py-8 ${selectedApp ? 'h-[calc(100vh-4rem)]' : ''}`}>
+        {/* Left Column - App List */}
+        <div className={`transition-all duration-300 ${selectedApp ? 'w-full lg:w-1/2 flex flex-col overflow-hidden' : 'w-full'}`}>
+          <div className={`space-y-8 transition-all duration-300 ${selectedApp ? 'flex-1 overflow-y-auto pr-2' : ''}`}>
         
         {/* Deploy Section - Top */}
         <section className="glass-card rounded-2xl p-6 md:p-8">
@@ -395,13 +422,14 @@ export const Home: React.FC = () => {
           {isLoadingExplore ? (
             <ExploreSkeletonGrid />
           ) : apps.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className={`grid gap-6 ${selectedApp ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
               {apps.map((app) => (
                 <ExploreAppCardView
                   key={app.id}
                   app={app}
                   activeTag={activeTag}
                   setActiveTag={setActiveTag}
+                  onCardClick={() => handleCardClick(app)}
                 />
               ))}
             </div>
@@ -419,6 +447,67 @@ export const Home: React.FC = () => {
             </div>
           )}
         </section>
+          </div>
+        </div>
+
+        {/* Right Column - Preview Panel */}
+        {selectedApp && (
+          <div className="hidden lg:flex lg:flex-col w-1/2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex-shrink-0 h-[calc(100vh-4rem-3rem)]">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex-shrink-0">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br ${selectedApp.color} shrink-0`}>
+                  <Zap className="w-4 h-4 text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold text-slate-900 dark:text-white truncate">
+                    {selectedApp.name}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                    {selectedApp.author}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {selectedApp.url && (
+                  <button
+                    onClick={() => handleOpenInNewTab(selectedApp.url!)}
+                    className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors"
+                    aria-label={t('common.openInNewTab')}
+                    title={t('common.openInNewTab')}
+                  >
+                    <ExternalLink className="w-5 h-5" />
+                  </button>
+                )}
+                <button
+                  onClick={handleClosePreview}
+                  className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors"
+                  aria-label={t('common.close')}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Iframe */}
+            <div className="flex-1 relative bg-slate-100 dark:bg-slate-950 min-h-0">
+              {selectedApp.url ? (
+                <iframe
+                  src={selectedApp.url}
+                  className="w-full h-full border-0"
+                  title={selectedApp.name}
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-slate-500 dark:text-slate-400">
+                    {t('common.notAccessible')}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

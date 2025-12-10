@@ -22,6 +22,16 @@ export class UIManager {
     actions.setSidebarOpen(open);
   };
 
+  toggleSidebarCollapsed = (): void => {
+    const { actions } = useUIStore.getState();
+    actions.toggleSidebarCollapsed();
+  };
+
+  setSidebarCollapsed = (collapsed: boolean): void => {
+    const { actions } = useUIStore.getState();
+    actions.setSidebarCollapsed(collapsed);
+  };
+
   showToast = (message: string, variant: ToastVariant = 'info'): void => {
     const { actions } = useUIStore.getState();
     actions.showToast({ message, variant });

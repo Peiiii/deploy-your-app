@@ -28,6 +28,7 @@
     "continue": "Continue",
     "content": "Content",
     "open": "Open",
+    "openInNewTab": "Open in new window",
     "back": "Back",
     "loadingProjectDetails": "Loading project details...",
     "copyUrl": "Copy URL",
@@ -231,6 +232,8 @@
     "theShowcase": "The Showcase",
     "proPlan": "Pro Plan (Coming Soon)",
     "indieHacker": "Indie Hacker",
-    "thePlayground": "The Playground"
+    "thePlayground": "The Playground",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar"
   }
 }

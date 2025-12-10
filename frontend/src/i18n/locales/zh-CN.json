@@ -28,6 +28,7 @@
     "continue": "继续",
     "content": "内容",
     "open": "打开",
+    "openInNewTab": "在新窗口打开",
     "back": "返回",
     "loadingProjectDetails": "加载项目详情...",
     "copyUrl": "复制链接",
@@ -231,6 +232,8 @@
     "theShowcase": "展示",
     "proPlan": "专业版（即将推出）",
     "indieHacker": "独立开发者",
-    "thePlayground": "游乐场"
+    "thePlayground": "游乐场",
+    "collapseSidebar": "收起侧边栏",
+    "expandSidebar": "展开侧边栏"
   }
 }
