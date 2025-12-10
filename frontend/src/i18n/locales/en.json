@@ -29,7 +29,6 @@
     "content": "Content",
     "open": "Open",
     "back": "Back",
-    "loading": "Loading...",
     "loadingProjectDetails": "Loading project details...",
     "copyUrl": "Copy URL",
     "copied": "Copied"
@@ -92,7 +91,18 @@
     "analyzingRepository": "Analyzing repository to generate project name, slug and tags...",
     "analysisFailedFallback": "Repository analysis failed, falling back to direct deployment without AI metadata.",
     "deploymentFailedTitle": "Deployment failed",
-    "deploymentFailedDescription": "Your deployment did not complete. Check the build log below, fix the issue in your project, and try deploying again."
+    "deploymentFailedDescription": "Your deployment did not complete. Check the build log below, fix the issue in your project, and try deploying again.",
+    "successful": "Deployment successful!",
+    "project": "Project",
+    "applicationLiveAt": "Your application is now live at:",
+    "finishedPreparingUrl": "Deployment finished, preparing the public URL...",
+    "buildLog": "Build Log",
+    "buildLogTitle": "Build Log: {{name}}",
+    "deploying": "Deploying",
+    "building": "Building",
+    "deployingStatus": "Deploying...",
+    "buildingStatus": "Building...",
+    "logEntries": "entries"
   },
   "dashboard": {
     "signInToViewProjects": "Sign in to view your projects",

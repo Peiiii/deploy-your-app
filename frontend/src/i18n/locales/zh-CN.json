@@ -29,7 +29,6 @@
     "content": "内容",
     "open": "打开",
     "back": "返回",
-    "loading": "加载中...",
     "loadingProjectDetails": "加载项目详情...",
     "copyUrl": "复制链接",
     "copied": "已复制"
@@ -92,7 +91,18 @@
     "analyzingRepository": "正在分析仓库代码，用于生成项目名称、Slug 和标签...",
     "analysisFailedFallback": "仓库分析失败，将直接进入部署流程（不使用 AI 元数据）。",
     "deploymentFailedTitle": "部署失败",
-    "deploymentFailedDescription": "本次部署没有完成。请查看下面的构建日志，修复项目中的问题后再重试部署。"
+    "deploymentFailedDescription": "本次部署没有完成。请查看下面的构建日志，修复项目中的问题后再重试部署。",
+    "successful": "部署成功！",
+    "project": "项目",
+    "applicationLiveAt": "您的应用现已上线：",
+    "finishedPreparingUrl": "部署完成，正在准备公开 URL...",
+    "buildLog": "构建日志",
+    "buildLogTitle": "构建日志：{{name}}",
+    "deploying": "部署中",
+    "building": "构建中",
+    "deployingStatus": "部署中...",
+    "buildingStatus": "构建中...",
+    "logEntries": "条记录"
   },
   "dashboard": {
     "signInToViewProjects": "登录以查看您的项目",

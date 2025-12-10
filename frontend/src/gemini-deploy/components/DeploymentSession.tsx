@@ -125,7 +125,7 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
                 {t('deployment.finalizingDeployment')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400">
-                {t('dashboard.viewDashboard')}
+                {t('deployment.viewDashboard')}
               </p>
             </div>
           </div>
@@ -153,12 +153,12 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-                Deployment successful!
+                {t('deployment.successful')}
               </h3>
               <div className="space-y-4">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Project
+                    {t('deployment.project')}
                   </p>
                   <p className="text-lg font-semibold text-slate-900 dark:text-white">
                     {finalProjectName}
@@ -168,7 +168,7 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
                   {deploymentUrl ? (
                     <>
                       <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-                        Your application is now live at:
+                        {t('deployment.applicationLiveAt')}
                       </p>
                       <a
                         href={deploymentUrl}
@@ -182,7 +182,7 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
                     </>
                   ) : (
                     <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-                      Deployment finished, preparing the public URL...
+                      {t('deployment.finishedPreparingUrl')}
                     </p>
                   )}
                 </div>
@@ -219,10 +219,10 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
               <div className="flex items-center gap-3">
                 <TerminalIcon className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                 <span className="text-sm font-medium text-slate-900 dark:text-white">
-                  Build Log
+                  {t('deployment.buildLog')}
                 </span>
                 <span className="text-xs text-slate-500 dark:text-slate-400">
-                  ({state.logs.length} entries)
+                  ({state.logs.length} {t('deployment.logEntries')})
                 </span>
               </div>
               {showBuildLog ? (
@@ -239,7 +239,7 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
                       <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
                       <div>
                         <h4 className="text-sm font-semibold text-slate-100">
-                          Build Log: {finalProjectName}
+                          {t('deployment.buildLogTitle', { name: finalProjectName })}
                         </h4>
                         <p className="text-xs text-slate-400 font-mono mt-0.5">
                           {sourceLabel}
@@ -269,7 +269,7 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
             <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse shadow-[0_0_8px_rgba(234,179,8,0.6)]" />
             <div>
               <h3 className="text-sm font-semibold text-slate-100">
-                {isDeploying ? 'Deploying' : 'Building'} {state.projectName}
+                {isDeploying ? t('deployment.deploying') : t('deployment.building')} {state.projectName}
               </h3>
               <p className="text-xs text-slate-400 font-mono mt-0.5">
                 {state.sourceType === SourceType.GITHUB
@@ -283,7 +283,7 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
           <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-full">
             <Loader2 className="w-3.5 h-3.5 text-purple-400 animate-spin" />
             <span className="text-xs font-medium text-purple-400">
-              {isDeploying ? 'Deploying...' : 'Building...'}
+              {isDeploying ? t('deployment.deployingStatus') : t('deployment.buildingStatus')}
             </span>
           </div>
         </div>
