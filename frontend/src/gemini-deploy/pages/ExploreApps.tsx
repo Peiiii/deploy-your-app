@@ -197,7 +197,6 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 
 export const ExploreApps: React.FC = () => {
   const { t } = useTranslation();
-  const user = useAuthStore((s) => s.user);
   const presenter = usePresenter();
   const navigate = useNavigate();
   const [apps, setApps] = useState<ExploreAppCard[]>([]);
@@ -214,6 +213,7 @@ export const ExploreApps: React.FC = () => {
     async (pageToLoad: number, append: boolean) => {
       setIsLoading(true);
       try {
+        const currentUser = useAuthStore.getState().user;
         const result = await fetchExploreProjects({
           search: searchQuery.trim() || undefined,
           category: activeCategory !== 'All Apps' ? activeCategory : undefined,
@@ -231,7 +231,7 @@ export const ExploreApps: React.FC = () => {
         setPage(result.page);
         setHasMore(result.page * PAGE_SIZE < result.total);
 
-        if (user) {
+        if (currentUser) {
           const ids = projects.map((p) => p.id);
           presenter.reaction.loadReactionsForProjectsBulk(ids);
         }
@@ -253,12 +253,13 @@ export const ExploreApps: React.FC = () => {
         setIsLoading(false);
       }
     },
-    [searchQuery, activeCategory, activeTag, user, presenter.reaction],
+    [searchQuery, activeCategory, activeTag, presenter.reaction],
   );
 
   React.useEffect(() => {
     void loadPage(1, false);
-  }, [loadPage]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleNavigateToDeploy = () => {
     navigate('/deploy');
