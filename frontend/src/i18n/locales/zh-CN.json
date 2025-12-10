@@ -60,7 +60,8 @@
     "showPassword": "显示密码",
     "hidePassword": "隐藏密码",
     "signInWithGoogle": "使用 Google 登录",
-    "signInWithGithub": "使用 GitHub 登录"
+    "signInWithGithub": "使用 GitHub 登录",
+    "orContinueWithEmail": "或使用邮箱继续"
   },
   "deployment": {
     "deployYourApp": "部署您的应用",
@@ -103,7 +104,8 @@
     "building": "构建中",
     "deployingStatus": "部署中...",
     "buildingStatus": "构建中...",
-    "logEntries": "条记录"
+    "logEntries": "条记录",
+    "signInRequired": "部署应用前请先登录。"
   },
   "dashboard": {
     "signInToViewProjects": "登录以查看您的项目",

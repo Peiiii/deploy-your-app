@@ -20,9 +20,6 @@ import {
   Sun,
   Moon,
   Menu,
-  Mail,
-  Github,
-  Globe,
 } from 'lucide-react';
 import { CrispChat } from './components/CrispChat';
 import { Crisp } from 'crisp-sdk-web';
@@ -158,30 +155,12 @@ const MainLayout = () => {
                  </button>
                </div>
              ) : (
-               <div className="flex items-center gap-2">
-                 <button
-                   onClick={() => presenter.auth.openAuthModal('login')}
-                   className="hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 transition-all"
-                 >
-                   <Mail className="w-3 h-3" />
-                   <span>{t('auth.signInWithEmail')}</span>
-                 </button>
-                 <button
-                   onClick={() => presenter.auth.loginWithGoogle()}
-                   className="hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-white text-xs font-medium text-slate-700 border border-slate-200 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 transition-all"
-                   title={t('auth.signInWithGoogle')}
-                 >
-                   <Globe className="w-3 h-3" />
-                   <span>Google</span>
-                 </button>
-                 <button
-                   onClick={() => presenter.auth.loginWithGithub()}
-                   className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 transition-all"
-                   title={t('auth.signInWithGithub')}
-                 >
-                   <Github className="w-4 h-4" />
-                 </button>
-               </div>
+               <button
+                 onClick={() => presenter.auth.openAuthModal('login')}
+                 className="hidden md:inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 text-white text-sm font-semibold hover:from-slate-800 hover:to-slate-700 dark:from-white dark:to-slate-100 dark:text-slate-900 dark:hover:from-slate-100 dark:hover:to-white shadow-lg shadow-slate-900/20 dark:shadow-white/10 hover:shadow-xl hover:shadow-slate-900/30 dark:hover:shadow-white/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+               >
+                 {t('common.signIn')}
+               </button>
              )}
           </div>
         </header>

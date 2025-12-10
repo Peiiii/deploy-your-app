@@ -206,6 +206,7 @@ export const ExploreApps: React.FC = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const user = useAuthStore((s) => s.user);
 
   const PAGE_SIZE = 12;
 
@@ -261,8 +262,19 @@ export const ExploreApps: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const requireAuthAnd = (action: () => void) => {
+    if (!user) {
+      presenter.auth.openAuthModal('login');
+      presenter.ui.showToast(t('deployment.signInRequired'), 'warning');
+      return;
+    }
+    action();
+  };
+
   const handleNavigateToDeploy = () => {
-    navigate('/deploy');
+    requireAuthAnd(() => {
+      navigate('/deploy');
+    });
   };
 
   const handleLoadMore = () => {

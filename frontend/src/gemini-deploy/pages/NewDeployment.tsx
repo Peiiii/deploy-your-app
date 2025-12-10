@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { useDeploymentStore } from '../stores/deploymentStore';
+import { useAuthStore } from '../stores/authStore';
 import { usePresenter } from '../contexts/PresenterContext';
 import { DeploymentStatus, SourceType } from '../types';
 import { DeploymentSession } from '../components/DeploymentSession';
@@ -42,6 +43,8 @@ export const NewDeployment: React.FC = () => {
   const state = useDeploymentStore();
   const location = useLocation();
   const [htmlFieldTouched, setHtmlFieldTouched] = useState(false);
+  const user = useAuthStore((s) => s.user);
+  const authLoading = useAuthStore((s) => s.isLoading);
 
   const handleSourceTypeSelect = useCallback((type: SourceType) => {
     presenter.deployment.handleSourceChange(type);
@@ -53,6 +56,12 @@ export const NewDeployment: React.FC = () => {
   useEffect(() => {
     return () => presenter.deployment.resetWizard();
   }, [presenter.deployment]);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      presenter.auth.openAuthModal('login');
+    }
+  }, [authLoading, user, presenter.auth]);
 
   useEffect(() => {
     const sourceType = location.state?.sourceType as SourceType | undefined;
@@ -87,6 +96,42 @@ export const NewDeployment: React.FC = () => {
       : state.sourceType === SourceType.ZIP
         ? Boolean(state.zipFile)
         : htmlIsReady;
+
+  if (authLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 text-center shadow">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            {t('common.loading')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 shadow space-y-4">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white tracking-tight">
+            {t('deployment.deployYourApp')}
+          </h1>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            {t('deployment.signInRequired')}
+          </p>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => presenter.auth.openAuthModal('login')}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-colors"
+            >
+              {t('auth.signIn')}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">

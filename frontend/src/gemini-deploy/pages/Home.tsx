@@ -157,11 +157,10 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
           <button
             key={cat}
             onClick={() => handleCategoryClick(cat)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-              isActive
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${isActive
                 ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30 scale-105'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-            }`}
+              }`}
           >
             {getCategoryLabel(cat)}
           </button>
@@ -207,6 +206,7 @@ export const Home: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const presenter = usePresenter();
+  const user = useAuthStore((s) => s.user);
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const setSidebarCollapsed = useUIStore((state) => state.actions.setSidebarCollapsed);
   const [apps, setApps] = useState<ExploreAppCard[]>([]);
@@ -272,8 +272,19 @@ export const Home: React.FC = () => {
     };
   }, [activeCategory, activeTag, searchQuery, sortBy, presenter.reaction]);
 
+  const requireAuthAnd = (action: () => void) => {
+    if (!user) {
+      presenter.auth.openAuthModal('login');
+      presenter.ui.showToast(t('deployment.signInRequired'), 'warning');
+      return;
+    }
+    action();
+  };
+
   const handleQuickDeploy = (sourceType: SourceType) => {
-    navigate('/deploy', { state: { sourceType } });
+    requireAuthAnd(() => {
+      navigate('/deploy', { state: { sourceType } });
+    });
   };
 
   const handleCardClick = (app: ExploreAppCard) => {
@@ -299,154 +310,152 @@ export const Home: React.FC = () => {
         {/* Left Column - App List */}
         <div className={`transition-all duration-300 ${selectedApp ? 'w-full lg:w-1/2 flex flex-col overflow-hidden' : 'w-full'}`}>
           <div className={`space-y-8 transition-all duration-300 ${selectedApp ? 'flex-1 overflow-y-auto pr-2' : ''}`}>
-        
-        {/* Deploy Section - Top */}
-        <section className="glass-card rounded-2xl p-6 md:p-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                {t('deployment.deployYourApp')}
-              </h2>
-              <p className="text-slate-600 dark:text-gray-400">
-                {t('deployment.chooseDeploymentMethod')}
-              </p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              onClick={() => handleQuickDeploy(SourceType.GITHUB)}
-              className="group relative p-6 rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-purple-500 dark:hover:border-purple-500 hover:shadow-lg transition-all text-left"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/40 group-hover:bg-purple-200 dark:group-hover:bg-purple-900/60 transition-colors">
-                  <Github className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                </div>
-                <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-purple-500 group-hover:translate-x-1 transition-all" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                {t('deployment.githubRepository')}
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-gray-400">
-                {t('deployment.connectGitHubRepo')}
-              </p>
-            </button>
 
-            <button
-              onClick={() => handleQuickDeploy(SourceType.ZIP)}
-              className="group relative p-6 rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-lg transition-all text-left"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/40 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/60 transition-colors">
-                  <FolderArchive className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                {t('deployment.uploadArchive')}
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-gray-400">
-                {t('deployment.uploadZipFile')}
-              </p>
-            </button>
-
-            <button
-              onClick={() => handleQuickDeploy(SourceType.HTML)}
-              className="group relative p-6 rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-green-500 dark:hover:border-green-500 hover:shadow-lg transition-all text-left"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/40 group-hover:bg-green-200 dark:group-hover:bg-green-900/60 transition-colors">
-                  <FileCode className="w-6 h-6 text-green-600 dark:text-green-400" />
-                </div>
-                <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-green-500 group-hover:translate-x-1 transition-all" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                {t('deployment.inlineHTML')}
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-gray-400">
-                {t('deployment.pasteHTML')}
-              </p>
-            </button>
-          </div>
-        </section>
-
-        {/* Explore Section - Bottom */}
-        <section>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                {t('explore.exploreApps')}
-              </h2>
-              <p className="text-slate-600 dark:text-gray-400">
-                {t('explore.discoverApps')}
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
-              <SearchBar value={searchQuery} onChange={setSearchQuery} />
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-500 dark:text-gray-400">{t('explore.sortBy')}:</span>
-                <div className="inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1">
-                  <button
-                    onClick={() => setSortBy('popularity')}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                      sortBy === 'popularity'
-                        ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                    }`}
-                  >
-                    <TrendingUp className="w-3 h-3" />
-                    {t('explore.sortByPopularity')}
-                  </button>
-                  <button
-                    onClick={() => setSortBy('recent')}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                      sortBy === 'recent'
-                        ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                    }`}
-                  >
-                    <Clock className="w-3 h-3" />
-                    {t('explore.sortByRecent')}
-                  </button>
+            {/* Deploy Section - Top */}
+            <section className="glass-card rounded-2xl p-6 md:p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                    {t('deployment.deployYourApp')}
+                  </h2>
+                  <p className="text-slate-600 dark:text-gray-400">
+                    {t('deployment.chooseDeploymentMethod')}
+                  </p>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <CategoryFilter
-            activeCategory={activeCategory}
-            onCategoryChange={setActiveCategory}
-            onTagReset={() => setActiveTag(null)}
-          />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  onClick={() => handleQuickDeploy(SourceType.GITHUB)}
+                  className="group relative p-6 rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-purple-500 dark:hover:border-purple-500 hover:shadow-lg transition-all text-left"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/40 group-hover:bg-purple-200 dark:group-hover:bg-purple-900/60 transition-colors">
+                      <Github className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-purple-500 group-hover:translate-x-1 transition-all" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                    {t('deployment.githubRepository')}
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-gray-400">
+                    {t('deployment.connectGitHubRepo')}
+                  </p>
+                </button>
 
-          {isLoadingExplore ? (
-            <ExploreSkeletonGrid />
-          ) : apps.length > 0 ? (
-            <div className={`grid gap-6 ${selectedApp ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
-              {apps.map((app) => (
-                <ExploreAppCardView
-                  key={app.id}
-                  app={app}
-                  activeTag={activeTag}
-                  setActiveTag={setActiveTag}
-                  onCardClick={() => handleCardClick(app)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="glass-card rounded-xl p-12 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                <Search className="w-8 h-8 text-slate-400" />
+                <button
+                  onClick={() => handleQuickDeploy(SourceType.ZIP)}
+                  className="group relative p-6 rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-lg transition-all text-left"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/40 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/60 transition-colors">
+                      <FolderArchive className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                    {t('deployment.uploadArchive')}
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-gray-400">
+                    {t('deployment.uploadZipFile')}
+                  </p>
+                </button>
+
+                <button
+                  onClick={() => handleQuickDeploy(SourceType.HTML)}
+                  className="group relative p-6 rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-green-500 dark:hover:border-green-500 hover:shadow-lg transition-all text-left"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/40 group-hover:bg-green-200 dark:group-hover:bg-green-900/60 transition-colors">
+                      <FileCode className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-green-500 group-hover:translate-x-1 transition-all" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                    {t('deployment.inlineHTML')}
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-gray-400">
+                    {t('deployment.pasteHTML')}
+                  </p>
+                </button>
               </div>
-              <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-                {t('explore.noAppsFound')}
-              </h4>
-              <p className="text-sm text-slate-600 dark:text-gray-400">
-                {t('explore.adjustSearch')}
-              </p>
-            </div>
-          )}
-        </section>
+            </section>
+
+            {/* Explore Section - Bottom */}
+            <section>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                    {t('explore.exploreApps')}
+                  </h2>
+                  <p className="text-slate-600 dark:text-gray-400">
+                    {t('explore.discoverApps')}
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
+                  <SearchBar value={searchQuery} onChange={setSearchQuery} />
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-slate-500 dark:text-gray-400">{t('explore.sortBy')}:</span>
+                    <div className="inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1">
+                      <button
+                        onClick={() => setSortBy('popularity')}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${sortBy === 'popularity'
+                            ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                          }`}
+                      >
+                        <TrendingUp className="w-3 h-3" />
+                        {t('explore.sortByPopularity')}
+                      </button>
+                      <button
+                        onClick={() => setSortBy('recent')}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${sortBy === 'recent'
+                            ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                          }`}
+                      >
+                        <Clock className="w-3 h-3" />
+                        {t('explore.sortByRecent')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <CategoryFilter
+                activeCategory={activeCategory}
+                onCategoryChange={setActiveCategory}
+                onTagReset={() => setActiveTag(null)}
+              />
+
+              {isLoadingExplore ? (
+                <ExploreSkeletonGrid />
+              ) : apps.length > 0 ? (
+                <div className={`grid gap-6 ${selectedApp ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+                  {apps.map((app) => (
+                    <ExploreAppCardView
+                      key={app.id}
+                      app={app}
+                      activeTag={activeTag}
+                      setActiveTag={setActiveTag}
+                      onCardClick={() => handleCardClick(app)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="glass-card rounded-xl p-12 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <Search className="w-8 h-8 text-slate-400" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+                    {t('explore.noAppsFound')}
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-gray-400">
+                    {t('explore.adjustSearch')}
+                  </p>
+                </div>
+              )}
+            </section>
           </div>
         </div>
 

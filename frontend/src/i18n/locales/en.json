@@ -60,7 +60,8 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "signInWithGoogle": "Sign in with Google",
-    "signInWithGithub": "Sign in with GitHub"
+    "signInWithGithub": "Sign in with GitHub",
+    "orContinueWithEmail": "Or continue with email"
   },
   "deployment": {
     "deployYourApp": "Deploy Your App",
@@ -103,7 +104,8 @@
     "building": "Building",
     "deployingStatus": "Deploying...",
     "buildingStatus": "Building...",
-    "logEntries": "entries"
+    "logEntries": "entries",
+    "signInRequired": "Please sign in to deploy applications."
   },
   "dashboard": {
     "signInToViewProjects": "Sign in to view your projects",
