@@ -172,7 +172,8 @@
     "sortByPopularity": "按热度",
     "sortByRecent": "按时间",
     "popularity": "热度",
-    "recent": "最新"
+    "recent": "最新",
+    "loadMore": "加载更多"
   },
   "project": {
     "projectSettings": "项目设置",

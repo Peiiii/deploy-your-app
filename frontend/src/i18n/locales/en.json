@@ -172,7 +172,8 @@
     "sortByPopularity": "Popularity",
     "sortByRecent": "Recent",
     "popularity": "Popularity",
-    "recent": "Recent"
+    "recent": "Recent",
+    "loadMore": "Load More"
   },
   "project": {
     "projectSettings": "Project Settings",
