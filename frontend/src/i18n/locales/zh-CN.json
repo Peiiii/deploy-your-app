@@ -90,7 +90,9 @@
     "repoDuplicateRedeploy": "重新部署已有项目",
     "repoDuplicateCreateNew": "创建新项目（新地址）",
     "analyzingRepository": "正在分析仓库代码，用于生成项目名称、Slug 和标签...",
-    "analysisFailedFallback": "仓库分析失败，将直接进入部署流程（不使用 AI 元数据）。"
+    "analysisFailedFallback": "仓库分析失败，将直接进入部署流程（不使用 AI 元数据）。",
+    "deploymentFailedTitle": "部署失败",
+    "deploymentFailedDescription": "本次部署没有完成。请查看下面的构建日志，修复项目中的问题后再重试部署。"
   },
   "dashboard": {
     "signInToViewProjects": "登录以查看您的项目",

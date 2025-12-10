@@ -8,6 +8,7 @@ import { DeploymentStatus, SourceType } from '../types';
 import { Terminal } from './Terminal';
 import {
   CheckCircle2,
+  XCircle,
   ChevronDown,
   ChevronUp,
   ExternalLink,
@@ -30,6 +31,7 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
   const presenter = usePresenter();
   const state = useDeploymentStore();
   const projects = useProjectStore((s) => s.projects);
+  const projectsLoading = useProjectStore((s) => s.isLoading);
   const navigate = useNavigate();
   const [showBuildLog, setShowBuildLog] = useState(false);
 
@@ -76,14 +78,66 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
     }
   }, [state.deploymentStatus, presenter.project]);
 
+  if (state.deploymentStatus === DeploymentStatus.ANALYZING) {
+    return (
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow">
+        <div className="flex items-start gap-4">
+          <div className="w-11 h-11 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center">
+            <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-1">
+              {t('deployment.analyzingRepository')}
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              {sourceLabel}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (state.deploymentStatus === DeploymentStatus.SUCCESS) {
     if (!resolvedProject && !projectUrlOverride) {
+      // If projects are still loading, keep showing the "finalizing" spinner.
+      if (projectsLoading) {
+        return (
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 text-center shadow">
+            <Loader2 className="w-8 h-8 text-purple-500 animate-spin mx-auto mb-3" />
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              {t('deployment.finalizingDeployment')}
+            </p>
+          </div>
+        );
+      }
+
+      // If projects are not loading anymore but we still cannot resolve the
+      // project, show a graceful fallback instead of an infinite spinner.
       return (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 text-center shadow">
-          <Loader2 className="w-8 h-8 text-purple-500 animate-spin mx-auto mb-3" />
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            {t('deployment.finalizingDeployment')}
-          </p>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-slate-800 flex items-center justify-center">
+              <Loader2 className="w-5 h-5 text-amber-500 animate-spin" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-1">
+                {t('deployment.finalizingDeployment')}
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                {t('dashboard.viewDashboard')}
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
+            >
+              {t('deployment.viewDashboard')}
+            </button>
+          </div>
         </div>
       );
     }
@@ -238,6 +292,45 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
     );
   }
 
-  // When no deployment is active, render nothing.
+  if (state.deploymentStatus === DeploymentStatus.FAILED) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-red-200 dark:border-red-900/60 p-6 shadow-lg">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="w-11 h-11 bg-red-500 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/30">
+                <XCircle className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-semibold text-red-700 dark:text-red-300 mb-1">
+                {t('deployment.deploymentFailedTitle')}
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+                {t('deployment.deploymentFailedDescription')}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-500 font-mono">
+                {sourceLabel}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {state.logs.length > 0 && (
+          <div className="bg-slate-900 dark:bg-black rounded-xl border border-slate-800 dark:border-slate-900 overflow-hidden shadow">
+            <div className="bg-slate-800 dark:bg-slate-950 px-6 py-3 border-b border-slate-700 dark:border-slate-800 flex items-center gap-2">
+              <TerminalIcon className="w-4 h-4 text-slate-200" />
+              <span className="text-sm font-medium text-slate-100">
+                {t('common.error')} · {finalProjectName || t('deployment.deployYourApp')}
+              </span>
+            </div>
+            <Terminal logs={state.logs} className="border-none rounded-none" />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // When no deployment is active (initial idle state), render nothing.
   return null;
 };

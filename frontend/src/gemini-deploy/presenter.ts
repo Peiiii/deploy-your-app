@@ -1,10 +1,10 @@
-import { DeploymentManager } from "./managers/DeploymentManager";
-import { ProjectManager } from "./managers/ProjectManager";
-import { UIManager } from "./managers/UIManager";
-import { AuthManager } from "./managers/AuthManager";
-import { AnalyticsManager } from "./managers/AnalyticsManager";
-import { ReactionManager } from "./managers/ReactionManager";
-import { ServiceFactory } from "./services/ServiceFactory";
+import { DeploymentManager } from './managers/DeploymentManager';
+import { ProjectManager } from './managers/ProjectManager';
+import { UIManager } from './managers/UIManager';
+import { AuthManager } from './managers/AuthManager';
+import { AnalyticsManager } from './managers/AnalyticsManager';
+import { ReactionManager } from './managers/ReactionManager';
+import { ServiceFactory } from './services/ServiceFactory';
 
 // The Presenter now uses the Factory to get dependencies.
 // This decouples the Presenter from specific implementations (Mock vs Real).
@@ -27,7 +27,11 @@ export class Presenter {
     // 2. Initialize Managers with dependencies
     this.ui = new UIManager();
     this.project = new ProjectManager(projectProvider);
-    this.deployment = new DeploymentManager(deploymentProvider);
+    this.deployment = new DeploymentManager(
+      deploymentProvider,
+      this.project,
+      this.ui,
+    );
     this.auth = new AuthManager();
     this.analytics = new AnalyticsManager(analyticsProvider);
     this.reaction = new ReactionManager(reactionProvider);

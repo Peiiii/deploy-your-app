@@ -90,7 +90,9 @@
     "repoDuplicateRedeploy": "Redeploy existing project",
     "repoDuplicateCreateNew": "Create new project with new URL",
     "analyzingRepository": "Analyzing repository to generate project name, slug and tags...",
-    "analysisFailedFallback": "Repository analysis failed, falling back to direct deployment without AI metadata."
+    "analysisFailedFallback": "Repository analysis failed, falling back to direct deployment without AI metadata.",
+    "deploymentFailedTitle": "Deployment failed",
+    "deploymentFailedDescription": "Your deployment did not complete. Check the build log below, fix the issue in your project, and try deploying again."
   },
   "dashboard": {
     "signInToViewProjects": "Sign in to view your projects",

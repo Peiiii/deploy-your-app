@@ -1,11 +1,15 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { useDeploymentStore } from '../stores/deploymentStore';
 import { usePresenter } from '../contexts/PresenterContext';
 import { DeploymentStatus, SourceType } from '../types';
 import { DeploymentSession } from '../components/DeploymentSession';
-import { Github, FolderArchive, Upload, FileCode, X, Check, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { DeploymentSourceTabs } from '../components/deployment/DeploymentSourceTabs';
+import { GithubSourceForm } from '../components/deployment/GithubSourceForm';
+import { ZipSourceForm } from '../components/deployment/ZipSourceForm';
+import { HtmlSourceForm } from '../components/deployment/HtmlSourceForm';
 
 const SIMPLE_HTML_TEMPLATE = `<!DOCTYPE html>
 <html lang="en">
@@ -37,8 +41,6 @@ export const NewDeployment: React.FC = () => {
   const presenter = usePresenter();
   const state = useDeploymentStore();
   const location = useLocation();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const htmlFileInputRef = useRef<HTMLInputElement>(null);
   const [htmlFieldTouched, setHtmlFieldTouched] = useState(false);
 
   const handleSourceTypeSelect = useCallback((type: SourceType) => {
@@ -62,206 +64,7 @@ export const NewDeployment: React.FC = () => {
   }, [handleSourceTypeSelect, location.state]);
 
   const handleDeployStart = async () => {
-    const fallbackName =
-      state.projectName ||
-      (state.sourceType === SourceType.GITHUB
-        ? (state.repoUrl.split('/').filter(Boolean).pop() || 'my-app')
-        : state.sourceType === SourceType.ZIP
-          ? state.zipFile?.name.replace(/\.zip$/i, '') || 'my-app'
-          : 'my-html-app');
-
-    // GitHub: two-phase flow (analyze -> create project -> deploy) with
-    // duplicate-repo detection.
-    if (state.sourceType === SourceType.GITHUB) {
-      const trimmedRepo = state.repoUrl.trim();
-      if (!trimmedRepo) {
-        return;
-      }
-
-      // 1) Check whether the current user already has a project for this repo.
-      try {
-        const existing =
-          await presenter.project.findExistingProjectForRepo(trimmedRepo);
-        if (existing) {
-          // Use a custom dialog instead of the browser confirm so that we
-          // can offer clear primary/secondary actions:
-          //   - primary: redeploy existing project (keep URL)
-          //   - secondary: create a new project with a new URL
-          const primaryChosen = await presenter.ui.showConfirm({
-            title: t('deployment.repoDuplicateTitle'),
-            message: t('deployment.repoDuplicateMessage', {
-              name: existing.name,
-            }),
-            primaryLabel: t('deployment.repoDuplicateRedeploy'),
-            secondaryLabel: t('deployment.repoDuplicateCreateNew'),
-          });
-
-          if (primaryChosen) {
-            await presenter.deployment.redeployProject(existing);
-            return;
-          }
-          // User explicitly chose "create new project" – fall through to the
-          // analysis + create + deploy flow below.
-        }
-      } catch (err) {
-        console.error(
-          'Failed to check for existing project before deployment',
-          err,
-        );
-      }
-
-      // 2) Analyze the repository to generate metadata (name, slug, tags)
-      //    from the actual source code, then create a project with a globally
-      //    unique slug, and finally deploy that project.
-      const store = useDeploymentStore.getState();
-      const actions = store.actions;
-
-      actions.setStep(2);
-      actions.setDeploymentStatus(DeploymentStatus.ANALYZING);
-      actions.clearLogs();
-      actions.setProjectName(fallbackName);
-      actions.setRepoUrl(trimmedRepo);
-      actions.setSourceType(SourceType.GITHUB);
-      actions.addLog({
-        timestamp: new Date().toISOString(),
-        message: t('deployment.analyzingRepository'),
-        type: 'info',
-      });
-
-      try {
-        const tempProject = {
-          id: 'temp',
-          name: fallbackName,
-          repoUrl: trimmedRepo,
-          sourceType: SourceType.GITHUB,
-          lastDeployed: '',
-          status: 'Building' as const,
-          framework: 'Unknown' as const,
-        };
-
-        const analysisResult =
-          await presenter.deployment.analyzeProject(tempProject);
-
-        const metadataOverrides = analysisResult.metadata
-          ? {
-              name: analysisResult.metadata.name,
-              slug: analysisResult.metadata.slug,
-              description: analysisResult.metadata.description,
-              category: analysisResult.metadata.category,
-              tags: analysisResult.metadata.tags,
-            }
-          : undefined;
-
-        const finalName =
-          analysisResult.metadata?.name ?? fallbackName;
-
-        const createdProject = await presenter.project.addProject(
-          finalName,
-          state.sourceType,
-          trimmedRepo,
-          metadataOverrides ? { metadata: metadataOverrides } : undefined,
-        );
-
-        if (!createdProject) {
-          return;
-        }
-
-        const projectForDeploy = {
-          ...createdProject,
-          ...(analysisResult.analysisId
-            ? { analysisId: analysisResult.analysisId }
-            : {}),
-        };
-
-        await presenter.deployment.redeployProject(projectForDeploy);
-      } catch (err) {
-        console.error('Failed to analyze and deploy project', err);
-        actions.addLog({
-          timestamp: new Date().toISOString(),
-          message: t('deployment.analysisFailedFallback'),
-          type: 'warning',
-        });
-
-        // Fallback: create a project without AI-enriched metadata and run a
-        // normal deployment so that users can still deploy even when the
-        // analysis step cannot download the repository ZIP (e.g. non-main
-        // default branch, network hiccups).
-        try {
-          const fallbackProject = await presenter.project.addProject(
-            fallbackName,
-            state.sourceType,
-            trimmedRepo,
-          );
-          if (!fallbackProject) {
-            return;
-          }
-          await presenter.deployment.redeployProject(fallbackProject);
-        } catch (deployErr) {
-          console.error(
-            'Fallback create-and-deploy flow also failed',
-            deployErr,
-          );
-        }
-      }
-
-      return;
-    }
-
-    // ZIP / HTML: create the project first so that the API worker assigns a
-    // globally unique slug, then deploy that project. For HTML the worker
-    // still looks at the HTML content when generating metadata.
-    try {
-      if (state.sourceType === SourceType.ZIP) {
-        const identifier = state.zipFile?.name || 'archive.zip';
-        const newProject = await presenter.project.addProject(
-          fallbackName,
-          state.sourceType,
-          identifier,
-        );
-        if (!newProject) {
-          return;
-        }
-        await presenter.deployment.redeployProject(newProject, {
-          zipFile: state.zipFile,
-        });
-      } else if (state.sourceType === SourceType.HTML) {
-        if (!state.htmlContent.trim()) {
-          return;
-        }
-        const newProject = await presenter.project.addProject(
-          fallbackName,
-          state.sourceType,
-          'inline.html',
-          { htmlContent: state.htmlContent },
-        );
-        if (!newProject) {
-          return;
-        }
-        await presenter.deployment.redeployProject(newProject);
-      }
-    } catch (err) {
-      console.error('Failed to create and deploy project', err);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      presenter.deployment.handleFileDrop(e.target.files[0]);
-    }
-  };
-
-  const handleHtmlFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    await presenter.deployment.handleHtmlFileUpload(file);
-    setHtmlFieldTouched(true);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      presenter.deployment.handleFileDrop(e.dataTransfer.files[0]);
-    }
+    await presenter.deployment.startFromWizard();
   };
 
   const handleInsertTemplate = () => {
@@ -272,9 +75,10 @@ export const NewDeployment: React.FC = () => {
     }
   };
 
-  const isIdleOrFailed =
-    state.deploymentStatus === DeploymentStatus.IDLE ||
-    state.deploymentStatus === DeploymentStatus.FAILED;
+  // Only treat the deployment flow as "idle" when nothing has been started yet.
+  // After a deployment has run (success or failure), we keep showing the
+  // DeploymentSession so the user can inspect logs and status.
+  const isIdle = state.deploymentStatus === DeploymentStatus.IDLE;
 
   const htmlIsReady = state.htmlContent.trim().length > 0;
   const canContinue =
@@ -297,269 +101,58 @@ export const NewDeployment: React.FC = () => {
       </div>
 
       {/* Show deployment session when active or completed; otherwise show the source wizard */}
-      {isIdleOrFailed ? (
-        /* Source Selection - shown when not building and no URL yet */
+      {isIdle ? (
+        /* Source Selection - shown when no deployment has been started yet */
         <div className="space-y-6">
           {/* Source Type Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              onClick={() => handleSourceTypeSelect(SourceType.GITHUB)}
-              className={`group relative p-6 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-lg ${
-                state.sourceType === SourceType.GITHUB
-                  ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-950/20 shadow-md'
-                  : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-purple-300 dark:hover:border-purple-800'
-              }`}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div
-                  className={`p-3 rounded-lg transition-colors ${
-                    state.sourceType === SourceType.GITHUB
-                      ? 'bg-purple-100 dark:bg-purple-900/40'
-                      : 'bg-slate-100 dark:bg-slate-800 group-hover:bg-purple-50 dark:group-hover:bg-purple-950/20'
-                  }`}
-                >
-                  <Github
-                    className={`w-6 h-6 ${
-                      state.sourceType === SourceType.GITHUB
-                        ? 'text-purple-600 dark:text-purple-400'
-                        : 'text-slate-600 dark:text-slate-400'
-                    }`}
-                  />
-                </div>
-                {state.sourceType === SourceType.GITHUB && (
-                  <div className="w-5 h-5 rounded-full bg-purple-600 dark:bg-purple-500 flex items-center justify-center">
-                    <Check className="w-3 h-3 text-white" />
-                  </div>
-                )}
-              </div>
-              <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
-                {t('deployment.githubRepository')}
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                {t('deployment.connectRepoDescription')}
-              </p>
-            </button>
-
-            <button
-              onClick={() => handleSourceTypeSelect(SourceType.ZIP)}
-              className={`group relative p-6 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-lg ${
-                state.sourceType === SourceType.ZIP
-                  ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-950/20 shadow-md'
-                  : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-purple-300 dark:hover:border-purple-800'
-              }`}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div
-                  className={`p-3 rounded-lg transition-colors ${
-                    state.sourceType === SourceType.ZIP
-                      ? 'bg-purple-100 dark:bg-purple-900/40'
-                      : 'bg-slate-100 dark:bg-slate-800 group-hover:bg-purple-50 dark:group-hover:bg-purple-950/20'
-                  }`}
-                >
-                  <FolderArchive
-                    className={`w-6 h-6 ${
-                      state.sourceType === SourceType.ZIP
-                        ? 'text-purple-600 dark:text-purple-400'
-                        : 'text-slate-600 dark:text-slate-400'
-                    }`}
-                  />
-                </div>
-                {state.sourceType === SourceType.ZIP && (
-                  <div className="w-5 h-5 rounded-full bg-purple-600 dark:bg-purple-500 flex items-center justify-center">
-                    <Check className="w-3 h-3 text-white" />
-                  </div>
-                )}
-              </div>
-              <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
-                {t('deployment.uploadArchive')}
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                {t('deployment.uploadZipDescription')}
-              </p>
-            </button>
-            <button
-              onClick={() => handleSourceTypeSelect(SourceType.HTML)}
-              className={`group relative p-6 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-lg ${
-                state.sourceType === SourceType.HTML
-                  ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-950/20 shadow-md'
-                  : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-purple-300 dark:hover:border-purple-800'
-              }`}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div
-                  className={`p-3 rounded-lg transition-colors ${
-                    state.sourceType === SourceType.HTML
-                      ? 'bg-purple-100 dark:bg-purple-900/40'
-                      : 'bg-slate-100 dark:bg-slate-800 group-hover:bg-purple-50 dark:group-hover:bg-purple-950/20'
-                  }`}
-                >
-                  <FileCode
-                    className={`w-6 h-6 ${
-                      state.sourceType === SourceType.HTML
-                        ? 'text-purple-600 dark:text-purple-400'
-                        : 'text-slate-600 dark:text-slate-400'
-                    }`}
-                  />
-                </div>
-                {state.sourceType === SourceType.HTML && (
-                  <div className="w-5 h-5 rounded-full bg-purple-600 dark:bg-purple-500 flex items-center justify-center">
-                    <Check className="w-3 h-3 text-white" />
-                  </div>
-                )}
-              </div>
-              <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
-                {t('deployment.inlineHTML')}
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                {t('deployment.pasteHTMLDescription')}
-              </p>
-            </button>
-          </div>
+          <DeploymentSourceTabs
+            activeSource={state.sourceType}
+            onSelect={handleSourceTypeSelect}
+          />
 
           {/* Input Section */}
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
-            {state.sourceType === SourceType.GITHUB ? (
-              <div className="space-y-4">
-                <label className="block text-sm font-medium text-slate-900 dark:text-white">
-                  {t('project.repository')} URL
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Github className="h-5 w-5 text-slate-400 dark:text-slate-500" />
-                  </div>
-                  <input
-                    type="text"
-                    value={state.repoUrl}
-                    onChange={(e) => {
-                      presenter.deployment.setRepoUrl(e.target.value);
-                      presenter.deployment.autoProjectName(
-                        e.target.value,
-                        SourceType.GITHUB,
-                      );
-                    }}
-                    placeholder="github.com/username/repository"
-                    className="block w-full pl-12 pr-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent transition-all"
-                  />
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {t('deployment.connectRepoDescription')}
-                </p>
-              </div>
-            ) : state.sourceType === SourceType.ZIP ? (
-              <div className="space-y-4">
-                <label className="block text-sm font-medium text-slate-900 dark:text-white">
-                  {t('deployment.uploadArchive')}
-                </label>
-                <div
-                  className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer group ${
-                    state.zipFile
-                      ? 'border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-950/20'
-                      : 'border-slate-300 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-700 bg-slate-50 dark:bg-slate-800/50'
-                  }`}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept=".zip"
-                    onChange={handleFileChange}
-                  />
-                  {state.zipFile ? (
-                    <div className="space-y-3">
-                      <div className="w-12 h-12 mx-auto bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center">
-                        <FileCode className="w-6 h-6 text-green-600 dark:text-green-400" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-white">
-                          {state.zipFile.name}
-                        </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                          {(state.zipFile.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          presenter.deployment.clearZipFile();
-                        }}
-                        className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium inline-flex items-center gap-1"
-                      >
-                        <X className="w-3 h-3" />
-                        {t('common.delete')}
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="w-12 h-12 mx-auto bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center group-hover:bg-purple-100 dark:group-hover:bg-purple-900/40 transition-colors">
-                        <Upload className="w-6 h-6 text-slate-600 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-white">
-                          {t('deployment.uploadZipDescription')}
-                        </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                          {t('deployment.maximumFileSize')}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <label className="block text-sm font-medium text-slate-900 dark:text-white">
-                  HTML {t('common.content') || 'Content'}
-                </label>
-                <textarea
-                  value={state.htmlContent}
-                  onChange={(e) =>
-                    presenter.deployment.setHtmlContent(e.target.value)
-                  }
-                  onBlur={() => setHtmlFieldTouched(true)}
-                  rows={10}
-                  className="block w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800/40 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent transition-all font-mono text-sm"
-                  placeholder={t('deployment.pasteHTMLDescription')}
-                />
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={handleInsertTemplate}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-purple-600 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/30 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/50"
-                  >
-                    <FileCode className="w-3 h-3" />
-                    {t('deployment.insertSampleTemplate')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => htmlFileInputRef.current?.click()}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
-                  >
-                    <Upload className="w-3 h-3" />
-                    {t('deployment.importHtmlFile')}
-                  </button>
-                  <input
-                    ref={htmlFileInputRef}
-                    type="file"
-                    accept=".html,text/html"
-                    className="hidden"
-                    onChange={handleHtmlFileChange}
-                  />
-                </div>
-                {htmlFieldTouched && !htmlIsReady && (
-                  <p className="text-xs text-red-500">
-                    {t('deployment.pasteHTMLDescription')}
-                  </p>
-                )}
-              </div>
+            {state.sourceType === SourceType.GITHUB && (
+              <GithubSourceForm
+                repoUrl={state.repoUrl}
+                onRepoUrlChange={(value) => {
+                  presenter.deployment.setRepoUrl(value);
+                  presenter.deployment.autoProjectName(
+                    value,
+                    SourceType.GITHUB,
+                  );
+                }}
+              />
+            )}
+            {state.sourceType === SourceType.ZIP && (
+              <ZipSourceForm
+                zipFile={state.zipFile}
+                onFileSelected={(file) =>
+                  presenter.deployment.handleFileDrop(file)
+                }
+                onClearFile={() => presenter.deployment.clearZipFile()}
+              />
+            )}
+            {state.sourceType === SourceType.HTML && (
+              <HtmlSourceForm
+                htmlContent={state.htmlContent}
+                onHtmlChange={(value) =>
+                  presenter.deployment.setHtmlContent(value)
+                }
+                onHtmlBlur={() => setHtmlFieldTouched(true)}
+                onInsertTemplate={handleInsertTemplate}
+                onHtmlFileSelected={async (file) => {
+                  await presenter.deployment.handleHtmlFileUpload(file);
+                  setHtmlFieldTouched(true);
+                }}
+                showError={htmlFieldTouched && !htmlIsReady}
+              />
             )}
 
             {/* Action Button */}
             <div className="mt-6 flex justify-end">
               <button
-                onClick={() => canContinue && handleDeployStart()}
+                onClick={() => canContinue && void handleDeployStart()}
                 disabled={!canContinue}
                 className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 dark:bg-purple-500 text-white font-medium rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
               >
