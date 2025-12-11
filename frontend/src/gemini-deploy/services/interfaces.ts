@@ -31,6 +31,7 @@ export interface IProjectProvider {
       isPublic?: boolean;
     },
   ): Promise<Project>;
+  uploadThumbnail(id: string, file: File): Promise<void>;
   deleteProject(id: string): Promise<void>;
 }
 

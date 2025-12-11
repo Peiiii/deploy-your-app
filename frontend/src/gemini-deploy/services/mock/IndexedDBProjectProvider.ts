@@ -97,6 +97,17 @@ export class IndexedDBProjectProvider implements IProjectProvider {
     return updated;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async uploadThumbnail(id: string, _file: File): Promise<void> {
+    // Thumbnails are only persisted in the real backend (API + R2). For the
+    // IndexedDB mock provider we simply no-op so the UI can still call the
+    // method without failing in local/demo mode.
+    const project = await db.get<Project>('projects', id);
+    if (!project) {
+      throw new Error(`Project with id ${id} not found`);
+    }
+  }
+
   async deleteProject(id: string): Promise<void> {
     await db.delete('projects', id);
   }

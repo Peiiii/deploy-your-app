@@ -26,3 +26,9 @@ database_name = "gemigo-projects"
 database_id = "e1e28d75-d0a0-4f8e-9b5d-714454686a4f"
 # Optional: configure a preview database for `wrangler dev`.
 preview_database_id = "e1e28d75-d0a0-4f8e-9b5d-714454686a4f"
+
+[[r2_buckets]]
+binding = "ASSETS"
+# Use the same bucket as the R2 gateway Worker so that thumbnails uploaded
+# via the API are immediately visible under apps/<slug>/thumbnail.png.
+bucket_name = "gemigo-apps"

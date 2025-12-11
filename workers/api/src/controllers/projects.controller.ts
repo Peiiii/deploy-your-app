@@ -2,6 +2,7 @@ import type { ApiWorkerEnv } from '../types/env';
 import { SourceType, type ProjectMetadataOverrides } from '../types/project';
 import { jsonResponse, readJson } from '../utils/http';
 import {
+  ConfigurationError,
   ValidationError,
   NotFoundError,
   UnauthorizedError,
@@ -14,6 +15,7 @@ import {
 import { projectService } from '../services/project.service';
 import { getSessionIdFromRequest } from '../utils/auth';
 import { authRepository } from '../repositories/auth.repository';
+import { configService } from '../services/config.service';
 
 class ProjectsController {
   private parseMetadataOverrides(
@@ -254,6 +256,105 @@ class ProjectsController {
     }
 
     return new Response(null, { status: 204 });
+  }
+
+  /**
+   * POST /api/v1/projects/:id/thumbnail
+   *
+   * Authenticated endpoint for project owners to upload a custom cover image.
+   * The image is stored in the shared R2 bucket under:
+   *   apps/<slug>/thumbnail.png
+   *
+   * The Explore grid and preview cards already request
+   *   https://<slug>.<APPS_ROOT_DOMAIN>/__thumbnail.png
+   * which the R2 gateway Worker maps to this R2 object, so we don't need
+   * any extra schema field on the Project itself.
+   */
+  async uploadThumbnail(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    id: string,
+  ): Promise<Response> {
+    const sessionId = getSessionIdFromRequest(request);
+    if (!sessionId) {
+      throw new UnauthorizedError('Login required to upload a thumbnail.');
+    }
+    const sessionWithUser = await authRepository.getSessionWithUser(
+      db,
+      sessionId,
+    );
+    if (!sessionWithUser) {
+      throw new UnauthorizedError('Login required to upload a thumbnail.');
+    }
+
+    const project = await projectService.getProjectById(db, id);
+    if (!project) {
+      throw new NotFoundError('Project not found');
+    }
+    if (!project.ownerId || project.ownerId !== sessionWithUser.user.id) {
+      throw new UnauthorizedError(
+        'Only the project owner can upload a thumbnail.',
+      );
+    }
+
+    const deployTarget = configService.getDeployTarget(env);
+    if (deployTarget !== 'r2') {
+      throw new ValidationError(
+        'Thumbnail upload is only supported when deploy target is "r2".',
+      );
+    }
+
+    const bucket = env.ASSETS;
+    if (!bucket) {
+      throw new ConfigurationError(
+        'R2 bucket binding "ASSETS" is not configured in the API Worker.',
+      );
+    }
+
+    if (!project.slug || project.slug.trim().length === 0) {
+      throw new ValidationError(
+        'Project slug is missing. Deploy the project first before uploading a thumbnail.',
+      );
+    }
+
+    const formData = await request.formData();
+    const entry = formData.get('file');
+    // In the Workers runtime, FormData entries are either string or File.
+    if (!entry || typeof entry === 'string') {
+      throw new ValidationError('Missing image file in form field "file".');
+    }
+    const file = entry as File;
+
+    if (!file.type || !file.type.startsWith('image/')) {
+      throw new ValidationError('Only image uploads are supported.');
+    }
+
+    const maxBytes = 4 * 1024 * 1024; // 4MB limit for thumbnails
+    if (file.size > maxBytes) {
+      throw new ValidationError('Thumbnail image is too large (max 4MB).');
+    }
+
+    const key = `apps/${project.slug}/thumbnail.png`;
+
+    await bucket.put(key, file.stream(), {
+      httpMetadata: {
+        contentType: file.type,
+      },
+    });
+
+    const appsRootDomain = configService.getAppsRootDomain(env);
+    const thumbnailUrl = project.slug
+      ? `https://${project.slug}.${appsRootDomain}/__thumbnail.png`
+      : undefined;
+
+    return jsonResponse(
+      {
+        ok: true,
+        thumbnailUrl,
+      },
+      200,
+    );
   }
 }
 

@@ -6,6 +6,9 @@ export interface ApiWorkerEnv {
   PLATFORM_AI_MODEL?: string;
   DASHSCOPE_API_KEY?: string;
   DEPLOY_SERVICE_BASE_URL?: string;
+  // Optional R2 bucket binding used for storing app assets like thumbnails
+  // when DEPLOY_TARGET === 'r2'.
+  ASSETS?: R2Bucket;
   // Auth / OAuth configuration
   PASSWORD_SALT?: string;
   AUTH_REDIRECT_BASE?: string;

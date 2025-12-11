@@ -84,6 +84,15 @@ export class ProjectManager {
     }
   };
 
+  uploadThumbnail = async (id: string, file: File): Promise<void> => {
+    try {
+      await this.provider.uploadThumbnail(id, file);
+    } catch (error) {
+      console.error('Failed to upload project thumbnail', error);
+      throw error;
+    }
+  };
+
   deleteProject = async (id: string) => {
     try {
       await this.provider.deleteProject(id);

@@ -75,6 +75,37 @@ export class HttpProjectProvider implements IProjectProvider {
     return response.json();
   }
 
+  async uploadThumbnail(id: string, file: File): Promise<void> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(
+      `${this.baseUrl}${API_ROUTES.PROJECTS}/${encodeURIComponent(
+        id,
+      )}/thumbnail`,
+      {
+        method: 'POST',
+        body: formData,
+      },
+    );
+
+    if (!response.ok) {
+      let message = 'Failed to upload project thumbnail';
+      try {
+        const data = (await response.json()) as {
+          error?: unknown;
+          code?: unknown;
+        };
+        if (data && typeof data.error === 'string' && data.error.trim().length) {
+          message = data.error.trim();
+        }
+      } catch {
+        // Ignore JSON parse errors and fall back to the generic message.
+      }
+      throw new Error(message);
+    }
+  }
+
   async deleteProject(id: string): Promise<void> {
     const response = await fetch(
       `${this.baseUrl}${API_ROUTES.PROJECTS}/${encodeURIComponent(id)}`,

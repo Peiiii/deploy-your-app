@@ -153,6 +153,13 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
       projectsController.deleteProject(req, env, requireDb(), params.id),
   });
 
+  router.add({
+    path: '/api/v1/projects/:id/thumbnail',
+    method: 'POST',
+    handler: (req, params) =>
+      projectsController.uploadThumbnail(req, env, requireDb(), params.id),
+  });
+
   // -----------------
   // Analytics routes
   // -----------------
