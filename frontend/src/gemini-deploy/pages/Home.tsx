@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -12,6 +12,7 @@ import {
   X,
   Zap,
   ExternalLink,
+  Sparkles,
 } from 'lucide-react';
 import type { ExploreAppCard } from '../components/ExploreAppCard';
 import { ExploreAppCardView, mapProjectsToApps } from '../components/ExploreAppCard';
@@ -187,32 +188,74 @@ interface SearchBarProps {
 
 const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
   const { t } = useTranslation();
+  const [localValue, setLocalValue] = useState(value);
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      onChange(localValue);
+    }, 300);
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [localValue, onChange]);
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setLocalValue(e.target.value);
+    },
+    [],
+  );
+
+  React.useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
   return (
     <div className="relative w-full md:w-96 group">
-      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-        <Search className="h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+        <Search className="h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-all duration-300 group-focus-within:scale-110" />
       </div>
       <input
         type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={localValue}
+        onChange={handleChange}
         placeholder={t('explore.searchApps')}
-        className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-full text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:bg-white dark:focus:bg-slate-800 transition-all shadow-sm hover:shadow-md placeholder:text-slate-400"
+        className="w-full pl-11 pr-4 py-3.5 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 rounded-full text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 focus:bg-white dark:focus:bg-slate-800 transition-all duration-300 shadow-sm hover:shadow-lg hover:border-slate-300 dark:hover:border-slate-600 placeholder:text-slate-400 dark:placeholder:text-slate-500"
       />
+      {localValue && (
+        <button
+          onClick={() => {
+            setLocalValue('');
+            onChange('');
+          }}
+          className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
     </div>
   );
 };
+
 
 interface CategoryFilterProps {
   activeCategory: CategoryFilter;
   onCategoryChange: (category: CategoryFilter) => void;
   onTagReset: () => void;
+  isCompact?: boolean;
 }
 
 const CategoryFilter: React.FC<CategoryFilterProps> = ({
   activeCategory,
   onCategoryChange,
   onTagReset,
+  isCompact = false,
 }) => {
   const { t } = useTranslation();
   const handleCategoryClick = (category: CategoryFilter) => {
@@ -235,16 +278,17 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   };
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-4 pt-2 px-1 scrollbar-hide [mask-image:linear-gradient(to_right,black,black_90%,transparent)]">
-      {CATEGORIES.map((cat) => {
+    <div className={`flex gap-2 overflow-x-auto ${isCompact ? 'pb-3 pt-1' : 'pb-4 pt-2'} px-1 scrollbar-hide [mask-image:linear-gradient(to_right,black,black_90%,transparent)]`}>
+      {CATEGORIES.map((cat, index) => {
         const isActive = cat === activeCategory;
         return (
           <button
             key={cat}
             onClick={() => handleCategoryClick(cat)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${isActive
-                ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30 scale-105'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+            style={{ animationDelay: `${index * 30}ms` }}
+            className={`rounded-full font-semibold whitespace-nowrap transition-all duration-300 animate-fade-in ${isCompact ? 'px-3 py-1.5 text-xs' : 'px-5 py-2.5 text-sm'} ${isActive
+                ? 'bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-lg shadow-brand-500/40 scale-105 ring-2 ring-brand-500/20'
+                : 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:scale-105 hover:shadow-md backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50'
               }`}
           >
             {getCategoryLabel(cat)}
@@ -261,22 +305,23 @@ const ExploreSkeletonGrid: React.FC = () => {
       {Array.from({ length: 6 }).map((_, idx) => (
         <div
           key={idx}
-          className="flex flex-col rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden animate-pulse"
+          style={{ animationDelay: `${idx * 100}ms` }}
+          className="flex flex-col rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden animate-fade-in"
         >
-          <div className="h-44 bg-slate-100 dark:bg-slate-800" />
+          <div className="h-44 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 animate-pulse" />
           <div className="p-5 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 animate-pulse" />
               <div className="space-y-2 flex-1">
-                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
-                <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-1/2" />
+                <div className="h-4 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-slate-700 dark:via-slate-800 dark:to-slate-700 rounded w-3/4 animate-pulse" />
+                <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-1/2 animate-pulse" />
               </div>
             </div>
-            <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-full" />
-            <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-5/6" />
+            <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-full animate-pulse" />
+            <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-5/6 animate-pulse" />
             <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
-              <div className="w-24 h-3 bg-slate-100 dark:bg-slate-800 rounded" />
-              <div className="w-16 h-3 bg-slate-200 dark:bg-slate-700 rounded" />
+              <div className="w-24 h-3 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+              <div className="w-16 h-3 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
             </div>
           </div>
         </div>
@@ -362,7 +407,7 @@ export const Home: React.FC = () => {
   const requireAuthAnd = (action: () => void) => {
     if (!user) {
       presenter.auth.openAuthModal('login');
-      presenter.ui.showToast(t('deployment.signInRequired'), 'warning');
+      presenter.ui.showToast(t('deployment.signInRequired'), 'info');
       return;
     }
     action();
@@ -392,116 +437,133 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <div className="h-full bg-app-bg">
-      <div className={`flex gap-6 ${selectedApp ? 'max-w-full' : 'max-w-7xl'} mx-auto px-4 md:px-8 py-6 md:py-8 ${selectedApp ? 'h-[calc(100vh-4rem)]' : ''}`}>
+    <div className="h-full bg-app-bg relative overflow-hidden">
+      <div className={`flex flex-col lg:flex-row gap-4 lg:gap-6 ${selectedApp ? 'max-w-full' : 'max-w-7xl'} mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 lg:py-8 ${selectedApp ? 'h-[calc(100vh-4rem)]' : ''}`}>
         {/* Left Column - App List */}
-        <div className={`transition-all duration-300 ${selectedApp ? 'w-full lg:w-1/2 flex flex-col overflow-hidden' : 'w-full'}`}>
-          <div className={`space-y-8 transition-all duration-300 ${selectedApp ? 'flex-1 overflow-y-auto pr-2' : ''}`}>
+        <div className={`transition-all duration-500 ease-out ${selectedApp ? 'w-full lg:w-1/2 flex flex-col overflow-hidden' : 'w-full'}`}>
+          <div className={`space-y-6 md:space-y-8 transition-all duration-500 ${selectedApp ? 'flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent' : ''}`}>
 
             {/* Deploy Section - Top */}
-            <section className="glass-card rounded-2xl p-6 md:p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                    {t('deployment.deployYourApp')}
-                  </h2>
-                  <p className="text-slate-600 dark:text-gray-400">
-                    {t('deployment.chooseDeploymentMethod')}
-                  </p>
+            <section className={`glass-card rounded-2xl md:rounded-3xl p-5 md:p-8 lg:p-10 relative overflow-hidden group/section ${selectedApp ? 'lg:p-6' : ''}`}>
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 via-transparent to-purple-500/5 opacity-0 group-hover/section:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <div className={`flex items-center justify-between ${selectedApp ? 'mb-6' : 'mb-8'}`}>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Sparkles className={`text-brand-500 animate-pulse ${selectedApp ? 'w-5 h-5' : 'w-5 h-5 md:w-6 md:h-6'}`} />
+                      <h2 className={`font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-100 dark:to-white bg-clip-text text-transparent ${selectedApp ? 'text-xl md:text-2xl' : 'text-2xl sm:text-3xl md:text-4xl'}`}>
+                        {t('deployment.deployYourApp')}
+                      </h2>
+                    </div>
+                    <p className={`text-slate-600 dark:text-slate-400 ${selectedApp ? 'text-xs md:text-sm' : 'text-sm md:text-base'}`}>
+                      {t('deployment.chooseDeploymentMethod')}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button
-                  onClick={() => handleQuickDeploy(SourceType.GITHUB)}
-                  className="group relative p-6 rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-purple-500 dark:hover:border-purple-500 hover:shadow-lg transition-all text-left"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/40 group-hover:bg-purple-200 dark:group-hover:bg-purple-900/60 transition-colors">
-                      <Github className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                <div className={`grid gap-4 md:gap-5 ${selectedApp ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
+                  <button
+                    onClick={() => handleQuickDeploy(SourceType.GITHUB)}
+                    className={`group relative border-2 border-slate-200/60 dark:border-slate-800/60 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm hover:border-purple-500/60 dark:hover:border-purple-500/60 hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-1 transition-all duration-300 text-left overflow-hidden ${selectedApp ? 'p-4 rounded-xl' : 'p-5 md:p-7 rounded-xl md:rounded-2xl'}`}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/0 group-hover:from-purple-500/5 group-hover:to-purple-600/5 transition-all duration-300" />
+                    <div className="relative z-10">
+                      <div className={`flex items-start justify-between ${selectedApp ? 'mb-3' : 'mb-5'}`}>
+                        <div className={`rounded-xl bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/50 dark:to-purple-800/50 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-purple-500/20 ${selectedApp ? 'p-3' : 'p-4'}`}>
+                          <Github className={`text-purple-600 dark:text-purple-400 ${selectedApp ? 'w-5 h-5' : 'w-7 h-7'}`} />
+                        </div>
+                        <ArrowRight className={`text-slate-400 group-hover:text-purple-500 group-hover:translate-x-2 transition-all duration-300 ${selectedApp ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                      </div>
+                      <h3 className={`font-bold text-slate-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors ${selectedApp ? 'text-base' : 'text-lg'}`}>
+                        {t('deployment.githubRepository')}
+                      </h3>
+                      <p className={`text-slate-600 dark:text-slate-400 leading-relaxed ${selectedApp ? 'text-xs' : 'text-sm'}`}>
+                        {t('deployment.connectGitHubRepo')}
+                      </p>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-purple-500 group-hover:translate-x-1 transition-all" />
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                    {t('deployment.githubRepository')}
-                  </h3>
-                  <p className="text-sm text-slate-600 dark:text-gray-400">
-                    {t('deployment.connectGitHubRepo')}
-                  </p>
-                </button>
+                  </button>
 
-                <button
-                  onClick={() => handleQuickDeploy(SourceType.ZIP)}
-                  className="group relative p-6 rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-lg transition-all text-left"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/40 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/60 transition-colors">
-                      <FolderArchive className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <button
+                    onClick={() => handleQuickDeploy(SourceType.ZIP)}
+                    className={`group relative border-2 border-slate-200/60 dark:border-slate-800/60 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm hover:border-blue-500/60 dark:hover:border-blue-500/60 hover:shadow-2xl hover:shadow-blue-500/20 hover:-translate-y-1 transition-all duration-300 text-left overflow-hidden ${selectedApp ? 'p-4 rounded-xl' : 'p-5 md:p-7 rounded-xl md:rounded-2xl'}`}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/0 group-hover:from-blue-500/5 group-hover:to-blue-600/5 transition-all duration-300" />
+                    <div className="relative z-10">
+                      <div className={`flex items-start justify-between ${selectedApp ? 'mb-3' : 'mb-5'}`}>
+                        <div className={`rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/50 dark:to-blue-800/50 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-blue-500/20 ${selectedApp ? 'p-3' : 'p-4'}`}>
+                          <FolderArchive className={`text-blue-600 dark:text-blue-400 ${selectedApp ? 'w-5 h-5' : 'w-7 h-7'}`} />
+                        </div>
+                        <ArrowRight className={`text-slate-400 group-hover:text-blue-500 group-hover:translate-x-2 transition-all duration-300 ${selectedApp ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                      </div>
+                      <h3 className={`font-bold text-slate-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors ${selectedApp ? 'text-base' : 'text-lg'}`}>
+                        {t('deployment.uploadArchive')}
+                      </h3>
+                      <p className={`text-slate-600 dark:text-slate-400 leading-relaxed ${selectedApp ? 'text-xs' : 'text-sm'}`}>
+                        {t('deployment.uploadZipFile')}
+                      </p>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                    {t('deployment.uploadArchive')}
-                  </h3>
-                  <p className="text-sm text-slate-600 dark:text-gray-400">
-                    {t('deployment.uploadZipFile')}
-                  </p>
-                </button>
+                  </button>
 
-                <button
-                  onClick={() => handleQuickDeploy(SourceType.HTML)}
-                  className="group relative p-6 rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-green-500 dark:hover:border-green-500 hover:shadow-lg transition-all text-left"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/40 group-hover:bg-green-200 dark:group-hover:bg-green-900/60 transition-colors">
-                      <FileCode className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  <button
+                    onClick={() => handleQuickDeploy(SourceType.HTML)}
+                    className={`group relative border-2 border-slate-200/60 dark:border-slate-800/60 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:shadow-2xl hover:shadow-emerald-500/20 hover:-translate-y-1 transition-all duration-300 text-left overflow-hidden ${selectedApp ? 'p-4 rounded-xl' : 'p-5 md:p-7 rounded-xl md:rounded-2xl'}`}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 to-emerald-500/0 group-hover:from-emerald-500/5 group-hover:to-emerald-600/5 transition-all duration-300" />
+                    <div className="relative z-10">
+                      <div className={`flex items-start justify-between ${selectedApp ? 'mb-3' : 'mb-5'}`}>
+                        <div className={`rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/50 dark:to-emerald-800/50 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-emerald-500/20 ${selectedApp ? 'p-3' : 'p-4'}`}>
+                          <FileCode className={`text-emerald-600 dark:text-emerald-400 ${selectedApp ? 'w-5 h-5' : 'w-7 h-7'}`} />
+                        </div>
+                        <ArrowRight className={`text-slate-400 group-hover:text-emerald-500 group-hover:translate-x-2 transition-all duration-300 ${selectedApp ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                      </div>
+                      <h3 className={`font-bold text-slate-900 dark:text-white mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors ${selectedApp ? 'text-base' : 'text-lg'}`}>
+                        {t('deployment.inlineHTML')}
+                      </h3>
+                      <p className={`text-slate-600 dark:text-slate-400 leading-relaxed ${selectedApp ? 'text-xs' : 'text-sm'}`}>
+                        {t('deployment.pasteHTML')}
+                      </p>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-green-500 group-hover:translate-x-1 transition-all" />
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                    {t('deployment.inlineHTML')}
-                  </h3>
-                  <p className="text-sm text-slate-600 dark:text-gray-400">
-                    {t('deployment.pasteHTML')}
-                  </p>
-                </button>
+                  </button>
+                </div>
               </div>
             </section>
 
             {/* Explore Section - Bottom */}
-            <section>
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+            <section className="animate-fade-in">
+              <div className={`flex flex-col ${selectedApp ? 'md:flex-col' : 'md:flex-row'} justify-between items-start ${selectedApp ? '' : 'md:items-center'} gap-4 ${selectedApp ? 'md:gap-4' : 'md:gap-6'} ${selectedApp ? 'mb-4 md:mb-6' : 'mb-6 md:mb-8'}`}>
+                <div className={`space-y-1 ${selectedApp ? 'md:space-y-1' : 'md:space-y-2'}`}>
+                  <h2 className={`font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-100 dark:to-white bg-clip-text text-transparent ${selectedApp ? 'text-xl md:text-2xl' : 'text-2xl sm:text-3xl md:text-4xl'}`}>
                     {t('explore.exploreApps')}
                   </h2>
-                  <p className="text-slate-600 dark:text-gray-400">
+                  <p className={`text-slate-600 dark:text-slate-400 ${selectedApp ? 'text-xs md:text-sm' : 'text-sm md:text-base'}`}>
                     {t('explore.discoverApps')}
                   </p>
                 </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
-                  <SearchBar value={searchQuery} onChange={setSearchQuery} />
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-500 dark:text-gray-400">{t('explore.sortBy')}:</span>
-                    <div className="inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1">
+                <div className={`flex flex-col ${selectedApp ? 'sm:flex-col' : 'sm:flex-row'} items-start ${selectedApp ? '' : 'sm:items-center'} gap-3 ${selectedApp ? 'w-full' : 'w-full md:w-auto'}`}>
+                  <div className={selectedApp ? 'w-full' : ''}>
+                    <SearchBar value={searchQuery} onChange={setSearchQuery} />
+                  </div>
+                  <div className={`flex items-center gap-2 ${selectedApp ? 'w-full' : ''}`}>
+                    <span className={`font-medium text-slate-500 dark:text-slate-400 ${selectedApp ? 'text-xs' : 'text-sm'}`}>{t('explore.sortBy')}:</span>
+                    <div className={`inline-flex items-center gap-1 rounded-xl bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 ${selectedApp ? 'p-1' : 'p-1.5'}`}>
                       <button
                         onClick={() => setSortBy('popularity')}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${sortBy === 'popularity'
-                            ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
-                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                        className={`inline-flex items-center gap-1.5 rounded-lg font-semibold transition-all duration-300 ${selectedApp ? 'px-2.5 py-1.5 text-[10px]' : 'px-4 py-2 text-xs'} ${sortBy === 'popularity'
+                            ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-md scale-105'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
                           }`}
                       >
-                        <TrendingUp className="w-3 h-3" />
+                        <TrendingUp className={selectedApp ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
                         {t('explore.sortByPopularity')}
                       </button>
                       <button
                         onClick={() => setSortBy('recent')}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${sortBy === 'recent'
-                            ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
-                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                        className={`inline-flex items-center gap-1.5 rounded-lg font-semibold transition-all duration-300 ${selectedApp ? 'px-2.5 py-1.5 text-[10px]' : 'px-4 py-2 text-xs'} ${sortBy === 'recent'
+                            ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-md scale-105'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
                           }`}
                       >
-                        <Clock className="w-3 h-3" />
+                        <Clock className={selectedApp ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
                         {t('explore.sortByRecent')}
                       </button>
                     </div>
@@ -513,31 +575,37 @@ export const Home: React.FC = () => {
                 activeCategory={activeCategory}
                 onCategoryChange={setActiveCategory}
                 onTagReset={() => setActiveTag(null)}
+                isCompact={!!selectedApp}
               />
 
               {isLoadingExplore ? (
                 <ExploreSkeletonGrid />
               ) : apps.length > 0 ? (
-                <div className={`grid gap-6 ${selectedApp ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
-                  {apps.map((app) => (
-                    <ExploreAppCardView
+                <div className={`grid ${selectedApp ? 'gap-4' : 'gap-6'} ${selectedApp ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+                  {apps.map((app, index) => (
+                    <div
                       key={app.id}
-                      app={app}
-                      activeTag={activeTag}
-                      setActiveTag={setActiveTag}
-                      onCardClick={() => handleCardClick(app)}
-                    />
+                      style={{ animationDelay: `${index * 50}ms` }}
+                      className="animate-fade-in"
+                    >
+                      <ExploreAppCardView
+                        app={app}
+                        activeTag={activeTag}
+                        setActiveTag={setActiveTag}
+                        onCardClick={() => handleCardClick(app)}
+                      />
+                    </div>
                   ))}
                 </div>
               ) : (
-                <div className="glass-card rounded-xl p-12 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                    <Search className="w-8 h-8 text-slate-400" />
+                <div className="glass-card rounded-2xl p-16 text-center animate-fade-in">
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center shadow-lg">
+                    <Search className="w-10 h-10 text-slate-400 dark:text-slate-500" />
                   </div>
-                  <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+                  <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
                     {t('explore.noAppsFound')}
                   </h4>
-                  <p className="text-sm text-slate-600 dark:text-gray-400">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto">
                     {t('explore.adjustSearch')}
                   </p>
                 </div>
@@ -548,15 +616,15 @@ export const Home: React.FC = () => {
 
         {/* Right Column - Preview Panel */}
         {selectedApp && (
-          <div className="hidden lg:flex lg:flex-col w-1/2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex-shrink-0 h-[calc(100vh-4rem-3rem)]">
-	            {/* Header */}
-	            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex-shrink-0">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br ${selectedApp.color} shrink-0`}>
-                  <Zap className="w-4 h-4 text-white" />
+          <div className="hidden lg:flex lg:flex-col w-1/2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl border border-slate-200/60 dark:border-slate-800/60 shadow-2xl overflow-hidden flex-shrink-0 h-[calc(100vh-4rem-3rem)] animate-fade-in">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-slate-200/80 dark:border-slate-800/80 bg-gradient-to-r from-slate-50/80 to-white/80 dark:from-slate-900/80 dark:to-slate-800/80 backdrop-blur-sm flex-shrink-0">
+              <div className="flex items-center gap-4 min-w-0 flex-1">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br ${selectedApp.color} shrink-0 shadow-lg ring-2 ring-white/20 dark:ring-slate-700/30`}>
+                  <Zap className="w-6 h-6 text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-slate-900 dark:text-white truncate">
+                  <h3 className="font-bold text-lg text-slate-900 dark:text-white truncate mb-1">
                     {selectedApp.name}
                   </h3>
                   <AuthorBadge
@@ -569,7 +637,7 @@ export const Home: React.FC = () => {
                 {selectedApp.url && (
                   <button
                     onClick={() => handleOpenInNewTab(selectedApp.url!)}
-                    className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors"
+                    className="p-2.5 rounded-xl hover:bg-slate-200/80 dark:hover:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-all duration-300 hover:scale-110"
                     aria-label={t('common.openInNewTab')}
                     title={t('common.openInNewTab')}
                   >
@@ -578,7 +646,7 @@ export const Home: React.FC = () => {
                 )}
                 <button
                   onClick={handleClosePreview}
-                  className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors"
+                  className="p-2.5 rounded-xl hover:bg-slate-200/80 dark:hover:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-all duration-300 hover:scale-110"
                   aria-label={t('common.close')}
                 >
                   <X className="w-5 h-5" />
@@ -587,19 +655,24 @@ export const Home: React.FC = () => {
             </div>
 
             {/* Iframe */}
-            <div className="flex-1 relative bg-slate-100 dark:bg-slate-950 min-h-0">
+            <div className="flex-1 relative bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-950 dark:to-slate-900 min-h-0">
               {selectedApp.url ? (
                 <iframe
                   src={selectedApp.url}
-                  className="w-full h-full border-0"
+                  className="w-full h-full border-0 rounded-b-3xl"
                   title={selectedApp.name}
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">
-                  <p className="text-slate-500 dark:text-slate-400">
-                    {t('common.notAccessible')}
-                  </p>
+                  <div className="text-center space-y-3">
+                    <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                      <X className="w-8 h-8 text-slate-400" />
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium">
+                      {t('common.notAccessible')}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
