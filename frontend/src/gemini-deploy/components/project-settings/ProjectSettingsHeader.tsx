@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, ExternalLink } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatRelativeTime } from '../../utils/date';
 import type { ProjectSettingsProject } from './types';
@@ -84,17 +84,6 @@ export const ProjectSettingsHeader: React.FC<ProjectSettingsHeaderProps> = ({
           <span>{t('project.lastDeploy')}:</span>
           <span className="font-medium">{formattedDate}</span>
         </div>
-        {project.url && (
-          <a
-            href={project.url}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors"
-          >
-            <span>{t('common.visit')}</span>
-            <ExternalLink className="w-3 h-3" />
-          </a>
-        )}
       </div>
     </div>
   );
