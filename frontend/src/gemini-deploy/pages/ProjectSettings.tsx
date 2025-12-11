@@ -13,22 +13,7 @@ import { useProjectStore } from '../stores/projectStore';
 import { useReactionStore } from '../stores/reactionStore';
 import type { Project } from '../types';
 import { DeploymentStatus, SourceType } from '../types';
-
-function formatRepoLabel(project: Project): string {
-  const { repoUrl, sourceType } = project;
-  if (!repoUrl) return 'Not configured';
-  if (
-    (sourceType === SourceType.ZIP || sourceType === SourceType.HTML) &&
-    !repoUrl.startsWith('http')
-  ) {
-    return repoUrl;
-  }
-  if (repoUrl.startsWith(URLS.GITHUB_BASE)) {
-    const trimmed = repoUrl.replace(URLS.GITHUB_BASE, '');
-    return trimmed || repoUrl;
-  }
-  return repoUrl;
-}
+import { formatRepoLabel, getProjectThumbnailUrl } from '../utils/project';
 
 export const ProjectSettings: React.FC = () => {
   const { t } = useTranslation();
@@ -97,14 +82,7 @@ export const ProjectSettings: React.FC = () => {
   }, [project, presenter.analytics]);
 
   const thumbnailUrl = React.useMemo(() => {
-    if (!project?.url) return null;
-    try {
-      // Use the same __thumbnail.png endpoint as the Explore cards so that
-      // user uploads and auto-generated screenshots share the same path.
-      return new URL('__thumbnail.png', project.url).toString();
-    } catch {
-      return null;
-    }
+    return getProjectThumbnailUrl(project?.url);
   }, [project?.url]);
 
   // Load reactions once the project is available.
@@ -115,18 +93,25 @@ export const ProjectSettings: React.FC = () => {
 
   if (!projectId) {
     return (
-      <div className="p-8 max-w-3xl mx-auto">
-        <p className="text-sm text-red-500">Invalid project URL.</p>
+      <div className="p-8 max-w-4xl mx-auto">
+        <div className="rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30 p-6 text-center">
+          <p className="text-sm font-medium text-red-600 dark:text-red-400">
+            Invalid project URL.
+          </p>
+        </div>
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="p-8 max-w-3xl mx-auto">
-        <p className="text-sm text-slate-500 dark:text-gray-400">
-          {t('common.loadingProjectDetails')}
-        </p>
+      <div className="p-8 max-w-4xl mx-auto">
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-12 text-center">
+          <div className="inline-block w-8 h-8 border-2 border-slate-300 dark:border-slate-600 border-t-brand-500 rounded-full animate-spin mb-4"></div>
+          <p className="text-sm text-slate-600 dark:text-gray-400">
+            {t('common.loadingProjectDetails')}
+          </p>
+        </div>
       </div>
     );
   }
@@ -342,19 +327,30 @@ export const ProjectSettings: React.FC = () => {
   const repoLabel = formatRepoLabel(project);
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 md:space-y-8 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 md:space-y-8 animate-fade-in">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <button
           onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white"
+          className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           {t('common.back')}
         </button>
-        <span className="text-xs px-2 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-gray-400 border border-slate-200 dark:border-white/10">
-          Project ID: {project.id}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-gray-400 border border-slate-200 dark:border-slate-700 font-mono">
+            {project.id.slice(0, 8)}...
+          </span>
+          {project.url && (
+            <a
+              href={project.url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs px-3 py-1.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 hover:bg-brand-500/20 transition-colors"
+            >
+              {t('common.visit')}
+            </a>
+          )}
+        </div>
       </div>
 
       <ProjectSettingsCard

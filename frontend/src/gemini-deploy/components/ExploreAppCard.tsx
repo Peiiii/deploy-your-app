@@ -2,17 +2,17 @@
 import { Heart, Play, Star, Zap } from 'lucide-react';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { URLS } from '../constants';
 import { usePresenter } from '../contexts/PresenterContext';
 import { useAuthStore } from '../stores/authStore';
 import { useReactionStore } from '../stores/reactionStore';
+import {
+  buildProjectAuthor,
+  getProjectCategory,
+  getProjectDescription,
+  getProjectThumbnailUrl,
+} from '../utils/project';
 import type { Project } from '../types';
-import { SourceType } from '../types';
 import { AuthorBadge } from './AuthorBadge';
-
-const THUMBNAIL_PATH = '/__thumbnail.png';
-const DEFAULT_AUTHOR = 'Indie Hacker';
-const DEFAULT_CATEGORY = 'Other';
 
 export interface ExploreAppCard {
   id: string;
@@ -30,55 +30,6 @@ export interface ExploreAppCard {
   authorProfileIdentifier?: string;
 }
 
-function buildDescription(project: Project): string {
-  const frameworkPart =
-    project.framework === 'Unknown' ? 'AI app' : `${project.framework} app`;
-  const sourcePart =
-    project.sourceType === SourceType.ZIP
-      ? 'uploaded as a ZIP archive'
-      : project.sourceType === SourceType.GITHUB
-        ? 'connected from GitHub'
-        : project.sourceType === SourceType.HTML
-          ? 'built from inline HTML'
-          : 'deployed with GemiGo';
-  return `Deployed ${frameworkPart} ${sourcePart}.`;
-}
-
-function buildAuthor(project: Project): string {
-  if (
-    project.sourceType === SourceType.GITHUB &&
-    project.repoUrl.startsWith(URLS.GITHUB_BASE)
-  ) {
-    const rest = project.repoUrl.replace(URLS.GITHUB_BASE, '');
-    const owner = rest.split('/')[0];
-    if (owner) return owner;
-  }
-  return DEFAULT_AUTHOR;
-}
-
-function buildThumbnailUrl(projectUrl: string): string | undefined {
-  try {
-    const url = new URL(projectUrl, window.location.origin);
-    url.pathname = THUMBNAIL_PATH;
-    url.search = '';
-    url.hash = '';
-    return url.toString();
-  } catch {
-    return undefined;
-  }
-}
-
-function getProjectCategory(project: Project): string {
-  return project.category && project.category.trim().length > 0
-    ? project.category
-    : DEFAULT_CATEGORY;
-}
-
-function getProjectDescription(project: Project): string {
-  return project.description && project.description.trim().length > 0
-    ? project.description
-    : buildDescription(project);
-}
 
 export function mapProjectsToApps(
   projects: Project[],
@@ -94,8 +45,8 @@ export function mapProjectsToApps(
     const meta = appMeta[index % appMeta.length];
     const category = getProjectCategory(project);
     const description = getProjectDescription(project);
-    const thumbnailUrl = project.url ? buildThumbnailUrl(project.url) : undefined;
-    const githubAuthor = buildAuthor(project);
+    const thumbnailUrl = project.url ? getProjectThumbnailUrl(project.url) ?? undefined : undefined;
+    const githubAuthor = buildProjectAuthor(project);
     const handle =
       typeof project.ownerHandle === 'string' &&
       project.ownerHandle.trim().length > 0

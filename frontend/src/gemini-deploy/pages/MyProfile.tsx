@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../stores/authStore';
 import { useProjectStore } from '../stores/projectStore';
 import { usePresenter } from '../contexts/PresenterContext';
+import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
 import type { PublicUserProfile, ProfileLink } from '../types';
 import { fetchPublicProfile, updateMyProfile } from '../services/http/profileApi';
 import {
@@ -35,7 +36,12 @@ export const MyProfile: React.FC = () => {
   const [pinnedIds, setPinnedIds] = React.useState<string[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
-  const [copied, setCopied] = React.useState(false);
+  
+  const { copied, copyToClipboard } = useCopyToClipboard({
+    onSuccess: () => {
+      presenter.ui.showSuccessToast(t('profile.profileLinkCopied'));
+    },
+  });
 
   const myProjects = React.useMemo(
     () => (user ? allProjects.filter((p) => p.ownerId === user.id && p.isPublic !== false) : []),
@@ -194,23 +200,14 @@ export const MyProfile: React.FC = () => {
     }
   };
 
-  const handleCopyPublicUrl = async () => {
+  const handleCopyPublicUrl = () => {
     if (!user) return;
-    try {
-      const identifier =
-        user.handle && user.handle.trim().length > 0
-          ? user.handle.trim()
-          : user.id;
-      const url = `${window.location.origin}/u/${encodeURIComponent(
-        identifier,
-      )}`;
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      presenter.ui.showSuccessToast(t('profile.profileLinkCopied'));
-    } catch (err) {
-      console.error('Failed to copy profile link', err);
-    }
+    const identifier =
+      user.handle && user.handle.trim().length > 0
+        ? user.handle.trim()
+        : user.id;
+    const url = `${window.location.origin}/u/${encodeURIComponent(identifier)}`;
+    copyToClipboard(url);
   };
 
   if (isLoadingAuth) {

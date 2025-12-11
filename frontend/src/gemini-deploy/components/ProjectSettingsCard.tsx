@@ -101,11 +101,11 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
   };
 
   return (
-    <div className="glass-card rounded-2xl p-6 md:p-8 flex flex-col gap-6">
+    <div className="glass-card rounded-2xl p-6 md:p-8 flex flex-col gap-8">
       <ProjectSettingsHeader project={project} />
 
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="flex-1 space-y-4">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <div className="flex-1 space-y-6">
           <ProjectSettingsRepoSection
             project={project}
             repoLabel={repoLabel}
@@ -158,9 +158,9 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
-          <AlertTriangle className="w-3 h-3" />
-          <span>{error}</span>
+        <div className="flex items-start gap-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3 shadow-sm">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span className="flex-1">{error}</span>
         </div>
       )}
     </div>

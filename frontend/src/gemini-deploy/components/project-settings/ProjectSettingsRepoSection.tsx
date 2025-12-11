@@ -26,7 +26,7 @@ export const ProjectSettingsRepoSection: React.FC<
 
   return (
     <div>
-      <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-2">
+      <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
         {t('project.repository')}
       </h3>
       <div className="space-y-2">
@@ -36,7 +36,7 @@ export const ProjectSettingsRepoSection: React.FC<
             value={repoUrlDraft}
             onChange={(e) => onRepoUrlChange(e.target.value)}
             placeholder="https://github.com/owner/repo"
-            className="w-full pr-24 pl-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+            className="w-full pr-24 pl-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all"
           />
           <button
             onClick={onSaveRepoUrl}

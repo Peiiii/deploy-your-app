@@ -7,7 +7,8 @@ import { useAuthStore } from '../stores/authStore';
 import { useAnalyticsStore } from '../stores/analyticsStore';
 import { useReactionStore } from '../stores/reactionStore';
 import { usePresenter } from '../contexts/PresenterContext';
-import { URLS } from '../constants';
+import { useCopyToClipboardWithKey } from '../hooks/useCopyToClipboardWithKey';
+import { getDisplayRepoUrl, getGitHubUrl } from '../utils/project';
 import { SourceType } from '../types';
 import type { Project } from '../types';
 
@@ -27,7 +28,8 @@ export const Dashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [sortBy, setSortBy] = React.useState<SortOption>('recent');
   const [sortDirection, setSortDirection] = React.useState<SortDirection>('desc');
-  const [copiedUrl, setCopiedUrl] = React.useState<string | null>(null);
+  
+  const { copyToClipboard, isCopied } = useCopyToClipboardWithKey();
 
   const projects = React.useMemo(
     () => (user ? allProjects.filter((p) => p.ownerId === user.id) : []),
@@ -94,14 +96,8 @@ export const Dashboard: React.FC = () => {
     return sorted;
   }, [projects, showFavoritesOnly, reactionsByProject, searchQuery, sortBy, sortDirection]);
 
-  const handleCopyUrl = async (url: string, projectId: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopiedUrl(projectId);
-      setTimeout(() => setCopiedUrl(null), 2000);
-    } catch (err) {
-      console.error('Failed to copy URL:', err);
-    }
+  const handleCopyUrl = (url: string, projectId: string) => {
+    copyToClipboard(url, projectId);
   };
 
   const handleSort = (option: SortOption) => {
@@ -366,7 +362,7 @@ export const Dashboard: React.FC = () => {
                 analytics={analyticsByProject[project.id]}
                 onNavigate={navigate}
                 onCopyUrl={handleCopyUrl}
-                copiedUrl={copiedUrl}
+                isCopied={isCopied}
                 t={t}
               />
             ))}
@@ -451,11 +447,11 @@ interface ProjectCardProps {
   analytics?: { stats?: { views7d?: number } | null };
   onNavigate: (path: string) => void;
   onCopyUrl: (url: string, projectId: string) => void;
-  copiedUrl: string | null;
+  isCopied: (key: string) => boolean;
   t: (key: string) => string;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, analytics, onNavigate, onCopyUrl, copiedUrl, t }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, analytics, onNavigate, onCopyUrl, isCopied, t }) => {
   const views7d = analytics?.stats?.views7d ?? 0;
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -466,20 +462,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, analytics, onNavigat
     onNavigate(`/projects/${encodeURIComponent(project.id)}`);
   };
 
-  const getGitHubUrl = () => {
-    if (project.repoUrl.startsWith(URLS.GITHUB_BASE)) {
-      return project.repoUrl;
-    }
-    if (project.sourceType === SourceType.GITHUB && project.repoUrl) {
-      return `${URLS.GITHUB_BASE}${project.repoUrl}`;
-    }
-    return null;
-  };
-
-  const githubUrl = getGitHubUrl();
-  const displayRepoUrl = project.repoUrl.startsWith(URLS.GITHUB_BASE)
-    ? project.repoUrl.replace(URLS.GITHUB_BASE, '')
-    : project.repoUrl;
+  const githubUrl = getGitHubUrl(project);
+  const displayRepoUrl = getDisplayRepoUrl(project.repoUrl);
 
   return (
     <div
@@ -597,9 +581,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, analytics, onNavigat
                   onCopyUrl(project.url!, project.id);
                 }}
                 className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors rounded hover:bg-slate-100 dark:hover:bg-slate-800"
-                title={copiedUrl === project.id ? t('common.copied') : t('common.copyUrl')}
+                title={isCopied(project.id) ? t('common.copied') : t('common.copyUrl')}
               >
-                {copiedUrl === project.id ? (
+                {isCopied(project.id) ? (
                   <Check className="w-3.5 h-3.5 text-green-500" />
                 ) : (
                   <Copy className="w-3.5 h-3.5" />
