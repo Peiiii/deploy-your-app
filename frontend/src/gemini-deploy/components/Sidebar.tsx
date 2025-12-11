@@ -39,7 +39,7 @@ export const Sidebar: React.FC = () => {
         />
       )}
       
-      <div className={`h-screen fixed left-0 top-0 flex flex-col glass border-r-0 z-50 transition-all duration-300 ${
+      <div className={`h-screen fixed left-0 top-0 flex flex-col bg-app-surface border border-app-border border-r-0 z-50 transition-all duration-300 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } md:translate-x-0 md:flex ${
         sidebarCollapsed ? 'w-16 md:w-16' : 'w-64 md:w-64'
@@ -103,13 +103,10 @@ export const Sidebar: React.FC = () => {
                 sidebarCollapsed ? 'w-10 h-10 justify-center p-0 mx-auto' : 'w-full min-h-[44px] px-4 py-3'
               } ${
                 isActive
-                  ? 'text-slate-900 dark:text-white bg-slate-100/50 dark:bg-white/5'
-                  : 'text-slate-500 dark:text-gray-400 bg-transparent dark:bg-transparent hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
+                  ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800'
+                  : 'text-slate-500 dark:text-gray-400 bg-transparent dark:bg-transparent hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800'
               }`}
             >
-              {isActive && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 dark:from-purple-500/20 to-transparent opacity-100"></div>
-              )}
               <item.icon className={`flex-shrink-0 transition-colors ${sidebarCollapsed ? 'w-5 h-5' : 'w-5 h-5'} ${isActive ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 group-hover:text-slate-600 dark:text-gray-500 dark:group-hover:text-gray-300'}`} />
               {!sidebarCollapsed && (
                 <span className="relative z-10 whitespace-nowrap flex-shrink-0">{item.label}</span>
