@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { copyToClipboard as copyToClipboardUtil } from '../utils/clipboard';
 
 interface UseCopyToClipboardOptions {
   resetDelay?: number;
@@ -15,7 +16,7 @@ export function useCopyToClipboard(options: UseCopyToClipboardOptions = {}) {
       if (!text) return;
 
       try {
-        await navigator.clipboard.writeText(text);
+        await copyToClipboardUtil(text);
         setCopied(true);
         onSuccess?.();
 
