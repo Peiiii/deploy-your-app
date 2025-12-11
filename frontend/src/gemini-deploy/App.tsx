@@ -31,26 +31,12 @@ const MainLayout = () => {
   const theme = useUIStore((state) => state.theme);
   const language = useUIStore((state) => state.language);
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
-  const setLanguage = useUIStore((state) => state.actions.setLanguage);
   const presenter = usePresenter();
   const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
-    const storedLang = localStorage.getItem('i18nextLng') || i18n.language || 'en';
-    if (language !== storedLang) {
-      setLanguage(storedLang);
-      void i18n.changeLanguage(storedLang);
-    } else if (i18n.language !== language) {
-      void i18n.changeLanguage(language);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (language && i18n.language !== language) {
-      void i18n.changeLanguage(language);
-      localStorage.setItem('i18nextLng', language);
-    }
-  }, [language, i18n]);
+    presenter.ui.ensureI18nLanguage(i18n);
+  }, [i18n, language, presenter.ui]);
 
   useEffect(() => {
     presenter.auth.loadCurrentUser();

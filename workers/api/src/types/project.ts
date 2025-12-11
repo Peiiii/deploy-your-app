@@ -9,6 +9,8 @@ export type DeploymentStatus = 'Live' | 'Building' | 'Failed' | 'Offline';
 export interface Project {
   id: string;
   ownerId?: string;
+  ownerHandle?: string | null;
+  ownerDisplayName?: string | null;
   // Whether this project should appear in public feeds (Explore, recommendations).
   // For legacy rows without this field, the system treats them as public.
   isPublic?: boolean;

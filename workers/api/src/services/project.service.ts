@@ -10,6 +10,7 @@ import { metadataService } from './metadata.service';
 import { configService } from './config.service';
 import { engagementService } from './engagement.service';
 import { analyticsService } from './analytics.service';
+import { authRepository } from '../repositories/auth.repository';
 
 interface CreateProjectInput {
   name: string;
@@ -207,11 +208,43 @@ class ProjectService {
     const end = start + pageSize;
     const items = sorted.slice(start, end);
 
+    // Load owner handles/display names in bulk so the frontend doesn't have to
+    // call profile APIs to build author badges on explore cards.
+    const ownerIds = Array.from(
+      new Set(
+        items
+          .map((p) => p.ownerId)
+          .filter((id): id is string => typeof id === 'string' && id.length > 0),
+      ),
+    );
+    const owners = await authRepository.findUsersByIds(db, ownerIds);
+    const ownersById = owners.reduce(
+      (acc, user) => {
+        acc[user.id] = {
+          handle: user.handle ?? null,
+          displayName: user.displayName ?? null,
+        };
+        return acc;
+      },
+      {} as Record<string, { handle: string | null; displayName: string | null }>,
+    );
+    const enrichedItems = items.map((project) => ({
+      ...project,
+      ownerHandle:
+        project.ownerId && ownersById[project.ownerId]
+          ? ownersById[project.ownerId].handle
+          : null,
+      ownerDisplayName:
+        project.ownerId && ownersById[project.ownerId]
+          ? ownersById[project.ownerId].displayName
+          : null,
+    }));
+
     const engagement: Record<
       string,
       { likesCount: number; favoritesCount: number }
     > = {};
-    items.forEach((project) => {
+    enrichedItems.forEach((project) => {
       const entry = counts[project.id] ?? {
         likesCount: 0,
         favoritesCount: 0,
@@ -223,7 +256,7 @@ class ProjectService {
     });
 
     return {
-      items,
+      items: enrichedItems,
       page,
       pageSize,
       total,

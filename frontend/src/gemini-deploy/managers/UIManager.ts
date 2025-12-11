@@ -4,6 +4,7 @@ import {
   type ConfirmDialogState,
 } from '../stores/uiStore';
 import { confirmController } from '../services/confirmController';
+import type { i18n as I18nInstance } from 'i18next';
 
 // Manager for UI-related actions. State (theme, sidebar) is kept in uiStore.
 export class UIManager {
@@ -58,5 +59,14 @@ export class UIManager {
       });
       actions.openConfirmDialog(dialog);
     });
+  };
+
+  // Keep i18n language in sync with the UI store's language setting.
+  ensureI18nLanguage = (i18n: I18nInstance): void => {
+    const { language } = useUIStore.getState();
+    const target = language || 'en';
+    if (i18n.language !== target) {
+      void i18n.changeLanguage(target);
+    }
   };
 }

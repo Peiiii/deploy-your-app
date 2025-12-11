@@ -17,6 +17,10 @@ export interface Project {
   id: string;
   // Owner user ID for this project (undefined for legacy/public records).
   ownerId?: string;
+  // Optional owner handle / display name, provided directly by the API to avoid
+  // extra profile lookups on public feeds.
+  ownerHandle?: string | null;
+  ownerDisplayName?: string | null;
   // Whether this project should appear in public feeds (Explore, recommendations).
   // Legacy projects without this flag are treated as public.
   isPublic?: boolean;

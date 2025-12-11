@@ -43,7 +43,11 @@
     "profile": "My Profile",
     "organization": "Organization",
     "personalProjects": "Personal Projects",
-    "myProjects": "My Projects"
+    "myProjects": "My Projects",
+    "pinnedProjects": "Pinned Projects",
+    "recentProjects": "Recent Projects",
+    "pinProject": "Pin project",
+    "unpinProject": "Unpin project"
   },
   "auth": {
     "signInWithEmail": "Sign in with email",

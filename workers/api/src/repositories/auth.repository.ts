@@ -186,6 +186,39 @@ class AuthRepository {
     return row ? this.mapRowToUser(row) : null;
   }
 
+  async findUsersByIds(
+    db: D1Database,
+    ids: string[],
+  ): Promise<Array<Pick<User, 'id' | 'handle' | 'displayName'>>> {
+    await this.ensureSchema(db);
+    if (ids.length === 0) return [];
+
+    const placeholders = ids.map(() => '?').join(', ');
+    const result = await db
+      .prepare(
+        `SELECT id, handle, display_name FROM users WHERE id IN (${placeholders})`,
+      )
+      .bind(...ids)
+      .all<Record<string, unknown>>();
+
+    const rows = result.results ?? [];
+    return rows.map((row) => ({
+      id: String(row.id),
+      handle:
+        typeof row.handle === 'string'
+          ? row.handle
+          : row.handle == null
+            ? null
+            : String(row.handle),
+      displayName:
+        typeof row.display_name === 'string'
+          ? row.display_name
+          : row.display_name == null
+            ? null
+            : String(row.display_name),
+    }));
+  }
+
   async createUser(
     db: D1Database,
     input: {

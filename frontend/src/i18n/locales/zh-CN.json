@@ -43,7 +43,11 @@
     "profile": "我的主页",
     "organization": "组织",
     "personalProjects": "个人项目",
-    "myProjects": "我的项目"
+    "myProjects": "我的项目",
+    "pinnedProjects": "置顶项目",
+    "recentProjects": "最近项目",
+    "pinProject": "置顶项目",
+    "unpinProject": "取消置顶"
   },
   "auth": {
     "signInWithEmail": "使用邮箱登录",

@@ -1,0 +1,61 @@
+import React from 'react';
+import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { SidebarProjectItem } from './SidebarProjectItem';
+import { SidebarProjectViewToggle } from './SidebarProjectViewToggle';
+import type { Project } from '../../types';
+
+interface SidebarProjectListProps {
+  projects: Project[];
+  pinnedProjectIds: string[];
+  viewType: 'pinned' | 'recent';
+  onViewTypeChange: (type: 'pinned' | 'recent') => void;
+  onTogglePin: (e: React.MouseEvent, projectId: string) => void;
+  pinnedProjects: Project[];
+}
+
+export const SidebarProjectList: React.FC<SidebarProjectListProps> = ({
+  projects,
+  pinnedProjectIds,
+  viewType,
+  onViewTypeChange,
+  onTogglePin,
+  pinnedProjects,
+}) => {
+  const { t } = useTranslation();
+  const location = useLocation();
+
+  if (projects.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/5 flex flex-col min-h-0 flex-1">
+      <div className="px-2 mb-2 flex items-center justify-between gap-2 flex-shrink-0">
+        <p className="text-[10px] font-semibold text-slate-400 dark:text-gray-400 uppercase tracking-wider">
+          {t('navigation.myProjects')}
+        </p>
+        <SidebarProjectViewToggle
+          viewType={viewType}
+          onViewTypeChange={onViewTypeChange}
+          showPinned={pinnedProjects.length > 0}
+        />
+      </div>
+      <div className="space-y-1 overflow-y-auto flex-1 min-h-0">
+        {projects.map((project) => {
+          const isActive = location.pathname === `/projects/${project.id}`;
+          const isPinned = pinnedProjectIds.includes(project.id);
+          return (
+            <SidebarProjectItem
+              key={project.id}
+              project={project}
+              isActive={isActive}
+              isPinned={isPinned}
+              onTogglePin={onTogglePin}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+};

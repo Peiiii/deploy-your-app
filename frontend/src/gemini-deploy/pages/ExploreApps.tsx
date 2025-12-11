@@ -7,8 +7,6 @@ import { ExploreAppCardView, mapProjectsToApps } from '../components/ExploreAppC
 import { useAuthStore } from '../stores/authStore';
 import { usePresenter } from '../contexts/PresenterContext';
 import { fetchExploreProjects } from '../services/http/exploreApi';
-import { fetchPublicProfile } from '../services/http/profileApi';
-import type { Project } from '../types';
 const CREATOR_REVENUE_SHARE = 70;
 
 export type CategoryFilter =
@@ -84,88 +82,6 @@ const APP_META: readonly AppMeta[] = [
     color: 'from-indigo-500 to-violet-500',
   },
 ] as const;
-
-type AuthorProfileInfo = {
-  label: string;
-  identifier: string;
-};
-
-const authorProfileCache: Record<string, AuthorProfileInfo> = {};
-
-async function loadAuthorProfilesForProjects(
-  projects: Project[],
-): Promise<Record<string, AuthorProfileInfo>> {
-  const byId: Record<string, AuthorProfileInfo> = {};
-
-  const ownerIds = Array.from(
-    new Set(
-      projects
-        .map((p) => p.ownerId)
-        .filter((id): id is string => typeof id === 'string' && id.length > 0),
-    ),
-  );
-
-  if (ownerIds.length === 0) {
-    return byId;
-  }
-
-  const toFetch: string[] = [];
-  ownerIds.forEach((ownerId) => {
-    const cached = authorProfileCache[ownerId];
-    if (cached) {
-      byId[ownerId] = cached;
-    } else {
-      toFetch.push(ownerId);
-    }
-  });
-
-  if (toFetch.length === 0) {
-    return byId;
-  }
-
-  const results = await Promise.all(
-    toFetch.map(async (ownerId) => {
-      try {
-        const profile = await fetchPublicProfile(ownerId);
-        const handle =
-          profile.user.handle && profile.user.handle.trim().length > 0
-            ? profile.user.handle.trim()
-            : null;
-        const identifier = handle ?? profile.user.id;
-        const info: AuthorProfileInfo = {
-          // We only use the handle as the visible "platform username".
-          // When it's missing, we keep label empty so the card can fall back
-          // to the GitHub owner name while still having a profile link.
-          label: handle ?? '',
-          identifier,
-        };
-        authorProfileCache[ownerId] = info;
-        return { ownerId, info };
-      } catch (err) {
-        // Public profiles are an optional enhancement for the explore grid.
-        // Swallow "not_found" / generic failures so we don't spam console errors.
-        if (err instanceof Error) {
-          if (
-            err.message === 'not_found' ||
-            err.message === 'Failed to load public profile'
-          ) {
-            return null;
-          }
-        }
-        console.warn('Optional author profile lookup failed', ownerId, err);
-        return null;
-      }
-    }),
-  );
-
-  results.forEach((entry) => {
-    if (entry) {
-      byId[entry.ownerId] = entry.info;
-    }
-  });
-
-  return byId;
-}
 
 interface SearchBarProps {
   value: string;
@@ -309,8 +225,7 @@ export const ExploreApps: React.FC = () => {
         });
 
         const projects = result.items;
-        const authorProfiles = await loadAuthorProfilesForProjects(projects);
-        const pageApps = mapProjectsToApps(projects, APP_META, authorProfiles);
+        const pageApps = mapProjectsToApps(projects, APP_META);
         setApps((prev) =>
           append ? [...prev, ...pageApps] : pageApps,
         );
@@ -350,7 +265,7 @@ export const ExploreApps: React.FC = () => {
   const requireAuthAnd = (action: () => void) => {
     if (!user) {
       presenter.auth.openAuthModal('login');
-      presenter.ui.showToast(t('deployment.signInRequired'), 'warning');
+      presenter.ui.showToast(t('deployment.signInRequired'), 'info');
       return;
     }
     action();

@@ -80,11 +80,6 @@ function getProjectDescription(project: Project): string {
     : buildDescription(project);
 }
 
-type AuthorProfileInfo = {
-  label: string;
-  identifier: string;
-};
-
 export function mapProjectsToApps(
   projects: Project[],
   appMeta: readonly {
@@ -94,7 +89,6 @@ export function mapProjectsToApps(
     installs: string;
     color: string;
   }[],
-  authorProfiles?: Record<string, AuthorProfileInfo>,
 ): ExploreAppCard[] {
   return projects.map((project, index) => {
     const meta = appMeta[index % appMeta.length];
@@ -102,15 +96,13 @@ export function mapProjectsToApps(
     const description = getProjectDescription(project);
     const thumbnailUrl = project.url ? buildThumbnailUrl(project.url) : undefined;
     const githubAuthor = buildAuthor(project);
-    const profile =
-      project.ownerId && authorProfiles
-        ? authorProfiles[project.ownerId]
-        : undefined;
-    const authorLabel =
-      profile && profile.label.trim().length > 0
-        ? profile.label
-        : githubAuthor;
-    const authorIdentifier = profile?.identifier ?? project.ownerId;
+    const handle =
+      typeof project.ownerHandle === 'string' &&
+      project.ownerHandle.trim().length > 0
+        ? project.ownerHandle.trim()
+        : null;
+    const authorLabel = handle ?? githubAuthor;
+    const authorIdentifier = handle ?? project.ownerId;
 
     return {
       id: project.id,
@@ -125,8 +117,8 @@ export function mapProjectsToApps(
       url: project.url,
       tags: project.tags,
       thumbnailUrl,
-      // If we couldn't load the public profile, still fall back to ownerId
-      // so that /u/:ownerId links work or show "not found".
+      // Fall back to ownerId so that /u/:ownerId links still work when
+      // handle is missing.
       authorProfileIdentifier: authorIdentifier,
     };
   });
