@@ -30,11 +30,14 @@ class ProfileService {
     userId: string,
   ): Promise<UserProfile> {
     const existing = await profileRepository.getProfile(db, userId);
-    if (existing) {
-      return existing;
-    }
-    const created = await profileRepository.upsertProfile(db, userId, {});
-    return created;
+    if (existing) return existing;
+    // Return an in-memory default instead of writing during GET to avoid
+    // mutating profiles on read.
+    return {
+      bio: null,
+      links: [],
+      pinnedProjectIds: [],
+    };
   }
 
   async updateProfile(
@@ -103,7 +106,7 @@ class ProfileService {
 
     const publicUser: PublicUser = toPublicUser(user);
 
-    // Load profile (lazy-create so every user has at least an empty record).
+    // Load profile (returns an in-memory default if none exists; no writes on GET).
     const profile = await this.getOrCreateProfile(db, user.id);
 
     // Fetch this user's public projects.

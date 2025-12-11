@@ -188,7 +188,7 @@ class ProfileRepository {
           `INSERT INTO user_profiles (
             user_id, bio, website, github, twitter, pinned_project_ids, links,
             created_at, updated_at
-          ) VALUES (?, ?, NULL, NULL, NULL, ?, ?, ?)`,
+          ) VALUES (?, ?, NULL, NULL, NULL, ?, ?, ?, ?)`,
         )
         .bind(
           next.userId,
