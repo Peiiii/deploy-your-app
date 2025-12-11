@@ -20,8 +20,13 @@ export const Sidebar: React.FC = () => {
     { path: '/', label: t('navigation.home'), icon: Home },
     { path: '/explore', label: t('navigation.exploreApps'), icon: Sparkles },
     { path: '/deploy', label: t('navigation.deployApp'), icon: Package },
-    { path: '/dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard },
-    { path: '/me', label: t('navigation.profile'), icon: User },
+    // Only show dashboard/profile when logged in
+    ...(authUser
+      ? [
+          { path: '/dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard },
+          { path: '/me', label: t('navigation.profile'), icon: User },
+        ]
+      : []),
   ];
 
   return (

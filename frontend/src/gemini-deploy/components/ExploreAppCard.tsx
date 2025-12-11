@@ -1,13 +1,14 @@
 /* eslint-disable react-refresh/only-export-components */
+import { Heart, Play, Star, Zap } from 'lucide-react';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Heart, Play, Star, User, Zap } from 'lucide-react';
 import { URLS } from '../constants';
 import { usePresenter } from '../contexts/PresenterContext';
-import { useReactionStore } from '../stores/reactionStore';
 import { useAuthStore } from '../stores/authStore';
+import { useReactionStore } from '../stores/reactionStore';
 import type { Project } from '../types';
 import { SourceType } from '../types';
+import { AuthorBadge } from './AuthorBadge';
 
 const THUMBNAIL_PATH = '/__thumbnail.png';
 const DEFAULT_AUTHOR = 'Indie Hacker';
@@ -24,6 +25,9 @@ export interface ExploreAppCard {
   url?: string;
   tags?: string[];
   thumbnailUrl?: string;
+  // Identifier used for linking to the author's public profile (/u/:identifier).
+  // This will be the user's handle when set, otherwise their internal user id.
+  authorProfileIdentifier?: string;
 }
 
 function buildDescription(project: Project): string {
@@ -76,6 +80,11 @@ function getProjectDescription(project: Project): string {
     : buildDescription(project);
 }
 
+type AuthorProfileInfo = {
+  label: string;
+  identifier: string;
+};
+
 export function mapProjectsToApps(
   projects: Project[],
   appMeta: readonly {
@@ -85,24 +94,40 @@ export function mapProjectsToApps(
     installs: string;
     color: string;
   }[],
+  authorProfiles?: Record<string, AuthorProfileInfo>,
 ): ExploreAppCard[] {
   return projects.map((project, index) => {
     const meta = appMeta[index % appMeta.length];
     const category = getProjectCategory(project);
     const description = getProjectDescription(project);
     const thumbnailUrl = project.url ? buildThumbnailUrl(project.url) : undefined;
+    const githubAuthor = buildAuthor(project);
+    const profile =
+      project.ownerId && authorProfiles
+        ? authorProfiles[project.ownerId]
+        : undefined;
+    const authorLabel =
+      profile && profile.label.trim().length > 0
+        ? profile.label
+        : githubAuthor;
+    const authorIdentifier = profile?.identifier ?? project.ownerId;
 
     return {
       id: project.id,
       name: project.name,
       description,
-      author: buildAuthor(project),
+      // Prefer platform username (handle) when available, otherwise fall back
+      // to the GitHub owner / default label.
+      author: authorLabel,
       cost: meta.cost,
       category,
       color: meta.color,
       url: project.url,
       tags: project.tags,
       thumbnailUrl,
+      // If we couldn't load the public profile, still fall back to ownerId
+      // so that /u/:ownerId links work or show "not found".
+      authorProfileIdentifier: authorIdentifier,
     };
   });
 }
@@ -148,25 +173,26 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   return (
     <div
       className="group relative flex flex-col bg-white dark:bg-slate-800/40 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700/60 overflow-hidden hover:shadow-2xl hover:shadow-brand-500/10 dark:hover:shadow-black/50 transition-all duration-300 hover:-translate-y-1 h-full"
-      onClick={handleRootClick}
     >
       {/* Image Section */}
-      <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700/30 group-hover:border-transparent transition-colors">
+	      <div
+	        className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700/30 group-hover:border-transparent transition-colors cursor-pointer"
+	        onClick={handleRootClick}
+	      >
         {showThumbnail ? (
           <>
             {!thumbLoaded && (
               <div className="absolute inset-0 animate-pulse bg-slate-200 dark:bg-slate-800" />
             )}
-            <img
-              src={app.thumbnailUrl}
-              alt={app.name}
-              loading="lazy"
-              onLoad={() => setThumbLoaded(true)}
-              onError={() => setThumbError(true)}
-              className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
-                thumbLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
-            />
+	            <img
+	              src={app.thumbnailUrl}
+	              alt={app.name}
+	              loading="lazy"
+	              onLoad={() => setThumbLoaded(true)}
+	              onError={() => setThumbError(true)}
+	              className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${thumbLoaded ? 'opacity-100' : 'opacity-0'
+	                }`}
+	            />
           </>
         ) : (
           // Fallback pattern when no thumbnail
@@ -175,8 +201,15 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
           />
         )}
 
-        {/* Overlay on hover */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 dark:group-hover:bg-black/20 transition-colors duration-300" />
+	        {/* Overlay on hover */}
+	        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 dark:group-hover:bg-black/30 transition-colors duration-300" />
+	        {/* Hover CTA */}
+	        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300">
+	          <div className="px-3 py-1.5 rounded-full bg-black/60 text-white text-[11px] font-medium flex items-center gap-1">
+	            <Play className="w-3 h-3 fill-current" />
+	            <span>{t('common.open')}</span>
+	          </div>
+	        </div>
 
         {/* Cost Badge - Floating */}
         <div className="absolute top-3 right-3 z-10">
@@ -200,9 +233,10 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
               <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base leading-tight truncate group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                 {app.name}
               </h3>
-              <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5 truncate">
-                <User className="w-3 h-3" /> {app.author}
-              </div>
+              <AuthorBadge
+                name={app.author}
+                identifier={app.authorProfileIdentifier}
+              />
             </div>
           </div>
         </div>
@@ -219,11 +253,10 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
               <button
                 key={tag}
                 onClick={(e) => handleTagClick(e, tag)}
-                className={`px-2 py-0.5 rounded-md text-[10px] font-medium transition-colors border ${
-                  tag === activeTag
+                className={`px-2 py-0.5 rounded-md text-[10px] font-medium transition-colors border ${tag === activeTag
                     ? 'bg-brand-50 text-brand-700 border-brand-200 dark:bg-brand-900/30 dark:text-brand-300 dark:border-brand-700'
                     : 'bg-slate-50 text-slate-600 border-slate-100 hover:bg-slate-100 dark:bg-slate-800/50 dark:text-slate-400 dark:border-slate-700 dark:hover:bg-slate-800'
-                }`}
+                  }`}
               >
                 #{tag}
               </button>
@@ -248,11 +281,10 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
               className="inline-flex items-center gap-1 text-[11px] rounded-full px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <Star
-                className={`w-3.5 h-3.5 ${
-                  reactionEntry?.favoritedByCurrentUser
+                className={`w-3.5 h-3.5 ${reactionEntry?.favoritedByCurrentUser
                     ? 'text-amber-400 fill-amber-400'
                     : 'text-slate-400'
-                }`}
+                  }`}
               />
               <span className="text-slate-700 dark:text-slate-300">
                 {(reactionEntry?.favoritesCount ?? 0).toLocaleString()}
@@ -273,11 +305,10 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
               className="inline-flex items-center gap-1 text-[11px] rounded-full px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <Heart
-                className={`w-3 h-3 ${
-                  reactionEntry?.likedByCurrentUser
+                className={`w-3 h-3 ${reactionEntry?.likedByCurrentUser
                     ? 'fill-pink-500 text-pink-500'
                     : 'text-slate-400'
-                }`}
+                  }`}
               />
               <span className="text-slate-700 dark:text-slate-300">
                 {(reactionEntry?.likesCount ?? 0).toLocaleString()}
