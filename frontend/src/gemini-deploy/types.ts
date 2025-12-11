@@ -119,7 +119,39 @@ export interface AuthProviders {
 export interface User {
   id: string;
   email: string | null;
+  handle: string | null;
   displayName: string | null;
   avatarUrl: string | null;
   providers: AuthProviders;
+}
+
+// ---------------------------------------------------------------------------
+// User profiles (community)
+// ---------------------------------------------------------------------------
+
+export interface ProfileLink {
+  label: string | null;
+  url: string;
+}
+
+export interface UserProfile {
+  bio: string | null;
+  links: ProfileLink[];
+  pinnedProjectIds: string[];
+}
+
+export interface PublicUserProfile {
+  user: User;
+  profile: UserProfile;
+  stats: {
+    publicProjectsCount: number;
+    totalLikes: number;
+    totalFavorites: number;
+  };
+  projects: Array<
+    Project & {
+      likesCount?: number;
+      favoritesCount?: number;
+    }
+  >;
 }

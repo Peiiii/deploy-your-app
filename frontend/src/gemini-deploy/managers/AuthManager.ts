@@ -38,6 +38,44 @@ export class AuthManager {
     }
   };
 
+  updateHandle = async (handle: string): Promise<void> => {
+    const trimmed = handle.trim();
+    if (!trimmed) {
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/me/handle`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ handle: trimmed }),
+      });
+
+      const data = (await res.json().catch(() => ({}))) as
+        | { user?: User; error?: string }
+        | undefined;
+
+      if (!res.ok || !data?.user) {
+        const message =
+          data?.error ||
+          (res.status === 409
+            ? 'Handle 已被占用，请换一个。'
+            : '更新 Handle 失败，请稍后再试。');
+        throw new Error(message);
+      }
+
+      useAuthStore.setState({
+        user: data.user,
+      });
+    } catch (err) {
+      console.error('Failed to update handle', err);
+      if (err instanceof Error) {
+        throw err;
+      }
+      throw new Error('更新 Handle 失败，请稍后再试。');
+    }
+  };
+
   logout = async (): Promise<void> => {
     try {
       await fetch(`${API_BASE}/logout`, {

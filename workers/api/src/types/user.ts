@@ -1,6 +1,7 @@
 export interface User {
   id: string;
   email: string | null;
+  handle: string | null;
   passwordHash: string | null;
   googleSub: string | null;
   githubId: string | null;
@@ -21,6 +22,7 @@ export interface Session {
 export interface PublicUser {
   id: string;
   email: string | null;
+  handle: string | null;
   displayName: string | null;
   avatarUrl: string | null;
   providers: {
@@ -29,4 +31,3 @@ export interface PublicUser {
     github: boolean;
   };
 }
-

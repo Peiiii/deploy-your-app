@@ -11,6 +11,7 @@ export function toPublicUser(user: User): PublicUser {
   return {
     id: user.id,
     email: user.email,
+    handle: user.handle,
     displayName: user.displayName,
     avatarUrl: user.avatarUrl,
     providers: {
@@ -147,4 +148,3 @@ export function readOAuthStateCookie(
   }
   return null;
 }
-

@@ -11,6 +11,7 @@ class AuthRepository {
         `CREATE TABLE IF NOT EXISTS users (
           id TEXT PRIMARY KEY,
           email TEXT UNIQUE,
+          handle TEXT UNIQUE,
           password_hash TEXT,
           google_sub TEXT UNIQUE,
           github_id TEXT UNIQUE,
@@ -47,6 +48,29 @@ class AuthRepository {
       )
       .run();
 
+    // Backfill handle column for older databases where it does not exist yet.
+    try {
+      await db
+        // SQLite/D1 only allows limited column constraints in ALTER TABLE, so we
+        // add a plain TEXT column here and rely on a separate unique index plus
+        // application-level checks for uniqueness.
+        .prepare(`ALTER TABLE users ADD COLUMN handle TEXT`)
+        .run();
+    } catch {
+      // Ignore error if column already exists.
+    }
+
+    // Best-effort unique index on handle so we catch conflicts early.
+    try {
+      await db
+        .prepare(
+          `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_handle ON users(handle)`,
+        )
+        .run();
+    } catch {
+      // Non-fatal; we still enforce uniqueness at application level.
+    }
+
     authSchemaEnsured = true;
   }
 
@@ -59,6 +83,12 @@ class AuthRepository {
           : row.email == null
             ? null
             : String(row.email),
+      handle:
+        typeof row.handle === 'string'
+          ? row.handle
+          : row.handle == null
+            ? null
+            : String(row.handle),
       passwordHash:
         typeof row.password_hash === 'string'
           ? row.password_hash
@@ -143,11 +173,25 @@ class AuthRepository {
     return row ? this.mapRowToUser(row) : null;
   }
 
+  async findUserByHandle(
+    db: D1Database,
+    handle: string,
+  ): Promise<User | null> {
+    await this.ensureSchema(db);
+    const normalized = handle.toLowerCase();
+    const row = await db
+      .prepare(`SELECT * FROM users WHERE handle = ?`)
+      .bind(normalized)
+      .first<Record<string, unknown>>();
+    return row ? this.mapRowToUser(row) : null;
+  }
+
   async createUser(
     db: D1Database,
     input: {
       id: string;
       email?: string | null;
+      handle?: string | null;
       passwordHash?: string | null;
       googleSub?: string | null;
       githubId?: string | null;
@@ -161,18 +205,23 @@ class AuthRepository {
       input.email && input.email.trim().length > 0
         ? input.email.trim().toLowerCase()
         : null;
+    const handle =
+      input.handle && input.handle.trim().length > 0
+        ? input.handle.trim().toLowerCase()
+        : null;
 
     const row = await db
       .prepare(
         `INSERT INTO users (
-          id, email, password_hash, google_sub, github_id,
+          id, email, handle, password_hash, google_sub, github_id,
           display_name, avatar_url, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING *`,
       )
       .bind(
         input.id,
         email,
+        handle,
         input.passwordHash ?? null,
         input.googleSub ?? null,
         input.githubId ?? null,
@@ -194,6 +243,7 @@ class AuthRepository {
     id: string,
     patch: {
       email?: string | null;
+      handle?: string | null;
       passwordHash?: string | null;
       googleSub?: string | null;
       githubId?: string | null;
@@ -210,6 +260,14 @@ class AuthRepository {
       params.push(
         patch.email && patch.email.trim().length > 0
           ? patch.email.trim().toLowerCase()
+          : null,
+      );
+    }
+    if (patch.handle !== undefined) {
+      statements.push('handle = ?');
+      params.push(
+        patch.handle && patch.handle.trim().length > 0
+          ? patch.handle.trim().toLowerCase()
           : null,
       );
     }

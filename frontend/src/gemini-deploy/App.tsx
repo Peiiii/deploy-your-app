@@ -7,6 +7,8 @@ import { Dashboard } from './pages/Dashboard';
 import { NewDeployment } from './pages/NewDeployment';
 import { ExploreApps } from './pages/ExploreApps';
 import { ProjectSettings } from './pages/ProjectSettings';
+import { MyProfile } from './pages/MyProfile';
+import { PublicProfile } from './pages/PublicProfile';
 import { PresenterProvider, usePresenter } from './contexts/PresenterContext';
 import { useUIStore } from './stores/uiStore';
 import { useAuthStore } from './stores/authStore';
@@ -172,6 +174,8 @@ const MainLayout = () => {
             <Route path="/deploy" element={<NewDeployment />} />
             <Route path="/explore" element={<ExploreApps />} />
             <Route path="/projects/:id" element={<ProjectSettings />} />
+            <Route path="/me" element={<MyProfile />} />
+            <Route path="/u/:id" element={<PublicProfile />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

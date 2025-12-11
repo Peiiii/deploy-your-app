@@ -34,6 +34,50 @@ class AuthController {
     return jsonResponse({ user: publicUser });
   }
 
+  // PATCH /api/v1/me/handle
+  async handleUpdateHandle(request: Request, db: D1Database): Promise<Response> {
+    const sessionId = getSessionIdFromRequest(request);
+    if (!sessionId) {
+      throw new UnauthorizedError('Login required to update handle.');
+    }
+    const sessionWithUser = await authRepository.getSessionWithUser(
+      db,
+      sessionId,
+    );
+    if (!sessionWithUser) {
+      throw new UnauthorizedError('Login required to update handle.');
+    }
+
+    const body = await readJson(request);
+    const rawHandle = (body as { handle?: unknown }).handle;
+    if (typeof rawHandle !== 'string') {
+      throw new ValidationError('handle is required and must be a string.');
+    }
+
+    const trimmed = rawHandle.trim().toLowerCase();
+    if (trimmed.length < 3 || trimmed.length > 24) {
+      throw new ValidationError(
+        'Handle must be between 3 and 24 characters long.',
+      );
+    }
+    if (!/^[a-z0-9-]+$/.test(trimmed)) {
+      throw new ValidationError(
+        'Handle can only contain lowercase letters, numbers and dashes.',
+      );
+    }
+
+    const existing = await authRepository.findUserByHandle(db, trimmed);
+    if (existing && existing.id !== sessionWithUser.user.id) {
+      throw new ValidationError('This handle is already taken.');
+    }
+
+    const updated = await authRepository.updateUser(db, sessionWithUser.user.id, {
+      handle: trimmed,
+    });
+    const publicUser: PublicUser = toPublicUser(updated);
+    return jsonResponse({ user: publicUser });
+  }
+
   // POST /api/v1/logout
   async handleLogout(request: Request, db: D1Database): Promise<Response> {
     const sessionId = getSessionIdFromRequest(request);

@@ -6,6 +6,7 @@ import { authController } from './controllers/auth.controller';
 import { projectsController } from './controllers/projects.controller';
 import { analyticsController } from './controllers/analytics.controller';
 import { engagementController } from './controllers/engagement.controller';
+import { profileController } from './controllers/profile.controller';
 
 /**
  * Build the API router for a given request/environment.
@@ -56,6 +57,12 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     path: '/api/v1/me',
     method: 'GET',
     handler: (req) => authController.handleMe(req, requireDb()),
+  });
+
+  router.add({
+    path: '/api/v1/me/handle',
+    method: 'PATCH',
+    handler: (req) => authController.handleUpdateHandle(req, requireDb()),
   });
 
   router.add({
@@ -232,6 +239,29 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
         env,
         requireDb(),
       ),
+  });
+
+  // -----------------
+  // Profile routes (community profiles)
+  // -----------------
+
+  router.add({
+    path: '/api/v1/me/profile',
+    method: 'GET',
+    handler: (req) => profileController.getMyProfile(req, requireDb()),
+  });
+
+  router.add({
+    path: '/api/v1/me/profile',
+    method: 'PUT',
+    handler: (req) => profileController.updateMyProfile(req, requireDb()),
+  });
+
+  router.add({
+    path: '/api/v1/users/:id/profile',
+    method: 'GET',
+    handler: (req, params) =>
+      profileController.getPublicProfile(req, requireDb(), params.id),
   });
 
   return router;
