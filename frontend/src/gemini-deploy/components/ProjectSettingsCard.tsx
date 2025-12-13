@@ -21,6 +21,9 @@ interface ProjectSettingsCardProps {
   isSavingRepoUrl: boolean;
   nameDraft: string;
   onNameChange: (value: string) => void;
+  slugDraft: string;
+  onSlugChange: (value: string) => void;
+  slugIsEditable: boolean;
   descriptionDraft: string;
   onDescriptionChange: (value: string) => void;
   categoryDraft: string;
@@ -29,12 +32,19 @@ interface ProjectSettingsCardProps {
   onTagsChange: (value: string) => void;
   isSavingMetadata: boolean;
   onSaveMetadata: () => void;
-  canRedeployFromGitHub: boolean;
+  hasDeployedBefore: boolean;
+  canDeployFromGitHub: boolean;
   isRedeploying: boolean;
   isDeploymentInProgress: boolean;
   onRedeployFromGitHub: () => void;
+  canDeployFromZip: boolean;
   zipUploading: boolean;
   onZipUpload: (file: File) => void;
+  hasSavedHtml: boolean;
+  isDeployingHtml: boolean;
+  onDeployFromHtml: () => void;
+  htmlUploading: boolean;
+  onHtmlUpload: (file: File) => void;
   thumbnailUrl: string | null;
   thumbnailVersion: number;
   isUploadingThumbnail: boolean;
@@ -59,6 +69,9 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
   isSavingRepoUrl,
   nameDraft,
   onNameChange,
+  slugDraft,
+  onSlugChange,
+  slugIsEditable,
   descriptionDraft,
   onDescriptionChange,
   categoryDraft,
@@ -67,12 +80,19 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
   onTagsChange,
   isSavingMetadata,
   onSaveMetadata,
-  canRedeployFromGitHub,
+  hasDeployedBefore,
+  canDeployFromGitHub,
   isRedeploying,
   isDeploymentInProgress,
   onRedeployFromGitHub,
+  canDeployFromZip,
   zipUploading,
   onZipUpload,
+  hasSavedHtml,
+  isDeployingHtml,
+  onDeployFromHtml,
+  htmlUploading,
+  onHtmlUpload,
   thumbnailUrl,
   thumbnailVersion,
   isUploadingThumbnail,
@@ -100,6 +120,19 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
     event.target.value = '';
   };
 
+  const handleHtmlInputChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (htmlUploading || isDeploymentInProgress) {
+      event.target.value = '';
+      return;
+    }
+    await onHtmlUpload(file);
+    event.target.value = '';
+  };
+
   return (
     <div className="glass-card rounded-2xl p-6 md:p-8 flex flex-col gap-8">
       <ProjectSettingsHeader project={project} />
@@ -118,6 +151,9 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
               isSavingRepoUrl={isSavingRepoUrl}
               nameDraft={nameDraft}
               onNameChange={onNameChange}
+              slugDraft={slugDraft}
+              onSlugChange={onSlugChange}
+              slugIsEditable={slugIsEditable}
               descriptionDraft={descriptionDraft}
               onDescriptionChange={onDescriptionChange}
               categoryDraft={categoryDraft}
@@ -134,12 +170,19 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
 
           <div className="border-t border-slate-200 dark:border-slate-800 pt-8">
             <ProjectSettingsDeploymentGroup
-              canRedeployFromGitHub={canRedeployFromGitHub}
+              hasDeployedBefore={hasDeployedBefore}
+              canDeployFromGitHub={canDeployFromGitHub}
               isRedeploying={isRedeploying}
               isDeploymentInProgress={isDeploymentInProgress}
               onRedeployFromGitHub={onRedeployFromGitHub}
+              canDeployFromZip={canDeployFromZip}
               zipUploading={zipUploading}
               onZipInputChange={handleZipInputChange}
+              hasSavedHtml={hasSavedHtml}
+              isDeployingHtml={isDeployingHtml}
+              onDeployFromHtml={onDeployFromHtml}
+              htmlUploading={htmlUploading}
+              onHtmlInputChange={handleHtmlInputChange}
             />
           </div>
 

@@ -1,6 +1,5 @@
 import type { IProjectProvider } from '../interfaces';
 import type { Project, DeploymentMetadata } from '../../types';
-import { SourceType } from '../../types';
 import { APP_CONFIG, API_ROUTES } from '../../constants';
 
 export class HttpProjectProvider implements IProjectProvider {
@@ -27,6 +26,20 @@ export class HttpProjectProvider implements IProjectProvider {
     }
     const data = (await response.json()) as { project?: Project | null };
     return data.project ?? null;
+  }
+
+  async createDraftProject(
+    name?: string,
+  ): Promise<Project> {
+    const response = await fetch(`${this.baseUrl}${API_ROUTES.PROJECTS}/draft`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...(name ? { name } : {}),
+      }),
+    });
+    if (!response.ok) throw new Error('Failed to create draft project');
+    return response.json();
   }
 
   async createProject(
@@ -56,6 +69,7 @@ export class HttpProjectProvider implements IProjectProvider {
     id: string,
     patch: {
       name?: string;
+      slug?: string;
       repoUrl?: string;
       description?: string;
       category?: string;
@@ -72,6 +86,33 @@ export class HttpProjectProvider implements IProjectProvider {
       },
     );
     if (!response.ok) throw new Error('Failed to update project');
+    return response.json();
+  }
+
+  async updateProjectDeployment(
+    id: string,
+    patch: {
+      status?: Project['status'];
+      lastDeployed?: string;
+      url?: string;
+      deployTarget?: Project['deployTarget'];
+      providerUrl?: string;
+      cloudflareProjectName?: string;
+    },
+  ): Promise<Project> {
+    const response = await fetch(
+      `${this.baseUrl}${API_ROUTES.PROJECTS}/${encodeURIComponent(
+        id,
+      )}/deployment`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      },
+    );
+    if (!response.ok) {
+      throw new Error('Failed to update project deployment status');
+    }
     return response.json();
   }
 

@@ -8,6 +8,7 @@ const DEFAULT_CATEGORY = 'Other';
 export function formatRepoLabel(project: Project): string {
   const { repoUrl, sourceType } = project;
   if (!repoUrl) return 'Not configured';
+  if (repoUrl.startsWith('draft:')) return 'Not configured';
   if (
     (sourceType === SourceType.ZIP || sourceType === SourceType.HTML) &&
     !repoUrl.startsWith('http')
@@ -22,6 +23,9 @@ export function formatRepoLabel(project: Project): string {
 }
 
 export function getGitHubUrl(project: Project): string | null {
+  if (project.repoUrl.startsWith('draft:')) {
+    return null;
+  }
   if (project.repoUrl.startsWith(URLS.GITHUB_BASE)) {
     return project.repoUrl;
   }

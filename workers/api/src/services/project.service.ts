@@ -11,6 +11,7 @@ import { configService } from './config.service';
 import { engagementService } from './engagement.service';
 import { analyticsService } from './analytics.service';
 import { authRepository } from '../repositories/auth.repository';
+import { ValidationError } from '../utils/error-handler';
 
 interface CreateProjectInput {
   name: string;
@@ -60,18 +61,26 @@ class ProjectService {
     const uniqueSlug = await this.ensureUniqueSlug(db, metadata.slug);
 
     const deployTarget = configService.getDeployTarget(env);
-    const url = this.buildProjectUrl(env, uniqueSlug, deployTarget);
+    const url =
+      // Do not pre-allocate a potentially public URL before the first successful
+      // deployment. The deployment pipeline will set the live URL once ready.
+      undefined;
 
     return projectRepository.createProjectRecord(db, {
       id,
       ownerId: input.ownerId,
+      // Early-stage growth: default new projects to public so they can show up
+      // in Explore without extra steps. Owners can still toggle visibility later.
       isPublic: input.isPublic ?? true,
       name: metadata.name,
       repoUrl: input.identifier,
       sourceType: normalizedSourceType,
       slug: uniqueSlug,
+      // Project creation does not imply a successful deployment. We keep a valid
+      // timestamp (used for sorting) but mark the project as Offline until a
+      // deployment run reports success.
       lastDeployed: now,
-      status: 'Live',
+      status: 'Offline',
       url,
       description: metadata.description,
       framework: 'Unknown',
@@ -82,11 +91,48 @@ class ProjectService {
     });
   }
 
+  async createDraftProject(
+    env: ApiWorkerEnv,
+    db: D1Database,
+    input?: { name?: string; ownerId?: string; isPublic?: boolean },
+  ): Promise<Project> {
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
+    const seedName =
+      input?.name && input.name.trim().length > 0
+        ? input.name.trim()
+        : `new-app-${id.slice(0, 6)}`;
+
+    const baseSlug = slugify(seedName);
+    const uniqueSlug = await this.ensureUniqueSlug(db, baseSlug);
+    const deployTarget = configService.getDeployTarget(env);
+
+    return projectRepository.createProjectRecord(db, {
+      id,
+      ownerId: input?.ownerId,
+      isPublic: input?.isPublic ?? true,
+      name: seedName,
+      repoUrl: `draft:${id}`,
+      sourceType: undefined,
+      slug: uniqueSlug,
+      lastDeployed: now,
+      status: 'Offline',
+      url: undefined,
+      description: undefined,
+      framework: 'Unknown',
+      category: 'Other',
+      tags: [],
+      deployTarget,
+      htmlContent: undefined,
+    });
+  }
+
   async updateProject(
     db: D1Database,
     id: string,
     patch: {
       name?: string;
+      slug?: string;
       repoUrl?: string;
       description?: string;
       category?: string;
@@ -94,7 +140,50 @@ class ProjectService {
       isPublic?: boolean;
     },
   ): Promise<Project | null> {
+    if (patch.slug !== undefined) {
+      const existing = await projectRepository.getProjectById(db, id);
+      if (!existing) {
+        return null;
+      }
+      if (existing.status === 'Live') {
+        throw new ValidationError(
+          'Slug can only be changed before the first successful deployment.',
+        );
+      }
+      if (existing.status === 'Building') {
+        throw new ValidationError(
+          'Cannot change slug during an active deployment.',
+        );
+      }
+
+      const normalizedSlug = slugify(patch.slug);
+      const taken = await projectRepository.slugExists(
+        db,
+        normalizedSlug,
+        id,
+      );
+      if (taken) {
+        throw new ValidationError('Slug is already in use.');
+      }
+      patch.slug = normalizedSlug;
+    }
+
     return projectRepository.updateProjectRecord(db, id, patch);
+  }
+
+  async updateProjectDeployment(
+    db: D1Database,
+    id: string,
+    patch: {
+      status?: Project['status'];
+      lastDeployed?: string;
+      url?: string;
+      deployTarget?: Project['deployTarget'];
+      providerUrl?: string;
+      cloudflareProjectName?: string;
+    },
+  ): Promise<Project | null> {
+    return projectRepository.updateProjectDeploymentRecord(db, id, patch);
   }
 
   async getProjectById(db: D1Database, id: string): Promise<Project | null> {

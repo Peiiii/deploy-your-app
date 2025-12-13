@@ -29,7 +29,10 @@ export const ProjectSettings: React.FC = () => {
   const [categoryDraft, setCategoryDraft] = useState('');
   const [tagsDraft, setTagsDraft] = useState('');
   const [repoUrlDraft, setRepoUrlDraft] = useState('');
+  const [slugDraft, setSlugDraft] = useState('');
   const [zipUploading, setZipUploading] = useState(false);
+  const [htmlUploading, setHtmlUploading] = useState(false);
+  const [isDeployingHtml, setIsDeployingHtml] = useState(false);
   // Local state for managing custom thumbnail uploads.
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
   const [thumbnailVersion, setThumbnailVersion] = useState(0);
@@ -65,7 +68,12 @@ export const ProjectSettings: React.FC = () => {
   // Sync draft fields when project changes
   useEffect(() => {
     if (project) {
-      setRepoUrlDraft(project.repoUrl || '');
+      setRepoUrlDraft(
+        project.repoUrl && project.repoUrl.startsWith('draft:')
+          ? ''
+          : project.repoUrl || '',
+      );
+      setSlugDraft(project.slug || '');
       setNameDraft(project.name || '');
       setDescriptionDraft(project.description || '');
       setCategoryDraft(project.category || '');
@@ -118,6 +126,16 @@ export const ProjectSettings: React.FC = () => {
 
   const canRedeployFromGitHub =
     !!project.repoUrl && project.repoUrl.startsWith(URLS.GITHUB_BASE);
+  const canDeployFromGitHub = canRedeployFromGitHub;
+  const canDeployFromZip = true;
+  const canDeployFromHtml = true;
+  const hasSavedHtml = Boolean(project.htmlContent && project.htmlContent.trim().length > 0);
+  const hasDeployedBefore =
+    Boolean(project.url) ||
+    project.status === 'Live' ||
+    project.status === 'Failed' ||
+    project.status === 'Building';
+  const slugIsEditable = project.status !== 'Live' && project.status !== 'Building';
 
   const handleSaveRepoUrl = async () => {
     setError(null);
@@ -191,6 +209,7 @@ export const ProjectSettings: React.FC = () => {
       const trimmedName = nameDraft.trim();
       const trimmedDescription = descriptionDraft.trim();
       const trimmedCategory = categoryDraft.trim();
+      const trimmedSlug = slugDraft.trim();
       const tagsArray =
         tagsDraft
           .split(',')
@@ -199,6 +218,7 @@ export const ProjectSettings: React.FC = () => {
 
       await presenter.project.updateProject(project.id, {
         ...(trimmedName ? { name: trimmedName } : {}),
+        ...(slugIsEditable && trimmedSlug ? { slug: trimmedSlug } : {}),
         ...(trimmedDescription ? { description: trimmedDescription } : {}),
         ...(trimmedCategory ? { category: trimmedCategory } : {}),
         ...(tagsArray.length > 0 ? { tags: tagsArray } : { tags: [] }),
@@ -213,7 +233,7 @@ export const ProjectSettings: React.FC = () => {
   };
 
   const handleRedeployFromGitHub = async () => {
-    if (!canRedeployFromGitHub) return;
+    if (!canDeployFromGitHub) return;
     setError(null);
     setIsRedeploying(true);
     try {
@@ -234,7 +254,35 @@ export const ProjectSettings: React.FC = () => {
     }
   };
 
+  const handleRedeployFromHtml = async () => {
+    if (!canDeployFromHtml) return;
+    if (!hasSavedHtml) {
+      setError('No saved HTML content on this project. Upload an HTML file to deploy.');
+      return;
+    }
+    setError(null);
+    setIsDeployingHtml(true);
+    try {
+      const payload: Project = {
+        ...project,
+        sourceType: SourceType.HTML,
+        htmlContent: project.htmlContent,
+      };
+      await presenter.deployment.redeployProject(payload, {
+        onComplete: () => {
+          presenter.project.loadProjects();
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      setError('Failed to deploy from HTML.');
+    } finally {
+      setIsDeployingHtml(false);
+    }
+  };
+
   const handleZipUpload = async (file: File) => {
+    if (!canDeployFromZip) return;
     if (!file.name.endsWith('.zip')) {
       setError('Please upload a .zip file.');
       return;
@@ -257,6 +305,34 @@ export const ProjectSettings: React.FC = () => {
       setError('Failed to deploy from ZIP archive.');
     } finally {
       setZipUploading(false);
+    }
+  };
+
+  const handleHtmlUpload = async (file: File) => {
+    if (!canDeployFromHtml) return;
+    if (!file.name.toLowerCase().endsWith('.html')) {
+      setError('Please upload a .html file.');
+      return;
+    }
+    setError(null);
+    setHtmlUploading(true);
+    try {
+      const content = await file.text();
+      const payload: Project = {
+        ...project,
+        sourceType: SourceType.HTML,
+        htmlContent: content,
+      };
+      await presenter.deployment.redeployProject(payload, {
+        onComplete: () => {
+          presenter.project.loadProjects();
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      setError('Failed to deploy from HTML file.');
+    } finally {
+      setHtmlUploading(false);
     }
   };
 
@@ -362,6 +438,9 @@ export const ProjectSettings: React.FC = () => {
         isSavingRepoUrl={isSaving}
         nameDraft={nameDraft}
         onNameChange={setNameDraft}
+        slugDraft={slugDraft}
+        onSlugChange={setSlugDraft}
+        slugIsEditable={slugIsEditable}
         descriptionDraft={descriptionDraft}
         onDescriptionChange={setDescriptionDraft}
         categoryDraft={categoryDraft}
@@ -370,12 +449,19 @@ export const ProjectSettings: React.FC = () => {
         onTagsChange={setTagsDraft}
         isSavingMetadata={isSavingMetadata}
         onSaveMetadata={handleSaveMetadata}
-        canRedeployFromGitHub={canRedeployFromGitHub}
+        hasDeployedBefore={hasDeployedBefore}
+        canDeployFromGitHub={canDeployFromGitHub}
         isRedeploying={isRedeploying}
         isDeploymentInProgress={isDeploymentInProgress}
         onRedeployFromGitHub={handleRedeployFromGitHub}
+        canDeployFromZip={canDeployFromZip}
         zipUploading={zipUploading}
         onZipUpload={handleZipUpload}
+        hasSavedHtml={hasSavedHtml}
+        isDeployingHtml={isDeployingHtml}
+        onDeployFromHtml={handleRedeployFromHtml}
+        htmlUploading={htmlUploading}
+        onHtmlUpload={handleHtmlUpload}
         thumbnailUrl={thumbnailUrl}
         thumbnailVersion={thumbnailVersion}
         isUploadingThumbnail={isUploadingThumbnail}

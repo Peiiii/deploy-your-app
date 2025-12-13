@@ -25,10 +25,6 @@ export const SidebarProjectList: React.FC<SidebarProjectListProps> = ({
   const { t } = useTranslation();
   const location = useLocation();
 
-  if (projects.length === 0) {
-    return null;
-  }
-
   return (
     <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/5 flex flex-col min-h-0 flex-1">
       <div className="px-2 mb-2 flex items-center justify-between gap-2 flex-shrink-0">
@@ -38,23 +34,33 @@ export const SidebarProjectList: React.FC<SidebarProjectListProps> = ({
         <SidebarProjectViewToggle
           viewType={viewType}
           onViewTypeChange={onViewTypeChange}
-          showPinned={pinnedProjects.length > 0}
+          hasPinned={pinnedProjects.length > 0}
         />
       </div>
-      <div className="space-y-1 overflow-y-auto flex-1 min-h-0">
-        {projects.map((project) => {
-          const isActive = location.pathname === `/projects/${project.id}`;
-          const isPinned = pinnedProjectIds.includes(project.id);
-          return (
-            <SidebarProjectItem
-              key={project.id}
-              project={project}
-              isActive={isActive}
-              isPinned={isPinned}
-              onTogglePin={onTogglePin}
-            />
-          );
-        })}
+      <div className="overflow-y-auto flex-1 min-h-0">
+        {projects.length === 0 ? (
+          <p className="px-3 py-1 text-[11px] text-slate-400 dark:text-gray-500">
+            {viewType === 'pinned'
+              ? t('navigation.noPinnedProjects')
+              : t('navigation.noRecentProjects')}
+          </p>
+        ) : (
+          <div className="space-y-1">
+            {projects.map((project) => {
+              const isActive = location.pathname === `/projects/${project.id}`;
+              const isPinned = pinnedProjectIds.includes(project.id);
+              return (
+                <SidebarProjectItem
+                  key={project.id}
+                  project={project}
+                  isActive={isActive}
+                  isPinned={isPinned}
+                  onTogglePin={onTogglePin}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

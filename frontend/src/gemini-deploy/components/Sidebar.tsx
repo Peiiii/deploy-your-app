@@ -17,6 +17,7 @@ export const Sidebar: React.FC = () => {
   const {
     userProjects,
     pinnedProjects,
+    recentProjects,
     displayedProjects,
     pinnedProjectIds,
     projectViewType,

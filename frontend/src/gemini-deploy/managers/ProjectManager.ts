@@ -60,10 +60,24 @@ export class ProjectManager {
     }
   };
 
+  createDraftProject = async (
+    name?: string,
+  ): Promise<Project | undefined> => {
+    try {
+      const project = await this.provider.createDraftProject(name);
+      useProjectStore.getState().actions.addProject(project);
+      return project;
+    } catch (error) {
+      console.error('Failed to create draft project', error);
+      return undefined;
+    }
+  };
+
   updateProject = async (
     id: string,
     patch: {
       name?: string;
+      slug?: string;
       repoUrl?: string;
       description?: string;
       category?: string;
@@ -81,6 +95,32 @@ export class ProjectManager {
       );
     } catch (error) {
       console.error("Failed to update project", error);
+    }
+  };
+
+  updateProjectDeployment = async (
+    id: string,
+    patch: {
+      status?: Project['status'];
+      lastDeployed?: string;
+      url?: string;
+      deployTarget?: Project['deployTarget'];
+      providerUrl?: string;
+      cloudflareProjectName?: string;
+    },
+  ): Promise<Project | undefined> => {
+    try {
+      const updated = await this.provider.updateProjectDeployment(id, patch);
+      const actions = useProjectStore.getState().actions;
+      actions.setProjects(
+        useProjectStore.getState().projects.map((p) =>
+          p.id === updated.id ? updated : p,
+        ),
+      );
+      return updated;
+    } catch (error) {
+      console.error('Failed to update project deployment status', error);
+      return undefined;
     }
   };
 

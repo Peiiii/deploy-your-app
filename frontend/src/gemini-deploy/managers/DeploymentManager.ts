@@ -66,6 +66,14 @@ export class DeploymentManager {
     actions.setSourceType(project.sourceType ?? SourceType.GITHUB);
     actions.setZipFile(zipFile);
 
+    const deploymentStartedAt = new Date().toISOString();
+    if (project.id !== 'temp') {
+      await this.projectManager.updateProjectDeployment(project.id, {
+        status: 'Building',
+        lastDeployed: deploymentStartedAt,
+      });
+    }
+
     let zipData: string | undefined;
     if (project.sourceType === SourceType.ZIP && zipFile) {
       try {
@@ -119,10 +127,25 @@ export class DeploymentManager {
       if (result?.metadata?.name) {
         actions.setProjectName(result.metadata.name);
       }
+
+      if (project.id !== 'temp') {
+        await this.projectManager.updateProjectDeployment(project.id, {
+          status: 'Live',
+          lastDeployed: new Date().toISOString(),
+          ...(result?.metadata?.url ? { url: result.metadata.url } : {}),
+        });
+      }
       return result;
     } catch (e) {
       console.error('Deployment failed', e);
       actions.setDeploymentStatus(DeploymentStatus.FAILED);
+
+      if (project.id !== 'temp') {
+        await this.projectManager.updateProjectDeployment(project.id, {
+          status: 'Failed',
+          lastDeployed: new Date().toISOString(),
+        });
+      }
       throw e;
     }
   };
@@ -382,6 +405,117 @@ export class DeploymentManager {
     if (state.sourceType === SourceType.HTML) {
       await this.handleHtmlWizard(state, fallbackName);
     }
+  };
+
+  /**
+   * Project-first flow: create (or reuse) a project from the current wizard
+   * state, but do not deploy it yet. This prevents users from accidentally
+   * creating lots of one-off deployments that waste URL/slug resources.
+   */
+  createProjectFromWizard = async (): Promise<Project | undefined> => {
+    const state = useDeploymentStore.getState();
+    const fallbackName = this.getFallbackNameFromState(state);
+
+    if (state.sourceType === SourceType.GITHUB) {
+      return this.createProjectFromGithubWizard(state, fallbackName);
+    }
+
+    if (state.sourceType === SourceType.ZIP) {
+      return this.createProjectFromZipWizard(state, fallbackName);
+    }
+
+    if (state.sourceType === SourceType.HTML) {
+      return this.createProjectFromHtmlWizard(state, fallbackName);
+    }
+
+    return undefined;
+  };
+
+  private createProjectFromGithubWizard = async (
+    state: DeploymentStoreSnapshot,
+    fallbackName: string,
+  ): Promise<Project | undefined> => {
+    const trimmedRepo = state.repoUrl.trim();
+    if (!trimmedRepo) {
+      return undefined;
+    }
+
+    try {
+      const existing =
+        await this.projectManager.findExistingProjectForRepo(trimmedRepo);
+      if (existing) {
+        return existing;
+      }
+    } catch (err) {
+      console.error('Failed to check existing project for repo', err);
+    }
+
+    const tempProject: Project = {
+      id: 'temp',
+      name: fallbackName,
+      repoUrl: trimmedRepo,
+      sourceType: SourceType.GITHUB,
+      lastDeployed: '',
+      status: 'Building',
+      framework: 'Unknown',
+    };
+
+    try {
+      const analysisResult = await this.analyzeProject(tempProject);
+
+      const metadataOverrides = analysisResult.metadata
+        ? {
+            name: analysisResult.metadata.name,
+            slug: analysisResult.metadata.slug,
+            description: analysisResult.metadata.description,
+            category: analysisResult.metadata.category,
+            tags: analysisResult.metadata.tags,
+          }
+        : undefined;
+
+      const finalName = analysisResult.metadata?.name ?? fallbackName;
+
+      return await this.projectManager.addProject(
+        finalName,
+        state.sourceType,
+        trimmedRepo,
+        metadataOverrides ? { metadata: metadataOverrides } : undefined,
+      );
+    } catch (err) {
+      console.error('Failed to analyze repository for project creation', err);
+      return await this.projectManager.addProject(
+        fallbackName,
+        state.sourceType,
+        trimmedRepo,
+      );
+    }
+  };
+
+  private createProjectFromZipWizard = async (
+    state: DeploymentStoreSnapshot,
+    fallbackName: string,
+  ): Promise<Project | undefined> => {
+    const identifier = state.zipFile?.name || 'archive.zip';
+    return await this.projectManager.addProject(
+      fallbackName,
+      state.sourceType,
+      identifier,
+    );
+  };
+
+  private createProjectFromHtmlWizard = async (
+    state: DeploymentStoreSnapshot,
+    fallbackName: string,
+  ): Promise<Project | undefined> => {
+    if (!state.htmlContent.trim()) {
+      return undefined;
+    }
+    return await this.projectManager.addProject(
+      fallbackName,
+      state.sourceType,
+      'inline.html',
+      { htmlContent: state.htmlContent },
+    );
   };
 
   startDeploymentRun = async (): Promise<DeploymentResult | undefined> => {

@@ -6,6 +6,9 @@ import type { ProjectSettingsCardReactionsProps } from './types';
 interface ProjectSettingsMetadataSectionProps {
   nameDraft: string;
   onNameChange: (value: string) => void;
+  slugDraft: string;
+  onSlugChange: (value: string) => void;
+  slugIsEditable: boolean;
   descriptionDraft: string;
   onDescriptionChange: (value: string) => void;
   categoryDraft: string;
@@ -24,6 +27,9 @@ export const ProjectSettingsMetadataSection: React.FC<
 > = ({
   nameDraft,
   onNameChange,
+  slugDraft,
+  onSlugChange,
+  slugIsEditable,
   descriptionDraft,
   onDescriptionChange,
   categoryDraft,
@@ -54,6 +60,22 @@ export const ProjectSettingsMetadataSection: React.FC<
           className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all"
           placeholder={t('project.displayNamePlaceholder')}
         />
+      </div>
+      <div className="space-y-2">
+        <label className="block text-xs font-semibold text-slate-700 dark:text-gray-300">
+          {t('project.slug')}
+        </label>
+        <input
+          type="text"
+          value={slugDraft}
+          onChange={(e) => onSlugChange(e.target.value)}
+          disabled={!slugIsEditable}
+          className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          placeholder={t('project.slugPlaceholder')}
+        />
+        <p className="text-[11px] text-slate-500 dark:text-gray-400">
+          {slugIsEditable ? t('project.slugHintEditable') : t('project.slugHintLocked')}
+        </p>
       </div>
       <div className="flex items-center justify-between pt-1">
         <div className="space-y-1">
@@ -154,4 +176,3 @@ export const ProjectSettingsMetadataSection: React.FC<
     </div>
   );
 };
-

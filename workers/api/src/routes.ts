@@ -34,7 +34,7 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   router.add({
     path: '/api/v1/deploy',
     method: 'POST',
-    handler: (req) => deployController.startDeployment(req, env),
+    handler: (req) => deployController.startDeployment(req, env, requireDb()),
   });
 
   router.add({
@@ -133,6 +133,13 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   });
 
   router.add({
+    path: '/api/v1/projects/draft',
+    method: 'POST',
+    handler: (req) =>
+      projectsController.createDraftProject(req, env, requireDb()),
+  });
+
+  router.add({
     path: '/api/v1/projects/explore',
     method: 'GET',
     handler: (req) =>
@@ -144,6 +151,18 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     method: 'PATCH',
     handler: (req, params) =>
       projectsController.updateProject(req, env, requireDb(), params.id),
+  });
+
+  router.add({
+    path: '/api/v1/projects/:id/deployment',
+    method: 'PATCH',
+    handler: (req, params) =>
+      projectsController.updateProjectDeployment(
+        req,
+        env,
+        requireDb(),
+        params.id,
+      ),
   });
 
   router.add({

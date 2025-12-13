@@ -310,6 +310,7 @@ class OAuthService {
     const publicUser: PublicUser = {
       id: user.id,
       email: user.email,
+      handle: null,
       displayName: null,
       avatarUrl: null,
       providers: {
@@ -321,6 +322,7 @@ class OAuthService {
 
     const fullUser = await authRepository.findUserById(db, user.id);
     if (fullUser) {
+      publicUser.handle = fullUser.handle;
       publicUser.displayName = fullUser.displayName;
       publicUser.avatarUrl = fullUser.avatarUrl;
       if (fullUser.passwordHash) {

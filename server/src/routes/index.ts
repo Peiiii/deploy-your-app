@@ -151,6 +151,16 @@ export function registerRoutes(app: AppLike): void {
         .json({ error: 'project.name and project.repoUrl are required' });
     }
 
+    // Project-first enforcement: deployments must be tied to an existing
+    // project record with a stable slug, rather than generating new slugs
+    // (and therefore new URLs/resources) on every deploy attempt.
+    if (!project.slug || project.slug.trim().length === 0) {
+      return res.status(400).json({
+        error:
+          'project.slug is required. Create a project first and deploy that project.',
+      });
+    }
+
     const id = randomUUID();
     const workDirFromAnalysis =
       project.analysisId && analysisSessions.has(project.analysisId)

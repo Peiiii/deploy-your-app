@@ -5,6 +5,12 @@ import { usePresenter } from '../../contexts/PresenterContext';
 import { fetchMyProfile, updateMyProfile } from '../../services/http/profileApi';
 import type { Project } from '../../types';
 
+const parseLastDeployed = (value: Project['lastDeployed']) => {
+  if (!value) return 0;
+  const time = Date.parse(value);
+  return Number.isFinite(time) ? time : 0;
+};
+
 export const useSidebarProjects = () => {
   const authUser = useAuthStore((s) => s.user);
   const allProjects = useProjectStore((s) => s.projects);
@@ -33,24 +39,17 @@ export const useSidebarProjects = () => {
 
   const recentProjects = useMemo(() => {
     if (userProjects.length === 0) return [];
-    return [...userProjects].sort(
-      (a, b) => new Date(b.lastDeployed).getTime() - new Date(a.lastDeployed).getTime()
-    ).slice(0, 5);
+    return [...userProjects]
+      .sort((a, b) => parseLastDeployed(b.lastDeployed) - parseLastDeployed(a.lastDeployed))
+      .slice(0, 5);
   }, [userProjects]);
 
-  const effectiveViewType = useMemo(() => {
-    if (projectViewType === 'pinned' && pinnedProjects.length === 0) {
-      return 'recent';
-    }
-    return projectViewType;
-  }, [projectViewType, pinnedProjects.length]);
-
   const displayedProjects = useMemo(() => {
-    if (effectiveViewType === 'pinned') {
+    if (projectViewType === 'pinned') {
       return pinnedProjects.slice(0, 5);
     }
     return recentProjects;
-  }, [effectiveViewType, pinnedProjects, recentProjects]);
+  }, [projectViewType, pinnedProjects, recentProjects]);
 
   useEffect(() => {
     if (!authUser) {
@@ -82,7 +81,7 @@ export const useSidebarProjects = () => {
       : [...pinnedProjectIds, projectId];
     
     setPinnedProjectIds(newPinnedIds);
-    
+
     if (isUnpinning && newPinnedIds.length === 0 && projectViewType === 'pinned') {
       setProjectViewType('recent');
     }
@@ -101,7 +100,7 @@ export const useSidebarProjects = () => {
     recentProjects,
     displayedProjects,
     pinnedProjectIds,
-    projectViewType: effectiveViewType,
+    projectViewType,
     setProjectViewType,
     handleTogglePin,
   };

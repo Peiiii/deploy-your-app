@@ -1,101 +1,64 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useDeploymentStore } from '../stores/deploymentStore';
 import { useAuthStore } from '../stores/authStore';
 import { usePresenter } from '../contexts/PresenterContext';
-import { DeploymentStatus, SourceType } from '../types';
-import { DeploymentSession } from '../components/DeploymentSession';
 import { ArrowRight } from 'lucide-react';
-import { DeploymentSourceTabs } from '../components/deployment/DeploymentSourceTabs';
-import { GithubSourceForm } from '../components/deployment/GithubSourceForm';
-import { ZipSourceForm } from '../components/deployment/ZipSourceForm';
-import { HtmlSourceForm } from '../components/deployment/HtmlSourceForm';
-
-const SIMPLE_HTML_TEMPLATE = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Landing Page</title>
-    <style>
-      body { font-family: system-ui, sans-serif; margin: 0; padding: 0; background: #0f172a; color: #f8fafc; }
-      main { max-width: 640px; margin: 0 auto; padding: 64px 24px; text-align: center; }
-      a { color: #38bdf8; text-decoration: none; font-weight: 600; }
-      button { margin-top: 32px; padding: 12px 28px; background: #7c3aed; color: #fff; border: none; border-radius: 999px; font-size: 1rem; }
-    </style>
-  </head>
-  <body>
-    <main>
-      <p style="text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.8rem; color: #94a3b8;">New Release</p>
-      <h1 style="font-size: 2.5rem; margin: 12px 0;">Launch your idea in minutes</h1>
-      <p style="color: #cbd5f5; line-height: 1.6;">
-        Deploy static HTML instantly with GeminiDeploy. Paste your design, click deploy, and share the live URL.
-      </p>
-      <button>Get started</button>
-    </main>
-  </body>
-</html>`;
 
 export const NewDeployment: React.FC = () => {
   const { t } = useTranslation();
   const presenter = usePresenter();
   const state = useDeploymentStore();
-  const location = useLocation();
-  const [htmlFieldTouched, setHtmlFieldTouched] = useState(false);
+  const navigate = useNavigate();
+  const [nameTouched, setNameTouched] = useState(false);
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
   const user = useAuthStore((s) => s.user);
   const authLoading = useAuthStore((s) => s.isLoading);
 
-  const handleSourceTypeSelect = useCallback((type: SourceType) => {
-    presenter.deployment.handleSourceChange(type);
-    if (type !== SourceType.HTML) {
-      setHtmlFieldTouched(false);
-    }
-  }, [presenter.deployment]);
-
   useEffect(() => {
+    presenter.deployment.resetWizard();
     return () => presenter.deployment.resetWizard();
   }, [presenter.deployment]);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      presenter.auth.openAuthModal('login');
+    if (!state.projectName.trim()) {
+      presenter.deployment.setProjectName(
+        `new-app-${Math.random().toString(36).slice(2, 6)}`,
+      );
     }
-  }, [authLoading, user, presenter.auth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  useEffect(() => {
-    const sourceType = location.state?.sourceType as SourceType | undefined;
-    if (sourceType && Object.values(SourceType).includes(sourceType)) {
-      const rafId = requestAnimationFrame(() => handleSourceTypeSelect(sourceType));
-      return () => cancelAnimationFrame(rafId);
+  // Do not auto-open auth modal on page entry; only open it when the user
+  // explicitly clicks a sign-in CTA.
+
+  const handleCreateProject = async () => {
+    if (isCreatingProject) return;
+    setIsCreatingProject(true);
+    try {
+      const trimmedName = state.projectName.trim();
+      if (!trimmedName) {
+        presenter.ui.showErrorToast(t('deployment.projectNameRequired'));
+        return;
+      }
+
+      const project = await presenter.project.createDraftProject(trimmedName);
+      if (!project) {
+        presenter.ui.showErrorToast(t('deployment.projectCreateFailed'));
+        return;
+      }
+      presenter.ui.showSuccessToast(t('deployment.projectCreated'));
+      navigate(`/projects/${encodeURIComponent(project.id)}`);
+    } catch (err) {
+      console.error(err);
+      presenter.ui.showErrorToast(t('deployment.projectCreateFailed'));
+    } finally {
+      setIsCreatingProject(false);
     }
-    return undefined;
-  }, [handleSourceTypeSelect, location.state]);
-
-  const handleDeployStart = async () => {
-    await presenter.deployment.startFromWizard();
   };
 
-  const handleInsertTemplate = () => {
-    presenter.deployment.setHtmlContent(SIMPLE_HTML_TEMPLATE);
-    setHtmlFieldTouched(true);
-    if (!state.projectName) {
-      presenter.deployment.setProjectName('landing-page');
-    }
-  };
-
-  // Only treat the deployment flow as "idle" when nothing has been started yet.
-  // After a deployment has run (success or failure), we keep showing the
-  // DeploymentSession so the user can inspect logs and status.
-  const isIdle = state.deploymentStatus === DeploymentStatus.IDLE;
-
-  const htmlIsReady = state.htmlContent.trim().length > 0;
-  const canContinue =
-    state.sourceType === SourceType.GITHUB
-      ? state.repoUrl.trim().length > 0
-      : state.sourceType === SourceType.ZIP
-        ? Boolean(state.zipFile)
-        : htmlIsReady;
+  const canContinue = state.projectName.trim().length > 0;
 
   if (authLoading) {
     return (
@@ -114,7 +77,7 @@ export const NewDeployment: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 shadow space-y-4">
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-white tracking-tight">
-            {t('deployment.deployYourApp')}
+            {t('deployment.createProjectTitle')}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             {t('deployment.signInRequired')}
@@ -138,78 +101,49 @@ export const NewDeployment: React.FC = () => {
       {/* Elegant Header */}
       <div className="mb-8">
           <h1 className="text-3xl font-semibold text-slate-900 dark:text-white mb-2 tracking-tight">
-            {t('deployment.deployYourApp')}
+            {t('deployment.createProjectTitle')}
           </h1>
         <p className="text-slate-600 dark:text-slate-400 text-sm">
-          {t('deployment.deployDescription')}
+          {t('deployment.createProjectDescription')}
         </p>
       </div>
 
-      {/* Show deployment session when active or completed; otherwise show the source wizard */}
-      {isIdle ? (
-        /* Source Selection - shown when no deployment has been started yet */
-        <div className="space-y-6">
-          {/* Source Type Selection */}
-          <DeploymentSourceTabs
-            activeSource={state.sourceType}
-            onSelect={handleSourceTypeSelect}
-          />
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">
+          {t('deployment.projectNameLabel')}
+        </label>
+        <input
+          value={state.projectName}
+          onChange={(e) => presenter.deployment.setProjectName(e.target.value)}
+          onBlur={() => setNameTouched(true)}
+          placeholder={t('deployment.projectNamePlaceholder')}
+          className="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        />
+        {nameTouched && !state.projectName.trim() && (
+          <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+            {t('deployment.projectNameRequired')}
+          </p>
+        )}
 
-          {/* Input Section */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
-            {state.sourceType === SourceType.GITHUB && (
-              <GithubSourceForm
-                repoUrl={state.repoUrl}
-                onRepoUrlChange={(value) => {
-                  presenter.deployment.setRepoUrl(value);
-                  presenter.deployment.autoProjectName(
-                    value,
-                    SourceType.GITHUB,
-                  );
-                }}
-              />
-            )}
-            {state.sourceType === SourceType.ZIP && (
-              <ZipSourceForm
-                zipFile={state.zipFile}
-                onFileSelected={(file) =>
-                  presenter.deployment.handleFileDrop(file)
-                }
-                onClearFile={() => presenter.deployment.clearZipFile()}
-              />
-            )}
-            {state.sourceType === SourceType.HTML && (
-              <HtmlSourceForm
-                htmlContent={state.htmlContent}
-                onHtmlChange={(value) =>
-                  presenter.deployment.setHtmlContent(value)
-                }
-                onHtmlBlur={() => setHtmlFieldTouched(true)}
-                onInsertTemplate={handleInsertTemplate}
-                onHtmlFileSelected={async (file) => {
-                  await presenter.deployment.handleHtmlFileUpload(file);
-                  setHtmlFieldTouched(true);
-                }}
-                showError={htmlFieldTouched && !htmlIsReady}
-              />
-            )}
-
-            {/* Action Button */}
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => canContinue && void handleDeployStart()}
-                disabled={!canContinue}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 dark:bg-purple-500 text-white font-medium rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
-              >
-                {t('common.continue') || 'Continue'}
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+        <div className="mt-6 flex flex-col items-end gap-2">
+          <button
+            onClick={() => {
+              setNameTouched(true);
+              if (canContinue) void handleCreateProject();
+            }}
+            disabled={!canContinue || isCreatingProject}
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 dark:bg-purple-500 text-white font-medium rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+          >
+            {isCreatingProject
+              ? t('common.pleaseWait')
+              : t('deployment.createProjectButton')}
+            <ArrowRight className="w-4 h-4" />
+          </button>
+          <p className="text-xs text-slate-500 dark:text-slate-400 text-right max-w-[520px]">
+            {t('deployment.createProjectHint')}
+          </p>
         </div>
-      ) : (
-        <DeploymentSession />
-      )}
+      </div>
     </div>
   );
 };

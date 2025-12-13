@@ -46,6 +46,30 @@ export class IndexedDBProjectProvider implements IProjectProvider {
     return all.find((p) => p.repoUrl === repoUrl) ?? null;
   }
 
+  async createDraftProject(
+    name?: string,
+  ): Promise<Project> {
+    const now = new Date().toISOString();
+    const resolvedName =
+      name && name.trim().length > 0
+        ? name.trim()
+        : `new-app-${crypto.randomUUID().slice(0, 6)}`;
+    const newProject: Project = {
+      id: crypto.randomUUID(),
+      name: resolvedName,
+      repoUrl: `draft:${crypto.randomUUID()}`,
+      sourceType: undefined,
+      lastDeployed: now,
+      status: 'Offline',
+      url: undefined,
+      framework: 'Unknown',
+      category: 'Other',
+      tags: [],
+    };
+    await db.add('projects', newProject);
+    return newProject;
+  }
+
   async createProject(
     name: string,
     sourceType: SourceType,
@@ -73,10 +97,12 @@ export class IndexedDBProjectProvider implements IProjectProvider {
     id: string,
     patch: {
       name?: string;
+      slug?: string;
       repoUrl?: string;
       description?: string;
       category?: string;
       tags?: string[];
+      isPublic?: boolean;
     },
   ): Promise<Project> {
     const project = await db.get<Project>('projects', id);
@@ -86,12 +112,50 @@ export class IndexedDBProjectProvider implements IProjectProvider {
     const updated: Project = {
       ...project,
       ...(patch.name !== undefined ? { name: patch.name } : {}),
+      ...(patch.slug !== undefined ? { slug: patch.slug } : {}),
       ...(patch.repoUrl !== undefined ? { repoUrl: patch.repoUrl } : {}),
       ...(patch.description !== undefined
         ? { description: patch.description }
         : {}),
       ...(patch.category !== undefined ? { category: patch.category } : {}),
       ...(patch.tags !== undefined ? { tags: patch.tags.slice() } : {}),
+      ...(patch.isPublic !== undefined ? { isPublic: patch.isPublic } : {}),
+    };
+    await db.put('projects', updated);
+    return updated;
+  }
+
+  async updateProjectDeployment(
+    id: string,
+    patch: {
+      status?: Project['status'];
+      lastDeployed?: string;
+      url?: string;
+      deployTarget?: Project['deployTarget'];
+      providerUrl?: string;
+      cloudflareProjectName?: string;
+    },
+  ): Promise<Project> {
+    const project = await db.get<Project>('projects', id);
+    if (!project) {
+      throw new Error(`Project with id ${id} not found`);
+    }
+    const updated: Project = {
+      ...project,
+      ...(patch.status !== undefined ? { status: patch.status } : {}),
+      ...(patch.lastDeployed !== undefined
+        ? { lastDeployed: patch.lastDeployed }
+        : {}),
+      ...(patch.url !== undefined ? { url: patch.url } : {}),
+      ...(patch.deployTarget !== undefined
+        ? { deployTarget: patch.deployTarget }
+        : {}),
+      ...(patch.providerUrl !== undefined
+        ? { providerUrl: patch.providerUrl }
+        : {}),
+      ...(patch.cloudflareProjectName !== undefined
+        ? { cloudflareProjectName: patch.cloudflareProjectName }
+        : {}),
     };
     await db.put('projects', updated);
     return updated;

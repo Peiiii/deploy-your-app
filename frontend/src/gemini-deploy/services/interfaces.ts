@@ -14,6 +14,9 @@ export interface DeploymentResult {
 export interface IProjectProvider {
   getProjects(): Promise<Project[]>;
   findProjectByRepoUrl(repoUrl: string): Promise<Project | null>;
+  createDraftProject(
+    name?: string,
+  ): Promise<Project>;
   createProject(
     name: string,
     sourceType: SourceType,
@@ -24,11 +27,23 @@ export interface IProjectProvider {
     id: string,
     patch: {
       name?: string;
+      slug?: string;
       repoUrl?: string;
       description?: string;
       category?: string;
       tags?: string[];
       isPublic?: boolean;
+    },
+  ): Promise<Project>;
+  updateProjectDeployment(
+    id: string,
+    patch: {
+      status?: Project['status'];
+      lastDeployed?: string;
+      url?: string;
+      deployTarget?: Project['deployTarget'];
+      providerUrl?: string;
+      cloudflareProjectName?: string;
     },
   ): Promise<Project>;
   uploadThumbnail(id: string, file: File): Promise<void>;

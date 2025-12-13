@@ -173,6 +173,38 @@ class ProjectsController {
     return jsonResponse(project);
   }
 
+  // POST /api/v1/projects/draft
+  // Project-first workflow: create a project record first, then let users
+  // upload/deploy within that specific project context.
+  async createDraftProject(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+  ): Promise<Response> {
+    const sessionId = getSessionIdFromRequest(request);
+    if (!sessionId) {
+      throw new UnauthorizedError('Login required to create a project.');
+    }
+    const sessionWithUser = await authRepository.getSessionWithUser(
+      db,
+      sessionId,
+    );
+    if (!sessionWithUser) {
+      throw new UnauthorizedError('Login required to create a project.');
+    }
+
+    const body = await readJson(request);
+    const name = validateOptionalString(body.name);
+
+    const project = await projectService.createDraftProject(env, db, {
+      name,
+      ownerId: sessionWithUser.user.id,
+      isPublic: true,
+    });
+
+    return jsonResponse(project);
+  }
+
   // PATCH /api/v1/projects/:id
   async updateProject(
     request: Request,
@@ -180,11 +212,32 @@ class ProjectsController {
     db: D1Database,
     id: string,
   ): Promise<Response> {
+    const sessionId = getSessionIdFromRequest(request);
+    if (!sessionId) {
+      throw new UnauthorizedError('Login required to update a project.');
+    }
+    const sessionWithUser = await authRepository.getSessionWithUser(
+      db,
+      sessionId,
+    );
+    if (!sessionWithUser) {
+      throw new UnauthorizedError('Login required to update a project.');
+    }
+
+    const existing = await projectService.getProjectById(db, id);
+    if (!existing) {
+      throw new NotFoundError('Project not found');
+    }
+    if (!existing.ownerId || existing.ownerId !== sessionWithUser.user.id) {
+      throw new UnauthorizedError('Only the project owner can update it.');
+    }
+
     const body = await readJson(request);
 
-    const { name, repoUrl, description, category, tags, isPublic } = body;
+    const { name, slug, repoUrl, description, category, tags, isPublic } = body;
     if (
       name === undefined &&
+      slug === undefined &&
       repoUrl === undefined &&
       description === undefined &&
       category === undefined &&
@@ -192,7 +245,7 @@ class ProjectsController {
       isPublic === undefined
     ) {
       throw new ValidationError(
-        'At least one of name, repoUrl, description, category, tags or isPublic must be provided',
+        'At least one of name, slug, repoUrl, description, category, tags or isPublic must be provided',
       );
     }
 
@@ -203,6 +256,9 @@ class ProjectsController {
     const project = await projectService.updateProject(db, id, {
       ...(name !== undefined
         ? { name: validateRequiredString(name, 'name') }
+        : {}),
+      ...(slug !== undefined
+        ? { slug: validateRequiredString(slug, 'slug') }
         : {}),
       ...(isPublic !== undefined ? { isPublic } : {}),
       ...(repoUrl !== undefined
@@ -224,6 +280,103 @@ class ProjectsController {
     }
 
     return jsonResponse(project);
+  }
+
+  // PATCH /api/v1/projects/:id/deployment
+  async updateProjectDeployment(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    id: string,
+  ): Promise<Response> {
+    const sessionId = getSessionIdFromRequest(request);
+    if (!sessionId) {
+      throw new UnauthorizedError('Login required to update deployment status.');
+    }
+    const sessionWithUser = await authRepository.getSessionWithUser(
+      db,
+      sessionId,
+    );
+    if (!sessionWithUser) {
+      throw new UnauthorizedError('Login required to update deployment status.');
+    }
+
+    const project = await projectService.getProjectById(db, id);
+    if (!project) {
+      throw new NotFoundError('Project not found');
+    }
+    if (!project.ownerId || project.ownerId !== sessionWithUser.user.id) {
+      throw new UnauthorizedError(
+        'Only the project owner can update deployment status.',
+      );
+    }
+
+    const body = await readJson(request);
+
+    const status = validateOptionalString(body.status);
+    const allowedStatuses = ['Live', 'Building', 'Failed', 'Offline'];
+    if (status !== undefined && !allowedStatuses.includes(status)) {
+      throw new ValidationError(
+        `status must be one of: ${allowedStatuses.join(', ')}`,
+      );
+    }
+
+    const deployTarget = validateOptionalString(body.deployTarget);
+    const allowedTargets = ['local', 'cloudflare', 'r2'];
+    if (deployTarget !== undefined && !allowedTargets.includes(deployTarget)) {
+      throw new ValidationError(
+        `deployTarget must be one of: ${allowedTargets.join(', ')}`,
+      );
+    }
+
+    const patch = {
+      ...(status !== undefined
+        ? { status: status as typeof project.status }
+        : {}),
+      ...(body.lastDeployed !== undefined
+        ? {
+            lastDeployed: validateRequiredString(
+              body.lastDeployed,
+              'lastDeployed',
+            ),
+          }
+        : {}),
+      ...(body.url !== undefined
+        ? { url: validateOptionalString(body.url) }
+        : {}),
+      ...(deployTarget !== undefined
+        ? { deployTarget: deployTarget as typeof project.deployTarget }
+        : {}),
+      ...(body.providerUrl !== undefined
+        ? { providerUrl: validateOptionalString(body.providerUrl) }
+        : {}),
+      ...(body.cloudflareProjectName !== undefined
+        ? {
+            cloudflareProjectName: validateOptionalString(
+              body.cloudflareProjectName,
+            ),
+          }
+        : {}),
+    };
+
+    if (
+      patch.status === undefined &&
+      patch.lastDeployed === undefined &&
+      patch.url === undefined &&
+      patch.deployTarget === undefined &&
+      patch.providerUrl === undefined &&
+      patch.cloudflareProjectName === undefined
+    ) {
+      throw new ValidationError(
+        'At least one of status, lastDeployed, url, deployTarget, providerUrl or cloudflareProjectName must be provided',
+      );
+    }
+
+    const updated = await projectService.updateProjectDeployment(db, id, patch);
+    if (!updated) {
+      throw new NotFoundError('Project not found');
+    }
+    return jsonResponse(updated);
   }
 
   // DELETE /api/v1/projects/:id

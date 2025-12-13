@@ -262,6 +262,7 @@ export class DeploymentService {
       const target = project.deployTarget || DEPLOY_TARGET;
 
       updateStatus(id, 'DEPLOYING');
+      appendLog(id, `Using deploy target: ${target}`, 'info');
 
       let finalUrl: string;
       let providerUrl: string | undefined;

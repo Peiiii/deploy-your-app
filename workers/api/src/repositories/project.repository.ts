@@ -304,6 +304,7 @@ class ProjectRepository {
     id: string,
     patch: {
       name?: string;
+      slug?: string;
       repoUrl?: string;
       description?: string;
       category?: string;
@@ -318,6 +319,10 @@ class ProjectRepository {
     if (patch.name !== undefined) {
       statements.push('name = ?');
       params.push(patch.name);
+    }
+    if (patch.slug !== undefined) {
+      statements.push('slug = ?');
+      params.push(patch.slug);
     }
     if (patch.repoUrl !== undefined) {
       statements.push('repo_url = ?');
@@ -338,6 +343,65 @@ class ProjectRepository {
     if (patch.isPublic !== undefined) {
       statements.push('is_public = ?');
       params.push(patch.isPublic ? 1 : 0);
+    }
+
+    if (statements.length === 0) {
+      const row = await db
+        .prepare(`SELECT * FROM projects WHERE id = ?`)
+        .bind(id)
+        .first<ProjectRow>();
+      return row ? this.mapRowToProject(row) : null;
+    }
+
+    params.push(id);
+    const row = await db
+      .prepare(
+        `UPDATE projects SET ${statements.join(', ')} WHERE id = ? RETURNING *`,
+      )
+      .bind(...params)
+      .first<ProjectRow>();
+    return row ? this.mapRowToProject(row) : null;
+  }
+
+  async updateProjectDeploymentRecord(
+    db: D1Database,
+    id: string,
+    patch: {
+      status?: Project['status'];
+      lastDeployed?: string;
+      url?: string;
+      deployTarget?: Project['deployTarget'];
+      providerUrl?: string;
+      cloudflareProjectName?: string;
+    },
+  ): Promise<Project | null> {
+    await this.ensureSchema(db);
+    const statements: string[] = [];
+    const params: unknown[] = [];
+
+    if (patch.status !== undefined) {
+      statements.push('status = ?');
+      params.push(patch.status);
+    }
+    if (patch.lastDeployed !== undefined) {
+      statements.push('last_deployed = ?');
+      params.push(patch.lastDeployed);
+    }
+    if (patch.url !== undefined) {
+      statements.push('url = ?');
+      params.push(patch.url);
+    }
+    if (patch.deployTarget !== undefined) {
+      statements.push('deploy_target = ?');
+      params.push(patch.deployTarget);
+    }
+    if (patch.providerUrl !== undefined) {
+      statements.push('provider_url = ?');
+      params.push(patch.providerUrl);
+    }
+    if (patch.cloudflareProjectName !== undefined) {
+      statements.push('cloudflare_project_name = ?');
+      params.push(patch.cloudflareProjectName);
     }
 
     if (statements.length === 0) {
@@ -397,19 +461,27 @@ class ProjectRepository {
     return row ? this.mapRowToProject(row) : null;
   }
 
-  async slugExists(db: D1Database, slug: string): Promise<boolean> {
+  async slugExists(
+    db: D1Database,
+    slug: string,
+    excludeProjectId?: string,
+  ): Promise<boolean> {
     await this.ensureSchema(db);
     const existingProject = await db
       .prepare(
-        `SELECT * FROM projects
+        `SELECT id FROM projects
          WHERE slug = ?
          LIMIT 1`,
       )
       .bind(slug)
-      .first<ProjectRow>();
+      .first<{ id: string }>();
 
     if (existingProject) {
-      return true;
+      if (excludeProjectId && existingProject.id === excludeProjectId) {
+        // Still check tombstones below to avoid reusing a retired slug.
+      } else {
+        return true;
+      }
     }
 
     const tombstone = await db

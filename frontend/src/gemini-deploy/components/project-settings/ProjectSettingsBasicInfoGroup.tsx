@@ -16,6 +16,9 @@ interface ProjectSettingsBasicInfoGroupProps {
   isSavingRepoUrl: boolean;
   nameDraft: string;
   onNameChange: (value: string) => void;
+  slugDraft: string;
+  onSlugChange: (value: string) => void;
+  slugIsEditable: boolean;
   descriptionDraft: string;
   onDescriptionChange: (value: string) => void;
   categoryDraft: string;
@@ -40,6 +43,9 @@ export const ProjectSettingsBasicInfoGroup: React.FC<
   isSavingRepoUrl,
   nameDraft,
   onNameChange,
+  slugDraft,
+  onSlugChange,
+  slugIsEditable,
   descriptionDraft,
   onDescriptionChange,
   categoryDraft,
@@ -73,6 +79,9 @@ export const ProjectSettingsBasicInfoGroup: React.FC<
               <ProjectSettingsMetadataSection
                 nameDraft={nameDraft}
                 onNameChange={onNameChange}
+                slugDraft={slugDraft}
+                onSlugChange={onSlugChange}
+                slugIsEditable={slugIsEditable}
                 descriptionDraft={descriptionDraft}
                 onDescriptionChange={onDescriptionChange}
                 categoryDraft={categoryDraft}
