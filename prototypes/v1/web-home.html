@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GemiGo - 发现好工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 40px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 40px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main Content */
+        .main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-link {
+            color: #667eea;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .section-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Categories */
+        .categories {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .category-tag {
+            padding: 8px 20px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category-tag:hover,
+        .category-tag.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+        }
+
+        /* Tool Grid */
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .tool-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .tool-preview {
+            height: 160px;
+            background: linear-gradient(135deg, #1a1a3e 0%, #2d2d5a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .tool-info {
+            padding: 20px;
+        }
+
+        .tool-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .tool-desc {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .tool-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tool-author {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .tool-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .tool-stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Desktop CTA */
+        .desktop-cta {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 16px;
+            padding: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 48px;
+        }
+
+        .desktop-cta-content h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .desktop-cta-content p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+
+        .desktop-cta-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin-left: 8px;
+        }
+
+        /* Prototype Notice */
+        .prototype-notice {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 193, 7, 0.9);
+            color: #000;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1000;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="logo">GemiGo</div>
+        <div class="search-box">
+            <input type="text" placeholder="搜索工具... 如：PDF 转换、参考文献、图片压缩">
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-primary">🚀 发布应用</button>
+            <button class="btn btn-ghost">登录</button>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="categories">
+            <span class="category-tag active">全部</span>
+            <span class="category-tag">📚 学习成长</span>
+            <span class="category-tag">💰 理财记账</span>
+            <span class="category-tag">🏃 健康生活</span>
+            <span class="category-tag">🎨 创意设计</span>
+            <span class="category-tag">💼 效率工具</span>
+            <span class="category-tag">🎮 趣味游戏</span>
+            <span class="category-tag">🏠 日常生活</span>
+        </div>
+
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">⭐ 精选应用</h2>
+                <a href="#" class="section-link">查看全部 →</a>
+            </div>
+            <div class="tool-grid">
+                <div class="tool-card">
+                    <div class="tool-preview">💰</div>
+                    <div class="tool-info">
+                        <div class="tool-name">极简记账本 <span class="badge">热门</span></div>
+                        <div class="tool-desc">3 秒记一笔，自动分类，月末自动生成消费报告</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@理财小能手</span>
+                            <div class="tool-stats">
+                                <span>❤️ 5.6k</span>
+                                <span>👁 12k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-preview">📖</div>
+                    <div class="tool-info">
+                        <div class="tool-name">每日单词打卡 <span class="badge">学习</span></div>
+                        <div class="tool-desc">科学复习算法，每天 10 分钟，轻松记住 5000 单词</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@英语达人</span>
+                            <div class="tool-stats">
+                                <span>❤️ 3.2k</span>
+                                <span>👁 8.5k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-preview">🍅</div>
+                    <div class="tool-info">
+                        <div class="tool-name">番茄专注计时</div>
+                        <div class="tool-desc">25 分钟专注 + 5 分钟休息，帮你养成高效学习习惯</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@专注力训练</span>
+                            <div class="tool-stats">
+                                <span>❤️ 2.8k</span>
+                                <span>👁 6.1k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-preview">📝</div>
+                    <div class="tool-info">
+                        <div class="tool-name">参考文献格式器 <span class="badge">学术</span></div>
+                        <div class="tool-desc">一键转换 GB/T 7714、APA、MLA 等格式</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@文献小助手</span>
+                            <div class="tool-stats">
+                                <span>❤️ 2.3k</span>
+                                <span>👁 5.2k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">📚 学习成长</h2>
+                <a href="#" class="section-link">查看全部 →</a>
+            </div>
+            <div class="tool-grid">
+                <div class="tool-card">
+                    <div class="tool-preview">🃏</div>
+                    <div class="tool-info">
+                        <div class="tool-name">AI 闪卡生成器 <span class="badge">AI</span></div>
+                        <div class="tool-desc">粘贴任何知识点，AI 自动生成闪卡，艾宾浩斯复习</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@记忆大师</span>
+                            <div class="tool-stats">
+                                <span>❤️ 1.8k</span>
+                                <span>👁 4.2k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-preview">📊</div>
+                    <div class="tool-info">
+                        <div class="tool-name">学习进度追踪</div>
+                        <div class="tool-desc">可视化你的学习轨迹，看着进度条不断增长</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@成长记录</span>
+                            <div class="tool-stats">
+                                <span>❤️ 986</span>
+                                <span>👁 2.1k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-preview">🎯</div>
+                    <div class="tool-info">
+                        <div class="tool-name">错题本整理</div>
+                        <div class="tool-desc">拍照录入错题，智能分类，考前重点复习</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@学霸笔记</span>
+                            <div class="tool-stats">
+                                <span>❤️ 756</span>
+                                <span>👁 1.8k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-preview">📐</div>
+                    <div class="tool-info">
+                        <div class="tool-name">数学公式拍照</div>
+                        <div class="tool-desc">拍照识别公式，转为 LaTeX，还能求解</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@数学达人</span>
+                            <div class="tool-stats">
+                                <span>❤️ 523</span>
+                                <span>👁 1.2k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">💰 理财记账</h2>
+                <a href="#" class="section-link">查看全部 →</a>
+            </div>
+            <div class="tool-grid">
+                <div class="tool-card">
+                    <div class="tool-preview">📊</div>
+                    <div class="tool-info">
+                        <div class="tool-name">消费分析师 <span class="badge">AI</span></div>
+                        <div class="tool-desc">AI 分析你的消费习惯，发现省钱机会</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@省钱专家</span>
+                            <div class="tool-stats">
+                                <span>❤️ 1.2k</span>
+                                <span>👁 3.4k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-preview">💳</div>
+                    <div class="tool-info">
+                        <div class="tool-name">AA 均摊计算</div>
+                        <div class="tool-desc">聚餐、旅行费用一键均摊，不再为分账烦恼</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@社交达人</span>
+                            <div class="tool-stats">
+                                <span>❤️ 890</span>
+                                <span>👁 2.1k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-preview">🎯</div>
+                    <div class="tool-info">
+                        <div class="tool-name">存钱目标</div>
+                        <div class="tool-desc">设定目标金额，记录每笔存入，看进度条增长</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@理财规划</span>
+                            <div class="tool-stats">
+                                <span>❤️ 678</span>
+                                <span>👁 1.5k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-preview">📅</div>
+                    <div class="tool-info">
+                        <div class="tool-name">账单提醒</div>
+                        <div class="tool-desc">房租、信用卡、会员续费，到期自动提醒</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@不忘账单</span>
+                            <div class="tool-stats">
+                                <span>❤️ 456</span>
+                                <span>👁 1.1k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">🏃 健康生活</h2>
+                <a href="#" class="section-link">查看全部 →</a>
+            </div>
+            <div class="tool-grid">
+                <div class="tool-card">
+                    <div class="tool-preview">💧</div>
+                    <div class="tool-info">
+                        <div class="tool-name">喝水提醒</div>
+                        <div class="tool-desc">定时提醒喝水，记录每日饮水量，养成好习惯</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@健康生活</span>
+                            <div class="tool-stats">
+                                <span>❤️ 1.5k</span>
+                                <span>👁 3.8k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-preview">😴</div>
+                    <div class="tool-info">
+                        <div class="tool-name">睡眠计算器</div>
+                        <div class="tool-desc">根据起床时间，计算最佳入睡时间</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@好眠助手</span>
+                            <div class="tool-stats">
+                                <span>❤️ 1.1k</span>
+                                <span>👁 2.6k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-preview">🥗</div>
+                    <div class="tool-info">
+                        <div class="tool-name">卡路里计算 <span class="badge">AI</span></div>
+                        <div class="tool-desc">拍照识别食物，自动计算卡路里</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@减脂达人</span>
+                            <div class="tool-stats">
+                                <span>❤️ 890</span>
+                                <span>👁 2.1k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-preview">🧘</div>
+                    <div class="tool-info">
+                        <div class="tool-name">每日冥想</div>
+                        <div class="tool-desc">5 分钟引导冥想，缓解焦虑，提升专注</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@心灵驿站</span>
+                            <div class="tool-stats">
+                                <span>❤️ 678</span>
+                                <span>👁 1.5k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">🔥 最新上线</h2>
+                <a href="#" class="section-link">查看全部 →</a>
+            </div>
+            <div class="tool-grid">
+                <div class="tool-card">
+                    <div class="tool-preview">🎨</div>
+                    <div class="tool-info">
+                        <div class="tool-name">配色方案生成器</div>
+                        <div class="tool-desc">输入一个颜色，生成完整的设计配色方案</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@设计小王</span>
+                            <div class="tool-stats">
+                                <span>❤️ 89</span>
+                                <span>👁 234</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-preview">📈</div>
+                    <div class="tool-info">
+                        <div class="tool-name">CSV 数据可视化</div>
+                        <div class="tool-desc">上传 CSV 文件，自动生成图表，支持导出图片</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@数据魔法师</span>
+                            <div class="tool-stats">
+                                <span>❤️ 67</span>
+                                <span>👁 189</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-preview">🔐</div>
+                    <div class="tool-info">
+                        <div class="tool-name">密码生成器</div>
+                        <div class="tool-desc">生成安全的随机密码，可自定义长度和字符类型</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@安全卫士</span>
+                            <div class="tool-stats">
+                                <span>❤️ 45</span>
+                                <span>👁 156</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-preview">📝</div>
+                    <div class="tool-info">
+                        <div class="tool-name">Markdown 预览器</div>
+                        <div class="tool-desc">实时预览 Markdown 渲染效果，支持导出为 PDF</div>
+                        <div class="tool-meta">
+                            <span class="tool-author">@写作达人</span>
+                            <div class="tool-stats">
+                                <span>❤️ 34</span>
+                                <span>👁 123</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="desktop-cta">
+            <div class="desktop-cta-content">
+                <h3>💻 想要更强大的本地处理能力？</h3>
+                <p>下载 GemiGo Desktop，支持批量处理、本地文件操作、AI 文档助手，隐私更安全</p>
+            </div>
+            <div class="desktop-cta-buttons">
+                <button class="btn btn-primary">📥 macOS 下载</button>
+                <button class="btn btn-ghost">📥 Windows 下载</button>
+            </div>
+        </div>
+    </main>
+
+    <div class="prototype-notice">
+        ⚠️ 产品概念原型 - 仅供演示设计
+    </div>
+</body>
+
+</html>

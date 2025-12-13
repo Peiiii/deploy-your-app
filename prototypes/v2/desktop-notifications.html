@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>推送提醒 - GemiGo Desktop</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: linear-gradient(180deg, #0d0d1a 0%, #1a1a2e 100%);
+        }
+
+        .notifications-preview {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .notification-demo {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .notification-demo-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .notification-demo-icon {
+            font-size: 28px;
+        }
+
+        .notification-demo-app {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .notification-demo-time {
+            margin-left: auto;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .notification-demo-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .notification-demo-body {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .notification-demo-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .reminder-list {}
+
+        .reminder-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+        }
+
+        .reminder-icon {
+            font-size: 28px;
+        }
+
+        .reminder-info {
+            flex: 1;
+        }
+
+        .reminder-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .reminder-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .reminder-toggle {
+            width: 48px;
+            height: 28px;
+            border-radius: 14px;
+            background: var(--border-light);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .reminder-toggle.active {
+            background: var(--accent-gradient);
+        }
+
+        .reminder-toggle::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 12px;
+            background: white;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s;
+        }
+
+        .reminder-toggle.active::after {
+            left: 22px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="desktop-app">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="window-btn close"></span>
+                    <span class="window-btn minimize"></span>
+                    <span class="window-btn maximize"></span>
+                </div>
+                <div class="logo">GemiGo</div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要</div>
+                    <a href="desktop-home.html" class="nav-item">
+                        <span class="nav-item-icon">🏠</span>
+                        <span class="nav-item-label">主页</span>
+                    </a>
+                    <a href="desktop-ai-chat.html" class="nav-item">
+                        <span class="nav-item-icon">🤖</span>
+                        <span class="nav-item-label">AI 助手</span>
+                    </a>
+                    <a href="desktop-file.html" class="nav-item">
+                        <span class="nav-item-icon">📁</span>
+                        <span class="nav-item-label">文件处理</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">设置</div>
+                    <a href="desktop-automation.html" class="nav-item">
+                        <span class="nav-item-icon">⚙️</span>
+                        <span class="nav-item-label">自动化</span>
+                    </a>
+                    <a href="desktop-notifications.html" class="nav-item active">
+                        <span class="nav-item-icon">🔔</span>
+                        <span class="nav-item-label">提醒设置</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="index.html" class="btn btn-ghost" style="width: 100%;">← 返回原型首页</a>
+            </div>
+        </aside>
+
+        <main class="desktop-main">
+            <div class="desktop-header">
+                <h1 class="desktop-title">🔔 推送提醒</h1>
+            </div>
+
+            <div class="desktop-content">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title-sm">📱 提醒预览</h2>
+                    </div>
+                    <div class="notifications-preview">
+                        <div class="notification-demo">
+                            <div class="notification-demo-header">
+                                <span class="notification-demo-icon">💧</span>
+                                <span class="notification-demo-app">GemiGo</span>
+                                <span class="notification-demo-time">现在</span>
+                            </div>
+                            <div class="notification-demo-title">该喝水了 💧</div>
+                            <div class="notification-demo-body">距离上次喝水已经 2 小时<br>今日进度：5/8 杯</div>
+                            <div class="notification-demo-actions">
+                                <button class="btn btn-small btn-primary">喝了一杯 +250ml</button>
+                                <button class="btn btn-small btn-ghost">稍后提醒</button>
+                            </div>
+                        </div>
+
+                        <div class="notification-demo">
+                            <div class="notification-demo-header">
+                                <span class="notification-demo-icon">📖</span>
+                                <span class="notification-demo-app">GemiGo</span>
+                                <span class="notification-demo-time">现在</span>
+                            </div>
+                            <div class="notification-demo-title">今日单词 📖</div>
+                            <div class="notification-demo-body"><strong>ubiquitous</strong><br>/juːˈbɪkwɪtəs/ 无处不在的
+                            </div>
+                            <div class="notification-demo-actions">
+                                <button class="btn btn-small btn-primary">认识 ✓</button>
+                                <button class="btn btn-small btn-ghost">不认识 ✗</button>
+                                <button class="btn btn-small btn-ghost">跳过 →</button>
+                            </div>
+                        </div>
+
+                        <div class="notification-demo">
+                            <div class="notification-demo-header">
+                                <span class="notification-demo-icon">💰</span>
+                                <span class="notification-demo-app">GemiGo</span>
+                                <span class="notification-demo-time">现在</span>
+                            </div>
+                            <div class="notification-demo-title">预算提醒 💰</div>
+                            <div class="notification-demo-body">本周餐饮已花 ¥320<br>接近预算 ¥350</div>
+                            <div class="notification-demo-actions">
+                                <button class="btn btn-small btn-primary">查看详情</button>
+                                <button class="btn btn-small btn-ghost">知道了</button>
+                            </div>
+                        </div>
+
+                        <div class="notification-demo">
+                            <div class="notification-demo-header">
+                                <span class="notification-demo-icon">🍅</span>
+                                <span class="notification-demo-app">GemiGo</span>
+                                <span class="notification-demo-time">现在</span>
+                            </div>
+                            <div class="notification-demo-title">番茄完成 🎉</div>
+                            <div class="notification-demo-body">完成一个番茄！今日已完成 3 个<br>休息 5 分钟，建议站起来走走</div>
+                            <div class="notification-demo-actions">
+                                <button class="btn btn-small btn-primary">开始休息 5:00</button>
+                                <button class="btn btn-small btn-ghost">跳过</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title-sm">⚙️ 提醒设置</h2>
+                    </div>
+                    <div class="reminder-list">
+                        <div class="reminder-item">
+                            <span class="reminder-icon">💧</span>
+                            <div class="reminder-info">
+                                <div class="reminder-name">喝水提醒</div>
+                                <div class="reminder-desc">每 2 小时提醒一次 · 8:00 - 22:00</div>
+                            </div>
+                            <button class="btn btn-small btn-ghost">编辑</button>
+                            <div class="reminder-toggle active"></div>
+                        </div>
+
+                        <div class="reminder-item">
+                            <span class="reminder-icon">📖</span>
+                            <div class="reminder-info">
+                                <div class="reminder-name">背单词提醒</div>
+                                <div class="reminder-desc">每日 3 次 · 8:00 / 12:30 / 21:00</div>
+                            </div>
+                            <button class="btn btn-small btn-ghost">编辑</button>
+                            <div class="reminder-toggle active"></div>
+                        </div>
+
+                        <div class="reminder-item">
+                            <span class="reminder-icon">💰</span>
+                            <div class="reminder-info">
+                                <div class="reminder-name">预算提醒</div>
+                                <div class="reminder-desc">接近预算 80% 时提醒</div>
+                            </div>
+                            <button class="btn btn-small btn-ghost">编辑</button>
+                            <div class="reminder-toggle active"></div>
+                        </div>
+
+                        <div class="reminder-item">
+                            <span class="reminder-icon">🍅</span>
+                            <div class="reminder-info">
+                                <div class="reminder-name">番茄钟提醒</div>
+                                <div class="reminder-desc">专注结束时提醒休息</div>
+                            </div>
+                            <button class="btn btn-small btn-ghost">编辑</button>
+                            <div class="reminder-toggle active"></div>
+                        </div>
+
+                        <div class="reminder-item">
+                            <span class="reminder-icon">😴</span>
+                            <div class="reminder-info">
+                                <div class="reminder-name">睡眠提醒</div>
+                                <div class="reminder-desc">22:30 提醒准备睡觉</div>
+                            </div>
+                            <button class="btn btn-small btn-ghost">编辑</button>
+                            <div class="reminder-toggle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GemiGo 原型目录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            padding: 60px 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 16px;
+            margin-bottom: 48px;
+        }
+
+        .versions {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .version-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 32px;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .version-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(102, 126, 234, 0.5);
+            transform: translateY(-4px);
+        }
+
+        .version-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .version-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .version-badge.latest {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .version-badge.old {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .version-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .version-date {
+            margin-left: auto;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+        }
+
+        .version-desc {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .version-features {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .feature-tag {
+            padding: 6px 12px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>GemiGo 原型</h1>
+        <p class="subtitle">产品概念设计原型 - 各版本演进记录</p>
+
+        <div class="versions">
+            <a href="v2/index.html" class="version-card">
+                <div class="version-header">
+                    <span class="version-badge latest">最新</span>
+                    <span class="version-title">V2 - 三端产品形态</span>
+                    <span class="version-date">2024-12</span>
+                </div>
+                <p class="version-desc">
+                    基于场景分析的最终产品形态设计。包含 Web 平台（发现 + 运行 + 发布）、桌面端（AI 助手 + 本地能力）、浏览器扩展（嵌入式增强）三个平台的完整原型。
+                </p>
+                <div class="version-features">
+                    <span class="feature-tag">🌐 Web 平台 (5页)</span>
+                    <span class="feature-tag">💻 桌面端 (5页)</span>
+                    <span class="feature-tag">🔌 浏览器扩展 (2页)</span>
+                    <span class="feature-tag">🤖 AI 对话</span>
+                    <span class="feature-tag">🔔 推送提醒</span>
+                    <span class="feature-tag">⚙️ 自动化</span>
+                </div>
+            </a>
+
+            <a href="v1/index.html" class="version-card">
+                <div class="version-header">
+                    <span class="version-badge old">早期</span>
+                    <span class="version-title">V1 - 双平台初版</span>
+                    <span class="version-date">2024-11</span>
+                </div>
+                <p class="version-desc">
+                    早期产品形态设计，侧重工具平台定位。包含 Web 平台和桌面客户端的基础原型，主要面向文件处理和工具发现场景。
+                </p>
+                <div class="version-features">
+                    <span class="feature-tag">🌐 Web 首页</span>
+                    <span class="feature-tag">📱 工具详情</span>
+                    <span class="feature-tag">👨‍💻 创作者中心</span>
+                    <span class="feature-tag">💻 桌面首页</span>
+                    <span class="feature-tag">📁 文件处理</span>
+                </div>
+            </a>
+        </div>
+
+        <footer class="footer">
+            GemiGo · AI 时代的应用创作与分享平台 · 概念原型 2024
+        </footer>
+    </div>
+</body>
+
+</html>

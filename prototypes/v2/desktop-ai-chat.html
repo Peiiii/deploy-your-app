@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 助手 - GemiGo Desktop</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: linear-gradient(180deg, #0d0d1a 0%, #1a1a2e 100%);
+        }
+
+        .ai-result-card {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-top: 16px;
+        }
+
+        .ai-result-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #667eea;
+        }
+
+        .expense-chart {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .expense-bar-container {
+            flex: 1;
+            text-align: center;
+        }
+
+        .expense-bar {
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .expense-bar-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--accent-gradient);
+            border-radius: 4px;
+        }
+
+        .expense-bar-label {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .expense-bar-value {
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .file-drop-zone {
+            border: 2px dashed var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            text-align: center;
+            margin: 24px 0;
+            transition: all 0.3s;
+        }
+
+        .file-drop-zone:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .file-drop-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .file-drop-text {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="desktop-app">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="window-btn close"></span>
+                    <span class="window-btn minimize"></span>
+                    <span class="window-btn maximize"></span>
+                </div>
+                <div class="logo">GemiGo</div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要</div>
+                    <a href="desktop-home.html" class="nav-item">
+                        <span class="nav-item-icon">🏠</span>
+                        <span class="nav-item-label">主页</span>
+                    </a>
+                    <a href="desktop-ai-chat.html" class="nav-item active">
+                        <span class="nav-item-icon">🤖</span>
+                        <span class="nav-item-label">AI 助手</span>
+                    </a>
+                    <a href="desktop-file.html" class="nav-item">
+                        <span class="nav-item-icon">📁</span>
+                        <span class="nav-item-label">文件处理</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">快捷工具</div>
+                    <a href="#" class="nav-item">
+                        <span class="nav-item-icon">💰</span>
+                        <span class="nav-item-label">记账</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-item-icon">📖</span>
+                        <span class="nav-item-label">背单词</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-item-icon">🍅</span>
+                        <span class="nav-item-label">番茄钟</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="index.html" class="btn btn-ghost" style="width: 100%;">← 返回原型首页</a>
+            </div>
+        </aside>
+
+        <main class="desktop-main">
+            <div class="desktop-header">
+                <h1 class="desktop-title">🤖 AI 助手</h1>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-messages">
+                    <div class="chat-message user">
+                        <div class="chat-avatar">👤</div>
+                        <div class="chat-bubble">这个月我花了多少钱？</div>
+                    </div>
+
+                    <div class="chat-message ai">
+                        <div class="chat-avatar">🤖</div>
+                        <div class="chat-bubble">
+                            这个月你总共花了 <strong>¥4,230</strong>，比上个月多了 ¥320 (8%)。
+
+                            <div class="ai-result-card">
+                                <div class="ai-result-title">📊 支出分布</div>
+                                <div class="expense-chart">
+                                    <div class="expense-bar-container">
+                                        <div class="expense-bar">
+                                            <div class="expense-bar-fill" style="height: 75%;"></div>
+                                        </div>
+                                        <div class="expense-bar-label">餐饮</div>
+                                        <div class="expense-bar-value">¥1,520</div>
+                                    </div>
+                                    <div class="expense-bar-container">
+                                        <div class="expense-bar">
+                                            <div class="expense-bar-fill" style="height: 45%;"></div>
+                                        </div>
+                                        <div class="expense-bar-label">交通</div>
+                                        <div class="expense-bar-value">¥680</div>
+                                    </div>
+                                    <div class="expense-bar-container">
+                                        <div class="expense-bar">
+                                            <div class="expense-bar-fill" style="height: 38%;"></div>
+                                        </div>
+                                        <div class="expense-bar-label">购物</div>
+                                        <div class="expense-bar-value">¥580</div>
+                                    </div>
+                                    <div class="expense-bar-container">
+                                        <div class="expense-bar">
+                                            <div class="expense-bar-fill" style="height: 30%;"></div>
+                                        </div>
+                                        <div class="expense-bar-label">娱乐</div>
+                                        <div class="expense-bar-value">¥450</div>
+                                    </div>
+                                    <div class="expense-bar-container">
+                                        <div class="expense-bar">
+                                            <div class="expense-bar-fill" style="height: 50%;"></div>
+                                        </div>
+                                        <div class="expense-bar-label">其他</div>
+                                        <div class="expense-bar-value">¥1,000</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">
+                                💡 建议：餐饮支出占比 36%，略高于平均水平。考虑多带便当？
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="chat-message user">
+                        <div class="chat-avatar">👤</div>
+                        <div class="chat-bubble">帮我记一笔，刚吃午饭花了 35</div>
+                    </div>
+
+                    <div class="chat-message ai">
+                        <div class="chat-avatar">🤖</div>
+                        <div class="chat-bubble">
+                            ✅ 已记录！
+                            <div
+                                style="margin-top: 12px; padding: 12px; background: rgba(40, 167, 69, 0.15); border-radius: 8px;">
+                                <strong>🍜 餐饮 - 午餐</strong><br>
+                                <span style="font-size: 20px; font-weight: 700;">¥35</span><br>
+                                <span style="font-size: 12px; color: var(--text-muted);">今天 12:32</span>
+                            </div>
+                            <p style="margin-top: 12px; font-size: 13px; color: var(--text-muted);">
+                                今日已花 ¥121，本周餐饮预算还剩 ¥180
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="file-drop-zone">
+                        <div class="file-drop-icon">📁</div>
+                        <div class="file-drop-text">拖入文件，告诉我你想做什么</div>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" placeholder="问我任何事，或拖入文件...">
+                    <button class="btn btn-primary">发送</button>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

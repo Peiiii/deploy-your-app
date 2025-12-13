@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自动化 - GemiGo Desktop</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: linear-gradient(180deg, #0d0d1a 0%, #1a1a2e 100%);
+        }
+
+        .rule-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .rule-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .rule-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .rule-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .rule-status {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .rule-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            background: rgba(40, 167, 69, 0.2);
+            color: #28c840;
+        }
+
+        .rule-body {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-md);
+            margin-bottom: 16px;
+        }
+
+        .rule-condition {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .rule-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            width: 40px;
+        }
+
+        .rule-value {
+            padding: 8px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+        }
+
+        .rule-arrow {
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .rule-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .add-rule-btn {
+            width: 100%;
+            padding: 20px;
+            border: 2px dashed var(--border-light);
+            border-radius: var(--radius-lg);
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .add-rule-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .template-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .template-card:hover {
+            border-color: rgba(102, 126, 234, 0.5);
+            background: var(--bg-card-hover);
+        }
+
+        .template-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+
+        .template-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .template-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="desktop-app">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="window-btn close"></span>
+                    <span class="window-btn minimize"></span>
+                    <span class="window-btn maximize"></span>
+                </div>
+                <div class="logo">GemiGo</div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要</div>
+                    <a href="desktop-home.html" class="nav-item">
+                        <span class="nav-item-icon">🏠</span>
+                        <span class="nav-item-label">主页</span>
+                    </a>
+                    <a href="desktop-ai-chat.html" class="nav-item">
+                        <span class="nav-item-icon">🤖</span>
+                        <span class="nav-item-label">AI 助手</span>
+                    </a>
+                    <a href="desktop-file.html" class="nav-item">
+                        <span class="nav-item-icon">📁</span>
+                        <span class="nav-item-label">文件处理</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">设置</div>
+                    <a href="desktop-automation.html" class="nav-item active">
+                        <span class="nav-item-icon">⚙️</span>
+                        <span class="nav-item-label">自动化</span>
+                    </a>
+                    <a href="desktop-notifications.html" class="nav-item">
+                        <span class="nav-item-icon">🔔</span>
+                        <span class="nav-item-label">提醒设置</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="index.html" class="btn btn-ghost" style="width: 100%;">← 返回原型首页</a>
+            </div>
+        </aside>
+
+        <main class="desktop-main">
+            <div class="desktop-header">
+                <h1 class="desktop-title">⚙️ 自动化规则</h1>
+                <button class="btn btn-primary" style="margin-left: auto;">+ 新建规则</button>
+            </div>
+
+            <div class="desktop-content">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title-sm">✅ 活跃规则</h2>
+                    </div>
+
+                    <div class="rule-card">
+                        <div class="rule-header">
+                            <div class="rule-icon">🖼️</div>
+                            <div class="rule-title">下载图片自动压缩</div>
+                            <div class="rule-status">
+                                <span class="rule-badge">活跃</span>
+                                <button class="btn btn-small btn-ghost">编辑</button>
+                            </div>
+                        </div>
+                        <div class="rule-body">
+                            <div class="rule-condition">
+                                <span class="rule-label">当</span>
+                                <span class="rule-value">📁 Downloads 文件夹</span>
+                                <span>出现</span>
+                                <span class="rule-value">.png / .jpg 文件</span>
+                            </div>
+                            <div class="rule-condition">
+                                <span class="rule-label"></span>
+                                <span class="rule-arrow">↓</span>
+                            </div>
+                            <div class="rule-condition">
+                                <span class="rule-label">则</span>
+                                <span class="rule-value">🗜️ 压缩图片</span>
+                                <span>然后</span>
+                                <span class="rule-value">📂 移动到 Compressed</span>
+                            </div>
+                        </div>
+                        <div class="rule-footer">
+                            <span>已触发 28 次 · 节省 156 MB 空间</span>
+                            <span>上次触发：今天 10:23</span>
+                        </div>
+                    </div>
+
+                    <div class="rule-card">
+                        <div class="rule-header">
+                            <div class="rule-icon">📄</div>
+                            <div class="rule-title">PDF 自动备份</div>
+                            <div class="rule-status">
+                                <span class="rule-badge">活跃</span>
+                                <button class="btn btn-small btn-ghost">编辑</button>
+                            </div>
+                        </div>
+                        <div class="rule-body">
+                            <div class="rule-condition">
+                                <span class="rule-label">当</span>
+                                <span class="rule-value">📁 Documents 文件夹</span>
+                                <span>修改</span>
+                                <span class="rule-value">.pdf 文件</span>
+                            </div>
+                            <div class="rule-condition">
+                                <span class="rule-label"></span>
+                                <span class="rule-arrow">↓</span>
+                            </div>
+                            <div class="rule-condition">
+                                <span class="rule-label">则</span>
+                                <span class="rule-value">📂 复制到 Backup/PDF</span>
+                                <span>添加</span>
+                                <span class="rule-value">日期后缀</span>
+                            </div>
+                        </div>
+                        <div class="rule-footer">
+                            <span>已触发 12 次</span>
+                            <span>上次触发：昨天 20:15</span>
+                        </div>
+                    </div>
+
+                    <button class="add-rule-btn">
+                        <span>+</span> 添加新规则
+                    </button>
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title-sm">💡 规则模板</h2>
+                    </div>
+                    <div class="template-grid">
+                        <div class="template-card">
+                            <div class="template-icon">📸</div>
+                            <div class="template-name">截图自动整理</div>
+                            <div class="template-desc">桌面截图自动移动到 Screenshots 文件夹</div>
+                        </div>
+                        <div class="template-card">
+                            <div class="template-icon">🎬</div>
+                            <div class="template-name">视频自动压缩</div>
+                            <div class="template-desc">下载的视频自动压缩节省空间</div>
+                        </div>
+                        <div class="template-card">
+                            <div class="template-icon">📝</div>
+                            <div class="template-name">文档定期备份</div>
+                            <div class="template-desc">每天自动备份重要文档</div>
+                        </div>
+                        <div class="template-card">
+                            <div class="template-icon">🗑️</div>
+                            <div class="template-name">自动清理临时文件</div>
+                            <div class="template-desc">定期清理 Downloads 旧文件</div>
+                        </div>
+                        <div class="template-card">
+                            <div class="template-icon">📧</div>
+                            <div class="template-name">附件自动保存</div>
+                            <div class="template-desc">邮件附件自动整理到指定文件夹</div>
+                        </div>
+                        <div class="template-card">
+                            <div class="template-icon">🔄</div>
+                            <div class="template-name">格式自动转换</div>
+                            <div class="template-desc">特定格式文件自动转换</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

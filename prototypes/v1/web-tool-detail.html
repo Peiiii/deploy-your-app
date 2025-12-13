@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>参考文献格式转换器 - GemiGo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 40px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        /* Main */
+        .main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        /* Tool Header */
+        .tool-header {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .tool-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .tool-info {
+            flex: 1;
+        }
+
+        .tool-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin-left: 12px;
+        }
+
+        .tool-desc {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .tool-meta {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        .author-link {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .tool-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .tool-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn-large {
+            padding: 14px 32px;
+            font-size: 16px;
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 32px;
+        }
+
+        /* Tool Preview */
+        .tool-preview {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .preview-header {
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .preview-dot.red {
+            background: #ff5f57;
+        }
+
+        .preview-dot.yellow {
+            background: #ffbd2e;
+        }
+
+        .preview-dot.green {
+            background: #28c840;
+        }
+
+        .preview-content {
+            padding: 24px;
+            min-height: 400px;
+        }
+
+        .preview-label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 12px;
+        }
+
+        .preview-textarea {
+            width: 100%;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            color: #fff;
+            font-family: 'Monaco', monospace;
+            font-size: 13px;
+            resize: none;
+            outline: none;
+        }
+
+        .preview-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .format-options {
+            display: flex;
+            gap: 8px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .format-btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .format-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .convert-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .result-btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .sidebar-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Author Card */
+        .author-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .author-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .author-info {
+            flex: 1;
+        }
+
+        .author-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .author-stats {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .follow-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        /* Comments */
+        .comment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .comment {
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .comment:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .comment-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .comment-author {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .comment-time {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .comment-text {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.5;
+        }
+
+        /* Tags */
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            padding: 6px 14px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Desktop CTA */
+        .desktop-cta {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.2) 0%, rgba(32, 201, 151, 0.2) 100%);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+
+        .cta-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .cta-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .cta-desc {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 16px;
+        }
+
+        .cta-btn {
+            width: 100%;
+            padding: 12px;
+            background: #28a745;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* Prototype Notice */
+        .prototype-notice {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 193, 7, 0.9);
+            color: #000;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1000;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-left">
+            <button class="back-btn">←</button>
+            <div class="logo">GemiGo</div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-ghost">⭐ 收藏</button>
+            <button class="btn btn-ghost">↗️ 分享</button>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="tool-header">
+            <div class="tool-icon">📝</div>
+            <div class="tool-info">
+                <h1 class="tool-title">
+                    参考文献格式转换器
+                    <span class="badge">热门</span>
+                    <span class="badge"
+                        style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">学生必备</span>
+                </h1>
+                <p class="tool-desc">
+                    一键将参考文献转换为 GB/T 7714、APA、MLA、Chicago 等格式。支持中英文混合文献，智能识别文献类型，导出为 Word 或纯文本。
+                </p>
+                <div class="tool-meta">
+                    <span>作者：<a href="#" class="author-link">@文献小助手</a></span>
+                    <span>发布于 2024-10-15</span>
+                    <span>更新于 3 天前</span>
+                </div>
+                <div class="tool-stats">
+                    <div class="stat">
+                        <div class="stat-value">2.3k</div>
+                        <div class="stat-label">点赞</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">5.2k</div>
+                        <div class="stat-label">使用</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">890</div>
+                        <div class="stat-label">收藏</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="tool-preview">
+                <div class="preview-header">
+                    <span class="preview-dot red"></span>
+                    <span class="preview-dot yellow"></span>
+                    <span class="preview-dot green"></span>
+                </div>
+                <div class="preview-content">
+                    <div class="preview-label">📥 输入参考文献（每行一条）</div>
+                    <textarea class="preview-textarea" placeholder="[1] Smith J, Jones M. Title of the paper. Journal of Example, 2023, 15(2): 123-145.
+
+[2] Zhang W, Li Q. 另一篇论文标题. 中文期刊, 2024, 10(3): 67-89."></textarea>
+
+                    <div class="preview-label">🔄 目标格式</div>
+                    <div class="format-options">
+                        <button class="format-btn active">GB/T 7714</button>
+                        <button class="format-btn">APA 7th</button>
+                        <button class="format-btn">MLA 9th</button>
+                        <button class="format-btn">Chicago</button>
+                        <button class="format-btn">IEEE</button>
+                        <button class="format-btn">Harvard</button>
+                    </div>
+
+                    <button class="convert-btn">✨ 转换格式</button>
+
+                    <div class="preview-label">📤 转换结果</div>
+                    <textarea class="preview-textarea" placeholder="转换结果将显示在这里..." readonly
+                        style="background: rgba(40, 167, 69, 0.1); border-color: rgba(40, 167, 69, 0.3);"></textarea>
+
+                    <div class="result-actions">
+                        <button class="result-btn">📋 复制全部</button>
+                        <button class="result-btn">📄 导出 Word</button>
+                        <button class="result-btn">📝 导出 TXT</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="sidebar-card">
+                    <div class="sidebar-title">👤 作者</div>
+                    <div class="author-card">
+                        <div class="author-avatar">文</div>
+                        <div class="author-info">
+                            <div class="author-name">文献小助手</div>
+                            <div class="author-stats">发布 5 个工具 · 被赞 3.2k</div>
+                        </div>
+                        <button class="follow-btn">+ 关注</button>
+                    </div>
+                </div>
+
+                <div class="sidebar-card desktop-cta">
+                    <div class="cta-icon">💻</div>
+                    <div class="cta-title">桌面端更强大</div>
+                    <div class="cta-desc">支持批量处理、本地文件直接导入、隐私更安全</div>
+                    <button class="cta-btn">下载 GemiGo Desktop</button>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="sidebar-title">🏷️ 标签</div>
+                    <div class="tags">
+                        <span class="tag">参考文献</span>
+                        <span class="tag">论文</span>
+                        <span class="tag">格式转换</span>
+                        <span class="tag">学术</span>
+                        <span class="tag">GB/T 7714</span>
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="sidebar-title">💬 评论 (156)</div>
+                    <div class="comment-list">
+                        <div class="comment">
+                            <div class="comment-header">
+                                <div class="comment-avatar">林</div>
+                                <span class="comment-author">研究生小林</span>
+                                <span class="comment-time">2天前</span>
+                            </div>
+                            <div class="comment-text">救命神器！毕业论文就靠它了，再也不用手动改格式了</div>
+                        </div>
+                        <div class="comment">
+                            <div class="comment-header">
+                                <div class="comment-avatar">王</div>
+                                <span class="comment-author">学术民工</span>
+                                <span class="comment-time">1周前</span>
+                            </div>
+                            <div class="comment-text">希望能支持从 EndNote 直接导入，那就更完美了</div>
+                        </div>
+                        <div class="comment">
+                            <div class="comment-header">
+                                <div class="comment-avatar">张</div>
+                                <span class="comment-author">科研小白</span>
+                                <span class="comment-time">2周前</span>
+                            </div>
+                            <div class="comment-text">中英文混合识别得很准确，赞！</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="prototype-notice">
+        ⚠️ 产品概念原型 - 仅供演示设计
+    </div>
+</body>
+
+</html>

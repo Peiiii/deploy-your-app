@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AA 分账神器 - GemiGo</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .app-hero {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 40px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .app-hero-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 56px;
+            flex-shrink: 0;
+        }
+
+        .app-hero-info {
+            flex: 1;
+        }
+
+        .app-hero-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .app-hero-desc {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .app-hero-meta {
+            display: flex;
+            gap: 24px;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .app-hero-stats {
+            display: flex;
+            gap: 32px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-item-value {
+            font-size: 28px;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-item-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .app-hero-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 32px;
+        }
+
+        .app-preview {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+
+        .preview-header {
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .preview-dot.red {
+            background: #ff5f57;
+        }
+
+        .preview-dot.yellow {
+            background: #ffbd2e;
+        }
+
+        .preview-dot.green {
+            background: #28c840;
+        }
+
+        .preview-content {
+            padding: 32px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .preview-cta-icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+        }
+
+        .preview-cta-text {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .sidebar-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .author-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .author-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .author-info {
+            flex: 1;
+        }
+
+        .author-name {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .author-stats {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .share-cta {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.15) 0%, rgba(32, 201, 151, 0.15) 100%);
+            border-color: rgba(40, 167, 69, 0.3);
+        }
+
+        .share-cta-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .share-cta-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .share-cta-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .tags-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag-item {
+            padding: 6px 12px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .comment-list {}
+
+        .comment-item {
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .comment-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .comment-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .comment-author {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .comment-time {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        .comment-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-left">
+            <a href="web-discover.html" class="back-btn">←</a>
+            <a href="index.html" class="logo">GemiGo</a>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-ghost">⭐ 收藏</button>
+            <button class="btn btn-ghost">↗️ 分享链接</button>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="app-hero">
+            <div class="app-hero-icon">💳</div>
+            <div class="app-hero-info">
+                <h1 class="app-hero-title">
+                    AA 分账神器
+                    <span class="badge badge-success">必备</span>
+                </h1>
+                <p class="app-hero-desc">
+                    聚餐后一键算账，支持多人复杂分账。拍照识别账单，自动计算每人应付金额，生成分享链接让朋友直接付款。
+                </p>
+                <div class="app-hero-meta">
+                    <span>作者：<a href="#" style="color: #667eea;">@社交达人</a></span>
+                    <span>发布于 2024-11-15</span>
+                    <span>更新于 3 天前</span>
+                </div>
+                <div class="app-hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-item-value">3.8k</div>
+                        <div class="stat-item-label">点赞</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-item-value">8.2k</div>
+                        <div class="stat-item-label">使用</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-item-value">1.2k</div>
+                        <div class="stat-item-label">收藏</div>
+                    </div>
+                </div>
+                <div class="app-hero-actions">
+                    <a href="web-app-running.html" class="btn btn-primary btn-large">▶️ 立即使用</a>
+                    <button class="btn btn-secondary btn-large">📋 复制链接</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div>
+                <div class="app-preview">
+                    <div class="preview-header">
+                        <span class="preview-dot red"></span>
+                        <span class="preview-dot yellow"></span>
+                        <span class="preview-dot green"></span>
+                    </div>
+                    <div class="preview-content">
+                        <div class="preview-cta-icon">💳</div>
+                        <div class="preview-cta-text">点击「立即使用」开始分账</div>
+                        <a href="web-app-running.html" class="btn btn-primary btn-large">▶️ 立即使用</a>
+                    </div>
+                </div>
+
+                <div class="mt-24">
+                    <h3 class="section-title-sm mb-16">📖 使用说明</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            <p style="color: var(--text-secondary); line-height: 1.8;">
+                                <strong>使用步骤：</strong><br>
+                                1. 点击「新建分账」创建一次聚餐分账<br>
+                                2. 添加账单（可拍照识别或手动输入）<br>
+                                3. 填写谁付了款、参与人数<br>
+                                4. 一键计算每人应付金额<br>
+                                5. 生成链接发给朋友，他们打开即可看到自己需要付多少<br><br>
+                                <strong>特色功能：</strong><br>
+                                • 支持复杂分账（某人不参与某项）<br>
+                                • 自动计算谁付给谁多少<br>
+                                • 链接分享，朋友无需下载任何 App
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="sidebar-card">
+                    <div class="sidebar-title">👤 作者</div>
+                    <div class="author-card">
+                        <div class="author-avatar">社</div>
+                        <div class="author-info">
+                            <div class="author-name">社交达人</div>
+                            <div class="author-stats">发布 3 个应用 · 被赞 5.2k</div>
+                        </div>
+                        <button class="btn btn-small btn-ghost">+ 关注</button>
+                    </div>
+                </div>
+
+                <div class="sidebar-card share-cta">
+                    <div class="share-cta-icon">🔗</div>
+                    <div class="share-cta-title">分享给朋友</div>
+                    <div class="share-cta-desc">复制链接发给朋友，他们打开即可直接使用，无需注册</div>
+                    <button class="btn btn-primary" style="width: 100%;">复制分享链接</button>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="sidebar-title">🏷️ 标签</div>
+                    <div class="tags-list">
+                        <span class="tag-item">分账</span>
+                        <span class="tag-item">聚餐</span>
+                        <span class="tag-item">AA</span>
+                        <span class="tag-item">记账</span>
+                        <span class="tag-item">社交</span>
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="sidebar-title">💬 评论 (89)</div>
+                    <div class="comment-list">
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <div class="comment-avatar">小</div>
+                                <span class="comment-author">小明</span>
+                                <span class="comment-time">2天前</span>
+                            </div>
+                            <div class="comment-text">太方便了！再也不用手算谁付谁多少了</div>
+                        </div>
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <div class="comment-avatar">聚</div>
+                                <span class="comment-author">聚餐狂人</span>
+                                <span class="comment-time">1周前</span>
+                            </div>
+                            <div class="comment-text">链接分享功能太棒了，朋友直接打开就能看</div>
+                        </div>
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <div class="comment-avatar">L</div>
+                                <span class="comment-author">Lucy</span>
+                                <span class="comment-time">2周前</span>
+                            </div>
+                            <div class="comment-text">希望能加个微信/支付宝直接付款的功能</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="floating-notice">⚠️ 产品概念原型 - 仅供演示</div>
+</body>
+
+</html>

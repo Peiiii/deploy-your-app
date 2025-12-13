@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GemiGo 产品原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 60px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .logo {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 32px;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(102, 126, 234, 0.5);
+            transform: translateY(-4px);
+        }
+
+        .card-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .card-desc {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.6;
+        }
+
+        .card-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin-bottom: 16px;
+        }
+
+        .card-tag.web {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card-tag.desktop {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+        }
+
+        .notice {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 48px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="logo">GemiGo</h1>
+            <p class="subtitle">产品概念原型 · Concept Prototypes</p>
+        </header>
+
+        <div class="notice">
+            ⚠️ 这些是 <strong>产品概念原型</strong>，仅用于展示设计方案。功能不可实际使用，数据均为示例。
+        </div>
+
+        <section class="section">
+            <h2 class="section-title">🌐 Web 平台</h2>
+            <div class="card-grid">
+                <a href="web-home.html" class="card">
+                    <span class="card-tag web">Web 平台</span>
+                    <div class="card-icon">🏠</div>
+                    <h3 class="card-title">首页 - 发现工具</h3>
+                    <p class="card-desc">浏览和发现社区工具，按分类筛选，一键使用。展示精选工具、学生必备、最新上线等模块。</p>
+                </a>
+
+                <a href="web-tool-detail.html" class="card">
+                    <span class="card-tag web">Web 平台</span>
+                    <div class="card-icon">📝</div>
+                    <h3 class="card-title">工具详情页</h3>
+                    <p class="card-desc">查看工具详情、使用工具、查看评论。以「参考文献格式转换器」为例展示完整的工具体验。</p>
+                </a>
+
+                <a href="web-creator-center.html" class="card">
+                    <span class="card-tag web">Web 平台</span>
+                    <div class="card-icon">🚀</div>
+                    <h3 class="card-title">创作者中心</h3>
+                    <p class="card-desc">Vibe Coder 管理自己发布的应用，查看数据统计、用户评论和趋势分析。</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">💻 Desktop 桌面端</h2>
+            <div class="card-grid">
+                <a href="desktop-home.html" class="card">
+                    <span class="card-tag desktop">桌面端</span>
+                    <div class="card-icon">🏠</div>
+                    <h3 class="card-title">首页 - 本地工具中心</h3>
+                    <p class="card-desc">AI 输入框 + 常用工具 + 最近文件。支持拖入文件直接处理，实现本地隐私安全的文件处理。</p>
+                </a>
+
+                <a href="desktop-file-processing.html" class="card">
+                    <span class="card-tag desktop">桌面端</span>
+                    <div class="card-icon">📄</div>
+                    <h3 class="card-title">文件处理界面</h3>
+                    <p class="card-desc">拖入 PDF 后的处理界面。显示文件信息、可用操作（转 Word、AI 总结等），支持自然语言描述需求。</p>
+                </a>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>GemiGo · AI 时代的应用创作与分享平台</p>
+            <p style="margin-top: 8px;">产品概念原型 2024</p>
+        </footer>
+    </div>
+</body>
+
+</html>

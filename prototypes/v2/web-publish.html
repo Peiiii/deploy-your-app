@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发布应用 - GemiGo</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .publish-container {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .publish-steps {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .step {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+        }
+
+        .step.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .step-num {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .step.active .step-num {
+            background: var(--accent-gradient);
+        }
+
+        .step-label {
+            font-size: 14px;
+        }
+
+        .publish-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+        }
+
+        .publish-section {
+            margin-bottom: 32px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .publish-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .section-title-pub {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .source-options {
+            display: flex;
+            gap: 16px;
+        }
+
+        .source-option {
+            flex: 1;
+            padding: 24px;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px solid var(--border-light);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .source-option:hover {
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .source-option.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .source-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .source-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .source-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .github-input {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .github-input input {
+            flex: 1;
+        }
+
+        .permission-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .permission-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .permission-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-light);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .permission-checkbox.checked {
+            background: var(--accent-gradient);
+            border-color: #667eea;
+        }
+
+        .permission-info {
+            flex: 1;
+        }
+
+        .permission-name {
+            font-size: 14px;
+        }
+
+        .permission-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .tags-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            background: var(--bg-card);
+        }
+
+        .tag-added {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 16px;
+            background: rgba(102, 126, 234, 0.2);
+            font-size: 13px;
+        }
+
+        .tag-remove {
+            cursor: pointer;
+            opacity: 0.6;
+        }
+
+        .tag-add-input {
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 13px;
+            outline: none;
+            min-width: 100px;
+        }
+
+        .publish-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-left">
+            <a href="web-discover.html" class="back-btn">←</a>
+            <a href="index.html" class="logo">GemiGo</a>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="publish-container">
+            <h1 class="page-title">🚀 发布新应用</h1>
+            <p class="page-subtitle">将你的应用分享给全世界</p>
+
+            <div class="publish-steps">
+                <div class="step active">
+                    <div class="step-num">1</div>
+                    <div class="step-label">基本信息</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-label">导入代码</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-label">发布上线</div>
+                </div>
+            </div>
+
+            <div class="publish-card">
+                <div class="publish-section">
+                    <div class="section-title-pub">📝 基本信息</div>
+                    <div class="form-group">
+                        <label class="form-label">应用名称</label>
+                        <input type="text" class="form-input" placeholder="给你的应用起个名字" value="AA 分账神器">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">一句话介绍</label>
+                        <input type="text" class="form-input" placeholder="用一句话描述你的应用能做什么"
+                            value="聚餐后一键算账，支持复杂分账，链接分享直接用">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">详细描述</label>
+                        <textarea class="form-input form-textarea" placeholder="详细介绍你的应用功能、使用方法等">1. 点击「新建分账」创建一次聚餐分账
+2. 添加账单（可拍照识别或手动输入）
+3. 填写谁付了款、参与人数
+4. 一键计算每人应付金额
+5. 生成链接发给朋友，他们打开即可看到自己需要付多少</textarea>
+                    </div>
+                </div>
+
+                <div class="publish-section">
+                    <div class="section-title-pub">📁 代码来源</div>
+                    <div class="source-options">
+                        <div class="source-option selected">
+                            <div class="source-icon">🐙</div>
+                            <div class="source-title">GitHub 仓库</div>
+                            <div class="source-desc">从 GitHub 导入</div>
+                        </div>
+                        <div class="source-option">
+                            <div class="source-icon">📦</div>
+                            <div class="source-title">上传 ZIP</div>
+                            <div class="source-desc">上传代码压缩包</div>
+                        </div>
+                        <div class="source-option">
+                            <div class="source-icon">✏️</div>
+                            <div class="source-title">在线编辑</div>
+                            <div class="source-desc">使用在线编辑器</div>
+                        </div>
+                    </div>
+                    <div class="github-input">
+                        <input type="text" class="form-input" placeholder="输入 GitHub 仓库地址"
+                            value="https://github.com/user/aa-split-app">
+                        <button class="btn btn-secondary">验证</button>
+                    </div>
+                    <p class="form-hint">支持公开仓库，我们会自动部署并生成访问链接</p>
+                </div>
+
+                <div class="publish-section">
+                    <div class="section-title-pub">🏷️ 分类与标签</div>
+                    <div class="form-group">
+                        <label class="form-label">分类</label>
+                        <select class="form-input">
+                            <option>💰 理财生活</option>
+                            <option>📚 学习成长</option>
+                            <option>🏃 健康习惯</option>
+                            <option>⚡ 效率工具</option>
+                            <option>🎮 趣味互动</option>
+                            <option>🏠 日常便利</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">标签</label>
+                        <div class="tags-input">
+                            <span class="tag-added">分账 <span class="tag-remove">×</span></span>
+                            <span class="tag-added">聚餐 <span class="tag-remove">×</span></span>
+                            <span class="tag-added">AA <span class="tag-remove">×</span></span>
+                            <input type="text" class="tag-add-input" placeholder="+ 添加标签">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="publish-section">
+                    <div class="section-title-pub">🔐 权限声明</div>
+                    <div class="permission-list">
+                        <div class="permission-item">
+                            <div class="permission-checkbox checked">✓</div>
+                            <div class="permission-info">
+                                <div class="permission-name">本地存储</div>
+                                <div class="permission-desc">保存用户的分账数据到本地</div>
+                            </div>
+                        </div>
+                        <div class="permission-item">
+                            <div class="permission-checkbox"></div>
+                            <div class="permission-info">
+                                <div class="permission-name">相机/麦克风</div>
+                                <div class="permission-desc">用于拍照识别账单</div>
+                            </div>
+                        </div>
+                        <div class="permission-item">
+                            <div class="permission-checkbox"></div>
+                            <div class="permission-info">
+                                <div class="permission-name">剪贴板</div>
+                                <div class="permission-desc">复制分享链接</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="publish-actions">
+                    <button class="btn btn-ghost btn-large">预览效果</button>
+                    <button class="btn btn-primary btn-large" style="flex: 1;">🚀 发布应用</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="floating-notice">⚠️ 产品概念原型 - 仅供演示</div>
+</body>
+
+</html>

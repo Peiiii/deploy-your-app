@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GemiGo Desktop</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: linear-gradient(180deg, #0d0d1a 0%, #1a1a2e 100%);
+        }
+
+        .greeting {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 32px;
+        }
+
+        .greeting-time {
+            opacity: 0.5;
+            font-weight: 400;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="desktop-app">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="window-controls">
+                    <span class="window-btn close"></span>
+                    <span class="window-btn minimize"></span>
+                    <span class="window-btn maximize"></span>
+                </div>
+                <div class="logo">GemiGo</div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要</div>
+                    <a href="desktop-home.html" class="nav-item active">
+                        <span class="nav-item-icon">🏠</span>
+                        <span class="nav-item-label">主页</span>
+                    </a>
+                    <a href="desktop-ai-chat.html" class="nav-item">
+                        <span class="nav-item-icon">🤖</span>
+                        <span class="nav-item-label">AI 助手</span>
+                    </a>
+                    <a href="desktop-file.html" class="nav-item">
+                        <span class="nav-item-icon">📁</span>
+                        <span class="nav-item-label">文件处理</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">快捷工具</div>
+                    <a href="#" class="nav-item">
+                        <span class="nav-item-icon">💰</span>
+                        <span class="nav-item-label">记账</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-item-icon">📖</span>
+                        <span class="nav-item-label">背单词</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-item-icon">🍅</span>
+                        <span class="nav-item-label">番茄钟</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-item-icon">💧</span>
+                        <span class="nav-item-label">喝水</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">设置</div>
+                    <a href="desktop-automation.html" class="nav-item">
+                        <span class="nav-item-icon">⚙️</span>
+                        <span class="nav-item-label">自动化</span>
+                    </a>
+                    <a href="desktop-notifications.html" class="nav-item">
+                        <span class="nav-item-icon">🔔</span>
+                        <span class="nav-item-label">提醒设置</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="index.html" class="btn btn-ghost" style="width: 100%;">← 返回原型首页</a>
+            </div>
+        </aside>
+
+        <main class="desktop-main">
+            <div class="desktop-content">
+                <div class="greeting">
+                    👋 早上好，小林 <span class="greeting-time">9:23</span>
+                </div>
+
+                <div class="ai-input-container">
+                    <input type="text" class="ai-input" placeholder="💬 问我任何事，或拖入文件处理...">
+                    <p class="ai-hint">试试："帮我记一笔午饭35" 或 拖入 PDF 说"转成 Word"</p>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-value">¥86</div>
+                        <div class="stat-label">今日支出</div>
+                        <div class="stat-action">
+                            <button class="btn btn-small btn-ghost">记一笔</button>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💧</div>
+                        <div class="stat-value">5/8</div>
+                        <div class="stat-label">喝水杯数</div>
+                        <div class="stat-action">
+                            <button class="btn btn-small btn-ghost">喝了一杯</button>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🍅</div>
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">今日番茄</div>
+                        <div class="stat-action">
+                            <button class="btn btn-small btn-ghost">开始专注</button>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📖</div>
+                        <div class="stat-value">15/20</div>
+                        <div class="stat-label">今日单词</div>
+                        <div class="stat-action">
+                            <button class="btn btn-small btn-ghost">继续背</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title-sm">⚡ 快捷工具</h2>
+                    </div>
+                    <div class="quick-tools">
+                        <a href="desktop-file.html" class="quick-tool">
+                            <span class="quick-tool-icon">📄</span>
+                            <span class="quick-tool-label">PDF 转换</span>
+                        </a>
+                        <a href="#" class="quick-tool">
+                            <span class="quick-tool-icon">🌐</span>
+                            <span class="quick-tool-label">翻译</span>
+                        </a>
+                        <a href="#" class="quick-tool">
+                            <span class="quick-tool-icon">🖼️</span>
+                            <span class="quick-tool-label">图片压缩</span>
+                        </a>
+                        <a href="#" class="quick-tool">
+                            <span class="quick-tool-icon">📝</span>
+                            <span class="quick-tool-label">笔记</span>
+                        </a>
+                        <a href="#" class="quick-tool">
+                            <span class="quick-tool-icon">🔢</span>
+                            <span class="quick-tool-label">计算器</span>
+                        </a>
+                        <a href="#" class="quick-tool">
+                            <span class="quick-tool-icon">➕</span>
+                            <span class="quick-tool-label">更多</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title-sm">📁 最近文件</h2>
+                        <a href="#" class="section-link">查看全部</a>
+                    </div>
+                    <div class="file-list">
+                        <div class="file-item">
+                            <span class="file-icon">📕</span>
+                            <div class="file-info">
+                                <div class="file-name">毕业论文初稿.pdf</div>
+                                <div class="file-meta">2.3 MB · 今天 14:32</div>
+                            </div>
+                            <div class="file-actions">
+                                <button class="btn btn-small btn-ghost">转 Word</button>
+                                <button class="btn btn-small btn-ghost">AI 总结</button>
+                            </div>
+                        </div>
+                        <div class="file-item">
+                            <span class="file-icon">📗</span>
+                            <div class="file-info">
+                                <div class="file-name">12月消费记录.xlsx</div>
+                                <div class="file-meta">156 KB · 昨天 20:15</div>
+                            </div>
+                            <div class="file-actions">
+                                <button class="btn btn-small btn-ghost">分析</button>
+                                <button class="btn btn-small btn-ghost">导出</button>
+                            </div>
+                        </div>
+                        <div class="file-item">
+                            <span class="file-icon">🖼️</span>
+                            <div class="file-info">
+                                <div class="file-name">产品截图.png</div>
+                                <div class="file-meta">4.5 MB · 昨天 15:20</div>
+                            </div>
+                            <div class="file-actions">
+                                <button class="btn btn-small btn-ghost">压缩</button>
+                                <button class="btn btn-small btn-ghost">OCR</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>
