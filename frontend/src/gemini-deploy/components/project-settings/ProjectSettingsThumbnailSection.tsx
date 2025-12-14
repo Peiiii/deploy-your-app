@@ -1,27 +1,28 @@
 import React, { useState, useRef } from 'react';
 import { Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { usePresenter } from '../../contexts/PresenterContext';
+import { useProjectSettingsStore } from '../../stores/projectSettingsStore';
+import { getProjectThumbnailUrl } from '../../utils/project';
+import type { Project } from '../../types';
 
 interface ProjectSettingsThumbnailSectionProps {
-  projectName: string;
-  thumbnailUrl: string | null;
-  thumbnailVersion: number;
-  isUploadingThumbnail: boolean;
-  onThumbnailFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onThumbnailPaste: (e: React.ClipboardEvent<HTMLDivElement>) => void;
+  project: Project;
 }
 
 export const ProjectSettingsThumbnailSection: React.FC<
   ProjectSettingsThumbnailSectionProps
-> = ({
-  projectName,
-  thumbnailUrl,
-  thumbnailVersion,
-  isUploadingThumbnail,
-  onThumbnailFileChange,
-  onThumbnailPaste,
-}) => {
+> = ({ project }) => {
   const { t } = useTranslation();
+  const presenter = usePresenter();
+
+  // Subscribe to store state individually
+  const isUploadingThumbnail = useProjectSettingsStore((s) => s.isUploadingThumbnail);
+  const thumbnailVersion = useProjectSettingsStore((s) => s.thumbnailVersion);
+
+  // Derived state
+  const thumbnailUrl = getProjectThumbnailUrl(project.url);
+
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -61,7 +62,7 @@ export const ProjectSettingsThumbnailSection: React.FC<
         target: fakeInput,
         currentTarget: fakeInput,
       } as React.ChangeEvent<HTMLInputElement>;
-      onThumbnailFileChange(fakeEvent);
+      presenter.projectSettings.handleThumbnailFileChange(fakeEvent);
     }
   };
 
@@ -69,7 +70,7 @@ export const ProjectSettingsThumbnailSection: React.FC<
     <div
       ref={containerRef}
       className="space-y-3"
-      onPaste={onThumbnailPaste}
+      onPaste={presenter.projectSettings.handleThumbnailPaste}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -100,7 +101,7 @@ export const ProjectSettingsThumbnailSection: React.FC<
                     ? `${thumbnailUrl}?v=${thumbnailVersion}`
                     : thumbnailUrl
                 }
-                alt={projectName}
+                alt={project.name}
                 className="w-full h-full object-cover"
               />
               {isUploadingThumbnail && (
@@ -128,7 +129,7 @@ export const ProjectSettingsThumbnailSection: React.FC<
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={onThumbnailFileChange}
+              onChange={presenter.projectSettings.handleThumbnailFileChange}
             />
           </label>
           <p className="flex items-center gap-1.5">
@@ -142,4 +143,3 @@ export const ProjectSettingsThumbnailSection: React.FC<
     </div>
   );
 };
-

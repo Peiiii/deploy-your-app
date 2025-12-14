@@ -1,26 +1,15 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProjectSettingsThumbnailSection } from './ProjectSettingsThumbnailSection';
+import type { Project } from '../../types';
 
 interface ProjectSettingsDisplayGroupProps {
-  projectName: string;
-  thumbnailUrl: string | null;
-  thumbnailVersion: number;
-  isUploadingThumbnail: boolean;
-  onThumbnailFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onThumbnailPaste: (e: React.ClipboardEvent<HTMLDivElement>) => void;
+  project: Project;
 }
 
 export const ProjectSettingsDisplayGroup: React.FC<
   ProjectSettingsDisplayGroupProps
-> = ({
-  projectName,
-  thumbnailUrl,
-  thumbnailVersion,
-  isUploadingThumbnail,
-  onThumbnailFileChange,
-  onThumbnailPaste,
-}) => {
+> = ({ project }) => {
   const { t } = useTranslation();
 
   return (
@@ -29,14 +18,7 @@ export const ProjectSettingsDisplayGroup: React.FC<
         <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-4">
           {t('project.displaySettings')}
         </h2>
-        <ProjectSettingsThumbnailSection
-          projectName={projectName}
-          thumbnailUrl={thumbnailUrl}
-          thumbnailVersion={thumbnailVersion}
-          isUploadingThumbnail={isUploadingThumbnail}
-          onThumbnailFileChange={onThumbnailFileChange}
-          onThumbnailPaste={onThumbnailPaste}
-        />
+        <ProjectSettingsThumbnailSection project={project} />
       </div>
     </div>
   );

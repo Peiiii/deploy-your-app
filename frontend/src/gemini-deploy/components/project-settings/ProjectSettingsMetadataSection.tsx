@@ -1,48 +1,39 @@
 import React from 'react';
 import { Heart, HeartOff, Save, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { ProjectSettingsCardReactionsProps } from './types';
+import { usePresenter } from '../../contexts/PresenterContext';
+import { useProjectSettingsStore } from '../../stores/projectSettingsStore';
+import { useReactionStore } from '../../stores/reactionStore';
+import type { Project } from '../../types';
 
 interface ProjectSettingsMetadataSectionProps {
-  nameDraft: string;
-  onNameChange: (value: string) => void;
-  slugDraft: string;
-  onSlugChange: (value: string) => void;
-  slugIsEditable: boolean;
-  descriptionDraft: string;
-  onDescriptionChange: (value: string) => void;
-  categoryDraft: string;
-  onCategoryChange: (value: string) => void;
-  tagsDraft: string;
-  onTagsChange: (value: string) => void;
-  isSavingMetadata: boolean;
-  onSaveMetadata: () => void;
-  reactions: ProjectSettingsCardReactionsProps;
-  onToggleLike: () => void;
-  onToggleFavorite: () => void;
+  project: Project;
 }
 
 export const ProjectSettingsMetadataSection: React.FC<
   ProjectSettingsMetadataSectionProps
-> = ({
-  nameDraft,
-  onNameChange,
-  slugDraft,
-  onSlugChange,
-  slugIsEditable,
-  descriptionDraft,
-  onDescriptionChange,
-  categoryDraft,
-  onCategoryChange,
-  tagsDraft,
-  onTagsChange,
-  isSavingMetadata,
-  onSaveMetadata,
-  reactions,
-  onToggleLike,
-  onToggleFavorite,
-}) => {
+> = ({ project }) => {
   const { t } = useTranslation();
+  const presenter = usePresenter();
+
+  // Subscribe to each state item individually
+  const nameDraft = useProjectSettingsStore((s) => s.nameDraft);
+  const slugDraft = useProjectSettingsStore((s) => s.slugDraft);
+  const descriptionDraft = useProjectSettingsStore((s) => s.descriptionDraft);
+  const categoryDraft = useProjectSettingsStore((s) => s.categoryDraft);
+  const tagsDraft = useProjectSettingsStore((s) => s.tagsDraft);
+  const isSavingMetadata = useProjectSettingsStore((s) => s.isSavingMetadata);
+  const actions = useProjectSettingsStore((s) => s.actions);
+
+  // Reactions from reaction store
+  const reactionEntry = useReactionStore((s) => s.byProjectId[project.id]);
+  const likesCount = reactionEntry?.likesCount ?? 0;
+  const favoritesCount = reactionEntry?.favoritesCount ?? 0;
+  const likedByCurrentUser = reactionEntry?.likedByCurrentUser ?? false;
+  const favoritedByCurrentUser = reactionEntry?.favoritedByCurrentUser ?? false;
+
+  // Compute slug editability
+  const slugIsEditable = presenter.projectSettings.isSlugEditable(project);
 
   return (
     <div className="space-y-3">
@@ -56,7 +47,7 @@ export const ProjectSettingsMetadataSection: React.FC<
         <input
           type="text"
           value={nameDraft}
-          onChange={(e) => onNameChange(e.target.value)}
+          onChange={(e) => actions.setNameDraft(e.target.value)}
           className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all"
           placeholder={t('project.displayNamePlaceholder')}
         />
@@ -68,7 +59,7 @@ export const ProjectSettingsMetadataSection: React.FC<
         <input
           type="text"
           value={slugDraft}
-          onChange={(e) => onSlugChange(e.target.value)}
+          onChange={(e) => actions.setSlugDraft(e.target.value)}
           disabled={!slugIsEditable}
           className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
           placeholder={t('project.slugPlaceholder')}
@@ -89,21 +80,21 @@ export const ProjectSettingsMetadataSection: React.FC<
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={onToggleLike}
+            onClick={presenter.projectSettings.toggleLike}
             className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px] text-slate-700 dark:text-slate-200 hover:border-pink-500 hover:text-pink-600 dark:hover:text-pink-400"
           >
-            {reactions.likedByCurrentUser ? (
+            {likedByCurrentUser ? (
               <Heart className="w-3 h-3 fill-pink-500 text-pink-500" />
             ) : (
               <HeartOff className="w-3 h-3" />
             )}
-            <span>{reactions.likesCount}</span>
+            <span>{likesCount}</span>
           </button>
           <button
             type="button"
-            onClick={onToggleFavorite}
+            onClick={presenter.projectSettings.toggleFavorite}
             className={`inline-flex items-center justify-center w-7 h-7 rounded-full border text-[11px] ${
-              reactions.favoritedByCurrentUser
+              favoritedByCurrentUser
                 ? 'bg-yellow-400/90 border-yellow-500 text-yellow-900'
                 : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300'
             }`}
@@ -111,7 +102,7 @@ export const ProjectSettingsMetadataSection: React.FC<
           >
             <Star
               className={`w-3 h-3 ${
-                reactions.favoritedByCurrentUser ? 'fill-current' : ''
+                favoritedByCurrentUser ? 'fill-current' : ''
               }`}
             />
           </button>
@@ -123,7 +114,7 @@ export const ProjectSettingsMetadataSection: React.FC<
         </label>
         <textarea
           value={descriptionDraft}
-          onChange={(e) => onDescriptionChange(e.target.value)}
+          onChange={(e) => actions.setDescriptionDraft(e.target.value)}
           rows={3}
           className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 resize-none transition-all"
           placeholder={t('project.descriptionPlaceholder')}
@@ -137,7 +128,7 @@ export const ProjectSettingsMetadataSection: React.FC<
           <input
             type="text"
             value={categoryDraft}
-            onChange={(e) => onCategoryChange(e.target.value)}
+            onChange={(e) => actions.setCategoryDraft(e.target.value)}
             className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all"
             placeholder={t('project.categoryPlaceholder')}
           />
@@ -149,7 +140,7 @@ export const ProjectSettingsMetadataSection: React.FC<
           <input
             type="text"
             value={tagsDraft}
-            onChange={(e) => onTagsChange(e.target.value)}
+            onChange={(e) => actions.setTagsDraft(e.target.value)}
             className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all"
             placeholder={t('project.tagsPlaceholder')}
           />
@@ -165,7 +156,7 @@ export const ProjectSettingsMetadataSection: React.FC<
           )}
         </div>
         <button
-          onClick={onSaveMetadata}
+          onClick={presenter.projectSettings.saveMetadata}
           disabled={isSavingMetadata}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold bg-brand-500 text-white hover:bg-brand-600 dark:bg-brand-500 dark:hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm hover:shadow"
         >

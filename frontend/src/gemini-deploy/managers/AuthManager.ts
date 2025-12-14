@@ -38,6 +38,10 @@ export class AuthManager {
     }
   };
 
+  getCurrentUser = (): User | null => {
+    return useAuthStore.getState().user;
+  };
+
   updateHandle = async (handle: string): Promise<void> => {
     const trimmed = handle.trim();
     if (!trimmed) {

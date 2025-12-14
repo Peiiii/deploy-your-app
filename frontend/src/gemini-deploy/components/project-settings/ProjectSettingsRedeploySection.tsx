@@ -1,41 +1,45 @@
 import React from 'react';
 import { FileText, RefreshCcw, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { usePresenter } from '../../contexts/PresenterContext';
+import { useProjectSettingsStore } from '../../stores/projectSettingsStore';
+import { useDeploymentStore } from '../../stores/deploymentStore';
+import { DeploymentStatus } from '../../types';
+import type { Project } from '../../types';
 
 interface ProjectSettingsRedeploySectionProps {
-  hasDeployedBefore: boolean;
+  project: Project;
   canDeployFromGitHub: boolean;
-  isRedeploying: boolean;
-  isDeploymentInProgress: boolean;
-  onRedeployFromGitHub: () => void;
-  canDeployFromZip: boolean;
-  zipUploading: boolean;
-  onZipInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  hasSavedHtml: boolean;
-  isDeployingHtml: boolean;
-  onDeployFromHtml: () => void;
-  htmlUploading: boolean;
-  onHtmlInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export const ProjectSettingsRedeploySection: React.FC<
   ProjectSettingsRedeploySectionProps
-> = ({
-  hasDeployedBefore,
-  canDeployFromGitHub,
-  isRedeploying,
-  isDeploymentInProgress,
-  onRedeployFromGitHub,
-  canDeployFromZip,
-  zipUploading,
-  onZipInputChange,
-  hasSavedHtml,
-  isDeployingHtml,
-  onDeployFromHtml,
-  htmlUploading,
-  onHtmlInputChange,
-}) => {
+> = ({ project, canDeployFromGitHub }) => {
   const { t } = useTranslation();
+  const presenter = usePresenter();
+
+  // Subscribe to store state individually
+  const isRedeploying = useProjectSettingsStore((s) => s.isRedeploying);
+  const isDeployingHtml = useProjectSettingsStore((s) => s.isDeployingHtml);
+  const zipUploading = useProjectSettingsStore((s) => s.zipUploading);
+  const htmlUploading = useProjectSettingsStore((s) => s.htmlUploading);
+
+  // Deployment status from deployment store
+  const deploymentStatus = useDeploymentStore((s) => s.deploymentStatus);
+  const isDeploymentInProgress =
+    deploymentStatus === DeploymentStatus.BUILDING ||
+    deploymentStatus === DeploymentStatus.DEPLOYING;
+
+  // Derived state
+  const hasDeployedBefore =
+    Boolean(project.url) ||
+    project.status === 'Live' ||
+    project.status === 'Failed' ||
+    project.status === 'Building';
+  const hasSavedHtml = Boolean(
+    project.htmlContent && project.htmlContent.trim().length > 0,
+  );
+  const canDeployFromZip = true;
 
   return (
     <div className="space-y-3">
@@ -45,7 +49,7 @@ export const ProjectSettingsRedeploySection: React.FC<
       <div className="flex flex-wrap gap-3">
         {canDeployFromGitHub && (
           <button
-            onClick={onRedeployFromGitHub}
+            onClick={presenter.projectSettings.redeployFromGitHub}
             disabled={isRedeploying || isDeploymentInProgress}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-brand-500 hover:text-white hover:border-brand-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
@@ -57,7 +61,7 @@ export const ProjectSettingsRedeploySection: React.FC<
         )}
 
         <button
-          onClick={onDeployFromHtml}
+          onClick={presenter.projectSettings.deployFromHtml}
           disabled={!hasSavedHtml || isDeployingHtml || isDeploymentInProgress}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-brand-500 hover:text-white hover:border-brand-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
@@ -77,7 +81,7 @@ export const ProjectSettingsRedeploySection: React.FC<
               type="file"
               accept=".zip"
               className="hidden"
-              onChange={onZipInputChange}
+              onChange={presenter.projectSettings.handleZipInputChange}
             />
           </label>
         )}
@@ -93,7 +97,7 @@ export const ProjectSettingsRedeploySection: React.FC<
             type="file"
             accept=".html,text/html"
             className="hidden"
-            onChange={onHtmlInputChange}
+            onChange={presenter.projectSettings.handleHtmlInputChange}
           />
         </label>
       </div>

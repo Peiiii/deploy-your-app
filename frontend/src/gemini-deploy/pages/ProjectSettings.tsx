@@ -1,60 +1,30 @@
 import { ArrowLeft } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { DeploymentSession } from '../components/DeploymentSession';
 import { ProjectSettingsCard } from '../components/ProjectSettingsCard';
 import { URLS } from '../constants';
 import { usePresenter } from '../contexts/PresenterContext';
-import { useAnalyticsStore } from '../stores/analyticsStore';
 import { useAuthStore } from '../stores/authStore';
-import { useDeploymentStore } from '../stores/deploymentStore';
 import { useProjectStore } from '../stores/projectStore';
-import { useReactionStore } from '../stores/reactionStore';
-import type { Project } from '../types';
-import { DeploymentStatus, SourceType } from '../types';
-import { formatRepoLabel, getProjectThumbnailUrl } from '../utils/project';
+import { useProjectSettingsStore } from '../stores/projectSettingsStore';
 
 export const ProjectSettings: React.FC = () => {
   const { t } = useTranslation();
   const presenter = usePresenter();
   const projects = useProjectStore((s) => s.projects);
   const user = useAuthStore((s) => s.user);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isSavingMetadata, setIsSavingMetadata] = useState(false);
-  const [isRedeploying, setIsRedeploying] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [nameDraft, setNameDraft] = useState('');
-  const [descriptionDraft, setDescriptionDraft] = useState('');
-  const [categoryDraft, setCategoryDraft] = useState('');
-  const [tagsDraft, setTagsDraft] = useState('');
-  const [repoUrlDraft, setRepoUrlDraft] = useState('');
-  const [slugDraft, setSlugDraft] = useState('');
-  const [zipUploading, setZipUploading] = useState(false);
-  const [htmlUploading, setHtmlUploading] = useState(false);
-  const [isDeployingHtml, setIsDeployingHtml] = useState(false);
-  // Local state for managing custom thumbnail uploads.
-  const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
-  const [thumbnailVersion, setThumbnailVersion] = useState(0);
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
   const projectId = params.id ?? null;
 
-  const deploymentStatus = useDeploymentStore((s) => s.deploymentStatus);
-  const isDeploymentInProgress =
-    deploymentStatus === DeploymentStatus.BUILDING ||
-    deploymentStatus === DeploymentStatus.DEPLOYING;
+  // Subscribe to error from settings store
+  const error = useProjectSettingsStore((s) => s.error);
 
   const project = useMemo(
     () => projects.find((p) => p.id === projectId) || null,
     [projects, projectId],
-  );
-
-  const analyticsEntry = useAnalyticsStore((s) =>
-    project ? s.byProjectId[project.id] : undefined,
-  );
-  const reactionEntry = useReactionStore((s) =>
-    project ? s.byProjectId[project.id] : undefined,
   );
 
   // Load projects if not available yet
@@ -65,39 +35,32 @@ export const ProjectSettings: React.FC = () => {
     }
   }, [projectId, project, projects.length, presenter.project]);
 
-  // Sync draft fields when project changes
+  // Initialize form when project changes
   useEffect(() => {
     if (project) {
-      setRepoUrlDraft(
-        project.repoUrl && project.repoUrl.startsWith('draft:')
-          ? ''
-          : project.repoUrl || '',
-      );
-      setSlugDraft(project.slug || '');
-      setNameDraft(project.name || '');
-      setDescriptionDraft(project.description || '');
-      setCategoryDraft(project.category || '');
-      setTagsDraft(
-        project.tags && project.tags.length > 0 ? project.tags.join(', ') : '',
-      );
+      presenter.projectSettings.initializeForm(project);
     }
-  }, [project]);
+  }, [project, presenter.projectSettings]);
 
   // Load analytics once the project is available.
   useEffect(() => {
     if (!project) return;
-    presenter.analytics.loadProjectStats(project.id, '7d');
-  }, [project, presenter.analytics]);
-
-  const thumbnailUrl = React.useMemo(() => {
-    return getProjectThumbnailUrl(project?.url);
-  }, [project?.url]);
+    presenter.projectSettings.loadAnalytics(project.id, '7d');
+  }, [project, presenter.projectSettings]);
 
   // Load reactions once the project is available.
   useEffect(() => {
     if (!project || !user) return;
-    presenter.reaction.loadReactionsForProject(project.id);
-  }, [project, user, presenter.reaction]);
+    presenter.projectSettings.loadReactions(project.id);
+  }, [project, user, presenter.projectSettings]);
+
+  // Handle delete navigation
+  const handleDeleteProject = async () => {
+    const deleted = await presenter.projectSettings.deleteProject();
+    if (deleted) {
+      navigate('/dashboard');
+    }
+  };
 
   if (!projectId) {
     return (
@@ -126,281 +89,6 @@ export const ProjectSettings: React.FC = () => {
 
   const canRedeployFromGitHub =
     !!project.repoUrl && project.repoUrl.startsWith(URLS.GITHUB_BASE);
-  const canDeployFromGitHub = canRedeployFromGitHub;
-  const canDeployFromZip = true;
-  const canDeployFromHtml = true;
-  const hasSavedHtml = Boolean(project.htmlContent && project.htmlContent.trim().length > 0);
-  const hasDeployedBefore =
-    Boolean(project.url) ||
-    project.status === 'Live' ||
-    project.status === 'Failed' ||
-    project.status === 'Building';
-  const slugIsEditable = project.status !== 'Live' && project.status !== 'Building';
-
-  const handleSaveRepoUrl = async () => {
-    setError(null);
-    setIsSaving(true);
-    try {
-      await presenter.project.updateProject(project.id, {
-        repoUrl: repoUrlDraft.trim(),
-      });
-    } catch (err) {
-      console.error(err);
-      setError('Failed to update repository URL.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleThumbnailUpload = async (file: File) => {
-    if (!file || isUploadingThumbnail) return;
-    setError(null);
-    setIsUploadingThumbnail(true);
-    try {
-      await presenter.project.uploadThumbnail(project.id, file);
-      // Bump a local version so the preview image cache is busted.
-      setThumbnailVersion((v) => v + 1);
-      presenter.ui.showSuccessToast('Thumbnail uploaded successfully.');
-    } catch (err) {
-      console.error(err);
-      const fallbackMessage = 'Failed to upload thumbnail image.';
-      const message =
-        err instanceof Error && err.message
-          ? err.message
-          : fallbackMessage;
-      presenter.ui.showErrorToast(message);
-    } finally {
-      setIsUploadingThumbnail(false);
-    }
-  };
-
-  const handleThumbnailFileChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    await handleThumbnailUpload(file);
-    // Reset input so the same file can be selected again if needed.
-    e.target.value = '';
-  };
-
-  const handleThumbnailPaste = async (
-    event: React.ClipboardEvent<HTMLDivElement>,
-  ) => {
-    if (isUploadingThumbnail) return;
-    const { items } = event.clipboardData;
-    for (let i = 0; i < items.length; i += 1) {
-      const item = items[i];
-      if (item.kind === 'file' && item.type.startsWith('image/')) {
-        const file = item.getAsFile();
-        if (!file) continue;
-        event.preventDefault();
-        await handleThumbnailUpload(file);
-        break;
-      }
-    }
-  };
-
-  const handleSaveMetadata = async () => {
-    if (!project) return;
-    setError(null);
-    setIsSavingMetadata(true);
-    try {
-      const trimmedName = nameDraft.trim();
-      const trimmedDescription = descriptionDraft.trim();
-      const trimmedCategory = categoryDraft.trim();
-      const trimmedSlug = slugDraft.trim();
-      const tagsArray =
-        tagsDraft
-          .split(',')
-          .map((t) => t.trim())
-          .filter((t) => t.length > 0) ?? [];
-
-      await presenter.project.updateProject(project.id, {
-        ...(trimmedName ? { name: trimmedName } : {}),
-        ...(slugIsEditable && trimmedSlug ? { slug: trimmedSlug } : {}),
-        ...(trimmedDescription ? { description: trimmedDescription } : {}),
-        ...(trimmedCategory ? { category: trimmedCategory } : {}),
-        ...(tagsArray.length > 0 ? { tags: tagsArray } : { tags: [] }),
-      });
-      presenter.ui.showSuccessToast('Metadata saved successfully.');
-    } catch (err) {
-      console.error(err);
-      presenter.ui.showErrorToast('Failed to update project metadata.');
-    } finally {
-      setIsSavingMetadata(false);
-    }
-  };
-
-  const handleRedeployFromGitHub = async () => {
-    if (!canDeployFromGitHub) return;
-    setError(null);
-    setIsRedeploying(true);
-    try {
-      const payload: Project = {
-        ...project,
-        sourceType: SourceType.GITHUB,
-      };
-      await presenter.deployment.redeployProject(payload, {
-        onComplete: () => {
-          presenter.project.loadProjects();
-        },
-      });
-    } catch (err) {
-      console.error(err);
-      setError('Failed to trigger redeploy from GitHub.');
-    } finally {
-      setIsRedeploying(false);
-    }
-  };
-
-  const handleRedeployFromHtml = async () => {
-    if (!canDeployFromHtml) return;
-    if (!hasSavedHtml) {
-      setError('No saved HTML content on this project. Upload an HTML file to deploy.');
-      return;
-    }
-    setError(null);
-    setIsDeployingHtml(true);
-    try {
-      const payload: Project = {
-        ...project,
-        sourceType: SourceType.HTML,
-        htmlContent: project.htmlContent,
-      };
-      await presenter.deployment.redeployProject(payload, {
-        onComplete: () => {
-          presenter.project.loadProjects();
-        },
-      });
-    } catch (err) {
-      console.error(err);
-      setError('Failed to deploy from HTML.');
-    } finally {
-      setIsDeployingHtml(false);
-    }
-  };
-
-  const handleZipUpload = async (file: File) => {
-    if (!canDeployFromZip) return;
-    if (!file.name.endsWith('.zip')) {
-      setError('Please upload a .zip file.');
-      return;
-    }
-    setError(null);
-    setZipUploading(true);
-    try {
-      const payload: Project = {
-        ...project,
-        sourceType: SourceType.ZIP,
-      };
-      await presenter.deployment.redeployProject(payload, {
-        zipFile: file,
-        onComplete: () => {
-          presenter.project.loadProjects();
-        },
-      });
-    } catch (err) {
-      console.error(err);
-      setError('Failed to deploy from ZIP archive.');
-    } finally {
-      setZipUploading(false);
-    }
-  };
-
-  const handleHtmlUpload = async (file: File) => {
-    if (!canDeployFromHtml) return;
-    if (!file.name.toLowerCase().endsWith('.html')) {
-      setError('Please upload a .html file.');
-      return;
-    }
-    setError(null);
-    setHtmlUploading(true);
-    try {
-      const content = await file.text();
-      const payload: Project = {
-        ...project,
-        sourceType: SourceType.HTML,
-        htmlContent: content,
-      };
-      await presenter.deployment.redeployProject(payload, {
-        onComplete: () => {
-          presenter.project.loadProjects();
-        },
-      });
-    } catch (err) {
-      console.error(err);
-      setError('Failed to deploy from HTML file.');
-    } finally {
-      setHtmlUploading(false);
-    }
-  };
-
-  const handleDeleteProject = async () => {
-    const confirmed = await presenter.ui.showConfirm({
-      title: t('project.dangerZone'),
-      message: t('project.deleteConfirm'),
-      primaryLabel: t('project.deleteProject'),
-      secondaryLabel: t('common.cancel'),
-    });
-    if (!confirmed) {
-      return;
-    }
-    setError(null);
-    try {
-      await presenter.project.deleteProject(project.id);
-      navigate('/dashboard');
-    } catch (err) {
-      console.error(err);
-      setError(t('project.failedToDelete'));
-    }
-  };
-
-  const handleTogglePublicVisibility = async () => {
-    setError(null);
-    try {
-      const nextValue = !(project.isPublic ?? true);
-      await presenter.project.updateProject(project.id, {
-        isPublic: nextValue,
-      });
-    } catch (err) {
-      console.error(err);
-      setError(t('project.failedToUpdateVisibility'));
-    }
-  };
-
-  const handleToggleLike = () => {
-    if (!user) {
-      presenter.auth.openAuthModal('login');
-      return;
-    }
-    presenter.reaction.toggleLike(project.id);
-  };
-
-  const handleToggleFavorite = () => {
-    if (!user) {
-      presenter.auth.openAuthModal('login');
-      return;
-    }
-    presenter.reaction.toggleFavorite(project.id);
-  };
-
-  const analytics = {
-    views7d: analyticsEntry?.stats?.views7d ?? 0,
-    totalViews: analyticsEntry?.stats?.totalViews ?? 0,
-    lastViewAt: analyticsEntry?.stats?.lastViewAt,
-    isLoading: analyticsEntry?.isLoading ?? false,
-    error: analyticsEntry?.error,
-  };
-
-  const reactions = {
-    likesCount: reactionEntry?.likesCount ?? 0,
-    favoritesCount: reactionEntry?.favoritesCount ?? 0,
-    likedByCurrentUser: reactionEntry?.likedByCurrentUser ?? false,
-    favoritedByCurrentUser: reactionEntry?.favoritedByCurrentUser ?? false,
-  };
-
-  const repoLabel = formatRepoLabel(project);
 
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 md:space-y-8 animate-fade-in">
@@ -431,48 +119,7 @@ export const ProjectSettings: React.FC = () => {
 
       <ProjectSettingsCard
         project={project}
-        repoLabel={repoLabel}
-        repoUrlDraft={repoUrlDraft}
-        onRepoUrlChange={setRepoUrlDraft}
-        onSaveRepoUrl={handleSaveRepoUrl}
-        isSavingRepoUrl={isSaving}
-        nameDraft={nameDraft}
-        onNameChange={setNameDraft}
-        slugDraft={slugDraft}
-        onSlugChange={setSlugDraft}
-        slugIsEditable={slugIsEditable}
-        descriptionDraft={descriptionDraft}
-        onDescriptionChange={setDescriptionDraft}
-        categoryDraft={categoryDraft}
-        onCategoryChange={setCategoryDraft}
-        tagsDraft={tagsDraft}
-        onTagsChange={setTagsDraft}
-        isSavingMetadata={isSavingMetadata}
-        onSaveMetadata={handleSaveMetadata}
-        hasDeployedBefore={hasDeployedBefore}
-        canDeployFromGitHub={canDeployFromGitHub}
-        isRedeploying={isRedeploying}
-        isDeploymentInProgress={isDeploymentInProgress}
-        onRedeployFromGitHub={handleRedeployFromGitHub}
-        canDeployFromZip={canDeployFromZip}
-        zipUploading={zipUploading}
-        onZipUpload={handleZipUpload}
-        hasSavedHtml={hasSavedHtml}
-        isDeployingHtml={isDeployingHtml}
-        onDeployFromHtml={handleRedeployFromHtml}
-        htmlUploading={htmlUploading}
-        onHtmlUpload={handleHtmlUpload}
-        thumbnailUrl={thumbnailUrl}
-        thumbnailVersion={thumbnailVersion}
-        isUploadingThumbnail={isUploadingThumbnail}
-        onThumbnailFileChange={handleThumbnailFileChange}
-        onThumbnailPaste={handleThumbnailPaste}
-        isPublic={project.isPublic}
-        onTogglePublicVisibility={handleTogglePublicVisibility}
-        analytics={analytics}
-        reactions={reactions}
-        onToggleLike={handleToggleLike}
-        onToggleFavorite={handleToggleFavorite}
+        canDeployFromGitHub={canRedeployFromGitHub}
         error={error}
         onDeleteProject={handleDeleteProject}
       />

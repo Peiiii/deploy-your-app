@@ -2,10 +2,10 @@ import React from 'react';
 import { Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatRelativeTime } from '../../utils/date';
-import type { ProjectSettingsProject } from './types';
+import type { Project } from '../../types';
 
 interface ProjectSettingsHeaderProps {
-  project: ProjectSettingsProject;
+  project: Project;
 }
 
 export const ProjectSettingsHeader: React.FC<ProjectSettingsHeaderProps> = ({

@@ -7,132 +7,20 @@ import { ProjectSettingsDisplayGroup } from './project-settings/ProjectSettingsD
 import { ProjectSettingsPublicUrlSection } from './project-settings/ProjectSettingsPublicUrlSection';
 import { ProjectSettingsSidebar } from './project-settings/ProjectSettingsSidebar';
 import type { Project } from '../types';
-import type {
-  ProjectSettingsCardAnalyticsProps,
-  ProjectSettingsCardReactionsProps,
-} from './project-settings/types';
 
 interface ProjectSettingsCardProps {
   project: Project;
-  repoLabel: string;
-  repoUrlDraft: string;
-  onRepoUrlChange: (value: string) => void;
-  onSaveRepoUrl: () => void;
-  isSavingRepoUrl: boolean;
-  nameDraft: string;
-  onNameChange: (value: string) => void;
-  slugDraft: string;
-  onSlugChange: (value: string) => void;
-  slugIsEditable: boolean;
-  descriptionDraft: string;
-  onDescriptionChange: (value: string) => void;
-  categoryDraft: string;
-  onCategoryChange: (value: string) => void;
-  tagsDraft: string;
-  onTagsChange: (value: string) => void;
-  isSavingMetadata: boolean;
-  onSaveMetadata: () => void;
-  hasDeployedBefore: boolean;
   canDeployFromGitHub: boolean;
-  isRedeploying: boolean;
-  isDeploymentInProgress: boolean;
-  onRedeployFromGitHub: () => void;
-  canDeployFromZip: boolean;
-  zipUploading: boolean;
-  onZipUpload: (file: File) => void;
-  hasSavedHtml: boolean;
-  isDeployingHtml: boolean;
-  onDeployFromHtml: () => void;
-  htmlUploading: boolean;
-  onHtmlUpload: (file: File) => void;
-  thumbnailUrl: string | null;
-  thumbnailVersion: number;
-  isUploadingThumbnail: boolean;
-  onThumbnailFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onThumbnailPaste: (e: React.ClipboardEvent<HTMLDivElement>) => void;
-  isPublic: boolean | undefined;
-  onTogglePublicVisibility: () => void;
-  analytics: ProjectSettingsCardAnalyticsProps;
-  reactions: ProjectSettingsCardReactionsProps;
-  onToggleLike: () => void;
-  onToggleFavorite: () => void;
   error: string | null;
   onDeleteProject: () => void;
 }
 
 export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
   project,
-  repoLabel,
-  repoUrlDraft,
-  onRepoUrlChange,
-  onSaveRepoUrl,
-  isSavingRepoUrl,
-  nameDraft,
-  onNameChange,
-  slugDraft,
-  onSlugChange,
-  slugIsEditable,
-  descriptionDraft,
-  onDescriptionChange,
-  categoryDraft,
-  onCategoryChange,
-  tagsDraft,
-  onTagsChange,
-  isSavingMetadata,
-  onSaveMetadata,
-  hasDeployedBefore,
   canDeployFromGitHub,
-  isRedeploying,
-  isDeploymentInProgress,
-  onRedeployFromGitHub,
-  canDeployFromZip,
-  zipUploading,
-  onZipUpload,
-  hasSavedHtml,
-  isDeployingHtml,
-  onDeployFromHtml,
-  htmlUploading,
-  onHtmlUpload,
-  thumbnailUrl,
-  thumbnailVersion,
-  isUploadingThumbnail,
-  onThumbnailFileChange,
-  onThumbnailPaste,
-  isPublic,
-  onTogglePublicVisibility,
-  analytics,
-  reactions,
-  onToggleLike,
-  onToggleFavorite,
   error,
   onDeleteProject,
 }) => {
-  const handleZipInputChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (zipUploading || isDeploymentInProgress) {
-      event.target.value = '';
-      return;
-    }
-    await onZipUpload(file);
-    event.target.value = '';
-  };
-
-  const handleHtmlInputChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (htmlUploading || isDeploymentInProgress) {
-      event.target.value = '';
-      return;
-    }
-    await onHtmlUpload(file);
-    event.target.value = '';
-  };
-
   return (
     <div className="glass-card rounded-2xl p-6 md:p-8 flex flex-col gap-8">
       <ProjectSettingsHeader project={project} />
@@ -142,66 +30,23 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
           <ProjectSettingsPublicUrlSection projectUrl={project.url} />
 
           <div className="border-t border-slate-200 dark:border-slate-800 pt-8">
-            <ProjectSettingsBasicInfoGroup
-              project={project}
-              repoLabel={repoLabel}
-              repoUrlDraft={repoUrlDraft}
-              onRepoUrlChange={onRepoUrlChange}
-              onSaveRepoUrl={onSaveRepoUrl}
-              isSavingRepoUrl={isSavingRepoUrl}
-              nameDraft={nameDraft}
-              onNameChange={onNameChange}
-              slugDraft={slugDraft}
-              onSlugChange={onSlugChange}
-              slugIsEditable={slugIsEditable}
-              descriptionDraft={descriptionDraft}
-              onDescriptionChange={onDescriptionChange}
-              categoryDraft={categoryDraft}
-              onCategoryChange={onCategoryChange}
-              tagsDraft={tagsDraft}
-              onTagsChange={onTagsChange}
-              isSavingMetadata={isSavingMetadata}
-              onSaveMetadata={onSaveMetadata}
-              reactions={reactions}
-              onToggleLike={onToggleLike}
-              onToggleFavorite={onToggleFavorite}
-            />
+            <ProjectSettingsBasicInfoGroup project={project} />
           </div>
 
           <div className="border-t border-slate-200 dark:border-slate-800 pt-8">
             <ProjectSettingsDeploymentGroup
-              hasDeployedBefore={hasDeployedBefore}
+              project={project}
               canDeployFromGitHub={canDeployFromGitHub}
-              isRedeploying={isRedeploying}
-              isDeploymentInProgress={isDeploymentInProgress}
-              onRedeployFromGitHub={onRedeployFromGitHub}
-              canDeployFromZip={canDeployFromZip}
-              zipUploading={zipUploading}
-              onZipInputChange={handleZipInputChange}
-              hasSavedHtml={hasSavedHtml}
-              isDeployingHtml={isDeployingHtml}
-              onDeployFromHtml={onDeployFromHtml}
-              htmlUploading={htmlUploading}
-              onHtmlInputChange={handleHtmlInputChange}
             />
           </div>
 
           <div className="border-t border-slate-200 dark:border-slate-800 pt-8">
-            <ProjectSettingsDisplayGroup
-              projectName={project.name}
-              thumbnailUrl={thumbnailUrl}
-              thumbnailVersion={thumbnailVersion}
-              isUploadingThumbnail={isUploadingThumbnail}
-              onThumbnailFileChange={onThumbnailFileChange}
-              onThumbnailPaste={onThumbnailPaste}
-            />
+            <ProjectSettingsDisplayGroup project={project} />
           </div>
         </div>
 
         <ProjectSettingsSidebar
-          analytics={analytics}
-          isPublic={isPublic}
-          onTogglePublicVisibility={onTogglePublicVisibility}
+          project={project}
           onDeleteProject={onDeleteProject}
         />
       </div>

@@ -1,23 +1,31 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { ProjectSettingsCardAnalyticsProps } from './types';
+import { usePresenter } from '../../contexts/PresenterContext';
+import { useAnalyticsStore } from '../../stores/analyticsStore';
+import type { Project } from '../../types';
 
 interface ProjectSettingsSidebarProps {
-  analytics: ProjectSettingsCardAnalyticsProps;
-  isPublic: boolean | undefined;
-  onTogglePublicVisibility: () => void;
+  project: Project;
   onDeleteProject: () => void;
 }
 
 export const ProjectSettingsSidebar: React.FC<ProjectSettingsSidebarProps> = ({
-  analytics,
-  isPublic,
-  onTogglePublicVisibility,
+  project,
   onDeleteProject,
 }) => {
   const { t } = useTranslation();
-  const showInExplore = isPublic ?? true;
+  const presenter = usePresenter();
+
+  // Subscribe to analytics from store
+  const analyticsEntry = useAnalyticsStore((s) => s.byProjectId[project.id]);
+  const views7d = analyticsEntry?.stats?.views7d ?? 0;
+  const totalViews = analyticsEntry?.stats?.totalViews ?? 0;
+  const lastViewAt = analyticsEntry?.stats?.lastViewAt;
+  const isLoading = analyticsEntry?.isLoading ?? false;
+  const error = analyticsEntry?.error;
+
+  const showInExplore = project.isPublic ?? true;
 
   return (
     <div className="w-full md:w-72 space-y-4">
@@ -35,7 +43,7 @@ export const ProjectSettingsSidebar: React.FC<ProjectSettingsSidebarProps> = ({
             type="button"
             role="switch"
             aria-checked={showInExplore}
-            onClick={onTogglePublicVisibility}
+            onClick={presenter.projectSettings.togglePublicVisibility}
             className={`relative inline-flex h-6 w-14 items-center rounded-full border transition-colors ${
               showInExplore
                 ? 'bg-brand-500/90 border-brand-500/60'
@@ -61,10 +69,10 @@ export const ProjectSettingsSidebar: React.FC<ProjectSettingsSidebarProps> = ({
             {t('project.viewsLast7Days')}
           </span>
           <span className="text-slate-900 dark:text-white font-semibold text-base">
-            {analytics.isLoading ? (
+            {isLoading ? (
               <span className="inline-block w-8 h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></span>
             ) : (
-              analytics.views7d.toLocaleString()
+              views7d.toLocaleString()
             )}
           </span>
         </div>
@@ -73,26 +81,26 @@ export const ProjectSettingsSidebar: React.FC<ProjectSettingsSidebarProps> = ({
             {t('project.totalViews')}
           </span>
           <span className="text-slate-900 dark:text-white font-semibold text-base">
-            {analytics.isLoading ? (
+            {isLoading ? (
               <span className="inline-block w-8 h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></span>
             ) : (
-              analytics.totalViews.toLocaleString()
+              totalViews.toLocaleString()
             )}
           </span>
         </div>
-        {analytics.lastViewAt && (
+        {lastViewAt && (
           <div className="flex items-center justify-between py-1.5">
             <span className="text-slate-500 dark:text-gray-400">
               {t('project.lastView')}
             </span>
             <span className="text-slate-900 dark:text-white font-medium text-[10px]">
-              {new Date(analytics.lastViewAt).toLocaleString()}
+              {new Date(lastViewAt).toLocaleString()}
             </span>
           </div>
         )}
-        {analytics.error && (
+        {error && (
           <p className="text-[11px] text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-950/30 px-2 py-1 rounded">
-            {analytics.error}
+            {error}
           </p>
         )}
       </div>
