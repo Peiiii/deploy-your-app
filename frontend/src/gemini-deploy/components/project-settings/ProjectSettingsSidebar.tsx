@@ -36,7 +36,7 @@ export const ProjectSettingsSidebar: React.FC<ProjectSettingsSidebarProps> = ({
             role="switch"
             aria-checked={showInExplore}
             onClick={onTogglePublicVisibility}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full border transition-colors ${
+            className={`relative inline-flex h-6 w-14 items-center rounded-full border transition-colors ${
               showInExplore
                 ? 'bg-brand-500/90 border-brand-500/60'
                 : 'bg-slate-200 dark:bg-slate-800 border-slate-300 dark:border-slate-700'
