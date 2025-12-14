@@ -12,11 +12,15 @@
    - [Notify 通知](#notify)
    - [AI 人工智能](#ai)
    - [Clipboard 剪贴板](#clipboard)
-   - [File 文件 (基础)](#file-基础)
+   - [Dialog 对话框](#dialog)
+   - [File 文件](#file)
+   - [Network 网络](#network)
 2. [桌面端 API](#桌面端-api)
    - [Scheduler 定时任务](#scheduler)
    - [FileWatch 文件监控](#filewatch)
-   - [File 文件 (高级)](#file-高级)
+   - [Shell 系统集成](#shell-系统集成)
+   - [GlobalShortcut 全局快捷键](#globalshortcut)
+   - [Autostart 开机启动](#autostart)
 3. [浏览器扩展 API](#浏览器扩展-api)
    - [Extension 扩展交互](#extension)
 4. [应用清单规范 (Manifest)](#应用清单规范-manifest)
@@ -122,29 +126,199 @@
 
 #### `gemigo.clipboard.readText()`
 - **返回**: `Promise<string>`
-- **说明**: 读取剪贴板文本。需用户授权。
+- **说明**: 读取剪贴板文本。
 
 #### `gemigo.clipboard.writeText(text)`
 - **参数**: `text: string`
 - **返回**: `Promise<void>`
 - **说明**: 写入文本到剪贴板。
 
+#### `gemigo.clipboard.readImage()` 🆕
+- **返回**: `Promise<Blob | null>`
+- **说明**: 读取剪贴板中的图片。
+
+#### `gemigo.clipboard.writeImage(blob)` 🆕
+- **参数**: `blob: Blob`
+- **返回**: `Promise<void>`
+- **说明**: 写入图片到剪贴板。
+
+#### `gemigo.clipboard.onChange(callback)` 🆕
+- **参数**: `callback: (content: { text?: string, image?: Blob }) => void`
+- **返回**: `() => void` (取消监听函数)
+- **平台**: 仅桌面端支持
+- **说明**: 监听剪贴板内容变化，可用来实现"复制即翻译"等功能。
+
+```javascript
+// 示例：复制即翻译
+const unsubscribe = gemigo.clipboard.onChange(async ({ text }) => {
+  if (text && isEnglish(text)) {
+    const translated = await gemigo.ai.translate(text, { to: 'zh' });
+    await gemigo.notify({ title: '翻译', body: translated.text });
+  }
+});
+```
+
 ---
 
-### <a id="file-基础"></a>File 文件 (基础)
+### <a id="dialog"></a>Dialog 对话框
 
-#### `gemigo.file.pick(options)`
+用户交互式文件选择。
+
+#### `gemigo.dialog.openFile(options)`
 - **参数**:
-  - `options`:
-    - `accept`: `string` (MIME 类型，如 `'image/*'`)
-    - `multiple`: `boolean` (默认 `false`)
-- **返回**: `Promise<File | File[] | null>`
-- **说明**: 弹出系统文件选择框。
+  - `accept`: `string` (MIME 类型，如 `'image/*'`)
+  - `multiple`: `boolean`
+- **返回**: `Promise<FileEntry | FileEntry[] | null>`
+- **说明**: 弹出文件选择框，返回的文件在当前会话内可读写。
 
-#### `gemigo.file.read(path)`
-- **参数**: `path: string`
-- **返回**: `Promise<ArrayBuffer | string>`
-- **Web 端限制**: 只能读取用户刚刚通过 `pick` 选中的文件。
+#### `gemigo.dialog.openDirectory()`
+- **返回**: `Promise<{ path: string } | null>`
+- **说明**: 选择文件夹，返回的目录在当前会话内可读写。
+
+#### `gemigo.dialog.saveFile(options)`
+- **参数**:
+  - `defaultName`: `string` (默认文件名)
+  - `filters`: `Array<{ name: string, extensions: string[] }>`
+- **返回**: `Promise<{ path: string } | null>`
+- **说明**: 弹出保存对话框，用户选择保存位置。
+
+#### `gemigo.dialog.message(options)`
+- **参数**:
+  - `title`: `string`
+  - `message`: `string`
+  - `type`: `'info' | 'warning' | 'error'`
+  - `buttons`: `string[]`
+- **返回**: `Promise<number>` (点击的按钮索引)
+- **说明**: 显示系统消息框。
+
+#### `gemigo.onFileDrop(callback)`
+- **参数**: `callback: (files: FileEntry[]) => void`
+- **返回**: `() => void` (取消监听)
+- **说明**: 监听用户拖入的文件。
+
+```javascript
+// 示例：拖入图片自动压缩
+gemigo.onFileDrop(async (files) => {
+  for (const file of files) {
+    if (file.name.endsWith('.png')) {
+      const data = await gemigo.file.readBinary(file.path);
+      const compressed = await compressImage(data);
+      await gemigo.file.write(file.path, compressed);
+    }
+  }
+});
+```
+
+---
+
+### <a id="file"></a>File 文件
+
+文件操作支持两种权限模式：
+
+| 模式 | 说明 | 何时获得权限 |
+|------|------|-------------|
+| **Scope 预授权** | manifest 中声明的固定目录 | 安装时 |
+| **Dialog 选择** | 用户通过对话框/拖拽选择 | 用户操作时 |
+
+#### Scope 预授权配置 (manifest.json)
+
+```json
+{
+  "permissions": ["file"],
+  "file": {
+    "scope": [
+      "$DOWNLOAD",      // 下载文件夹
+      "$DOCUMENT",      // 文档文件夹
+      "$PICTURE",       // 图片文件夹
+      "$DESKTOP",       // 桌面
+      "$APP_DATA",      // 应用私有数据目录
+      "$TEMP"           // 临时目录
+    ]
+  }
+}
+```
+
+---
+
+#### 类型定义
+
+```typescript
+interface FileEntry {
+  name: string;        // 文件名
+  path: string;        // 完整路径
+  isFile: boolean;
+  isDirectory: boolean;
+  size: number;
+  mtime: number;       // 修改时间戳
+}
+```
+
+#### 读写操作
+
+##### `gemigo.file.readText(path)`
+- **返回**: `Promise<string>`
+- **说明**: 读取文本文件（UTF-8）。
+
+##### `gemigo.file.readBinary(path)`
+- **返回**: `Promise<ArrayBuffer>`
+- **说明**: 读取二进制文件。
+
+##### `gemigo.file.write(path, data)`
+- **参数**: `path: string`, `data: string | ArrayBuffer`
+- **返回**: `Promise<void>`
+
+##### `gemigo.file.append(path, data)`
+- **说明**: 追加内容到文件末尾。
+
+---
+
+#### 文件操作
+
+##### `gemigo.file.exists(path)`
+- **返回**: `Promise<boolean>`
+
+##### `gemigo.file.stat(path)`
+- **返回**: `Promise<{ size, mtime, ctime, isFile, isDirectory }>`
+
+##### `gemigo.file.copy(src, dest)`
+##### `gemigo.file.move(src, dest)`
+##### `gemigo.file.remove(path)`
+
+---
+
+#### 目录操作
+
+##### `gemigo.file.list(path)`
+- **返回**: `Promise<FileEntry[]>`
+- **说明**: 列出目录内容。
+
+##### `gemigo.file.mkdir(path, options?)`
+- **参数**: `options.recursive?: boolean`
+
+---
+
+#### 权限持久化
+
+##### `gemigo.file.persistPermission(path)`
+- **说明**: 持久化用户选择的路径权限，下次启动无需重新选择。
+
+---
+
+### <a id="network-网络-增强"></a>Network 网络 (增强)
+
+突破浏览器 CORS 限制，由宿主代理请求。
+
+#### `gemigo.network.request(url, options)`
+- **参数**:
+  - `url`: `string`
+  - `options`:
+    - `method`: `'GET' | 'POST' | 'PUT' | 'DELETE'`
+    - `headers`: `Record<string, string>`
+    - `body`: `string | object`
+    - `responseType`: `'json' | 'text' | 'arraybuffer'`
+- **返回**: `Promise<{ status: number, data: any, headers: object }>`
+- **权限**: 需声明 `permissions: ['network']`
+- **说明**: 发起跨域 HTTP 请求。
 
 ---
 
@@ -198,14 +372,66 @@
 
 ---
 
-### <a id="file-高级"></a>File 文件 (高级)
+### <a id="shell-系统集成"></a>Shell 系统集成
 
-#### `gemigo.file.write(path, data)`
-- **参数**:
-  - `path`: `string` (绝对路径)
-  - `data`: `string | ArrayBuffer`
+#### `gemigo.shell.openExternal(url)`
+- **参数**: `url: string`
 - **返回**: `Promise<void>`
-- **说明**: 写入文件到系统任意位置。需声明 `permissions: ['fileWrite']`。
+- **说明**: 使用系统默认浏览器打开链接。
+
+#### `gemigo.shell.showItemInFolder(path)`
+- **参数**: `path: string`
+- **返回**: `Promise<void>`
+- **说明**: 在文件资源管理器 (Finder/Explorer) 中显示并选中文件。
+
+#### `gemigo.shell.openPath(path)`
+- **参数**: `path: string`
+- **返回**: `Promise<void>`
+- **说明**: 使用系统默认应用打开文件。
+
+---
+
+### <a id="globalshortcut"></a>GlobalShortcut 全局快捷键
+
+注册系统级快捷键，即使应用不在前台也能触发。
+
+#### `gemigo.globalShortcut.register(accelerator, callback)`
+- **参数**:
+  - `accelerator`: `string` (如 `'Cmd+Shift+X'`, `'Ctrl+Alt+P'`)
+  - `callback`: `() => void`
+- **返回**: `Promise<boolean>` (是否注册成功)
+- **说明**: 注册全局快捷键。
+
+```javascript
+// 示例：随时呼出截图工具
+gemigo.globalShortcut.register('Cmd+Shift+S', () => {
+  showScreenshotTool();
+});
+```
+
+#### `gemigo.globalShortcut.unregister(accelerator)`
+- **说明**: 取消注册。
+
+#### `gemigo.globalShortcut.unregisterAll()`
+- **说明**: 取消应用注册的所有快捷键。
+
+---
+
+### <a id="autostart"></a>Autostart 开机启动
+
+允许应用在系统启动时自动运行。
+
+#### `gemigo.autostart.enable()`
+- **返回**: `Promise<void>`
+- **说明**: 启用开机自启。
+
+#### `gemigo.autostart.disable()`
+- **返回**: `Promise<void>`
+- **说明**: 禁用开机自启。
+
+#### `gemigo.autostart.isEnabled()`
+- **返回**: `Promise<boolean>`
+- **说明**: 检查是否已启用。
 
 ---
 
@@ -268,7 +494,11 @@
     "fileWatch",
     "fileWrite",
     "ai",
-    "clipboard"
+    "fileWrite",
+    "ai",
+    "clipboard",
+    "shell",
+    "network"
   ],
   
   // --- 后台能力配置 ---
