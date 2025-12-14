@@ -345,6 +345,90 @@ const gemigoSDK = {
 };
 ```
 
+### 扩展能力实现详解
+
+#### 1. 动态菜单注册 (Background Script)
+
+扩展在启动或安装新应用时，读取所有应用的 manifest 并注册菜单。
+
+```typescript
+// background.js
+async function updateContextMenus() {
+  await chrome.contextMenus.removeAll();
+  const apps = await getInstalledApps();
+  
+  apps.forEach(app => {
+    if (app.manifest.extension?.contextMenu) {
+      app.manifest.extension.contextMenu.forEach(item => {
+        chrome.contextMenus.create({
+          id: `${app.id}:${item.id}`, // 组合 ID：应用ID:菜单ID
+          title: item.title,
+          contexts: item.contexts,
+          parentId: 'root-menu'     // 统一归类在 GemiGo 主菜单下
+        });
+      });
+    }
+  });
+}
+```
+
+#### 2. 事件路由与应用唤醒
+
+当用户点击菜单时，Background Script 负责：
+1. 解析出目标应用 ID。
+2. 检查应用是否正在运行（是否有活跃的 Side Panel 或 iframe）。
+3. 如果未运行，先在隐藏的 Offscreen Document 中启动应用运行时。
+4. 发送消息给应用。
+
+```typescript
+// background.js
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  const [appId, menuId] = info.menuItemId.split(':');
+  
+  // 准备数据
+  const eventData = {
+    type: 'contextMenu',
+    menuId: menuId,
+    data: {
+      text: info.selectionText,
+      pageUrl: tab.url,
+      pageTitle: tab.title
+    }
+  };
+  
+  // 尝试发送给活跃的应用实例
+  const sent = await sendMessageToApp(appId, eventData);
+  
+  // 如果发送失败（应用未运行），则启动 Offscreen Document 处理
+  if (!sent) {
+    await createOffscreenDocument(appId);
+    await sendMessageToApp(appId, eventData);
+    // 处理完后设定超时自动关闭 Offscreen
+  }
+});
+```
+
+#### 3. Offscreen Document (后台运行环境)
+
+对于不需要界面的操作（如"保存到笔记"），我们使用 Chrome 的 Offscreen API 提供临时的 DOM 环境来运行应用逻辑。
+
+```typescript
+// offscreen.js
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.target === 'offscreen') {
+    // 加载应用 iframe
+    const iframe = document.createElement('iframe');
+    iframe.src = getAppUrl(msg.appId);
+    document.body.appendChild(iframe);
+    
+    // iframe 加载后转发消息给它
+    iframe.onload = () => {
+      iframe.contentWindow.postMessage(msg.data, '*');
+    };
+  }
+});
+```
+
 ---
 
 ## 四、应用生命周期
