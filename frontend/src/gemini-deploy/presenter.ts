@@ -5,6 +5,10 @@ import { AuthManager } from './managers/AuthManager';
 import { AnalyticsManager } from './managers/AnalyticsManager';
 import { ReactionManager } from './managers/ReactionManager';
 import { ProjectSettingsManager } from './managers/ProjectSettingsManager';
+import { MyProfileManager } from './managers/MyProfileManager';
+import { DashboardManager } from './managers/DashboardManager';
+import { PublicProfileManager } from './managers/PublicProfileManager';
+import { ExploreManager } from './managers/ExploreManager';
 import { ServiceFactory } from './services/ServiceFactory';
 
 // The Presenter now uses the Factory to get dependencies.
@@ -18,6 +22,10 @@ export class Presenter {
   analytics: AnalyticsManager;
   reaction: ReactionManager;
   projectSettings: ProjectSettingsManager;
+  myProfile: MyProfileManager;
+  dashboard: DashboardManager;
+  publicProfile: PublicProfileManager;
+  explore: ExploreManager;
 
   constructor() {
     // 1. Get Providers via Factory (Configuration driven)
@@ -45,9 +53,12 @@ export class Presenter {
       this.reaction,
       this.analytics,
     );
+    this.myProfile = new MyProfileManager(this.auth, this.ui);
+    this.dashboard = new DashboardManager(this.ui, this.auth);
+    this.publicProfile = new PublicProfileManager(this.auth, this.reaction);
+    this.explore = new ExploreManager(this.auth, this.ui, this.reaction);
   }
 }
 
 // Global instance
 export const presenter = new Presenter();
-

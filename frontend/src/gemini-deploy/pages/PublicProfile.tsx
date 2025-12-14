@@ -2,11 +2,13 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '../contexts/PresenterContext';
-import { useAuthStore } from '../stores/authStore';
+import { usePublicProfileStore } from '../stores/publicProfileStore';
 import { useReactionStore } from '../stores/reactionStore';
-import type { PublicUserProfile } from '../types';
-import { fetchPublicProfile } from '../services/http/profileApi';
-import { normalizeLinksForDisplay, resolveLinkKind, getEffectiveLabel } from '../utils/profileLinks';
+import {
+  normalizeLinksForDisplay,
+  resolveLinkKind,
+  getEffectiveLabel,
+} from '../utils/profileLinks';
 import {
   Heart,
   Star,
@@ -26,52 +28,21 @@ export const PublicProfile: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const presenter = usePresenter();
-  const user = useAuthStore((s) => s.user);
+
+  // Subscribe to store
+  const data = usePublicProfileStore((s) => s.data);
+  const isLoading = usePublicProfileStore((s) => s.isLoading);
+  const error = usePublicProfileStore((s) => s.error);
   const reactionStore = useReactionStore();
 
-  const [data, setData] = React.useState<PublicUserProfile | null>(null);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-
+  // Load profile on mount
   React.useEffect(() => {
-    if (!id) return;
-    setIsLoading(true);
-    setError(null);
-    void fetchPublicProfile(id)
-      .then((profile) => {
-        setData(profile);
-        if (user) {
-          const projectIds = profile.projects.map((p) => p.id);
-          if (projectIds.length > 0) {
-            presenter.reaction.seedCountsFromProjects(profile.projects);
-            void presenter.reaction.loadReactionsForProjectsBulk(projectIds);
-          }
-        }
-      })
-      .catch((err) => {
-        console.error('Failed to load public profile', err);
-        setError('not_found');
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [id, presenter.reaction, user]);
-
-  const handleToggleLike = (projectId: string) => {
-    if (!user) {
-      presenter.auth.openAuthModal('login');
-      return;
+    if (id) {
+      presenter.publicProfile.loadProfile(id);
     }
-    void presenter.reaction.toggleLike(projectId);
-  };
+  }, [id, presenter.publicProfile]);
 
-  const handleToggleFavorite = (projectId: string) => {
-    if (!user) {
-      presenter.auth.openAuthModal('login');
-      return;
-    }
-    void presenter.reaction.toggleFavorite(projectId);
-  };
+  const reactionFor = (projectId: string) => reactionStore.byProjectId[projectId];
 
   if (isLoading) {
     return (
@@ -111,15 +82,95 @@ export const PublicProfile: React.FC = () => {
     );
   }
 
-  const reactionFor = (projectId: string) =>
-    reactionStore.byProjectId[projectId];
-
   const pinnedIds = data.profile.pinnedProjectIds ?? [];
   const pinnedSet = new Set(pinnedIds);
   const pinnedProjects = pinnedIds
     .map((id) => data.projects.find((p) => p.id === id))
     .filter((p): p is (typeof data.projects)[number] => !!p);
   const otherProjects = data.projects.filter((p) => !pinnedSet.has(p.id));
+
+  const renderProjectCard = (
+    project: (typeof data.projects)[number],
+    isPinned: boolean = false,
+  ) => {
+    const reactions = reactionFor(project.id);
+    const likes =
+      reactions?.likesCount ??
+      (project as { likesCount?: number }).likesCount ??
+      0;
+    const favorites =
+      reactions?.favoritesCount ??
+      (project as { favoritesCount?: number }).favoritesCount ??
+      0;
+    const liked = reactions?.likedByCurrentUser ?? false;
+    const favorited = reactions?.favoritedByCurrentUser ?? false;
+
+    return (
+      <div
+        key={project.id}
+        className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 flex flex-col gap-2"
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
+              {project.name}
+            </div>
+            {project.description && (
+              <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                {project.description}
+              </div>
+            )}
+          </div>
+          {project.url && (
+            <button
+              type="button"
+              onClick={() => {
+                window.open(project.url, '_blank', 'noopener,noreferrer');
+              }}
+              className="inline-flex items-center gap-1 text-[11px] text-brand-600 dark:text-brand-400 hover:underline"
+            >
+              <span>{t('common.visit')}</span>
+              <ExternalLink className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+        <div className="flex items-center justify-between text-xs pt-1">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => presenter.publicProfile.toggleFavorite(project.id)}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <Star
+                className={`w-3.5 h-3.5 ${
+                  favorited
+                    ? 'text-amber-400 fill-amber-400'
+                    : 'text-slate-400'
+                }`}
+              />
+              <span>{favorites.toLocaleString()}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => presenter.publicProfile.toggleLike(project.id)}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <Heart
+                className={`w-3 h-3 ${
+                  liked ? 'fill-pink-500 text-pink-500' : 'text-slate-400'
+                }`}
+              />
+              <span>{likes.toLocaleString()}</span>
+            </button>
+          </div>
+          <div className="inline-flex items-center gap-1 text-slate-400">
+            <Zap className="w-3 h-3" />
+            <span className="text-[11px]">{project.framework}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 md:space-y-8 animate-fade-in">
@@ -133,7 +184,9 @@ export const PublicProfile: React.FC = () => {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-              {data.user.displayName || data.user.email || t('profile.creatorProfile')}
+              {data.user.displayName ||
+                data.user.email ||
+                t('profile.creatorProfile')}
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {t('profile.creatorProfile')}
@@ -176,8 +229,7 @@ export const PublicProfile: React.FC = () => {
                 let displayUrl = link.url;
                 try {
                   const u = new URL(link.url);
-                  const path =
-                    u.pathname && u.pathname !== '/' ? u.pathname : '';
+                  const path = u.pathname && u.pathname !== '/' ? u.pathname : '';
                   displayUrl = `${u.hostname}${path}`;
                 } catch {
                   displayUrl = link.url;
@@ -200,11 +252,12 @@ export const PublicProfile: React.FC = () => {
               })}
             </div>
           ) : null}
-          {!data.profile.bio && normalizeLinksForDisplay(data.profile.links).length === 0 && (
-            <p className="text-sm text-slate-500 dark:text-slate-400 italic">
-              {t('profile.noBioOrLinks')}
-            </p>
-          )}
+          {!data.profile.bio &&
+            normalizeLinksForDisplay(data.profile.links).length === 0 && (
+              <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+                {t('profile.noBioOrLinks')}
+              </p>
+            )}
         </div>
 
         <div className="glass-card rounded-xl p-5 border border-slate-200 dark:border-slate-800">
@@ -252,89 +305,7 @@ export const PublicProfile: React.FC = () => {
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {pinnedProjects.map((project) => {
-              const reactions = reactionFor(project.id);
-              const likes =
-                reactions?.likesCount ??
-                (project as { likesCount?: number }).likesCount ??
-                0;
-              const favorites =
-                reactions?.favoritesCount ??
-                (project as { favoritesCount?: number }).favoritesCount ??
-                0;
-              const liked = reactions?.likedByCurrentUser ?? false;
-              const favorited = reactions?.favoritedByCurrentUser ?? false;
-
-              return (
-                <div
-                  key={project.id}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 flex flex-col gap-2"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
-                        {project.name}
-                      </div>
-                      {project.description && (
-                        <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                          {project.description}
-                        </div>
-                      )}
-                    </div>
-                    {project.url && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          window.open(project.url, '_blank', 'noopener,noreferrer');
-                        }}
-                        className="inline-flex items-center gap-1 text-[11px] text-brand-600 dark:text-brand-400 hover:underline"
-                      >
-                        <span>{t('common.visit')}</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between text-xs pt-1">
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleFavorite(project.id)}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
-                      >
-                        <Star
-                          className={`w-3.5 h-3.5 ${
-                            favorited
-                              ? 'text-amber-400 fill-amber-400'
-                              : 'text-slate-400'
-                          }`}
-                        />
-                        <span>{favorites.toLocaleString()}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleToggleLike(project.id)}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
-                      >
-                        <Heart
-                          className={`w-3 h-3 ${
-                            liked
-                              ? 'fill-pink-500 text-pink-500'
-                              : 'text-slate-400'
-                          }`}
-                        />
-                        <span>{likes.toLocaleString()}</span>
-                      </button>
-                    </div>
-                    <div className="inline-flex items-center gap-1 text-slate-400">
-                      <Zap className="w-3 h-3" />
-                      <span className="text-[11px]">
-                        {project.framework}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {pinnedProjects.map((project) => renderProjectCard(project, true))}
           </div>
         </div>
       )}
@@ -352,89 +323,7 @@ export const PublicProfile: React.FC = () => {
           </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {otherProjects.map((project) => {
-              const reactions = reactionFor(project.id);
-              const likes =
-                reactions?.likesCount ??
-                (project as { likesCount?: number }).likesCount ??
-                0;
-              const favorites =
-                reactions?.favoritesCount ??
-                (project as { favoritesCount?: number }).favoritesCount ??
-                0;
-              const liked = reactions?.likedByCurrentUser ?? false;
-              const favorited = reactions?.favoritedByCurrentUser ?? false;
-
-              return (
-                <div
-                  key={project.id}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 flex flex-col gap-2"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
-                        {project.name}
-                      </div>
-                      {project.description && (
-                        <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                          {project.description}
-                        </div>
-                      )}
-                    </div>
-                    {project.url && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          window.open(project.url, '_blank', 'noopener,noreferrer');
-                        }}
-                        className="inline-flex items-center gap-1 text-[11px] text-brand-600 dark:text-brand-400 hover:underline"
-                      >
-                        <span>{t('common.visit')}</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between text-xs pt-1">
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleFavorite(project.id)}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
-                      >
-                        <Star
-                          className={`w-3.5 h-3.5 ${
-                            favorited
-                              ? 'text-amber-400 fill-amber-400'
-                              : 'text-slate-400'
-                          }`}
-                        />
-                        <span>{favorites.toLocaleString()}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleToggleLike(project.id)}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
-                      >
-                        <Heart
-                          className={`w-3 h-3 ${
-                            liked
-                              ? 'fill-pink-500 text-pink-500'
-                              : 'text-slate-400'
-                          }`}
-                        />
-                        <span>{likes.toLocaleString()}</span>
-                      </button>
-                    </div>
-                    <div className="inline-flex items-center gap-1 text-slate-400">
-                      <Zap className="w-3 h-3" />
-                      <span className="text-[11px]">
-                        {project.framework}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {otherProjects.map((project) => renderProjectCard(project))}
           </div>
         )}
       </div>
