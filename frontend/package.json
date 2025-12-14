@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
+    "ahooks": "^3.9.6",
     "crisp-sdk-web": "^1.0.26",
     "i18next": "^25.7.2",
     "i18next-browser-languagedetector": "^8.2.0",

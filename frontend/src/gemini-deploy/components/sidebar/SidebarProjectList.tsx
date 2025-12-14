@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { SidebarProjectItem } from './SidebarProjectItem';
 import { SidebarProjectViewToggle } from './SidebarProjectViewToggle';
+import { SidebarProjectListSkeleton } from './SidebarProjectListSkeleton';
 import type { Project } from '../../types';
 
 interface SidebarProjectListProps {
@@ -12,6 +13,7 @@ interface SidebarProjectListProps {
   onViewTypeChange: (type: 'pinned' | 'recent') => void;
   onTogglePin: (e: React.MouseEvent, projectId: string) => void;
   pinnedProjects: Project[];
+  isLoading?: boolean;
 }
 
 export const SidebarProjectList: React.FC<SidebarProjectListProps> = ({
@@ -21,6 +23,7 @@ export const SidebarProjectList: React.FC<SidebarProjectListProps> = ({
   onViewTypeChange,
   onTogglePin,
   pinnedProjects,
+  isLoading = false,
 }) => {
   const { t } = useTranslation();
   const location = useLocation();
@@ -38,7 +41,9 @@ export const SidebarProjectList: React.FC<SidebarProjectListProps> = ({
         />
       </div>
       <div className="overflow-y-auto flex-1 min-h-0">
-        {projects.length === 0 ? (
+        {isLoading ? (
+          <SidebarProjectListSkeleton />
+        ) : projects.length === 0 ? (
           <p className="px-3 py-1 text-[11px] text-slate-400 dark:text-gray-500">
             {viewType === 'pinned'
               ? t('navigation.noPinnedProjects')

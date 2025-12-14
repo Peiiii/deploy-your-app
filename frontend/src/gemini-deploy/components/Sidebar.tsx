@@ -23,6 +23,7 @@ export const Sidebar: React.FC = () => {
     projectViewType,
     setProjectViewType,
     handleTogglePin,
+    isLoading,
   } = useSidebarProjects();
 
   return (
@@ -48,7 +49,7 @@ export const Sidebar: React.FC = () => {
         <nav className={`flex-1 flex flex-col min-h-0 ${sidebarCollapsed ? 'px-2' : 'px-4'}`}>
           <SidebarNavigation collapsed={sidebarCollapsed} />
           
-          {userProjects.length > 0 && !sidebarCollapsed && (
+          {!sidebarCollapsed && (
             <SidebarProjectList
               projects={displayedProjects}
               pinnedProjectIds={pinnedProjectIds}
@@ -56,6 +57,7 @@ export const Sidebar: React.FC = () => {
               onViewTypeChange={setProjectViewType}
               onTogglePin={handleTogglePin}
               pinnedProjects={pinnedProjects}
+              isLoading={isLoading}
             />
           )}
         </nav>

@@ -14,10 +14,12 @@ const parseLastDeployed = (value: Project['lastDeployed']) => {
 export const useSidebarProjects = () => {
   const authUser = useAuthStore((s) => s.user);
   const allProjects = useProjectStore((s) => s.projects);
+  const projectsLoading = useProjectStore((s) => s.isLoading);
   const presenter = usePresenter();
   
   const [pinnedProjectIds, setPinnedProjectIds] = useState<string[]>([]);
   const [projectViewType, setProjectViewTypeState] = useState<'pinned' | 'recent'>('recent');
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const didInitDefaultViewRef = useRef(false);
   const userChangedViewRef = useRef(false);
 
@@ -64,9 +66,11 @@ export const useSidebarProjects = () => {
       userChangedViewRef.current = false;
       setPinnedProjectIds([]);
       setProjectViewTypeState('recent');
+      setIsLoadingProfile(false);
       return;
     }
     
+    setIsLoadingProfile(true);
     void fetchMyProfile()
       .then((profile) => {
         const ids = profile.pinnedProjectIds || [];
@@ -84,6 +88,9 @@ export const useSidebarProjects = () => {
           didInitDefaultViewRef.current = true;
           setProjectViewTypeState('recent');
         }
+      })
+      .finally(() => {
+        setIsLoadingProfile(false);
       });
   }, [authUser]);
 
@@ -116,6 +123,8 @@ export const useSidebarProjects = () => {
     }
   };
 
+  const isLoading = isLoadingProfile || (authUser && projectsLoading && allProjects.length === 0);
+
   return {
     userProjects,
     pinnedProjects,
@@ -125,5 +134,6 @@ export const useSidebarProjects = () => {
     projectViewType,
     setProjectViewType,
     handleTogglePin,
+    isLoading,
   };
 };
