@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GenAI Proxy Tester</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0b1020;
+        --panel: rgba(255, 255, 255, 0.06);
+        --border: rgba(255, 255, 255, 0.12);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.65);
+        --accent: #7c3aed;
+        --accent2: #22c55e;
+        --danger: #ef4444;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f5f7fb;
+          --panel: rgba(0, 0, 0, 0.04);
+          --border: rgba(0, 0, 0, 0.08);
+          --text: rgba(0, 0, 0, 0.88);
+          --muted: rgba(0, 0, 0, 0.56);
+        }
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        background: radial-gradient(1200px 700px at 10% 10%, rgba(124, 58, 237, 0.18), transparent 60%),
+          radial-gradient(1000px 700px at 90% 20%, rgba(34, 197, 94, 0.12), transparent 60%),
+          var(--bg);
+        color: var(--text);
+      }
+
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px 16px 48px;
+      }
+
+      header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+
+      h1 {
+        font-size: 20px;
+        margin: 0;
+        letter-spacing: 0.2px;
+      }
+
+      .subtitle {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px;
+        backdrop-filter: blur(10px);
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      @media (max-width: 520px) {
+        .row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      input,
+      textarea,
+      select {
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(0, 0, 0, 0.18);
+        color: var(--text);
+        padding: 10px 12px;
+        outline: none;
+      }
+
+      @media (prefers-color-scheme: light) {
+        input,
+        textarea,
+        select {
+          background: rgba(255, 255, 255, 0.65);
+        }
+      }
+
+      textarea {
+        min-height: 130px;
+        font-family: var(--sans);
+        line-height: 1.45;
+        resize: vertical;
+      }
+
+      .buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        border: 1px solid var(--border);
+        background: rgba(0, 0, 0, 0.22);
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform 0.06s ease, border-color 0.15s ease, background 0.15s ease;
+      }
+
+      button.primary {
+        border-color: rgba(124, 58, 237, 0.5);
+        background: rgba(124, 58, 237, 0.18);
+      }
+
+      button.good {
+        border-color: rgba(34, 197, 94, 0.5);
+        background: rgba(34, 197, 94, 0.16);
+      }
+
+      button.danger {
+        border-color: rgba(239, 68, 68, 0.55);
+        background: rgba(239, 68, 68, 0.14);
+      }
+
+      button:active {
+        transform: translateY(1px);
+      }
+
+      button[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .help {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .out {
+        white-space: pre-wrap;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.45;
+        background: rgba(0, 0, 0, 0.28);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        min-height: 260px;
+        overflow: auto;
+      }
+
+      @media (prefers-color-scheme: light) {
+        .out {
+          background: rgba(255, 255, 255, 0.7);
+        }
+      }
+
+      .pill {
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--muted);
+      }
+
+      .status {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+
+      .ok {
+        color: var(--accent2);
+      }
+
+      .err {
+        color: var(--danger);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div>
+          <h1>GenAI Proxy Tester</h1>
+          <div class="subtitle">验证 `@google/genai` 兼容代理：generate / stream / countTokens（文本）</div>
+        </div>
+        <div class="pill" id="versionPill">v1</div>
+      </header>
+
+      <div class="grid">
+        <div class="card">
+          <div class="row">
+            <label for="baseUrl">Proxy Base URL</label>
+            <input id="baseUrl" placeholder="https://genai-proxy.example.com" />
+          </div>
+
+          <div class="row">
+            <label for="model">Google Model Name</label>
+            <input id="model" placeholder="gemini-2.0-flash" />
+          </div>
+
+          <div class="row">
+            <label for="clientKey">x-goog-api-key（占位）</label>
+            <input id="clientKey" placeholder="any-string (proxy ignores it in phase 1)" />
+          </div>
+
+          <div class="row">
+            <label for="system">System Instruction（可选）</label>
+            <input id="system" placeholder="You are a helpful assistant." />
+          </div>
+
+          <div class="row">
+            <label for="prompt">Prompt</label>
+            <textarea id="prompt" placeholder="Type something..."></textarea>
+          </div>
+
+          <div class="buttons">
+            <button class="primary" id="btnGenerate">Generate</button>
+            <button class="good" id="btnStream">Stream</button>
+            <button id="btnCount">Count Tokens</button>
+            <button class="danger" id="btnStop" disabled>Stop</button>
+            <button id="btnClear">Clear Output</button>
+          </div>
+
+          <div class="status">
+            <span class="help" id="statusText">Ready.</span>
+          </div>
+
+          <p class="help">
+            说明：该页面直接用 fetch 调用 Google v1beta endpoints。代理 Worker 会把请求转发到上游（例如 DashScope），并返回 Google
+            兼容格式。`x-goog-api-key` 在 Phase 1 不会被用于上游调用，仅用于未来 app 识别/计费。
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="help" style="margin-bottom: 10px">
+            Output（流式会持续追加；非流式会输出完整 JSON）
+          </div>
+          <div class="out" id="out"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      const state = {
+        abortController: null,
+      };
+
+      function loadDefaults() {
+        const saved = JSON.parse(localStorage.getItem('genai_proxy_tester') || '{}');
+        $('baseUrl').value = saved.baseUrl || '';
+        $('model').value = saved.model || 'gemini-2.0-flash';
+        $('clientKey').value = saved.clientKey || 'any';
+        $('system').value = saved.system || '';
+        $('prompt').value = saved.prompt || 'Say hello in one sentence.';
+      }
+
+      function saveDefaults() {
+        localStorage.setItem(
+          'genai_proxy_tester',
+          JSON.stringify({
+            baseUrl: $('baseUrl').value.trim(),
+            model: $('model').value.trim(),
+            clientKey: $('clientKey').value.trim(),
+            system: $('system').value,
+            prompt: $('prompt').value,
+          }),
+        );
+      }
+
+      function setStatus(text, kind) {
+        const el = $('statusText');
+        el.textContent = text;
+        el.className = 'help';
+        if (kind === 'ok') el.className = 'help ok';
+        if (kind === 'err') el.className = 'help err';
+      }
+
+      function appendOut(text) {
+        const out = $('out');
+        out.textContent += text;
+        out.scrollTop = out.scrollHeight;
+      }
+
+      function clearOut() {
+        $('out').textContent = '';
+      }
+
+      function normalizeBaseUrl(baseUrl) {
+        const trimmed = baseUrl.trim().replace(/\/+$/, '');
+        if (!trimmed) return '';
+        return trimmed;
+      }
+
+      function buildUrl(baseUrl, model, action) {
+        // action: generateContent | streamGenerateContent | countTokens
+        const base = normalizeBaseUrl(baseUrl);
+        const encodedModel = encodeURIComponent(model);
+        return `${base}/v1beta/models/${encodedModel}:${action}`;
+      }
+
+      function buildBody() {
+        const model = $('model').value.trim() || 'gemini-2.0-flash';
+        const prompt = $('prompt').value || '';
+        const system = $('system').value || '';
+
+        const body = {
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: prompt }],
+            },
+          ],
+        };
+
+        if (system.trim().length > 0) {
+          body.systemInstruction = system.trim();
+        }
+
+        return { model, body };
+      }
+
+      async function doGenerate() {
+        saveDefaults();
+        const baseUrl = $('baseUrl').value;
+        const clientKey = $('clientKey').value.trim() || 'any';
+        const { model, body } = buildBody();
+
+        if (!normalizeBaseUrl(baseUrl)) {
+          setStatus('Proxy Base URL is required.', 'err');
+          return;
+        }
+
+        clearOut();
+        setStatus('Generating...', null);
+        $('btnStop').disabled = true;
+
+        const url = buildUrl(baseUrl, model, 'generateContent');
+
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              'x-goog-api-key': clientKey,
+            },
+            body: JSON.stringify(body),
+          });
+
+          const text = await res.text();
+          appendOut(text + '\n');
+
+          if (!res.ok) {
+            setStatus(`Error ${res.status}`, 'err');
+            return;
+          }
+          setStatus('OK', 'ok');
+        } catch (e) {
+          setStatus(String(e && e.message ? e.message : e), 'err');
+        }
+      }
+
+      async function doCount() {
+        saveDefaults();
+        const baseUrl = $('baseUrl').value;
+        const clientKey = $('clientKey').value.trim() || 'any';
+        const { model, body } = buildBody();
+
+        if (!normalizeBaseUrl(baseUrl)) {
+          setStatus('Proxy Base URL is required.', 'err');
+          return;
+        }
+
+        clearOut();
+        setStatus('Counting tokens...', null);
+        $('btnStop').disabled = true;
+
+        const url = buildUrl(baseUrl, model, 'countTokens');
+
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              'x-goog-api-key': clientKey,
+            },
+            body: JSON.stringify({ contents: body.contents }),
+          });
+
+          const text = await res.text();
+          appendOut(text + '\n');
+
+          if (!res.ok) {
+            setStatus(`Error ${res.status}`, 'err');
+            return;
+          }
+          setStatus('OK', 'ok');
+        } catch (e) {
+          setStatus(String(e && e.message ? e.message : e), 'err');
+        }
+      }
+
+      async function doStream() {
+        saveDefaults();
+        const baseUrl = $('baseUrl').value;
+        const clientKey = $('clientKey').value.trim() || 'any';
+        const { model, body } = buildBody();
+
+        if (!normalizeBaseUrl(baseUrl)) {
+          setStatus('Proxy Base URL is required.', 'err');
+          return;
+        }
+
+        clearOut();
+        setStatus('Streaming...', null);
+        $('btnStop').disabled = false;
+
+        const url = buildUrl(baseUrl, model, 'streamGenerateContent');
+
+        state.abortController = new AbortController();
+
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              'x-goog-api-key': clientKey,
+            },
+            body: JSON.stringify(body),
+            signal: state.abortController.signal,
+          });
+
+          if (!res.ok) {
+            const text = await res.text();
+            appendOut(text + '\n');
+            setStatus(`Error ${res.status}`, 'err');
+            $('btnStop').disabled = true;
+            state.abortController = null;
+            return;
+          }
+
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            const parts = buffer.split('\n');
+            buffer = parts.pop() || '';
+
+            for (const line of parts) {
+              if (!line.startsWith('data:')) continue;
+              const data = line.slice(5).trim();
+              if (!data || data === '[DONE]') continue;
+
+              try {
+                const obj = JSON.parse(data);
+                const cand = obj?.candidates?.[0];
+                const part = cand?.content?.parts?.[0];
+                const text = part?.text;
+                if (typeof text === 'string' && text.length > 0) {
+                  appendOut(text);
+                }
+              } catch {
+                // ignore
+              }
+            }
+          }
+
+          setStatus('OK', 'ok');
+        } catch (e) {
+          if (e && e.name === 'AbortError') {
+            setStatus('Stopped.', null);
+          } else {
+            setStatus(String(e && e.message ? e.message : e), 'err');
+          }
+        } finally {
+          $('btnStop').disabled = true;
+          state.abortController = null;
+        }
+      }
+
+      function stopStream() {
+        if (state.abortController) {
+          state.abortController.abort();
+        }
+      }
+
+      $('btnGenerate').addEventListener('click', doGenerate);
+      $('btnStream').addEventListener('click', doStream);
+      $('btnCount').addEventListener('click', doCount);
+      $('btnStop').addEventListener('click', stopStream);
+      $('btnClear').addEventListener('click', () => {
+        clearOut();
+        setStatus('Cleared.', null);
+      });
+
+      ['baseUrl', 'model', 'clientKey', 'system', 'prompt'].forEach((id) => {
+        $(id).addEventListener('change', saveDefaults);
+      });
+
+      loadDefaults();
+    </script>
+  </body>
+</html>
+

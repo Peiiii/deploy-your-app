@@ -1,0 +1,9 @@
+# Local dev only (this file is safe to commit).
+# Copy to `.dev.vars` (gitignored) and fill real values if needed.
+
+PROVIDER=openai_compatible
+TARGET_BASE_URL=http://127.0.0.1:19000
+DEFAULT_MODEL=qwen3-max
+
+# Phase 1: the worker ignores client `x-goog-api-key` and uses this secret instead.
+UPSTREAM_API_KEY=dev-only

@@ -1,0 +1,19 @@
+{
+  "name": "deploy-your-app-genai-proxy-worker",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "dependencies": {
+    "@deploy-your-app/worker-kit": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250109.0",
+    "typescript": "^5.4.0",
+    "wrangler": "^4.53.0"
+  }
+}

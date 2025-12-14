@@ -1,0 +1,29 @@
+name = "gemigo-genai-proxy"
+main = "src/index.ts"
+compatibility_date = "2025-01-15"
+
+# Custom domain binding (recommended for Mainland China access; `workers.dev` is often blocked).
+# Use `gemigo.io` subdomains (all `*.gemigo.app` is reserved for R2-hosted apps).
+# Replace the domain below with your own zone, then uncomment.
+#
+# routes = [
+#   { pattern = "genai-api.gemigo.io/*", zone_name = "gemigo.io" }
+# ]
+
+[vars]
+# Phase 1: we assume the upstream provider speaks OpenAI-compatible chat completions.
+# Point TARGET_BASE_URL to any OpenAI-compatible endpoint if you're not using OpenAI.
+PROVIDER = "openai_compatible"
+# DashScope OpenAI-compatible endpoint includes `/v1` in its base path.
+TARGET_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+DEFAULT_MODEL = "qwen3-max"
+
+# Secrets (recommended):
+# wrangler secret put UPSTREAM_API_KEY
+#
+# Back-compat:
+# wrangler secret put OPENAI_API_KEY
+
+# Notes:
+# - Client `x-goog-api-key` is ignored for upstream calls in phase 1.
+# - Future: it can be used as an app token for usage metering / billing.
