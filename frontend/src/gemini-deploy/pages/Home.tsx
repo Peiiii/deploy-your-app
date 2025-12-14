@@ -7,6 +7,7 @@ import { AuthorBadge } from '../components/AuthorBadge';
 import { usePresenter } from '../contexts/PresenterContext';
 import { useAuthStore } from '../stores/authStore';
 import { useUIStore } from '../stores/uiStore';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { SourceType } from '../types';
 import { HomeDeploySection } from './home/HomeDeploySection';
 import { HomeExploreSection } from './home/HomeExploreSection';
@@ -19,6 +20,7 @@ export const Home: React.FC = () => {
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const setSidebarCollapsed = useUIStore((state) => state.actions.setSidebarCollapsed);
   const [selectedApp, setSelectedApp] = useState<ExploreAppCard | null>(null);
+  const { isDesktop } = useBreakpoint();
 
   const requireAuthAnd = (action: () => void) => {
     if (!user) {
@@ -37,9 +39,13 @@ export const Home: React.FC = () => {
 
   const handleCardClick = (app: ExploreAppCard) => {
     if (app.url) {
-      setSelectedApp(app);
-      if (!sidebarCollapsed) {
-        setSidebarCollapsed(true);
+      if (!isDesktop) {
+        window.open(app.url, '_blank', 'noopener,noreferrer');
+      } else {
+        setSelectedApp(app);
+        if (!sidebarCollapsed) {
+          setSidebarCollapsed(true);
+        }
       }
     }
   };

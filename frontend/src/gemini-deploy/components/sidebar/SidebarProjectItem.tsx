@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Pin } from 'lucide-react';
 import { useUIStore } from '../../stores/uiStore';
+import { useBreakpoint } from '../../hooks/useBreakpoint';
 import type { Project } from '../../types';
 
 interface SidebarProjectItemProps {
@@ -21,10 +22,11 @@ export const SidebarProjectItem: React.FC<SidebarProjectItemProps> = ({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { setSidebarOpen } = useUIStore((state) => state.actions);
+  const { isMobile } = useBreakpoint();
 
   const handleClick = () => {
     navigate(`/projects/${project.id}`);
-    if (window.innerWidth < 768) {
+    if (isMobile) {
       setSidebarOpen(false);
     }
   };

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LayoutDashboard, Sparkles, Package, Home, User } from 'lucide-react';
 import { useUIStore } from '../../stores/uiStore';
 import { useAuthStore } from '../../stores/authStore';
+import { useBreakpoint } from '../../hooks/useBreakpoint';
 
 interface NavItem {
   path: string;
@@ -17,6 +18,7 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
   const navigate = useNavigate();
   const { setSidebarOpen } = useUIStore((state) => state.actions);
   const authUser = useAuthStore((s) => s.user);
+  const { isMobile } = useBreakpoint();
 
   const navItems: NavItem[] = [
     { path: '/', label: t('navigation.home'), icon: Home },
@@ -36,16 +38,19 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
         const isActive = item.path === '/' 
           ? location.pathname === '/' 
           : location.pathname.startsWith(item.path);
+        const isHome = item.path === '/';
         return (
           <button
             key={item.path}
             onClick={() => {
               navigate(item.path);
-              if (window.innerWidth < 768) {
+              if (isMobile) {
                 setSidebarOpen(false);
               }
             }}
-            className={`group flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200 relative overflow-hidden ${
+            className={`group items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200 relative overflow-hidden ${
+              isHome ? 'hidden md:flex' : 'flex'
+            } ${
               collapsed ? 'w-10 h-10 justify-center p-0 mx-auto' : 'w-full min-h-[44px] px-4 py-3'
             } ${
               isActive

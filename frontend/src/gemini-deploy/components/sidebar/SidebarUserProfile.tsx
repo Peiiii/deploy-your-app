@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { usePresenter } from '../../contexts/PresenterContext';
+import { useBreakpoint } from '../../hooks/useBreakpoint';
 
 interface SidebarUserProfileProps {
   collapsed: boolean;
@@ -15,6 +16,7 @@ export const SidebarUserProfile: React.FC<SidebarUserProfileProps> = ({ collapse
   const authUser = useAuthStore((s) => s.user);
   const { setSidebarOpen } = useUIStore((state) => state.actions);
   const presenter = usePresenter();
+  const { isMobile } = useBreakpoint();
 
   const handleClick = () => {
     if (authUser) {
@@ -22,7 +24,7 @@ export const SidebarUserProfile: React.FC<SidebarUserProfileProps> = ({ collapse
     } else {
       presenter.auth.openAuthModal('login');
     }
-    if (window.innerWidth < 768) {
+    if (isMobile) {
       setSidebarOpen(false);
     }
   };
