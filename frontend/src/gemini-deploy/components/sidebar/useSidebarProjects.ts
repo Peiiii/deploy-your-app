@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useProjectStore } from '../../stores/projectStore';
 import { usePresenter } from '../../contexts/PresenterContext';
@@ -17,7 +17,14 @@ export const useSidebarProjects = () => {
   const presenter = usePresenter();
   
   const [pinnedProjectIds, setPinnedProjectIds] = useState<string[]>([]);
-  const [projectViewType, setProjectViewType] = useState<'pinned' | 'recent'>('recent');
+  const [projectViewType, setProjectViewTypeState] = useState<'pinned' | 'recent'>('recent');
+  const didInitDefaultViewRef = useRef(false);
+  const userChangedViewRef = useRef(false);
+
+  const setProjectViewType = (type: 'pinned' | 'recent') => {
+    userChangedViewRef.current = true;
+    setProjectViewTypeState(type);
+  };
 
   const userProjects = useMemo(() => {
     if (!authUser) return [];
@@ -53,15 +60,30 @@ export const useSidebarProjects = () => {
 
   useEffect(() => {
     if (!authUser) {
+      didInitDefaultViewRef.current = false;
+      userChangedViewRef.current = false;
+      setPinnedProjectIds([]);
+      setProjectViewTypeState('recent');
       return;
     }
     
     void fetchMyProfile()
       .then((profile) => {
-        setPinnedProjectIds(profile.pinnedProjectIds || []);
+        const ids = profile.pinnedProjectIds || [];
+        setPinnedProjectIds(ids);
+
+        if (!didInitDefaultViewRef.current && !userChangedViewRef.current) {
+          didInitDefaultViewRef.current = true;
+          setProjectViewTypeState(ids.length > 0 ? 'pinned' : 'recent');
+        }
       })
       .catch(() => {
         setPinnedProjectIds([]);
+
+        if (!didInitDefaultViewRef.current && !userChangedViewRef.current) {
+          didInitDefaultViewRef.current = true;
+          setProjectViewTypeState('recent');
+        }
       });
   }, [authUser]);
 
@@ -83,7 +105,7 @@ export const useSidebarProjects = () => {
     setPinnedProjectIds(newPinnedIds);
 
     if (isUnpinning && newPinnedIds.length === 0 && projectViewType === 'pinned') {
-      setProjectViewType('recent');
+      setProjectViewTypeState('recent');
     }
     
     try {
