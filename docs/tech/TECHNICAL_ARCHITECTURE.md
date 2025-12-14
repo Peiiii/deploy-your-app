@@ -11,6 +11,7 @@
 | 本文档 | GemiGo 平台自身的架构 |
 | [APP_RUNTIME.md](./APP_RUNTIME.md) | 应用在各平台如何运行 |
 | [APP_SDK.md](./APP_SDK.md) | 应用开发者 SDK API |
+| [AI_GATEWAY_ANALYSIS.md](./AI_GATEWAY_ANALYSIS.md) | AI Gateway（GenAI 兼容 + OpenAI-compatible）设计分析 |
 
 ---
 
@@ -50,6 +51,12 @@
 │  │  (Workers)      │  │  service        │                  │
 │  │  • AI 代理      │  │  (Workers)      │                  │
 │  └─────────────────┘  └─────────────────┘                  │
+│                                                             │
+│  ┌─────────────────┐                                        │
+│  │ openai-gateway  │                                        │
+│  │ (Workers)       │                                        │
+│  │ • OpenAI API    │                                        │
+│  └─────────────────┘                                        │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -111,6 +118,7 @@ workers/
 │   └── wrangler.toml        # D1 + R2 绑定
 ├── r2-gateway/              # R2 静态文件网关
 ├── genai-proxy-worker/      # AI 代理服务
+├── openai-gateway-worker/   # OpenAI-compatible AI 网关
 └── screenshot-service/      # 截图服务
 ```
 

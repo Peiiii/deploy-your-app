@@ -131,6 +131,38 @@ importers:
         specifier: ^4.53.0
         version: 4.53.0(@cloudflare/workers-types@4.20251205.0)
 
+  workers/genai-proxy-worker:
+    dependencies:
+      '@deploy-your-app/worker-kit':
+        specifier: workspace:*
+        version: link:../worker-kit
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20250109.0
+        version: 4.20251205.0
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      wrangler:
+        specifier: ^4.53.0
+        version: 4.53.0(@cloudflare/workers-types@4.20251205.0)
+
+  workers/openai-gateway-worker:
+    dependencies:
+      '@deploy-your-app/worker-kit':
+        specifier: workspace:*
+        version: link:../worker-kit
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20250109.0
+        version: 4.20251205.0
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      wrangler:
+        specifier: ^4.53.0
+        version: 4.53.0(@cloudflare/workers-types@4.20251205.0)
+
   workers/r2-gateway:
     devDependencies:
       wrangler:
@@ -149,6 +181,19 @@ importers:
       wrangler:
         specifier: ^4.53.0
         version: 4.53.0(@cloudflare/workers-types@4.20251205.0)
+
+  workers/worker-kit:
+    dependencies:
+      hono:
+        specifier: ^4.9.10
+        version: 4.11.0
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20250109.0
+        version: 4.20251205.0
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
 
 packages:
 
@@ -1955,6 +2000,10 @@ packages:
 
   hermes-parser@0.25.1:
     resolution: {integrity: sha512-6pEjquH3rqaI6cYAXYPcz9MS4rY6R4ngRgrgfDshRptUZIc3lw0MCIJIGDj9++mfySOuPTHB4nrSW99BCvOPIA==}
+
+  hono@4.11.0:
+    resolution: {integrity: sha512-Jg8uZzN2ul8/qlyid5FO8O624F3AK0wKtkgoeEON1qBum1rM1itYBxoMKu/1SPJC7F1+xlIZsJMmc4HHhJ1AWg==}
+    engines: {node: '>=16.9.0'}
 
   html-parse-stringify@3.0.1:
     resolution: {integrity: sha512-KknJ50kTInJ7qIScF3jeaFRpMpE8/lfiTdzf/twXyPBLAGrLRTmkz3AdTnKeh40X8k9L2fdYwEp/42WGXIRGcg==}
@@ -5204,6 +5253,8 @@ snapshots:
   hermes-parser@0.25.1:
     dependencies:
       hermes-estree: 0.25.1
+
+  hono@4.11.0: {}
 
   html-parse-stringify@3.0.1:
     dependencies:

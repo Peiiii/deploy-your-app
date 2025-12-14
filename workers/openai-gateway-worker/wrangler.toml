@@ -1,0 +1,24 @@
+name = "gemigo-openai-gateway"
+main = "src/index.ts"
+compatibility_date = "2025-01-15"
+
+# Custom domain binding (recommended for Mainland China access and to isolate from GenAI endpoints).
+# Use `gemigo.io` subdomains (all `*.gemigo.app` is reserved for R2-hosted apps).
+# Replace the domain below with your own zone, then uncomment.
+#
+# routes = [
+#   { pattern = "openai-api.gemigo.io/*", zone_name = "gemigo.io" }
+# ]
+
+[vars]
+# Phase 1: public access, no auth (will add user/app scoping later).
+PROVIDER = "openai_compatible"
+# DashScope OpenAI-compatible endpoint includes `/v1` in its base path.
+TARGET_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+DEFAULT_MODEL = "qwen3-max"
+
+# Secrets (recommended):
+# wrangler secret put UPSTREAM_API_KEY
+#
+# Back-compat:
+# wrangler secret put OPENAI_API_KEY

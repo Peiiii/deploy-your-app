@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenAI Gateway Tester</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0b1020;
+        --panel: rgba(255, 255, 255, 0.06);
+        --border: rgba(255, 255, 255, 0.12);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.65);
+        --accent: #7c3aed;
+        --danger: #ef4444;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f5f7fb;
+          --panel: rgba(0, 0, 0, 0.04);
+          --border: rgba(0, 0, 0, 0.08);
+          --text: rgba(0, 0, 0, 0.88);
+          --muted: rgba(0, 0, 0, 0.56);
+        }
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        background: radial-gradient(1200px 700px at 10% 10%, rgba(124, 58, 237, 0.16), transparent 60%),
+          var(--bg);
+        color: var(--text);
+      }
+
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 22px 14px 48px;
+      }
+
+      header {
+        display: flex;
+        gap: 10px;
+        justify-content: space-between;
+        align-items: baseline;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+
+      h1 {
+        font-size: 18px;
+        margin: 0;
+      }
+
+      .hint {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      @media (max-width: 560px) {
+        .row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(0, 0, 0, 0.18);
+        color: var(--text);
+        padding: 10px 12px;
+        outline: none;
+        font-family: inherit;
+      }
+
+      @media (prefers-color-scheme: light) {
+        input,
+        textarea {
+          background: rgba(255, 255, 255, 0.72);
+        }
+      }
+
+      textarea {
+        min-height: 110px;
+        resize: vertical;
+        font-family: var(--mono);
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+
+      button {
+        appearance: none;
+        border: 1px solid var(--border);
+        background: rgba(124, 58, 237, 0.18);
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .danger {
+        background: rgba(239, 68, 68, 0.16);
+      }
+
+      pre {
+        background: rgba(0, 0, 0, 0.22);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      @media (prefers-color-scheme: light) {
+        pre {
+          background: rgba(255, 255, 255, 0.72);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>OpenAI Gateway Tester</h1>
+        <div class="hint">
+          目标接口：<code>/v1/chat/completions</code>（支持 <code>stream: true</code>）
+        </div>
+      </header>
+
+      <div class="card">
+        <div class="row">
+          <label for="baseUrl">Gateway Base URL</label>
+          <input id="baseUrl" value="http://127.0.0.1:8787" />
+        </div>
+        <div class="row">
+          <label for="model">Model</label>
+          <input id="model" value="qwen3-max" />
+        </div>
+        <div class="row">
+          <label for="prompt">Prompt</label>
+          <textarea id="prompt">给我一个 50 字以内的中文自我介绍。</textarea>
+        </div>
+        <div class="row">
+          <label for="stream">Stream</label>
+          <input id="stream" type="checkbox" checked />
+        </div>
+
+        <div class="actions">
+          <button id="btnSend">Send</button>
+          <button id="btnAbort" class="danger" disabled>Abort</button>
+          <button id="btnClear" class="danger">Clear</button>
+        </div>
+      </div>
+
+      <h2 style="font-size: 14px; margin: 14px 0 10px">Output</h2>
+      <pre id="out"></pre>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      const state = {
+        abort: null,
+      };
+
+      function normalizeBaseUrl(url) {
+        return String(url || '').trim().replace(/\/+$/, '');
+      }
+
+      function setBusy(busy) {
+        $('btnSend').disabled = busy;
+        $('btnAbort').disabled = !busy;
+      }
+
+      function append(text) {
+        const el = $('out');
+        el.textContent += text;
+        el.scrollTop = el.scrollHeight;
+      }
+
+      function setText(text) {
+        $('out').textContent = text;
+      }
+
+      async function send() {
+        const baseUrl = normalizeBaseUrl($('baseUrl').value);
+        const url = `${baseUrl}/v1/chat/completions`;
+        const model = $('model').value.trim();
+        const prompt = $('prompt').value;
+        const stream = $('stream').checked;
+
+        const body = {
+          model,
+          stream,
+          messages: [{ role: 'user', content: prompt }],
+        };
+
+        setBusy(true);
+        setText('');
+
+        const abort = new AbortController();
+        state.abort = abort;
+
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(body),
+            signal: abort.signal,
+          });
+
+          append(`HTTP ${res.status}\n\n`);
+
+          const contentType = res.headers.get('content-type') || '';
+          if (!res.ok) {
+            const text = await res.text();
+            append(text);
+            return;
+          }
+
+          if (!stream || !contentType.includes('text/event-stream')) {
+            const json = await res.json();
+            append(JSON.stringify(json, null, 2));
+            return;
+          }
+
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            const parts = buffer.split('\n\n');
+            buffer = parts.pop() || '';
+
+            for (const part of parts) {
+              const lines = part.split('\n').map((l) => l.trimEnd());
+              for (const line of lines) {
+                if (!line.startsWith('data:')) continue;
+                const data = line.slice(5).trim();
+                if (data === '[DONE]') {
+                  append('\n\n[DONE]');
+                  return;
+                }
+                try {
+                  const chunk = JSON.parse(data);
+                  const delta =
+                    chunk &&
+                    chunk.choices &&
+                    chunk.choices[0] &&
+                    chunk.choices[0].delta &&
+                    chunk.choices[0].delta.content;
+                  if (typeof delta === 'string' && delta.length > 0) {
+                    append(delta);
+                  }
+                } catch {
+                  // ignore parse errors for non-JSON data lines
+                }
+              }
+            }
+          }
+        } catch (e) {
+          append(`\n\nERROR: ${e && e.message ? e.message : String(e)}`);
+        } finally {
+          state.abort = null;
+          setBusy(false);
+        }
+      }
+
+      $('btnSend').addEventListener('click', () => send());
+      $('btnAbort').addEventListener('click', () => state.abort && state.abort.abort());
+      $('btnClear').addEventListener('click', () => setText(''));
+    </script>
+  </body>
+</html>
+
