@@ -98,8 +98,8 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
   isUploadingThumbnail,
   onThumbnailFileChange,
   onThumbnailPaste,
-  // isPublic,
-  // onTogglePublicVisibility,
+  isPublic,
+  onTogglePublicVisibility,
   analytics,
   reactions,
   onToggleLike,
@@ -200,6 +200,8 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
 
         <ProjectSettingsSidebar
           analytics={analytics}
+          isPublic={isPublic}
+          onTogglePublicVisibility={onTogglePublicVisibility}
           onDeleteProject={onDeleteProject}
         />
       </div>

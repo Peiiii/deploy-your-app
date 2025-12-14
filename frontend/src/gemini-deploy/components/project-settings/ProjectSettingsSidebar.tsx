@@ -5,17 +5,53 @@ import type { ProjectSettingsCardAnalyticsProps } from './types';
 
 interface ProjectSettingsSidebarProps {
   analytics: ProjectSettingsCardAnalyticsProps;
+  isPublic: boolean | undefined;
+  onTogglePublicVisibility: () => void;
   onDeleteProject: () => void;
 }
 
 export const ProjectSettingsSidebar: React.FC<ProjectSettingsSidebarProps> = ({
   analytics,
+  isPublic,
+  onTogglePublicVisibility,
   onDeleteProject,
 }) => {
   const { t } = useTranslation();
+  const showInExplore = isPublic ?? true;
 
   return (
     <div className="w-full md:w-72 space-y-4">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/30 p-4 space-y-3 text-xs">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-slate-700 dark:text-gray-300 uppercase tracking-wider">
+              {t('project.showInExplore')}
+            </p>
+            <p className="text-[11px] text-slate-500 dark:text-gray-400">
+              {t('project.showInExploreDescription')}
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={showInExplore}
+            onClick={onTogglePublicVisibility}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full border transition-colors ${
+              showInExplore
+                ? 'bg-brand-500/90 border-brand-500/60'
+                : 'bg-slate-200 dark:bg-slate-800 border-slate-300 dark:border-slate-700'
+            }`}
+            title={t('project.togglePublicVisibility')}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${
+                showInExplore ? 'translate-x-5' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </div>
+      </div>
+
       <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950/40 dark:to-slate-900/40 p-4 space-y-3 text-xs">
         <h4 className="text-xs font-semibold text-slate-700 dark:text-gray-300 uppercase tracking-wider mb-2">
           {t('project.analytics')}
@@ -80,4 +116,3 @@ export const ProjectSettingsSidebar: React.FC<ProjectSettingsSidebarProps> = ({
     </div>
   );
 };
-
