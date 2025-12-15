@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src/gemini-deploy'),
+        '@i18n': path.resolve(__dirname, './src/i18n'),
       },
     },
     server: {

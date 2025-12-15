@@ -1,13 +1,13 @@
-import { useDeploymentStore } from '../stores/deploymentStore';
-import { DeploymentStatus, SourceType } from '../types';
-import type { Project, DeploymentMetadata } from '../types';
+import { useDeploymentStore } from '@/features/deployment/stores/deploymentStore';
+import { DeploymentStatus, SourceType } from '@/types';
+import type { Project, DeploymentMetadata } from '@/types';
 import type {
   DeploymentResult,
   IDeploymentProvider,
-} from '../services/interfaces';
-import type { ProjectManager } from './ProjectManager';
-import type { UIManager } from './UIManager';
-import i18n from '../../i18n/config';
+} from '@/services/interfaces';
+import type { ProjectManager } from '@/managers/ProjectManager';
+import type { UIManager } from '@/managers/UIManager';
+import i18n from '@i18n/config';
 
 type DeploymentStoreSnapshot = ReturnType<typeof useDeploymentStore.getState>;
 

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useDeploymentStore } from '../stores/deploymentStore';
+import { useDeploymentStore } from '@/features/deployment/stores/deploymentStore';
 import { useAuthStore } from '@/features/auth/stores/authStore';
-import { usePresenter } from '../contexts/PresenterContext';
+import { usePresenter } from '@/contexts/PresenterContext';
 import { ArrowRight } from 'lucide-react';
 
 export const NewDeployment: React.FC = () => {
@@ -100,9 +100,9 @@ export const NewDeployment: React.FC = () => {
     <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
       {/* Elegant Header */}
       <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-slate-900 dark:text-white mb-2 tracking-tight">
-            {t('deployment.createProjectTitle')}
-          </h1>
+        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white mb-2 tracking-tight">
+          {t('deployment.createProjectTitle')}
+        </h1>
         <p className="text-slate-600 dark:text-slate-400 text-sm">
           {t('deployment.createProjectDescription')}
         </p>

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { DeploymentStatus, SourceType } from '../types';
-import type { BuildLog } from '../types';
+import { DeploymentStatus, SourceType } from '@/types';
+import type { BuildLog } from '@/types';
 
 interface DeploymentState {
   step: number;

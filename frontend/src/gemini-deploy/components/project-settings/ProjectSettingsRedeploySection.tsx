@@ -3,7 +3,7 @@ import { FileText, RefreshCcw, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '../../contexts/PresenterContext';
 import { useProjectSettingsStore } from '../../stores/projectSettingsStore';
-import { useDeploymentStore } from '../../stores/deploymentStore';
+import { useDeploymentStore } from '@/features/deployment/stores/deploymentStore';
 import { DeploymentStatus } from '../../types';
 import type { Project } from '../../types';
 

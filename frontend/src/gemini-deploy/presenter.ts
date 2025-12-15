@@ -1,4 +1,4 @@
-import { DeploymentManager } from './managers/DeploymentManager';
+import { DeploymentManager } from '@/features/deployment/managers/DeploymentManager';
 import { ProjectManager } from './managers/ProjectManager';
 import { UIManager } from './managers/UIManager';
 import { AuthManager } from '@/features/auth/managers/AuthManager';

@@ -26,6 +26,9 @@
     "paths": {
       "@/*": [
         "./src/gemini-deploy/*"
+      ],
+      "@i18n/*": [
+        "./src/i18n/*"
       ]
     },
     /* Linting */

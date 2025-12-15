@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useDeploymentStore } from '../stores/deploymentStore';
+import { useDeploymentStore } from '@/features/deployment/stores/deploymentStore';
 import { useProjectStore } from '../stores/projectStore';
 import { usePresenter } from '../contexts/PresenterContext';
 import { DeploymentStatus, SourceType } from '../types';

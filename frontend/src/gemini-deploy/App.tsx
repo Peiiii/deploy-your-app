@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Sidebar } from '@/components/Sidebar';
 import { Home } from '@/features/home/pages/HomePage';
 import { Dashboard } from '@/pages/Dashboard';
-import { NewDeployment } from '@/pages/NewDeployment';
+import { NewDeployment } from '@/features/deployment/pages/NewDeployment';
 import { ExploreApps } from '@/pages/ExploreApps';
 import { ProjectSettings } from '@/pages/ProjectSettings';
 import { MyProfile } from '@/pages/MyProfile';
