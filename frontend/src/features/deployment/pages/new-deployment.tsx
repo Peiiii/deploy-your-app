@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { usePresenter } from '@/contexts/presenter-context';
+import { WizardLayout } from '@/features/deployment/components/wizard-layout';
 import { ArrowRight } from 'lucide-react';
 
 export const NewDeployment: React.FC = () => {
@@ -49,7 +50,7 @@ export const NewDeployment: React.FC = () => {
         return;
       }
       presenter.ui.showSuccessToast(t('deployment.projectCreated'));
-      navigate(`/projects/${encodeURIComponent(project.id)}`);
+      navigate(`/projects/${encodeURIComponent(project.id)}?tab=deployments`);
     } catch (err) {
       console.error(err);
       presenter.ui.showErrorToast(t('deployment.projectCreateFailed'));
@@ -96,54 +97,64 @@ export const NewDeployment: React.FC = () => {
     );
   }
 
+  const steps = [
+    { label: t('common.projectName'), active: true },
+    { label: t('common.source'), completed: false },
+    { label: t('common.deploy'), completed: false },
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
-      {/* Elegant Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white mb-2 tracking-tight">
-          {t('deployment.createProjectTitle')}
-        </h1>
-        <p className="text-slate-600 dark:text-slate-400 text-sm">
-          {t('deployment.createProjectDescription')}
-        </p>
-      </div>
-
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">
-          {t('deployment.projectNameLabel')}
-        </label>
-        <input
-          value={state.projectName}
-          onChange={(e) => presenter.deployment.setProjectName(e.target.value)}
-          onBlur={() => setNameTouched(true)}
-          placeholder={t('deployment.projectNamePlaceholder')}
-          className="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-        />
-        {nameTouched && !state.projectName.trim() && (
-          <p className="mt-2 text-xs text-red-600 dark:text-red-400">
-            {t('deployment.projectNameRequired')}
-          </p>
-        )}
-
-        <div className="mt-6 flex flex-col items-end gap-2">
-          <button
-            onClick={() => {
-              setNameTouched(true);
-              if (canContinue) void handleCreateProject();
-            }}
-            disabled={!canContinue || isCreatingProject}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 dark:bg-purple-500 text-white font-medium rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
-          >
-            {isCreatingProject
-              ? t('common.pleaseWait')
-              : t('deployment.createProjectButton')}
-            <ArrowRight className="w-4 h-4" />
-          </button>
-          <p className="text-xs text-slate-500 dark:text-slate-400 text-right max-w-[520px]">
-            {t('deployment.createProjectHint')}
+    <WizardLayout steps={steps}>
+      <div className="space-y-6 animate-fade-in">
+        <div className="text-center space-y-2 mb-8">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+            {t('deployment.createProjectTitle')}
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 max-w-lg mx-auto">
+            {t('deployment.createProjectDescription')}
           </p>
         </div>
+
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm max-w-2xl mx-auto">
+          <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
+            {t('deployment.projectNameLabel')}
+          </label>
+          <div className="space-y-2">
+            <input
+              value={state.projectName}
+              onChange={(e) => presenter.deployment.setProjectName(e.target.value)}
+              onBlur={() => setNameTouched(true)}
+              placeholder={t('deployment.projectNamePlaceholder')}
+              autoFocus
+              className="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all font-medium"
+            />
+            {nameTouched && !state.projectName.trim() && (
+              <p className="text-xs text-red-600 dark:text-red-400 font-medium">
+                {t('deployment.projectNameRequired')}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <button
+              onClick={() => {
+                setNameTouched(true);
+                if (canContinue) void handleCreateProject();
+              }}
+              disabled={!canContinue || isCreatingProject}
+              className="w-full md:w-auto min-w-[200px] inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white font-semibold rounded-lg focus:outline-none focus:ring-4 focus:ring-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+            >
+              {isCreatingProject
+                ? t('common.pleaseWait')
+                : t('deployment.createProjectButton')}
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
+              {t('deployment.createProjectHint')}
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+    </WizardLayout>
   );
 };

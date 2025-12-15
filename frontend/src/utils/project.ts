@@ -5,10 +5,10 @@ import { SourceType } from '../types';
 const DEFAULT_AUTHOR = 'Indie Hacker';
 const DEFAULT_CATEGORY = 'Other';
 
-export function formatRepoLabel(project: Project): string {
+export function formatRepoLabel(project: Project): string | null {
   const { repoUrl, sourceType } = project;
-  if (!repoUrl) return 'Not configured';
-  if (repoUrl.startsWith('draft:')) return 'Not configured';
+  if (!repoUrl) return null;
+  if (repoUrl.startsWith('draft:')) return null;
   if (
     (sourceType === SourceType.ZIP || sourceType === SourceType.HTML) &&
     !repoUrl.startsWith('http')

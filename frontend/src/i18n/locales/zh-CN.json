@@ -27,6 +27,9 @@
     "deploy": "部署",
     "notAccessible": "无法访问",
     "continue": "继续",
+    "newProject": "新建项目",
+    "projectName": "项目名称",
+    "source": "源代码",
     "content": "内容",
     "open": "打开",
     "openInNewTab": "在新窗口打开",
@@ -270,9 +273,11 @@
     "repoUrlPlaceholder": "https://github.com/username/repo",
     "currentRepo": "当前仓库",
     "totalLikes": "总点赞数",
-    "totalFavorites": "总收藏数"
+    "totalFavorites": "总收藏数",
+    "notConfigured": "未配置"
   },
   "ui": {
+    "dashboard": "仪表板",
     "toggleMenu": "切换菜单",
     "toggleTheme": "切换主题",
     "help": "帮助",
@@ -288,8 +293,12 @@
   },
   "profile": {
     "title": "我的主页",
+    "myProfile": "我的主页",
     "yourCommunityProfile": "你的社区主页",
     "publicProfile": "对外公开主页",
+    "overview": "概览",
+    "preferences": "偏好设置",
+    "security": "安全设置",
     "about": "个人简介",
     "bioPlaceholder": "向社区简单介绍一下你自己，你在做什么产品？",
     "links": "个人链接",

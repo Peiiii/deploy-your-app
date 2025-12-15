@@ -1,6 +1,7 @@
 import { AlertTriangle } from 'lucide-react';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { ProjectLayout, type ProjectLayoutTab } from '@/features/project-settings/components/project-layout';
 import { SettingsGeneralTab } from '@/features/project-settings/components/tabs/settings-general-tab';
 import { SettingsDeploymentTab } from '@/features/project-settings/components/tabs/settings-deployment-tab';
@@ -24,7 +25,33 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
   onDeleteProject,
 }) => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<TabId>('general');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = (searchParams.get('tab') as TabId) || 'general';
+
+  // Validate tab to ensure it's a valid TabId, fallback to general
+  const validTab = ['general', 'deployments', 'display', 'analytics'].includes(initialTab)
+    ? initialTab
+    : 'general';
+
+  const [activeTab, setActiveTabState] = useState<TabId>(validTab);
+
+  // Sync state with URL if URL changes externally (e.g. back button)
+  React.useEffect(() => {
+    const currentTab = searchParams.get('tab') as TabId;
+    if (currentTab && ['general', 'deployments', 'display', 'analytics'].includes(currentTab)) {
+      setActiveTabState(currentTab);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (id: string) => {
+    const newTab = id as TabId;
+    setActiveTabState(newTab);
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      newParams.set('tab', newTab);
+      return newParams;
+    });
+  };
 
   const tabs: ProjectLayoutTab[] = [
     { id: 'general', label: t('project.general', 'General') },
@@ -38,7 +65,7 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
       project={project}
       tabs={tabs}
       activeTab={activeTab}
-      onTabChange={(id) => setActiveTab(id as TabId)}
+      onTabChange={handleTabChange}
     >
       {/* Error Banner */}
       {

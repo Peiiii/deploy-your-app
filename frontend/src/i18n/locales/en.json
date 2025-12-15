@@ -27,6 +27,9 @@
     "deploy": "Deploy",
     "notAccessible": "Not accessible",
     "continue": "Continue",
+    "newProject": "New Project",
+    "projectName": "Project Name",
+    "source": "Source",
     "content": "Content",
     "open": "Open",
     "openInNewTab": "Open in new window",
@@ -274,9 +277,11 @@
     "repoUrlPlaceholder": "https://github.com/username/repo",
     "currentRepo": "Current repository",
     "totalLikes": "Total Likes",
-    "totalFavorites": "Total Favorites"
+    "totalFavorites": "Total Favorites",
+    "notConfigured": "Not configured"
   },
   "ui": {
+    "dashboard": "Dashboard",
     "toggleMenu": "Toggle Menu",
     "toggleTheme": "Toggle Theme",
     "help": "Help",
@@ -292,8 +297,12 @@
   },
   "profile": {
     "title": "My profile",
+    "myProfile": "My Profile",
     "yourCommunityProfile": "Your community profile",
     "publicProfile": "Public profile page",
+    "overview": "Overview",
+    "preferences": "Preferences",
+    "security": "Security",
     "about": "About",
     "bioPlaceholder": "Introduce yourself to the community. What are you building?",
     "links": "Links",

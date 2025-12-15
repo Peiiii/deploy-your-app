@@ -46,40 +46,37 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 
   return (
     <div
-      className="glass-card rounded-xl p-6 group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-slate-200/50 dark:border-slate-700/50 hover:border-brand-500/30 dark:hover:border-brand-500/20 cursor-pointer"
+      className="bg-white dark:bg-slate-900 rounded-xl p-6 group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-slate-200 dark:border-slate-800 hover:border-brand-500/50 dark:hover:border-brand-500/50 cursor-pointer"
       onClick={handleCardClick}
     >
       {/* Status Indicator */}
       <div
-        className={`absolute top-4 right-4 flex items-center gap-2 px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider z-10 ${
-          project.status === 'Live'
+        className={`absolute top-4 right-4 flex items-center gap-2 px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider z-10 ${project.status === 'Live'
             ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20'
             : project.status === 'Failed'
               ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
               : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20'
-        }`}
+          }`}
       >
         <div
-          className={`w-1.5 h-1.5 rounded-full ${
-            project.status === 'Live'
+          className={`w-1.5 h-1.5 rounded-full ${project.status === 'Live'
               ? 'bg-green-500 dark:bg-green-400 animate-pulse'
               : project.status === 'Failed'
                 ? 'bg-red-500 dark:bg-red-400'
                 : 'bg-yellow-500 dark:bg-yellow-400'
-          }`}
+            }`}
         ></div>
         {project.status}
       </div>
 
       <div className="flex items-start gap-4 mb-5">
         <div
-          className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-inner flex-shrink-0 transition-transform group-hover:scale-110 ${
-            project.framework === 'React'
+          className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-inner flex-shrink-0 transition-transform group-hover:scale-110 ${project.framework === 'React'
               ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
               : project.framework === 'Next.js'
                 ? 'bg-black/10 text-black dark:text-white border-black/20 dark:border-white/20'
                 : 'bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-white border-slate-200 dark:border-white/10'
-          }`}
+            }`}
         >
           <span className="font-bold text-sm tracking-tighter">
             {project.framework.slice(0, 2).toUpperCase()}

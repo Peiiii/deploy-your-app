@@ -11,7 +11,7 @@ import { usePresenter } from '@/contexts/presenter-context';
 import { useCopyToClipboardWithKey } from '@/hooks/use-copy-to-clipboard-with-key';
 import { StatCard } from '@/features/dashboard/components/stat-card';
 import { ProjectCard } from '@/features/dashboard/components/project-card';
-import { DashboardHeader } from '@/features/dashboard/components/dashboard-header';
+import { DashboardLayout } from '@/features/dashboard/components/dashboard-layout';
 import { DashboardFilters } from '@/features/dashboard/components/dashboard-filters';
 import { DashboardEmptyState } from '@/features/dashboard/components/dashboard-empty-state';
 import { DashboardInspirationSection } from '@/features/dashboard/components/dashboard-inspiration-section';
@@ -156,12 +156,19 @@ export const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col gap-6">
-        <DashboardHeader />
-        <DashboardFilters />
-      </div>
+    <DashboardLayout
+      actions={
+        <button
+          onClick={() => navigate('/deploy')}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-colors shadow-sm"
+        >
+          <Plus className="w-4 h-4" />
+          <span>{t('dashboard.deployApp')}</span>
+        </button>
+      }
+    >
+      {/* Filters (Search & Sort) */}
+      <DashboardFilters />
 
       {/* Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -170,27 +177,21 @@ export const Dashboard: React.FC = () => {
           label={t('dashboard.activeProjects')}
           value={projects.filter((p) => p.status === 'Live').length.toString()}
           sublabel={t('dashboard.runningOnEdge')}
-          color="text-green-600 dark:text-green-400"
-          bgColor="bg-green-500/10"
-          borderColor="border-green-500/20"
+          iconColor="text-green-600 dark:text-green-400"
         />
         <StatCard
           icon={TrendingUp}
           label={t('dashboard.totalViews')}
           value={totalViews7d.toLocaleString()}
           sublabel={t('dashboard.last7Days')}
-          color="text-purple-600 dark:text-purple-400"
-          bgColor="bg-purple-500/10"
-          borderColor="border-purple-500/20"
+          iconColor="text-purple-600 dark:text-purple-400"
         />
         <StatCard
           icon={FileText}
           label={t('dashboard.systemStatus')}
           value="100%"
           sublabel={t('dashboard.systemsOperational')}
-          color="text-orange-600 dark:text-orange-400"
-          bgColor="bg-orange-500/10"
-          borderColor="border-orange-500/20"
+          iconColor="text-orange-600 dark:text-orange-400"
         />
       </div>
 
@@ -236,6 +237,6 @@ export const Dashboard: React.FC = () => {
 
       {/* What Will You Build Section */}
       <DashboardInspirationSection />
-    </div>
+    </DashboardLayout>
   );
 };

@@ -5,9 +5,7 @@ interface StatCardProps {
   label: string;
   value: string;
   sublabel: string;
-  color: string;
-  bgColor: string;
-  borderColor: string;
+  iconColor?: string;
 }
 
 export const StatCard: React.FC<StatCardProps> = ({
@@ -15,28 +13,24 @@ export const StatCard: React.FC<StatCardProps> = ({
   label,
   value,
   sublabel,
-  color,
-  bgColor,
-  borderColor,
+  iconColor = 'text-brand-500',
 }) => (
-  <div
-    className={`glass-card p-5 rounded-xl border ${borderColor} hover:shadow-lg transition-all duration-300`}
-  >
-    <div className="flex items-center gap-4">
-      <div
-        className={`w-12 h-12 rounded-lg flex items-center justify-center ${bgColor} ${color} flex-shrink-0`}
-      >
-        <Icon className="w-6 h-6" />
+  <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+    <div className="flex items-center gap-3 mb-3">
+      <div className={`p-2 rounded-lg bg-slate-50 dark:bg-slate-800 ${iconColor}`}>
+        <Icon className="w-4 h-4" />
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-slate-500 dark:text-gray-400 text-sm font-medium truncate">
-          {label}
-        </p>
-        <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-          {value}
-        </p>
-        <p className={`text-xs ${color} mt-0.5`}>{sublabel}</p>
-      </div>
+      <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+        {label}
+      </span>
+    </div>
+    <div className="space-y-1">
+      <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+        {value}
+      </p>
+      <p className="text-xs text-slate-500 dark:text-gray-500 font-medium">
+        {sublabel}
+      </p>
     </div>
   </div>
 );

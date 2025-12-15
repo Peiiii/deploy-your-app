@@ -29,11 +29,12 @@ export const ProjectSettingsRepoSection: React.FC<
         <GitBranch className="w-4 h-4 text-slate-500" />
         {t('project.repository')}
       </h3>
-      {repoLabel && (
-        <p className="text-xs text-slate-600 dark:text-gray-400">
-          {t('project.currentRepo')}: <span className="font-mono">{repoLabel}</span>
-        </p>
-      )}
+      <p className="text-xs text-slate-600 dark:text-gray-400">
+        {t('project.currentRepo')}:{' '}
+        <span className="font-mono">
+          {repoLabel || t('project.notConfigured')}
+        </span>
+      </p>
       <div className="flex gap-2">
         <input
           type="text"
