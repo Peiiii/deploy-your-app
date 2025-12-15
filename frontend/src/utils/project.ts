@@ -51,6 +51,13 @@ export function getProjectThumbnailUrl(projectUrl: string | undefined): string |
   }
 }
 
+export function getProjectLiveUrl(project: Project): string | null {
+  const candidate = project.url ?? project.providerUrl ?? null;
+  if (!candidate) return null;
+  const normalized = candidate.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
 export function buildProjectAuthor(project: Project): string {
   if (
     project.sourceType === SourceType.GITHUB &&

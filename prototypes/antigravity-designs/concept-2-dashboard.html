@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concept 2: Live Dashboard Blend</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+        }
+
+        @keyframes pulse-slow {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .pulse-slow {
+            animation: pulse-slow 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body class="bg-[#0a0a0f] text-slate-100 min-h-screen antialiased">
+
+    <!-- Live Status Bar -->
+    <div class="bg-emerald-950/50 border-b border-emerald-900/30">
+        <div class="max-w-6xl mx-auto px-6 py-2 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-slow"></span>
+                <span class="text-emerald-300">Production is live</span>
+                <span class="text-slate-600">•</span>
+                <span class="text-slate-500">Last deploy 2 hours ago</span>
+            </div>
+            <a href="#" class="text-emerald-400 hover:text-emerald-300 transition-colors">View deployment →</a>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-6 py-8">
+        <!-- Header with Project Preview -->
+        <header class="flex items-start justify-between mb-12">
+            <div class="flex items-center gap-6">
+                <div
+                    class="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center text-3xl font-bold text-white shadow-2xl shadow-purple-500/30 ring-4 ring-purple-500/20">
+                    HT
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-1">Hyper Thinker</h1>
+                    <p class="text-slate-400">hyper-thinker.gemigo.app</p>
+                    <div class="flex items-center gap-3 mt-3">
+                        <span class="px-2 py-1 bg-slate-800 rounded text-xs text-slate-400">Next.js</span>
+                        <span class="px-2 py-1 bg-slate-800 rounded text-xs text-slate-400">TypeScript</span>
+                        <span class="px-2 py-1 bg-emerald-950 text-emerald-400 rounded text-xs">Public</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button
+                    class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-sm text-slate-300 transition-colors">
+                    Visit Site
+                </button>
+                <button
+                    class="px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded-xl text-sm text-white font-medium transition-colors shadow-lg shadow-violet-600/20">
+                    Redeploy
+                </button>
+            </div>
+        </header>
+
+        <!-- Two-Column Layout: Settings + Live Data -->
+        <div class="grid grid-cols-3 gap-8">
+
+            <!-- Left: Settings (2 cols) -->
+            <div class="col-span-2 space-y-6">
+
+                <!-- Card: Quick Settings -->
+                <div class="glass rounded-2xl border border-slate-800 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                        <h2 class="font-semibold text-white">Quick Settings</h2>
+                        <a href="#" class="text-xs text-violet-400 hover:text-violet-300">View all settings →</a>
+                    </div>
+                    <div class="p-6 space-y-6">
+                        <!-- Toggle: Visibility -->
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-medium text-slate-200">Public Visibility</div>
+                                <div class="text-sm text-slate-500">Show in Explore feed</div>
+                            </div>
+                            <button class="w-12 h-7 bg-violet-600 rounded-full relative transition-colors">
+                                <span class="absolute right-1 top-1 w-5 h-5 bg-white rounded-full shadow"></span>
+                            </button>
+                        </div>
+
+                        <div class="h-px bg-slate-800"></div>
+
+                        <!-- Inline Edit: Name -->
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-medium text-slate-200">Project Name</div>
+                                <div class="text-sm text-slate-500">Displayed in dashboard</div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="text" value="Hyper Thinker"
+                                    class="bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white w-48 focus:outline-none focus:border-violet-500" />
+                            </div>
+                        </div>
+
+                        <div class="h-px bg-slate-800"></div>
+
+                        <!-- Inline Edit: Framework -->
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-medium text-slate-200">Framework</div>
+                                <div class="text-sm text-slate-500">Auto-detected</div>
+                            </div>
+                            <div
+                                class="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 flex items-center gap-2">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                    <path
+                                        d="M11.572 0c-.176 0-.31.001-.358.007a19.76 19.76 0 0 1-.364.033C7.443.346 4.25 2.185 2.228 5.012a11.875 11.875 0 0 0-2.119 5.243c-.096.659-.108.854-.108 1.747s.012 1.089.108 1.748c.652 4.506 3.86 8.292 8.209 9.695.779.251 1.6.422 2.534.525.363.04 1.935.04 2.299 0 1.611-.178 2.977-.577 4.323-1.264.207-.106.247-.134.219-.158-.02-.013-.9-1.193-1.955-2.62l-1.919-2.592-2.404-3.558a338.739 338.739 0 0 0-2.422-3.556c-.009-.002-.018 1.579-.023 3.51-.007 3.38-.01 3.515-.052 3.595a.426.426 0 0 1-.206.214c-.075.037-.14.044-.495.044H7.81l-.108-.068a.438.438 0 0 1-.157-.171l-.05-.106.006-4.703.007-4.705.072-.092a.645.645 0 0 1 .174-.143c.096-.047.134-.051.54-.051.478 0 .558.018.682.154.035.038 1.337 1.999 2.895 4.361a10760.433 10760.433 0 0 0 4.735 7.17l1.9 2.879.096-.063a12.317 12.317 0 0 0 2.466-2.163 11.944 11.944 0 0 0 2.824-6.134c.096-.66.108-.854.108-1.748 0-.893-.012-1.088-.108-1.747-.652-4.506-3.859-8.292-8.208-9.695a12.597 12.597 0 0 0-2.499-.523A33.119 33.119 0 0 0 11.572 0zm4.069 7.217c.347 0 .408.005.486.047a.473.473 0 0 1 .237.277c.018.06.023 1.365.018 4.304l-.006 4.218-.744-1.14-.746-1.14v-3.066c0-1.982.01-3.097.023-3.15a.478.478 0 0 1 .233-.296c.096-.05.13-.054.5-.054z" />
+                                </svg>
+                                Next.js
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card: Build Settings -->
+                <div class="glass rounded-2xl border border-slate-800 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-800">
+                        <h2 class="font-semibold text-white">Build & Deploy</h2>
+                    </div>
+                    <div class="p-6 grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-2">Build Command</label>
+                            <input type="text" value="npm run build"
+                                class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-violet-500" />
+                        </div>
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-2">Output Directory</label>
+                            <input type="text" value="dist"
+                                class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-violet-500" />
+                        </div>
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-2">Install Command</label>
+                            <input type="text" value="npm install"
+                                class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-violet-500" />
+                        </div>
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-2">Root Directory</label>
+                            <input type="text" value="./"
+                                class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-violet-500" />
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right: Live Activity Sidebar (1 col) -->
+            <div class="space-y-6">
+
+                <!-- Mini Stats -->
+                <div class="glass rounded-2xl border border-slate-800 p-6">
+                    <h3 class="text-sm font-medium text-slate-400 mb-4">This Week</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="text-3xl font-bold text-white">1,284</div>
+                            <div class="text-sm text-slate-500">Page views</div>
+                        </div>
+                        <div class="h-px bg-slate-800"></div>
+                        <div>
+                            <div class="text-3xl font-bold text-white">47</div>
+                            <div class="text-sm text-slate-500">Unique visitors</div>
+                        </div>
+                        <div class="h-px bg-slate-800"></div>
+                        <div>
+                            <div class="text-3xl font-bold text-white">12</div>
+                            <div class="text-sm text-slate-500">Deployments</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="glass rounded-2xl border border-slate-800 p-6">
+                    <h3 class="text-sm font-medium text-slate-400 mb-4">Recent Activity</h3>
+                    <div class="space-y-4 text-sm">
+                        <div class="flex items-start gap-3">
+                            <div class="w-2 h-2 rounded-full bg-emerald-500 mt-1.5"></div>
+                            <div>
+                                <div class="text-slate-300">Deployment success</div>
+                                <div class="text-slate-600">2 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-2 h-2 rounded-full bg-violet-500 mt-1.5"></div>
+                            <div>
+                                <div class="text-slate-300">Settings updated</div>
+                                <div class="text-slate-600">Yesterday</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-2 h-2 rounded-full bg-amber-500 mt-1.5"></div>
+                            <div>
+                                <div class="text-slate-300">Build warning</div>
+                                <div class="text-slate-600">2 days ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="rounded-2xl border border-red-900/30 bg-red-950/20 p-6">
+                    <h3 class="text-sm font-medium text-red-400 mb-2">Danger Zone</h3>
+                    <p class="text-xs text-slate-500 mb-4">Permanently remove this project.</p>
+                    <button
+                        class="w-full px-4 py-2 bg-transparent hover:bg-red-950 border border-red-900/50 text-red-400 text-sm rounded-lg transition-colors">
+                        Delete Project
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

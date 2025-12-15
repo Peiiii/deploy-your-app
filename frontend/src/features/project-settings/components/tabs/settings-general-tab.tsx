@@ -2,9 +2,10 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trash2 } from 'lucide-react';
 import { usePresenter } from '@/contexts/presenter-context';
-import { ProjectSettingsBasicInfoGroup } from '@/features/project-settings/components/project-settings-basic-info-group';
-import type { Project } from '@/types';
 import { ProjectSettingsPublicUrlSection } from '@/features/project-settings/components/project-settings-public-url-section';
+import { ProjectSettingsBasicInfoGroup } from '@/features/project-settings/components/project-settings-basic-info-group';
+import { getProjectLiveUrl } from '@/utils/project';
+import type { Project } from '@/types';
 
 interface SettingsGeneralTabProps {
     project: Project;
@@ -18,73 +19,81 @@ export const SettingsGeneralTab: React.FC<SettingsGeneralTabProps> = ({
     const { t } = useTranslation();
     const presenter = usePresenter();
 
+    // Compute project URL - prefer canonical URL with provider fallback
+    const projectUrl = getProjectLiveUrl(project);
+
+    // Visibility state
     const showInExplore = project.isPublic ?? true;
 
     return (
         <div className="space-y-8 animate-fade-in">
-            {/* 1. Public Link (Moved here as it is general info) */}
-            <div className="glass-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
-                <ProjectSettingsPublicUrlSection projectUrl={project.url} />
-            </div>
+            {/* Main Settings Card - Clean List Style */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
 
-            {/* 2. Basic Info */}
-            <div className="glass-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
-                <ProjectSettingsBasicInfoGroup project={project} />
-            </div>
+                {/* Section: Public URL */}
+                <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+                    <ProjectSettingsPublicUrlSection projectUrl={projectUrl} />
+                </div>
 
-            {/* 3. Visibility */}
-            <div className="glass-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
-                <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-4">
-                    {t('project.visibility', 'Project Visibility')}
-                </h3>
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-white">
-                            {t('project.showInExplore')}
-                        </p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            {t('project.showInExploreDescription')}
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        role="switch"
-                        aria-checked={showInExplore}
-                        onClick={presenter.projectSettings.togglePublicVisibility}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 ${showInExplore
-                                ? 'bg-brand-500 border-brand-500'
-                                : 'bg-slate-200 dark:bg-slate-700 border-transparent'
-                            }`}
-                    >
-                        <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${showInExplore ? 'translate-x-6' : 'translate-x-1'
+                {/* Section: Basic Info */}
+                <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+                    <ProjectSettingsBasicInfoGroup project={project} />
+                </div>
+
+                {/* Section: Visibility */}
+                <div className="p-6">
+                    <div className="flex items-start justify-between gap-4">
+                        <div className="space-y-1">
+                            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                                {t('project.showInExplore', 'Show in Explore')}
+                            </h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                {t('project.showInExploreDescription', 'Make this project discoverable in the public Explore feed.')}
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            role="switch"
+                            aria-checked={showInExplore}
+                            onClick={presenter.projectSettings.togglePublicVisibility}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${showInExplore
+                                ? 'bg-brand-500'
+                                : 'bg-slate-200 dark:bg-slate-700'
                                 }`}
-                        />
-                    </button>
+                            title={t('project.togglePublicVisibility')}
+                        >
+                            <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${showInExplore ? 'translate-x-6' : 'translate-x-1'
+                                    }`}
+                            />
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {/* 4. Danger Zone */}
-            <div className="glass-card rounded-2xl p-6 border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/10">
-                <h3 className="text-base font-semibold text-red-600 dark:text-red-400 mb-4">
-                    {t('project.dangerZone')}
-                </h3>
-                <div className="flex items-center justify-between">
+            {/* Danger Zone - Separate Card */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-red-200 dark:border-red-900/50 overflow-hidden">
+                <div className="px-6 py-4 border-b border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-950/20">
+                    <h2 className="text-base font-semibold text-red-700 dark:text-red-400">
+                        {t('project.dangerZone', 'Danger Zone')}
+                    </h2>
+                </div>
+                <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-white">
-                            {t('project.deleteProject')}
-                        </p>
+                        <h3 className="text-sm font-medium text-slate-900 dark:text-white">
+                            {t('project.deleteProject', 'Delete Project')}
+                        </h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            {t('project.deleteDescription')}
+                            {t('project.deleteDescription', 'Permanently remove this project and all of its data.')}
                         </p>
                     </div>
                     <button
                         type="button"
                         onClick={onDeleteProject}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white dark:hover:bg-red-500 transition-colors"
                     >
                         <Trash2 className="w-4 h-4" />
-                        {t('project.deleteProject')}
+                        {t('project.deleteProject', 'Delete Project')}
                     </button>
                 </div>
             </div>

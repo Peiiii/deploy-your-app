@@ -1,8 +1,6 @@
-import { ArrowLeft } from 'lucide-react';
 import React, { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { DeploymentSession } from '@/features/deployment/components/deployment-session';
 import { ProjectSettingsCard } from '@/features/project-settings/components/project-settings-card';
 import { URLS } from '@/constants';
 import { usePresenter } from '@/contexts/presenter-context';
@@ -90,31 +88,15 @@ export const ProjectSettings: React.FC = () => {
   const canRedeployFromGitHub =
     !!project.repoUrl && project.repoUrl.startsWith(URLS.GITHUB_BASE);
 
+  // Layout Note: The ProjectSettingsCard (via ProjectLayout) now handles 
+  // the full page structure including header and padding.
+  // We utilize a fragment here to avoid double-padding the content.
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 md:space-y-8 animate-fade-in">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <button
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          {t('common.back')}
-        </button>
-        <div className="flex items-center gap-2">
-          <span className="text-xs px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-gray-400 border border-slate-200 dark:border-slate-700 font-mono">
-            {project.id.slice(0, 8)}...
-          </span>
-          {project.url && (
-            <a
-              href={project.url}
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs px-3 py-1.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 hover:bg-brand-500/20 transition-colors"
-            >
-              {t('common.visit')}
-            </a>
-          )}
-        </div>
+    <>
+      {/* Back button is now integrated into URL flow or ProjectLayout header context if needed */}
+      <div className="hidden">
+        {/* Legacy header components that were removed. 
+               ProjectLayout now renders the header. */}
       </div>
 
       <ProjectSettingsCard
@@ -124,7 +106,6 @@ export const ProjectSettings: React.FC = () => {
         onDeleteProject={handleDeleteProject}
       />
 
-      <DeploymentSession projectUrlOverride={project.url} />
-    </div>
+    </>
   );
 };

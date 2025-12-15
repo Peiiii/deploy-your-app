@@ -241,7 +241,6 @@
     "totalViews": "Total views",
     "lastView": "Last view",
     "projectInfo": "Project Info",
-    "analytics": "Analytics",
     "basicInfo": "Basic Information",
     "deploymentManagement": "Deployment Management",
     "displaySettings": "Display Settings",
@@ -263,7 +262,18 @@
     "deleteProject": "Delete project",
     "deleteDescription": "Deleting a project hides it from your dashboard and public feeds. Its URL and analytics slug will remain reserved and cannot be reused.",
     "deleteConfirm": "Are you sure you want to delete this project? This action cannot be undone.",
-    "failedToDelete": "Failed to delete project. Please try again."
+    "failedToDelete": "Failed to delete project. Please try again.",
+    "general": "General",
+    "generalDesc": "Basic info & visibility",
+    "deployments": "Deployments",
+    "deploymentsDesc": "Source & redeploy",
+    "display": "Display",
+    "displayDesc": "Thumbnail & assets",
+    "analytics": "Analytics",
+    "analyticsDesc": "Views & insights",
+    "analyticsDescription": "Track views and engagement statistics.",
+    "repoUrlPlaceholder": "https://github.com/username/repo",
+    "currentRepo": "Current repository"
   },
   "ui": {
     "toggleMenu": "Toggle Menu",

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concept 3: Command-First</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .cmd-bar {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body class="bg-[#09090b] text-zinc-100 min-h-screen antialiased">
+
+    <!-- Command Palette (Always Visible / Prominent) -->
+    <div class="fixed top-6 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-50">
+        <div class="cmd-bar bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden">
+            <div class="flex items-center px-4 py-3 border-b border-zinc-800">
+                <svg class="w-5 h-5 text-zinc-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" placeholder="Type a command or search settings..."
+                    class="flex-1 bg-transparent text-zinc-100 placeholder-zinc-500 focus:outline-none text-sm" />
+                <div class="flex items-center gap-2 text-xs text-zinc-600">
+                    <kbd class="px-1.5 py-0.5 bg-zinc-800 rounded border border-zinc-700">⌘</kbd>
+                    <kbd class="px-1.5 py-0.5 bg-zinc-800 rounded border border-zinc-700">K</kbd>
+                </div>
+            </div>
+            <!-- Quick Commands -->
+            <div class="px-2 py-2 flex gap-1 overflow-x-auto">
+                <button
+                    class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs text-zinc-400 hover:text-zinc-200 whitespace-nowrap transition-colors">#rename</button>
+                <button
+                    class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs text-zinc-400 hover:text-zinc-200 whitespace-nowrap transition-colors">#redeploy</button>
+                <button
+                    class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs text-zinc-400 hover:text-zinc-200 whitespace-nowrap transition-colors">#visibility</button>
+                <button
+                    class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs text-zinc-400 hover:text-zinc-200 whitespace-nowrap transition-colors">#domain</button>
+                <button
+                    class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs text-zinc-400 hover:text-zinc-200 whitespace-nowrap transition-colors">#env</button>
+                <button
+                    class="px-3 py-1.5 bg-red-950/50 hover:bg-red-900/50 rounded-lg text-xs text-red-400 whitespace-nowrap transition-colors">#delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content: Ultra Minimal -->
+    <main class="max-w-4xl mx-auto px-6 pt-40 pb-20">
+
+        <!-- Project Identity: Hero Style -->
+        <div class="text-center mb-16">
+            <div
+                class="w-24 h-24 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-cyan-400 via-blue-500 to-violet-600 flex items-center justify-center text-4xl font-bold text-white shadow-2xl shadow-blue-500/30 ring-4 ring-blue-500/10">
+                HT
+            </div>
+            <h1 class="text-4xl font-bold text-white mb-2">Hyper Thinker</h1>
+            <p class="text-zinc-500 mono text-sm">hyper-thinker.gemigo.app</p>
+            <div class="flex items-center justify-center gap-4 mt-6">
+                <span class="px-3 py-1 bg-emerald-950 text-emerald-400 rounded-full text-xs font-medium">● Live</span>
+                <span class="text-zinc-600">|</span>
+                <span class="text-zinc-500 text-sm">Deployed 2h ago from <span class="text-zinc-400">main</span></span>
+            </div>
+        </div>
+
+        <!-- Quick Access Grid -->
+        <div class="grid grid-cols-3 gap-4 mb-16">
+            <button
+                class="group p-6 bg-zinc-900/50 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-2xl text-left transition-all">
+                <div class="text-zinc-500 group-hover:text-cyan-400 transition-colors mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1">
+                        </path>
+                    </svg>
+                </div>
+                <div class="font-medium text-zinc-200 group-hover:text-white">Domains</div>
+                <div class="text-sm text-zinc-600">1 connected</div>
+            </button>
+
+            <button
+                class="group p-6 bg-zinc-900/50 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-2xl text-left transition-all">
+                <div class="text-zinc-500 group-hover:text-cyan-400 transition-colors mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                        </path>
+                    </svg>
+                </div>
+                <div class="font-medium text-zinc-200 group-hover:text-white">Environment</div>
+                <div class="text-sm text-zinc-600">3 variables</div>
+            </button>
+
+            <button
+                class="group p-6 bg-zinc-900/50 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-2xl text-left transition-all">
+                <div class="text-zinc-500 group-hover:text-cyan-400 transition-colors mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                        </path>
+                    </svg>
+                </div>
+                <div class="font-medium text-zinc-200 group-hover:text-white">Analytics</div>
+                <div class="text-sm text-zinc-600">1.2k views</div>
+            </button>
+        </div>
+
+        <!-- Inline Editable Settings (Clean List) -->
+        <div class="space-y-0 divide-y divide-zinc-800 border-y border-zinc-800">
+
+            <div class="py-5 flex items-center justify-between group">
+                <div>
+                    <div class="text-sm font-medium text-zinc-300">Project Name</div>
+                    <div class="text-xs text-zinc-600 mt-0.5">Displayed in your dashboard</div>
+                </div>
+                <input type="text" value="Hyper Thinker"
+                    class="bg-transparent border-none text-right text-zinc-400 focus:text-zinc-100 focus:outline-none text-sm w-48 group-hover:text-zinc-300 transition-colors" />
+            </div>
+
+            <div class="py-5 flex items-center justify-between group">
+                <div>
+                    <div class="text-sm font-medium text-zinc-300">Framework</div>
+                    <div class="text-xs text-zinc-600 mt-0.5">Detected automatically</div>
+                </div>
+                <div class="text-sm text-zinc-500 flex items-center gap-2">
+                    Next.js
+                    <button class="text-cyan-500 text-xs hover:underline">Change</button>
+                </div>
+            </div>
+
+            <div class="py-5 flex items-center justify-between group">
+                <div>
+                    <div class="text-sm font-medium text-zinc-300">Build Command</div>
+                    <div class="text-xs text-zinc-600 mt-0.5">Override automatic detection</div>
+                </div>
+                <input type="text" value="npm run build"
+                    class="mono bg-transparent border-none text-right text-zinc-500 focus:text-zinc-100 focus:outline-none text-xs w-48 group-hover:text-zinc-400 transition-colors" />
+            </div>
+
+            <div class="py-5 flex items-center justify-between group">
+                <div>
+                    <div class="text-sm font-medium text-zinc-300">Visibility</div>
+                    <div class="text-xs text-zinc-600 mt-0.5">Show in Explore feed</div>
+                </div>
+                <button class="w-10 h-6 bg-cyan-600 rounded-full relative transition-colors">
+                    <span class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow"></span>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Footer: Minimal Actions -->
+        <div class="mt-12 flex items-center justify-between text-sm">
+            <div class="text-zinc-600">
+                Project ID: <span class="mono text-zinc-500 select-all">prj_abc123xyz</span>
+            </div>
+            <div class="flex gap-4">
+                <button class="text-zinc-500 hover:text-zinc-300 transition-colors">Transfer</button>
+                <button class="text-red-500 hover:text-red-400 transition-colors">Delete</button>
+            </div>
+        </div>
+
+    </main>
+
+</body>
+
+</html>

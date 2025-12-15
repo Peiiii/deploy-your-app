@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizontal C: Floating Island</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .display-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Global Sidebar -->
+    <aside class="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-4 z-20">
+        <div class="w-8 h-8 bg-black rounded-full mb-6"></div>
+        <div class="flex-1 space-y-4">
+            <div class="w-8 h-8 bg-gray-100 rounded-lg hover:bg-gray-200 transition"></div>
+            <div class="w-8 h-8 bg-gray-100 rounded-lg hover:bg-gray-200 transition"></div>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-[#f8fafc]">
+
+        <!-- Top Bar (Minimal) -->
+        <header
+            class="h-14 flex items-center justify-between px-6 bg-white/50 backdrop-blur sticky top-0 z-10 border-b border-gray-200/50">
+            <div class="font-medium text-gray-700">Gemigo / Bibo</div>
+            <button
+                class="text-sm bg-black text-white px-4 py-1.5 rounded-full font-medium shadow-lg shadow-black/10 hover:shadow-xl hover:-translate-y-0.5 transition-all">Visit
+                App ↗</button>
+        </header>
+
+        <!-- Floating Nav Container -->
+        <div class="flex-1 overflow-y-auto px-8 py-8">
+            <div class="max-w-5xl mx-auto">
+
+                <!-- Floating Header Island -->
+                <div
+                    class="bg-white p-2 rounded-2xl shadow-sm border border-gray-200/80 mb-8 flex items-center justify-between sticky top-6 z-20">
+                    <div class="flex items-center gap-3 px-2">
+                        <div
+                            class="w-10 h-10 bg-gradient-to-tr from-pink-500 to-orange-400 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                            B</div>
+                        <span class="font-bold text-gray-900 text-lg display-font">Bibo</span>
+                    </div>
+
+                    <!-- Integrated Tabs in Island -->
+                    <div class="bg-gray-100/80 p-1 rounded-xl flex gap-1">
+                        <button
+                            class="px-4 py-1.5 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">Overview</button>
+                        <button
+                            class="px-4 py-1.5 rounded-lg text-sm font-medium bg-white text-gray-900 shadow-sm border border-gray-200/50">Settings</button>
+                        <button
+                            class="px-4 py-1.5 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">Stats</button>
+                    </div>
+
+                    <div class="px-2">
+                        <div class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                    </div>
+                </div>
+
+                <!-- Page Content -->
+                <div class="space-y-6">
+
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <!-- Left Main Panel -->
+                        <div class="flex-1 space-y-6">
+                            <div class="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm">
+                                <h2 class="display-font text-xl font-bold mb-6">General Configuration</h2>
+                                <div class="space-y-6">
+                                    <div>
+                                        <label
+                                            class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Project
+                                            Name</label>
+                                        <input type="text" value="Bibo"
+                                            class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium text-gray-900 focus:ring-2 focus:ring-black/5 focus:border-gray-400 outline-none transition-all">
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Public
+                                            URL</label>
+                                        <div class="flex">
+                                            <span
+                                                class="bg-gray-100 border border-gray-200 border-r-0 rounded-l-xl px-4 py-3 text-gray-500 font-medium text-sm flex items-center">gemigo.app/</span>
+                                            <input type="text" value="bibo-app"
+                                                class="flex-1 bg-white border border-gray-200 rounded-r-xl px-4 py-3 font-medium text-gray-900 focus:ring-2 focus:ring-black/5 focus:border-gray-400 outline-none transition-all">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Sidebar (Contextual) -->
+                        <div class="w-full md:w-80 space-y-6">
+                            <div class="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
+                                <h3 class="font-bold text-gray-900 mb-2">Quick Actions</h3>
+                                <div class="space-y-2">
+                                    <button
+                                        class="w-full text-left px-4 py-3 rounded-xl hover:bg-gray-50 text-sm font-medium text-gray-600 transition-colors flex items-center justify-between group">
+                                        Transfer Project
+                                        <span class="text-gray-300 group-hover:text-gray-500">→</span>
+                                    </button>
+                                    <button
+                                        class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-sm font-medium text-red-600 transition-colors flex items-center justify-between group">
+                                        Delete Project
+                                        <span class="text-red-200 group-hover:text-red-400">✕</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>

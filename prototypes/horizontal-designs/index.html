@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizontal Layout Concepts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen p-8 flex items-center justify-center">
+
+    <div class="max-w-4xl w-full text-center">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Horizontal Layout Prototypes</h1>
+        <p class="text-gray-500 mb-12">Exploring "Header + Horizontal Tabs" combined with Global Sidebar</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <a href="design-a-classic.html" class="block group">
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1">
+                    <div class="h-40 bg-gray-50 border-b border-gray-100 flex items-end justify-center pb-4">
+                        <div class="flex gap-2 opacity-50">
+                            <div class="w-12 h-1 bg-gray-400 rounded"></div>
+                            <div class="w-12 h-1 bg-indigo-500 rounded"></div>
+                            <div class="w-12 h-1 bg-gray-400 rounded"></div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h2 class="font-bold text-lg text-gray-900 group-hover:text-indigo-600">GitHub Classic</h2>
+                        <p class="text-sm text-gray-500 mt-2">Standard tabs under title on white background. Clean,
+                            familiar, enterprise.</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="design-b-modern-pills.html" class="block group">
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1">
+                    <div class="h-40 bg-slate-100 border-b border-gray-100 flex items-end justify-center pb-4">
+                        <div class="flex gap-2">
+                            <div class="px-3 py-1 bg-white rounded-full text-[10px] shadow-sm">Over</div>
+                            <div class="px-3 py-1 bg-black text-white rounded-full text-[10px] shadow-sm">Set</div>
+                            <div class="px-3 py-1 bg-white rounded-full text-[10px] shadow-sm">Dep</div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h2 class="font-bold text-lg text-gray-900 group-hover:text-indigo-600">Modern Pills</h2>
+                        <p class="text-sm text-gray-500 mt-2">Large Hero header with rounded "pill" tabs. App-store
+                            aesthetic.</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="design-c-floating.html" class="block group">
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1">
+                    <div class="h-40 bg-gray-100 border-b border-gray-100 flex items-center justify-center">
+                        <div
+                            class="w-48 h-10 bg-white rounded-lg shadow-sm border border-gray-200 flex items-center justify-center">
+                            <div class="w-4 h-4 bg-black rounded mr-2"></div>
+                            <div class="w-20 h-2 bg-gray-200 rounded"></div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h2 class="font-bold text-lg text-gray-900 group-hover:text-indigo-600">Floating Island</h2>
+                        <p class="text-sm text-gray-500 mt-2">Sticky header bar containing both title and tabs. Maximum
+                            content space.</p>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

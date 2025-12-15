@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizontal B: App Store / Modern Header</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 flex h-screen text-slate-900 overflow-hidden">
+
+    <!-- Global Sidebar (Collapsed) -->
+    <aside class="w-20 bg-slate-900 flex flex-col items-center py-6 gap-6 z-30 flex-shrink-0">
+        <div class="w-10 h-10 rounded-xl bg-indigo-500"></div>
+        <div class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 transition cursor-pointer"></div>
+        <div class="mt-auto w-10 h-10 rounded-full bg-slate-700"></div>
+    </aside>
+
+    <div class="flex-1 flex flex-col relative">
+
+        <!-- Large Hero Header with Integrated Tabs -->
+        <div class="bg-white pt-10 pb-0 border-b border-slate-200">
+            <div class="max-w-6xl mx-auto px-8">
+                <!-- Breadcrumbs -->
+                <div class="text-sm text-slate-500 mb-6 font-medium">Projects / Bibo</div>
+
+                <div class="flex items-end justify-between mb-8">
+                    <div class="flex items-center gap-6">
+                        <img src="https://api.dicebear.com/7.x/shapes/svg?seed=bibo&backgroundColor=6366f1"
+                            class="w-24 h-24 rounded-2xl shadow-lg ring-1 ring-black/5" />
+                        <div>
+                            <h1 class="text-4xl font-bold text-slate-900 tracking-tight">Bibo</h1>
+                            <div class="flex items-center gap-3 mt-2 text-slate-500">
+                                <span class="text-sm font-medium">Production Live</span>
+                                <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+                                <span class="text-sm">Updated 2m ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Big Pill Tabs -->
+                <nav class="flex gap-2 pb-1">
+                    <button
+                        class="px-5 py-2.5 rounded-full text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors">Dashboard</button>
+                    <button
+                        class="px-5 py-2.5 rounded-full text-sm font-medium bg-slate-900 text-white shadow-lg shadow-slate-900/10">Settings</button>
+                    <button
+                        class="px-5 py-2.5 rounded-full text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors">Deployments</button>
+                    <button
+                        class="px-5 py-2.5 rounded-full text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors">Insight</button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Content Settings (Card Grid) -->
+        <main class="flex-1 overflow-y-auto bg-slate-50/50 p-8">
+            <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Quick Edit Cards -->
+                <div
+                    class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+                    <div class="flex justify-between items-start mb-4">
+                        <div
+                            class="p-3 bg-indigo-50 text-indigo-600 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                </path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wide">Identity</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-1">Project General</h3>
+                    <p class="text-sm text-slate-500">Name, description, and public URL configuration.</p>
+                </div>
+
+                <div
+                    class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+                    <div class="flex justify-between items-start mb-4">
+                        <div
+                            class="p-3 bg-blue-50 text-blue-600 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z">
+                                </path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wide">DevOps</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-1">Build & Deploy</h3>
+                    <p class="text-sm text-slate-500">Git connection, branch rules, and build scripts.</p>
+                </div>
+
+                <!-- Danger Zone (Full Width) -->
+                <div class="md:col-span-2 mt-8 pt-8 border-t border-slate-200">
+                    <div class="flex items-center justify-between p-6 rounded-2xl border border-red-100 bg-red-50/50">
+                        <div>
+                            <h3 class="font-bold text-red-900">Delete Project</h3>
+                            <p class="text-sm text-red-700/80">This action is irreversible.</p>
+                        </div>
+                        <button
+                            class="px-5 py-2 bg-red-600 text-white rounded-xl font-medium shadow-lg shadow-red-600/20 hover:bg-red-700">Delete</button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+    </div>
+
+</body>
+
+</html>

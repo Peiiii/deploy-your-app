@@ -236,7 +236,6 @@
     "totalViews": "总访问量",
     "lastView": "最后访问",
     "projectInfo": "项目信息",
-    "analytics": "数据分析",
     "basicInfo": "基础信息",
     "deploymentManagement": "部署管理",
     "displaySettings": "展示设置",
@@ -258,7 +257,18 @@
     "deleteProject": "删除项目",
     "deleteDescription": "删除项目后，它会从你的仪表盘和公开列表中隐藏，但对应的访问地址和统计标识会被保留且不能再次复用。",
     "deleteConfirm": "确定要删除这个项目吗？此操作不可撤销。",
-    "failedToDelete": "删除项目失败，请稍后重试。"
+    "failedToDelete": "删除项目失败，请稍后重试。",
+    "general": "通用",
+    "generalDesc": "基本信息与可见性",
+    "deployments": "部署",
+    "deploymentsDesc": "源代码与重新部署",
+    "display": "展示",
+    "displayDesc": "封面图与资源",
+    "analytics": "数据分析",
+    "analyticsDesc": "访问视图与洞察",
+    "analyticsDescription": "跟踪访问量和参与度统计。",
+    "repoUrlPlaceholder": "https://github.com/username/repo",
+    "currentRepo": "当前仓库"
   },
   "ui": {
     "toggleMenu": "切换菜单",

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizontal A: GitHub/classic Style</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 flex h-screen text-gray-900 overflow-hidden">
+
+    <!-- Global Sidebar (Simulation) -->
+    <aside class="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-4 flex-shrink-0 z-20">
+        <div class="w-8 h-8 bg-indigo-600 rounded-lg mb-8"></div>
+        <div class="space-y-4">
+            <div class="w-6 h-6 bg-gray-200 rounded"></div>
+            <div class="w-6 h-6 bg-gray-200 rounded"></div>
+            <div class="w-6 h-6 bg-indigo-100 rounded text-indigo-600 flex items-center justify-center p-1">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                </svg>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col min-w-0">
+
+        <!-- Global Header (Simulation) -->
+        <header class="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
+            <div class="text-sm font-medium text-gray-500">Peiiii / deploy-your-app</div>
+            <div class="w-8 h-8 bg-gray-200 rounded-full"></div>
+        </header>
+
+        <!-- Page Scroll Container -->
+        <div class="flex-1 overflow-y-auto">
+
+            <!-- Project Header & Tabs (Sticky Context) -->
+            <div class="bg-white border-b border-gray-200 pt-8 pb-0 px-8">
+                <div class="max-w-5xl mx-auto">
+                    <!-- Project Title Row -->
+                    <div class="flex items-start justify-between mb-8">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg shadow-sm flex items-center justify-center text-white text-xl font-bold">
+                                B
+                            </div>
+                            <div>
+                                <h1 class="text-2xl font-bold text-gray-900">Bibo: The Hyper Thinker</h1>
+                                <a href="#"
+                                    class="text-sm text-gray-500 hover:text-indigo-600 hover:underline flex items-center gap-1">
+                                    bibo-hyper.gemigo.app
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14">
+                                        </path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <span
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                Live
+                            </span>
+                            <button
+                                class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Visit</button>
+                        </div>
+                    </div>
+
+                    <!-- Horizontal Tabs -->
+                    <nav class="flex gap-6 -mb-px">
+                        <button
+                            class="pb-3 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">Overview</button>
+                        <button
+                            class="pb-3 border-b-2 border-indigo-500 text-sm font-medium text-indigo-600">Settings</button>
+                        <button
+                            class="pb-3 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">Deployments</button>
+                        <button
+                            class="pb-3 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">Analytics</button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Tab Content (Settings) -->
+            <main class="bg-gray-50 min-h-full py-8 px-8">
+                <div class="max-w-5xl mx-auto space-y-8">
+
+                    <!-- Inner Page Navigation (Sub-tabs or Anchors) -->
+                    <!-- In a classic layout, we might just list everything, or use a sticky sub-nav on the left if it gets huge. 
+                         Here assuming simple long-scroll with sections. -->
+
+                    <!-- Section: General -->
+                    <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50/50 flex items-center justify-between">
+                            <div>
+                                <h2 class="text-base font-semibold text-gray-900">General Settings</h2>
+                                <p class="text-sm text-gray-500">Project identity and basic configuration.</p>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            <div class="grid grid-cols-3 gap-6">
+                                <label class="text-sm font-medium text-gray-700 pt-2">Project Name</label>
+                                <div class="col-span-2">
+                                    <input type="text" value="Bibo: The Hyper Thinker"
+                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border">
+                                    <p class="mt-1 text-xs text-gray-500">The name of your project accessible in your
+                                        dashboard.</p>
+                                </div>
+                            </div>
+                            <div class="border-t border-gray-100 my-4"></div>
+                            <div class="grid grid-cols-3 gap-6">
+                                <label class="text-sm font-medium text-gray-700 pt-2">Build Command</label>
+                                <div class="col-span-2">
+                                    <input type="text" value="npm run build"
+                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border font-mono bg-gray-50">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-end">
+                            <button
+                                class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-indigo-700">Save
+                                Changes</button>
+                        </div>
+                    </section>
+
+                    <!-- Section: Danger -->
+                    <section class="bg-white rounded-xl shadow-sm border border-red-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-red-100 bg-red-50/30">
+                            <h2 class="text-base font-semibold text-red-700">Danger Zone</h2>
+                        </div>
+                        <div class="p-6 flex items-center justify-between">
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-900">Delete Project</h3>
+                                <p class="text-sm text-gray-500">Permanently remove this project and all of its data.
+                                </p>
+                            </div>
+                            <button
+                                class="px-4 py-2 bg-white border border-red-300 text-red-600 text-sm font-medium rounded-md hover:bg-red-50">Delete
+                                Project</button>
+                        </div>
+                    </section>
+
+                </div>
+            </main>
+
+        </div>
+    </div>
+</body>
+
+</html>
