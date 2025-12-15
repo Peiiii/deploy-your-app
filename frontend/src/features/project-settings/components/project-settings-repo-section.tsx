@@ -2,7 +2,7 @@ import React from 'react';
 import { GitBranch, Save } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '@/contexts/presenter-context';
-import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings-store';
+import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings.store';
 import { formatRepoLabel } from '@/utils/project';
 import type { Project } from '@/types';
 

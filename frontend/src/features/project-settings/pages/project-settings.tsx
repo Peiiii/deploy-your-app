@@ -6,9 +6,9 @@ import { DeploymentSession } from '@/features/deployment/components/deployment-s
 import { ProjectSettingsCard } from '@/features/project-settings/components/project-settings-card';
 import { URLS } from '@/constants';
 import { usePresenter } from '@/contexts/presenter-context';
-import { useAuthStore } from '@/features/auth/stores/auth-store';
-import { useProjectStore } from '@/stores/project-store';
-import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings-store';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
+import { useProjectStore } from '@/stores/project.store';
+import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings.store';
 
 export const ProjectSettings: React.FC = () => {
   const { t } = useTranslation();

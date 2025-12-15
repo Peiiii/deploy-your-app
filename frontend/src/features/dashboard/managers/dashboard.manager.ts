@@ -1,6 +1,6 @@
-import { useDashboardStore } from '@/features/dashboard/stores/dashboard-store';
-import type { UIManager } from '@/managers/ui-manager';
-import type { AuthManager } from '@/features/auth/managers/auth-manager';
+import { useDashboardStore } from '@/features/dashboard/stores/dashboard.store';
+import type { UIManager } from '@/managers/ui.manager';
+import type { AuthManager } from '@/features/auth/managers/auth.manager';
 import i18n from '@/i18n/config';
 
 /**

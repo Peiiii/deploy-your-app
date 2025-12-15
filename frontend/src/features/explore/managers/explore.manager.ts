@@ -1,10 +1,10 @@
-import { useExploreStore } from '@/features/explore/stores/explore-store';
-import { useAuthStore } from '@/features/auth/stores/auth-store';
+import { useExploreStore } from '@/features/explore/stores/explore.store';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { mapProjectsToApps } from '@/components/explore-app-card';
 import { fetchExploreProjects } from '@/services/http/explore-api';
-import type { AuthManager } from '@/features/auth/managers/auth-manager';
-import type { UIManager } from '@/managers/ui-manager';
-import type { ReactionManager } from '@/managers/reaction-manager';
+import type { AuthManager } from '@/features/auth/managers/auth.manager';
+import type { UIManager } from '@/managers/ui.manager';
+import type { ReactionManager } from '@/managers/reaction.manager';
 import i18n from '@/i18n/config';
 
 const PAGE_SIZE = 12;

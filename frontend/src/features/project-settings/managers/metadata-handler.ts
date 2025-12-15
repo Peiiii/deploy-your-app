@@ -1,8 +1,8 @@
-import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings-store';
-import { useProjectStore } from '@/stores/project-store';
+import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings.store';
+import { useProjectStore } from '@/stores/project.store';
 import type { Project } from '@/types';
-import type { ProjectManager } from '@/managers/project-manager';
-import type { UIManager } from '@/managers/ui-manager';
+import type { ProjectManager } from '@/managers/project.manager';
+import type { UIManager } from '@/managers/ui.manager';
 
 /**
  * Handles metadata save operations for project settings.

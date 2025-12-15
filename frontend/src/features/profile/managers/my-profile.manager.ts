@@ -1,8 +1,8 @@
-import { useMyProfileStore } from '@/features/profile/stores/my-profile-store';
-import { useProjectStore } from '@/stores/project-store';
+import { useMyProfileStore } from '@/features/profile/stores/my-profile.store';
+import { useProjectStore } from '@/stores/project.store';
 import { fetchPublicProfile, updateMyProfile } from '@/services/http/profile-api';
-import type { AuthManager } from '@/features/auth/managers/auth-manager';
-import type { UIManager } from '@/managers/ui-manager';
+import type { AuthManager } from '@/features/auth/managers/auth.manager';
+import type { UIManager } from '@/managers/ui.manager';
 import i18n from '@/i18n/config';
 
 /**

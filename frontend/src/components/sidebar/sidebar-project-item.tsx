@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Pin } from 'lucide-react';
-import { useUIStore } from '../../stores/ui-store';
+import { useUIStore } from '../../stores/ui.store';
 import { useBreakpoint } from '../../hooks/use-breakpoint';
 import type { Project } from '../../types';
 

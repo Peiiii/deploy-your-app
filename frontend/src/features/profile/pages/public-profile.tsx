@@ -2,8 +2,8 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '@/contexts/presenter-context';
-import { usePublicProfileStore } from '@/features/profile/stores/public-profile-store';
-import { useReactionStore } from '@/stores/reaction-store';
+import { usePublicProfileStore } from '@/features/profile/stores/public-profile.store';
+import { useReactionStore } from '@/stores/reaction.store';
 import {
   normalizeLinksForDisplay,
   resolveLinkKind,

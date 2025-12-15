@@ -1,4 +1,4 @@
-import { useReactionStore } from '../stores/reaction-store';
+import { useReactionStore } from '../stores/reaction.store';
 import type { IReactionProvider } from '../services/interfaces';
 import type { Project } from '../types';
 

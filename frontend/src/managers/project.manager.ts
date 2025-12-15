@@ -1,4 +1,4 @@
-import { useProjectStore } from '../stores/project-store';
+import { useProjectStore } from '../stores/project.store';
 import type { IProjectProvider } from '../services/interfaces';
 import { SourceType, type DeploymentMetadata, type Project } from '../types';
 

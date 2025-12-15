@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, Star, Clock, ArrowUp, ArrowDown } from 'lucide-react';
-import { useDashboardStore } from '@/features/dashboard/stores/dashboard-store';
+import { useDashboardStore } from '@/features/dashboard/stores/dashboard.store';
 import { usePresenter } from '@/contexts/presenter-context';
 
 export const DashboardFilters: React.FC = () => {

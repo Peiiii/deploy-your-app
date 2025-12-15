@@ -1,4 +1,4 @@
-import { useDeploymentStore } from '@/features/deployment/stores/deployment-store';
+import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
 import { SourceType } from '@/types';
 
 /**

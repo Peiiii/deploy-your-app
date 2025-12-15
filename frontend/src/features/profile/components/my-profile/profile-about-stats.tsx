@@ -1,8 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, X, ArrowUp, ArrowDown } from 'lucide-react';
-import { useAuthStore } from '@/features/auth/stores/auth-store';
-import { useMyProfileStore } from '@/features/profile/stores/my-profile-store';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
+import { useMyProfileStore } from '@/features/profile/stores/my-profile.store';
 import { usePresenter } from '@/contexts/presenter-context';
 
 export const ProfileAboutStats: React.FC = () => {

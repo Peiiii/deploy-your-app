@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 import { mapProjectsToApps } from '@/components/explore-app-card';
 import { usePresenter } from '@/contexts/presenter-context';
-import { useAuthStore } from '@/features/auth/stores/auth-store';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { fetchExploreProjects } from '@/services/http/explore-api';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { APP_META, type CategoryFilter, type SortOption } from '@/features/home/components/home-explore';

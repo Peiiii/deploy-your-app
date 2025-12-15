@@ -1,10 +1,10 @@
 import type { Project } from '@/types';
-import type { ProjectManager } from '@/managers/project-manager';
-import type { UIManager } from '@/managers/ui-manager';
-import type { AuthManager } from '@/features/auth/managers/auth-manager';
-import type { ReactionManager } from '@/managers/reaction-manager';
-import type { AnalyticsManager } from '@/managers/analytics-manager';
-import type { DeploymentManager } from '@/features/deployment/managers/deployment-manager';
+import type { ProjectManager } from '@/managers/project.manager';
+import type { UIManager } from '@/managers/ui.manager';
+import type { AuthManager } from '@/features/auth/managers/auth.manager';
+import type { ReactionManager } from '@/managers/reaction.manager';
+import type { AnalyticsManager } from '@/managers/analytics.manager';
+import type { DeploymentManager } from '@/features/deployment/managers/deployment.manager';
 import { MetadataHandler } from './metadata-handler';
 import { ThumbnailHandler } from './thumbnail-handler';
 import { RedeployHandler } from './redeploy-handler';

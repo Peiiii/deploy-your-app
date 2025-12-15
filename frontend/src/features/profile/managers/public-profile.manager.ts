@@ -1,7 +1,7 @@
-import { usePublicProfileStore } from '@/features/profile/stores/public-profile-store';
+import { usePublicProfileStore } from '@/features/profile/stores/public-profile.store';
 import { fetchPublicProfile } from '@/services/http/profile-api';
-import type { AuthManager } from '@/features/auth/managers/auth-manager';
-import type { ReactionManager } from '@/managers/reaction-manager';
+import type { AuthManager } from '@/features/auth/managers/auth.manager';
+import type { ReactionManager } from '@/managers/reaction.manager';
 
 /**
  * PublicProfileManager handles all business logic for the PublicProfile page.

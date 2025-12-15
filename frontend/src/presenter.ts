@@ -1,14 +1,14 @@
-import { DeploymentManager } from '@/features/deployment/managers/deployment-manager';
-import { ProjectManager } from './managers/project-manager';
-import { UIManager } from './managers/ui-manager';
-import { AuthManager } from '@/features/auth/managers/auth-manager';
-import { AnalyticsManager } from './managers/analytics-manager';
-import { ReactionManager } from './managers/reaction-manager';
-import { ProjectSettingsManager } from '@/features/project-settings/managers/project-settings-manager';
-import { MyProfileManager } from '@/features/profile/managers/my-profile-manager';
-import { DashboardManager } from '@/features/dashboard/managers/dashboard-manager';
-import { PublicProfileManager } from '@/features/profile/managers/public-profile-manager';
-import { ExploreManager } from '@/features/explore/managers/explore-manager';
+import { DeploymentManager } from '@/features/deployment/managers/deployment.manager';
+import { ProjectManager } from './managers/project.manager';
+import { UIManager } from './managers/ui.manager';
+import { AuthManager } from '@/features/auth/managers/auth.manager';
+import { AnalyticsManager } from './managers/analytics.manager';
+import { ReactionManager } from './managers/reaction.manager';
+import { ProjectSettingsManager } from '@/features/project-settings/managers/project-settings.manager';
+import { MyProfileManager } from '@/features/profile/managers/my-profile.manager';
+import { DashboardManager } from '@/features/dashboard/managers/dashboard.manager';
+import { PublicProfileManager } from '@/features/profile/managers/public-profile.manager';
+import { ExploreManager } from '@/features/explore/managers/explore.manager';
 import { ServiceFactory } from './services/service-factory';
 
 // The Presenter now uses the Factory to get dependencies.

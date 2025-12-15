@@ -2,7 +2,7 @@ import {
   useUIStore,
   type ToastVariant,
   type ConfirmDialogState,
-} from '../stores/ui-store';
+} from '../stores/ui.store';
 import { confirmController } from '../services/confirm-controller';
 import type { i18n as I18nInstance } from 'i18next';
 

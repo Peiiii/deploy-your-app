@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '@/features/auth/stores/auth-store';
-import { useMyProfileStore } from '@/features/profile/stores/my-profile-store';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
+import { useMyProfileStore } from '@/features/profile/stores/my-profile.store';
 import { usePresenter } from '@/contexts/presenter-context';
 import { ProfileLoadingState } from '@/features/profile/components/my-profile/profile-loading-state';
 import { ProfileSignInRequired } from '@/features/profile/components/my-profile/profile-sign-in-required';

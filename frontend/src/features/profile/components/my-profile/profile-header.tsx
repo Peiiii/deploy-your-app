@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Share2, Check, Copy } from 'lucide-react';
-import { useAuthStore } from '@/features/auth/stores/auth-store';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 

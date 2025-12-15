@@ -1,10 +1,10 @@
-import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings-store';
-import { useProjectStore } from '@/stores/project-store';
-import { useDeploymentStore } from '@/features/deployment/stores/deployment-store';
+import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings.store';
+import { useProjectStore } from '@/stores/project.store';
+import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
 import { DeploymentStatus, SourceType } from '@/types';
 import type { Project } from '@/types';
-import type { ProjectManager } from '@/managers/project-manager';
-import type { DeploymentManager } from '@/features/deployment/managers/deployment-manager';
+import type { ProjectManager } from '@/managers/project.manager';
+import type { DeploymentManager } from '@/features/deployment/managers/deployment.manager';
 
 /**
  * Handles redeploy operations for project settings.

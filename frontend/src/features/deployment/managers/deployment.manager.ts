@@ -1,8 +1,8 @@
 import type { Project } from '@/types';
 import type { SourceType } from '@/types';
 import type { DeploymentResult, IDeploymentProvider } from '@/services/interfaces';
-import type { ProjectManager } from '@/managers/project-manager';
-import type { UIManager } from '@/managers/ui-manager';
+import type { ProjectManager } from '@/managers/project.manager';
+import type { UIManager } from '@/managers/ui.manager';
 import { DeploymentStoreActions } from './deployment-store-actions';
 import { ProjectCreator } from './project-creator';
 import { WizardExecutor } from './wizard-executor';

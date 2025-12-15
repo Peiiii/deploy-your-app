@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useUIStore } from '@/stores/ui-store';
-import { useAuthStore } from '@/features/auth/stores/auth-store';
+import { useUIStore } from '@/stores/ui.store';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { usePresenter } from '@/contexts/presenter-context';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Bell, HelpCircle, Sun, Moon, Menu } from 'lucide-react';

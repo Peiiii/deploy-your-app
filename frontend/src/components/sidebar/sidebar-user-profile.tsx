@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '@/features/auth/stores/auth-store';
-import { useUIStore } from '../../stores/ui-store';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
+import { useUIStore } from '../../stores/ui.store';
 import { usePresenter } from '../../contexts/presenter-context';
 import { useBreakpoint } from '../../hooks/use-breakpoint';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useUIStore } from '../../stores/ui-store';
+import { useUIStore } from '../../stores/ui.store';
 
 interface SidebarHeaderProps {
   collapsed: boolean;

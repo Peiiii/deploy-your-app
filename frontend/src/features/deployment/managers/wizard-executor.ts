@@ -1,9 +1,9 @@
-import { useDeploymentStore } from '@/features/deployment/stores/deployment-store';
+import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
 import { DeploymentStatus, SourceType } from '@/types';
 import type { Project } from '@/types';
 import type { DeploymentResult, IDeploymentProvider } from '@/services/interfaces';
-import type { ProjectManager } from '@/managers/project-manager';
-import type { UIManager } from '@/managers/ui-manager';
+import type { ProjectManager } from '@/managers/project.manager';
+import type { UIManager } from '@/managers/ui.manager';
 import type { ProjectCreator } from './project-creator';
 import i18n from '@/i18n/config';
 

@@ -2,8 +2,8 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LayoutDashboard, Sparkles, Package, Home, User } from 'lucide-react';
-import { useUIStore } from '../../stores/ui-store';
-import { useAuthStore } from '@/features/auth/stores/auth-store';
+import { useUIStore } from '../../stores/ui.store';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { useBreakpoint } from '../../hooks/use-breakpoint';
 
 interface NavItem {

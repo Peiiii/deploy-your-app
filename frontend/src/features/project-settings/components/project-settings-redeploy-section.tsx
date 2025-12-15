@@ -2,8 +2,8 @@ import React from 'react';
 import { FileText, RefreshCcw, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '@/contexts/presenter-context';
-import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings-store';
-import { useDeploymentStore } from '@/features/deployment/stores/deployment-store';
+import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings.store';
+import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
 import { DeploymentStatus } from '@/types';
 import type { Project } from '@/types';
 

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useDeploymentStore } from '@/features/deployment/stores/deployment-store';
-import { useAuthStore } from '@/features/auth/stores/auth-store';
+import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { usePresenter } from '@/contexts/presenter-context';
 import { ArrowRight } from 'lucide-react';
 

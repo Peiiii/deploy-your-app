@@ -1,5 +1,5 @@
-import { useDeploymentStore } from '@/features/deployment/stores/deployment-store';
-import type { ProjectManager } from '@/managers/project-manager';
+import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
+import type { ProjectManager } from '@/managers/project.manager';
 import type { IDeploymentProvider } from '@/services/interfaces';
 import type { DeploymentMetadata, Project } from '@/types';
 import { SourceType } from '@/types';

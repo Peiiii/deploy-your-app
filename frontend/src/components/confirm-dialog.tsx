@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
-import { useUIStore } from '../stores/ui-store';
+import { useUIStore } from '../stores/ui.store';
 import { confirmController } from '../services/confirm-controller';
 
 export const ConfirmDialog: React.FC = () => {

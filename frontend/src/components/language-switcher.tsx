@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Languages } from 'lucide-react';
-import { useUIStore } from '../stores/ui-store';
+import { useUIStore } from '../stores/ui.store';
 
 export const LanguageSwitcher: React.FC = () => {
   const { i18n, t } = useTranslation();

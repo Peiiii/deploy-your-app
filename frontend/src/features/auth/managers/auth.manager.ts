@@ -1,5 +1,5 @@
 import { APP_CONFIG } from '@/constants';
-import { useAuthStore } from '@/features/auth/stores/auth-store';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 import type { User } from '@/types';
 
 const API_BASE = APP_CONFIG.API_BASE_URL.replace(/\/+$/, '');

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useAuthStore } from '@/features/auth/stores/auth-store';
-import { useProjectStore } from '../../stores/project-store';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
+import { useProjectStore } from '../../stores/project.store';
 import { usePresenter } from '../../contexts/presenter-context';
 import { fetchMyProfile, updateMyProfile } from '../../services/http/profile-api';
 import type { Project } from '../../types';

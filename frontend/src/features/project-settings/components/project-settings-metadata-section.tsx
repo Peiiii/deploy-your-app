@@ -2,8 +2,8 @@ import React from 'react';
 import { Heart, HeartOff, Save, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '@/contexts/presenter-context';
-import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings-store';
-import { useReactionStore } from '@/stores/reaction-store';
+import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings.store';
+import { useReactionStore } from '@/stores/reaction.store';
 import type { Project } from '@/types';
 
 interface ProjectSettingsMetadataSectionProps {

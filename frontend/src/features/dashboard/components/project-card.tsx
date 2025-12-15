@@ -11,7 +11,7 @@ import {
   Copy,
   Check,
 } from 'lucide-react';
-import { useAnalyticsStore } from '@/stores/analytics-store';
+import { useAnalyticsStore } from '@/stores/analytics.store';
 import { getDisplayRepoUrl, getGitHubUrl } from '@/utils/project';
 import { SourceType } from '@/types';
 import type { Project } from '@/types';

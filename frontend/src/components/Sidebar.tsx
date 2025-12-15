@@ -1,7 +1,7 @@
 import React from 'react';
 import { Rocket, Wifi } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useUIStore } from '../stores/ui-store';
+import { useUIStore } from '../stores/ui.store';
 import { SidebarHeader } from './sidebar/sidebar-header';
 import { SidebarNavigation } from './sidebar/sidebar-navigation';
 import { SidebarProjectList } from './sidebar/sidebar-project-list';

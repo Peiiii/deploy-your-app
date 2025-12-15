@@ -1,4 +1,4 @@
-import { useAnalyticsStore } from '../stores/analytics-store';
+import { useAnalyticsStore } from '../stores/analytics.store';
 import type { IAnalyticsProvider } from '../services/interfaces';
 
 export class AnalyticsManager {

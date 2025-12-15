@@ -4,7 +4,7 @@ import { Sidebar } from '@/components/sidebar';
 import { Header } from '@/components/header';
 import { AppRoutes } from '@/routes';
 import { PresenterProvider, usePresenter } from '@/contexts/presenter-context';
-import { useUIStore } from '@/stores/ui-store';
+import { useUIStore } from '@/stores/ui.store';
 import { AuthModal } from '@/features/auth/components/auth-modal';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Toast } from '@/components/toast';

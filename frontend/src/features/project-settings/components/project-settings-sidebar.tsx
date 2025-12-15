@@ -2,7 +2,7 @@ import React from 'react';
 import { Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '@/contexts/presenter-context';
-import { useAnalyticsStore } from '@/stores/analytics-store';
+import { useAnalyticsStore } from '@/stores/analytics.store';
 import type { Project } from '@/types';
 
 interface ProjectSettingsSidebarProps {

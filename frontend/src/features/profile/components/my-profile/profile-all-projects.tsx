@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { PinOff } from 'lucide-react';
-import { useMyProfileStore } from '@/features/profile/stores/my-profile-store';
+import { useMyProfileStore } from '@/features/profile/stores/my-profile.store';
 import { usePresenter } from '@/contexts/presenter-context';
 
 export const ProfileAllProjects: React.FC = () => {
