@@ -6,7 +6,7 @@ import { useProjectStore } from '@/stores/projectStore';
 import { useAuthStore } from '@/features/auth/stores/authStore';
 import { useAnalyticsStore } from '@/stores/analyticsStore';
 import { useReactionStore } from '@/stores/reactionStore';
-import { useDashboardStore } from '@/stores/dashboardStore';
+import { useDashboardStore } from '@/features/dashboard/stores/dashboardStore';
 import { usePresenter } from '@/contexts/PresenterContext';
 import { useCopyToClipboardWithKey } from '@/hooks/useCopyToClipboardWithKey';
 import { StatCard } from '@/features/dashboard/components/StatCard';

@@ -1,4 +1,4 @@
-import { usePublicProfileStore } from '@/stores/publicProfileStore';
+import { usePublicProfileStore } from '@/features/profile/stores/publicProfileStore';
 import { fetchPublicProfile } from '@/services/http/profileApi';
 import type { AuthManager } from './AuthManager';
 import type { ReactionManager } from './ReactionManager';

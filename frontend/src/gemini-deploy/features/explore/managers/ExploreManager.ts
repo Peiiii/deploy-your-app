@@ -1,4 +1,4 @@
-import { useExploreStore } from '@/stores/exploreStore';
+import { useExploreStore } from '@/features/explore/stores/exploreStore';
 import { useAuthStore } from '@/features/auth/stores/authStore';
 import { mapProjectsToApps } from '@/components/ExploreAppCard';
 import { fetchExploreProjects } from '@/services/http/exploreApi';

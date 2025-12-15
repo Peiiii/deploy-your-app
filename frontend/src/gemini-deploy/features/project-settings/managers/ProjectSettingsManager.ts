@@ -1,4 +1,4 @@
-import { useProjectSettingsStore } from '@/stores/projectSettingsStore';
+import { useProjectSettingsStore } from '@/features/project-settings/stores/projectSettingsStore';
 import { useProjectStore } from '@/stores/projectStore';
 import { useDeploymentStore } from '@/features/deployment/stores/deploymentStore';
 import { DeploymentStatus, SourceType } from '@/types';

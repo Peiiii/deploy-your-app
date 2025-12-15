@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/features/auth/stores/authStore';
-import { useMyProfileStore } from '@/stores/myProfileStore';
+import { useMyProfileStore } from '@/features/profile/stores/myProfileStore';
 import { usePresenter } from '@/contexts/PresenterContext';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import {

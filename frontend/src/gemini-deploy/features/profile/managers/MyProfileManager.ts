@@ -1,4 +1,4 @@
-import { useMyProfileStore } from '@/stores/myProfileStore';
+import { useMyProfileStore } from '@/features/profile/stores/myProfileStore';
 import { useProjectStore } from '@/stores/projectStore';
 import { fetchPublicProfile, updateMyProfile } from '@/services/http/profileApi';
 import type { AuthManager } from './AuthManager';

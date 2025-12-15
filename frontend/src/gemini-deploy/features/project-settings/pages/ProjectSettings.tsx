@@ -8,7 +8,7 @@ import { URLS } from '@/constants';
 import { usePresenter } from '@/contexts/PresenterContext';
 import { useAuthStore } from '@/features/auth/stores/authStore';
 import { useProjectStore } from '@/stores/projectStore';
-import { useProjectSettingsStore } from '@/stores/projectSettingsStore';
+import { useProjectSettingsStore } from '@/features/project-settings/stores/projectSettingsStore';
 
 export const ProjectSettings: React.FC = () => {
   const { t } = useTranslation();

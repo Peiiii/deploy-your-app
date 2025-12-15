@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '@/contexts/PresenterContext';
-import { useProjectSettingsStore } from '@/stores/projectSettingsStore';
+import { useProjectSettingsStore } from '@/features/project-settings/stores/projectSettingsStore';
 import { getProjectThumbnailUrl } from '@/utils/project';
 import type { Project } from '@/types';
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { Heart, HeartOff, Save, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '@/contexts/PresenterContext';
-import { useProjectSettingsStore } from '@/stores/projectSettingsStore';
+import { useProjectSettingsStore } from '@/features/project-settings/stores/projectSettingsStore';
 import { useReactionStore } from '@/stores/reactionStore';
 import type { Project } from '@/types';
 

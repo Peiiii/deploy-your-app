@@ -3,7 +3,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ExploreAppCardView } from '@/components/ExploreAppCard';
-import { useExploreStore, CATEGORIES, type CategoryFilter } from '@/stores/exploreStore';
+import { useExploreStore, CATEGORIES, type CategoryFilter } from '@/features/explore/stores/exploreStore';
 import { usePresenter } from '@/contexts/PresenterContext';
 
 const CREATOR_REVENUE_SHARE = 70;
