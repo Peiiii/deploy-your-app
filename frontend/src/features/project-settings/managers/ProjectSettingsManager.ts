@@ -9,7 +9,7 @@ import type { UIManager } from './UIManager';
 import type { AuthManager } from './AuthManager';
 import type { ReactionManager } from './ReactionManager';
 import type { AnalyticsManager } from './AnalyticsManager';
-import i18n from '@i18n/config';
+import i18n from '@/i18n/config';
 
 /**
  * ProjectSettingsManager handles all business logic for the ProjectSettings page.

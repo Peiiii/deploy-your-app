@@ -7,7 +7,7 @@ import type {
 } from '@/services/interfaces';
 import type { ProjectManager } from '@/managers/ProjectManager';
 import type { UIManager } from '@/managers/UIManager';
-import i18n from '@i18n/config';
+import i18n from '@/i18n/config';
 
 type DeploymentStoreSnapshot = ReturnType<typeof useDeploymentStore.getState>;
 
