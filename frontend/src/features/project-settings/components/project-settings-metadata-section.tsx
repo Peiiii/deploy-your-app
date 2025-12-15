@@ -1,9 +1,8 @@
 import React from 'react';
-import { Heart, HeartOff, Save, Star } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings.store';
-import { useReactionStore } from '@/stores/reaction.store';
 import type { Project } from '@/types';
 
 interface ProjectSettingsMetadataSectionProps {
@@ -24,13 +23,6 @@ export const ProjectSettingsMetadataSection: React.FC<
   const tagsDraft = useProjectSettingsStore((s) => s.tagsDraft);
   const isSavingMetadata = useProjectSettingsStore((s) => s.isSavingMetadata);
   const actions = useProjectSettingsStore((s) => s.actions);
-
-  // Reactions from reaction store
-  const reactionEntry = useReactionStore((s) => s.byProjectId[project.id]);
-  const likesCount = reactionEntry?.likesCount ?? 0;
-  // favoritesCount removed as unused
-  const likedByCurrentUser = reactionEntry?.likedByCurrentUser ?? false;
-  const favoritedByCurrentUser = reactionEntry?.favoritedByCurrentUser ?? false;
 
   // Compute slug editability
   const slugIsEditable = presenter.projectSettings.isSlugEditable(project);
@@ -67,44 +59,6 @@ export const ProjectSettingsMetadataSection: React.FC<
         <p className="text-[11px] text-slate-500 dark:text-gray-400">
           {slugIsEditable ? t('project.slugHintEditable') : t('project.slugHintLocked')}
         </p>
-      </div>
-      <div className="flex items-center justify-between pt-1">
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-slate-700 dark:text-gray-200">
-            {t('project.likeAndFavorite')}
-          </p>
-          <p className="text-[11px] text-slate-500 dark:text-gray-400">
-            {t('project.likeAndFavoriteDescription')}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={presenter.projectSettings.toggleLike}
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px] text-slate-700 dark:text-slate-200 hover:border-pink-500 hover:text-pink-600 dark:hover:text-pink-400"
-          >
-            {likedByCurrentUser ? (
-              <Heart className="w-3 h-3 fill-pink-500 text-pink-500" />
-            ) : (
-              <HeartOff className="w-3 h-3" />
-            )}
-            <span>{likesCount}</span>
-          </button>
-          <button
-            type="button"
-            onClick={presenter.projectSettings.toggleFavorite}
-            className={`inline-flex items-center justify-center w-7 h-7 rounded-full border text-[11px] ${favoritedByCurrentUser
-                ? 'bg-yellow-400/90 border-yellow-500 text-yellow-900'
-                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300'
-              }`}
-            aria-label={t('project.toggleFavorite')}
-          >
-            <Star
-              className={`w-3 h-3 ${favoritedByCurrentUser ? 'fill-current' : ''
-                }`}
-            />
-          </button>
-        </div>
       </div>
       <div className="space-y-2">
         <label className="block text-xs font-semibold text-slate-700 dark:text-gray-300">

@@ -1,7 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProjectSettingsMetadataSection } from './project-settings-metadata-section';
-import { ProjectSettingsRepoSection } from './project-settings-repo-section';
 import type { Project } from '@/types';
 
 interface ProjectSettingsBasicInfoGroupProps {
@@ -20,10 +19,7 @@ export const ProjectSettingsBasicInfoGroup: React.FC<
           {t('project.basicInfo')}
         </h2>
         <div className="space-y-6">
-          <ProjectSettingsRepoSection project={project} />
-          <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
-            <ProjectSettingsMetadataSection project={project} />
-          </div>
+          <ProjectSettingsMetadataSection project={project} />
         </div>
       </div>
     </div>

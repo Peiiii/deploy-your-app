@@ -35,7 +35,6 @@
     "copyUrl": "Copy URL",
     "copied": "Copied",
     "add": "Add",
-    "visit": "Visit",
     "justNow": "Just now",
     "minutesAgo": "m ago",
     "hoursAgo": "h ago",
@@ -273,7 +272,9 @@
     "analyticsDesc": "Views & insights",
     "analyticsDescription": "Track views and engagement statistics.",
     "repoUrlPlaceholder": "https://github.com/username/repo",
-    "currentRepo": "Current repository"
+    "currentRepo": "Current repository",
+    "totalLikes": "Total Likes",
+    "totalFavorites": "Total Favorites"
   },
   "ui": {
     "toggleMenu": "Toggle Menu",

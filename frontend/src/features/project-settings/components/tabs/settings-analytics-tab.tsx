@@ -1,7 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { BarChart3, Clock, Eye } from 'lucide-react';
+import { BarChart3, Clock, Eye, Heart, Star } from 'lucide-react';
 import { useAnalyticsStore } from '@/stores/analytics.store';
+import { useReactionStore } from '@/stores/reaction.store';
 import type { Project } from '@/types';
 
 interface SettingsAnalyticsTabProps {
@@ -15,6 +16,7 @@ export const SettingsAnalyticsTab: React.FC<SettingsAnalyticsTabProps> = ({
 
     // Subscribe to analytics from store
     const analyticsEntry = useAnalyticsStore((s) => s.byProjectId[project.id]);
+    const reactionEntry = useReactionStore((s) => s.byProjectId[project.id]);
     const views7d = analyticsEntry?.stats?.views7d ?? 0;
     const totalViews = analyticsEntry?.stats?.totalViews ?? 0;
     const lastViewAt = analyticsEntry?.stats?.lastViewAt;
@@ -56,6 +58,36 @@ export const SettingsAnalyticsTab: React.FC<SettingsAnalyticsTabProps> = ({
                                 <div className="h-9 w-24 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
                             ) : (
                                 views7d.toLocaleString()
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Card: Total Likes */}
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-5">
+                        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-2">
+                            <Heart className="w-4 h-4" />
+                            <span>{t('project.totalLikes', 'Total Likes')}</span>
+                        </div>
+                        <div className="text-3xl font-bold text-slate-900 dark:text-white">
+                            {isLoading ? (
+                                <div className="h-9 w-24 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+                            ) : (
+                                (reactionEntry?.likesCount ?? 0).toLocaleString()
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Card: Total Favorites */}
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-5">
+                        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-2">
+                            <Star className="w-4 h-4" />
+                            <span>{t('project.totalFavorites', 'Total Favorites')}</span>
+                        </div>
+                        <div className="text-3xl font-bold text-slate-900 dark:text-white">
+                            {isLoading ? (
+                                <div className="h-9 w-24 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+                            ) : (
+                                (reactionEntry?.favoritesCount ?? 0).toLocaleString()
                             )}
                         </div>
                     </div>

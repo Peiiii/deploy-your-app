@@ -268,7 +268,9 @@
     "analyticsDesc": "访问视图与洞察",
     "analyticsDescription": "跟踪访问量和参与度统计。",
     "repoUrlPlaceholder": "https://github.com/username/repo",
-    "currentRepo": "当前仓库"
+    "currentRepo": "当前仓库",
+    "totalLikes": "总点赞数",
+    "totalFavorites": "总收藏数"
   },
   "ui": {
     "toggleMenu": "切换菜单",
