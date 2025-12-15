@@ -3,7 +3,7 @@ import { Heart, Play, Star, Zap } from 'lucide-react';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '../contexts/PresenterContext';
-import { useAuthStore } from '../stores/authStore';
+import { useAuthStore } from '@/features/auth/stores/authStore';
 import { useReactionStore } from '../stores/reactionStore';
 import {
   buildProjectAuthor,

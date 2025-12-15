@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import { Github, FolderArchive, FileCode } from 'lucide-react';
-import { SourceType } from '../../types';
+import { SourceType } from '@/types';
 
 export interface DeploymentOption {
   id: SourceType;

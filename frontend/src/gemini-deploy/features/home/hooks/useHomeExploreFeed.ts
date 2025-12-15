@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ExploreAppCard } from '../../components/ExploreAppCard';
-import { mapProjectsToApps } from '../../components/ExploreAppCard';
-import { usePresenter } from '../../contexts/PresenterContext';
-import { useAuthStore } from '../../stores/authStore';
-import { fetchExploreProjects } from '../../services/http/exploreApi';
-import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
-import { APP_META, type CategoryFilter, type SortOption } from './homeExplore';
+import type { ExploreAppCard } from '@/components/ExploreAppCard';
+import { mapProjectsToApps } from '@/components/ExploreAppCard';
+import { usePresenter } from '@/contexts/PresenterContext';
+import { useAuthStore } from '@/features/auth/stores/authStore';
+import { fetchExploreProjects } from '@/services/http/exploreApi';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { APP_META, type CategoryFilter, type SortOption } from '@/features/home/components/homeExplore';
 
 export const useHomeExploreFeed = () => {
   const presenter = usePresenter();

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '../../stores/authStore';
+import { useAuthStore } from '@/features/auth/stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { usePresenter } from '../../contexts/PresenterContext';
 import { useBreakpoint } from '../../hooks/useBreakpoint';

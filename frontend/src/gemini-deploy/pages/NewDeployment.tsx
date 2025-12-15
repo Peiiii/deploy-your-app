@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useDeploymentStore } from '../stores/deploymentStore';
-import { useAuthStore } from '../stores/authStore';
+import { useAuthStore } from '@/features/auth/stores/authStore';
 import { usePresenter } from '../contexts/PresenterContext';
 import { ArrowRight } from 'lucide-react';
 

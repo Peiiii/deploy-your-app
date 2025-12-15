@@ -1,9 +1,9 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sparkles } from 'lucide-react';
-import { SourceType } from '../../types';
-import { DeploymentCard } from './DeploymentCard';
-import { DEPLOYMENT_OPTIONS } from './deploymentOptions';
+import { SourceType } from '@/types';
+import { DeploymentCard } from '@/features/home/components/DeploymentCard';
+import { DEPLOYMENT_OPTIONS } from '@/features/home/components/deploymentOptions';
 
 interface HomeDeploySectionProps {
   compact: boolean;

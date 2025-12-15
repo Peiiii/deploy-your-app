@@ -6,7 +6,7 @@ import { DeploymentSession } from '../components/DeploymentSession';
 import { ProjectSettingsCard } from '../components/ProjectSettingsCard';
 import { URLS } from '../constants';
 import { usePresenter } from '../contexts/PresenterContext';
-import { useAuthStore } from '../stores/authStore';
+import { useAuthStore } from '@/features/auth/stores/authStore';
 import { useProjectStore } from '../stores/projectStore';
 import { useProjectSettingsStore } from '../stores/projectSettingsStore';
 

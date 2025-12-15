@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useAuthStore } from '../../stores/authStore';
+import { useAuthStore } from '@/features/auth/stores/authStore';
 import { useProjectStore } from '../../stores/projectStore';
 import { usePresenter } from '../../contexts/PresenterContext';
 import { fetchMyProfile, updateMyProfile } from '../../services/http/profileApi';

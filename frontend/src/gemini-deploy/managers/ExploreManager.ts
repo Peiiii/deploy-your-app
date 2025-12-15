@@ -1,5 +1,5 @@
 import { useExploreStore } from '../stores/exploreStore';
-import { useAuthStore } from '../stores/authStore';
+import { useAuthStore } from '@/features/auth/stores/authStore';
 import { mapProjectsToApps } from '../components/ExploreAppCard';
 import { fetchExploreProjects } from '../services/http/exploreApi';
 import type { AuthManager } from './AuthManager';

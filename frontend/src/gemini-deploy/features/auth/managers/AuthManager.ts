@@ -1,6 +1,6 @@
-import { APP_CONFIG } from '../constants';
-import { useAuthStore } from '../stores/authStore';
-import type { User } from '../types';
+import { APP_CONFIG } from '@/constants';
+import { useAuthStore } from '@/features/auth/stores/authStore';
+import type { User } from '@/types';
 
 const API_BASE = APP_CONFIG.API_BASE_URL.replace(/\/+$/, '');
 

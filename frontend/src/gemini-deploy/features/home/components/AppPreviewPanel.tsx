@@ -1,8 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ExternalLink, X, Zap } from 'lucide-react';
-import type { ExploreAppCard } from '../../components/ExploreAppCard';
-import { AuthorBadge } from '../../components/AuthorBadge';
+import type { ExploreAppCard } from '@/components/ExploreAppCard';
+import { AuthorBadge } from '@/components/AuthorBadge';
 
 interface AppPreviewPanelProps {
     app: ExploreAppCard;

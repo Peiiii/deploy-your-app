@@ -1,8 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Eye, EyeOff, Github } from 'lucide-react';
-import { useAuthStore } from '../stores/authStore';
-import { usePresenter } from '../contexts/PresenterContext';
+import { useAuthStore } from '@/features/auth/stores/authStore';
+import { usePresenter } from '@/contexts/PresenterContext';
 
 const GoogleIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
   <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
@@ -59,17 +59,17 @@ export const AuthModal: React.FC = () => {
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4"
       onClick={() => presenter.auth.closeAuthModal()}
     >
-      <div 
+      <div
         className="relative bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 dark:shadow-black/40 border border-white/20 dark:border-slate-700/50 w-full max-w-md mx-auto animate-slide-up max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Decorative gradient overlay */}
         <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-brand-500/5 via-transparent to-purple-500/5 pointer-events-none" />
-        
+
         <div className="relative flex items-center justify-between px-6 py-5 border-b border-slate-200/50 dark:border-slate-700/50">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
             {title}

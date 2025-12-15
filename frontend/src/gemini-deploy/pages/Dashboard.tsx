@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Zap, Plus, TrendingUp, FileText, Lock } from 'lucide-react';
 import { useProjectStore } from '../stores/projectStore';
-import { useAuthStore } from '../stores/authStore';
+import { useAuthStore } from '@/features/auth/stores/authStore';
 import { useAnalyticsStore } from '../stores/analyticsStore';
 import { useReactionStore } from '../stores/reactionStore';
 import { useDashboardStore } from '../stores/dashboardStore';

@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import type { ExploreAppCard } from '../components/ExploreAppCard';
-import { usePresenter } from '../contexts/PresenterContext';
-import { useAuthStore } from '../stores/authStore';
-import { useUIStore } from '../stores/uiStore';
-import { useBreakpoint } from '../hooks/useBreakpoint';
-import { SourceType } from '../types';
-import { HomeDeploySection } from './home/HomeDeploySection';
-import { HomeExploreSection } from './home/HomeExploreSection';
-import { AppPreviewPanel } from './home/AppPreviewPanel';
+import type { ExploreAppCard } from '@/components/ExploreAppCard';
+import { usePresenter } from '@/contexts/PresenterContext';
+import { useAuthStore } from '@/features/auth/stores/authStore';
+import { useUIStore } from '@/stores/uiStore';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
+import { SourceType } from '@/types';
+import { HomeDeploySection } from '@/features/home/components/HomeDeploySection';
+import { HomeExploreSection } from '@/features/home/components/HomeExploreSection';
+import { AppPreviewPanel } from '@/features/home/components/AppPreviewPanel';
 
 export const Home: React.FC = () => {
   const { t } = useTranslation();

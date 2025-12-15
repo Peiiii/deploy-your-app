@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight } from 'lucide-react';
-import type { DeploymentOption } from './deploymentOptions';
+import type { DeploymentOption } from '@/features/home/components/deploymentOptions';
 
 interface DeploymentCardProps {
     option: DeploymentOption;

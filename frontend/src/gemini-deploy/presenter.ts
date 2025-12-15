@@ -1,7 +1,7 @@
 import { DeploymentManager } from './managers/DeploymentManager';
 import { ProjectManager } from './managers/ProjectManager';
 import { UIManager } from './managers/UIManager';
-import { AuthManager } from './managers/AuthManager';
+import { AuthManager } from '@/features/auth/managers/AuthManager';
 import { AnalyticsManager } from './managers/AnalyticsManager';
 import { ReactionManager } from './managers/ReactionManager';
 import { ProjectSettingsManager } from './managers/ProjectSettingsManager';

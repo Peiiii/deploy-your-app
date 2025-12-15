@@ -1,10 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, Search, TrendingUp, X } from 'lucide-react';
-import type { ExploreAppCard } from '../../components/ExploreAppCard';
-import { ExploreAppCardView } from '../../components/ExploreAppCard';
-import { CATEGORIES, type CategoryFilter } from './homeExplore';
-import { useHomeExploreFeed } from './useHomeExploreFeed';
+import type { ExploreAppCard } from '@/components/ExploreAppCard';
+import { ExploreAppCardView } from '@/components/ExploreAppCard';
+import { CATEGORIES, type CategoryFilter } from '@/features/home/components/homeExplore';
+import { useHomeExploreFeed } from '@/features/home/hooks/useHomeExploreFeed';
 
 interface SearchBarProps {
   value: string;
@@ -110,11 +110,10 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
             key={cat}
             onClick={() => handleCategoryClick(cat)}
             style={{ animationDelay: `${index * 30}ms` }}
-            className={`rounded-full font-semibold whitespace-nowrap transition-all duration-300 animate-fade-in ${isCompact ? 'px-3 py-1.5 text-xs' : 'px-5 py-2.5 text-sm'} ${
-              isActive
-                ? 'bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-lg shadow-brand-500/40 scale-105 ring-2 ring-brand-500/20'
-                : 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:scale-105 hover:shadow-md backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50'
-            }`}
+            className={`rounded-full font-semibold whitespace-nowrap transition-all duration-300 animate-fade-in ${isCompact ? 'px-3 py-1.5 text-xs' : 'px-5 py-2.5 text-sm'} ${isActive
+              ? 'bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-lg shadow-brand-500/40 scale-105 ring-2 ring-brand-500/20'
+              : 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:scale-105 hover:shadow-md backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50'
+              }`}
           >
             {getCategoryLabel(cat)}
           </button>
@@ -185,15 +184,13 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
   return (
     <section className="animate-fade-in">
       <div
-        className={`flex flex-col ${compact ? 'md:flex-col' : 'md:flex-row'} justify-between items-start ${
-          compact ? '' : 'md:items-center'
-        } gap-4 ${compact ? 'md:gap-4' : 'md:gap-6'} ${compact ? 'mb-4 md:mb-6' : 'mb-6 md:mb-8'}`}
+        className={`flex flex-col ${compact ? 'md:flex-col' : 'md:flex-row'} justify-between items-start ${compact ? '' : 'md:items-center'
+          } gap-4 ${compact ? 'md:gap-4' : 'md:gap-6'} ${compact ? 'mb-4 md:mb-6' : 'mb-6 md:mb-8'}`}
       >
         <div className={`space-y-1 ${compact ? 'md:space-y-1' : 'md:space-y-2'}`}>
           <h2
-            className={`font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-100 dark:to-white bg-clip-text text-transparent ${
-              compact ? 'text-xl md:text-2xl' : 'text-2xl sm:text-3xl md:text-4xl'
-            }`}
+            className={`font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-100 dark:to-white bg-clip-text text-transparent ${compact ? 'text-xl md:text-2xl' : 'text-2xl sm:text-3xl md:text-4xl'
+              }`}
           >
             {t('explore.exploreApps')}
           </h2>
@@ -202,9 +199,8 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
           </p>
         </div>
         <div
-          className={`flex flex-col ${compact ? 'sm:flex-col' : 'sm:flex-row'} items-start ${
-            compact ? '' : 'sm:items-center'
-          } gap-3 ${compact ? 'w-full' : 'w-full md:w-auto'}`}
+          className={`flex flex-col ${compact ? 'sm:flex-col' : 'sm:flex-row'} items-start ${compact ? '' : 'sm:items-center'
+            } gap-3 ${compact ? 'w-full' : 'w-full md:w-auto'}`}
         >
           <div className={compact ? 'w-full' : ''}>
             <SearchBar value={searchQuery} onChange={setSearchQuery} />
@@ -214,32 +210,27 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
               {t('explore.sortBy')}:
             </span>
             <div
-              className={`inline-flex items-center gap-1 rounded-xl bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 ${
-                compact ? 'p-1' : 'p-1.5'
-              }`}
+              className={`inline-flex items-center gap-1 rounded-xl bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 ${compact ? 'p-1' : 'p-1.5'
+                }`}
             >
               <button
                 onClick={() => setSortBy('popularity')}
-                className={`inline-flex items-center gap-1.5 rounded-lg font-semibold transition-all duration-300 ${
-                  compact ? 'px-2.5 py-1.5 text-[10px]' : 'px-4 py-2 text-xs'
-                } ${
-                  sortBy === 'popularity'
+                className={`inline-flex items-center gap-1.5 rounded-lg font-semibold transition-all duration-300 ${compact ? 'px-2.5 py-1.5 text-[10px]' : 'px-4 py-2 text-xs'
+                  } ${sortBy === 'popularity'
                     ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-md scale-105'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
-                }`}
+                  }`}
               >
                 <TrendingUp className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
                 {t('explore.sortByPopularity')}
               </button>
               <button
                 onClick={() => setSortBy('recent')}
-                className={`inline-flex items-center gap-1.5 rounded-lg font-semibold transition-all duration-300 ${
-                  compact ? 'px-2.5 py-1.5 text-[10px]' : 'px-4 py-2 text-xs'
-                } ${
-                  sortBy === 'recent'
+                className={`inline-flex items-center gap-1.5 rounded-lg font-semibold transition-all duration-300 ${compact ? 'px-2.5 py-1.5 text-[10px]' : 'px-4 py-2 text-xs'
+                  } ${sortBy === 'recent'
                     ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-md scale-105'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
-                }`}
+                  }`}
               >
                 <Clock className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
                 {t('explore.sortByRecent')}
