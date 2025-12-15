@@ -1,11 +1,11 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Home } from '@/features/home/pages/HomePage';
-import { Dashboard } from '@/features/dashboard/pages/Dashboard';
-import { NewDeployment } from '@/features/deployment/pages/NewDeployment';
-import { ExploreApps } from '@/features/explore/pages/ExploreApps';
-import { ProjectSettings } from '@/features/project-settings/pages/ProjectSettings';
-import { MyProfile } from '@/features/profile/pages/MyProfile';
-import { PublicProfile } from '@/features/profile/pages/PublicProfile';
+import { Home } from '@/features/home/pages/home-page';
+import { Dashboard } from '@/features/dashboard/pages/dashboard';
+import { NewDeployment } from '@/features/deployment/pages/new-deployment';
+import { ExploreApps } from '@/features/explore/pages/explore-apps';
+import { ProjectSettings } from '@/features/project-settings/pages/project-settings';
+import { MyProfile } from '@/features/profile/pages/my-profile';
+import { PublicProfile } from '@/features/profile/pages/public-profile';
 
 export const AppRoutes = () => (
     <Routes>

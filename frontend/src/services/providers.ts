@@ -3,6 +3,6 @@
 // - services/mock/
 // - services/http/
 
-export * from './mock/IndexedDBProjectProvider';
-export * from './http/HttpProjectProvider';
-export * from './http/HttpDeploymentProvider';
+export * from './mock/indexed-db-project-provider';
+export * from './http/http-project-provider';
+export * from './http/http-deployment-provider';

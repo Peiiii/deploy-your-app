@@ -1,14 +1,14 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Sidebar } from '@/components/Sidebar';
-import { Header } from '@/components/Header';
+import { Sidebar } from '@/components/sidebar';
+import { Header } from '@/components/header';
 import { AppRoutes } from '@/routes';
-import { PresenterProvider, usePresenter } from '@/contexts/PresenterContext';
-import { useUIStore } from '@/stores/uiStore';
-import { AuthModal } from '@/features/auth/components/AuthModal';
-import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { Toast } from '@/components/Toast';
-import { CrispChat } from '@/components/CrispChat';
+import { PresenterProvider, usePresenter } from '@/contexts/presenter-context';
+import { useUIStore } from '@/stores/ui-store';
+import { AuthModal } from '@/features/auth/components/auth-modal';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { Toast } from '@/components/toast';
+import { CrispChat } from '@/components/crisp-chat';
 
 const MainLayout = () => {
   const { i18n } = useTranslation();

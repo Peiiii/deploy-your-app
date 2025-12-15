@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Info, AlertTriangle, X } from 'lucide-react';
-import { useUIStore } from '../stores/uiStore';
+import { useUIStore } from '../stores/ui-store';
 
 export const Toast: React.FC = () => {
   const { t } = useTranslation();

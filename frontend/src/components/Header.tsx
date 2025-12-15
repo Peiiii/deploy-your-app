@@ -1,9 +1,9 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useUIStore } from '@/stores/uiStore';
-import { useAuthStore } from '@/features/auth/stores/authStore';
-import { usePresenter } from '@/contexts/PresenterContext';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useUIStore } from '@/stores/ui-store';
+import { useAuthStore } from '@/features/auth/stores/auth-store';
+import { usePresenter } from '@/contexts/presenter-context';
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { Bell, HelpCircle, Sun, Moon, Menu } from 'lucide-react';
 import { Crisp } from 'crisp-sdk-web';
 

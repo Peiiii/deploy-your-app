@@ -1,12 +1,12 @@
 import React from 'react';
 import { Rocket, Wifi } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useUIStore } from '../stores/uiStore';
-import { SidebarHeader } from './sidebar/SidebarHeader';
-import { SidebarNavigation } from './sidebar/SidebarNavigation';
-import { SidebarProjectList } from './sidebar/SidebarProjectList';
-import { SidebarUserProfile } from './sidebar/SidebarUserProfile';
-import { useSidebarProjects } from './sidebar/useSidebarProjects';
+import { useUIStore } from '../stores/ui-store';
+import { SidebarHeader } from './sidebar/sidebar-header';
+import { SidebarNavigation } from './sidebar/sidebar-navigation';
+import { SidebarProjectList } from './sidebar/sidebar-project-list';
+import { SidebarUserProfile } from './sidebar/sidebar-user-profile';
+import { useSidebarProjects } from './sidebar/use-sidebar-projects';
 
 export const Sidebar: React.FC = () => {
   const { t } = useTranslation();
@@ -15,9 +15,7 @@ export const Sidebar: React.FC = () => {
   const { setSidebarOpen, toggleSidebarCollapsed } = useUIStore((state) => state.actions);
   
   const {
-    userProjects,
     pinnedProjects,
-    recentProjects,
     displayedProjects,
     pinnedProjectIds,
     projectViewType,
