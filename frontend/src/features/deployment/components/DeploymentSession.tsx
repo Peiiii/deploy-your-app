@@ -5,7 +5,7 @@ import { useDeploymentStore } from '@/features/deployment/stores/deploymentStore
 import { useProjectStore } from '@/stores/projectStore';
 import { usePresenter } from '@/contexts/PresenterContext';
 import { DeploymentStatus, SourceType } from '@/types';
-import { Terminal } from '@/components/Terminal';
+import { Terminal } from '@/features/deployment/components/Terminal';
 import {
   CheckCircle2,
   XCircle,
