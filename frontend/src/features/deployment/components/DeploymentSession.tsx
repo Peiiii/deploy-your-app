@@ -2,10 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useDeploymentStore } from '@/features/deployment/stores/deploymentStore';
-import { useProjectStore } from '../stores/projectStore';
-import { usePresenter } from '../contexts/PresenterContext';
-import { DeploymentStatus, SourceType } from '../types';
-import { Terminal } from './Terminal';
+import { useProjectStore } from '@/stores/projectStore';
+import { usePresenter } from '@/contexts/PresenterContext';
+import { DeploymentStatus, SourceType } from '@/types';
+import { Terminal } from '@/components/Terminal';
 import {
   CheckCircle2,
   XCircle,
