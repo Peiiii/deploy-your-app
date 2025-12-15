@@ -22,29 +22,38 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
   onDeleteProject,
 }) => {
   return (
-    <div className="glass-card rounded-2xl p-6 md:p-8 flex flex-col gap-8">
-      <ProjectSettingsHeader project={project} />
-
+    <div className="flex flex-col gap-8">
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-        <div className="flex-1 space-y-8">
-          <ProjectSettingsPublicUrlSection projectUrl={project.url} />
+        {/* Main Column */}
+        <div className="flex-1 space-y-6">
+          {/* 1. Identity Card */}
+          <div className="glass-card rounded-2xl p-6 md:p-8">
+            <ProjectSettingsHeader project={project} />
+            <div className="mt-6">
+              <ProjectSettingsPublicUrlSection projectUrl={project.url} />
+            </div>
+          </div>
 
-          <div className="border-t border-slate-200 dark:border-slate-800 pt-8">
+          {/* 2. Basic Info Card */}
+          <div className="glass-card rounded-2xl p-6 md:p-8">
             <ProjectSettingsBasicInfoGroup project={project} />
           </div>
 
-          <div className="border-t border-slate-200 dark:border-slate-800 pt-8">
+          {/* 3. Deployment Card */}
+          <div className="glass-card rounded-2xl p-6 md:p-8">
             <ProjectSettingsDeploymentGroup
               project={project}
               canDeployFromGitHub={canDeployFromGitHub}
             />
           </div>
 
-          <div className="border-t border-slate-200 dark:border-slate-800 pt-8">
+          {/* 4. Display Card */}
+          <div className="glass-card rounded-2xl p-6 md:p-8">
             <ProjectSettingsDisplayGroup project={project} />
           </div>
         </div>
 
+        {/* Sidebar Column */}
         <ProjectSettingsSidebar
           project={project}
           onDeleteProject={onDeleteProject}
