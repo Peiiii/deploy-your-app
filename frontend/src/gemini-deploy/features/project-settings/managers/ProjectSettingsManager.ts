@@ -1,15 +1,15 @@
-import { useProjectSettingsStore } from '../stores/projectSettingsStore';
-import { useProjectStore } from '../stores/projectStore';
+import { useProjectSettingsStore } from '@/stores/projectSettingsStore';
+import { useProjectStore } from '@/stores/projectStore';
 import { useDeploymentStore } from '@/features/deployment/stores/deploymentStore';
-import { DeploymentStatus, SourceType } from '../types';
-import type { Project } from '../types';
+import { DeploymentStatus, SourceType } from '@/types';
+import type { Project } from '@/types';
 import type { ProjectManager } from './ProjectManager';
 import type { DeploymentManager } from './DeploymentManager';
 import type { UIManager } from './UIManager';
 import type { AuthManager } from './AuthManager';
 import type { ReactionManager } from './ReactionManager';
 import type { AnalyticsManager } from './AnalyticsManager';
-import i18n from '../../i18n/config';
+import i18n from '@i18n/config';
 
 /**
  * ProjectSettingsManager handles all business logic for the ProjectSettings page.

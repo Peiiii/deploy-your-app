@@ -1,9 +1,9 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { usePresenter } from '../../contexts/PresenterContext';
-import { useAnalyticsStore } from '../../stores/analyticsStore';
-import type { Project } from '../../types';
+import { usePresenter } from '@/contexts/PresenterContext';
+import { useAnalyticsStore } from '@/stores/analyticsStore';
+import type { Project } from '@/types';
 
 interface ProjectSettingsSidebarProps {
   project: Project;

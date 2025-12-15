@@ -1,10 +1,10 @@
 import React from 'react';
 import { GitBranch, Save } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { usePresenter } from '../../contexts/PresenterContext';
-import { useProjectSettingsStore } from '../../stores/projectSettingsStore';
-import { formatRepoLabel } from '../../utils/project';
-import type { Project } from '../../types';
+import { usePresenter } from '@/contexts/PresenterContext';
+import { useProjectSettingsStore } from '@/stores/projectSettingsStore';
+import { formatRepoLabel } from '@/utils/project';
+import type { Project } from '@/types';
 
 interface ProjectSettingsRepoSectionProps {
   project: Project;

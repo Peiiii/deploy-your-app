@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProjectSettingsThumbnailSection } from './ProjectSettingsThumbnailSection';
-import type { Project } from '../../types';
+import type { Project } from '@/types';
 
 interface ProjectSettingsDisplayGroupProps {
   project: Project;

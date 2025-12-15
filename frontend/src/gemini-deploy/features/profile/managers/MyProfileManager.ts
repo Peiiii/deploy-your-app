@@ -1,9 +1,9 @@
-import { useMyProfileStore } from '../stores/myProfileStore';
-import { useProjectStore } from '../stores/projectStore';
-import { fetchPublicProfile, updateMyProfile } from '../services/http/profileApi';
+import { useMyProfileStore } from '@/stores/myProfileStore';
+import { useProjectStore } from '@/stores/projectStore';
+import { fetchPublicProfile, updateMyProfile } from '@/services/http/profileApi';
 import type { AuthManager } from './AuthManager';
 import type { UIManager } from './UIManager';
-import i18n from '../../i18n/config';
+import i18n from '@i18n/config';
 
 /**
  * MyProfileManager handles all business logic for the MyProfile page.

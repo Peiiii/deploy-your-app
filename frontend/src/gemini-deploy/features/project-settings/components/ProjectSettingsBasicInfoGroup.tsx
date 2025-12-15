@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProjectSettingsMetadataSection } from './ProjectSettingsMetadataSection';
 import { ProjectSettingsRepoSection } from './ProjectSettingsRepoSection';
-import type { Project } from '../../types';
+import type { Project } from '@/types';
 
 interface ProjectSettingsBasicInfoGroupProps {
   project: Project;

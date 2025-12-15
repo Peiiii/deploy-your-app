@@ -2,9 +2,9 @@ import { Play, Search, TrendingUp } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ExploreAppCardView } from '../components/ExploreAppCard';
-import { useExploreStore, CATEGORIES, type CategoryFilter } from '../stores/exploreStore';
-import { usePresenter } from '../contexts/PresenterContext';
+import { ExploreAppCardView } from '@/components/ExploreAppCard';
+import { useExploreStore, CATEGORIES, type CategoryFilter } from '@/stores/exploreStore';
+import { usePresenter } from '@/contexts/PresenterContext';
 
 const CREATOR_REVENUE_SHARE = 70;
 

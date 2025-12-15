@@ -4,11 +4,11 @@ import { UIManager } from './managers/UIManager';
 import { AuthManager } from '@/features/auth/managers/AuthManager';
 import { AnalyticsManager } from './managers/AnalyticsManager';
 import { ReactionManager } from './managers/ReactionManager';
-import { ProjectSettingsManager } from './managers/ProjectSettingsManager';
-import { MyProfileManager } from './managers/MyProfileManager';
+import { ProjectSettingsManager } from '@/features/project-settings/managers/ProjectSettingsManager';
+import { MyProfileManager } from '@/features/profile/managers/MyProfileManager';
 import { DashboardManager } from '@/features/dashboard/managers/DashboardManager';
-import { PublicProfileManager } from './managers/PublicProfileManager';
-import { ExploreManager } from './managers/ExploreManager';
+import { PublicProfileManager } from '@/features/profile/managers/PublicProfileManager';
+import { ExploreManager } from '@/features/explore/managers/ExploreManager';
 import { ServiceFactory } from './services/ServiceFactory';
 
 // The Presenter now uses the Factory to get dependencies.

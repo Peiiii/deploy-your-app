@@ -2,13 +2,13 @@ import { ArrowLeft } from 'lucide-react';
 import React, { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { DeploymentSession } from '../components/DeploymentSession';
-import { ProjectSettingsCard } from '../components/ProjectSettingsCard';
-import { URLS } from '../constants';
-import { usePresenter } from '../contexts/PresenterContext';
+import { DeploymentSession } from '@/components/DeploymentSession';
+import { ProjectSettingsCard } from '@/components/ProjectSettingsCard';
+import { URLS } from '@/constants';
+import { usePresenter } from '@/contexts/PresenterContext';
 import { useAuthStore } from '@/features/auth/stores/authStore';
-import { useProjectStore } from '../stores/projectStore';
-import { useProjectSettingsStore } from '../stores/projectSettingsStore';
+import { useProjectStore } from '@/stores/projectStore';
+import { useProjectSettingsStore } from '@/stores/projectSettingsStore';
 
 export const ProjectSettings: React.FC = () => {
   const { t } = useTranslation();

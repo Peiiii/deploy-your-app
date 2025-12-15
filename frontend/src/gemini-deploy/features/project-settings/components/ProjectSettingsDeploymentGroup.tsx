@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProjectSettingsRedeploySection } from './ProjectSettingsRedeploySection';
-import type { Project } from '../../types';
+import type { Project } from '@/types';
 
 interface ProjectSettingsDeploymentGroupProps {
   project: Project;

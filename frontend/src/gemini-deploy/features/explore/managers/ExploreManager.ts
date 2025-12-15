@@ -1,11 +1,11 @@
-import { useExploreStore } from '../stores/exploreStore';
+import { useExploreStore } from '@/stores/exploreStore';
 import { useAuthStore } from '@/features/auth/stores/authStore';
-import { mapProjectsToApps } from '../components/ExploreAppCard';
-import { fetchExploreProjects } from '../services/http/exploreApi';
+import { mapProjectsToApps } from '@/components/ExploreAppCard';
+import { fetchExploreProjects } from '@/services/http/exploreApi';
 import type { AuthManager } from './AuthManager';
 import type { UIManager } from './UIManager';
 import type { ReactionManager } from './ReactionManager';
-import i18n from '../../i18n/config';
+import i18n from '@i18n/config';
 
 const PAGE_SIZE = 12;
 

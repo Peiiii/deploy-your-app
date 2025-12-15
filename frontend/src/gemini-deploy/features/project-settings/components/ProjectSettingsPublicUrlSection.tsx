@@ -1,7 +1,7 @@
 import React from 'react';
 import { Check, Copy, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 
 interface ProjectSettingsPublicUrlSectionProps {
   projectUrl: string | null | undefined;

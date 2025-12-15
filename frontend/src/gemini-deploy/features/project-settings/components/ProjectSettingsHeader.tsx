@@ -1,8 +1,8 @@
 import React from 'react';
 import { Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { formatRelativeTime } from '../../utils/date';
-import type { Project } from '../../types';
+import { formatRelativeTime } from '@/utils/date';
+import type { Project } from '@/types';
 
 interface ProjectSettingsHeaderProps {
   project: Project;

@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { usePresenter } from '../../contexts/PresenterContext';
-import { useProjectSettingsStore } from '../../stores/projectSettingsStore';
-import { getProjectThumbnailUrl } from '../../utils/project';
-import type { Project } from '../../types';
+import { usePresenter } from '@/contexts/PresenterContext';
+import { useProjectSettingsStore } from '@/stores/projectSettingsStore';
+import { getProjectThumbnailUrl } from '@/utils/project';
+import type { Project } from '@/types';
 
 interface ProjectSettingsThumbnailSectionProps {
   project: Project;

@@ -1,11 +1,11 @@
 import { AlertTriangle } from 'lucide-react';
 import React from 'react';
-import { ProjectSettingsHeader } from './project-settings/ProjectSettingsHeader';
-import { ProjectSettingsBasicInfoGroup } from './project-settings/ProjectSettingsBasicInfoGroup';
-import { ProjectSettingsDeploymentGroup } from './project-settings/ProjectSettingsDeploymentGroup';
-import { ProjectSettingsDisplayGroup } from './project-settings/ProjectSettingsDisplayGroup';
-import { ProjectSettingsPublicUrlSection } from './project-settings/ProjectSettingsPublicUrlSection';
-import { ProjectSettingsSidebar } from './project-settings/ProjectSettingsSidebar';
+import { ProjectSettingsHeader } from '@/features/project-settings/components/ProjectSettingsHeader';
+import { ProjectSettingsBasicInfoGroup } from '@/features/project-settings/components/ProjectSettingsBasicInfoGroup';
+import { ProjectSettingsDeploymentGroup } from '@/features/project-settings/components/ProjectSettingsDeploymentGroup';
+import { ProjectSettingsDisplayGroup } from '@/features/project-settings/components/ProjectSettingsDisplayGroup';
+import { ProjectSettingsPublicUrlSection } from '@/features/project-settings/components/ProjectSettingsPublicUrlSection';
+import { ProjectSettingsSidebar } from '@/features/project-settings/components/ProjectSettingsSidebar';
 import type { Project } from '../types';
 
 interface ProjectSettingsCardProps {
