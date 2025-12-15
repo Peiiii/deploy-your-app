@@ -6,7 +6,7 @@ import { AnalyticsManager } from './managers/AnalyticsManager';
 import { ReactionManager } from './managers/ReactionManager';
 import { ProjectSettingsManager } from './managers/ProjectSettingsManager';
 import { MyProfileManager } from './managers/MyProfileManager';
-import { DashboardManager } from './managers/DashboardManager';
+import { DashboardManager } from '@/features/dashboard/managers/DashboardManager';
 import { PublicProfileManager } from './managers/PublicProfileManager';
 import { ExploreManager } from './managers/ExploreManager';
 import { ServiceFactory } from './services/ServiceFactory';

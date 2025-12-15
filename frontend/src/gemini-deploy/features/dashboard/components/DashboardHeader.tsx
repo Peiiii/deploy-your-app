@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Zap } from 'lucide-react';
-import { usePresenter } from '../../contexts/PresenterContext';
+import { usePresenter } from '@/contexts/PresenterContext';
 
 export const DashboardHeader: React.FC = () => {
   const { t } = useTranslation();

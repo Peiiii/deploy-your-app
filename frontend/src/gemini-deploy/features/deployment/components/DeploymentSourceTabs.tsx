@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Github, FolderArchive, FileCode, Check } from 'lucide-react';
-import { SourceType } from '../../types';
+import { SourceType } from '@/types';
 
 interface DeploymentSourceTabsProps {
   activeSource: SourceType;

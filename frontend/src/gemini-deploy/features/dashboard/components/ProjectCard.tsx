@@ -11,10 +11,10 @@ import {
   Copy,
   Check,
 } from 'lucide-react';
-import { useAnalyticsStore } from '../../stores/analyticsStore';
-import { getDisplayRepoUrl, getGitHubUrl } from '../../utils/project';
-import { SourceType } from '../../types';
-import type { Project } from '../../types';
+import { useAnalyticsStore } from '@/stores/analyticsStore';
+import { getDisplayRepoUrl, getGitHubUrl } from '@/utils/project';
+import { SourceType } from '@/types';
+import type { Project } from '@/types';
 
 interface ProjectCardProps {
   project: Project;

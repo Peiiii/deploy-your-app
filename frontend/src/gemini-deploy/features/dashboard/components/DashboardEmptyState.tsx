@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Star, FileText } from 'lucide-react';
-import { useDashboardStore } from '../../stores/dashboardStore';
+import { useDashboardStore } from '@/stores/dashboardStore';
 
 export const DashboardEmptyState: React.FC = () => {
   const { t } = useTranslation();

@@ -1,7 +1,7 @@
-import { useDashboardStore } from '../stores/dashboardStore';
+import { useDashboardStore } from '@/stores/dashboardStore';
 import type { UIManager } from './UIManager';
 import type { AuthManager } from './AuthManager';
-import i18n from '../../i18n/config';
+import i18n from '@i18n/config';
 
 /**
  * DashboardManager handles business logic for the Dashboard page.

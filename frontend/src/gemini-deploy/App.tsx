@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Sidebar } from '@/components/Sidebar';
 import { Home } from '@/features/home/pages/HomePage';
-import { Dashboard } from '@/pages/Dashboard';
+import { Dashboard } from '@/features/dashboard/pages/Dashboard';
 import { NewDeployment } from '@/features/deployment/pages/NewDeployment';
 import { ExploreApps } from '@/pages/ExploreApps';
 import { ProjectSettings } from '@/pages/ProjectSettings';
