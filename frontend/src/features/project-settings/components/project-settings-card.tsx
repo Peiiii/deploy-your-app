@@ -6,7 +6,7 @@ import { ProjectSettingsDeploymentGroup } from '@/features/project-settings/comp
 import { ProjectSettingsDisplayGroup } from '@/features/project-settings/components/project-settings-display-group';
 import { ProjectSettingsPublicUrlSection } from '@/features/project-settings/components/project-settings-public-url-section';
 import { ProjectSettingsSidebar } from '@/features/project-settings/components/project-settings-sidebar';
-import type { Project } from '../types';
+import type { Project } from '@/types';
 
 interface ProjectSettingsCardProps {
   project: Project;
@@ -21,6 +21,7 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
   error,
   onDeleteProject,
 }) => {
+
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">

@@ -28,7 +28,7 @@ export const ProjectSettingsMetadataSection: React.FC<
   // Reactions from reaction store
   const reactionEntry = useReactionStore((s) => s.byProjectId[project.id]);
   const likesCount = reactionEntry?.likesCount ?? 0;
-  const favoritesCount = reactionEntry?.favoritesCount ?? 0;
+  // favoritesCount removed as unused
   const likedByCurrentUser = reactionEntry?.likedByCurrentUser ?? false;
   const favoritedByCurrentUser = reactionEntry?.favoritedByCurrentUser ?? false;
 
@@ -93,17 +93,15 @@ export const ProjectSettingsMetadataSection: React.FC<
           <button
             type="button"
             onClick={presenter.projectSettings.toggleFavorite}
-            className={`inline-flex items-center justify-center w-7 h-7 rounded-full border text-[11px] ${
-              favoritedByCurrentUser
+            className={`inline-flex items-center justify-center w-7 h-7 rounded-full border text-[11px] ${favoritedByCurrentUser
                 ? 'bg-yellow-400/90 border-yellow-500 text-yellow-900'
                 : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300'
-            }`}
+              }`}
             aria-label={t('project.toggleFavorite')}
           >
             <Star
-              className={`w-3 h-3 ${
-                favoritedByCurrentUser ? 'fill-current' : ''
-              }`}
+              className={`w-3 h-3 ${favoritedByCurrentUser ? 'fill-current' : ''
+                }`}
             />
           </button>
         </div>

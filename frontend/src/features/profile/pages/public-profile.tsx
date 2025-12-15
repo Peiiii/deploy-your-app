@@ -91,7 +91,6 @@ export const PublicProfile: React.FC = () => {
 
   const renderProjectCard = (
     project: (typeof data.projects)[number],
-    isPinned: boolean = false,
   ) => {
     const reactions = reactionFor(project.id);
     const likes =
@@ -142,11 +141,10 @@ export const PublicProfile: React.FC = () => {
               className="inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <Star
-                className={`w-3.5 h-3.5 ${
-                  favorited
-                    ? 'text-amber-400 fill-amber-400'
-                    : 'text-slate-400'
-                }`}
+                className={`w-3.5 h-3.5 ${favorited
+                  ? 'text-amber-400 fill-amber-400'
+                  : 'text-slate-400'
+                  }`}
               />
               <span>{favorites.toLocaleString()}</span>
             </button>
@@ -156,9 +154,8 @@ export const PublicProfile: React.FC = () => {
               className="inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <Heart
-                className={`w-3 h-3 ${
-                  liked ? 'fill-pink-500 text-pink-500' : 'text-slate-400'
-                }`}
+                className={`w-3 h-3 ${liked ? 'fill-pink-500 text-pink-500' : 'text-slate-400'
+                  }`}
               />
               <span>{likes.toLocaleString()}</span>
             </button>
@@ -208,9 +205,8 @@ export const PublicProfile: React.FC = () => {
           ) : null}
           {normalizeLinksForDisplay(data.profile.links).length > 0 ? (
             <div
-              className={`space-y-2 text-xs text-slate-500 dark:text-slate-400 ${
-                data.profile.bio ? 'mt-4' : ''
-              }`}
+              className={`space-y-2 text-xs text-slate-500 dark:text-slate-400 ${data.profile.bio ? 'mt-4' : ''
+                }`}
             >
               {normalizeLinksForDisplay(data.profile.links).map((link, idx) => {
                 const kind = resolveLinkKind(link.url);
@@ -305,7 +301,7 @@ export const PublicProfile: React.FC = () => {
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {pinnedProjects.map((project) => renderProjectCard(project, true))}
+            {pinnedProjects.map((project) => renderProjectCard(project))}
           </div>
         </div>
       )}

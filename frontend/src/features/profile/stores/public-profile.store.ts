@@ -1,10 +1,10 @@
 import { create } from 'zustand';
-import type { PublicUserProfile } from '../types';
+import type { PublicUserProfile } from '@/types';
 
 interface PublicProfileState {
   // Profile data
   data: PublicUserProfile | null;
-  
+
   // UI state
   isLoading: boolean;
   error: string | null;

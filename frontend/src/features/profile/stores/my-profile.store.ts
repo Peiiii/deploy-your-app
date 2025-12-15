@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { PublicUserProfile, ProfileLink } from '../types';
+import type { PublicUserProfile, ProfileLink } from '@/types';
 
 interface MyProfileState {
   // Profile data
@@ -119,7 +119,7 @@ export const useMyProfileStore = create<MyProfileState>((set) => ({
         profileData: data,
         bio: data.profile.bio ?? '',
         links: (data.profile.links ?? []).filter(
-          (l) => typeof l.url === 'string' && l.url.trim().length > 0,
+          (l: ProfileLink) => typeof l.url === 'string' && l.url.trim().length > 0,
         ),
         pinnedIds: data.profile.pinnedProjectIds ?? [],
         handleInput: userHandle ?? '',

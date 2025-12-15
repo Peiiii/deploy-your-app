@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Project } from '../types';
+import type { Project } from '@/types';
 
 interface ProjectSettingsState {
   // 当前编辑的项目 ID
