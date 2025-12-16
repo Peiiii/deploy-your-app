@@ -6,8 +6,10 @@ import { handleGenerateContent } from './lib/handlers/generateContent';
 // Disable default CORS so we can fully control headers (echo requested headers).
 const app = createWorkerApp<Env>({ cors: false });
 
-// Global CORS headers middleware
+// Global CORS headers middleware (apply after handlers to ensure all responses carry CORS)
 app.use('*', async (c, next) => {
+  await next();
+
   const origin = c.req.header('Origin') || '*';
   const reqHeaders = c.req.header('Access-Control-Request-Headers');
   const allowHeaders =
@@ -15,15 +17,13 @@ app.use('*', async (c, next) => {
       ? reqHeaders
       : 'Content-Type, Authorization, x-goog-api-key') + '';
 
-  c.header('Access-Control-Allow-Origin', origin);
-  c.header(
+  c.res.headers.set('Access-Control-Allow-Origin', origin);
+  c.res.headers.set(
     'Access-Control-Allow-Methods',
     'GET, POST, PUT, PATCH, DELETE, OPTIONS',
   );
-  c.header('Access-Control-Allow-Headers', allowHeaders);
-  c.header('Access-Control-Max-Age', '86400');
-
-  await next();
+  c.res.headers.set('Access-Control-Allow-Headers', allowHeaders);
+  c.res.headers.set('Access-Control-Max-Age', '86400');
 });
 
 // Explicit preflight handling to satisfy browser CORS for @google/genai
