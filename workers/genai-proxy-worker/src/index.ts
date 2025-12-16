@@ -5,6 +5,20 @@ import { handleGenerateContent } from './lib/handlers/generateContent';
 
 const app = createWorkerApp<Env>();
 
+// Explicit preflight handling to satisfy browser CORS for @google/genai
+app.options('*', () => {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      // Include x-goog-api-key because @google/genai sends it
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-goog-api-key',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+});
+
 /**
  * GenAI compatibility endpoints used by `@google/genai`.
  *
