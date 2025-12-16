@@ -63,6 +63,14 @@ function parsePlatformAIConfig(): PlatformAIConfig {
   };
 }
 
+function parseGenAIProxyBaseUrl(): string {
+  const raw =
+    getEnv('GENAI_PROXY_BASE_URL') ??
+    getEnv('GENAI_API_BASE_URL') ??
+    'https://genai-api.gemigo.io';
+  return raw.replace(/\/+$/, '');
+}
+
 function parseCloudflareConfig(): CloudflareConfig {
   return {
     accountId: getEnvOrDefault('CLOUDFLARE_ACCOUNT_ID', ''),
@@ -162,6 +170,7 @@ fs.mkdirSync(pathsConfig.staticRoot, { recursive: true });
 export const CONFIG: AppConfig = Object.freeze({
   deployTarget: parseDeployTarget(getEnv('DEPLOY_TARGET')),
   platformAI: parsePlatformAIConfig(),
+  genaiProxyBaseUrl: parseGenAIProxyBaseUrl(),
   cloudflare: parseCloudflareConfig(),
   r2: parseR2Config(),
   cloudflareD1: cloudflareD1Config,
@@ -179,6 +188,9 @@ export const PLATFORM_AI_PROVIDER = CONFIG.platformAI.provider;
 export const PLATFORM_AI_MODEL = CONFIG.platformAI.model;
 export const DASHSCOPE_API_KEY = CONFIG.platformAI.apiKey;
 export const PLATFORM_AI_BASE_URL = CONFIG.platformAI.baseUrl;
+
+// Google GenAI compatibility proxy base URL for AI Studio apps.
+export const GENAI_PROXY_BASE_URL = CONFIG.genaiProxyBaseUrl;
 
 // Deployment target
 // - 'local': copy static assets to /apps/<slug>/ and serve from the Node server

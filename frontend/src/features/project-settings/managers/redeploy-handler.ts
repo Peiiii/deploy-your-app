@@ -133,6 +133,36 @@ export class RedeployHandler {
         }
     };
 
+    deployHtmlContent = async (content: string) => {
+        const project = this.getCurrentProject();
+        if (!project) return;
+
+        if (!content.trim()) {
+            useProjectSettingsStore.getState().actions.setError('HTML content cannot be empty.');
+            return;
+        }
+
+        const actions = useProjectSettingsStore.getState().actions;
+        actions.setError(null);
+        actions.setIsDeployingHtml(true);
+
+        try {
+            const payload: Project = {
+                ...project,
+                sourceType: SourceType.HTML,
+                htmlContent: content,
+            };
+            await this.deploymentManager.redeployProject(payload, {
+                onComplete: () => this.projectManager.loadProjects(),
+            });
+        } catch (err) {
+            console.error(err);
+            actions.setError('Failed to deploy HTML content.');
+        } finally {
+            actions.setIsDeployingHtml(false);
+        }
+    };
+
     handleZipInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;

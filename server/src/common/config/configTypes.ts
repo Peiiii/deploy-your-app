@@ -54,6 +54,8 @@ export interface PathsConfig {
 export interface AppConfig {
   deployTarget: DeployTarget;
   platformAI: PlatformAIConfig;
+  // Base URL for the Google GenAI-compatible proxy used to retarget AI Studio projects.
+  genaiProxyBaseUrl: string;
   cloudflare: CloudflareConfig;
   // Cloudflare R2 object storage configuration for the "r2" deploy target.
   r2: R2Config;

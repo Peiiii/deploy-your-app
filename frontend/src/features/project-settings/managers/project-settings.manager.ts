@@ -75,6 +75,7 @@ export class ProjectSettingsManager {
     this.redeployHandler.handleZipInputChange(e);
   handleHtmlInputChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     this.redeployHandler.handleHtmlInputChange(e);
+  deployHtmlContent = (content: string) => this.redeployHandler.deployHtmlContent(content);
 
   // ============================================================
   // Public API - Project Actions

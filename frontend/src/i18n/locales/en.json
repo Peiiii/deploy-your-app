@@ -25,6 +25,7 @@
     "manage": "Manage",
     "visit": "Visit",
     "deploy": "Deploy",
+    "deploying": "Deploying...",
     "notAccessible": "Not accessible",
     "continue": "Continue",
     "newProject": "New Project",

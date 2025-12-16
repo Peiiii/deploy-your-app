@@ -174,6 +174,10 @@ export class AIService {
     this.apiKey = DASHSCOPE_API_KEY;
   }
 
+  hasCredentials(): boolean {
+    return Boolean(this.apiKey);
+  }
+
   /**
    * Classify a project into a category using AI
    * @param name - Project name
@@ -401,6 +405,71 @@ export class AIService {
   }
 
   // Future AI capabilities can be added here, for example:
+  async rewriteGenAIBaseUrl(
+    filePath: string,
+    code: string,
+    targetBaseUrl: string,
+  ): Promise<string | null> {
+    if (!this.apiKey) {
+      return null;
+    }
+
+    const systemPrompt =
+      'You are a senior TypeScript/JavaScript engineer. Rewrite the provided file so that any usage of Google GenAI clients ' +
+      '(GoogleGenerativeAI, GoogleAIClient/GoogleAI from @google/genai, or direct fetches to generativelanguage.googleapis.com) ' +
+      `sends requests to the following base URL via baseUrl/httpOptions.baseUrl/apiEndpoint: ${targetBaseUrl}.\n` +
+      '- Preserve API keys / environment variables as-is.\n' +
+      '- Keep the rest of the code unchanged.\n' +
+      '- Return ONLY the full updated file content, no Markdown or commentary.';
+
+    const userPrompt =
+      `File path: ${filePath}\n` +
+      `Target base URL: ${targetBaseUrl}\n` +
+      'Rewrite this file accordingly:\n' +
+      code;
+
+    const body = {
+      model: this.model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0,
+    };
+
+    try {
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '');
+        console.error(
+          'AI GenAI base URL rewrite failed:',
+          response.status,
+          response.statusText,
+          errorText,
+        );
+        return null;
+      }
+
+      const data: AIResponse = await response.json();
+      const text = extractTextFromAIResponse(data);
+      if (!text) {
+        return null;
+      }
+      return text.trim();
+    } catch (err) {
+      console.error('Error calling AI GenAI base URL rewrite:', err);
+      return null;
+    }
+  }
+
   // async generateProjectDescription(name: string, code: string): Promise<string | null>
   // async analyzeProjectComplexity(code: string): Promise<ComplexityScore | null>
 }

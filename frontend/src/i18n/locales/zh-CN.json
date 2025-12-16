@@ -25,6 +25,7 @@
     "manage": "管理",
     "visit": "访问",
     "deploy": "部署",
+    "deploying": "部署中...",
     "notAccessible": "无法访问",
     "continue": "继续",
     "newProject": "新建项目",
