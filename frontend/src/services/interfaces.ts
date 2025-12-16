@@ -56,17 +56,6 @@ export interface IDeploymentProvider {
     onLog: (log: BuildLog) => void,
     onStatusChange: (status: DeploymentStatus) => void,
   ): Promise<DeploymentResult | undefined>;
-
-  /**
-   * Optional pre-deployment analysis step. For GitHub-based projects this
-   * allows the backend to inspect the source code and propose richer
-   * metadata (name, slug, tags). The returned analysisId can be passed
-   * back to the deployment job so that the Node builder can reuse the
-   * prepared work directory.
-   */
-  analyzeSource(
-    project: Project,
-  ): Promise<{ metadata?: DeploymentMetadata; analysisId?: string }>;
 }
 
 export interface IAnalyticsProvider {

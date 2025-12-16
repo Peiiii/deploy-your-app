@@ -111,6 +111,7 @@
     "repoDuplicateMessage": "We found an existing project for this repository (\"{{name}}\"). You can redeploy that project to keep the same URL, or create a new project with a different URL.",
     "repoDuplicateRedeploy": "Redeploy existing project",
     "repoDuplicateCreateNew": "Create new project with new URL",
+    "repoUrlRequired": "Repository URL is required to deploy from GitHub.",
     "analyzingRepository": "Analyzing repository to generate project name, slug and tags...",
     "analysisFailedFallback": "Repository analysis failed, falling back to direct deployment without AI metadata.",
     "projectCreated": "Project created. You can deploy it now.",

@@ -107,9 +107,10 @@ export class DeploymentService {
     const analysisId = project.analysisId;
     const hadSlugFromClient =
       typeof project.slug === 'string' && project.slug.trim().length > 0;
-    let slug = hadSlugFromClient
+    let slugSeed = hadSlugFromClient
       ? slugify(project.slug as string)
       : slugify(project.name);
+    let slug = slugSeed;
     project.slug = slug;
     project.category = project.category ?? 'Other';
     project.tags = project.tags ?? [];
@@ -130,6 +131,10 @@ export class DeploymentService {
     try {
       updateStatus(id, 'BUILDING');
       appendLog(id, `Starting deployment for "${project.name}"`, 'info');
+      if (analysisId) {
+        appendLog(id, `Using analysis session ${analysisId} (precomputed metadata/workdir).`, 'info');
+      }
+      appendLog(id, `Resolved slug: "${slug}"`, 'info');
 
       if (isFromAnalysis) {
         appendLog(id, `Reusing prepared repository at ${workDir}`, 'info');
@@ -137,7 +142,14 @@ export class DeploymentService {
         await materializeSourceForDeployment(id, project, workDir);
       }
 
-      if (!hadSlugFromClient) {
+      const needsMetadata =
+        !hadSlugFromClient ||
+        !project.description ||
+        !project.category ||
+        !project.tags ||
+        project.tags.length === 0;
+
+      if (needsMetadata) {
         appendLog(
           id,
           'Generating project metadata (name, slug, tags) from source content...',
@@ -148,7 +160,7 @@ export class DeploymentService {
           identifier: project.repoUrl,
           sourceType: normalizedSourceType,
           htmlContent: project.htmlContent,
-          slugSeed: slug,
+          slugSeed,
           workDir,
         });
         const previousName = project.name;
@@ -159,6 +171,7 @@ export class DeploymentService {
         project.category = metadataForClient.category;
         project.tags = metadataForClient.tags;
         slug = metadataForClient.slug;
+        slugSeed = metadataForClient.slug;
 
         if (metadataForClient.name !== previousName) {
           appendLog(

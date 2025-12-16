@@ -1,7 +1,7 @@
 import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
 import type { ProjectManager } from '@/managers/project.manager';
 import type { IDeploymentProvider } from '@/services/interfaces';
-import type { DeploymentMetadata, Project } from '@/types';
+import type { Project } from '@/types';
 import { SourceType } from '@/types';
 
 type DeploymentStoreSnapshot = ReturnType<typeof useDeploymentStore.getState>;
@@ -15,21 +15,6 @@ export class ProjectCreator {
         private provider: IDeploymentProvider,
         private projectManager: ProjectManager,
     ) { }
-
-    /**
-     * Run a lightweight pre-deployment analysis for the given project.
-     */
-    analyzeProject = async (
-        project: Project,
-    ): Promise<{ analysisId?: string; metadata?: DeploymentMetadata }> => {
-        try {
-            const result = await this.provider.analyzeSource(project);
-            return result;
-        } catch (err) {
-            console.error('Project analysis failed', err);
-            throw err;
-        }
-    };
 
     /**
      * Derive a reasonable default project name from the current wizard state.
@@ -87,45 +72,11 @@ export class ProjectCreator {
             console.error('Failed to check existing project for repo', err);
         }
 
-        const tempProject: Project = {
-            id: 'temp',
-            name: fallbackName,
-            repoUrl: trimmedRepo,
-            sourceType: SourceType.GITHUB,
-            lastDeployed: '',
-            status: 'Building',
-            framework: 'Unknown',
-        };
-
-        try {
-            const analysisResult = await this.analyzeProject(tempProject);
-
-            const metadataOverrides = analysisResult.metadata
-                ? {
-                    name: analysisResult.metadata.name,
-                    slug: analysisResult.metadata.slug,
-                    description: analysisResult.metadata.description,
-                    category: analysisResult.metadata.category,
-                    tags: analysisResult.metadata.tags,
-                }
-                : undefined;
-
-            const finalName = analysisResult.metadata?.name ?? fallbackName;
-
-            return await this.projectManager.addProject(
-                finalName,
-                state.sourceType,
-                trimmedRepo,
-                metadataOverrides ? { metadata: metadataOverrides } : undefined,
-            );
-        } catch (err) {
-            console.error('Failed to analyze repository for project creation', err);
-            return await this.projectManager.addProject(
-                fallbackName,
-                state.sourceType,
-                trimmedRepo,
-            );
-        }
+        return await this.projectManager.addProject(
+            fallbackName,
+            state.sourceType,
+            trimmedRepo,
+        );
     };
 
     createFromZip = async (

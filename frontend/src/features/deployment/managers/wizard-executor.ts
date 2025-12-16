@@ -109,9 +109,6 @@ export class WizardExecutor {
         (log) => actions.addLog(log),
         (status) => actions.setDeploymentStatus(status),
       );
-      if (result?.metadata?.name) {
-        actions.setProjectName(result.metadata.name);
-      }
 
       if (project.id !== 'temp') {
         await this.projectManager.updateProjectDeployment(project.id, {
@@ -176,7 +173,11 @@ export class WizardExecutor {
     fallbackName: string,
   ): Promise<void> => {
     const trimmedRepo = state.repoUrl.trim();
-    if (!trimmedRepo) return;
+    if (!trimmedRepo) {
+      const t = i18n.t.bind(i18n);
+      this.uiManager.showErrorToast(t('deployment.repoUrlRequired'));
+      return;
+    }
 
     try {
       const existing = await this.projectManager.findExistingProjectForRepo(trimmedRepo);
@@ -202,77 +203,37 @@ export class WizardExecutor {
     const t = i18n.t.bind(i18n);
 
     actions.setStep(2);
-    actions.setDeploymentStatus(DeploymentStatus.ANALYZING);
+    actions.setDeploymentStatus(DeploymentStatus.BUILDING);
     actions.clearLogs();
     actions.setProjectName(fallbackName);
     actions.setRepoUrl(trimmedRepo);
     actions.setSourceType(SourceType.GITHUB);
     actions.addLog({
       timestamp: new Date().toISOString(),
-      message: t('deployment.analyzingRepository'),
+      message: t('deployment.startingDeployment'),
       type: 'info',
     });
 
     try {
-      const tempProject: Project = {
-        id: 'temp',
-        name: fallbackName,
-        repoUrl: trimmedRepo,
-        sourceType: SourceType.GITHUB,
-        lastDeployed: '',
-        status: 'Building',
-        framework: 'Unknown',
-      };
-
-      const analysisResult = await this.projectCreator.analyzeProject(tempProject);
-
-      const metadataOverrides = analysisResult.metadata
-        ? {
-            name: analysisResult.metadata.name,
-            slug: analysisResult.metadata.slug,
-            description: analysisResult.metadata.description,
-            category: analysisResult.metadata.category,
-            tags: analysisResult.metadata.tags,
-          }
-        : undefined;
-
-      const finalName = analysisResult.metadata?.name ?? fallbackName;
-
       const createdProject = await this.projectManager.addProject(
-        finalName,
+        fallbackName,
         state.sourceType,
         trimmedRepo,
-        metadataOverrides ? { metadata: metadataOverrides } : undefined,
       );
 
       if (!createdProject) return;
 
-      const projectForDeploy: Project = {
-        ...createdProject,
-        ...(analysisResult.analysisId ? { analysisId: analysisResult.analysisId } : {}),
-      };
-
-      await this.redeployProject(projectForDeploy);
+      await this.redeployProject(createdProject);
     } catch (err) {
-      console.error('Failed to analyze and deploy project', err);
+      console.error('Failed to deploy project', err);
       const actionsLocal = useDeploymentStore.getState().actions;
       actionsLocal.addLog({
         timestamp: new Date().toISOString(),
-        message: i18n.t('deployment.analysisFailedFallback'),
+        message: i18n.t('deployment.projectCreateFailed'),
         type: 'warning',
       });
 
-      try {
-        const fallbackProject = await this.projectManager.addProject(
-          fallbackName,
-          state.sourceType,
-          trimmedRepo,
-        );
-        if (!fallbackProject) return;
-        await this.redeployProject(fallbackProject);
-      } catch (deployErr) {
-        console.error('Fallback deploy also failed', deployErr);
-      }
+      console.error('Deployment failed', err);
     }
   };
 

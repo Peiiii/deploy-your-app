@@ -103,8 +103,6 @@ class ProjectService {
         ? input.name.trim()
         : `new-app-${id.slice(0, 6)}`;
 
-    const baseSlug = slugify(seedName);
-    const uniqueSlug = await this.ensureUniqueSlug(db, baseSlug);
     const deployTarget = configService.getDeployTarget(env);
 
     return projectRepository.createProjectRecord(db, {
@@ -114,17 +112,48 @@ class ProjectService {
       name: seedName,
       repoUrl: `draft:${id}`,
       sourceType: undefined,
-      slug: uniqueSlug,
+      slug: undefined,
       lastDeployed: now,
       status: 'Offline',
       url: undefined,
       description: undefined,
       framework: 'Unknown',
-      category: 'Other',
-      tags: [],
+      category: undefined,
+      tags: undefined,
       deployTarget,
       htmlContent: undefined,
     });
+  }
+
+  async ensureSlugForProject(
+    env: ApiWorkerEnv,
+    db: D1Database,
+    project: Project,
+  ): Promise<Project> {
+    if (project.slug && project.slug.trim().length > 0) {
+      return project;
+    }
+
+    const baseSlug = slugify(project.name || project.id);
+    const metadata = await metadataService.ensureProjectMetadata(env, {
+      seedName: project.name,
+      identifier: project.repoUrl,
+      sourceType: project.sourceType ?? SourceType.GitHub,
+      htmlContent: project.htmlContent,
+      slugSeed: baseSlug,
+      overrides: { name: project.name },
+    });
+
+    const uniqueSlug = await this.ensureUniqueSlug(db, metadata.slug);
+    const updated = await projectRepository.updateProjectRecord(db, project.id, {
+      slug: uniqueSlug,
+    });
+
+    if (!updated) {
+      throw new Error('Failed to assign slug for project.');
+    }
+
+    return updated;
   }
 
   async updateProject(

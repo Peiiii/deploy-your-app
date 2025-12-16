@@ -1,12 +1,7 @@
 import { randomUUID } from 'crypto';
 import {
-  APPS_ROOT_DOMAIN,
-  DEPLOY_TARGET,
+  DEPLOY_TARGET
 } from '../../common/config/config.js';
-import {
-  projectRepository,
-  type CreateProjectRecordInput,
-} from './repositories/index.js';
 import type { Project } from '../../common/types.js';
 import { SourceType } from '../../common/types.js';
 import { slugify } from '../../common/utils/strings.js';
@@ -14,6 +9,10 @@ import {
   metadataService,
   type ProjectMetadataOverrides,
 } from '../metadata/index.js';
+import {
+  projectRepository,
+  type CreateProjectRecordInput,
+} from './repositories/index.js';
 
 // Type definitions
 interface CreateProjectInput {
@@ -38,43 +37,31 @@ export class ProjectService {
   }: CreateProjectInput): Promise<Project> {
     const id = randomUUID();
     const now = new Date().toISOString();
-    const initialSlug = slugify(name);
     const normalizedSourceType = sourceType ?? SourceType.GitHub;
 
-    // For local deployments, we can compute the URL eagerly.
-    // For R2 deployments, the public URL is also deterministic:
-    //   https://<slug>.<APPS_ROOT_DOMAIN>/
-    // For legacy Cloudflare Pages deployments, the final URL is only known
-    // after the first successful deploy, so we leave it undefined and let the
-    // deployment pipeline fill it in.
+    // No slug on creation. It will be set either by user input or after first deploy.
+    // Also leave url undefined until slug is known.
     let url: string | undefined;
     const resolvedMetadata = await metadataService.ensureProjectMetadata({
       seedName: name,
       identifier,
       sourceType: normalizedSourceType,
       htmlContent,
-      slugSeed: initialSlug,
+      slugSeed: slugify(name),
       overrides: metadata,
     });
 
     const finalName = resolvedMetadata.name;
-    const finalSlug = resolvedMetadata.slug;
     const category = resolvedMetadata.category;
     const tags = resolvedMetadata.tags;
     const description = resolvedMetadata.description;
-
-    if (DEPLOY_TARGET === 'local') {
-      url = `/apps/${encodeURIComponent(finalSlug)}/`;
-    } else if (DEPLOY_TARGET === 'r2') {
-      url = `https://${finalSlug}.${APPS_ROOT_DOMAIN}/`;
-    }
 
     const project: Project = {
       id,
       name: finalName,
       repoUrl: identifier,
       sourceType: normalizedSourceType,
-      slug: finalSlug,
+      slug: undefined,
       lastDeployed: now,
       status: 'Live',
       url,
@@ -90,7 +77,7 @@ export class ProjectService {
       name: finalName,
       repoUrl: identifier,
       sourceType: normalizedSourceType,
-      slug: finalSlug,
+      slug: undefined,
       lastDeployed: now,
       status: project.status,
       url,

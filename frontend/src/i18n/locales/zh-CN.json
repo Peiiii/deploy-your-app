@@ -107,6 +107,7 @@
     "repoDuplicateMessage": "检测到你已经有一个项目使用这个仓库（“{{name}}”）。你可以重新部署这个项目以保持访问地址不变，或者创建一个新的项目并使用新的访问地址。",
     "repoDuplicateRedeploy": "重新部署已有项目",
     "repoDuplicateCreateNew": "创建新项目（新地址）",
+    "repoUrlRequired": "GitHub 部署需要先填写仓库地址。",
     "analyzingRepository": "正在分析仓库代码，用于生成项目名称、Slug 和标签...",
     "analysisFailedFallback": "仓库分析失败，将直接进入部署流程（不使用 AI 元数据）。",
     "projectCreated": "项目已创建，现在可以开始部署。",
