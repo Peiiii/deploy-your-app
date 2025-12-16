@@ -98,20 +98,29 @@ async function collectGenAIFiles(root: string): Promise<string[]> {
   return results;
 }
 
-function upsertBaseUrlInObject(
+function ensureBaseAndEndpointInObject(
   objectSource: string,
   targetBaseUrl: string,
 ): string {
   const basePattern = /baseUrl\s*:\s*(['"`])[^'"`]*\1/;
   const endpointPattern = /apiEndpoint\s*:\s*(['"`])[^'"`]*\1/;
-  const updated = objectSource;
+  let updated = objectSource;
 
-  if (basePattern.test(updated)) {
-    return updated.replace(basePattern, `baseUrl: '${targetBaseUrl}'`);
+  const hasBase = basePattern.test(updated);
+  const hasEndpoint = endpointPattern.test(updated);
+
+  if (hasBase) {
+    updated = updated.replace(basePattern, `baseUrl: '${targetBaseUrl}'`);
+  }
+  if (hasEndpoint) {
+    updated = updated.replace(
+      endpointPattern,
+      `apiEndpoint: '${targetBaseUrl}'`,
+    );
   }
 
-  if (endpointPattern.test(updated)) {
-    return updated.replace(endpointPattern, `apiEndpoint: '${targetBaseUrl}'`);
+  if (hasBase && hasEndpoint) {
+    return updated;
   }
 
   const trimmed = updated.trimEnd();
@@ -124,7 +133,13 @@ function upsertBaseUrlInObject(
   const indentMatch = before.match(/(\n\s*)[^\n]*$/);
   const indent = indentMatch ? indentMatch[1] : ' ';
 
-  return `${before}${needsComma}${indent}baseUrl: '${targetBaseUrl}'${after}`;
+  const additions: string[] = [];
+  if (!hasBase) additions.push(`baseUrl: '${targetBaseUrl}'`);
+  if (!hasEndpoint) additions.push(`apiEndpoint: '${targetBaseUrl}'`);
+
+  return `${before}${needsComma}${indent}${additions.join(
+    `,${indent}`,
+  )}${after}`;
 }
 
 function upsertHttpOptions(objectSource: string, targetBaseUrl: string): string {
@@ -132,7 +147,10 @@ function upsertHttpOptions(objectSource: string, targetBaseUrl: string): string 
 
   if (httpOptionsPattern.test(objectSource)) {
     return objectSource.replace(httpOptionsPattern, (_match, inner) => {
-      const withBase = upsertBaseUrlInObject(`{${inner}}`, targetBaseUrl);
+      const withBase = ensureBaseAndEndpointInObject(
+        `{${inner}}`,
+        targetBaseUrl,
+      );
       return `httpOptions: ${withBase}`;
     });
   }
@@ -147,7 +165,7 @@ function upsertHttpOptions(objectSource: string, targetBaseUrl: string): string 
   const indentMatch = before.match(/(\n\s*)[^\n]*$/);
   const indent = indentMatch ? indentMatch[1] : ' ';
 
-  return `${before}${needsComma}${indent}httpOptions: { baseUrl: '${targetBaseUrl}' }${after}`;
+  return `${before}${needsComma}${indent}httpOptions: { baseUrl: '${targetBaseUrl}', apiEndpoint: '${targetBaseUrl}' }${after}`;
 }
 
 function rewriteGoogleGenAIStyleInstances(
@@ -163,8 +181,8 @@ function rewriteGoogleGenAIStyleInstances(
       'g',
     );
     updated = updated.replace(withOptions, (full, options) => {
-      const withBase = upsertBaseUrlInObject(options, targetBaseUrl);
-      return full.replace(options, withBase);
+      const withHttpOptions = upsertHttpOptions(options, targetBaseUrl);
+      return full.replace(options, withHttpOptions);
     });
 
     const withApiKeyOnly = new RegExp(
@@ -179,7 +197,7 @@ function rewriteGoogleGenAIStyleInstances(
       if (trimmedArg.length === 0) {
         return full;
       }
-      return `new ${className}({ apiKey: ${trimmedArg}, baseUrl: '${targetBaseUrl}' })`;
+      return `new ${className}({ apiKey: ${trimmedArg}, httpOptions: { baseUrl: '${targetBaseUrl}', apiEndpoint: '${targetBaseUrl}' } })`;
     });
   }
 
@@ -195,7 +213,10 @@ function rewriteGoogleAIClientInstances(
   updated = updated.replace(
     /new\s+(GoogleAIClient|GoogleAI)\s*\(\s*({[\s\S]*?})\s*\)/g,
     (full, _className, options) => {
-      const withTopLevelBase = upsertBaseUrlInObject(options, targetBaseUrl);
+      const withTopLevelBase = ensureBaseAndEndpointInObject(
+        options,
+        targetBaseUrl,
+      );
       const withHttpOptions = upsertHttpOptions(
         withTopLevelBase,
         targetBaseUrl,
@@ -214,7 +235,7 @@ function rewriteGoogleAIClientInstances(
       if (trimmedArg.length === 0) {
         return full;
       }
-      return `new ${className}({ apiKey: ${trimmedArg}, httpOptions: { baseUrl: '${targetBaseUrl}' } })`;
+      return `new ${className}({ apiKey: ${trimmedArg}, httpOptions: { baseUrl: '${targetBaseUrl}', apiEndpoint: '${targetBaseUrl}' } })`;
     },
   );
 
