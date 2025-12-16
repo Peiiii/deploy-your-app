@@ -79,6 +79,30 @@ function deriveSlugSeed(
   return fallback;
 }
 
+function deriveIdentifierSeed(identifier: string, fallback: string): string {
+  try {
+    const url = new URL(identifier);
+    const parts = url.pathname.split('/').filter(Boolean);
+    if (parts.length) {
+      const last = parts[parts.length - 1];
+      return last.replace(/\.git$/, '');
+    }
+  } catch {
+    // Not a URL; fall through.
+  }
+
+  const clean = identifier.trim();
+  if (clean) {
+    const segments = clean.split(/[\/\\]/).filter(Boolean);
+    if (segments.length) {
+      const last = segments[segments.length - 1];
+      return last.replace(/\.git$/, '');
+    }
+  }
+
+  return fallback;
+}
+
 async function buildMetadataContext(opts: {
   sourceType: SourceType;
   htmlContent?: string;
@@ -108,7 +132,7 @@ async function buildMetadataContext(opts: {
 
 export class MetadataService {
   async ensureProjectMetadata(input: MetadataRequestInput): Promise<ResolvedProjectMetadata> {
-    const fallbackSlugSeed = input.slugSeed ?? slugify(input.seedName);
+    const fallbackSlugSeed = input.slugSeed ?? deriveIdentifierSeed(input.identifier, input.seedName);
     if (input.overrides) {
       return this.buildMetadataFromOverrides(input.seedName, fallbackSlugSeed, input.overrides);
     }
@@ -162,9 +186,7 @@ export class MetadataService {
 
     const slugSeed = response.slug && response.slug.trim().length > 0
       ? response.slug.trim()
-      : name !== opts.seedName
-        ? name
-        : opts.slugSeed ?? opts.seedName;
+      : opts.slugSeed ?? name ?? opts.seedName;
 
     const slug = slugify(slugSeed);
 

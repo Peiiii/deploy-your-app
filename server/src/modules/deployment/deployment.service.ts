@@ -5,7 +5,6 @@ import {
   analysisSessions,
 } from './state.js';
 import { CONFIG, DEPLOY_TARGET } from '../../common/config/config.js';
-import { slugify } from '../../common/utils/strings.js';
 import { applyFixesForDeployment } from './fixPipeline.js';
 import { deployToCloudflarePages } from './providers/cloudflarePagesProvider.js';
 import { deployToR2 } from './providers/r2Provider.js';
@@ -107,10 +106,7 @@ export class DeploymentService {
     const analysisId = project.analysisId;
     const hadSlugFromClient =
       typeof project.slug === 'string' && project.slug.trim().length > 0;
-    let slugSeed = hadSlugFromClient
-      ? slugify(project.slug as string)
-      : slugify(project.name);
-    let slug = slugSeed;
+    let slug = hadSlugFromClient ? project.slug!.trim() : undefined;
     project.slug = slug;
     project.category = project.category ?? 'Other';
     project.tags = project.tags ?? [];
@@ -134,7 +130,6 @@ export class DeploymentService {
       if (analysisId) {
         appendLog(id, `Using analysis session ${analysisId} (precomputed metadata/workdir).`, 'info');
       }
-      appendLog(id, `Resolved slug: "${slug}"`, 'info');
 
       if (isFromAnalysis) {
         appendLog(id, `Reusing prepared repository at ${workDir}`, 'info');
@@ -143,7 +138,7 @@ export class DeploymentService {
       }
 
       const needsMetadata =
-        !hadSlugFromClient ||
+        !slug ||
         !project.description ||
         !project.category ||
         !project.tags ||
@@ -155,25 +150,27 @@ export class DeploymentService {
           'Generating project metadata (name, slug, tags) from source content...',
           'info',
         );
+        const previousName = project.name;
+        const previousSlug = slug;
         metadataForClient = await metadataService.ensureProjectMetadata({
           seedName: project.name,
           identifier: project.repoUrl,
           sourceType: normalizedSourceType,
           htmlContent: project.htmlContent,
-          slugSeed,
           workDir,
         });
-        const previousName = project.name;
-        const previousSlug = slug;
         project.name = metadataForClient.name;
         project.slug = metadataForClient.slug;
         project.description = metadataForClient.description;
         project.category = metadataForClient.category;
         project.tags = metadataForClient.tags;
         slug = metadataForClient.slug;
-        slugSeed = metadataForClient.slug;
 
-        if (metadataForClient.name !== previousName) {
+        if (
+          metadataForClient.name !== previousName &&
+          typeof previousName === 'string' &&
+          previousName.trim().length > 0
+        ) {
           appendLog(
             id,
             `AI renamed project to "${metadataForClient.name}".`,
@@ -188,6 +185,14 @@ export class DeploymentService {
           );
         }
       }
+
+      if (!slug) {
+        throw new Error(
+          'Slug could not be determined during deployment. Please set a slug and retry.',
+        );
+      }
+
+      appendLog(id, `Resolved slug 2: "${slug}"`, 'info');
 
       await applyFixesForDeployment(id, workDir);
 
