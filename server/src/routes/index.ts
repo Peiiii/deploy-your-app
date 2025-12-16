@@ -12,7 +12,6 @@ import { SourceType } from '../common/types.js';
 import { deploymentService } from '../modules/deployment/deployment.service.js';
 import { metadataService } from '../modules/metadata/index.js';
 import { CONFIG } from '../common/config/config.js';
-import { slugify } from '../common/utils/strings.js';
 import { materializeSourceForDeployment } from '../modules/deployment/pipeline/sourceMaterialization.js';
 
 // Minimal request/response/app types so we don't pull in full Express types
@@ -58,13 +57,11 @@ export function registerRoutes(app: AppLike): void {
     // sources. Other source types fall back to a lightweight metadata
     // generation that does not require preparing a work directory.
     if (normalizedSourceType !== SourceType.GitHub) {
-      const slugSeed = slugify(project.name);
       const metadata = await metadataService.ensureProjectMetadata({
         seedName: project.name,
         identifier: project.repoUrl,
         sourceType: normalizedSourceType,
         htmlContent: project.htmlContent,
-        slugSeed,
         workDir: null,
       });
       return res.json({ metadata });
@@ -101,13 +98,11 @@ export function registerRoutes(app: AppLike): void {
       // metadata service can build a context from the actual source code.
       await materializeSourceForDeployment(analysisId, tempProject, workDir);
 
-      const slugSeed = slugify(project.name);
       const metadata = await metadataService.ensureProjectMetadata({
         seedName: project.name,
         identifier: project.repoUrl,
         sourceType: SourceType.GitHub,
         htmlContent: project.htmlContent,
-        slugSeed,
         workDir,
       });
 
@@ -154,6 +149,13 @@ export function registerRoutes(app: AppLike): void {
     // Project-first enforcement: deployments must be tied to an existing
     // project record with a stable slug, rather than generating new slugs
     // (and therefore new URLs/resources) on every deploy attempt.
+    if (!project.slug || project.slug.trim().length === 0) {
+      return res.status(400).json({
+        error:
+          'project.slug is required. Create a project first and ensure analysis/AI has produced a slug.',
+      });
+    }
+
     const id = randomUUID();
     const workDirFromAnalysis =
       project.analysisId && analysisSessions.has(project.analysisId)

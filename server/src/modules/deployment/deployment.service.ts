@@ -131,12 +131,6 @@ export class DeploymentService {
         appendLog(id, `Using analysis session ${analysisId} (precomputed metadata/workdir).`, 'info');
       }
 
-      if (isFromAnalysis) {
-        appendLog(id, `Reusing prepared repository at ${workDir}`, 'info');
-      } else {
-        await materializeSourceForDeployment(id, project, workDir);
-      }
-
       const needsMetadata =
         !slug ||
         !project.description ||
@@ -192,7 +186,13 @@ export class DeploymentService {
         );
       }
 
-      appendLog(id, `Resolved slug 2: "${slug}"`, 'info');
+      appendLog(id, `Resolved slug: "${slug}"`, 'info');
+
+      if (isFromAnalysis) {
+        appendLog(id, `Reusing prepared repository at ${workDir}`, 'info');
+      } else {
+        await materializeSourceForDeployment(id, project, workDir);
+      }
 
       await applyFixesForDeployment(id, workDir);
 

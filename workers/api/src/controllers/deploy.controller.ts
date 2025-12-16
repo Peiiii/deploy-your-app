@@ -543,6 +543,17 @@ class DeployController {
       );
       project = result.project;
       analysisId = result.analysisId;
+
+      // Persist newly derived metadata (e.g. slug) before starting the deploy
+      // so the project record stays in sync even if the deploy fails later.
+      const preDeployPatch = this.buildMetadataPatch(project, {
+        name: project.name,
+        slug: project.slug,
+        description: project.description,
+        category: project.category,
+        tags: project.tags,
+      });
+      await this.applyMetadataPatch(db, project.id, preDeployPatch);
     }
 
     if (!project.slug || project.slug.trim().length === 0) {
