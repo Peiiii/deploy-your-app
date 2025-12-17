@@ -5,18 +5,18 @@ import type { ProjectManager } from '@/managers/project.manager';
 import type { UIManager } from '@/managers/ui.manager';
 import { DeploymentStoreActions } from './deployment-store-actions';
 import { ProjectCreator } from './project-creator';
-import { WizardExecutor } from './wizard-executor';
+import { DeploymentExecutor } from './deployment-executor';
 
 /**
  * DeploymentManager - Unified API for all deployment operations.
  *
  * This is a Facade that delegates to specialized internal classes:
- * - WizardExecutor: Handles wizard flows and deployment execution
+ * - DeploymentExecutor: Handles deployment execution
  * - ProjectCreator: Handles project creation and analysis
  * - DeploymentStoreActions: Handles store operations
  */
 export class DeploymentManager {
-  private wizardExecutor: WizardExecutor;
+  private deploymentExecutor: DeploymentExecutor;
   private projectCreator: ProjectCreator;
   private storeActions: DeploymentStoreActions;
 
@@ -27,7 +27,7 @@ export class DeploymentManager {
   ) {
     this.storeActions = new DeploymentStoreActions();
     this.projectCreator = new ProjectCreator(provider, projectManager);
-    this.wizardExecutor = new WizardExecutor(
+    this.deploymentExecutor = new DeploymentExecutor(
       provider,
       projectManager,
       uiManager,
@@ -36,15 +36,8 @@ export class DeploymentManager {
   }
 
   // ============================================================
-  // Public API - Wizard & Deployment
+  // Public API - Deployment
   // ============================================================
-
-  /**
-   * Entry point for the "New Deployment" wizard.
-   */
-  startFromWizard = (): Promise<void> => {
-    return this.wizardExecutor.startFromWizard();
-  };
 
   /**
    * Deploy a project (both initial deployment and redeployment).
@@ -53,26 +46,12 @@ export class DeploymentManager {
     project: Project,
     options?: { zipFile?: File | null; onComplete?: (result?: DeploymentResult) => void },
   ): Promise<void> => {
-    return this.wizardExecutor.deployProject(project, options);
+    return this.deploymentExecutor.deployProject(project, options);
   };
 
-  /**
-   * Start a deployment run for a temporary project.
-   */
-  startDeploymentRun = (): Promise<DeploymentResult | undefined> => {
-    return this.wizardExecutor.startDeploymentRun();
-  };
 
-  // ============================================================
-  // Public API - Project Creation
-  // ============================================================
 
-  /**
-   * Create a project from the current wizard state without deploying.
-   */
-  createProjectFromWizard = (): Promise<Project | undefined> => {
-    return this.projectCreator.createFromWizard();
-  };
+
 
 
   // ============================================================
