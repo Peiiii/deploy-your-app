@@ -13,31 +13,12 @@ class ConfigService {
     return 'r2';
   }
 
-  getPlatformAiBaseUrl(env: ApiWorkerEnv): string {
-    return (
-      env.PLATFORM_AI_BASE_URL?.trim() ||
-      'https://dashscope.aliyuncs.com/compatible-mode/v1'
-    );
-  }
-
-  getPlatformAiModel(env: ApiWorkerEnv): string {
-    return env.PLATFORM_AI_MODEL?.trim() || 'qwen3-max';
-  }
-
-  getDashscopeApiKey(env: ApiWorkerEnv): string {
-    return env.DASHSCOPE_API_KEY?.trim() || '';
-  }
-
   getDeployServiceBaseUrl(env: ApiWorkerEnv): string {
     const raw = env.DEPLOY_SERVICE_BASE_URL?.trim();
     if (raw && raw.length > 0) {
       return raw.replace(/\/+$/, '');
     }
     return 'http://127.0.0.1:4173/api/v1';
-  }
-
-  getPasswordSalt(env: ApiWorkerEnv): string {
-    return env.PASSWORD_SALT?.trim() || 'local-dev-salt-change-me';
   }
 
   getAuthRedirectBase(env: ApiWorkerEnv): string {
@@ -58,18 +39,6 @@ class ConfigService {
 
   getGithubClientSecret(env: ApiWorkerEnv): string | null {
     return env.GITHUB_CLIENT_SECRET?.trim() || null;
-  }
-
-  getGoogleOAuthEnabled(env: ApiWorkerEnv): boolean {
-    return !!(
-      this.getGoogleClientId(env) && this.getGoogleClientSecret(env)
-    );
-  }
-
-  getGithubOAuthEnabled(env: ApiWorkerEnv): boolean {
-    return !!(
-      this.getGithubClientId(env) && this.getGithubClientSecret(env)
-    );
   }
 }
 

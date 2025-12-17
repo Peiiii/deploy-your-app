@@ -149,11 +149,10 @@ class AuthController {
 
   // GET /api/v1/auth/google/start
   async handleGoogleStart(
-    request: Request,
     env: ApiWorkerEnv,
     url: URL,
   ): Promise<Response> {
-    return oauthService.handleStart(env, 'google', request, url);
+    return oauthService.handleStart(env, 'google', url);
   }
 
   // GET /api/v1/auth/google/callback
@@ -168,11 +167,10 @@ class AuthController {
 
   // GET /api/v1/auth/github/start
   async handleGithubStart(
-    request: Request,
     env: ApiWorkerEnv,
     url: URL,
   ): Promise<Response> {
-    return oauthService.handleStart(env, 'github', request, url);
+    return oauthService.handleStart(env, 'github', url);
   }
 
   // GET /api/v1/auth/github/callback

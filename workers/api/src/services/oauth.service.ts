@@ -175,7 +175,6 @@ class OAuthService {
   async handleStart(
     env: ApiWorkerEnv,
     provider: OAuthProvider,
-    request: Request,
     url: URL,
   ): Promise<Response> {
     const providerConfig = this.getProviderConfig(env, provider);

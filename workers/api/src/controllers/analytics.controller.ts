@@ -18,6 +18,7 @@ class AnalyticsController {
     await analyticsService.recordPageView(db, normalizedSlug, now);
     return emptyResponse(204);
   }
+
   // GET /api/v1/projects/:id/stats?range=7d
   async getProjectStats(
     request: Request,
