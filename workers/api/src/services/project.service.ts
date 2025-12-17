@@ -164,16 +164,6 @@ class ProjectService {
       if (!existing) {
         return null;
       }
-      if (existing.status === 'Live') {
-        throw new ValidationError(
-          'Slug can only be changed before the first successful deployment.',
-        );
-      }
-      if (existing.status === 'Building') {
-        throw new ValidationError(
-          'Cannot change slug during an active deployment.',
-        );
-      }
 
       const normalizedSlug = slugify(patch.slug);
       const taken = await projectRepository.slugExists(
