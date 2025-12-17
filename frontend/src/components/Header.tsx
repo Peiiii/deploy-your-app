@@ -28,7 +28,7 @@ export const Header: React.FC = () => {
     };
 
     return (
-        <header className="h-16 border-b border-app-border bg-app-bg/50 backdrop-blur flex items-center justify-between px-4 md:px-8">
+        <header className="h-16 border-b border-app-border bg-app-bg/50 backdrop-blur relative z-40 flex items-center justify-between px-4 md:px-8">
             <div className="flex items-center gap-3">
                 <button
                     onClick={presenter.ui.toggleSidebar}
