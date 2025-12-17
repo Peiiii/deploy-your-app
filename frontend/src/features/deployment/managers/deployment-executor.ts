@@ -39,15 +39,13 @@ export class DeploymentExecutor {
   }
 
   /**
-   * Internal helper to start a deployment job for a given project.
+   * Initialize deployment store state.
    */
-  startDeploymentForProject = async (
+  private initializeDeploymentStore = (
     project: Project,
     zipFile: File | null,
-  ): Promise<DeploymentResult | undefined> => {
-    const store = useDeploymentStore.getState();
-    const actions = store.actions;
-
+  ): void => {
+    const actions = useDeploymentStore.getState().actions;
     actions.setStep(2);
     actions.setDeploymentStatus(DeploymentStatus.BUILDING);
     actions.clearLogs();
@@ -55,77 +53,121 @@ export class DeploymentExecutor {
     actions.setRepoUrl(project.repoUrl);
     actions.setSourceType(project.sourceType ?? SourceType.GITHUB);
     actions.setZipFile(zipFile);
+  };
 
-    const deploymentStartedAt = new Date().toISOString();
-    if (project.id !== 'temp') {
-      await this.projectManager.updateProjectDeployment(project.id, {
-        status: 'Building',
-        lastDeployed: deploymentStartedAt,
+  /**
+   * Update project status in database (skip for temp projects).
+   */
+  private updateProjectStatus = async (
+    projectId: string,
+    status: 'Building' | 'Live' | 'Failed',
+    url?: string,
+  ): Promise<void> => {
+    if (projectId === 'temp') return;
+
+    await this.projectManager.updateProjectDeployment(projectId, {
+      status,
+      lastDeployed: new Date().toISOString(),
+      ...(url ? { url } : {}),
+    });
+  };
+
+  /**
+   * Prepare ZIP file data if needed.
+   */
+  private prepareZipData = async (
+    project: Project,
+    zipFile: File | null,
+  ): Promise<string | undefined> => {
+    if (project.sourceType !== SourceType.ZIP || !zipFile) {
+      return undefined;
+    }
+
+    try {
+      return await this.fileToBase64(zipFile);
+    } catch (err) {
+      console.error('Failed to read ZIP file', err);
+      const actions = useDeploymentStore.getState().actions;
+      actions.setDeploymentStatus(DeploymentStatus.FAILED);
+      actions.addLog({
+        timestamp: new Date().toISOString(),
+        message: 'Failed to read ZIP file in browser.',
+        type: 'error',
       });
+      throw new Error('Failed to read ZIP file');
     }
+  };
 
-    let zipData: string | undefined;
-    if (project.sourceType === SourceType.ZIP && zipFile) {
-      try {
-        zipData = await this.fileToBase64(zipFile);
-      } catch (err) {
-        console.error('Failed to read ZIP file', err);
-        actions.setDeploymentStatus(DeploymentStatus.FAILED);
-        actions.addLog({
-          timestamp: new Date().toISOString(),
-          message: 'Failed to read ZIP file in browser.',
-          type: 'error',
-        });
-        return undefined;
-      }
+  /**
+   * Validate HTML content if needed.
+   */
+  private validateHtmlContent = (project: Project): void => {
+    if (project.sourceType !== SourceType.HTML) return;
+
+    const inlineHtml = project.htmlContent ?? useDeploymentStore.getState().htmlContent;
+    if (!inlineHtml || inlineHtml.trim().length === 0) {
+      const actions = useDeploymentStore.getState().actions;
+      actions.setDeploymentStatus(DeploymentStatus.FAILED);
+      actions.addLog({
+        timestamp: new Date().toISOString(),
+        message: 'No HTML content provided.',
+        type: 'error',
+      });
+      throw new Error('No HTML content provided');
     }
+  };
 
-    if (project.sourceType === SourceType.HTML) {
-      const inlineHtml = project.htmlContent ?? useDeploymentStore.getState().htmlContent;
-      if (!inlineHtml || inlineHtml.trim().length === 0) {
-        actions.setDeploymentStatus(DeploymentStatus.FAILED);
-        actions.addLog({
-          timestamp: new Date().toISOString(),
-          message: 'No HTML content provided.',
-          type: 'error',
-        });
-        return;
-      }
-    }
-
-    const payload: Project = {
+  /**
+   * Build deployment payload with all required data.
+   */
+  private buildDeploymentPayload = (
+    project: Project,
+    zipData?: string,
+  ): Project => {
+    return {
       ...project,
       ...(zipData ? { zipData } : {}),
       ...(project.sourceType === SourceType.HTML
         ? { htmlContent: project.htmlContent ?? useDeploymentStore.getState().htmlContent }
         : {}),
     };
+  };
+
+  /**
+   * Internal helper to start a deployment job for a given project.
+   */
+  startDeploymentForProject = async (
+    project: Project,
+    zipFile: File | null,
+  ): Promise<DeploymentResult | undefined> => {
+    // Initialize UI state
+    this.initializeDeploymentStore(project, zipFile);
+
+    // Update project status to Building
+    await this.updateProjectStatus(project.id, 'Building');
 
     try {
+      // Validate and prepare data
+      this.validateHtmlContent(project);
+      const zipData = await this.prepareZipData(project, zipFile);
+      const payload = this.buildDeploymentPayload(project, zipData);
+
+      // Execute deployment
+      const actions = useDeploymentStore.getState().actions;
       const result = await this.provider.startDeployment(
         payload,
         (log) => actions.addLog(log),
         (status) => actions.setDeploymentStatus(status),
       );
 
-      if (project.id !== 'temp') {
-        await this.projectManager.updateProjectDeployment(project.id, {
-          status: 'Live',
-          lastDeployed: new Date().toISOString(),
-          ...(result?.metadata?.url ? { url: result.metadata.url } : {}),
-        });
-      }
+      // Update project status to Live
+      await this.updateProjectStatus(project.id, 'Live', result?.metadata?.url);
       return result;
     } catch (e) {
       console.error('Deployment failed', e);
+      const actions = useDeploymentStore.getState().actions;
       actions.setDeploymentStatus(DeploymentStatus.FAILED);
-
-      if (project.id !== 'temp') {
-        await this.projectManager.updateProjectDeployment(project.id, {
-          status: 'Failed',
-          lastDeployed: new Date().toISOString(),
-        });
-      }
+      await this.updateProjectStatus(project.id, 'Failed');
       throw e;
     }
   };
