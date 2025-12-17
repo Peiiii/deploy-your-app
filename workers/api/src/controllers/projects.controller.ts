@@ -13,6 +13,7 @@ import {
   validateOptionalArray,
 } from '../utils/validation';
 import { projectService } from '../services/project.service';
+import { exploreService } from '../services/explore.service';
 import { getSessionIdFromRequest } from '../utils/auth';
 import { authRepository } from '../repositories/auth.repository';
 import { configService } from '../services/config.service';
@@ -93,7 +94,7 @@ class ProjectsController {
   async listExploreProjects(request: Request, _env: ApiWorkerEnv, db: D1Database): Promise<Response> {
     const url = new URL(request.url);
     const sortParam = url.searchParams.get('sort');
-    const result = await projectService.getExploreProjects(db, {
+    const result = await exploreService.getExploreProjects(db, {
       search: url.searchParams.get('search')?.trim() || undefined,
       category: url.searchParams.get('category')?.trim() || undefined,
       tag: url.searchParams.get('tag')?.trim() || undefined,
