@@ -8,6 +8,7 @@ import { SourceType } from '@/types';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings.store';
 import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
+import { useUIStore } from '@/stores/ui.store';
 import { RefreshCcw, Play } from 'lucide-react';
 import type { Project } from '@/types';
 
@@ -29,14 +30,12 @@ export const ProjectSettingsDeploymentGroup: React.FC<
   );
 
   // Local state for inputs
-  const [repoUrl, setRepoUrl] = useState(project.repoUrl || '');
-  const [htmlContent, setHtmlContent] = useState(project.htmlContent || '');
   const [zipFile, setZipFile] = useState<File | null>(null);
 
-  // Sync with project updates
+  // Sync with project updates for HTML content
+  const [htmlContent, setHtmlContent] = useState(project.htmlContent || '');
   useEffect(() => {
     queueMicrotask(() => {
-      if (project.repoUrl) setRepoUrl(project.repoUrl);
       if (project.htmlContent) setHtmlContent(project.htmlContent);
     });
   }, [project]);
@@ -45,6 +44,8 @@ export const ProjectSettingsDeploymentGroup: React.FC<
   const zipUploading = useProjectSettingsStore((s) => s.zipUploading);
   const htmlUploading = useProjectSettingsStore((s) => s.htmlUploading);
   const deploymentStatus = useDeploymentStore((s) => s.deploymentStatus);
+  const repoUrlDraft = useProjectSettingsStore((s) => s.repoUrlDraft);
+  const showToast = useUIStore((s) => s.actions.showToast);
 
   const isDeploying =
     isRedeploying ||
@@ -55,15 +56,23 @@ export const ProjectSettingsDeploymentGroup: React.FC<
 
   const handleDeploy = async () => {
     if (activeSource === SourceType.GITHUB) {
-      if (repoUrl !== project.repoUrl) {
-        // TODO: Update repo url functionality if needed, for now we rely on the project's saved URL
-        // or we should update it before deploying. 
-        // Integrating simple metadata update:
-        // For now, assuming user must save repo in the form if we kept the old section, 
-        // but since we removed it, we might need to update it.
-        // Deploy from GitHub using the current project's repoUrl.
-        // GitHub deployments require repoUrl to be configured first.
+      // Check if there are unsaved GitHub repo changes
+      const hasUnsavedRepoChanges = repoUrlDraft !== project.repoUrl && repoUrlDraft.trim() !== '';
+
+      if (hasUnsavedRepoChanges) {
+        // Auto-save the repo URL before deploying
+        await presenter.projectSettings.saveRepoUrl();
+
+        // Show toast notification
+        showToast({
+          message: t('project.repoAutoSaved', 'Repository URL saved automatically before deployment'),
+          variant: 'success',
+        });
+
+        // Small delay to let the save complete
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
+
       presenter.projectSettings.deployFromGitHub();
     } else if (activeSource === SourceType.HTML) {
       presenter.projectSettings.deployHtmlContent(htmlContent);
@@ -149,7 +158,7 @@ export const ProjectSettingsDeploymentGroup: React.FC<
             isDeploying ||
             (activeSource === SourceType.ZIP && !zipFile) ||
             (activeSource === SourceType.HTML && !htmlContent.trim()) ||
-            (activeSource === SourceType.GITHUB && !project.repoUrl)
+            (activeSource === SourceType.GITHUB && !repoUrlDraft.trim())
           }
           className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-brand-500 text-white font-medium hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
         >

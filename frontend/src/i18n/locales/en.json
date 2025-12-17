@@ -280,7 +280,8 @@
     "currentRepo": "Current repository",
     "totalLikes": "Total Likes",
     "totalFavorites": "Total Favorites",
-    "notConfigured": "Not configured"
+    "notConfigured": "Not configured",
+    "repoAutoSaved": "Repository URL saved automatically before deployment"
   },
   "ui": {
     "dashboard": "Dashboard",

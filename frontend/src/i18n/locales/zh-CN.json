@@ -276,7 +276,8 @@
     "currentRepo": "当前仓库",
     "totalLikes": "总点赞数",
     "totalFavorites": "总收藏数",
-    "notConfigured": "未配置"
+    "notConfigured": "未配置",
+    "repoAutoSaved": "仓库地址已在部署前自动保存"
   },
   "ui": {
     "dashboard": "仪表板",
