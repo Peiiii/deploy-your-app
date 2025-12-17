@@ -11,42 +11,9 @@ import {
 import { authRepository } from '../repositories/auth.repository';
 import { jsonResponse, emptyResponse } from '../utils/http';
 import type { PublicUser } from '../types/user';
-
-export interface OAuthProviderConfig {
-  name: OAuthProvider;
-  clientId: string | null;
-  clientSecret: string | null;
-  authorizeUrl: string;
-  tokenUrl: string;
-  userInfoUrl: string;
-  scope: string;
-  getUserIdFromUserInfo: (userInfo: Record<string, unknown>) => string | null;
-  getUserEmailFromUserInfo: (
-    userInfo: Record<string, unknown>,
-  ) => string | null;
-  getUserDisplayNameFromUserInfo: (
-    userInfo: Record<string, unknown>,
-  ) => string | null;
-  getUserAvatarFromUserInfo: (
-    userInfo: Record<string, unknown>,
-  ) => string | null;
-  findUserByProviderId: (
-    db: D1Database,
-    providerId: string,
-  ) => Promise<{ id: string; email: string | null } | null>;
-  updateUserWithProvider: (
-    db: D1Database,
-    userId: string,
-    providerId: string,
-    userInfo: Record<string, unknown>,
-  ) => Promise<{ id: string; email: string | null }>;
-  createUserWithProvider: (
-    db: D1Database,
-    providerId: string,
-    userInfo: Record<string, unknown>,
-    email: string | null,
-  ) => Promise<{ id: string; email: string | null }>;
-}
+import type { OAuthProviderConfig } from './oauth/providers/base-provider';
+import { GoogleOAuthProvider } from './oauth/providers/google-provider';
+import { GitHubOAuthProvider } from './oauth/providers/github-provider';
 
 class OAuthService {
   private getProviderConfig(
@@ -54,121 +21,17 @@ class OAuthService {
     provider: OAuthProvider,
   ): OAuthProviderConfig {
     if (provider === 'google') {
-      return {
-        name: 'google',
-        clientId: configService.getGoogleClientId(env),
-        clientSecret: configService.getGoogleClientSecret(env),
-        authorizeUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
-        tokenUrl: 'https://oauth2.googleapis.com/token',
-        userInfoUrl: 'https://openidconnect.googleapis.com/v1/userinfo',
-        scope: 'openid email profile',
-        getUserIdFromUserInfo: (userInfo) => {
-          return typeof userInfo.sub === 'string' ? userInfo.sub : null;
-        },
-        getUserEmailFromUserInfo: (userInfo) => {
-          if (typeof userInfo.email === 'string' && userInfo.email.trim()) {
-            return userInfo.email.trim().toLowerCase();
-          }
-          return null;
-        },
-        getUserDisplayNameFromUserInfo: (userInfo) => {
-          return typeof userInfo.name === 'string' ? userInfo.name : null;
-        },
-        getUserAvatarFromUserInfo: (userInfo) => {
-          return typeof userInfo.picture === 'string' ? userInfo.picture : null;
-        },
-        findUserByProviderId: async (db, sub) => {
-          return authRepository.findUserByGoogleSub(db, sub);
-        },
-        updateUserWithProvider: async (db, userId, sub, userInfo) => {
-          return authRepository.updateUser(db, userId, {
-            googleSub: sub,
-            displayName:
-              typeof userInfo.name === 'string' ? userInfo.name : null,
-            avatarUrl:
-              typeof userInfo.picture === 'string' ? userInfo.picture : null,
-          });
-        },
-        createUserWithProvider: async (db, sub, userInfo, email) => {
-          return authRepository.createUser(db, {
-            id: crypto.randomUUID(),
-            email,
-            googleSub: sub,
-            displayName:
-              typeof userInfo.name === 'string' ? userInfo.name : null,
-            avatarUrl:
-              typeof userInfo.picture === 'string' ? userInfo.picture : null,
-          });
-        },
-      };
+      const googleProvider = new GoogleOAuthProvider(
+        configService.getGoogleClientId(env),
+        configService.getGoogleClientSecret(env),
+      );
+      return googleProvider.getConfig();
     } else {
-      return {
-        name: 'github',
-        clientId: configService.getGithubClientId(env),
-        clientSecret: configService.getGithubClientSecret(env),
-        authorizeUrl: 'https://github.com/login/oauth/authorize',
-        tokenUrl: 'https://github.com/login/oauth/access_token',
-        userInfoUrl: 'https://api.github.com/user',
-        scope: 'read:user user:email',
-        getUserIdFromUserInfo: (userInfo) => {
-          if (typeof userInfo.id === 'number') {
-            return String(userInfo.id);
-          }
-          return null;
-        },
-        getUserEmailFromUserInfo: (userInfo) => {
-          // GitHub user info endpoint typically does not include primary email; we fetch it separately.
-          void userInfo;
-          return null;
-        },
-        getUserDisplayNameFromUserInfo: (userInfo) => {
-          return (
-            (typeof userInfo.name === 'string' ? userInfo.name : null) ||
-            (typeof userInfo.login === 'string' ? userInfo.login : null) ||
-            null
-          );
-        },
-        getUserAvatarFromUserInfo: (userInfo) => {
-          return typeof userInfo.avatar_url === 'string'
-            ? userInfo.avatar_url
-            : null;
-        },
-        findUserByProviderId: async (db, id) => {
-          return authRepository.findUserByGithubId(db, id);
-        },
-        updateUserWithProvider: async (db, userId, id, userInfo) => {
-          return authRepository.updateUser(db, userId, {
-            githubId: id,
-            displayName:
-              typeof userInfo.name === 'string'
-                ? userInfo.name
-                : typeof userInfo.login === 'string'
-                  ? userInfo.login
-                  : null,
-            avatarUrl:
-              typeof userInfo.avatar_url === 'string'
-                ? userInfo.avatar_url
-                : null,
-          });
-        },
-        createUserWithProvider: async (db, id, userInfo, email) => {
-          return authRepository.createUser(db, {
-            id: crypto.randomUUID(),
-            email,
-            githubId: id,
-            displayName:
-              typeof userInfo.name === 'string'
-                ? userInfo.name
-                : typeof userInfo.login === 'string'
-                  ? userInfo.login
-                  : null,
-            avatarUrl:
-              typeof userInfo.avatar_url === 'string'
-                ? userInfo.avatar_url
-                : null,
-          });
-        },
-      };
+      const githubProvider = new GitHubOAuthProvider(
+        configService.getGithubClientId(env),
+        configService.getGithubClientSecret(env),
+      );
+      return githubProvider.getConfig();
     }
   }
 
@@ -355,26 +218,26 @@ class OAuthService {
     const body =
       config.name === 'google'
         ? new URLSearchParams({
-            client_id: clientId,
-            client_secret: clientSecret,
-            code,
-            grant_type: 'authorization_code',
-            redirect_uri: redirectUri,
-          })
+          client_id: clientId,
+          client_secret: clientSecret,
+          code,
+          grant_type: 'authorization_code',
+          redirect_uri: redirectUri,
+        })
         : JSON.stringify({
-            client_id: clientId,
-            client_secret: clientSecret,
-            code,
-            redirect_uri: redirectUri,
-          });
+          client_id: clientId,
+          client_secret: clientSecret,
+          code,
+          redirect_uri: redirectUri,
+        });
 
     const headers: Record<string, string> =
       config.name === 'google'
         ? { 'Content-Type': 'application/x-www-form-urlencoded' }
         : {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          };
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        };
 
     const tokenResp = await fetch(config.tokenUrl, {
       method: 'POST',
