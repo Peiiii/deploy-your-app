@@ -46,7 +46,7 @@ export const ProjectLayout: React.FC<ProjectLayoutProps> = ({
     return (
         <div className="flex flex-col min-h-0">
             {/* Header Section */}
-            <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-8 pb-0 px-6 md:px-8">
+            <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-8 pb-0 px-6 md:px-8 sticky top-0 z-20">
                 <div className="max-w-6xl mx-auto">
                     {/* Project Identity Row */}
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
