@@ -59,10 +59,10 @@ export const ProjectSettingsDeploymentGroup: React.FC<
         // Integrating simple metadata update:
         // For now, assuming user must save repo in the form if we kept the old section, 
         // but since we removed it, we might need to update it.
-        // Let's just call redeployFromGitHub which uses the current project's repoUrl.
-        // If we want to support changing URL here, we need to call updateProject first.
+        // Deploy from GitHub using the current project's repoUrl.
+        // GitHub deployments require repoUrl to be configured first.
       }
-      presenter.projectSettings.redeployFromGitHub();
+      presenter.projectSettings.deployFromGitHub();
     } else if (activeSource === SourceType.HTML) {
       presenter.projectSettings.deployHtmlContent(htmlContent);
     } else if (activeSource === SourceType.ZIP) {

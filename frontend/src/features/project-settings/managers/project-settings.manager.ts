@@ -7,22 +7,20 @@ import type { AnalyticsManager } from '@/managers/analytics.manager';
 import type { DeploymentManager } from '@/features/deployment/managers/deployment.manager';
 import { MetadataHandler } from './metadata-handler';
 import { ThumbnailHandler } from './thumbnail-handler';
-import { RedeployHandler } from './redeploy-handler';
+import { DeploymentHandler } from './deployment-handler';
 import { ProjectActions } from './project-actions';
 
 /**
- * ProjectSettingsManager - Unified API for project settings operations.
- *
- * This is a Facade that delegates to specialized internal classes:
- * - MetadataHandler: name, slug, description, category, tags
+ * Facade manager for project settings page.
+ * Delegates to:
+ * - MetadataHandler: name, slug, category, tags, etc.
  * - ThumbnailHandler: thumbnail upload
- * - RedeployHandler: redeploy operations
- * - ProjectActions: delete, visibility, reactions
+ * - DeploymentHandler: deployment operations
  */
 export class ProjectSettingsManager {
   private metadataHandler: MetadataHandler;
   private thumbnailHandler: ThumbnailHandler;
-  private redeployHandler: RedeployHandler;
+  private deploymentHandler: DeploymentHandler;
   private projectActions: ProjectActions;
 
   constructor(
@@ -35,7 +33,7 @@ export class ProjectSettingsManager {
   ) {
     this.metadataHandler = new MetadataHandler(projectManager, uiManager);
     this.thumbnailHandler = new ThumbnailHandler(projectManager, uiManager);
-    this.redeployHandler = new RedeployHandler(projectManager, deploymentManager);
+    this.deploymentHandler = new DeploymentHandler(projectManager, deploymentManager);
     this.projectActions = new ProjectActions(
       projectManager,
       uiManager,
@@ -66,16 +64,16 @@ export class ProjectSettingsManager {
   // ============================================================
   // Public API - Redeploy
   // ============================================================
-
-  redeployFromGitHub = () => this.redeployHandler.redeployFromGitHub();
-  deployFromHtml = () => this.redeployHandler.deployFromHtml();
-  uploadZipAndDeploy = (file: File) => this.redeployHandler.uploadZipAndDeploy(file);
-  uploadHtmlAndDeploy = (file: File) => this.redeployHandler.uploadHtmlAndDeploy(file);
-  handleZipInputChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    this.redeployHandler.handleZipInputChange(e);
-  handleHtmlInputChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    this.redeployHandler.handleHtmlInputChange(e);
-  deployHtmlContent = (content: string) => this.redeployHandler.deployHtmlContent(content);
+  // Deployment operations
+  deployFromGitHub = () => this.deploymentHandler.deployFromGitHub();
+  deployFromHtml = () => this.deploymentHandler.deployFromHtml();
+  uploadZipAndDeploy = (file: File) => this.deploymentHandler.uploadZipAndDeploy(file);
+  uploadHtmlAndDeploy = (file: File) => this.deploymentHandler.uploadHtmlAndDeploy(file);
+  deployHtmlContent = (content: string) => this.deploymentHandler.deployHtmlContent(content);
+  handleZipInputChange = (event: React.ChangeEvent<HTMLInputElement>) =>
+    this.deploymentHandler.handleZipInputChange(event);
+  handleHtmlInputChange = (event: React.ChangeEvent<HTMLInputElement>) =>
+    this.deploymentHandler.handleHtmlInputChange(event);
 
   // ============================================================
   // Public API - Project Actions

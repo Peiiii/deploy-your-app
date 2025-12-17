@@ -7,9 +7,10 @@ import type { ProjectManager } from '@/managers/project.manager';
 import type { DeploymentManager } from '@/features/deployment/managers/deployment.manager';
 
 /**
- * Handles redeploy operations for project settings.
+ * Handles deployment operations for project settings.
+ * Supports GitHub, ZIP, and HTML deployment sources.
  */
-export class RedeployHandler {
+export class DeploymentHandler {
     constructor(
         private projectManager: ProjectManager,
         private deploymentManager: DeploymentManager,
@@ -21,7 +22,7 @@ export class RedeployHandler {
         return useProjectStore.getState().projects.find((p) => p.id === projectId) || null;
     };
 
-    redeployFromGitHub = async () => {
+    deployFromGitHub = async () => {
         const project = this.getCurrentProject();
         if (!project || !project.repoUrl) return;
 
@@ -36,7 +37,7 @@ export class RedeployHandler {
             });
         } catch (err) {
             console.error(err);
-            actions.setError('Failed to trigger redeploy from GitHub.');
+            actions.setError('Failed to deploy from GitHub.');
         } finally {
             actions.setIsRedeploying(false);
         }

@@ -45,14 +45,23 @@ export const ProjectSettingsRedeploySection: React.FC<
       <div className="flex flex-wrap gap-3">
         {canDeployFromGitHub && (
           <button
-            onClick={presenter.projectSettings.redeployFromGitHub}
+            onClick={presenter.projectSettings.deployFromGitHub}
             disabled={isRedeploying || isDeploymentInProgress}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-brand-500 hover:text-white hover:border-brand-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            <RefreshCcw className="w-3 h-3" />
-            {hasDeployedBefore
-              ? t('project.redeployFromGitHub')
-              : t('project.deployFromGitHub')}
+            {isRedeploying ? (
+              <>
+                <RefreshCcw className="w-3 h-3 animate-spin" />
+                {t('project.deploying')}
+              </>
+            ) : (
+              <>
+                <RefreshCcw className="w-3 h-3" />
+                {hasDeployedBefore
+                  ? t('project.redeployFromGitHub')
+                  : t('project.deployFromGitHub')}
+              </>
+            )}
           </button>
         )}
 
