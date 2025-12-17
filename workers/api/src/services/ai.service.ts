@@ -58,7 +58,7 @@ const METADATA_RESPONSE_FORMAT = {
             'Required. Lowercase, URL-friendly identifier using only letters, numbers, and hyphens. 3-64 chars.',
         },
       },
-      required: ['category', 'slug'],
+      required: ['name', 'category', 'tags', 'description', 'slug'],
       additionalProperties: false,
     },
     strict: true,
@@ -218,9 +218,9 @@ class AIService {
       const slugResult = normalizeSlugCandidate(parsed.slug);
       const fallbackSlug = slugify(
         nameResult ??
-          name.trim() ??
-          identifier.replace(/[^a-z0-9]+/gi, '-').toLowerCase() ??
-          'app',
+        name.trim() ??
+        identifier.replace(/[^a-z0-9]+/gi, '-').toLowerCase() ??
+        'app',
       );
 
       return {

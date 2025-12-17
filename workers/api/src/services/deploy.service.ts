@@ -115,22 +115,33 @@ class DeployService {
         project: Project,
         sourceType: SourceType,
         input: DeployInput,
-    ): Promise<{ project: Project; analysisId?: string }> {
+    ): Promise<{ project: Project; analysisId?: string; debugLogs: string[] }> {
+        const debugLogs: string[] = [];
+
         // Treat literal "null" as missing
         const existingSlug = project.slug?.trim();
         const hasSlug =
             !!existingSlug && existingSlug.toLowerCase() !== 'null';
         if (hasSlug) {
-            return { project, analysisId: input.analysisId };
+            debugLogs.push(`✓ Project already has slug: ${existingSlug}`);
+            return { project, analysisId: input.analysisId, debugLogs };
         }
         if (existingSlug?.toLowerCase() === 'null') {
             project = { ...project, slug: undefined };
+            debugLogs.push('⚠ Cleared invalid "null" slug');
         }
 
         let contextId: string | undefined;
 
         try {
             // 1. Get project context from Node server
+            debugLogs.push('📦 Starting context extraction...');
+            debugLogs.push(`   Source: ${sourceType}`);
+            debugLogs.push(`   Repo: ${project.repoUrl}`);
+
+            console.log('[ensureProjectHasSlug] Starting context extraction for:', project.name);
+            console.log('[ensureProjectHasSlug] Source type:', sourceType);
+
             const contextResult = await deployProxyService.getContext(env, {
                 repoUrl: project.repoUrl,
                 sourceType,
@@ -139,17 +150,50 @@ class DeployService {
             });
 
             contextId = contextResult.contextId;
+            console.log('[ensureProjectHasSlug] Context extracted successfully. ID:', contextId);
+            console.log('[ensureProjectHasSlug] Framework detected:', contextResult.context.framework);
+            console.log('[ensureProjectHasSlug] Files found:', contextResult.context.directoryTree.length);
+
+            debugLogs.push(`✓ Context extracted (ID: ${contextId})`);
+            debugLogs.push(`   Framework: ${contextResult.context.framework || 'Unknown'}`);
+            debugLogs.push(`   Files: ${contextResult.context.directoryTree.length}`);
+            if (contextResult.context.packageJson?.name) {
+                debugLogs.push(`   Package: ${contextResult.context.packageJson.name}`);
+            }
 
             // 2. Build context string for AI
             const contextStr = this.buildContextString(contextResult.context);
+            console.log('[ensureProjectHasSlug] Context string length:', contextStr.length);
+            debugLogs.push(`   Context size: ${contextStr.length} chars`);
 
             // 3. Call AI to generate metadata
+            debugLogs.push('🤖 Calling AI to generate metadata...');
+            console.log('[ensureProjectHasSlug] Calling AI to generate metadata...');
+
             const aiResult = await aiService.generateProjectMetadata(
                 env,
                 project.name,
                 project.repoUrl,
                 contextStr,
             );
+
+            console.log('[ensureProjectHasSlug] AI metadata generated:', {
+                name: aiResult?.name,
+                slug: aiResult?.slug,
+                category: aiResult?.category,
+                tagsCount: aiResult?.tags?.length || 0,
+            });
+
+            if (!aiResult) {
+                debugLogs.push('⚠ AI returned no metadata');
+            } else {
+                debugLogs.push('✓ AI metadata generated:');
+                debugLogs.push(`   Name: ${aiResult.name || '(unchanged)'}`);
+                debugLogs.push(`   Slug: ${aiResult.slug || '(none)'}`);
+                debugLogs.push(`   Description: ${aiResult.description?.substring(0, 50) || '(none)'}${aiResult.description && aiResult.description.length > 50 ? '...' : ''}`);
+                debugLogs.push(`   Category: ${aiResult.category || '(none)'}`);
+                debugLogs.push(`   Tags: ${aiResult.tags?.join(', ') || '(none)'}`);
+            }
 
             // 4. Apply AI-generated metadata to project
             if (aiResult) {
@@ -173,6 +217,8 @@ class DeployService {
                 };
                 if (!project.slug?.trim()) {
                     project.slug = fallbackSlug;
+                    console.log('[ensureProjectHasSlug] Using fallback slug:', fallbackSlug);
+                    debugLogs.push(`   Using fallback slug: ${fallbackSlug}`);
                 }
 
                 // Persist slug/metadata so frontend can immediately read it.
@@ -183,22 +229,57 @@ class DeployService {
                 if (meta.category) patch.category = meta.category;
                 if (meta.tags) patch.tags = meta.tags;
 
+                console.log('[ensureProjectHasSlug] Updating database with metadata:', patch);
+                debugLogs.push('💾 Updating database...');
+                debugLogs.push(`   Patch: ${JSON.stringify(patch, null, 2)}`);
+
                 if (Object.keys(patch).length > 0) {
-                    const updated = await projectService.updateProject(
-                        db,
-                        project.id,
-                        patch,
-                    );
-                    if (updated) {
-                        project = updated;
+                    try {
+                        const updated = await projectService.updateProject(
+                            db,
+                            project.id,
+                            patch,
+                        );
+                        if (updated) {
+                            project = updated;
+                            console.log('[ensureProjectHasSlug] Database updated successfully');
+                            debugLogs.push('✓ Database updated successfully');
+                            debugLogs.push(`   Final project name: ${updated.name}`);
+                            debugLogs.push(`   Final slug: ${updated.slug}`);
+                            debugLogs.push(`   Final category: ${updated.category || 'N/A'}`);
+                            debugLogs.push(`   Final tags: ${updated.tags?.join(', ') || 'N/A'}`);
+                        } else {
+                            console.warn('[ensureProjectHasSlug] Database update returned null');
+                            debugLogs.push('⚠ Database update returned null');
+                        }
+                    } catch (err) {
+                        // If slug conflict, try to find a unique one
+                        if (err instanceof Error && err.message.includes('Slug is already in use')) {
+                            debugLogs.push('⚠ Slug conflict detected, finding alternative...');
+                            const uniqueSlug = await projectService.ensureSlugForProject(
+                                env,
+                                db,
+                                project,
+                            );
+                            project = uniqueSlug;
+                            debugLogs.push(`✓ Assigned unique slug: ${project.slug}`);
+                        } else {
+                            throw err;
+                        }
                     }
                 }
             }
         } catch (err) {
-            console.error('[DeployService] Context/AI enrichment failed, continuing without:', err);
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            console.error('[ensureProjectHasSlug] Context/AI enrichment failed:', errorMsg);
+            console.error('[ensureProjectHasSlug] Stack:', err instanceof Error ? err.stack : 'N/A');
+            debugLogs.push(`❌ Enrichment failed: ${errorMsg}`);
+            if (err instanceof Error && err.stack) {
+                debugLogs.push(`   Stack: ${err.stack.split('\n').slice(0, 3).join('\n   ')}`);
+            }
         }
 
-        return { project, analysisId: contextId };
+        return { project, analysisId: contextId, debugLogs };
     }
 
     /**
@@ -266,6 +347,8 @@ class DeployService {
         projectId: string,
     ): Promise<void> {
         try {
+            deployProxyService.injectLog(deploymentId, 'Worker monitoring deployment status...', 'info');
+
             const stream = await deployProxyService.connectStream(env, deploymentId);
             if (!stream) return;
 
@@ -285,6 +368,7 @@ class DeployService {
                     try {
                         const payload: DeploymentStatusPayload = JSON.parse(payloadStr);
                         if (await this.handleStatusPayload(db, projectId, payload)) {
+                            deployProxyService.injectLog(deploymentId, 'Deployment status updated successfully', 'success');
                             return;
                         }
                     } catch {
@@ -293,7 +377,9 @@ class DeployService {
                 }
             }
         } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : String(err);
             console.error('[DeployService] Monitor failed:', err);
+            deployProxyService.injectLog(deploymentId, `Worker monitoring error: ${errorMessage}`, 'error');
         }
     }
 

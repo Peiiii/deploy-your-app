@@ -78,9 +78,21 @@ class DeployController {
     const forwardBody = input.zipData ? { ...payload, zipData: input.zipData } : payload;
     const response = await deployProxyService.proxyJson(env, request, '/deploy', forwardBody);
 
-    // 8. Start background monitoring
+    // 8. Start background monitoring and inject enrichment logs
     const deploymentId = await deployProxyService.parseDeploymentId(response);
     if (deploymentId) {
+      // Inject enrichment debug logs (will be queued if stream not yet created)
+      if (enrichResult.debugLogs.length > 0) {
+        const logHeader = '═══ Project Enrichment Debug ═══';
+        deployProxyService.injectLog(deploymentId, logHeader, 'info');
+
+        enrichResult.debugLogs.forEach(log => {
+          deployProxyService.injectLog(deploymentId, log, 'info');
+        });
+
+        deployProxyService.injectLog(deploymentId, '═══════════════════════════════', 'info');
+      }
+
       void deployService.monitorDeployment(env, db, deploymentId, project.id);
     }
 
@@ -104,7 +116,10 @@ class DeployController {
     env: ApiWorkerEnv,
     id: string,
   ): Promise<Response> {
-    return deployProxyService.proxyStream(env, request, id);
+    // Use merged stream instead of simple proxy
+    // This allows Worker to inject its own logs
+    const { response } = await deployProxyService.createMergedStream(env, id);
+    return response;
   }
 
   // ─────────────────────────────────────────────────────────────

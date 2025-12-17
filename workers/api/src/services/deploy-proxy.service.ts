@@ -2,6 +2,7 @@ import type { ApiWorkerEnv } from '../types/env';
 import type { Project, ProjectMetadataOverrides, SourceType } from '../types/project';
 import { CORS_HEADERS } from '../utils/http';
 import { configService } from './config.service';
+import { LogStreamMerger } from '../utils/log-stream-merger';
 
 // ============================================================
 // Types
@@ -87,6 +88,12 @@ export interface ContextResult {
  * Centralizes header sanitization, CORS handling, and request forwarding.
  */
 class DeployProxyService {
+    /** Store active mergers by deployment ID for log injection */
+    private activeMergers = new Map<string, LogStreamMerger>();
+
+    /** Store pending logs for deployments before stream is created */
+    private pendingLogs = new Map<string, Array<{ message: string; level: 'info' | 'warning' | 'error' | 'success' }>>();
+
     /**
      * Remove headers that shouldn't be forwarded to upstream.
      */
@@ -182,6 +189,81 @@ class DeployProxyService {
         });
 
         return this.withCors(upstream);
+    };
+
+    /**
+     * Create a merged SSE stream that combines Node logs with Worker logs.
+     * Returns both the Response (for frontend) and the merger (for log injection).
+     */
+    createMergedStream = async (
+        env: ApiWorkerEnv,
+        deploymentId: string,
+    ): Promise<{ response: Response; merger: LogStreamMerger }> => {
+        const nodeStream = await this.connectStream(env, deploymentId);
+        if (!nodeStream) {
+            throw new Error('Failed to connect to deployment stream');
+        }
+
+        const merger = new LogStreamMerger(nodeStream);
+        const outputStream = merger.getOutputStream();
+
+        // Store merger for potential log injection
+        this.activeMergers.set(deploymentId, merger);
+
+        // Inject any pending logs that were queued before stream was created
+        const pending = this.pendingLogs.get(deploymentId);
+        if (pending && pending.length > 0) {
+            pending.forEach(({ message, level }) => {
+                merger.injectLog(message, level);
+            });
+            this.pendingLogs.delete(deploymentId);
+        }
+
+        const headers = new Headers(CORS_HEADERS);
+        headers.set('Content-Type', 'text/event-stream');
+        headers.set('Cache-Control', 'no-cache');
+        headers.set('Connection', 'keep-alive');
+
+        const response = new Response(outputStream, {
+            status: 200,
+            headers,
+        });
+
+        return { response, merger };
+    };
+
+    /**
+     * Get active merger for a deployment (if stream is connected).
+     * Returns null if no stream is currently active for this deployment.
+     */
+    getMerger = (deploymentId: string): LogStreamMerger | null => {
+        return this.activeMergers.get(deploymentId) ?? null;
+    };
+
+    /**
+     * Inject a log into an active deployment stream.
+     * If stream hasn't been created yet, queues the log for later injection.
+     */
+    injectLog = (deploymentId: string, message: string, level: 'info' | 'warning' | 'error' | 'success' = 'info'): void => {
+        const merger = this.getMerger(deploymentId);
+        if (merger) {
+            // Stream exists, inject immediately
+            merger.injectLog(message, level);
+        } else {
+            // Stream doesn't exist yet, queue for later
+            if (!this.pendingLogs.has(deploymentId)) {
+                this.pendingLogs.set(deploymentId, []);
+            }
+            this.pendingLogs.get(deploymentId)!.push({ message, level });
+        }
+    };
+
+    /**
+     * Clean up merger and pending logs when stream closes.
+     */
+    cleanupMerger = (deploymentId: string): void => {
+        this.activeMergers.delete(deploymentId);
+        this.pendingLogs.delete(deploymentId);
     };
 
     /**

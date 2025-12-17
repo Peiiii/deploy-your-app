@@ -4,6 +4,16 @@ import { spawn, SpawnOptions } from 'child_process';
 import { CONFIG } from '../../../common/config/config.js';
 import { appendLog } from './deploymentEvents.js';
 
+/**
+ * Strip ANSI escape codes from a string.
+ * Build tools like Vite/Webpack output colored terminal logs,
+ * but we want clean text in our SSE stream.
+ */
+function stripAnsi(str: string): string {
+  // eslint-disable-next-line no-control-regex
+  return str.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, '');
+}
+
 export async function copyDir(src: string, dest: string): Promise<void> {
   await fs.promises.mkdir(dest, { recursive: true });
   const entries = await fs.promises.readdir(src, { withFileTypes: true });
@@ -36,14 +46,20 @@ export function runCommand(
     if (child.stdout) {
       child.stdout.on('data', (data) => {
         const lines = data.toString().split(/\r?\n/).filter(Boolean);
-        for (const line of lines) appendLog(id, line, 'info');
+        for (const line of lines) {
+          const cleanLine = stripAnsi(line);
+          appendLog(id, cleanLine, 'info');
+        }
       });
     }
 
     if (child.stderr) {
       child.stderr.on('data', (data) => {
         const lines = data.toString().split(/\r?\n/).filter(Boolean);
-        for (const line of lines) appendLog(id, line, 'warning');
+        for (const line of lines) {
+          const cleanLine = stripAnsi(line);
+          appendLog(id, cleanLine, 'warning');
+        }
       });
     }
 

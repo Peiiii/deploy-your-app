@@ -491,29 +491,21 @@ class ProjectRepository {
       .prepare(
         `SELECT id FROM projects
          WHERE slug = ?
+         AND (is_deleted = 0 OR is_deleted IS NULL)
          LIMIT 1`,
       )
       .bind(slug)
       .first<{ id: string }>();
 
     if (existingProject) {
+      // If excluding this project ID, treat it as available
       if (excludeProjectId && existingProject.id === excludeProjectId) {
-        // Still check tombstones below to avoid reusing a retired slug.
-      } else {
-        return true;
+        return false;
       }
+      return true;
     }
 
-    const tombstone = await db
-      .prepare(
-        `SELECT slug FROM project_slug_tombstones
-         WHERE slug = ?
-         LIMIT 1`,
-      )
-      .bind(slug)
-      .first<{ slug: string }>();
-
-    return !!tombstone;
+    return false;
   }
 
   async recordSlugTombstone(db: D1Database, slug: string): Promise<void> {

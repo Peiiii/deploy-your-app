@@ -236,9 +236,9 @@ class ProjectService {
     }
     if (project.slug) {
       // Remove analytics time series for this slug so dashboards stay clean.
-      // We still keep the slug itself reserved via tombstones below.
       await analyticsService.deleteStatsForSlug(db, project.slug);
-      await projectRepository.recordSlugTombstone(db, project.slug);
+      // Note: We used to record tombstones, but now we allow slug reuse
+      // to avoid permanently occupying namespace.
     }
 
     return projectRepository.hardDeleteProject(db, id, ownerId);
@@ -247,31 +247,40 @@ class ProjectService {
 
 
   /**
-   * Generate a unique slug by appending a numeric suffix when needed, e.g.:
-   *   "typemaster" -> "typemaster-2" -> "typemaster-3" ...
+   * Generate a unique slug using hybrid strategy:
+   * 1. Try base slug
+   * 2. Try numeric suffixes: my-app-2, my-app-3, my-app-4
+   * 3. If still conflicts, use random suffix: my-app-7k9x
    */
   private async ensureUniqueSlug(
     db: D1Database,
     baseSlug: string,
   ): Promise<string> {
     const normalized = slugify(baseSlug);
-    let candidate = normalized;
-    let suffix = 2;
 
-    // Limit the loop defensively; in practice we expect to exit almost
-    // immediately since slugs are already fairly unique, and D1 is small.
-    while (suffix < 1000) {
-      const exists = await projectRepository.slugExists(db, candidate);
-      if (!exists) {
-        return candidate;
-      }
-      candidate = `${normalized}-${suffix}`;
-      suffix += 1;
+    // Try base slug first
+    if (!(await projectRepository.slugExists(db, normalized))) {
+      return normalized;
     }
 
-    throw new Error(
-      `Failed to generate unique slug based on "${baseSlug}". Please try a different name.`,
-    );
+    // Try numeric suffixes (2-4)
+    for (let suffix = 2; suffix <= 4; suffix++) {
+      const candidate = `${normalized}-${suffix}`;
+      if (!(await projectRepository.slugExists(db, candidate))) {
+        return candidate;
+      }
+    }
+
+    // Generate random suffix (4 chars: 36^4 = 1.6M combinations)
+    const randomSuffix = Math.random().toString(36).substring(2, 6);
+    const randomCandidate = `${normalized}-${randomSuffix}`;
+
+    // Final fallback: if random still conflicts, add timestamp
+    if (await projectRepository.slugExists(db, randomCandidate)) {
+      return `${normalized}-${Date.now().toString(36)}`;
+    }
+
+    return randomCandidate;
   }
 }
 
