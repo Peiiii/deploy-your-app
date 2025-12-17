@@ -1,4 +1,3 @@
-import type { ApiWorkerEnv } from '../types/env';
 import { jsonResponse } from '../utils/http';
 import { UnauthorizedError, ValidationError } from '../utils/error-handler';
 import { getSessionIdFromRequest } from '../utils/auth';
@@ -28,7 +27,6 @@ class EngagementController {
   // GET /api/v1/projects/:id/reactions
   async getReactionsForProject(
     request: Request,
-    env: ApiWorkerEnv,
     db: D1Database,
     projectId: string,
   ): Promise<Response> {
@@ -48,7 +46,6 @@ class EngagementController {
   // GET /api/v1/projects/reactions?ids=1,2,3
   async getReactionsForProjectsBulk(
     request: Request,
-    env: ApiWorkerEnv,
     db: D1Database,
   ): Promise<Response> {
     const { userId } = await this.requireUser(request, db);
@@ -98,7 +95,6 @@ class EngagementController {
   // POST /api/v1/projects/:id/like
   async likeProject(
     request: Request,
-    env: ApiWorkerEnv,
     db: D1Database,
     projectId: string,
   ): Promise<Response> {
@@ -119,7 +115,6 @@ class EngagementController {
   // DELETE /api/v1/projects/:id/like
   async unlikeProject(
     request: Request,
-    env: ApiWorkerEnv,
     db: D1Database,
     projectId: string,
   ): Promise<Response> {
@@ -140,7 +135,6 @@ class EngagementController {
   // POST /api/v1/projects/:id/favorite
   async favoriteProject(
     request: Request,
-    env: ApiWorkerEnv,
     db: D1Database,
     projectId: string,
   ): Promise<Response> {
@@ -161,7 +155,6 @@ class EngagementController {
   // DELETE /api/v1/projects/:id/favorite
   async unfavoriteProject(
     request: Request,
-    env: ApiWorkerEnv,
     db: D1Database,
     projectId: string,
   ): Promise<Response> {
@@ -182,7 +175,6 @@ class EngagementController {
   // GET /api/v1/me/favorites
   async listFavoritesForCurrentUser(
     request: Request,
-    env: ApiWorkerEnv,
     db: D1Database,
   ): Promise<Response> {
     const { userId } = await this.requireUser(request, db);

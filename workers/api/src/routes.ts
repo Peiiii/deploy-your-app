@@ -186,15 +186,15 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   router.add({
     path: '/api/v1/analytics/ping/:slug',
     method: 'GET',
-    handler: (req, params) =>
-      analyticsController.pingPageView(req, env, requireDb(), params.slug),
+    handler: (_req, params) =>
+      analyticsController.pingPageView(requireDb(), params.slug),
   });
 
   router.add({
     path: '/api/v1/projects/:id/stats',
     method: 'GET',
     handler: (req, params) =>
-      analyticsController.getProjectStats(req, env, requireDb(), params.id),
+      analyticsController.getProjectStats(req, requireDb(), params.id),
   });
 
   // -----------------
@@ -207,7 +207,6 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     handler: (req, params) =>
       engagementController.getReactionsForProject(
         req,
-        env,
         requireDb(),
         params.id,
       ),
@@ -217,35 +216,35 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     path: '/api/v1/projects/reactions',
     method: 'GET',
     handler: (req) =>
-      engagementController.getReactionsForProjectsBulk(req, env, requireDb()),
+      engagementController.getReactionsForProjectsBulk(req, requireDb()),
   });
 
   router.add({
     path: '/api/v1/projects/:id/like',
     method: 'POST',
     handler: (req, params) =>
-      engagementController.likeProject(req, env, requireDb(), params.id),
+      engagementController.likeProject(req, requireDb(), params.id),
   });
 
   router.add({
     path: '/api/v1/projects/:id/like',
     method: 'DELETE',
     handler: (req, params) =>
-      engagementController.unlikeProject(req, env, requireDb(), params.id),
+      engagementController.unlikeProject(req, requireDb(), params.id),
   });
 
   router.add({
     path: '/api/v1/projects/:id/favorite',
     method: 'POST',
     handler: (req, params) =>
-      engagementController.favoriteProject(req, env, requireDb(), params.id),
+      engagementController.favoriteProject(req, requireDb(), params.id),
   });
 
   router.add({
     path: '/api/v1/projects/:id/favorite',
     method: 'DELETE',
     handler: (req, params) =>
-      engagementController.unfavoriteProject(req, env, requireDb(), params.id),
+      engagementController.unfavoriteProject(req, requireDb(), params.id),
   });
 
   router.add({
@@ -254,7 +253,6 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     handler: (req) =>
       engagementController.listFavoritesForCurrentUser(
         req,
-        env,
         requireDb(),
       ),
   });
@@ -279,7 +277,7 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     path: '/api/v1/users/:id/profile',
     method: 'GET',
     handler: (req, params) =>
-      profileController.getPublicProfile(req, requireDb(), params.id),
+      profileController.getPublicProfile(requireDb(), params.id),
   });
 
   return router;

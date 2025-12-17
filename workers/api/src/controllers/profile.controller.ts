@@ -93,7 +93,6 @@ class ProfileController {
 
   // GET /api/v1/users/:id/profile
   async getPublicProfile(
-    request: Request,
     db: D1Database,
     identifier: string,
   ): Promise<Response> {

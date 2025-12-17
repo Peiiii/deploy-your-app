@@ -1,4 +1,3 @@
-import type { ApiWorkerEnv } from '../types/env';
 import { jsonResponse, emptyResponse } from '../utils/http';
 import { ValidationError } from '../utils/error-handler';
 import { analyticsService } from '../services/analytics.service';
@@ -8,8 +7,6 @@ class AnalyticsController {
   // Internal endpoint – used by the R2 gateway Worker to record page views.
   // GET /api/v1/analytics/ping/:slug
   async pingPageView(
-    request: Request,
-    env: ApiWorkerEnv,
     db: D1Database,
     slug: string,
   ): Promise<Response> {
@@ -24,7 +21,6 @@ class AnalyticsController {
   // GET /api/v1/projects/:id/stats?range=7d
   async getProjectStats(
     request: Request,
-    env: ApiWorkerEnv,
     db: D1Database,
     projectId: string,
   ): Promise<Response> {

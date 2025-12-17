@@ -28,15 +28,6 @@ class ProjectService {
     return projectRepository.getAllProjects(db);
   }
 
-  async getProjectsForUser(
-    db: D1Database,
-    ownerId: string,
-  ): Promise<Project[]> {
-    // Simple filter by owner on top of repository – keeps repository focused on persistence.
-    const all = await projectRepository.getAllProjects(db);
-    return all.filter((p) => p.ownerId === ownerId);
-  }
-
   async createProject(
     env: ApiWorkerEnv,
     db: D1Database,
@@ -408,23 +399,6 @@ class ProjectService {
     throw new Error(
       `Failed to generate unique slug based on "${baseSlug}". Please try a different name.`,
     );
-  }
-
-  private buildProjectUrl(
-    env: ApiWorkerEnv,
-    slug: string,
-    target: Project['deployTarget'],
-  ): string | undefined {
-    if (target === 'local') {
-      return `/apps/${encodeURIComponent(slug)}/`;
-    }
-    if (target === 'r2') {
-      const domain = configService.getAppsRootDomain(env);
-      if (domain) {
-        return `https://${slug}.${domain}/`;
-      }
-    }
-    return undefined;
   }
 }
 

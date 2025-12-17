@@ -2,7 +2,6 @@ import type { ApiWorkerEnv } from '../types/env';
 import { ValidationError } from '../utils/error-handler';
 import { projectService } from './project.service';
 import { deployProxyService } from './deploy-proxy.service';
-import { configService } from './config.service';
 import { extractSseEvents } from '../utils/sse-parser';
 import {
     SourceType,
@@ -103,8 +102,11 @@ class DeployService {
         };
     }
 
-    /** Enrich project with AI-generated metadata if slug is missing */
-    async enrichProjectIfNeeded(
+    /**
+   * Ensure project has a slug, calling AI analysis if needed.
+   * The slug is required for deployment as it determines the app's URL.
+   */
+    async ensureProjectHasSlug(
         env: ApiWorkerEnv,
         request: Request,
         project: Project,
