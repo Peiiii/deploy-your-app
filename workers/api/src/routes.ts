@@ -86,10 +86,7 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   router.add({
     path: '/api/v1/auth/google/start',
     method: 'GET',
-    handler: (req) => {
-      void req;
-      return authController.handleGoogleStart(env, url);
-    },
+    handler: (_req) => authController.handleGoogleStart(env, url),
   });
 
   router.add({
@@ -102,10 +99,7 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   router.add({
     path: '/api/v1/auth/github/start',
     method: 'GET',
-    handler: (req) => {
-      void req;
-      return authController.handleGithubStart(env, url);
-    },
+    handler: (_req) => authController.handleGithubStart(env, url),
   });
 
   router.add({
@@ -192,10 +186,8 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   router.add({
     path: '/api/v1/analytics/ping/:slug',
     method: 'GET',
-    handler: (req, params) => {
-      void req;
-      return analyticsController.pingPageView(requireDb(), params.slug);
-    },
+    handler: (_req, params) =>
+      analyticsController.pingPageView(requireDb(), params.slug),
   });
 
   router.add({
@@ -284,10 +276,8 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   router.add({
     path: '/api/v1/users/:id/profile',
     method: 'GET',
-    handler: (req, params) => {
-      void req;
-      return profileController.getPublicProfile(requireDb(), params.id);
-    },
+    handler: (_req, params) =>
+      profileController.getPublicProfile(requireDb(), params.id),
   });
 
   return router;
