@@ -32,7 +32,7 @@ export class DeploymentHandler {
 
         try {
             const payload: Project = { ...project, sourceType: SourceType.GITHUB };
-            await this.deploymentManager.redeployProject(payload, {
+            await this.deploymentManager.deployProject(payload, {
                 onComplete: () => this.projectManager.loadProjects(),
             });
         } catch (err) {
@@ -65,7 +65,7 @@ export class DeploymentHandler {
                 sourceType: SourceType.HTML,
                 htmlContent: project.htmlContent,
             };
-            await this.deploymentManager.redeployProject(payload, {
+            await this.deploymentManager.deployProject(payload, {
                 onComplete: () => this.projectManager.loadProjects(),
             });
         } catch (err) {
@@ -91,7 +91,7 @@ export class DeploymentHandler {
 
         try {
             const payload: Project = { ...project, sourceType: SourceType.ZIP };
-            await this.deploymentManager.redeployProject(payload, {
+            await this.deploymentManager.deployProject(payload, {
                 zipFile: file,
                 onComplete: () => this.projectManager.loadProjects(),
             });
@@ -123,7 +123,7 @@ export class DeploymentHandler {
                 sourceType: SourceType.HTML,
                 htmlContent: content,
             };
-            await this.deploymentManager.redeployProject(payload, {
+            await this.deploymentManager.deployProject(payload, {
                 onComplete: () => this.projectManager.loadProjects(),
             });
         } catch (err) {
@@ -153,7 +153,7 @@ export class DeploymentHandler {
                 sourceType: SourceType.HTML,
                 htmlContent: content,
             };
-            await this.deploymentManager.redeployProject(payload, {
+            await this.deploymentManager.deployProject(payload, {
                 onComplete: () => this.projectManager.loadProjects(),
             });
         } catch (err) {

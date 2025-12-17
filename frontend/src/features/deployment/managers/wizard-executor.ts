@@ -18,7 +18,7 @@ export class WizardExecutor {
     private projectManager: ProjectManager,
     private uiManager: UIManager,
     private projectCreator: ProjectCreator,
-  ) {}
+  ) { }
 
   /**
    * Read a File as base64 (without the data: URL prefix).
@@ -133,9 +133,9 @@ export class WizardExecutor {
   };
 
   /**
-   * Public entrypoint for redeploying an existing project.
+   * Public entrypoint for deploying a project.
    */
-  redeployProject = async (
+  deployProject = async (
     project: Project,
     options?: { zipFile?: File | null; onComplete?: (result?: DeploymentResult) => void },
   ): Promise<void> => {
@@ -191,7 +191,7 @@ export class WizardExecutor {
         });
 
         if (primaryChosen) {
-          await this.redeployProject(existing);
+          await this.deployProject(existing);
           return;
         }
       }
@@ -223,7 +223,7 @@ export class WizardExecutor {
 
       if (!createdProject) return;
 
-      await this.redeployProject(createdProject);
+      await this.deployProject(createdProject);
     } catch (err) {
       console.error('Failed to deploy project', err);
       const actionsLocal = useDeploymentStore.getState().actions;
@@ -249,7 +249,7 @@ export class WizardExecutor {
         identifier,
       );
       if (!newProject) return;
-      await this.redeployProject(newProject, { zipFile: state.zipFile });
+      await this.deployProject(newProject, { zipFile: state.zipFile });
     } catch (err) {
       console.error('Failed to create and deploy project from ZIP', err);
     }
@@ -268,7 +268,7 @@ export class WizardExecutor {
         { htmlContent: state.htmlContent },
       );
       if (!newProject) return;
-      await this.redeployProject(newProject);
+      await this.deployProject(newProject);
     } catch (err) {
       console.error('Failed to create and deploy project from HTML', err);
     }

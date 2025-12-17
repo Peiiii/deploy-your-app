@@ -47,13 +47,13 @@ export class DeploymentManager {
   };
 
   /**
-   * Redeploy an existing project.
+   * Deploy a project (both initial deployment and redeployment).
    */
-  redeployProject = (
+  deployProject = (
     project: Project,
     options?: { zipFile?: File | null; onComplete?: (result?: DeploymentResult) => void },
   ): Promise<void> => {
-    return this.wizardExecutor.redeployProject(project, options);
+    return this.wizardExecutor.deployProject(project, options);
   };
 
   /**
@@ -74,12 +74,6 @@ export class DeploymentManager {
     return this.projectCreator.createFromWizard();
   };
 
-  /**
-   * Analyze a project's source code.
-   */
-  analyzeProject = (project: Project) => {
-    return this.projectCreator.analyzeProject(project);
-  };
 
   // ============================================================
   // Public API - Store Actions
