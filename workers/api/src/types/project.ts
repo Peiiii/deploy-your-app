@@ -69,3 +69,10 @@ export interface CreateProjectRecordInput {
   cloudflareProjectName?: string;
   htmlContent?: string;
 }
+
+/** SSE payload received from deploy service status updates */
+export interface DeploymentStatusPayload {
+  type?: string;
+  status?: 'SUCCESS' | 'FAILED' | string;
+  projectMetadata?: ProjectMetadataOverrides & { url?: string };
+}
