@@ -13,6 +13,8 @@ import { deploymentService } from '../modules/deployment/deployment.service.js';
 import { metadataService } from '../modules/metadata/index.js';
 import { CONFIG } from '../common/config/config.js';
 import { materializeSourceForDeployment } from '../modules/deployment/pipeline/sourceMaterialization.js';
+import { contextService } from '../modules/context/context.service.js';
+import type { ContextInput } from '../modules/context/context.types.js';
 
 // Minimal request/response/app types so we don't pull in full Express types
 // but also avoid using `any`.
@@ -39,7 +41,30 @@ type AppLike = {
 // Attach all API routes to the given Express app instance.
 export function registerRoutes(app: AppLike): void {
   // ----------------------
-  // Pre-deployment analysis
+  // Project context extraction
+  // ----------------------
+
+  app.post('/api/v1/context', async (req, res) => {
+    const input = (req.body || {}) as ContextInput;
+
+    if (!input.repoUrl || !input.sourceType) {
+      return res
+        .status(400)
+        .json({ error: 'repoUrl and sourceType are required' });
+    }
+
+    try {
+      const result = await contextService.getContext(input);
+      return res.json(result);
+    } catch (err) {
+      const message =
+        err && (err as Error).message ? (err as Error).message : String(err);
+      return res.status(500).json({ error: message });
+    }
+  });
+
+  // ----------------------
+  // Pre-deployment analysis (DEPRECATED - use /context instead)
   // ----------------------
 
   app.post('/api/v1/analyze', async (req, res) => {

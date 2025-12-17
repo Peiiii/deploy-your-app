@@ -42,6 +42,43 @@ interface DeployResponse {
 }
 
 // ============================================================
+// Context API Types (for /context endpoint)
+// ============================================================
+
+/** Input for /context endpoint */
+export interface ContextInput {
+    repoUrl: string;
+    sourceType: SourceType;
+    zipData?: string;
+    htmlContent?: string;
+}
+
+/** Package.json info extracted from project */
+export interface PackageJsonInfo {
+    name?: string;
+    description?: string;
+    version?: string;
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+    scripts?: Record<string, string>;
+}
+
+/** Project context extracted by Node server */
+export interface ProjectContext {
+    indexHtml?: string;
+    packageJson?: PackageJsonInfo;
+    directoryTree: string[];
+    readme?: string;
+    framework?: string;
+}
+
+/** Result from /context endpoint */
+export interface ContextResult {
+    contextId: string;
+    context: ProjectContext;
+}
+
+// ============================================================
 // Service
 // ============================================================
 
@@ -210,6 +247,29 @@ class DeployProxyService {
         } catch {
             return undefined;
         }
+    };
+
+    /**
+     * Call /context endpoint to extract project context.
+     */
+    getContext = async (
+        env: ApiWorkerEnv,
+        input: ContextInput,
+    ): Promise<ContextResult> => {
+        const targetUrl = this.buildTargetUrl(env, '/context');
+
+        const upstream = await fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(input),
+        });
+
+        if (!upstream.ok) {
+            const text = await upstream.text().catch(() => '');
+            throw new Error(text || `Context extraction failed with status ${upstream.status}`);
+        }
+
+        return (await upstream.json()) as ContextResult;
     };
 
     /**

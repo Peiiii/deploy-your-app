@@ -10,7 +10,6 @@ import { metadataService } from './metadata.service';
 import { configService } from './config.service';
 import { engagementService } from './engagement.service';
 import { analyticsService } from './analytics.service';
-import { authRepository } from '../repositories/auth.repository';
 import { ValidationError } from '../utils/error-handler';
 
 interface CreateProjectInput {

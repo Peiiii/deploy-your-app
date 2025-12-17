@@ -64,13 +64,15 @@ export const useSidebarProjects = () => {
     if (!authUser) {
       didInitDefaultViewRef.current = false;
       userChangedViewRef.current = false;
-      setPinnedProjectIds([]);
-      setProjectViewTypeState('recent');
-      setIsLoadingProfile(false);
+      queueMicrotask(() => {
+        setPinnedProjectIds([]);
+        setProjectViewTypeState('recent');
+        setIsLoadingProfile(false);
+      });
       return;
     }
     
-    setIsLoadingProfile(true);
+    queueMicrotask(() => setIsLoadingProfile(true));
     void fetchMyProfile()
       .then((profile) => {
         const ids = profile.pinnedProjectIds || [];

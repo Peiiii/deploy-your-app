@@ -86,7 +86,10 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   router.add({
     path: '/api/v1/auth/google/start',
     method: 'GET',
-    handler: (_req) => authController.handleGoogleStart(env, url),
+    handler: (req) => {
+      void req;
+      return authController.handleGoogleStart(env, url);
+    },
   });
 
   router.add({
@@ -99,7 +102,10 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   router.add({
     path: '/api/v1/auth/github/start',
     method: 'GET',
-    handler: (_req) => authController.handleGithubStart(env, url),
+    handler: (req) => {
+      void req;
+      return authController.handleGithubStart(env, url);
+    },
   });
 
   router.add({

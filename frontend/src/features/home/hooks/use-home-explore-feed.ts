@@ -84,9 +84,10 @@ export const useHomeExploreFeed = () => {
       } catch (error) {
         console.error('Failed to load explore apps for Home', error);
       } finally {
-        if (requestId !== exploreRequestIdRef.current) return;
-        setIsLoadingExplore(false);
-        setIsLoadingMore(false);
+        if (requestId === exploreRequestIdRef.current) {
+          setIsLoadingExplore(false);
+          setIsLoadingMore(false);
+        }
       }
     },
     [
@@ -135,4 +136,3 @@ export const useHomeExploreFeed = () => {
     handleLoadMoreExplore,
   };
 };
-

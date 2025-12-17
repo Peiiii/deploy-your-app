@@ -3,8 +3,6 @@ import { DeploymentStatus, SourceType } from '@/types';
 import type { Project } from '@/types';
 import type { DeploymentResult, IDeploymentProvider } from '@/services/interfaces';
 import type { ProjectManager } from '@/managers/project.manager';
-import type { UIManager } from '@/managers/ui.manager';
-import type { ProjectCreator } from './project-creator';
 
 
 /**
@@ -14,8 +12,6 @@ export class DeploymentExecutor {
   constructor(
     private provider: IDeploymentProvider,
     private projectManager: ProjectManager,
-    _uiManager: UIManager,
-    _projectCreator: ProjectCreator,
   ) { }
 
   /**

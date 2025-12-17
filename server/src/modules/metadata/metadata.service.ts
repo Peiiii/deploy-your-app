@@ -93,7 +93,7 @@ function deriveIdentifierSeed(identifier: string, fallback: string): string {
 
   const clean = identifier.trim();
   if (clean) {
-    const segments = clean.split(/[\/\\]/).filter(Boolean);
+    const segments = clean.split(/[/\\]/).filter(Boolean);
     if (segments.length) {
       const last = segments[segments.length - 1];
       return last.replace(/\.git$/, '');

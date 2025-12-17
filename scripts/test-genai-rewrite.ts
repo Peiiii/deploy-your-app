@@ -97,7 +97,7 @@ async function main() {
 
     console.log(`${cyan('workDir')}: ${workDir}`);
     console.log(`${cyan('source')}: ${clonedFromUrl ?? 'local-path'}`);
-    console.log(`${cyan('changed')}: ${Boolean(status) ? green('true') : dim('false')}`);
+    console.log(`${cyan('changed')}: ${status ? green('true') : dim('false')}`);
     if (status) {
       console.log(`${cyan('status')}:\n${status}`);
       console.log(`${cyan('diffStat')}:\n${diffStat}`);

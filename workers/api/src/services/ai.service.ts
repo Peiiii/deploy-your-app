@@ -1,4 +1,5 @@
 import type { ApiWorkerEnv } from '../types/env';
+import { slugify } from '../utils/strings';
 
 interface AIResponse {
   choices?: Array<{
@@ -49,15 +50,15 @@ const METADATA_RESPONSE_FORMAT = {
         },
         description: {
           type: 'string',
-          description: 'Concise marketing-style summary (~120 chars).',
+          description: 'Concise marketing-style summary (<= 160 chars). Avoid filler words.',
         },
         slug: {
           type: 'string',
           description:
-            'Lowercase, URL-friendly identifier using only letters, numbers, and hyphens.',
+            'Required. Lowercase, URL-friendly identifier using only letters, numbers, and hyphens. 3-64 chars.',
         },
       },
-      required: ['category'],
+      required: ['category', 'slug'],
       additionalProperties: false,
     },
     strict: true,
@@ -71,8 +72,8 @@ const METADATA_SYSTEM_PROMPT =
   MARKETPLACE_CATEGORIES.map((c) => `- ${c}`).join('\n') +
   '\n' +
   '"tags" must be an array of 1-5 short, lowercase keywords (no spaces).\n' +
-  '"description" should explain the app in <= 120 characters.\n' +
-  '"slug" must contain only lowercase letters, numbers, or hyphens.';
+  '"description" should explain the app in <= 160 characters and avoid fluff.\n' +
+  '"slug" must contain only lowercase letters, numbers, or hyphens and be 3-64 characters. If a slug seed is provided, adapt it.';
 
 function buildMetadataUserPrompt(
   name: string,
@@ -215,13 +216,19 @@ class AIService {
           .slice(0, 5)
         : [];
       const slugResult = normalizeSlugCandidate(parsed.slug);
+      const fallbackSlug = slugify(
+        nameResult ??
+          name.trim() ??
+          identifier.replace(/[^a-z0-9]+/gi, '-').toLowerCase() ??
+          'app',
+      );
 
       return {
         name: nameResult,
         category: categoryResult,
         tags: tagsResult,
         description: descriptionResult,
-        slug: slugResult,
+        slug: slugResult ?? fallbackSlug,
       };
     } catch {
       return emptySuggestion();

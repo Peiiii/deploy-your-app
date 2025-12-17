@@ -1,8 +1,10 @@
 import type { ApiWorkerEnv } from '../types/env';
 import { ValidationError } from '../utils/error-handler';
 import { projectService } from './project.service';
-import { deployProxyService } from './deploy-proxy.service';
+import { deployProxyService, type ProjectContext } from './deploy-proxy.service';
+import { aiService } from './ai.service';
 import { extractSseEvents } from '../utils/sse-parser';
+import { slugify } from '../utils/strings';
 import {
     SourceType,
     type Project,
@@ -103,42 +105,121 @@ class DeployService {
     }
 
     /**
-   * Ensure project has a slug, calling AI analysis if needed.
-   * The slug is required for deployment as it determines the app's URL.
-   */
+     * Ensure project has a slug, using Context API + AI if needed.
+     * The slug is required for deployment as it determines the app's URL.
+     */
     async ensureProjectHasSlug(
         env: ApiWorkerEnv,
-        request: Request,
+        _request: Request,
         project: Project,
         sourceType: SourceType,
         input: DeployInput,
     ): Promise<{ project: Project; analysisId?: string }> {
+        // Already has slug, no need to enrich
         if (project.slug?.trim()) {
             return { project, analysisId: input.analysisId };
         }
 
-        let analysisId = input.analysisId;
-        try {
-            const analysisInput = {
-                ...project,
-                sourceType,
-                ...(input.htmlContent && { htmlContent: input.htmlContent }),
-            };
-            const result = await deployProxyService.analyze(env, request, analysisInput);
-            analysisId = result.analysisId ?? input.analysisId;
+        let contextId: string | undefined;
 
-            if (result.metadata && typeof result.metadata === 'object') {
-                const meta = result.metadata as ProjectMetadataOverrides;
+        try {
+            // 1. Get project context from Node server
+            const contextResult = await deployProxyService.getContext(env, {
+                repoUrl: project.repoUrl,
+                sourceType,
+                zipData: input.zipData,
+                htmlContent: input.htmlContent || project.htmlContent,
+            });
+
+            contextId = contextResult.contextId;
+
+            // 2. Build context string for AI
+            const contextStr = this.buildContextString(contextResult.context);
+
+            // 3. Call AI to generate metadata
+            const aiResult = await aiService.generateProjectMetadata(
+                env,
+                project.name,
+                project.repoUrl,
+                contextStr,
+            );
+
+            // 4. Apply AI-generated metadata to project
+            if (aiResult) {
+                const fallbackSlug = slugify(
+                    aiResult.slug ??
+                    aiResult.name ??
+                    project.name ??
+                    project.repoUrl ??
+                    project.id,
+                );
+                const meta: ProjectMetadataOverrides = {
+                    name: aiResult.name ?? undefined,
+                    slug: aiResult.slug ?? fallbackSlug,
+                    description: aiResult.description ?? undefined,
+                    category: aiResult.category ?? undefined,
+                    tags: aiResult.tags.length > 0 ? aiResult.tags : undefined,
+                };
                 project = {
                     ...project,
                     ...this.buildMetadataPatch(project, meta),
                 };
+                if (!project.slug?.trim()) {
+                    project.slug = fallbackSlug;
+                }
             }
         } catch (err) {
-            console.error('[DeployService] Analysis failed, continuing without enrichment:', err);
+            console.error('[DeployService] Context/AI enrichment failed, continuing without:', err);
         }
 
-        return { project, analysisId };
+        return { project, analysisId: contextId };
+    }
+
+    /**
+     * Build a context string from ProjectContext for AI consumption.
+     */
+    private buildContextString(context: ProjectContext): string {
+        const parts: string[] = [];
+
+        if (context.framework) {
+            parts.push(`Framework: ${context.framework}`);
+        }
+
+        if (context.packageJson?.name) {
+            parts.push(`Package name: ${context.packageJson.name}`);
+        }
+
+        if (context.packageJson?.description) {
+            parts.push(`Package description: ${context.packageJson.description}`);
+        }
+
+        if (context.packageJson?.dependencies) {
+            const deps = Object.keys(context.packageJson.dependencies).slice(0, 10);
+            if (deps.length > 0) {
+                parts.push(`Key dependencies: ${deps.join(', ')}`);
+            }
+        }
+
+        if (context.readme) {
+            // Truncate README for AI context
+            const readmePreview = context.readme.slice(0, 2000);
+            parts.push(`README preview:\n${readmePreview}`);
+        }
+
+        if (context.indexHtml) {
+            // Extract title from HTML if present
+            const titleMatch = context.indexHtml.match(/<title>([^<]+)<\/title>/i);
+            if (titleMatch) {
+                parts.push(`HTML title: ${titleMatch[1]}`);
+            }
+        }
+
+        if (context.directoryTree.length > 0) {
+            const files = context.directoryTree.slice(0, 20).join(', ');
+            parts.push(`Project files: ${files}`);
+        }
+
+        return parts.join('\n\n');
     }
 
     private buildMetadataPatch(current: Project, meta: ProjectMetadataOverrides): Partial<Project> {

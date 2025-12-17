@@ -35,8 +35,10 @@ export const ProjectSettingsDeploymentGroup: React.FC<
 
   // Sync with project updates
   useEffect(() => {
-    if (project.repoUrl) setRepoUrl(project.repoUrl);
-    if (project.htmlContent) setHtmlContent(project.htmlContent);
+    queueMicrotask(() => {
+      if (project.repoUrl) setRepoUrl(project.repoUrl);
+      if (project.htmlContent) setHtmlContent(project.htmlContent);
+    });
   }, [project]);
 
   const isRedeploying = useProjectSettingsStore((s) => s.isRedeploying);
