@@ -17,34 +17,58 @@ import { getSessionIdFromRequest } from '../utils/auth';
 import { authRepository } from '../repositories/auth.repository';
 import { configService } from '../services/config.service';
 
+/**
+ * ProjectsController - Handles HTTP requests for project CRUD operations.
+ * Auth logic is centralized in requireAuth() to reduce duplication.
+ */
 class ProjectsController {
-  private parseMetadataOverrides(
-    value: unknown,
-  ): ProjectMetadataOverrides | undefined {
-    if (!value || typeof value !== 'object') {
-      return undefined;
+  // ─────────────────────────────────────────────────────────────
+  // Auth helper
+  // ─────────────────────────────────────────────────────────────
+
+  private async requireAuth(request: Request, db: D1Database, action: string) {
+    const sessionId = getSessionIdFromRequest(request);
+    if (!sessionId) {
+      throw new UnauthorizedError(`Login required to ${action}.`);
     }
+    const session = await authRepository.getSessionWithUser(db, sessionId);
+    if (!session) {
+      throw new UnauthorizedError(`Login required to ${action}.`);
+    }
+    return session.user;
+  }
+
+  private async requireProjectOwner(
+    db: D1Database,
+    projectId: string,
+    userId: string,
+    action: string,
+  ) {
+    const project = await projectService.getProjectById(db, projectId);
+    if (!project) {
+      throw new NotFoundError('Project not found');
+    }
+    if (project.ownerId !== userId) {
+      throw new UnauthorizedError(`Only the project owner can ${action}.`);
+    }
+    return project;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Input parsing helpers
+  // ─────────────────────────────────────────────────────────────
+
+  private parseMetadataOverrides(value: unknown): ProjectMetadataOverrides | undefined {
+    if (!value || typeof value !== 'object') return undefined;
     const input = value as Record<string, unknown>;
     const metadata: ProjectMetadataOverrides = {};
-
-    if (typeof input.name === 'string') {
-      metadata.name = input.name;
-    }
-    if (typeof input.slug === 'string') {
-      metadata.slug = input.slug;
-    }
-    if (typeof input.description === 'string') {
-      metadata.description = input.description;
-    }
-    if (typeof input.category === 'string') {
-      metadata.category = input.category;
-    }
+    if (typeof input.name === 'string') metadata.name = input.name;
+    if (typeof input.slug === 'string') metadata.slug = input.slug;
+    if (typeof input.description === 'string') metadata.description = input.description;
+    if (typeof input.category === 'string') metadata.category = input.category;
     if (Array.isArray(input.tags)) {
-      metadata.tags = input.tags
-        .filter((tag): tag is string => typeof tag === 'string')
-        .map((tag) => tag);
+      metadata.tags = input.tags.filter((t): t is string => typeof t === 'string');
     }
-
     return metadata;
   }
 
@@ -55,459 +79,183 @@ class ProjectsController {
       : undefined;
   }
 
-  // GET /api/v1/projects
-  async listProjects(
-    request: Request,
-    env: ApiWorkerEnv,
-    db: D1Database,
-  ): Promise<Response> {
-    // Public endpoint: Explore page shows all projects across users.
+  // ─────────────────────────────────────────────────────────────
+  // Public endpoints (no auth)
+  // ─────────────────────────────────────────────────────────────
+
+  /** GET /api/v1/projects */
+  async listProjects(_request: Request, _env: ApiWorkerEnv, db: D1Database): Promise<Response> {
     const projects = await projectService.getProjects(db);
     return jsonResponse(projects);
   }
 
-  // GET /api/v1/projects/explore
-  async listExploreProjects(
-    request: Request,
-    env: ApiWorkerEnv,
-    db: D1Database,
-  ): Promise<Response> {
+  /** GET /api/v1/projects/explore */
+  async listExploreProjects(request: Request, _env: ApiWorkerEnv, db: D1Database): Promise<Response> {
     const url = new URL(request.url);
-
-    const search = url.searchParams.get('search') ?? undefined;
-    const category = url.searchParams.get('category') ?? undefined;
-    const tag = url.searchParams.get('tag') ?? undefined;
-    const sortParam = url.searchParams.get('sort') ?? undefined;
-    const pageParam = url.searchParams.get('page') ?? undefined;
-    const pageSizeParam = url.searchParams.get('pageSize') ?? undefined;
-
-    const sort =
-      sortParam === 'recent' || sortParam === 'popularity'
-        ? sortParam
-      : 'recent';
-
-    const page = pageParam ? Number.parseInt(pageParam, 10) : 1;
-    const pageSize = pageSizeParam ? Number.parseInt(pageSizeParam, 10) : 12;
-
+    const sortParam = url.searchParams.get('sort');
     const result = await projectService.getExploreProjects(db, {
-      search: search?.trim() || undefined,
-      category: category?.trim() || undefined,
-      tag: tag?.trim() || undefined,
-      sort,
-      page: Number.isFinite(page) && page > 0 ? page : 1,
-      pageSize: Number.isFinite(pageSize) && pageSize > 0 ? pageSize : 12,
+      search: url.searchParams.get('search')?.trim() || undefined,
+      category: url.searchParams.get('category')?.trim() || undefined,
+      tag: url.searchParams.get('tag')?.trim() || undefined,
+      sort: sortParam === 'popularity' ? 'popularity' : 'recent',
+      page: Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1),
+      pageSize: Math.min(50, Math.max(1, parseInt(url.searchParams.get('pageSize') || '12', 10) || 12)),
     });
-
     return jsonResponse(result);
   }
 
-  // GET /api/v1/projects/by-repo?repoUrl=...
-  // Used by the deployment wizard to detect when the current user is trying
-  // to deploy a GitHub repository they already have a project for, so we can
-  // guide them towards redeploy instead of accidentally creating a new
-  // project with a conflicting slug / URL.
-  async findProjectByRepo(
-    request: Request,
-    env: ApiWorkerEnv,
-    db: D1Database,
-  ): Promise<Response> {
-    const sessionId = getSessionIdFromRequest(request);
-    if (!sessionId) {
-      throw new UnauthorizedError('Login required to inspect projects.');
-    }
-    const sessionWithUser = await authRepository.getSessionWithUser(
-      db,
-      sessionId,
-    );
-    if (!sessionWithUser) {
-      throw new UnauthorizedError('Login required to inspect projects.');
-    }
+  // ─────────────────────────────────────────────────────────────
+  // Authenticated endpoints
+  // ─────────────────────────────────────────────────────────────
 
+  /** GET /api/v1/projects/by-repo?repoUrl=... */
+  async findProjectByRepo(request: Request, _env: ApiWorkerEnv, db: D1Database): Promise<Response> {
+    const user = await this.requireAuth(request, db, 'inspect projects');
     const url = new URL(request.url);
-    const rawRepoUrl = url.searchParams.get('repoUrl');
-    if (!rawRepoUrl) {
-      throw new ValidationError('Missing required query parameter: repoUrl');
-    }
-    const repoUrl = validateRequiredString(rawRepoUrl, 'repoUrl');
-
-    const project = await projectService.findProjectByRepoForUser(
-      db,
-      sessionWithUser.user.id,
-      repoUrl,
-    );
-
+    const repoUrl = validateRequiredString(url.searchParams.get('repoUrl'), 'repoUrl');
+    const project = await projectService.findProjectByRepoForUser(db, user.id, repoUrl);
     return jsonResponse({ project });
   }
 
-  // POST /api/v1/projects
-  async createProject(
-    request: Request,
-    env: ApiWorkerEnv,
-    db: D1Database,
-  ): Promise<Response> {
-    const sessionId = getSessionIdFromRequest(request);
-    if (!sessionId) {
-      throw new UnauthorizedError('Login required to create a project.');
-    }
-    const sessionWithUser = await authRepository.getSessionWithUser(
-      db,
-      sessionId,
-    );
-    if (!sessionWithUser) {
-      throw new UnauthorizedError('Login required to create a project.');
-    }
-
+  /** POST /api/v1/projects */
+  async createProject(request: Request, env: ApiWorkerEnv, db: D1Database): Promise<Response> {
+    const user = await this.requireAuth(request, db, 'create a project');
     const body = await readJson(request);
-    const name = validateRequiredString(body.name, 'name');
-    const identifier = validateRequiredString(body.identifier, 'identifier');
-
     const project = await projectService.createProject(env, db, {
-      name,
-      identifier,
+      name: validateRequiredString(body.name, 'name'),
+      identifier: validateRequiredString(body.identifier, 'identifier'),
       sourceType: this.toSourceType(body.sourceType),
       htmlContent: validateOptionalString(body.htmlContent),
       metadata: this.parseMetadataOverrides(body.metadata),
-      ownerId: sessionWithUser.user.id,
+      ownerId: user.id,
     });
-
     return jsonResponse(project);
   }
 
-  // POST /api/v1/projects/draft
-  // Project-first workflow: create a project record first, then let users
-  // upload/deploy within that specific project context.
-  async createDraftProject(
-    request: Request,
-    env: ApiWorkerEnv,
-    db: D1Database,
-  ): Promise<Response> {
-    const sessionId = getSessionIdFromRequest(request);
-    if (!sessionId) {
-      throw new UnauthorizedError('Login required to create a project.');
-    }
-    const sessionWithUser = await authRepository.getSessionWithUser(
-      db,
-      sessionId,
-    );
-    if (!sessionWithUser) {
-      throw new UnauthorizedError('Login required to create a project.');
-    }
-
+  /** POST /api/v1/projects/draft */
+  async createDraftProject(request: Request, env: ApiWorkerEnv, db: D1Database): Promise<Response> {
+    const user = await this.requireAuth(request, db, 'create a project');
     const body = await readJson(request);
-    const name = validateOptionalString(body.name);
-
     const project = await projectService.createDraftProject(env, db, {
-      name,
-      ownerId: sessionWithUser.user.id,
+      name: validateOptionalString(body.name),
+      ownerId: user.id,
       isPublic: true,
     });
-
     return jsonResponse(project);
   }
 
-  // PATCH /api/v1/projects/:id
-  async updateProject(
-    request: Request,
-    env: ApiWorkerEnv,
-    db: D1Database,
-    id: string,
-  ): Promise<Response> {
-    const sessionId = getSessionIdFromRequest(request);
-    if (!sessionId) {
-      throw new UnauthorizedError('Login required to update a project.');
-    }
-    const sessionWithUser = await authRepository.getSessionWithUser(
-      db,
-      sessionId,
-    );
-    if (!sessionWithUser) {
-      throw new UnauthorizedError('Login required to update a project.');
-    }
-
-    const existing = await projectService.getProjectById(db, id);
-    if (!existing) {
-      throw new NotFoundError('Project not found');
-    }
-    if (!existing.ownerId || existing.ownerId !== sessionWithUser.user.id) {
-      throw new UnauthorizedError('Only the project owner can update it.');
-    }
+  /** PATCH /api/v1/projects/:id */
+  async updateProject(request: Request, _env: ApiWorkerEnv, db: D1Database, id: string): Promise<Response> {
+    const user = await this.requireAuth(request, db, 'update a project');
+    await this.requireProjectOwner(db, id, user.id, 'update it');
 
     const body = await readJson(request);
-
     const { name, slug, repoUrl, description, category, tags, isPublic } = body;
-    if (
-      name === undefined &&
-      slug === undefined &&
-      repoUrl === undefined &&
-      description === undefined &&
-      category === undefined &&
-      tags === undefined &&
-      isPublic === undefined
-    ) {
-      throw new ValidationError(
-        'At least one of name, slug, repoUrl, description, category, tags or isPublic must be provided',
-      );
-    }
 
+    if ([name, slug, repoUrl, description, category, tags, isPublic].every((v) => v === undefined)) {
+      throw new ValidationError('At least one field must be provided');
+    }
     if (isPublic !== undefined && typeof isPublic !== 'boolean') {
       throw new ValidationError('isPublic must be a boolean');
     }
 
     const project = await projectService.updateProject(db, id, {
-      ...(name !== undefined
-        ? { name: validateRequiredString(name, 'name') }
-        : {}),
-      ...(slug !== undefined
-        ? { slug: validateRequiredString(slug, 'slug') }
-        : {}),
-      ...(isPublic !== undefined ? { isPublic } : {}),
-      ...(repoUrl !== undefined
-        ? { repoUrl: validateRequiredString(repoUrl, 'repoUrl') }
-        : {}),
-      ...(description !== undefined
-        ? { description: validateOptionalString(description) }
-        : {}),
-      ...(category !== undefined
-        ? { category: validateOptionalString(category) }
-        : {}),
-      ...(tags !== undefined
-        ? { tags: validateOptionalArray(tags, (tag) => String(tag)) }
-        : {}),
+      ...(name !== undefined && { name: validateRequiredString(name, 'name') }),
+      ...(slug !== undefined && { slug: validateRequiredString(slug, 'slug') }),
+      ...(repoUrl !== undefined && { repoUrl: validateRequiredString(repoUrl, 'repoUrl') }),
+      ...(description !== undefined && { description: validateOptionalString(description) }),
+      ...(category !== undefined && { category: validateOptionalString(category) }),
+      ...(tags !== undefined && { tags: validateOptionalArray(tags, String) }),
+      ...(isPublic !== undefined && { isPublic }),
     });
 
-    if (!project) {
-      throw new NotFoundError('Project not found');
-    }
-
+    if (!project) throw new NotFoundError('Project not found');
     return jsonResponse(project);
   }
 
-  // PATCH /api/v1/projects/:id/deployment
-  async updateProjectDeployment(
-    request: Request,
-    env: ApiWorkerEnv,
-    db: D1Database,
-    id: string,
-  ): Promise<Response> {
-    const sessionId = getSessionIdFromRequest(request);
-    if (!sessionId) {
-      throw new UnauthorizedError('Login required to update deployment status.');
-    }
-    const sessionWithUser = await authRepository.getSessionWithUser(
-      db,
-      sessionId,
-    );
-    if (!sessionWithUser) {
-      throw new UnauthorizedError('Login required to update deployment status.');
-    }
-
-    const project = await projectService.getProjectById(db, id);
-    if (!project) {
-      throw new NotFoundError('Project not found');
-    }
-    if (!project.ownerId || project.ownerId !== sessionWithUser.user.id) {
-      throw new UnauthorizedError(
-        'Only the project owner can update deployment status.',
-      );
-    }
+  /** PATCH /api/v1/projects/:id/deployment */
+  async updateProjectDeployment(request: Request, _env: ApiWorkerEnv, db: D1Database, id: string): Promise<Response> {
+    const user = await this.requireAuth(request, db, 'update deployment status');
+    await this.requireProjectOwner(db, id, user.id, 'update deployment status');
 
     const body = await readJson(request);
-
     const status = validateOptionalString(body.status);
-    const allowedStatuses = ['Live', 'Building', 'Failed', 'Offline'];
-    if (status !== undefined && !allowedStatuses.includes(status)) {
-      throw new ValidationError(
-        `status must be one of: ${allowedStatuses.join(', ')}`,
-      );
-    }
-
     const deployTarget = validateOptionalString(body.deployTarget);
-    const allowedTargets = ['local', 'cloudflare', 'r2'];
-    if (deployTarget !== undefined && !allowedTargets.includes(deployTarget)) {
-      throw new ValidationError(
-        `deployTarget must be one of: ${allowedTargets.join(', ')}`,
-      );
+
+    if (status && !['Live', 'Building', 'Failed', 'Offline'].includes(status)) {
+      throw new ValidationError('status must be one of: Live, Building, Failed, Offline');
+    }
+    if (deployTarget && !['local', 'cloudflare', 'r2'].includes(deployTarget)) {
+      throw new ValidationError('deployTarget must be one of: local, cloudflare, r2');
     }
 
     const patch = {
-      ...(status !== undefined
-        ? { status: status as typeof project.status }
-        : {}),
-      ...(body.lastDeployed !== undefined
-        ? {
-            lastDeployed: validateRequiredString(
-              body.lastDeployed,
-              'lastDeployed',
-            ),
-          }
-        : {}),
-      ...(body.url !== undefined
-        ? { url: validateOptionalString(body.url) }
-        : {}),
-      ...(deployTarget !== undefined
-        ? { deployTarget: deployTarget as typeof project.deployTarget }
-        : {}),
-      ...(body.providerUrl !== undefined
-        ? { providerUrl: validateOptionalString(body.providerUrl) }
-        : {}),
-      ...(body.cloudflareProjectName !== undefined
-        ? {
-            cloudflareProjectName: validateOptionalString(
-              body.cloudflareProjectName,
-            ),
-          }
-        : {}),
+      ...(status && { status: status as 'Live' | 'Building' | 'Failed' | 'Offline' }),
+      ...(body.lastDeployed !== undefined && { lastDeployed: validateRequiredString(body.lastDeployed, 'lastDeployed') }),
+      ...(body.url !== undefined && { url: validateOptionalString(body.url) }),
+      ...(deployTarget && { deployTarget: deployTarget as 'local' | 'cloudflare' | 'r2' }),
+      ...(body.providerUrl !== undefined && { providerUrl: validateOptionalString(body.providerUrl) }),
+      ...(body.cloudflareProjectName !== undefined && { cloudflareProjectName: validateOptionalString(body.cloudflareProjectName) }),
     };
 
-    if (
-      patch.status === undefined &&
-      patch.lastDeployed === undefined &&
-      patch.url === undefined &&
-      patch.deployTarget === undefined &&
-      patch.providerUrl === undefined &&
-      patch.cloudflareProjectName === undefined
-    ) {
-      throw new ValidationError(
-        'At least one of status, lastDeployed, url, deployTarget, providerUrl or cloudflareProjectName must be provided',
-      );
+    if (Object.keys(patch).length === 0) {
+      throw new ValidationError('At least one field must be provided');
     }
 
     const updated = await projectService.updateProjectDeployment(db, id, patch);
-    if (!updated) {
-      throw new NotFoundError('Project not found');
-    }
+    if (!updated) throw new NotFoundError('Project not found');
     return jsonResponse(updated);
   }
 
-  // DELETE /api/v1/projects/:id
-  async deleteProject(
-    request: Request,
-    env: ApiWorkerEnv,
-    db: D1Database,
-    id: string,
-  ): Promise<Response> {
-    const sessionId = getSessionIdFromRequest(request);
-    if (!sessionId) {
-      throw new UnauthorizedError('Login required to delete a project.');
-    }
-    const sessionWithUser = await authRepository.getSessionWithUser(
-      db,
-      sessionId,
-    );
-    if (!sessionWithUser) {
-      throw new UnauthorizedError('Login required to delete a project.');
-    }
-
-    const deleted = await projectService.deleteProject(
-      db,
-      id,
-      sessionWithUser.user.id,
-    );
-
-    if (!deleted) {
-      throw new NotFoundError('Project not found');
-    }
-
+  /** DELETE /api/v1/projects/:id */
+  async deleteProject(request: Request, _env: ApiWorkerEnv, db: D1Database, id: string): Promise<Response> {
+    const user = await this.requireAuth(request, db, 'delete a project');
+    const deleted = await projectService.deleteProject(db, id, user.id);
+    if (!deleted) throw new NotFoundError('Project not found');
     return new Response(null, { status: 204 });
   }
 
-  /**
-   * POST /api/v1/projects/:id/thumbnail
-   *
-   * Authenticated endpoint for project owners to upload a custom cover image.
-   * The image is stored in the shared R2 bucket under:
-   *   apps/<slug>/thumbnail.png
-   *
-   * The Explore grid and preview cards already request
-   *   https://<slug>.<APPS_ROOT_DOMAIN>/__thumbnail.png
-   * which the R2 gateway Worker maps to this R2 object, so we don't need
-   * any extra schema field on the Project itself.
-   */
-  async uploadThumbnail(
-    request: Request,
-    env: ApiWorkerEnv,
-    db: D1Database,
-    id: string,
-  ): Promise<Response> {
-    const sessionId = getSessionIdFromRequest(request);
-    if (!sessionId) {
-      throw new UnauthorizedError('Login required to upload a thumbnail.');
-    }
-    const sessionWithUser = await authRepository.getSessionWithUser(
-      db,
-      sessionId,
-    );
-    if (!sessionWithUser) {
-      throw new UnauthorizedError('Login required to upload a thumbnail.');
-    }
+  /** POST /api/v1/projects/:id/thumbnail */
+  async uploadThumbnail(request: Request, env: ApiWorkerEnv, db: D1Database, id: string): Promise<Response> {
+    const user = await this.requireAuth(request, db, 'upload a thumbnail');
+    const project = await this.requireProjectOwner(db, id, user.id, 'upload a thumbnail');
 
-    const project = await projectService.getProjectById(db, id);
-    if (!project) {
-      throw new NotFoundError('Project not found');
-    }
-    if (!project.ownerId || project.ownerId !== sessionWithUser.user.id) {
-      throw new UnauthorizedError(
-        'Only the project owner can upload a thumbnail.',
-      );
-    }
-
-    const deployTarget = configService.getDeployTarget(env);
-    if (deployTarget !== 'r2') {
-      throw new ValidationError(
-        'Thumbnail upload is only supported when deploy target is "r2".',
-      );
+    if (configService.getDeployTarget(env) !== 'r2') {
+      throw new ValidationError('Thumbnail upload is only supported when deploy target is "r2".');
     }
 
     const bucket = env.ASSETS;
     if (!bucket) {
-      throw new ConfigurationError(
-        'R2 bucket binding "ASSETS" is not configured in the API Worker.',
-      );
+      throw new ConfigurationError('R2 bucket binding "ASSETS" is not configured.');
     }
 
-    if (!project.slug || project.slug.trim().length === 0) {
-      throw new ValidationError(
-        'Project slug is missing. Deploy the project first before uploading a thumbnail.',
-      );
+    if (!project.slug?.trim()) {
+      throw new ValidationError('Project slug is missing. Deploy the project first.');
     }
 
     const formData = await request.formData();
     const entry = formData.get('file');
-    // In the Workers runtime, FormData entries are either string or File.
     if (!entry || typeof entry === 'string') {
       throw new ValidationError('Missing image file in form field "file".');
     }
-    const file = entry as File;
 
-    if (!file.type || !file.type.startsWith('image/')) {
+    const file = entry as File;
+    if (!file.type?.startsWith('image/')) {
       throw new ValidationError('Only image uploads are supported.');
     }
-
-    const maxBytes = 4 * 1024 * 1024; // 4MB limit for thumbnails
-    if (file.size > maxBytes) {
+    if (file.size > 4 * 1024 * 1024) {
       throw new ValidationError('Thumbnail image is too large (max 4MB).');
     }
 
-    const key = `apps/${project.slug}/thumbnail.png`;
-
-    await bucket.put(key, file.stream(), {
-      httpMetadata: {
-        contentType: file.type,
-      },
+    await bucket.put(`apps/${project.slug}/thumbnail.png`, file.stream(), {
+      httpMetadata: { contentType: file.type },
     });
 
     const appsRootDomain = configService.getAppsRootDomain(env);
-    const thumbnailUrl = project.slug
-      ? `https://${project.slug}.${appsRootDomain}/__thumbnail.png`
-      : undefined;
-
-    return jsonResponse(
-      {
-        ok: true,
-        thumbnailUrl,
-      },
-      200,
-    );
+    return jsonResponse({
+      ok: true,
+      thumbnailUrl: `https://${project.slug}.${appsRootDomain}/__thumbnail.png`,
+    });
   }
 }
 
