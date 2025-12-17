@@ -30,15 +30,10 @@ export const SidebarProjectList: React.FC<SidebarProjectListProps> = ({
 
   return (
     <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/5 flex flex-col min-h-0 flex-1">
-      <div className="px-2 mb-2 flex items-center justify-between gap-2 flex-shrink-0">
-        <p className="text-[10px] font-semibold text-slate-400 dark:text-gray-400 uppercase tracking-wider">
-          {t('navigation.myProjects')}
+      <div className="px-5 mb-3 flex items-center justify-between gap-2 flex-shrink-0">
+        <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+          Projects
         </p>
-        <SidebarProjectViewToggle
-          viewType={viewType}
-          onViewTypeChange={onViewTypeChange}
-          hasPinned={pinnedProjects.length > 0}
-        />
       </div>
       <div className="overflow-y-auto flex-1 min-h-0">
         {isLoading ? (

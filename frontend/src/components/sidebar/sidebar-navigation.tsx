@@ -26,17 +26,17 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
     { path: '/deploy', label: t('navigation.deployApp'), icon: Package },
     ...(authUser
       ? [
-          { path: '/dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard },
-          { path: '/me', label: t('navigation.profile'), icon: User },
-        ]
+        { path: '/dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard },
+        { path: '/me', label: t('navigation.profile'), icon: User },
+      ]
       : []),
   ];
 
   return (
     <div className="space-y-1 flex-shrink-0">
       {navItems.map((item) => {
-        const isActive = item.path === '/' 
-          ? location.pathname === '/' 
+        const isActive = item.path === '/'
+          ? location.pathname === '/'
           : location.pathname.startsWith(item.path);
         const isHome = item.path === '/';
         return (
@@ -48,15 +48,12 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
                 setSidebarOpen(false);
               }
             }}
-            className={`group items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200 relative overflow-hidden ${
-              isHome ? 'hidden md:flex' : 'flex'
-            } ${
-              collapsed ? 'w-10 h-10 justify-center p-0 mx-auto' : 'w-full min-h-[44px] px-4 py-3'
-            } ${
-              isActive
-                ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800'
-                : 'text-slate-500 dark:text-gray-400 bg-transparent dark:bg-transparent hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800'
-            }`}
+            className={`group items-center gap-3 rounded-lg text-sm transition-all duration-200 relative overflow-hidden ${isHome ? 'hidden md:flex' : 'flex'
+              } ${collapsed ? 'w-10 h-10 justify-center p-0 mx-auto' : 'w-full min-h-[44px] px-4 py-3'
+              } ${isActive
+                ? 'font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 shadow-sm'
+                : 'font-medium text-slate-500 dark:text-gray-400 bg-transparent hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
+              }`}
           >
             <item.icon className={`flex-shrink-0 transition-colors ${collapsed ? 'w-5 h-5' : 'w-5 h-5'} ${isActive ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 group-hover:text-slate-600 dark:text-gray-500 dark:group-hover:text-gray-300'}`} />
             {!collapsed && (

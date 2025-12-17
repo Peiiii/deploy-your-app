@@ -48,7 +48,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
         value={localValue}
         onChange={handleChange}
         placeholder={t('explore.searchApps')}
-        className="w-full pl-11 pr-4 py-3.5 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 rounded-full text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 focus:bg-white dark:focus:bg-slate-800 transition-all duration-300 shadow-sm hover:shadow-lg hover:border-slate-300 dark:hover:border-slate-600 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+        className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all shadow-sm"
       />
       {localValue && (
         <button
@@ -110,9 +110,9 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
             key={cat}
             onClick={() => handleCategoryClick(cat)}
             style={{ animationDelay: `${index * 30}ms` }}
-            className={`rounded-full font-semibold whitespace-nowrap transition-all duration-300 animate-fade-in ${isCompact ? 'px-3 py-1.5 text-xs' : 'px-5 py-2.5 text-sm'} ${isActive
-              ? 'bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-lg shadow-brand-500/40 scale-105 ring-2 ring-brand-500/20'
-              : 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:scale-105 hover:shadow-md backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50'
+            className={`rounded-lg font-medium whitespace-nowrap transition-all duration-200 ${isCompact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'} ${isActive
+              ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
+              : 'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
           >
             {getCategoryLabel(cat)}
@@ -251,7 +251,7 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
         <ExploreSkeletonGrid />
       ) : apps.length > 0 ? (
         <div>
-          <div className={`grid ${compact ? 'gap-4' : 'gap-6'} ${compact ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+          <div className={`grid ${compact ? 'gap-4' : 'gap-6'} ${compact ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'}`}>
             {apps.map((app, index) => (
               <div
                 key={app.id}

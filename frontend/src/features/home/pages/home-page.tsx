@@ -58,18 +58,43 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <div className="h-full bg-app-bg relative overflow-hidden">
-      <div className={`flex flex-col lg:flex-row gap-4 lg:gap-6 ${selectedApp ? 'max-w-full' : 'max-w-7xl'} mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 lg:py-8 ${selectedApp ? 'h-[calc(100vh-4rem)]' : ''}`}>
-        {/* Left Column - App List */}
-        <div className={`transition-all duration-500 ease-out ${selectedApp ? 'w-full lg:w-1/2 flex flex-col overflow-hidden' : 'w-full'}`}>
-          <div className={`space-y-6 md:space-y-8 transition-all duration-500 ${selectedApp ? 'flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent' : ''}`}>
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-900 relative flex flex-col">
+      <div className={`flex-1 flex flex-col lg:flex-row`}>
+        {/* Main Content Area */}
+        <div
+          className={`transition-all duration-500 ease-out pb-8 ${selectedApp ? 'w-full lg:w-1/2' : 'w-full max-w-7xl mx-auto'
+            }`}
+        >
+          {/* Bento Header */}
+          <header className="h-20 px-8 flex items-center justify-between sticky top-0 bg-[#f8fafc]/80 dark:bg-slate-900/80 backdrop-blur z-20 border-b border-slate-100 dark:border-slate-800/50">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+              {t('navigation.home')}
+            </h1>
+            <button
+              onClick={() => navigate('/deploy')}
+              className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-md"
+            >
+              + {t('common.newProject') || 'New Project'}
+            </button>
+          </header>
 
-            {/* Deploy Section - Top */}
+          <div className="p-6 md:p-8 pt-6">
+            {/* Quick Deploy Title */}
+            <div className="mb-4">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
+                {t('home.quickDeploy')}
+              </h2>
+            </div>
+
+            {/* Deploy Section */}
             <HomeDeploySection
               compact={!!selectedApp}
               onQuickDeploy={handleQuickDeploy}
             />
 
+            <div className="h-8" />
+
+            {/* Explore Section */}
             <HomeExploreSection
               compact={!!selectedApp}
               onCardClick={handleCardClick}
@@ -79,11 +104,18 @@ export const Home: React.FC = () => {
 
         {/* Right Column - Preview Panel */}
         {selectedApp && (
-          <AppPreviewPanel
-            app={selectedApp}
-            onClose={handleClosePreview}
-            onOpenInNewTab={handleOpenInNewTab}
-          />
+          <div
+            className="hidden lg:block fixed top-0 right-0 bottom-0 z-50 shadow-2xl border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+            style={{
+              width: `calc((100vw - ${sidebarCollapsed ? '4rem' : '16rem'}) / 2)`,
+            }}
+          >
+            <AppPreviewPanel
+              app={selectedApp}
+              onClose={handleClosePreview}
+              onOpenInNewTab={handleOpenInNewTab}
+            />
+          </div>
         )}
       </div>
     </div>

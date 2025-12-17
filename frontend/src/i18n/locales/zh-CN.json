@@ -294,6 +294,9 @@
     "collapseSidebar": "收起侧边栏",
     "expandSidebar": "展开侧边栏"
   },
+  "home": {
+    "quickDeploy": "快速部署"
+  },
   "profile": {
     "title": "我的主页",
     "myProfile": "我的主页",

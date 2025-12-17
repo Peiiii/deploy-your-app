@@ -1,11 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  
+  /* Bento Palette - Light (Default) */
+  --bg-app: #f8fafc; /* Slate-50 */
+  --bg-surface: #ffffff;
+  --border-subtle: #e2e8f0; /* Slate-200 */
+  --text-primary: #0f172a; /* Slate-900 */
+  --text-secondary: #64748b; /* Slate-500 */
+  
+  --color-brand: #3b82f6; /* Blue-500 */
+  --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.025);
+  --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  
+  color: var(--text-primary);
+  background-color: var(--bg-app);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -13,13 +27,30 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Dark Mode Overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-app: #0f172a; /* Slate-900 */
+    --bg-surface: #1e293b; /* Slate-800 */
+    --border-subtle: #334155; /* Slate-700 */
+    --text-primary: #f8fafc; /* Slate-50 */
+    --text-secondary: #94a3b8; /* Slate-400 */
+    --color-brand: #60a5fa; /* Blue-400 */
+    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+    
+    color: var(--text-primary);
+    background-color: var(--bg-app);
+  }
+}
+
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--color-brand);
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  text-decoration: underline;
 }
 
 body {
@@ -29,6 +60,8 @@ body {
   width: 100%;
   height: 100vh;
   overflow: hidden;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
 }
 
 #root {
@@ -37,17 +70,39 @@ body {
   overflow: hidden;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* Utilities */
+.bento-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1.5rem; /* 24px */
+  box-shadow: var(--shadow-soft);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+.bento-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+  border-color: var(--color-brand);
+}
+
+/* Glass panel utility (optional for overlays) */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+@media (prefers-color-scheme: dark) {
+  .glass-panel {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
   }
-  a:hover {
-    color: #747bff;
-  }
+}
+
+/* Scrollbar hiding */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }

@@ -18,7 +18,7 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
     const { t } = useTranslation();
 
     return (
-        <div className="hidden lg:flex lg:flex-col w-1/2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl border border-slate-200/60 dark:border-slate-800/60 shadow-2xl overflow-hidden flex-shrink-0 h-[calc(100vh-4rem-3rem)] animate-fade-in">
+        <div className="flex flex-col w-full h-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md animate-fade-in shadow-none border-none rounded-none">
             {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-slate-200/80 dark:border-slate-800/80 bg-gradient-to-r from-slate-50/80 to-white/80 dark:from-slate-900/80 dark:to-slate-800/80 backdrop-blur-sm flex-shrink-0">
                 <div className="flex items-center gap-4 min-w-0 flex-1">
@@ -61,7 +61,7 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
                 {app.url ? (
                     <iframe
                         src={app.url}
-                        className="w-full h-full border-0 rounded-b-3xl"
+                        className="w-full h-full border-0 rounded-none"
                         title={app.name}
                         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
                     />

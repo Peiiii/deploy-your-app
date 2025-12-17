@@ -17,35 +17,55 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({
     const { t } = useTranslation();
     const Icon = option.icon;
 
+    const isDark = option.variant === 'dark';
+
     return (
         <button
             onClick={onClick}
-            className={`group relative border-2 border-slate-200/60 dark:border-slate-800/60 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm hover:border-${option.hoverColor}-500/60 dark:hover:border-${option.hoverColor}-500/60 hover:shadow-2xl hover:shadow-${option.hoverColor}-500/20 hover:-translate-y-1 transition-all duration-300 text-left overflow-hidden ${compact ? 'p-4 rounded-xl' : 'p-5 md:p-7 rounded-xl md:rounded-2xl'
+            className={`group relative text-left overflow-hidden rounded-3xl transition-all duration-300 ${compact ? 'p-5' : 'p-6 md:p-8'
+                } ${isDark
+                    ? 'bg-[#0f172a] text-white shadow-xl hover:shadow-2xl hover:-translate-y-1'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-slate-300 dark:hover:border-slate-600'
                 }`}
         >
-            <div className={`absolute inset-0 bg-gradient-to-br from-${option.hoverColor}-500/0 to-${option.hoverColor}-500/0 group-hover:from-${option.hoverColor}-500/5 group-hover:to-${option.hoverColor}-600/5 transition-all duration-300`} />
-            <div className="relative z-10">
-                <div className={`flex items-start justify-between ${compact ? 'mb-3' : 'mb-5'}`}>
+            <div className="relative z-10 flex flex-col h-full justify-between">
+                <div className={`flex items-start justify-between ${compact ? 'mb-4' : 'mb-6'}`}>
                     <div
-                        className={`rounded-xl bg-gradient-to-br ${option.colorFrom} ${option.colorTo} ${option.bgFrom} ${option.bgTo} group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg ${option.shadowColor} ${compact ? 'p-3' : 'p-4'
+                        className={`rounded-xl flex items-center justify-center transition-all duration-300 ${compact ? 'w-10 h-10' : 'w-12 h-12'
+                            } ${isDark
+                                ? 'bg-white/10 text-white'
+                                : `bg-slate-50 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-slate-600`
                             }`}
                     >
-                        <Icon className={`${option.iconColor} ${compact ? 'w-5 h-5' : 'w-7 h-7'}`} />
+                        <Icon className={compact ? 'w-5 h-5' : 'w-6 h-6'} />
                     </div>
-                    <ArrowRight
-                        className={`text-slate-400 group-hover:text-${option.hoverColor}-500 group-hover:translate-x-2 transition-all duration-300 ${compact ? 'w-4 h-4' : 'w-5 h-5'
-                            }`}
-                    />
+
+                    {!isDark && (
+                        <ArrowRight
+                            className={`text-slate-300 dark:text-slate-600 group-hover:text-slate-500 group-hover:translate-x-1 transition-all duration-300 ${compact ? 'w-4 h-4' : 'w-5 h-5'
+                                }`}
+                        />
+                    )}
+                    {isDark && (
+                        <div className="text-white/30 group-hover:text-white/60 transition-colors">
+                            <ArrowRight className={compact ? 'w-4 h-4' : 'w-5 h-5'} />
+                        </div>
+                    )}
                 </div>
-                <h3
-                    className={`font-bold text-slate-900 dark:text-white mb-2 group-hover:text-${option.hoverColor}-600 dark:group-hover:text-${option.hoverColor}-400 transition-colors ${compact ? 'text-base' : 'text-lg'
-                        }`}
-                >
-                    {t(option.titleKey)}
-                </h3>
-                <p className={`text-slate-600 dark:text-slate-400 leading-relaxed ${compact ? 'text-xs' : 'text-sm'}`}>
-                    {t(option.descriptionKey)}
-                </p>
+
+                <div>
+                    <h3
+                        className={`font-bold mb-1 transition-colors ${compact ? 'text-base' : 'text-lg'
+                            } ${isDark ? 'text-white' : 'text-slate-900 dark:text-white'}`}
+                    >
+                        {t(option.titleKey)}
+                    </h3>
+
+                    <p className={`font-medium leading-relaxed ${compact ? 'text-xs' : 'text-sm'
+                        } ${isDark ? 'text-slate-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                        {t(option.descriptionKey)}
+                    </p>
+                </div>
             </div>
         </button>
     );

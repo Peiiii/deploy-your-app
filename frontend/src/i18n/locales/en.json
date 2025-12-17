@@ -298,6 +298,9 @@
     "collapseSidebar": "Collapse sidebar",
     "expandSidebar": "Expand sidebar"
   },
+  "home": {
+    "quickDeploy": "Quick Deploy"
+  },
   "profile": {
     "title": "My profile",
     "myProfile": "My Profile",

@@ -59,14 +59,14 @@ export const Sidebar: React.FC = () => {
         </nav>
 
         {!sidebarCollapsed && (
-          <div className="p-4 mx-4 mb-2 rounded-xl bg-gradient-to-b from-slate-100 to-transparent dark:from-white/5 border border-slate-200 dark:border-white/5">
+          <div className="p-4 mx-4 mb-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-300 flex items-center justify-center border border-purple-500/20 dark:border-purple-500/30">
+              <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 text-purple-600 dark:text-purple-300 flex items-center justify-center border border-slate-100 dark:border-slate-600 shadow-sm">
                 <Rocket className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-900 dark:text-white">{t('ui.theShowcase')}</p>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400">{t('ui.proPlan')}</p>
+                <p className="text-xs font-semibold text-slate-900 dark:text-white">{t('ui.theShowcase')}</p>
+                <p className="text-[10px] text-slate-500 dark:text-gray-400 font-medium">{t('ui.proPlan')}</p>
               </div>
             </div>
           </div>
