@@ -84,8 +84,8 @@ function buildMetadataUserPrompt(
     `Source identifier (repo URL or file name): ${identifier}\n`;
   const contextSection = context
     ? '\nAdditional context (snippets from deployed app):\n' +
-      context +
-      '\n'
+    context +
+    '\n'
     : '';
   return (
     basePrompt +
@@ -180,13 +180,6 @@ class AIService {
       });
 
       if (!response.ok) {
-        const errorText = await response.text().catch(() => '');
-        console.error(
-          'AI metadata generation failed:',
-          response.status,
-          response.statusText,
-          errorText,
-        );
         return emptySuggestion();
       }
 
@@ -199,8 +192,7 @@ class AIService {
       let parsed: ProjectMetadataSuggestion;
       try {
         parsed = JSON.parse(text) as ProjectMetadataSuggestion;
-      } catch (err) {
-        console.error('Failed to parse AI metadata JSON:', err, 'raw:', text);
+      } catch {
         return emptySuggestion();
       }
 
@@ -210,17 +202,17 @@ class AIService {
           : null;
       const descriptionResult =
         typeof parsed.description === 'string' &&
-        parsed.description.trim().length > 0
+          parsed.description.trim().length > 0
           ? parsed.description.trim()
           : null;
       const categoryResult =
         typeof parsed.category === 'string' ? parsed.category : null;
       const tagsResult = Array.isArray(parsed.tags)
         ? parsed.tags
-            .filter((tag): tag is string => typeof tag === 'string')
-            .map((tag) => tag.trim().toLowerCase())
-            .filter((tag) => tag.length > 0)
-            .slice(0, 5)
+          .filter((tag): tag is string => typeof tag === 'string')
+          .map((tag) => tag.trim().toLowerCase())
+          .filter((tag) => tag.length > 0)
+          .slice(0, 5)
         : [];
       const slugResult = normalizeSlugCandidate(parsed.slug);
 
@@ -231,8 +223,7 @@ class AIService {
         description: descriptionResult,
         slug: slugResult,
       };
-    } catch (err) {
-      console.error('Error calling AI metadata generator:', err);
+    } catch {
       return emptySuggestion();
     }
   }

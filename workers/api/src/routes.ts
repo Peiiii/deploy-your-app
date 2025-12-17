@@ -190,14 +190,6 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
       analyticsController.pingPageView(req, env, requireDb(), params.slug),
   });
 
-  // Debug: raw analytics rows by slug (no auth, read-only).
-  router.add({
-    path: '/api/v1/analytics/debug/raw',
-    method: 'GET',
-    handler: (req) =>
-      analyticsController.debugRawStats(req, env, requireDb()),
-  });
-
   router.add({
     path: '/api/v1/projects/:id/stats',
     method: 'GET',
