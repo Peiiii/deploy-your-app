@@ -49,6 +49,7 @@ class DeployController {
     // 5. Ensure project has slug (via AI analysis if needed)
     const enrichResult = await deployService.ensureProjectHasSlug(
       env,
+      db,
       request,
       project,
       sourceType,

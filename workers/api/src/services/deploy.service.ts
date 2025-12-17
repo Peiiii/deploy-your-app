@@ -110,14 +110,21 @@ class DeployService {
      */
     async ensureProjectHasSlug(
         env: ApiWorkerEnv,
+        db: D1Database,
         _request: Request,
         project: Project,
         sourceType: SourceType,
         input: DeployInput,
     ): Promise<{ project: Project; analysisId?: string }> {
-        // Already has slug, no need to enrich
-        if (project.slug?.trim()) {
+        // Treat literal "null" as missing
+        const existingSlug = project.slug?.trim();
+        const hasSlug =
+            !!existingSlug && existingSlug.toLowerCase() !== 'null';
+        if (hasSlug) {
             return { project, analysisId: input.analysisId };
+        }
+        if (existingSlug?.toLowerCase() === 'null') {
+            project = { ...project, slug: undefined };
         }
 
         let contextId: string | undefined;
@@ -166,6 +173,25 @@ class DeployService {
                 };
                 if (!project.slug?.trim()) {
                     project.slug = fallbackSlug;
+                }
+
+                // Persist slug/metadata so frontend can immediately read it.
+                const patch: ProjectMetadataOverrides & { slug?: string } = {};
+                if (meta.slug) patch.slug = meta.slug;
+                if (meta.name) patch.name = meta.name;
+                if (meta.description) patch.description = meta.description;
+                if (meta.category) patch.category = meta.category;
+                if (meta.tags) patch.tags = meta.tags;
+
+                if (Object.keys(patch).length > 0) {
+                    const updated = await projectService.updateProject(
+                        db,
+                        project.id,
+                        patch,
+                    );
+                    if (updated) {
+                        project = updated;
+                    }
                 }
             }
         } catch (err) {
