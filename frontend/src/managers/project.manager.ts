@@ -9,14 +9,36 @@ export class ProjectManager {
     this.provider = provider;
   }
 
-  loadProjects = async () => {
+  loadProjects = async (page = 1) => {
     const actions = useProjectStore.getState().actions;
     actions.setIsLoading(true);
     try {
-      const projects = await this.provider.getProjects();
-      actions.setProjects(projects);
+      const response = await this.provider.getProjects(page);
+      actions.setProjects(response, false);
     } catch (error) {
       console.error("Failed to load projects", error);
+    } finally {
+      actions.setIsLoading(false);
+    }
+  };
+
+  loadMore = async () => {
+    const { pagination, isLoading } = useProjectStore.getState();
+
+    // Don't load if already loading or no more data
+    if (isLoading || !pagination.hasMore) {
+      return;
+    }
+
+    const actions = useProjectStore.getState().actions;
+    actions.setIsLoading(true);
+
+    try {
+      const nextPage = pagination.page + 1;
+      const response = await this.provider.getProjects(nextPage, pagination.pageSize);
+      actions.setProjects(response, true); // append=true
+    } catch (error) {
+      console.error("Failed to load more projects", error);
     } finally {
       actions.setIsLoading(false);
     }
@@ -87,12 +109,9 @@ export class ProjectManager {
   ) => {
     try {
       const updated = await this.provider.updateProject(id, patch);
-      const actions = useProjectStore.getState().actions;
-      actions.setProjects(
-        useProjectStore.getState().projects.map((p) =>
-          p.id === updated.id ? updated : p,
-        ),
-      );
+      useProjectStore.setState((state) => ({
+        projects: state.projects.map((p) => p.id === updated.id ? updated : p)
+      }));
     } catch (error) {
       console.error("Failed to update project", error);
     }
@@ -111,12 +130,9 @@ export class ProjectManager {
   ): Promise<Project | undefined> => {
     try {
       const updated = await this.provider.updateProjectDeployment(id, patch);
-      const actions = useProjectStore.getState().actions;
-      actions.setProjects(
-        useProjectStore.getState().projects.map((p) =>
-          p.id === updated.id ? updated : p,
-        ),
-      );
+      useProjectStore.setState((state) => ({
+        projects: state.projects.map((p) => p.id === updated.id ? updated : p)
+      }));
       return updated;
     } catch (error) {
       console.error('Failed to update project deployment status', error);
@@ -136,12 +152,13 @@ export class ProjectManager {
   deleteProject = async (id: string) => {
     try {
       await this.provider.deleteProject(id);
-      const actions = useProjectStore.getState().actions;
-      actions.setProjects(
-        useProjectStore
-          .getState()
-          .projects.filter((p) => p.id !== id),
-      );
+      useProjectStore.setState((state) => ({
+        projects: state.projects.filter((p) => p.id !== id),
+        pagination: {
+          ...state.pagination,
+          total: Math.max(0, state.pagination.total - 1)
+        }
+      }));
     } catch (error) {
       console.error('Failed to delete project', error);
       throw error;

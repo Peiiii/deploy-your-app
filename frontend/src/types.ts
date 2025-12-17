@@ -28,10 +28,10 @@ export interface Project {
   repoUrl: string; // Used as source identifier (URL for git, filename for zip)
   sourceType?: SourceType;
   slug?: string;
-   // Optional analysis session id used by the Node builder to reuse a
-   // prepared work directory between the metadata analysis step and the
-   // actual deployment step.
-   analysisId?: string;
+  // Optional analysis session id used by the Node builder to reuse a
+  // prepared work directory between the metadata analysis step and the
+  // actual deployment step.
+  analysisId?: string;
   // Optional base64-encoded ZIP content for one-off deployments when sourceType === 'zip'.
   // This is only used for the deployment job and is not persisted in the project list.
   zipData?: string;
@@ -108,6 +108,16 @@ export interface ExploreProjectsResponse {
   pageSize: number;
   total: number;
   engagement?: Record<string, { likesCount: number; favoritesCount: number }>;
+}
+
+/**
+ * Generic paginated response for API endpoints
+ */
+export interface PaginatedResponse<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
 }
 
 // ---------------------------------------------------------------------------

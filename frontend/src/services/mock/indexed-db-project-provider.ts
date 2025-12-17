@@ -1,5 +1,5 @@
 import type { IProjectProvider } from '../interfaces';
-import type { Project } from '../../types';
+import type { Project, PaginatedResponse } from '../../types';
 import { SourceType } from '../../types';
 import { db } from '../db';
 import { URLS } from '../../constants';
@@ -30,20 +30,29 @@ const SEED_PROJECTS: Project[] = [
 ];
 
 export class IndexedDBProjectProvider implements IProjectProvider {
-  async getProjects(): Promise<Project[]> {
+  async getProjects(page = 1, pageSize = 50): Promise<PaginatedResponse<Project>> {
     // Check if empty, if so, seed data
     const count = await db.count('projects');
     if (count === 0) {
-        for (const p of SEED_PROJECTS) {
-            await db.add('projects', p);
-        }
+      for (const p of SEED_PROJECTS) {
+        await db.add('projects', p);
+      }
     }
-    return db.getAll<Project>('projects');
+    const all = await db.getAll<Project>('projects');
+    const start = (page - 1) * pageSize;
+    const items = all.slice(start, start + pageSize);
+
+    return {
+      items,
+      page,
+      pageSize,
+      total: all.length,
+    };
   }
 
   async findProjectByRepoUrl(repoUrl: string): Promise<Project | null> {
-    const all = await this.getProjects();
-    return all.find((p) => p.repoUrl === repoUrl) ?? null;
+    const response = await this.getProjects();
+    return response.items.find((p) => p.repoUrl === repoUrl) ?? null;
   }
 
   async createDraftProject(
@@ -88,7 +97,7 @@ export class IndexedDBProjectProvider implements IProjectProvider {
       category: 'Development',
       htmlContent: options?.htmlContent,
     };
-    
+
     await db.add('projects', newProject);
     return newProject;
   }

@@ -41,6 +41,14 @@ export const useHomeExploreFeed = () => {
       if (append) {
         setIsLoadingMore(true);
       } else {
+        console.log('[useHomeExploreFeed] loading explore page', {
+          pageToLoad,
+          append,
+          page,
+          hasMore,
+          isLoadingExplore,
+          isLoadingMore,
+        });
         setIsLoadingExplore(true);
         setIsLoadingMore(false);
       }
@@ -84,6 +92,10 @@ export const useHomeExploreFeed = () => {
       } catch (error) {
         console.error('Failed to load explore apps for Home', error);
       } finally {
+        console.log('[useHomeExploreFeed] finally', {
+          requestId,
+          exploreRequestIdRefCurrent: exploreRequestIdRef.current,
+        });
         if (requestId === exploreRequestIdRef.current) {
           setIsLoadingExplore(false);
           setIsLoadingMore(false);

@@ -85,9 +85,13 @@ class ProjectsController {
   // ─────────────────────────────────────────────────────────────
 
   /** GET /api/v1/projects */
-  async listProjects(_request: Request, _env: ApiWorkerEnv, db: D1Database): Promise<Response> {
-    const projects = await projectService.getProjects(db);
-    return jsonResponse(projects);
+  async listProjects(request: Request, _env: ApiWorkerEnv, db: D1Database): Promise<Response> {
+    const url = new URL(request.url);
+    const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
+    const pageSize = Math.min(100, Math.max(1, parseInt(url.searchParams.get('pageSize') || '50', 10)));
+
+    const result = await projectService.getProjects(db, { page, pageSize });
+    return jsonResponse(result);
   }
 
   /** GET /api/v1/projects/explore */

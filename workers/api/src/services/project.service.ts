@@ -23,8 +23,21 @@ interface CreateProjectInput {
 }
 
 class ProjectService {
-  async getProjects(db: D1Database): Promise<Project[]> {
-    return projectRepository.getAllProjects(db);
+  async getProjects(
+    db: D1Database,
+    options?: { page?: number; pageSize?: number },
+  ): Promise<{ items: Project[]; page: number; pageSize: number; total: number }> {
+    const page = options?.page ?? 1;
+    const pageSize = options?.pageSize ?? 50;
+
+    const { items, total } = await projectRepository.getAllProjects(db, { page, pageSize });
+
+    return {
+      items,
+      page,
+      pageSize,
+      total,
+    };
   }
 
   async createProject(

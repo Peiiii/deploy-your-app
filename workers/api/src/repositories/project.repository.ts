@@ -211,16 +211,36 @@ class ProjectRepository {
     return this.mapRowToProject(row);
   }
 
-  async getAllProjects(db: D1Database): Promise<Project[]> {
+  async getAllProjects(
+    db: D1Database,
+    options?: { page?: number; pageSize?: number },
+  ): Promise<{ items: Project[]; total: number }> {
     await this.ensureSchema(db);
+
+    const page = options?.page ?? 1;
+    const pageSize = options?.pageSize ?? 50;
+    const offset = (page - 1) * pageSize;
+
+    // Get total count
+    const countResult = await db
+      .prepare('SELECT COUNT(*) as count FROM projects')
+      .first<{ count: number }>();
+    const total = countResult?.count ?? 0;
+
+    // Get paginated results
     const result = await db
       .prepare(
         `SELECT * FROM projects
-         ORDER BY datetime(last_deployed) DESC`,
+         ORDER BY datetime(last_deployed) DESC
+         LIMIT ? OFFSET ?`,
       )
+      .bind(pageSize, offset)
       .all<ProjectRow>();
+
     const rows = result.results ?? [];
-    return rows.map((row) => this.mapRowToProject(row));
+    const items = rows.map((row) => this.mapRowToProject(row));
+
+    return { items, total };
   }
 
   /**

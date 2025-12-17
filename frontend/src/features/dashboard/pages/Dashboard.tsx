@@ -9,6 +9,7 @@ import { useReactionStore } from '@/stores/reaction.store';
 import { useDashboardStore } from '@/features/dashboard/stores/dashboard.store';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useCopyToClipboardWithKey } from '@/hooks/use-copy-to-clipboard-with-key';
+import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { StatCard } from '@/features/dashboard/components/stat-card';
 import { ProjectCard } from '@/features/dashboard/components/project-card';
 import { DashboardLayout } from '@/features/dashboard/components/dashboard-layout';
@@ -33,6 +34,18 @@ export const Dashboard: React.FC = () => {
   const sortDirection = useDashboardStore((s) => s.sortDirection);
 
   const { copyToClipboard, isCopied } = useCopyToClipboardWithKey();
+
+  // Pagination state
+  const sentinelRef = React.useRef<HTMLDivElement>(null);
+  const pagination = useProjectStore((s) => s.pagination);
+  const isLoadingProjects = useProjectStore((s) => s.isLoading);
+
+  // Infinite scroll
+  useInfiniteScroll({
+    targetRef: sentinelRef,
+    onLoadMore: () => presenter.project.loadMore(),
+    enabled: pagination.hasMore && !isLoadingProjects,
+  });
 
   const projects = React.useMemo(
     () => (user ? allProjects.filter((p) => p.ownerId === user.id) : []),
@@ -231,6 +244,16 @@ export const Dashboard: React.FC = () => {
               </div>
               <span className="font-medium">{t('dashboard.deployApp')}</span>
             </button>
+          </div>
+        )}
+
+        {/* Infinite scroll sentinel */}
+        <div ref={sentinelRef} className="h-4" />
+
+        {/* Loading indicator */}
+        {isLoadingProjects && pagination.page > 0 && (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
           </div>
         )}
       </div>

@@ -1,12 +1,13 @@
 import type { IProjectProvider } from '../interfaces';
-import type { Project, DeploymentMetadata, SourceType } from '../../types';
+import type { Project, DeploymentMetadata, SourceType, PaginatedResponse } from '../../types';
 import { APP_CONFIG, API_ROUTES } from '../../constants';
 
 export class HttpProjectProvider implements IProjectProvider {
   private baseUrl = APP_CONFIG.API_BASE_URL;
 
-  async getProjects(): Promise<Project[]> {
-    const response = await fetch(`${this.baseUrl}${API_ROUTES.PROJECTS}`);
+  async getProjects(page = 1, pageSize = 50): Promise<PaginatedResponse<Project>> {
+    const url = `${this.baseUrl}${API_ROUTES.PROJECTS}?page=${page}&pageSize=${pageSize}`;
+    const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch projects");
     return response.json();
   }

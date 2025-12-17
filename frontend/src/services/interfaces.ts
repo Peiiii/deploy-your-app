@@ -4,6 +4,7 @@ import type {
   DeploymentMetadata,
   ProjectStats,
   ProjectReactions,
+  PaginatedResponse,
 } from '../types';
 import { DeploymentStatus, SourceType } from '../types';
 
@@ -12,7 +13,7 @@ export interface DeploymentResult {
 }
 
 export interface IProjectProvider {
-  getProjects(): Promise<Project[]>;
+  getProjects(page?: number, pageSize?: number): Promise<PaginatedResponse<Project>>;
   findProjectByRepoUrl(repoUrl: string): Promise<Project | null>;
   createDraftProject(
     name?: string,
