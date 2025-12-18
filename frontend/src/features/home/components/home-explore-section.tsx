@@ -215,30 +215,25 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
             {t('explore.sortBy')}:
           </span>
           <div
-            className={`inline-flex items-center gap-1 rounded-xl bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 ${compact ? 'p-1' : 'p-1.5'
-              }`}
+            className={`relative isolate inline-grid grid-cols-2 gap-1 rounded-full bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 ${compact ? 'p-1' : 'p-1.5'}`}
           >
+            <div
+              className={`absolute top-1 bottom-1 left-1 bg-white dark:bg-slate-800 rounded-full shadow-md transition-transform duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] z-0 ${compact ? 'w-[calc(50%-6px)]' : 'w-[calc(50%-8px)]'}`}
+              style={{ transform: sortBy === 'recent' ? 'translateX(calc(100% + 4px))' : 'translateX(0)' }}
+            />
             <button
               onClick={() => setSortBy('popularity')}
-              className={`inline-flex items-center gap-1.5 rounded-lg font-semibold transition-all duration-300 ${compact ? 'px-2.5 py-1.5 text-[10px]' : 'px-4 py-2 text-xs'
-                } ${sortBy === 'popularity'
-                  ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-md scale-105'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
-                }`}
+              className={`relative z-10 inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-colors duration-200 ${compact ? 'px-2 py-1.5 text-[10px]' : 'px-3 py-2 text-xs'} ${sortBy === 'popularity' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
             >
               <TrendingUp className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
-              {t('explore.sortByPopularity')}
+              <span className="whitespace-nowrap">{t('explore.sortByPopularity')}</span>
             </button>
             <button
               onClick={() => setSortBy('recent')}
-              className={`inline-flex items-center gap-1.5 rounded-lg font-semibold transition-all duration-300 ${compact ? 'px-2.5 py-1.5 text-[10px]' : 'px-4 py-2 text-xs'
-                } ${sortBy === 'recent'
-                  ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-md scale-105'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
-                }`}
+              className={`relative z-10 inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-colors duration-200 ${compact ? 'px-2 py-1.5 text-[10px]' : 'px-3 py-2 text-xs'} ${sortBy === 'recent' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
             >
               <Clock className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
-              {t('explore.sortByRecent')}
+              <span className="whitespace-nowrap">{t('explore.sortByRecent')}</span>
             </button>
           </div>
         </div>

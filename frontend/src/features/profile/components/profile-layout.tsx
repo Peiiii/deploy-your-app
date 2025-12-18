@@ -48,7 +48,7 @@ export const ProfileLayout: React.FC<ProfileLayoutProps> = ({ children }) => {
                             <button
                                 type="button"
                                 onClick={presenter.myProfile.openPublicProfile}
-                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors bg-white dark:bg-slate-800 shadow-sm"
+                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors bg-white dark:bg-slate-800 shadow-sm"
                             >
                                 <Share2 className="w-3.5 h-3.5" />
                                 <span className="hidden sm:inline">{t('profile.viewPublicProfile')}</span>
@@ -56,7 +56,7 @@ export const ProfileLayout: React.FC<ProfileLayoutProps> = ({ children }) => {
                             <button
                                 type="button"
                                 onClick={() => presenter.myProfile.copyPublicUrl(copyToClipboard)}
-                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors bg-white dark:bg-slate-800 shadow-sm"
+                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors bg-white dark:bg-slate-800 shadow-sm"
                             >
                                 {copied ? (
                                     <Check className="w-3.5 h-3.5 text-green-500" />
