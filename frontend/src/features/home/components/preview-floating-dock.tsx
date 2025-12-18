@@ -42,17 +42,28 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
     onDragEnd
 }) => {
     const { t } = useTranslation();
-    const [position, setPosition] = useState({ x: 0, y: 100 });
+    const [position, setPosition] = useState({ x: -50, y: 100 }); // Default estimate
+    const [dockSide, setDockSide] = useState<'outside-left' | 'inside-left' | 'inside-right'>('outside-left');
     const [isDragging, setIsDragging] = useState(false);
-    const [isRightSide, setIsRightSide] = useState(false);
 
     // Drag Refs
     const dragRef = useRef<{ startX: number, startY: number, initX: number, initY: number, currentX: number, currentY: number } | null>(null);
     const nodeRef = useRef<HTMLDivElement>(null);
 
-    // Initial Position (Center-Left)
+    // Initial Position
     useEffect(() => {
-        setPosition({ x: 0, y: window.innerHeight / 2 - 100 });
+        if (nodeRef.current) {
+            // Start outside left
+            setPosition({ x: -nodeRef.current.offsetWidth, y: window.innerHeight / 2 - 100 });
+        }
+    }, [nodeRef.current]); // Add dep to trigger when ref is ready? actually null ref won't trigger. 
+    // Effect with empty dep array runs once. Better to calculate in effect?
+    // Just sticky to initial effect.
+    useEffect(() => {
+        // slight interaction to force update if needed?
+        // Actually, just rely on the heuristic -56 for now, or 0.
+        // Let's set it to -56.
+        setPosition({ x: -56, y: window.innerHeight / 2 - 100 });
     }, []);
 
     const handleMouseDown = (e: React.MouseEvent) => {
@@ -94,32 +105,35 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
     const handleMouseUp = () => {
         if (!dragRef.current || !nodeRef.current) return;
 
-        // Snapping Logic
-        // We use window width as the reference since the panel is typically full width.
-        // Or strictly use the offsetParent if available.
         const parentWidth = nodeRef.current.offsetParent?.clientWidth || window.innerWidth;
         const widgetWidth = nodeRef.current.offsetWidth;
-        const currentCenter = dragRef.current.currentX + widgetWidth / 2;
+        const currentCenter = dragRef.current.currentX + (widgetWidth / 2);
 
         let finalX = 0;
-        let rightSide = false;
+        let newDockSide: 'outside-left' | 'inside-left' | 'inside-right' = 'outside-left';
 
-        if (currentCenter > parentWidth / 2) {
-            finalX = parentWidth - widgetWidth;
-            rightSide = true;
-        } else {
+        if (currentCenter < 0) {
+            // Snap Outside Left (Flush against border)
+            finalX = -widgetWidth;
+            newDockSide = 'outside-left';
+        } else if (currentCenter < parentWidth / 2) {
+            // Snap Inside Left (Flush against border)
             finalX = 0;
-            rightSide = false;
+            newDockSide = 'inside-left';
+        } else {
+            // Snap Inside Right
+            finalX = parentWidth - widgetWidth;
+            newDockSide = 'inside-right';
         }
 
-        // ensure Y is still valid
+        // ensure Y valid
         const maxHeight = (nodeRef.current.offsetParent?.clientHeight || window.innerHeight) - nodeRef.current.offsetHeight;
         const finalY = Math.max(0, Math.min(dragRef.current.currentY, maxHeight));
 
         setPosition({ x: finalX, y: finalY });
-        setIsRightSide(rightSide);
+        setDockSide(newDockSide);
         setIsDragging(false);
-        onDragEnd(); // notify parent
+        onDragEnd();
 
         dragRef.current = null;
         document.removeEventListener('mousemove', handleMouseMove);
@@ -143,9 +157,9 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
                 border border-slate-200/60 dark:border-slate-700/60 shadow-[0_8px_32px_rgba(0,0,0,0.15)]
                 transition-all duration-300 ease-out overflow-hidden
                 group/dock
-                ${isRightSide
-                    ? 'rounded-l-2xl rounded-r-none border-r-0'
-                    : 'rounded-r-2xl rounded-l-none border-l-0'}
+                ${dockSide === 'inside-left'
+                    ? 'rounded-r-2xl rounded-l-none border-l-0' // Flatten Left
+                    : 'rounded-l-2xl rounded-r-none border-r-0'} // Flatten Right (Out-Left or In-Right)
             `}>
 
                 {/* 1. Main Icon (Always Visible) - Serves as Handle */}
