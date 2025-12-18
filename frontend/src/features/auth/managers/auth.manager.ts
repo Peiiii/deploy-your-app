@@ -3,6 +3,17 @@ import { useAuthStore } from '@/features/auth/stores/auth.store';
 import type { User } from '@/types';
 
 const API_BASE = APP_CONFIG.API_BASE_URL.replace(/\/+$/, '');
+const DESKTOP_DEEP_LINK = 'gemigo-desktop://auth';
+
+const isDesktopShell = (): boolean => {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  const searchParams = new URLSearchParams(window.location.search);
+  return ua.includes('Electron') || searchParams.get('desktop') === '1';
+};
+
+const getRedirectTarget = (): string =>
+  isDesktopShell() ? DESKTOP_DEEP_LINK : window.location.href;
 
 // Manager for auth-related actions. State is kept in the auth store; this
 // class only coordinates side-effects and updates the store.
@@ -98,14 +109,14 @@ export class AuthManager {
   // -------------------
 
   loginWithGoogle = (): void => {
-    const redirect = window.location.href;
+    const redirect = getRedirectTarget();
     window.location.href = `${API_BASE}/auth/google/start?redirect=${encodeURIComponent(
       redirect,
     )}`;
   };
 
   loginWithGithub = (): void => {
-    const redirect = window.location.href;
+    const redirect = getRedirectTarget();
     window.location.href = `${API_BASE}/auth/github/start?redirect=${encodeURIComponent(
       redirect,
     )}`;

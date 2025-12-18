@@ -10,6 +10,7 @@ import {
   toPublicUser,
 } from '../utils/auth';
 import { authRepository } from '../repositories/auth.repository';
+import { desktopLoginTokenRepository } from '../repositories/desktop-login-token.repository';
 import { jsonResponse, emptyResponse } from '../utils/http';
 import type { OAuthProviderConfig } from './oauth/providers/base-provider';
 import { GoogleOAuthProvider } from './oauth/providers/google-provider';
@@ -168,7 +169,6 @@ class OAuthService {
       );
     }
 
-    const session = await authRepository.createSession(db, user.id);
     const fullUser = await authRepository.findUserById(db, user.id);
     if (!fullUser) {
       throw new UnauthorizedError('Failed to load user profile.');
@@ -178,12 +178,31 @@ class OAuthService {
     });
 
     const redirectTarget = stateCookie.redirectTo || redirectBase;
+    const isDesktopRedirect = redirectTarget.startsWith('gemigo-desktop://');
+
+    const headers = new Headers();
+
+    if (isDesktopRedirect) {
+      const token = await desktopLoginTokenRepository.createToken(db, fullUser.id);
+      headers.append('Set-Cookie', clearOAuthStateCookie(provider));
+      const urlWithToken = new URL(redirectTarget);
+      urlWithToken.searchParams.set('token', token.id);
+      headers.set('Location', urlWithToken.toString());
+      return new Response(null, {
+        status: 302,
+        headers,
+      });
+    }
+
+    const session = await authRepository.createSession(db, user.id);
     const response = jsonResponse({
       user: publicUser,
       redirectTo: redirectTarget,
     });
 
-    const headers = new Headers(response.headers);
+    for (const [key, value] of response.headers.entries()) {
+      headers.set(key, value);
+    }
     headers.append('Set-Cookie', buildSessionCookie(session.id));
     headers.append('Set-Cookie', clearOAuthStateCookie(provider));
     headers.set('Location', redirectTarget);

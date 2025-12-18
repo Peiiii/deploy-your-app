@@ -116,6 +116,13 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
       authController.handleGithubCallback(req, env, requireDb(), url),
   });
 
+  router.add({
+    path: '/api/v1/auth/desktop/login',
+    method: 'GET',
+    handler: (req) =>
+      authController.handleDesktopLogin(req, env, requireDb()),
+  });
+
   // -----------------
   // Projects routes
   // -----------------

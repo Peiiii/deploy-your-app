@@ -19,6 +19,7 @@ import { validateEmailPassword } from '../utils/validation';
 import { authRepository } from '../repositories/auth.repository';
 import type { PublicUser } from '../types/user';
 import { configService } from '../services/config.service';
+import { desktopLoginTokenRepository } from '../repositories/desktop-login-token.repository';
 
 class AuthController {
   // GET /api/v1/me
@@ -198,6 +199,36 @@ class AuthController {
     url: URL,
   ): Promise<Response> {
     return oauthService.handleCallback(env, db, 'github', request, url);
+  }
+
+  // GET /api/v1/auth/desktop/login?token=...
+  async handleDesktopLogin(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+  ): Promise<Response> {
+    const url = new URL(request.url);
+    const token = url.searchParams.get('token');
+    if (!token) {
+      throw new ValidationError('token is required.');
+    }
+
+    const result = await desktopLoginTokenRepository.consumeToken(db, token);
+    if (!result) {
+      throw new UnauthorizedError('Invalid or expired desktop login token.');
+    }
+
+    const session = await authRepository.createSession(db, result.user.id);
+    const publicUser: PublicUser = toPublicUser(result.user, {
+      isAdmin: configService.isAdminUser(result.user, env),
+    });
+
+    const response = jsonResponse({
+      ok: true,
+      user: publicUser,
+      redirectTo: configService.getAuthRedirectBase(env),
+    });
+    return withSetCookie(response, buildSessionCookie(session.id));
   }
 }
 

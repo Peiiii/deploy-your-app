@@ -1,4 +1,6 @@
 const DEFAULT_WEB_URL = 'https://gemigo.io';
+const DESKTOP_SCHEME = 'gemigo-desktop';
+const DESKTOP_CALLBACK_PATH = 'auth';
 
 const normalizeUrl = (value: string): string => {
   const parsed = new URL(value.trim());
@@ -17,3 +19,16 @@ export const getWebUrl = (): string => {
   }
   return normalizeUrl(DEFAULT_WEB_URL);
 };
+
+export const getWebOrigin = (): string => new URL(getWebUrl()).origin;
+
+export const getDesktopEntryUrl = (): string => {
+  const url = new URL(getWebUrl());
+  url.searchParams.set('desktop', '1');
+  return url.toString();
+};
+
+export const getDesktopProtocol = (): string => DESKTOP_SCHEME;
+
+export const getDesktopCallbackUrl = (): string =>
+  `${DESKTOP_SCHEME}://${DESKTOP_CALLBACK_PATH}`;
