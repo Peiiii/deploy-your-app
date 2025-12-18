@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { ExternalLink, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ExploreAppCard } from '@/components/explore-app-card';
@@ -42,42 +42,50 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
     onDragEnd
 }) => {
     const { t } = useTranslation();
-    const [position, setPosition] = useState({ x: -50, y: 100 }); // Default estimate
+    // Default to absolute top (y=0)
+    const [position, setPosition] = useState({ x: 0, y: 0 });
     const [dockSide, setDockSide] = useState<'outside-left' | 'inside-left' | 'inside-right'>('outside-left');
     const [isDragging, setIsDragging] = useState(false);
+    const [isDocked, setIsDocked] = useState(true);
 
     // Drag Refs
     const dragRef = useRef<{ startX: number, startY: number, initX: number, initY: number, currentX: number, currentY: number } | null>(null);
     const nodeRef = useRef<HTMLDivElement>(null);
 
-    // Initial Position
-    useEffect(() => {
-        if (nodeRef.current) {
-            // Start outside left
-            setPosition({ x: -nodeRef.current.offsetWidth, y: window.innerHeight / 2 - 100 });
-        }
-    }, [nodeRef.current]); // Add dep to trigger when ref is ready? actually null ref won't trigger. 
-    // Effect with empty dep array runs once. Better to calculate in effect?
-    // Just sticky to initial effect.
-    useEffect(() => {
-        // slight interaction to force update if needed?
-        // Actually, just rely on the heuristic -56 for now, or 0.
-        // Let's set it to -56.
-        setPosition({ x: -56, y: window.innerHeight / 2 - 100 });
-    }, []);
-
     const handleMouseDown = (e: React.MouseEvent) => {
         e.preventDefault();
         onDragStart();
+
+        // Calculate exact pixel position to prevent jump on drag start
+        if (nodeRef.current && nodeRef.current.offsetParent) {
+            const rect = nodeRef.current.getBoundingClientRect();
+            const parentRect = nodeRef.current.offsetParent.getBoundingClientRect();
+            const startX = rect.left - parentRect.left;
+
+            setPosition({ x: startX, y: position.y });
+
+            dragRef.current = {
+                startX: e.clientX,
+                startY: e.clientY,
+                initX: startX,
+                initY: position.y,
+                currentX: startX,
+                currentY: position.y
+            };
+        } else {
+            // Fallback
+            dragRef.current = {
+                startX: e.clientX,
+                startY: e.clientY,
+                initX: position.x,
+                initY: position.y,
+                currentX: position.x,
+                currentY: position.y
+            };
+        }
+
         setIsDragging(true);
-        dragRef.current = {
-            startX: e.clientX,
-            startY: e.clientY,
-            initX: position.x,
-            initY: position.y,
-            currentX: position.x,
-            currentY: position.y
-        };
+        setIsDocked(false);
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
     };
@@ -109,30 +117,25 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
         const widgetWidth = nodeRef.current.offsetWidth;
         const currentCenter = dragRef.current.currentX + (widgetWidth / 2);
 
-        let finalX = 0;
         let newDockSide: 'outside-left' | 'inside-left' | 'inside-right' = 'outside-left';
 
         if (currentCenter < 0) {
-            // Snap Outside Left (Flush against border)
-            finalX = -widgetWidth;
             newDockSide = 'outside-left';
         } else if (currentCenter < parentWidth / 2) {
-            // Snap Inside Left (Flush against border)
-            finalX = 0;
             newDockSide = 'inside-left';
         } else {
-            // Snap Inside Right
-            finalX = parentWidth - widgetWidth;
             newDockSide = 'inside-right';
         }
 
-        // ensure Y valid
         const maxHeight = (nodeRef.current.offsetParent?.clientHeight || window.innerHeight) - nodeRef.current.offsetHeight;
         const finalY = Math.max(0, Math.min(dragRef.current.currentY, maxHeight));
 
-        setPosition({ x: finalX, y: finalY });
+        // Update State
         setDockSide(newDockSide);
+        setPosition({ x: 0, y: finalY }); // Set x to 0 as it's ignored when docked
+        setIsDocked(true);
         setIsDragging(false);
+
         onDragEnd();
 
         dragRef.current = null;
@@ -140,11 +143,35 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
         document.removeEventListener('mouseup', handleMouseUp);
     };
 
+    // Calculate Dynamic Styles for Docking
+    const getDockingStyle = () => {
+        if (!isDocked) {
+            return { left: position.x, top: position.y };
+        }
+
+        // Docked Styles
+        const style: React.CSSProperties = { top: position.y };
+
+        if (dockSide === 'outside-left') {
+            style.left = 0;
+            // -100% moves it fully outside. +1px ensures subtle visual border merge (no gap).
+            style.transform = 'translateX(calc(-100% + 1px))';
+        } else if (dockSide === 'inside-left') {
+            style.left = 0;
+            style.transform = 'none';
+        } else if (dockSide === 'inside-right') {
+            style.left = '100%';
+            style.transform = 'translateX(-100%)';
+        }
+
+        return style;
+    };
+
     return (
         <div
             ref={nodeRef}
             onMouseDown={handleMouseDown}
-            style={{ left: position.x, top: position.y }}
+            style={getDockingStyle()}
             className={`
                 absolute z-50 select-none
                 ${isDragging ? 'cursor-grabbing' : 'transition-[left,top] duration-500 linear cursor-grab'}
@@ -154,53 +181,49 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
             <div className={`
                 flex flex-col items-center
                 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl
-                border border-slate-200/60 dark:border-slate-700/60 shadow-[0_8px_32px_rgba(0,0,0,0.15)]
+                border border-slate-200/60 dark:border-slate-700/60 shadow-[0_4px_16px_rgba(0,0,0,0.1)]
                 transition-all duration-300 ease-out overflow-hidden
                 group/dock
                 ${dockSide === 'inside-left'
-                    ? 'rounded-r-2xl rounded-l-none border-l-0' // Flatten Left
-                    : 'rounded-l-2xl rounded-r-none border-r-0'} // Flatten Right (Out-Left or In-Right)
+                    ? 'rounded-r-xl rounded-l-none border-l-0'
+                    : 'rounded-l-xl rounded-r-none border-r-0'}
             `}>
 
                 {/* 1. Main Icon (Always Visible) - Serves as Handle */}
-                <div className="w-10 h-10 flex items-center justify-center flex-shrink-0 relative z-20">
-                    <BrandLogo className="w-6 h-6" />
+                <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 relative z-20">
+                    <BrandLogo className="w-5 h-5" />
                 </div>
 
-                {/* 2. Expanded Action Area (Hidden by default, slides down) */}
+                {/* 2. Expanded Action Area */}
                 <div className={`
-                    flex flex-col items-center gap-3 w-full
-                    transition-all duration-300 ease-in-out origin-top px-1.5
+                    flex flex-col items-center gap-2 w-full
+                    transition-all duration-300 ease-in-out origin-top px-1
                     ${isDragging
-                        ? 'max-h-[120px] pb-3 opacity-100' // Auto-expand when dragging so you see what you're holding? Or collapse?
-                        // User said: "Hover shows actions". Dragging usually implies moving, so maybe keep compact?
-                        // But user might want to see it. Let's keep it Expanded on Drag for clarity, OR Collapsed?
-                        // User said "Icon is disconnected".
-                        // Let's Collapse on Drag to make it a small handle, Expand on Hover.
-                        : 'max-h-0 opacity-0 pb-0 group-hover/dock:max-h-[120px] group-hover/dock:pb-3 group-hover/dock:opacity-100'}
+                        ? 'max-h-[100px] pb-2 opacity-100'
+                        : 'max-h-0 opacity-0 pb-0 group-hover/dock:max-h-[100px] group-hover/dock:pb-2 group-hover/dock:opacity-100'}
                 `}>
 
                     {/* Divider */}
-                    <div className="w-4 h-px bg-slate-200 dark:bg-slate-700"></div>
+                    <div className="w-3 h-px bg-slate-200 dark:bg-slate-700"></div>
 
                     {/* Actions */}
                     {app.url && (
                         <button
-                            onMouseDown={(e) => e.stopPropagation()} // Prevent drag start
+                            onMouseDown={(e) => e.stopPropagation()}
                             onClick={() => onOpenInNewTab(app.url!)}
-                            className="p-1.5 rounded-lg hover:bg-brand-50 hover:text-brand-600 text-slate-500 dark:text-slate-400 transition-colors"
+                            className="p-1 rounded-md hover:bg-brand-50 hover:text-brand-600 text-slate-500 dark:text-slate-400 transition-colors"
                             title={t('common.openInNewTab')}
                         >
-                            <ExternalLink className="w-4 h-4" />
+                            <ExternalLink className="w-3.5 h-3.5" />
                         </button>
                     )}
                     <button
-                        onMouseDown={(e) => e.stopPropagation()} // Prevent drag start
+                        onMouseDown={(e) => e.stopPropagation()}
                         onClick={onClose}
-                        className="p-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 text-slate-500 dark:text-slate-400 transition-colors"
+                        className="p-1 rounded-md hover:bg-red-50 hover:text-red-600 text-slate-500 dark:text-slate-400 transition-colors"
                         title={t('common.close')}
                     >
-                        <X className="w-4 h-4" />
+                        <X className="w-3.5 h-3.5" />
                     </button>
                 </div>
             </div>
