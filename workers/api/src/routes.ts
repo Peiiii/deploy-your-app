@@ -7,6 +7,7 @@ import { projectsController } from './controllers/projects.controller';
 import { analyticsController } from './controllers/analytics.controller';
 import { engagementController } from './controllers/engagement.controller';
 import { profileController } from './controllers/profile.controller';
+import { adminController } from './controllers/admin.controller';
 
 /**
  * Build the API router for a given request/environment.
@@ -56,13 +57,13 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   router.add({
     path: '/api/v1/me',
     method: 'GET',
-    handler: (req) => authController.handleMe(req, requireDb()),
+    handler: (req) => authController.handleMe(req, env, requireDb()),
   });
 
   router.add({
     path: '/api/v1/me/handle',
     method: 'PATCH',
-    handler: (req) => authController.handleUpdateHandle(req, requireDb()),
+    handler: (req) => authController.handleUpdateHandle(req, env, requireDb()),
   });
 
   router.add({
@@ -183,6 +184,29 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     method: 'POST',
     handler: (req, params) =>
       projectsController.uploadThumbnail(req, env, requireDb(), params.id),
+  });
+
+  // -----------------
+  // Admin routes
+  // -----------------
+  router.add({
+    path: '/api/v1/admin/projects',
+    method: 'GET',
+    handler: (req) => adminController.listProjects(req, env, requireDb()),
+  });
+
+  router.add({
+    path: '/api/v1/admin/projects/:id',
+    method: 'DELETE',
+    handler: (req, params) =>
+      adminController.softDeleteProject(req, env, requireDb(), params.id),
+  });
+
+  router.add({
+    path: '/api/v1/admin/projects/:id/restore',
+    method: 'POST',
+    handler: (req, params) =>
+      adminController.restoreProject(req, env, requireDb(), params.id),
   });
 
   // -----------------

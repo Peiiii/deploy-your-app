@@ -24,6 +24,8 @@ export interface Project {
   // Whether this project should appear in public feeds (Explore, recommendations).
   // Legacy projects without this flag are treated as public.
   isPublic?: boolean;
+  // Soft delete flag used by admin/ops.
+  isDeleted?: boolean;
   name: string;
   repoUrl: string; // Used as source identifier (URL for git, filename for zip)
   sourceType?: SourceType;
@@ -136,6 +138,8 @@ export interface User {
   handle: string | null;
   displayName: string | null;
   avatarUrl: string | null;
+  // Admin flag (server computed).
+  isAdmin?: boolean;
   providers: AuthProviders;
 }
 

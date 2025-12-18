@@ -40,6 +40,33 @@ class ProjectService {
     };
   }
 
+  async getProjectsForAdmin(
+    db: D1Database,
+    options?: {
+      page?: number;
+      pageSize?: number;
+      search?: string;
+      includeDeleted?: boolean;
+    },
+  ): Promise<{ items: Project[]; page: number; pageSize: number; total: number }> {
+    const page = options?.page ?? 1;
+    const pageSize = options?.pageSize ?? 50;
+
+    const result = await projectRepository.queryProjectsWithCount(db, {
+      page,
+      pageSize,
+      search: options?.search?.trim() || undefined,
+      includeDeleted: options?.includeDeleted ?? true,
+    });
+
+    return {
+      items: result.items,
+      page,
+      pageSize,
+      total: result.total,
+    };
+  }
+
   async createProject(
     env: ApiWorkerEnv,
     db: D1Database,
@@ -210,6 +237,21 @@ class ProjectService {
 
   async getProjectById(db: D1Database, id: string): Promise<Project | null> {
     return projectRepository.getProjectById(db, id);
+  }
+
+  async getProjectByIdIncludingDeleted(
+    db: D1Database,
+    id: string,
+  ): Promise<Project | null> {
+    return projectRepository.getProjectByIdIncludingDeleted(db, id);
+  }
+
+  async softDeleteProject(db: D1Database, id: string): Promise<boolean> {
+    return projectRepository.softDeleteProject(db, id);
+  }
+
+  async restoreProject(db: D1Database, id: string): Promise<boolean> {
+    return projectRepository.restoreProject(db, id);
   }
 
   async findProjectByRepoForUser(

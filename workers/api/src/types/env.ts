@@ -6,6 +6,16 @@ export interface ApiWorkerEnv {
   PLATFORM_AI_MODEL?: string;
   DASHSCOPE_API_KEY?: string;
   DEPLOY_SERVICE_BASE_URL?: string;
+  /**
+   * Comma-separated admin allowlist (emails, case-insensitive).
+   * Example: "admin@example.com,ops@example.com"
+   */
+  ADMIN_EMAILS?: string;
+  /**
+   * Comma-separated admin allowlist (user ids).
+   * Example: "uuid-1,uuid-2"
+   */
+  ADMIN_USER_IDS?: string;
   // Optional R2 bucket binding used for storing app assets like thumbnails
   // when DEPLOY_TARGET === 'r2'.
   ASSETS?: R2Bucket;

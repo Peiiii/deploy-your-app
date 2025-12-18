@@ -40,7 +40,6 @@ export class Presenter {
     this.deployment = new DeploymentManager(
       deploymentProvider,
       this.project,
-      this.ui,
     );
     this.auth = new AuthManager();
     this.analytics = new AnalyticsManager(analyticsProvider);

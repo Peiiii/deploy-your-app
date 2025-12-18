@@ -37,15 +37,7 @@ export const Header: React.FC = () => {
                 >
                     <Menu className="w-5 h-5" />
                 </button>
-                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-gray-500">
-                    <span className="hover:text-slate-800 dark:hover:text-gray-300 transition-colors cursor-pointer">
-                        {t('navigation.organization')}
-                    </span>
-                    <span>/</span>
-                    <span className="text-slate-900 dark:text-gray-200 font-medium">
-                        {t('navigation.personalProjects')}
-                    </span>
-                </div>
+
             </div>
             <div className="flex items-center gap-2 md:gap-4">
                 <button

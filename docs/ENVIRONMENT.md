@@ -187,6 +187,8 @@ bucket_name = "gemigo-apps"
 | `APPS_ROOT_DOMAIN`、`DEPLOY_TARGET`、`PLATFORM_AI_*`、`AUTH_REDIRECT_BASE` | 与后端保持一致，用于 Worker 自身返回 URL、构造 OAuth 回调地址以及调用 DashScope。`AUTH_REDIRECT_BASE` 通常为 `https://gemigo.io`。 |
 | `DEPLOY_SERVICE_BASE_URL` | Worker 内部访问 Node 部署服务的地址，形如 `https://<你的服务器>/api/v1`。本地 `wrangler dev` 会回退到 `http://127.0.0.1:4173/api/v1`。**线上必须在 `workers/api/wrangler.toml` 的 `[vars]` 或 Cloudflare Dashboard → Worker → Settings → Variables/Secrets 中设置为真实 Node API**（例如 `https://backend.gemigo.io/api/v1`），否则部署相关接口会找不到目标。 |
 | `PASSWORD_SALT`、`GOOGLE_CLIENT_ID/SECRET`、`GITHUB_CLIENT_ID/SECRET` | 供 API Worker 的用户体系使用：邮箱密码哈希与 Google / GitHub OAuth。**建议在 Cloudflare Dashboard 中作为 Secrets 配置**，本地开发时则放在 `workers/api/.dev.vars`。详细步骤见 `docs/AUTH_SETUP.md`。 |
+| `ADMIN_EMAILS`（可选） | 管理员邮箱白名单（逗号分隔，不区分大小写）。用于访问 `/api/v1/admin/*` 相关接口与后台页面。示例：`admin@example.com,ops@example.com`。 |
+| `ADMIN_USER_IDS`（可选） | 管理员 user id 白名单（逗号分隔）。示例：`uuid-1,uuid-2`。 |
 
 前端在 `.env` 里配置 `VITE_API_BASE_URL=https://<worker-domain>/api/v1` 后，即可完全通过 Worker 访问后端，Node 服务只作为内部部署引擎。
 

@@ -23,6 +23,7 @@ export interface ProjectQueryOptions {
   category?: string;
   tag?: string;
   onlyPublic?: boolean;
+  includeDeleted?: boolean;
   ownerId?: string;
   sort?: 'recent' | 'name';
   limit?: number;
@@ -125,11 +126,22 @@ class ProjectRepository {
       isPublic = true;
     }
 
+    let isDeleted: boolean | undefined;
+    if (typeof row.is_deleted === 'number') {
+      isDeleted = !!row.is_deleted;
+    } else if (typeof row.is_deleted === 'string') {
+      const normalized = row.is_deleted.toLowerCase();
+      isDeleted = normalized === '1' || normalized === 'true';
+    } else {
+      isDeleted = false;
+    }
+
     return {
       id: String(row.id),
       ownerId:
         typeof row.owner_id === 'string' ? (row.owner_id as string) : undefined,
       isPublic,
+      isDeleted,
       name: String(row.name),
       repoUrl: String(row.repo_url),
       sourceType: sourceTypeValue
@@ -213,17 +225,20 @@ class ProjectRepository {
 
   async getAllProjects(
     db: D1Database,
-    options?: { page?: number; pageSize?: number },
+    options?: { page?: number; pageSize?: number; includeDeleted?: boolean },
   ): Promise<{ items: Project[]; total: number }> {
     await this.ensureSchema(db);
 
     const page = options?.page ?? 1;
     const pageSize = options?.pageSize ?? 50;
     const offset = (page - 1) * pageSize;
+    const includeDeleted = options?.includeDeleted ?? false;
+
+    const where = includeDeleted ? '' : 'WHERE (is_deleted = 0 OR is_deleted IS NULL)';
 
     // Get total count
     const countResult = await db
-      .prepare('SELECT COUNT(*) as count FROM projects')
+      .prepare(`SELECT COUNT(*) as count FROM projects ${where}`)
       .first<{ count: number }>();
     const total = countResult?.count ?? 0;
 
@@ -231,6 +246,7 @@ class ProjectRepository {
     const result = await db
       .prepare(
         `SELECT * FROM projects
+         ${where}
          ORDER BY datetime(last_deployed) DESC
          LIMIT ? OFFSET ?`,
       )
@@ -256,6 +272,10 @@ class ProjectRepository {
 
     const where: string[] = [];
     const params: unknown[] = [];
+
+    if (!options.includeDeleted) {
+      where.push('(is_deleted = 0 OR is_deleted IS NULL)');
+    }
 
     if (options.onlyPublic) {
       where.push('is_public = 1');
@@ -317,6 +337,58 @@ class ProjectRepository {
     const result = await stmt.bind(...params).all<ProjectRow>();
     const rows = result.results ?? [];
     return rows.map((row) => this.mapRowToProject(row));
+  }
+
+  async queryProjectsWithCount(
+    db: D1Database,
+    options: {
+      search?: string;
+      includeDeleted?: boolean;
+      page?: number;
+      pageSize?: number;
+    },
+  ): Promise<{ items: Project[]; total: number }> {
+    await this.ensureSchema(db);
+
+    const where: string[] = [];
+    const params: unknown[] = [];
+
+    if (!options.includeDeleted) {
+      where.push('(is_deleted = 0 OR is_deleted IS NULL)');
+    }
+
+    if (options.search) {
+      const q = `%${options.search.toLowerCase()}%`;
+      where.push(
+        `(LOWER(name) LIKE ? OR LOWER(IFNULL(slug, '')) LIKE ? OR LOWER(repo_url) LIKE ? OR id LIKE ?)`,
+      );
+      params.push(q, q, q, `%${options.search}%`);
+    }
+
+    const whereSql = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+
+    const countRow = await db
+      .prepare(`SELECT COUNT(*) as count FROM projects ${whereSql}`)
+      .bind(...params)
+      .first<{ count: number }>();
+    const total = countRow?.count ?? 0;
+
+    const page = Math.max(1, options.page ?? 1);
+    const pageSize = Math.max(1, options.pageSize ?? 50);
+    const offset = (page - 1) * pageSize;
+
+    const result = await db
+      .prepare(
+        `SELECT * FROM projects
+         ${whereSql}
+         ORDER BY datetime(last_deployed) DESC
+         LIMIT ? OFFSET ?`,
+      )
+      .bind(...params, pageSize, offset)
+      .all<ProjectRow>();
+
+    const rows = result.results ?? [];
+    return { items: rows.map((row) => this.mapRowToProject(row)), total };
   }
 
   async updateProjectRecord(
@@ -447,11 +519,55 @@ class ProjectRepository {
     const row = await db
       .prepare(
         `SELECT * FROM projects
+         WHERE id = ?
+           AND (is_deleted = 0 OR is_deleted IS NULL)`,
+      )
+      .bind(id)
+      .first<ProjectRow>();
+    return row ? this.mapRowToProject(row) : null;
+  }
+
+  async getProjectByIdIncludingDeleted(
+    db: D1Database,
+    id: string,
+  ): Promise<Project | null> {
+    await this.ensureSchema(db);
+    const row = await db
+      .prepare(
+        `SELECT * FROM projects
          WHERE id = ?`,
       )
       .bind(id)
       .first<ProjectRow>();
     return row ? this.mapRowToProject(row) : null;
+  }
+
+  async softDeleteProject(db: D1Database, id: string): Promise<boolean> {
+    await this.ensureSchema(db);
+    const result = await db
+      .prepare(
+        `UPDATE projects
+         SET is_deleted = 1, is_public = 0
+         WHERE id = ?`,
+      )
+      .bind(id)
+      .run();
+    const meta = (result as unknown as { meta?: { changes?: number } }).meta;
+    return (meta?.changes ?? 0) > 0;
+  }
+
+  async restoreProject(db: D1Database, id: string): Promise<boolean> {
+    await this.ensureSchema(db);
+    const result = await db
+      .prepare(
+        `UPDATE projects
+         SET is_deleted = 0
+         WHERE id = ?`,
+      )
+      .bind(id)
+      .run();
+    const meta = (result as unknown as { meta?: { changes?: number } }).meta;
+    return (meta?.changes ?? 0) > 0;
   }
 
   /**

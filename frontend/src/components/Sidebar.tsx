@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { useTranslation } from 'react-i18next';
 import { useUIStore } from '../stores/ui.store';
 import { SidebarHeader } from './sidebar/sidebar-header';
 import { SidebarNavigation } from './sidebar/sidebar-navigation';
@@ -9,17 +8,13 @@ import { SidebarUserProfile } from './sidebar/sidebar-user-profile';
 import { useSidebarProjects } from './sidebar/use-sidebar-projects';
 
 export const Sidebar: React.FC = () => {
-  const { t } = useTranslation();
   const sidebarOpen = useUIStore((state) => state.sidebarOpen);
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const { setSidebarOpen, toggleSidebarCollapsed } = useUIStore((state) => state.actions);
 
   const {
-    pinnedProjects,
     displayedProjects,
     pinnedProjectIds,
-    projectViewType,
-    setProjectViewType,
     handleTogglePin,
     isLoading,
   } = useSidebarProjects();
@@ -49,19 +44,11 @@ export const Sidebar: React.FC = () => {
             <SidebarProjectList
               projects={displayedProjects}
               pinnedProjectIds={pinnedProjectIds}
-              viewType={projectViewType}
-              onViewTypeChange={setProjectViewType}
               onTogglePin={handleTogglePin}
-              pinnedProjects={pinnedProjects}
               isLoading={isLoading ?? false}
             />
           )}
         </nav>
-
-
-
-        {/* Connection Status Indicator */}
-
 
         <SidebarUserProfile collapsed={sidebarCollapsed} />
       </div>

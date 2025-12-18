@@ -7,10 +7,10 @@ import {
   readOAuthStateCookie,
   buildSessionCookie,
   type OAuthProvider,
+  toPublicUser,
 } from '../utils/auth';
 import { authRepository } from '../repositories/auth.repository';
 import { jsonResponse, emptyResponse } from '../utils/http';
-import type { PublicUser } from '../types/user';
 import type { OAuthProviderConfig } from './oauth/providers/base-provider';
 import { GoogleOAuthProvider } from './oauth/providers/google-provider';
 import { GitHubOAuthProvider } from './oauth/providers/github-provider';
@@ -169,28 +169,13 @@ class OAuthService {
     }
 
     const session = await authRepository.createSession(db, user.id);
-    const publicUser: PublicUser = {
-      id: user.id,
-      email: user.email,
-      handle: null,
-      displayName: null,
-      avatarUrl: null,
-      providers: {
-        email: false,
-        google: provider === 'google',
-        github: provider === 'github',
-      },
-    };
-
     const fullUser = await authRepository.findUserById(db, user.id);
-    if (fullUser) {
-      publicUser.handle = fullUser.handle;
-      publicUser.displayName = fullUser.displayName;
-      publicUser.avatarUrl = fullUser.avatarUrl;
-      if (fullUser.passwordHash) {
-        publicUser.providers.email = true;
-      }
+    if (!fullUser) {
+      throw new UnauthorizedError('Failed to load user profile.');
     }
+    const publicUser = toPublicUser(fullUser, {
+      isAdmin: configService.isAdminUser(fullUser, env),
+    });
 
     const redirectTarget = stateCookie.redirectTo || redirectBase;
     const response = jsonResponse({

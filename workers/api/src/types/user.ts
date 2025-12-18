@@ -25,6 +25,8 @@ export interface PublicUser {
   handle: string | null;
   displayName: string | null;
   avatarUrl: string | null;
+  // Whether current session is admin (computed server-side, not user-settable)
+  isAdmin: boolean;
   providers: {
     email: boolean;
     google: boolean;

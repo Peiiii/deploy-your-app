@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { useProjectStore } from '../../stores/project.store';
 import { usePresenter } from '../../contexts/presenter-context';
@@ -18,15 +18,7 @@ export const useSidebarProjects = () => {
   const presenter = usePresenter();
   
   const [pinnedProjectIds, setPinnedProjectIds] = useState<string[]>([]);
-  const [projectViewType, setProjectViewTypeState] = useState<'pinned' | 'recent'>('recent');
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  const didInitDefaultViewRef = useRef(false);
-  const userChangedViewRef = useRef(false);
-
-  const setProjectViewType = (type: 'pinned' | 'recent') => {
-    userChangedViewRef.current = true;
-    setProjectViewTypeState(type);
-  };
 
   const userProjects = useMemo(() => {
     if (!authUser) return [];
@@ -49,24 +41,24 @@ export const useSidebarProjects = () => {
   const recentProjects = useMemo(() => {
     if (userProjects.length === 0) return [];
     return [...userProjects]
-      .sort((a, b) => parseLastDeployed(b.lastDeployed) - parseLastDeployed(a.lastDeployed))
-      .slice(0, 5);
+      .sort((a, b) => parseLastDeployed(b.lastDeployed) - parseLastDeployed(a.lastDeployed));
   }, [userProjects]);
 
   const displayedProjects = useMemo(() => {
-    if (projectViewType === 'pinned') {
-      return pinnedProjects.slice(0, 5);
-    }
-    return recentProjects;
-  }, [projectViewType, pinnedProjects, recentProjects]);
+    const MAX_COUNT = 5;
+    const pinnedSlice = pinnedProjects.slice(0, MAX_COUNT);
+    if (pinnedSlice.length >= MAX_COUNT) return pinnedSlice;
+
+    const remaining = MAX_COUNT - pinnedSlice.length;
+    const recentFill = recentProjects.filter((p) => !pinnedProjectIds.includes(p.id)).slice(0, remaining);
+
+    return [...pinnedSlice, ...recentFill];
+  }, [pinnedProjects, recentProjects, pinnedProjectIds]);
 
   useEffect(() => {
     if (!authUser) {
-      didInitDefaultViewRef.current = false;
-      userChangedViewRef.current = false;
       queueMicrotask(() => {
         setPinnedProjectIds([]);
-        setProjectViewTypeState('recent');
         setIsLoadingProfile(false);
       });
       return;
@@ -77,19 +69,9 @@ export const useSidebarProjects = () => {
       .then((profile) => {
         const ids = profile.pinnedProjectIds || [];
         setPinnedProjectIds(ids);
-
-        if (!didInitDefaultViewRef.current && !userChangedViewRef.current) {
-          didInitDefaultViewRef.current = true;
-          setProjectViewTypeState(ids.length > 0 ? 'pinned' : 'recent');
-        }
       })
       .catch(() => {
         setPinnedProjectIds([]);
-
-        if (!didInitDefaultViewRef.current && !userChangedViewRef.current) {
-          didInitDefaultViewRef.current = true;
-          setProjectViewTypeState('recent');
-        }
       })
       .finally(() => {
         setIsLoadingProfile(false);
@@ -113,10 +95,6 @@ export const useSidebarProjects = () => {
     
     setPinnedProjectIds(newPinnedIds);
 
-    if (isUnpinning && newPinnedIds.length === 0 && projectViewType === 'pinned') {
-      setProjectViewTypeState('recent');
-    }
-    
     try {
       await updateMyProfile({ pinnedProjectIds: newPinnedIds });
     } catch (error) {
@@ -133,8 +111,6 @@ export const useSidebarProjects = () => {
     recentProjects,
     displayedProjects,
     pinnedProjectIds,
-    projectViewType,
-    setProjectViewType,
     handleTogglePin,
     isLoading,
   };

@@ -1,3 +1,4 @@
+import type { User } from '../types/user';
 import type { ApiWorkerEnv } from '../types/env';
 
 class ConfigService {
@@ -39,6 +40,23 @@ class ConfigService {
 
   getGithubClientSecret(env: ApiWorkerEnv): string | null {
     return env.GITHUB_CLIENT_SECRET?.trim() || null;
+  }
+
+  /**
+   * Lightweight admin allowlist check (no schema changes needed).
+   */
+  isAdminUser(user: Pick<User, 'id' | 'email'>, env: ApiWorkerEnv): boolean {
+    const emailAllow = (env.ADMIN_EMAILS || '')
+      .split(',')
+      .map((v) => v.trim().toLowerCase())
+      .filter(Boolean);
+    const idAllow = (env.ADMIN_USER_IDS || '')
+      .split(',')
+      .map((v) => v.trim())
+      .filter(Boolean);
+
+    const email = user.email?.toLowerCase();
+    return (email ? emailAllow.includes(email) : false) || idAllow.includes(user.id);
   }
 }
 

@@ -2,9 +2,7 @@ import type { Project } from '@/types';
 import type { SourceType } from '@/types';
 import type { DeploymentResult, IDeploymentProvider } from '@/services/interfaces';
 import type { ProjectManager } from '@/managers/project.manager';
-import type { UIManager } from '@/managers/ui.manager';
 import { DeploymentStoreActions } from './deployment-store-actions';
-import { ProjectCreator } from './project-creator';
 import { DeploymentExecutor } from './deployment-executor';
 
 /**
@@ -17,22 +15,14 @@ import { DeploymentExecutor } from './deployment-executor';
  */
 export class DeploymentManager {
   private deploymentExecutor: DeploymentExecutor;
-  private projectCreator: ProjectCreator;
   private storeActions: DeploymentStoreActions;
 
   constructor(
     provider: IDeploymentProvider,
     projectManager: ProjectManager,
-    uiManager: UIManager,
   ) {
     this.storeActions = new DeploymentStoreActions();
-    this.projectCreator = new ProjectCreator(provider, projectManager);
-    this.deploymentExecutor = new DeploymentExecutor(
-      provider,
-      projectManager,
-      uiManager,
-      this.projectCreator,
-    );
+    this.deploymentExecutor = new DeploymentExecutor(provider, projectManager);
   }
 
   // ============================================================

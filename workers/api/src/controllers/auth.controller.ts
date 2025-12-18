@@ -18,10 +18,15 @@ import { ValidationError, UnauthorizedError } from '../utils/error-handler';
 import { validateEmailPassword } from '../utils/validation';
 import { authRepository } from '../repositories/auth.repository';
 import type { PublicUser } from '../types/user';
+import { configService } from '../services/config.service';
 
 class AuthController {
   // GET /api/v1/me
-  async handleMe(request: Request, db: D1Database): Promise<Response> {
+  async handleMe(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+  ): Promise<Response> {
     const sessionId = getSessionIdFromRequest(request);
     if (!sessionId) {
       return jsonResponse({ user: null });
@@ -30,12 +35,18 @@ class AuthController {
     if (!result) {
       return jsonResponse({ user: null });
     }
-    const publicUser: PublicUser = toPublicUser(result.user);
+    const publicUser: PublicUser = toPublicUser(result.user, {
+      isAdmin: configService.isAdminUser(result.user, env),
+    });
     return jsonResponse({ user: publicUser });
   }
 
   // PATCH /api/v1/me/handle
-  async handleUpdateHandle(request: Request, db: D1Database): Promise<Response> {
+  async handleUpdateHandle(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+  ): Promise<Response> {
     const sessionId = getSessionIdFromRequest(request);
     if (!sessionId) {
       throw new UnauthorizedError('Login required to update handle.');
@@ -74,7 +85,9 @@ class AuthController {
     const updated = await authRepository.updateUser(db, sessionWithUser.user.id, {
       handle: trimmed,
     });
-    const publicUser: PublicUser = toPublicUser(updated);
+    const publicUser: PublicUser = toPublicUser(updated, {
+      isAdmin: configService.isAdminUser(updated, env),
+    });
     return jsonResponse({ user: publicUser });
   }
 
@@ -117,7 +130,9 @@ class AuthController {
         });
 
     const session = await authRepository.createSession(db, user.id);
-    const publicUser = toPublicUser(user);
+    const publicUser = toPublicUser(user, {
+      isAdmin: configService.isAdminUser(user, env),
+    });
     const response = jsonResponse({ user: publicUser });
     return withSetCookie(response, buildSessionCookie(session.id));
   }
@@ -142,7 +157,9 @@ class AuthController {
     }
 
     const session = await authRepository.createSession(db, user.id);
-    const publicUser = toPublicUser(user);
+    const publicUser = toPublicUser(user, {
+      isAdmin: configService.isAdminUser(user, env),
+    });
     const response = jsonResponse({ user: publicUser });
     return withSetCookie(response, buildSessionCookie(session.id));
   }

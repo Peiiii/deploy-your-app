@@ -14,6 +14,8 @@ export interface Project {
   // Whether this project should appear in public feeds (Explore, recommendations).
   // For legacy rows without this field, the system treats them as public.
   isPublic?: boolean;
+  // Soft delete flag (admin/offline cleanup). Deleted projects should be hidden from public feeds.
+  isDeleted?: boolean;
   name: string;
   repoUrl: string;
   sourceType?: SourceType;

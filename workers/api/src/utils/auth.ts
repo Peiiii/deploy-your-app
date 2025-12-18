@@ -7,13 +7,17 @@ const OAUTH_STATE_COOKIE_GITHUB = 'oauth_state_github';
 // 30 days session lifetime
 export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 
-export function toPublicUser(user: User): PublicUser {
+export function toPublicUser(
+  user: User,
+  options?: { isAdmin?: boolean },
+): PublicUser {
   return {
     id: user.id,
     email: user.email,
     handle: user.handle,
     displayName: user.displayName,
     avatarUrl: user.avatarUrl,
+    isAdmin: options?.isAdmin ?? false,
     providers: {
       email: !!user.passwordHash,
       google: !!user.googleSub,

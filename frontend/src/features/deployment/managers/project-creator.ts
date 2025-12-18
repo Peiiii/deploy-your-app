@@ -1,6 +1,5 @@
 import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
 import type { ProjectManager } from '@/managers/project.manager';
-import type { IDeploymentProvider } from '@/services/interfaces';
 import type { Project } from '@/types';
 import { SourceType } from '@/types';
 
@@ -12,7 +11,6 @@ type DeploymentStoreSnapshot = ReturnType<typeof useDeploymentStore.getState>;
  */
 export class ProjectCreator {
     constructor(
-        private provider: IDeploymentProvider,
         private projectManager: ProjectManager,
     ) { }
 

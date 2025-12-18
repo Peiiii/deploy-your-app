@@ -44,10 +44,6 @@ export const useHomeExploreFeed = () => {
         console.log('[useHomeExploreFeed] loading explore page', {
           pageToLoad,
           append,
-          page,
-          hasMore,
-          isLoadingExplore,
-          isLoadingMore,
         });
         setIsLoadingExplore(true);
         setIsLoadingMore(false);
