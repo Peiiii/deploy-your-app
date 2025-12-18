@@ -23,9 +23,9 @@ export const SidebarProjectList: React.FC<SidebarProjectListProps> = ({
 
   return (
     <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/5 flex flex-col min-h-0 flex-1">
-      <div className="px-5 mb-3 flex items-center justify-between gap-2 flex-shrink-0">
+      <div className="px-3 mb-3 flex items-center justify-between gap-2 flex-shrink-0">
         <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-          Projects
+          {t('navigation.projects')}
         </p>
       </div>
       <div className="overflow-y-auto flex-1 min-h-0">

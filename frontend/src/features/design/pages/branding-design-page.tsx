@@ -35,7 +35,7 @@ const LogoContainer = ({ children }: { children: React.ReactNode }) => (
     </div>
 );
 
-// --- HELPER: SECTOR DRAWING (For Retained Candidates) ---
+// --- HELPER: SECTOR DRAWING ---
 const Sector = ({ start, end, color = "currentColor", r = 12, cx = 16, cy = 16 }: { start: number; end: number; color?: string; r?: number, cx?: number, cy?: number }) => {
     const toRad = (deg: number) => (deg * Math.PI) / 180;
     const x1 = cx + r * Math.cos(toRad(start));
@@ -45,10 +45,18 @@ const Sector = ({ start, end, color = "currentColor", r = 12, cx = 16, cy = 16 }
     const largeArcFlag = (end - start) > 180 ? 1 : 0;
     return <path d={`M${cx} ${cy} L${x1} ${y1} A${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`} fill={color} stroke="none" />;
 };
+// --- HELPER: RADIAL LEG (For Letter K) ---
+const RadialLeg = ({ angle, strokeWidth = 3 }: { angle: number; strokeWidth?: number }) => {
+    const r = 12, cx = 16, cy = 16;
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const x = cx + r * Math.cos(toRad(angle));
+    const y = cy + r * Math.sin(toRad(angle));
+    return <line x1={cx} y1={cy} x2={x} y2={y} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" />;
+};
 
 
-// --- RETAINED CANDIDATES (TOP 6) ---
-
+// --- RETAINED CANDIDATES (TOP 7) ---
+// 1. Original
 const LogoOriginal = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
@@ -58,6 +66,7 @@ const LogoOriginal = () => (
     </LogoContainer>
 );
 
+// 2. Slice G
 const LogoSliceG = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
@@ -68,6 +77,7 @@ const LogoSliceG = () => (
     </LogoContainer>
 );
 
+// 3. Terminal Split
 const LogoTerminalSplit = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
@@ -78,6 +88,7 @@ const LogoTerminalSplit = () => (
     </LogoContainer>
 );
 
+// 4. Quarter Cut
 const LogoQuarter = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
@@ -89,6 +100,7 @@ const LogoQuarter = () => (
     </LogoContainer>
 );
 
+// 5. Exploded
 const LogoExploded = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
@@ -100,6 +112,7 @@ const LogoExploded = () => (
     </LogoContainer>
 );
 
+// 6. Mono Blue
 const LogoMonoColor = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
@@ -111,122 +124,113 @@ const LogoMonoColor = () => (
     </LogoContainer>
 );
 
-
-// --- TERMINAL SPLIT VIBRANT EVOLUTION ---
-
-// 1. Neon Terminal
-// Vibrant Green on Black, Glowing
-const LogoTS_Neon = () => (
-    <LogoContainer>
-        <div className="w-10 h-10 bg-slate-950 rounded-full flex items-center justify-center relative overflow-hidden shadow-lg shadow-emerald-500/20">
-            <div className="absolute left-0 top-0 bottom-0 w-1/2 bg-slate-900 border-r border-emerald-500/50"></div>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="relative z-10 drop-shadow-[0_0_3px_rgba(52,211,153,0.8)]">
-                <path d="M13 8l4 4-4 4" />
-                <line x1="12" y1="4" x2="12" y2="20" className="text-slate-700" strokeWidth="1" /> {/* Subtle split line */}
-            </svg>
-        </div>
-    </LogoContainer>
-);
-
-// 2. Syntax Highlight
-// Multi-colored: Blue structure, Pink bracket, Yellow prompt
-const LogoTS_Syntax = () => (
+// 7. Letter K (The Pacman Walker)
+const LogoLetterK = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
-            <path d="M16 4a12 12 0 0 0 0 24V4z" fill="#1e293b" /> {/* Dark background side */}
-            <path d="M16 4a12 12 0 0 1 0 24V4z" stroke="#cbd5e1" strokeWidth="2" />
-            <path d="M20 12l4 4-4 4" stroke="#f472b6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /> {/* Pink Prompt */}
-            <line x1="16" y1="4" x2="16" y2="28" stroke="#3b82f6" strokeWidth="2" /> {/* Blue Split */}
+            <path d="M16 4 A12 12 0 0 0 16 28 V16 Z" fill="currentColor" />
+            <RadialLeg angle={-45} />
+            <RadialLeg angle={45} />
         </svg>
     </LogoContainer>
 );
 
-// 3. Glitch Split
-// Offset colors (Cyan/Magenta) like a screen glitch
-const LogoTS_Glitch = () => (
-    <LogoContainer>
-        <div className="relative">
-            <svg width="40" height="40" viewBox="0 0 32 32" fill="none" className="absolute left-[1px] top-0 opacity-70 mix-blend-screen">
-                <path d="M16 4a12 12 0 0 0 0 24V4z" fill="#06b6d4" /> {/* Cyan */}
-            </svg>
-            <svg width="40" height="40" viewBox="0 0 32 32" fill="none" className="absolute -left-[1px] top-0 opacity-70 mix-blend-screen">
-                <path d="M16 4a12 12 0 0 0 0 24V4z" fill="#db2777" /> {/* Magenta */}
-            </svg>
-            <svg width="40" height="40" viewBox="0 0 32 32" fill="none" className="relative z-10">
-                <path d="M16 4a12 12 0 0 1 0 24V4z" stroke="currentColor" strokeWidth="2" />
-                <path d="M20 12l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                <line x1="16" y1="4" x2="16" y2="28" stroke="currentColor" strokeWidth="2" />
-            </svg>
-        </div>
-    </LogoContainer>
-);
 
-// 4. Gradient Slash
-// The split is a diagonal vibrant gradient cut
-const LogoTS_GradientSlash = () => (
+// --- CREATIVE INNOVATION EXPLORATION ---
+
+// 1. The Aperture (Focus)
+// Interlocking blades forming a G/Circle.
+const LogoAperture = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
-            <defs>
-                <linearGradient id="gradSlash" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#3b82f6" /><stop offset="100%" stopColor="#ec4899" /></linearGradient>
-            </defs>
-            <path d="M16 4a12 12 0 0 0 0 24V4z" fill="currentColor" className="text-slate-800 dark:text-white" />
-            <line x1="16" y1="4" x2="16" y2="28" stroke="url(#gradSlash)" strokeWidth="3" />
-            <path d="M21 12l4 4-4 4" stroke="url(#gradSlash)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            {/* 3 blades for simplicity */}
+            <path d="M16 16 L 16 4 A 12 12 0 0 1 27.5 12 Z" fill="#60a5fa" />
+            <path d="M16 16 L 27.5 12 A 12 12 0 0 1 18 27.8 Z" fill="#3b82f6" />
+            <path d="M16 16 L 18 27.8 A 12 12 0 0 1 4.5 20 Z" fill="#2563eb" />
+            <path d="M16 16 L 4.5 20 A 12 12 0 0 1 16 4 Z" fill="#1d4ed8" />
+            <circle cx="16" cy="16" r="3" fill="white" className="dark:fill-slate-900" />
         </svg>
     </LogoContainer>
 );
 
-// 5. Code Block Container
-// The split circle inside a [ ] or code box
-const LogoTS_Container = () => (
-    <LogoContainer>
-        <div className="w-10 h-10 border-2 border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center bg-white dark:bg-slate-800 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 bottom-0 left-0 w-1/2 bg-blue-50 dark:bg-blue-900/20"></div>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="relative z-10">
-                <line x1="12" y1="4" x2="12" y2="20" stroke="#3b82f6" strokeWidth="2" />
-                <path d="M14 10l3 2-3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-        </div>
-    </LogoContainer>
-);
-
-// 6. Energetic Arrow (G-Prompt)
-// The prompt arrow IS the crossbar of the G
-const LogoTS_PromptG = () => (
+// 2. The Circuit (Connection)
+// Lines resembling a PCB trace forming a G.
+const LogoCircuit = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
-            <path d="M16 4a12 12 0 0 0 0 24V4z" fill="currentColor" />
-            <path d="M16 4a12 12 0 0 1 0 24" stroke="currentColor" strokeWidth="2" />
-            {/* The Prompt Arrow forming the G crossbar */}
-            <path d="M16 16 h 6" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" /> {/* Red Line */}
-            <path d="M24 14 l 2 2 -2 2" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M22 6 h-4 v 4 h -6 v 12 h 8 v -6 h -2" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="20" cy="16" r="2" fill="currentColor" />
+            <circle cx="18" cy="6" r="2" fill="currentColor" />
         </svg>
     </LogoContainer>
 );
 
-// 7. Bold & Blue
-// Thick, confident strokes, primary brand blue
-const LogoTS_Bold = () => (
+// 3. The Orbit (Cloud)
+// A central planet with a satellite 'G' orbit.
+const LogoOrbit = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
-            <path d="M16 6a10 10 0 0 0 0 20V6z" fill="#1e40af" />
-            <path d="M16 6a10 10 0 0 1 0 20V6z" stroke="#3b82f6" strokeWidth="3" />
-            <path d="M21 13l3 3-3 3" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="16" cy="16" r="6" fill="currentColor" />
+            <path d="M16 4 a 12 12 0 0 0 0 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="16" cy="4" r="2.5" fill="#3b82f6" />
         </svg>
     </LogoContainer>
 );
 
-// 8. Warning/Action (Yellow/Black)
-// High contrast construction style
-const LogoTS_Action = () => (
+// 4. The Fold (Origami)
+// A folded ribbon creating a 3D G effect.
+const LogoFold = () => (
     <LogoContainer>
-        <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center text-slate-900 overflow-hidden relative border-2 border-slate-900">
-            <div className="absolute left-0 top-0 bottom-0 w-1/2 bg-slate-900"></div>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="relative z-10">
-                <line x1="12" y1="2" x2="12" y2="22" stroke="white" strokeWidth="2" />
-                <path d="M15 9l3 3-3 3" stroke="black" strokeWidth="2.5" strokeLinecap="round" />
-            </svg>
+        <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+            <path d="M20 6 L 12 6 L 12 26 L 22 26 L 22 16 L 16 16" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300 dark:text-slate-700" />
+            <path d="M20 6 L 12 6 L 12 26 L 22 26 L 22 16 L 16 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        </svg>
+    </LogoContainer>
+);
+
+// 5. The Beam (Laser)
+// A scanning beam cutting through the darkness.
+const LogoBeam = () => (
+    <LogoContainer>
+        <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center relative overflow-hidden">
+            <div className="absolute top-0 bottom-0 left-[45%] w-1 bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,1)]"></div>
+            <div className="text-white font-bold text-xl relative z-10 mix-blend-overlay">G</div>
         </div>
+    </LogoContainer>
+);
+
+// 6. The Mosaic (Data)
+// Small squares building up a G.
+const LogoMosaic = () => (
+    <LogoContainer>
+        <div className="grid grid-cols-3 gap-1 w-8 h-8">
+            <div className="bg-current rounded-[1px]"></div><div className="bg-current rounded-[1px]"></div><div className="bg-current rounded-[1px]"></div>
+            <div className="bg-current rounded-[1px]"></div><div className="opacity-0"></div><div className="opacity-0"></div>
+            <div className="bg-current rounded-[1px]"></div><div className="bg-current rounded-[1px]"></div><div className="bg-current rounded-[1px] bg-blue-500"></div>
+        </div>
+    </LogoContainer>
+);
+
+// 7. The Prism (Refraction)
+// Triangle G with light splitting.
+const LogoPrism = () => (
+    <LogoContainer>
+        <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+            <path d="M16 6 L 6 26 h 20 Z" stroke="currentColor" strokeWidth="2" />
+            <path d="M16 16 L 26 26" stroke="#3b82f6" strokeWidth="2" />
+            <path d="M16 16 L 6 26" stroke="#ec4899" strokeWidth="2" />
+        </svg>
+    </LogoContainer>
+);
+
+// 8. The Loop (Infinity)
+// Continuous line G.
+const LogoLoop = () => (
+    <LogoContainer>
+        <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+            <path d="M18 10 c-6 0 -8 4 -8 8 s 2 8 8 8 h 2 c 4 0 6 -2 6 -6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            <circle cx="26" cy="20" r="2" fill="#3b82f6" />
+        </svg>
     </LogoContainer>
 );
 
@@ -238,39 +242,40 @@ export const BrandingDesignPage = () => {
 
                 <header className="mb-8 text-center">
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
-                        Dynamic Evolution
+                        Creative Divergence
                     </h1>
                     <p className="text-slate-500 max-w-lg mx-auto">
-                        Refining favorites and injecting energy into the "Terminal Split" concept.
+                        Preserving the best, while exploring completely new geometric and metaphoric directions.
                     </p>
                 </header>
 
-                {/* SECTION 1: THE PRESERVED SIX */}
+                {/* SECTION 1: THE PRESERVED SEVEN */}
                 <section>
-                    <SectionHeader title="Preserved Candidates" reset="The chosen foundation" />
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-12">
-                        <CandidateCard id="T1" label="Original" isTop description="Pure geometry"><LogoOriginal /></CandidateCard>
-                        <CandidateCard id="T2" label="Slice G" isTop description="Negative space"><LogoSliceG /></CandidateCard>
-                        <CandidateCard id="T3" label="Terminal Split" isTop description="Tech native"><LogoTerminalSplit /></CandidateCard>
-                        <CandidateCard id="T4" label="Quarter Cut" isTop description="Modular"><LogoQuarter /></CandidateCard>
-                        <CandidateCard id="T5" label="Exploded" isTop description="Separated blocks"><LogoExploded /></CandidateCard>
-                        <CandidateCard id="T6" label="Mono Blue" isTop description="Tonal palette"><LogoMonoColor /></CandidateCard>
+                    <SectionHeader title="Preserved Candidates" reset="The Finalist Collection" />
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6 mb-12">
+                        <CandidateCard id="F1" label="Original" isTop description="Pure geometry"><LogoOriginal /></CandidateCard>
+                        <CandidateCard id="F2" label="Slice G" isTop description="Negative space"><LogoSliceG /></CandidateCard>
+                        <CandidateCard id="F3" label="Terminal Split" isTop description="Tech native"><LogoTerminalSplit /></CandidateCard>
+                        <CandidateCard id="F4" label="Quarter Cut" isTop description="Modular"><LogoQuarter /></CandidateCard>
+                        <CandidateCard id="F5" label="Exploded" isTop description="Separated blocks"><LogoExploded /></CandidateCard>
+                        <CandidateCard id="F6" label="Mono Blue" isTop description="Tonal palette"><LogoMonoColor /></CandidateCard>
+                        <CandidateCard id="F7" label="Letter K" isTop description="-45° & 45° Radii"><LogoLetterK /></CandidateCard>
                     </div>
                 </section>
 
-                {/* SECTION 2: VIBRANT TERMINAL SPLIT */}
+                {/* SECTION 2: CREATIVE DIVERGENCE */}
                 <section>
-                    <SectionHeader title="Terminal Split: Vibrant Mode" reset="High energy variants" />
+                    <SectionHeader title="Creative Divergence" reset="New Metaphors & Geometries" />
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-                        <CandidateCard id="V1" label="Neon Terminal" description="Hacker green glow"><LogoTS_Neon /></CandidateCard>
-                        <CandidateCard id="V2" label="Syntax Highlight" description="Pink/Blue/Dark"><LogoTS_Syntax /></CandidateCard>
-                        <CandidateCard id="V3" label="Glitch Split" description="Cyan/Magenta offset"><LogoTS_Glitch /></CandidateCard>
-                        <CandidateCard id="V4" label="Gradient Slash" description="Vivid spectrum cut"><LogoTS_GradientSlash /></CandidateCard>
+                        <CandidateCard id="D1" label="The Aperture" description="Focus & Lens"><LogoAperture /></CandidateCard>
+                        <CandidateCard id="D2" label="The Circuit" description="PCB Connectivity"><LogoCircuit /></CandidateCard>
+                        <CandidateCard id="D3" label="The Orbit" description="Planetary Cloud"><LogoOrbit /></CandidateCard>
+                        <CandidateCard id="D4" label="The Fold" description="Structural Depth"><LogoFold /></CandidateCard>
 
-                        <CandidateCard id="V5" label="Prompt G" description="Red arrow crossbar"><LogoTS_PromptG /></CandidateCard>
-                        <CandidateCard id="V6" label="Container Box" description="UI abstraction"><LogoTS_Container /></CandidateCard>
-                        <CandidateCard id="V7" label="Bold Blue" description="Thick strokes"><LogoTS_Bold /></CandidateCard>
-                        <CandidateCard id="V8" label="Construction" description="High contrast visual"><LogoTS_Action /></CandidateCard>
+                        <CandidateCard id="D5" label="The Beam" description="Laser Scan"><LogoBeam /></CandidateCard>
+                        <CandidateCard id="D6" label="The Mosaic" description="Data Blocks"><LogoMosaic /></CandidateCard>
+                        <CandidateCard id="D7" label="The Prism" description="Light Refraction"><LogoPrism /></CandidateCard>
+                        <CandidateCard id="D8" label="The Loop" description="Continuous Flow"><LogoLoop /></CandidateCard>
                     </div>
                 </section>
 

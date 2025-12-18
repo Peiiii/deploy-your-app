@@ -53,6 +53,7 @@
     "organization": "Organization",
     "personalProjects": "Personal Projects",
     "myProjects": "My Projects",
+    "projects": "Projects",
     "pinnedProjects": "Pinned Projects",
     "recentProjects": "Recent Projects",
     "noPinnedProjects": "No pinned projects",
