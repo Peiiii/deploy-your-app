@@ -2,6 +2,7 @@
 import { Heart, Play } from 'lucide-react';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { usePresenter } from '../contexts/presenter-context';
 import { useReactionStore } from '../stores/reaction.store';
 import {
@@ -94,6 +95,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   const { t } = useTranslation();
   const presenter = usePresenter();
   const reactionEntry = useReactionStore((s) => s.byProjectId[app.id]);
+  const navigate = useNavigate();
   const [thumbLoaded, setThumbLoaded] = useState(false);
   const [thumbError, setThumbError] = useState(false);
 
@@ -172,7 +174,18 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
         </p>
 
         <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700 mt-auto">
-          <div className="flex items-center gap-2">
+          <div
+            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (app.authorProfileIdentifier) {
+                navigate(`/u/${app.authorProfileIdentifier}`);
+              } else {
+                // Fallback to name match if identifier missing
+                navigate(`/u/${app.author}`);
+              }
+            }}
+          >
             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-[10px] text-slate-600 font-bold">
               {app.author.charAt(0)}
             </div>

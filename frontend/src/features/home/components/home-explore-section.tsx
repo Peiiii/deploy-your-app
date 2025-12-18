@@ -48,7 +48,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
         value={localValue}
         onChange={handleChange}
         placeholder={t('explore.searchApps')}
-        className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all shadow-sm"
+        className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all shadow-sm"
       />
       {localValue && (
         <button
@@ -110,9 +110,9 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
             key={cat}
             onClick={() => handleCategoryClick(cat)}
             style={{ animationDelay: `${index * 30}ms` }}
-            className={`rounded-lg font-medium whitespace-nowrap transition-all duration-200 ${isCompact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'} ${isActive
-              ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
-              : 'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            className={`rounded-full font-medium whitespace-nowrap transition-all duration-200 ${isCompact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'} ${isActive
+              ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30 scale-105'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
               }`}
           >
             {getCategoryLabel(cat)}

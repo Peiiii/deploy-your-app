@@ -72,7 +72,7 @@ export const Home: React.FC = () => {
             </h1>
             <button
               onClick={() => navigate('/deploy')}
-              className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all shadow-md"
+              className="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 shadow-lg shadow-brand-500/25 transition-all hover:scale-105 active:scale-95"
             >
               + {t('common.newProject') || 'New Project'}
             </button>

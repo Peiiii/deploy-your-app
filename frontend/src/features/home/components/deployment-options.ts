@@ -58,6 +58,6 @@ export const DEPLOYMENT_OPTIONS: DeploymentOption[] = [
     hoverColor: 'gray',
     iconColor: 'text-white',
     shadowColor: 'shadow-black/20',
-    variant: 'dark', // This triggers the black card style
+    variant: 'default', // Changed from 'dark' to match other cards
   },
 ];
