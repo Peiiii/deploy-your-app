@@ -3,7 +3,25 @@ import { ExternalLink, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 
-// --- BRAND LOGO HELPER ---
+// ============================================================================
+// STRATEGY: ROBUST CSS-BASED DOCKING
+// ============================================================================
+// Instead of relying on fragile pixel measurements for the "Docked" state (which can flake 
+// due to sub-pixel rendering or width changes), we use CSS Transforms.
+//
+// 1. Outside Left: right-edge aligned to parent's left edge (left: 0, translateX(-100%)).
+//    We add +1px overlap (calc(-100% + 1px)) to ensure visually seamless merging.
+// 2. Inside Left: left-edge aligned to parent's left edge (left: 0, translateX(0)).
+// 3. Inside Right: right-edge aligned to parent's right edge (left: 100%, translateX(-100%)).
+//
+// When dragging starts, we calculate the exact pixel position relative to the parent
+// to ensure a smooth handover from "CSS Mode" to "Absolute Pixel Mode".
+// ============================================================================
+
+// --- CONSTANTS ---
+type DockSide = 'outside-left' | 'inside-left' | 'inside-right';
+
+// --- HELPER COMPONENTS ---
 const Sector = ({ start, end, color }: { start: number; end: number; color: string }) => {
     const r = 12;
     const cx = 16;
@@ -26,6 +44,139 @@ const BrandLogo = ({ className }: { className?: string }) => (
     </svg>
 );
 
+// --- LOGIC HOOK ---
+
+const useFloatingDockBehavior = (
+    onDragStart: () => void,
+    onDragEnd: () => void
+) => {
+    // Default to absolute top (y=0), docked outside-left
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [dockSide, setDockSide] = useState<DockSide>('outside-left');
+    const [isDragging, setIsDragging] = useState(false);
+    const [isDocked, setIsDocked] = useState(true);
+
+    const dragRef = useRef<{ startX: number, startY: number, initX: number, initY: number, currentX: number, currentY: number } | null>(null);
+    const nodeRef = useRef<HTMLDivElement>(null);
+
+    // Handlers
+    const handleMouseDown = (e: React.MouseEvent) => {
+        e.preventDefault();
+        onDragStart();
+
+        // Calculate exact pixel position to prevent jump on drag start
+        if (nodeRef.current && nodeRef.current.offsetParent) {
+            const rect = nodeRef.current.getBoundingClientRect();
+            const parentRect = nodeRef.current.offsetParent.getBoundingClientRect();
+            const startX = rect.left - parentRect.left;
+
+            // Sync state to exact pixels before un-docking
+            setPosition({ x: startX, y: position.y });
+
+            dragRef.current = {
+                startX: e.clientX,
+                startY: e.clientY,
+                initX: startX,
+                initY: position.y,
+                currentX: startX,
+                currentY: position.y
+            };
+        } else {
+            // Fallback (rare)
+            dragRef.current = {
+                startX: e.clientX,
+                startY: e.clientY,
+                initX: position.x,
+                initY: position.y,
+                currentX: position.x,
+                currentY: position.y
+            };
+        }
+
+        setIsDragging(true);
+        setIsDocked(false); // Enable unrestricted absolute positioning
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+        if (!dragRef.current) return;
+        const dx = e.clientX - dragRef.current.startX;
+        const dy = e.clientY - dragRef.current.startY;
+
+        const newX = dragRef.current.initX + dx;
+        let newY = dragRef.current.initY + dy;
+
+        // Bounded Y
+        const maxHeight = window.innerHeight - (nodeRef.current?.offsetHeight || 100);
+        newY = Math.max(0, Math.min(newY, maxHeight));
+
+        // Update ref & state
+        dragRef.current.currentX = newX;
+        dragRef.current.currentY = newY;
+        setPosition({ x: newX, y: newY });
+    };
+
+    const handleMouseUp = () => {
+        if (!dragRef.current || !nodeRef.current) return;
+
+        const parentWidth = nodeRef.current.offsetParent?.clientWidth || window.innerWidth;
+        const widgetWidth = nodeRef.current.offsetWidth;
+        const currentCenter = dragRef.current.currentX + (widgetWidth / 2);
+
+        // Determine snap target
+        let newDockSide: DockSide = 'outside-left';
+        if (currentCenter < 0) {
+            newDockSide = 'outside-left';
+        } else if (currentCenter < parentWidth / 2) {
+            newDockSide = 'inside-left';
+        } else {
+            newDockSide = 'inside-right';
+        }
+
+        const maxHeight = (nodeRef.current.offsetParent?.clientHeight || window.innerHeight) - nodeRef.current.offsetHeight;
+        const finalY = Math.max(0, Math.min(dragRef.current.currentY, maxHeight));
+
+        // Commit Stickiness
+        setDockSide(newDockSide);
+        setPosition({ x: 0, y: finalY }); // x is reset/ignored when docked
+        setIsDocked(true);
+        setIsDragging(false);
+
+        onDragEnd();
+
+        dragRef.current = null;
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    // Calculate Dynamic Styles
+    const style: React.CSSProperties = isDocked
+        ? {
+            top: position.y,
+            left: dockSide === 'outside-left' || dockSide === 'inside-left' ? 0 : '100%',
+            transform: dockSide === 'outside-left'
+                ? 'translateX(calc(-100% + 1px))' // +1px for seamless overlap
+                : dockSide === 'inside-right'
+                    ? 'translateX(-100%)'
+                    : 'none'
+        }
+        : {
+            left: position.x,
+            top: position.y
+        };
+
+    return {
+        nodeRef,
+        style,
+        handlers: { onMouseDown: handleMouseDown },
+        state: { isDragging, dockSide }
+    };
+};
+
+// --- MAIN COMPONENT ---
+
 interface PreviewFloatingDockProps {
     app: ExploreAppCard;
     onClose: () => void;
@@ -42,136 +193,16 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
     onDragEnd
 }) => {
     const { t } = useTranslation();
-    // Default to absolute top (y=0)
-    const [position, setPosition] = useState({ x: 0, y: 0 });
-    const [dockSide, setDockSide] = useState<'outside-left' | 'inside-left' | 'inside-right'>('outside-left');
-    const [isDragging, setIsDragging] = useState(false);
-    const [isDocked, setIsDocked] = useState(true);
 
-    // Drag Refs
-    const dragRef = useRef<{ startX: number, startY: number, initX: number, initY: number, currentX: number, currentY: number } | null>(null);
-    const nodeRef = useRef<HTMLDivElement>(null);
-
-    const handleMouseDown = (e: React.MouseEvent) => {
-        e.preventDefault();
-        onDragStart();
-
-        // Calculate exact pixel position to prevent jump on drag start
-        if (nodeRef.current && nodeRef.current.offsetParent) {
-            const rect = nodeRef.current.getBoundingClientRect();
-            const parentRect = nodeRef.current.offsetParent.getBoundingClientRect();
-            const startX = rect.left - parentRect.left;
-
-            setPosition({ x: startX, y: position.y });
-
-            dragRef.current = {
-                startX: e.clientX,
-                startY: e.clientY,
-                initX: startX,
-                initY: position.y,
-                currentX: startX,
-                currentY: position.y
-            };
-        } else {
-            // Fallback
-            dragRef.current = {
-                startX: e.clientX,
-                startY: e.clientY,
-                initX: position.x,
-                initY: position.y,
-                currentX: position.x,
-                currentY: position.y
-            };
-        }
-
-        setIsDragging(true);
-        setIsDocked(false);
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-        if (!dragRef.current) return;
-        const dx = e.clientX - dragRef.current.startX;
-        const dy = e.clientY - dragRef.current.startY;
-
-        let newX = dragRef.current.initX + dx;
-        let newY = dragRef.current.initY + dy;
-
-        // Bounded Y
-        const maxHeight = window.innerHeight - (nodeRef.current?.offsetHeight || 100);
-        newY = Math.max(0, Math.min(newY, maxHeight));
-
-        // Update ref
-        dragRef.current.currentX = newX;
-        dragRef.current.currentY = newY;
-
-        // Unbounded X (during drag)
-        setPosition({ x: newX, y: newY });
-    };
-
-    const handleMouseUp = () => {
-        if (!dragRef.current || !nodeRef.current) return;
-
-        const parentWidth = nodeRef.current.offsetParent?.clientWidth || window.innerWidth;
-        const widgetWidth = nodeRef.current.offsetWidth;
-        const currentCenter = dragRef.current.currentX + (widgetWidth / 2);
-
-        let newDockSide: 'outside-left' | 'inside-left' | 'inside-right' = 'outside-left';
-
-        if (currentCenter < 0) {
-            newDockSide = 'outside-left';
-        } else if (currentCenter < parentWidth / 2) {
-            newDockSide = 'inside-left';
-        } else {
-            newDockSide = 'inside-right';
-        }
-
-        const maxHeight = (nodeRef.current.offsetParent?.clientHeight || window.innerHeight) - nodeRef.current.offsetHeight;
-        const finalY = Math.max(0, Math.min(dragRef.current.currentY, maxHeight));
-
-        // Update State
-        setDockSide(newDockSide);
-        setPosition({ x: 0, y: finalY }); // Set x to 0 as it's ignored when docked
-        setIsDocked(true);
-        setIsDragging(false);
-
-        onDragEnd();
-
-        dragRef.current = null;
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-    };
-
-    // Calculate Dynamic Styles for Docking
-    const getDockingStyle = () => {
-        if (!isDocked) {
-            return { left: position.x, top: position.y };
-        }
-
-        // Docked Styles
-        const style: React.CSSProperties = { top: position.y };
-
-        if (dockSide === 'outside-left') {
-            style.left = 0;
-            // -100% moves it fully outside. +1px ensures subtle visual border merge (no gap).
-            style.transform = 'translateX(calc(-100% + 1px))';
-        } else if (dockSide === 'inside-left') {
-            style.left = 0;
-            style.transform = 'none';
-        } else if (dockSide === 'inside-right') {
-            style.left = '100%';
-            style.transform = 'translateX(-100%)';
-        }
-
-        return style;
-    };
+    // Use the logic hook
+    const { nodeRef, style, handlers, state } = useFloatingDockBehavior(onDragStart, onDragEnd);
+    const { isDragging, dockSide } = state;
 
     return (
         <div
             ref={nodeRef}
-            onMouseDown={handleMouseDown}
-            style={getDockingStyle()}
+            onMouseDown={handlers.onMouseDown}
+            style={style}
             className={`
                 absolute z-50 select-none
                 ${isDragging ? 'cursor-grabbing' : 'transition-[left,top] duration-500 linear cursor-grab'}
