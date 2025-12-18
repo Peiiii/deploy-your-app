@@ -1,7 +1,7 @@
-import { Search, TrendingUp } from 'lucide-react';
+import { Search } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+
 import { ExploreAppCardView } from '@/components/explore-app-card';
 import { PageLayout } from '@/components/page-layout';
 import { useExploreStore, CATEGORIES, type CategoryFilter } from '@/features/explore/stores/explore.store';
@@ -18,15 +18,15 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
   const { t } = useTranslation();
   return (
     <div className="relative w-full md:w-96 group">
-      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-        <Search className="h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+        <Search className="h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-all duration-300 group-focus-within:scale-110" />
       </div>
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={t('explore.searchApps')}
-        className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-full text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:bg-white dark:focus:bg-slate-800 transition-all shadow-sm hover:shadow-md placeholder:text-slate-400"
+        className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all shadow-sm"
       />
     </div>
   );
@@ -83,7 +83,7 @@ const CategoryFilterBar: React.FC<CategoryFilterProps> = ({
 export const ExploreApps: React.FC = () => {
   const { t } = useTranslation();
   const presenter = usePresenter();
-  const navigate = useNavigate();
+
 
   // Subscribe to store
   const apps = useExploreStore((s) => s.apps);
@@ -140,7 +140,7 @@ export const ExploreApps: React.FC = () => {
         </div>
       }
     >
-      <div className="space-y-8 animate-fade-in">
+      <div className="flex flex-col gap-4 animate-fade-in">
         {/* Mobile Search Bar - Visible only on small screens */}
         <div className="md:hidden">
           <SearchBar value={searchQuery} onChange={actions.setSearchQuery} />
