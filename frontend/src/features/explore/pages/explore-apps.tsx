@@ -1,4 +1,4 @@
-import { Play, Search, TrendingUp } from 'lucide-react';
+import { Search, TrendingUp } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +7,7 @@ import { PageLayout } from '@/components/page-layout';
 import { useExploreStore, CATEGORIES, type CategoryFilter } from '@/features/explore/stores/explore.store';
 import { usePresenter } from '@/contexts/presenter-context';
 
-const CREATOR_REVENUE_SHARE = 70;
+
 
 interface SearchBarProps {
   value: string;
@@ -32,43 +32,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
   );
 };
 
-interface FeaturedBannerProps {
-  onNavigateToDeploy: () => void;
-}
 
-const FeaturedBanner: React.FC<FeaturedBannerProps> = ({ onNavigateToDeploy }) => {
-  const { t } = useTranslation();
-  return (
-    <div className="relative rounded-3xl overflow-hidden bg-slate-900 text-white p-8 md:p-16 shadow-2xl shadow-slate-900/20 group">
-      <div className="absolute inset-0 opacity-20 mix-blend-soft-light bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent"></div>
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/20 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/3 group-hover:bg-brand-400/30 transition-colors duration-700" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-500/20 blur-[100px] rounded-full translate-y-1/3 -translate-x-1/3 group-hover:bg-purple-400/30 transition-colors duration-700" />
-
-      <div className="relative z-10 max-w-3xl">
-        <div className="inline-flex items-center gap-2 mb-6 text-brand-300 font-medium px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
-          <TrendingUp className="w-4 h-4" />
-          <span className="text-sm tracking-wide uppercase">
-            {t('explore.creatorEconomy')}
-          </span>
-        </div>
-        <h3 className="text-5xl md:text-6xl font-bold mb-6 leading-tight tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-white via-white to-slate-400">
-          {t('explore.monetizeYour')} <br /> {t('explore.aiModels')}
-        </h3>
-        <p className="text-slate-300 text-lg md:text-xl mb-10 max-w-xl leading-relaxed">
-          {t('explore.publishToMarketplace')}{' '}
-          <span className="text-white font-bold">{CREATOR_REVENUE_SHARE}%</span>{' '}
-          {t('explore.ofCreditRevenue')}
-        </p>
-        <button
-          onClick={onNavigateToDeploy}
-          className="bg-white text-slate-900 px-8 py-4 rounded-full font-bold text-lg hover:bg-brand-50 hover:scale-105 transition-all shadow-xl shadow-brand-500/10 flex items-center gap-2"
-        >
-          {t('explore.becomeACreator')} <Play className="w-4 h-4 fill-slate-900" />
-        </button>
-      </div>
-    </div>
-  );
-};
 
 interface CategoryFilterProps {
   activeCategory: CategoryFilter;
@@ -145,11 +109,7 @@ export const ExploreApps: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [searchQuery, activeCategory, presenter.explore]);
 
-  const handleNavigateToDeploy = () => {
-    presenter.explore.requireAuthAnd(() => {
-      navigate('/deploy');
-    });
-  };
+
 
   // Wrapper to match React.Dispatch<SetStateAction> signature
   const handleSetActiveTag = React.useCallback(
@@ -190,7 +150,7 @@ export const ExploreApps: React.FC = () => {
           {t('explore.discoverApps')} {t('explore.spendCreditsSupportCreators')}
         </p>
 
-        <FeaturedBanner onNavigateToDeploy={handleNavigateToDeploy} />
+
 
         <CategoryFilterBar
           activeCategory={activeCategory}
