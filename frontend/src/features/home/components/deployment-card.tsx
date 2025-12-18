@@ -25,7 +25,7 @@ export const DeploymentCard: React.FC<DeploymentCardProps> = ({
             className={`group relative text-left overflow-hidden rounded-3xl transition-all duration-300 ${compact ? 'p-5' : 'p-6 md:p-8'
                 } ${isDark
                     ? 'bg-[#0f172a] text-white shadow-xl hover:shadow-2xl hover:-translate-y-1'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-[0_0_20px_rgba(0,0,0,0.06)] dark:shadow-[0_0_20px_rgba(0,0,0,0.4)] hover:shadow-[0_0_25px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_0_25px_rgba(0,0,0,0.6)] hover:-translate-y-1 hover:border-slate-300 dark:hover:border-slate-600'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-[0_0_10px_rgba(0,0,0,0.04)] dark:shadow-[0_0_10px_rgba(0,0,0,0.2)] hover:shadow-[0_0_30px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:-translate-y-1 hover:z-10 hover:border-slate-300 dark:hover:border-slate-600'
                 }`}
         >
             <div className="relative z-10 flex flex-col h-full justify-between">
