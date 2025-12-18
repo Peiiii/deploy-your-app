@@ -18,45 +18,55 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
     const { t } = useTranslation();
 
     return (
-        <div className="flex flex-col w-full h-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md animate-fade-in shadow-none border-none rounded-none">
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 h-14 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex-shrink-0 z-10 relative">
+        <div className="flex flex-col w-full h-full bg-white dark:bg-slate-900 shadow-2xl overflow-hidden animate-fade-in group relative">
+
+            {/* Glass Edge Effect (Left Border Replacement) */}
+            <div className="absolute inset-y-0 left-0 w-[1px] z-50 pointer-events-none bg-gradient-to-b from-white/0 via-white/80 to-white/0 dark:from-white/0 dark:via-white/20 dark:to-white/0 opacity-50"></div>
+            <div className="absolute inset-y-0 left-0 w-6 z-40 pointer-events-none bg-gradient-to-r from-slate-900/5 to-transparent dark:from-black/40 dark:to-transparent mix-blend-overlay"></div>
+            <div className="absolute inset-y-0 left-0 w-px z-50 pointer-events-none shadow-[1px_0_4px_rgba(255,255,255,0.4)_inset] dark:shadow-[1px_0_4px_rgba(255,255,255,0.1)_inset]"></div>
+
+            {/* Slim Header (External - No Occlusion) */}
+            <div className="flex items-center justify-between px-4 h-12 border-b border-slate-200/80 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-sm flex-shrink-0 z-20">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <h3 className="font-bold text-base text-slate-900 dark:text-white truncate shrink-0 max-w-[50%]">
+                    <h3 className="font-bold text-sm text-slate-700 dark:text-slate-200 truncate shrink-0 max-w-[50%]">
                         {app.name}
                     </h3>
-                    <AuthorBadge
-                        name={app.author}
-                        identifier={app.authorProfileIdentifier}
-                    />
+                    <div className="h-3 w-px bg-slate-200 dark:bg-slate-700"></div>
+                    <div className="scale-90 origin-left">
+                        <AuthorBadge
+                            name={app.author}
+                            identifier={app.authorProfileIdentifier}
+                        />
+                    </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+
+                <div className="flex items-center gap-1">
                     {app.url && (
                         <button
                             onClick={() => onOpenInNewTab(app.url!)}
-                            className="p-2.5 rounded-xl hover:bg-slate-200/80 dark:hover:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-all duration-300 hover:scale-110"
+                            className="p-1.5 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-400 dark:text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 transition-all"
                             aria-label={t('common.openInNewTab')}
                             title={t('common.openInNewTab')}
                         >
-                            <ExternalLink className="w-5 h-5" />
+                            <ExternalLink className="w-4 h-4" />
                         </button>
                     )}
                     <button
                         onClick={onClose}
-                        className="p-2.5 rounded-xl hover:bg-slate-200/80 dark:hover:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-all duration-300 hover:scale-110"
+                        className="p-1.5 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-all"
                         aria-label={t('common.close')}
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-4 h-4" />
                     </button>
                 </div>
             </div>
 
-            {/* Iframe */}
-            <div className="flex-1 relative bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-950 dark:to-slate-900 min-h-0">
+            {/* Iframe Content (Takes remaining space) */}
+            <div className="flex-1 relative bg-slate-100 dark:bg-slate-950 min-h-0">
                 {app.url ? (
                     <iframe
                         src={app.url}
-                        className="w-full h-full border-0 rounded-none"
+                        className="w-full h-full border-0 block"
                         title={app.name}
                         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
                     />

@@ -28,7 +28,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
 
   return (
     <>
-      <div className={`p-6 pb-6 flex items-center gap-3 relative ${collapsed ? 'justify-center' : ''}`}>
+      <div className={`transition-all duration-300 flex items-center gap-3 relative ${collapsed ? 'p-0 w-full justify-center py-6' : 'p-6 pb-6'}`}>
         <button
           onClick={() => setSidebarOpen(false)}
           className="md:hidden absolute top-4 right-4 p-1 text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white"
@@ -36,13 +36,16 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
           <X className="w-5 h-5" />
         </button>
         {/* Precise 30 Logo (Purple) */}
-        <div className="relative w-10 h-10 flex items-center justify-center">
-          <svg width="100%" height="100%" viewBox="0 0 32 32" fill="none">
-            <Sector start={-90} end={-30} color="#a78bfa" />
-            <Sector start={0} end={90} color="#7c3aed" />
-            <Sector start={90} end={180} color="#5b21b6" />
-            <Sector start={180} end={270} color="#8b5cf6" />
-          </svg>
+        {/* Precise 30 Logo (Purple) - Optimized for Collapsed State */}
+        <div className={`relative flex items-center justify-center transition-all duration-300 ${collapsed ? 'w-10 h-10' : 'w-10 h-10'}`}>
+          <div className={`transition-all duration-300 ${collapsed ? 'w-7 h-7' : 'w-10 h-10'}`}>
+            <svg width="100%" height="100%" viewBox="0 0 32 32" fill="none">
+              <Sector start={-90} end={-30} color="#a78bfa" />
+              <Sector start={0} end={90} color="#7c3aed" />
+              <Sector start={90} end={180} color="#5b21b6" />
+              <Sector start={180} end={270} color="#8b5cf6" />
+            </svg>
+          </div>
         </div>
         {!collapsed && (
           <div>
