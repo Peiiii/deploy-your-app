@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useMemoizedFn } from 'ahooks';
-import { DOCK_OVERLAP_PX, DEFAULT_INITIAL_POSITION, type DockSide, type InitialPosition } from './types';
+import { DEFAULT_INITIAL_POSITION, type DockSide, type InitialPosition } from './types';
+import { determineDockSide, getDockedStyle, getDraggingStyle, getRelativePosition } from './utils';
 
 // ============================================================================
-// SIMPLIFIED FLOATING DOCK HOOK
+// FLOATING DOCK HOOK
 // ============================================================================
-// Two modes: 'docked' (CSS transform positioning) or 'dragging' (pixel positioning)
+// Two modes: 'docked' (CSS transform) or 'dragging' (pixel positioning)
 // ============================================================================
 
 export interface UseFloatingDockOptions {
@@ -25,7 +26,6 @@ export interface UseFloatingDockReturn {
 export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloatingDockReturn => {
     const { onDragStart, onDragEnd, initialPosition = DEFAULT_INITIAL_POSITION } = options;
 
-    // Single state object for simplicity
     const [state, setState] = useState({
         mode: 'docked' as 'docked' | 'dragging',
         dockSide: initialPosition.dockSide,
@@ -36,34 +36,29 @@ export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloati
     const nodeRef = useRef<HTMLDivElement>(null);
     const dragStartRef = useRef({ mouseX: 0, mouseY: 0, widgetX: 0, widgetY: 0 });
 
-    // --- Mouse Down: Start Dragging ---
+    // --- Start Dragging ---
     const onMouseDown = useMemoizedFn((e: React.MouseEvent) => {
         e.preventDefault();
+        const pos = getRelativePosition(nodeRef.current);
+        if (!pos) return;
 
-        // Get current pixel position from rendered element
-        const node = nodeRef.current;
-        const parent = node?.offsetParent as HTMLElement;
-        if (!node || !parent) return;
-
-        const rect = node.getBoundingClientRect();
-        const parentRect = parent.getBoundingClientRect();
-        const startX = rect.left - parentRect.left;
-
-        dragStartRef.current = { mouseX: e.clientX, mouseY: e.clientY, widgetX: startX, widgetY: state.y };
-        setState(s => ({ ...s, mode: 'dragging', x: startX }));
+        dragStartRef.current = { mouseX: e.clientX, mouseY: e.clientY, widgetX: pos.x, widgetY: state.y };
+        setState(s => ({ ...s, mode: 'dragging', x: pos.x }));
         onDragStart?.();
     });
 
-    // --- Mouse Move & Up: Managed by useEffect ---
+    // --- Dragging & Drop ---
     useEffect(() => {
         if (state.mode !== 'dragging') return;
 
         const onMove = (e: MouseEvent) => {
             const dx = e.clientX - dragStartRef.current.mouseX;
             const dy = e.clientY - dragStartRef.current.mouseY;
-            const newX = dragStartRef.current.widgetX + dx;
-            const newY = Math.max(0, dragStartRef.current.widgetY + dy);
-            setState(s => ({ ...s, x: newX, y: newY }));
+            setState(s => ({
+                ...s,
+                x: dragStartRef.current.widgetX + dx,
+                y: Math.max(0, dragStartRef.current.widgetY + dy)
+            }));
         };
 
         const onUp = () => {
@@ -72,14 +67,12 @@ export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloati
             const parentWidth = parent?.clientWidth ?? window.innerWidth;
             const widgetWidth = node?.offsetWidth ?? 0;
 
-            setState(s => {
-                const actualCenterX = s.x + widgetWidth / 2;
-                const newDockSide: DockSide =
-                    actualCenterX < 0 ? 'outside-left' :
-                        actualCenterX < parentWidth / 2 ? 'inside-left' : 'inside-right';
-
-                return { mode: 'docked', dockSide: newDockSide, x: 0, y: s.y };
-            });
+            setState(s => ({
+                mode: 'docked',
+                dockSide: determineDockSide(s.x + widgetWidth / 2, parentWidth),
+                x: 0,
+                y: s.y
+            }));
             onDragEnd?.();
         };
 
@@ -91,24 +84,13 @@ export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloati
         };
     }, [state.mode, onDragEnd]);
 
-    // --- Style Calculation ---
-    const style = useMemo((): React.CSSProperties => {
-        if (state.mode === 'dragging') {
-            return { left: state.x, top: state.y };
-        }
-
-        // Docked: use CSS transforms
-        const isLeft = state.dockSide !== 'inside-right';
-        return {
-            top: state.y,
-            left: isLeft ? 0 : '100%',
-            transform: state.dockSide === 'outside-left'
-                ? `translateX(calc(-100% + ${DOCK_OVERLAP_PX}px))`
-                : state.dockSide === 'inside-right'
-                    ? 'translateX(-100%)'
-                    : 'none'
-        };
-    }, [state.mode, state.dockSide, state.x, state.y]);
+    // --- Style ---
+    const style = useMemo(
+        () => state.mode === 'dragging'
+            ? getDraggingStyle(state.x, state.y)
+            : getDockedStyle(state.dockSide, state.y),
+        [state.mode, state.dockSide, state.x, state.y]
+    );
 
     return { nodeRef, style, onMouseDown, isDragging: state.mode === 'dragging', dockSide: state.dockSide };
 };
