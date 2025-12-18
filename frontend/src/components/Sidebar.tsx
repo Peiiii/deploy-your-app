@@ -1,5 +1,5 @@
 import React from 'react';
-import { Rocket, Wifi } from 'lucide-react';
+
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '../stores/ui.store';
 import { SidebarHeader } from './sidebar/sidebar-header';
@@ -58,32 +58,10 @@ export const Sidebar: React.FC = () => {
           )}
         </nav>
 
-        {!sidebarCollapsed && (
-          <div className="p-4 mx-4 mb-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 text-purple-600 dark:text-purple-300 flex items-center justify-center border border-slate-100 dark:border-slate-600 shadow-sm">
-                <Rocket className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-900 dark:text-white">{t('ui.theShowcase')}</p>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400 font-medium">{t('ui.proPlan')}</p>
-              </div>
-            </div>
-          </div>
-        )}
+
 
         {/* Connection Status Indicator */}
-        {!sidebarCollapsed && (
-          <div className="px-6 py-2">
-            <div className="flex items-center justify-between text-[10px] font-mono border border-green-500/30 bg-green-500/5 text-green-600 dark:text-green-400 rounded px-2 py-1.5">
-              <span className="flex items-center gap-1.5 font-bold">
-                <Wifi className="w-3 h-3" />
-                {t('ui.connected')}
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-            </div>
-          </div>
-        )}
+
 
         <SidebarUserProfile collapsed={sidebarCollapsed} />
       </div>
