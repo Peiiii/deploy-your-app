@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { Heart, Play, Star } from 'lucide-react';
+import { Heart, Play } from 'lucide-react';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '../contexts/presenter-context';
@@ -17,32 +17,37 @@ export interface ExploreAppCard {
   name: string;
   description: string;
   author: string;
-  cost: number;
   category: string;
   color: string;
   url?: string;
   tags?: string[];
   thumbnailUrl?: string;
-  rating?: number;
-  installs?: string;
   // Identifier used for linking to the author's public profile (/u/:identifier).
   // This will be the user's handle when set, otherwise their internal user id.
   authorProfileIdentifier?: string;
 }
 
 
-export function mapProjectsToApps(
-  projects: Project[],
-  appMeta: readonly {
-    cost: number;
-    category: string;
-    rating: number;
-    installs: string;
-    color: string;
-  }[],
-): ExploreAppCard[] {
-  return projects.map((project, index) => {
-    const meta = appMeta[index % appMeta.length];
+const PLACEHOLDER_COLORS = [
+  'from-blue-400 to-indigo-500',
+  'from-emerald-400 to-cyan-500',
+  'from-orange-400 to-pink-500',
+  'from-purple-400 to-indigo-500',
+  'from-red-400 to-rose-500',
+  'from-cyan-400 to-blue-500',
+];
+
+function getProjectColor(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % PLACEHOLDER_COLORS.length;
+  return PLACEHOLDER_COLORS[index];
+}
+
+export function mapProjectsToApps(projects: Project[]): ExploreAppCard[] {
+  return projects.map((project) => {
     const category = getProjectCategory(project);
     const description = getProjectDescription(project);
     const thumbnailUrl = project.url ? getProjectThumbnailUrl(project.url) ?? undefined : undefined;
@@ -54,6 +59,7 @@ export function mapProjectsToApps(
         : null;
     const authorLabel = handle ?? githubAuthor;
     const authorIdentifier = handle ?? project.ownerId;
+    const color = getProjectColor(project.id);
 
     return {
       id: project.id,
@@ -62,14 +68,11 @@ export function mapProjectsToApps(
       // Prefer platform username (handle) when available, otherwise fall back
       // to the GitHub owner / default label.
       author: authorLabel,
-      cost: meta.cost,
       category,
-      color: meta.color,
+      color,
       url: project.url,
       tags: project.tags,
       thumbnailUrl,
-      rating: meta.rating,
-      installs: meta.installs,
       // Fall back to ownerId so that /u/:ownerId links still work when
       // handle is missing.
       authorProfileIdentifier: authorIdentifier,
@@ -148,31 +151,18 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
           />
         </button>
 
-        {/* Price - Top Right */}
-        {app.cost > 0 && (
-          <div className="absolute top-4 right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold shadow-sm text-slate-900 dark:text-white">
-            ${app.cost}
+
+
+        {/* Category Badge - Top Right */}
+        {app.category !== 'Other' && (
+          <div className="absolute top-4 right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur px-3 py-1 rounded-full text-[10px] font-bold shadow-sm text-brand-600 uppercase tracking-wider border border-slate-200/50 dark:border-slate-700/50">
+            {app.category}
           </div>
         )}
       </div>
 
       <div className="p-5 flex flex-col flex-1">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-semibold text-brand-600 uppercase tracking-wider">
-            {app.category}
-          </span>
-          {(app.rating || app.installs) && (
-            <div className="flex items-center gap-1 text-slate-400 text-xs">
-              {app.rating && (
-                <>
-                  <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                  <span>{app.rating}</span>
-                </>
-              )}
-              {app.installs && <span>({app.installs})</span>}
-            </div>
-          )}
-        </div>
+
 
         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-brand-600 transition-colors">
           {app.name}

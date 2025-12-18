@@ -5,7 +5,7 @@ import { usePresenter } from '@/contexts/presenter-context';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { fetchExploreProjects } from '@/services/http/explore-api';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
-import { APP_META, type CategoryFilter, type SortOption } from '@/features/home/components/home-explore';
+import { type CategoryFilter, type SortOption } from '@/features/home/components/home-explore';
 
 export const useHomeExploreFeed = () => {
   const presenter = usePresenter();
@@ -66,7 +66,7 @@ export const useHomeExploreFeed = () => {
         if (requestId !== exploreRequestIdRef.current) return;
 
         const projects = result.items;
-        const pageApps = mapProjectsToApps(projects, APP_META);
+        const pageApps = mapProjectsToApps(projects);
         setApps((prev) => (append ? mergeUniqueApps(prev, pageApps) : pageApps));
 
         setPage(result.page);
