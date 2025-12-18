@@ -1,210 +1,114 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useMemoizedFn } from 'ahooks';
-import {
-    DOCK_OVERLAP_PX,
-    DEFAULT_WIDGET_HEIGHT,
-    DEFAULT_INITIAL_POSITION,
-    type DockSide,
-    type DockMode,
-    type DragSession,
-    type InitialPosition
-} from './types';
+import { DOCK_OVERLAP_PX, DEFAULT_INITIAL_POSITION, type DockSide, type InitialPosition } from './types';
 
 // ============================================================================
-// HOOK: useFloatingDockBehavior
+// SIMPLIFIED FLOATING DOCK HOOK
 // ============================================================================
-// Uses a state machine pattern with two modes:
-// - 'docked': Widget is attached to an edge, positioned via CSS transforms
-// - 'dragging': Widget is being moved, positioned via absolute pixel coordinates
-//
-// STRATEGY: ROBUST CSS-BASED DOCKING
-// Instead of relying on fragile pixel measurements for the "Docked" state,
-// we use CSS Transforms:
-// 1. Outside Left: translateX(calc(-100% + 1px)) for seamless merging
-// 2. Inside Left: translateX(0)
-// 3. Inside Right: left: 100%, translateX(-100%)
+// Two modes: 'docked' (CSS transform positioning) or 'dragging' (pixel positioning)
 // ============================================================================
 
-export interface UseFloatingDockBehaviorOptions {
+export interface UseFloatingDockOptions {
     onDragStart?: () => void;
     onDragEnd?: () => void;
     initialPosition?: InitialPosition;
 }
 
-export interface UseFloatingDockBehaviorReturn {
+export interface UseFloatingDockReturn {
     nodeRef: React.RefObject<HTMLDivElement | null>;
     style: React.CSSProperties;
-    handlers: { onMouseDown: (e: React.MouseEvent) => void };
-    state: { isDragging: boolean; dockSide: DockSide };
+    onMouseDown: (e: React.MouseEvent) => void;
+    isDragging: boolean;
+    dockSide: DockSide;
 }
 
-export const useFloatingDockBehavior = (
-    options: UseFloatingDockBehaviorOptions = {}
-): UseFloatingDockBehaviorReturn => {
-    const {
-        onDragStart,
-        onDragEnd,
-        initialPosition = DEFAULT_INITIAL_POSITION
-    } = options;
+export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloatingDockReturn => {
+    const { onDragStart, onDragEnd, initialPosition = DEFAULT_INITIAL_POSITION } = options;
 
-    // --- Core State (State Machine) ---
-    const [mode, setMode] = useState<DockMode>('docked');
-    const [dockSide, setDockSide] = useState<DockSide>(initialPosition.dockSide);
-    const [position, setPosition] = useState({ x: 0, y: initialPosition.y });
+    // Single state object for simplicity
+    const [state, setState] = useState({
+        mode: 'docked' as 'docked' | 'dragging',
+        dockSide: initialPosition.dockSide,
+        x: 0,
+        y: initialPosition.y
+    });
 
-    // --- Refs ---
     const nodeRef = useRef<HTMLDivElement>(null);
-    const dragSessionRef = useRef<DragSession | null>(null);
+    const dragStartRef = useRef({ mouseX: 0, mouseY: 0, widgetX: 0, widgetY: 0 });
 
-    // --- Derived State ---
-    const isDragging = mode === 'dragging';
-
-    // --- Utility Functions (Stable via useMemoizedFn) ---
-
-    const getParentDimensions = useMemoizedFn(() => {
-        const parent = nodeRef.current?.offsetParent as HTMLElement | null;
-        return {
-            width: parent?.clientWidth ?? window.innerWidth,
-            height: parent?.clientHeight ?? window.innerHeight
-        };
-    });
-
-    const getWidgetDimensions = useMemoizedFn(() => {
-        return {
-            width: nodeRef.current?.offsetWidth ?? 0,
-            height: nodeRef.current?.offsetHeight ?? DEFAULT_WIDGET_HEIGHT
-        };
-    });
-
-    const clampY = useMemoizedFn((y: number): number => {
-        const { height: parentHeight } = getParentDimensions();
-        const { height: widgetHeight } = getWidgetDimensions();
-        const maxY = parentHeight - widgetHeight;
-        return Math.max(0, Math.min(y, maxY));
-    });
-
-    const determineDockSide = useMemoizedFn((centerX: number): DockSide => {
-        const { width: parentWidth } = getParentDimensions();
-        if (centerX < 0) return 'outside-left';
-        if (centerX < parentWidth / 2) return 'inside-left';
-        return 'inside-right';
-    });
-
-    const calculateInitialPixelPosition = useMemoizedFn((): { x: number; y: number } => {
-        if (!nodeRef.current || !nodeRef.current.offsetParent) {
-            return { x: position.x, y: position.y };
-        }
-        const rect = nodeRef.current.getBoundingClientRect();
-        const parentRect = nodeRef.current.offsetParent.getBoundingClientRect();
-        return {
-            x: rect.left - parentRect.left,
-            y: position.y
-        };
-    });
-
-    // --- Event Handlers (Stable via useMemoizedFn) ---
-
-    const handleMouseMove = useMemoizedFn((e: MouseEvent) => {
-        const session = dragSessionRef.current;
-        if (!session) return;
-
-        const dx = e.clientX - session.startMouseX;
-        const dy = e.clientY - session.startMouseY;
-
-        const newX = session.initialWidgetX + dx;
-        const newY = clampY(session.initialWidgetY + dy);
-
-        // Update session ref (no re-render)
-        session.currentX = newX;
-        session.currentY = newY;
-
-        // Update state for rendering
-        setPosition({ x: newX, y: newY });
-    });
-
-    const handleMouseUp = useMemoizedFn(() => {
-        const session = dragSessionRef.current;
-        if (!session || !nodeRef.current) return;
-
-        const { width: widgetWidth } = getWidgetDimensions();
-        const centerX = session.currentX + widgetWidth / 2;
-
-        const newDockSide = determineDockSide(centerX);
-        const finalY = clampY(session.currentY);
-
-        // Transition back to docked mode
-        setDockSide(newDockSide);
-        setPosition({ x: 0, y: finalY }); // x is ignored in docked mode
-        setMode('docked');
-
-        // Cleanup session
-        dragSessionRef.current = null;
-
-        onDragEnd?.();
-    });
-
-    const handleMouseDown = useMemoizedFn((e: React.MouseEvent) => {
+    // --- Mouse Down: Start Dragging ---
+    const onMouseDown = useMemoizedFn((e: React.MouseEvent) => {
         e.preventDefault();
 
-        // Calculate current pixel position from CSS
-        const { x: pixelX, y: pixelY } = calculateInitialPixelPosition();
+        // Get current pixel position from rendered element
+        const node = nodeRef.current;
+        const parent = node?.offsetParent as HTMLElement;
+        if (!node || !parent) return;
 
-        // Initialize drag session
-        dragSessionRef.current = {
-            startMouseX: e.clientX,
-            startMouseY: e.clientY,
-            initialWidgetX: pixelX,
-            initialWidgetY: pixelY,
-            currentX: pixelX,
-            currentY: pixelY
-        };
+        const rect = node.getBoundingClientRect();
+        const parentRect = parent.getBoundingClientRect();
+        const startX = rect.left - parentRect.left;
 
-        // Transition to dragging mode
-        setPosition({ x: pixelX, y: pixelY });
-        setMode('dragging');
-
+        dragStartRef.current = { mouseX: e.clientX, mouseY: e.clientY, widgetX: startX, widgetY: state.y };
+        setState(s => ({ ...s, mode: 'dragging', x: startX }));
         onDragStart?.();
     });
 
-    // --- Event Listener Management via useEffect ---
-    // Attach/detach global listeners based on mode to avoid circular references
+    // --- Mouse Move & Up: Managed by useEffect ---
     useEffect(() => {
-        if (mode !== 'dragging') return;
+        if (state.mode !== 'dragging') return;
 
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
-
-        return () => {
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
+        const onMove = (e: MouseEvent) => {
+            const dx = e.clientX - dragStartRef.current.mouseX;
+            const dy = e.clientY - dragStartRef.current.mouseY;
+            const newX = dragStartRef.current.widgetX + dx;
+            const newY = Math.max(0, dragStartRef.current.widgetY + dy);
+            setState(s => ({ ...s, x: newX, y: newY }));
         };
-    }, [mode, handleMouseMove, handleMouseUp]);
 
-    // --- Style Calculation (Memoized) ---
+        const onUp = () => {
+            const node = nodeRef.current;
+            const parent = node?.offsetParent as HTMLElement;
+            const parentWidth = parent?.clientWidth ?? window.innerWidth;
+            const widgetWidth = node?.offsetWidth ?? 0;
+
+            setState(s => {
+                const actualCenterX = s.x + widgetWidth / 2;
+                const newDockSide: DockSide =
+                    actualCenterX < 0 ? 'outside-left' :
+                        actualCenterX < parentWidth / 2 ? 'inside-left' : 'inside-right';
+
+                return { mode: 'docked', dockSide: newDockSide, x: 0, y: s.y };
+            });
+            onDragEnd?.();
+        };
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+        return () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+        };
+    }, [state.mode, onDragEnd]);
+
+    // --- Style Calculation ---
     const style = useMemo((): React.CSSProperties => {
-        if (mode === 'dragging') {
-            return { left: position.x, top: position.y };
+        if (state.mode === 'dragging') {
+            return { left: state.x, top: state.y };
         }
 
-        // Docked mode: use CSS transforms for robust alignment
-        const isLeftSide = dockSide === 'outside-left' || dockSide === 'inside-left';
-        const transform = dockSide === 'outside-left'
-            ? `translateX(calc(-100% + ${DOCK_OVERLAP_PX}px))`
-            : dockSide === 'inside-right'
-                ? 'translateX(-100%)'
-                : 'none';
-
+        // Docked: use CSS transforms
+        const isLeft = state.dockSide !== 'inside-right';
         return {
-            top: position.y,
-            left: isLeftSide ? 0 : '100%',
-            transform
+            top: state.y,
+            left: isLeft ? 0 : '100%',
+            transform: state.dockSide === 'outside-left'
+                ? `translateX(calc(-100% + ${DOCK_OVERLAP_PX}px))`
+                : state.dockSide === 'inside-right'
+                    ? 'translateX(-100%)'
+                    : 'none'
         };
-    }, [mode, dockSide, position.x, position.y]);
+    }, [state.mode, state.dockSide, state.x, state.y]);
 
-    return {
-        nodeRef,
-        style,
-        handlers: { onMouseDown: handleMouseDown },
-        state: { isDragging, dockSide }
-    };
+    return { nodeRef, style, onMouseDown, isDragging: state.mode === 'dragging', dockSide: state.dockSide };
 };

@@ -1,0 +1,19 @@
+appId: com.gemigo.desktop
+productName: Gemigo Desktop
+files:
+  - dist/**
+  - package.json
+directories:
+  output: release
+asar: true
+npmRebuild: false
+mac:
+  target:
+    - dmg
+    - zip
+win:
+  target:
+    - nsis
+linux:
+  target:
+    - AppImage

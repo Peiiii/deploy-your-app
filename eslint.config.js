@@ -27,6 +27,12 @@ export default defineConfig([
     },
   },
   {
+    files: ['desktop/src/**/*.{ts,tsx}'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+  {
     // Ignore cloned user repos under .deploy-builds from linting to avoid
     // raising errors on user code we don't control.
     files: ['.deploy-builds/**/*.{ts,tsx}', 'server/routes.ts'],

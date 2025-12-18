@@ -1,0 +1,18 @@
+{
+  "name": "gemigo-desktop",
+  "private": true,
+  "version": "0.1.2",
+  "type": "commonjs",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "pnpm build && cross-env ELECTRON_RUN_AS_NODE= electron .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "pack": "pnpm build && electron-builder --config electron-builder.yml"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "electron": "^31.4.0",
+    "electron-builder": "^25.1.8"
+  }
+}

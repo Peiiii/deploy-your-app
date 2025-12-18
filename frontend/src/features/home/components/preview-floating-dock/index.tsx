@@ -2,7 +2,7 @@ import React from 'react';
 import { ExternalLink, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ExploreAppCard } from '@/components/explore-app-card';
-import { useFloatingDockBehavior } from './use-floating-dock';
+import { useFloatingDock } from './use-floating-dock';
 import { BrandLogo } from './brand-logo';
 
 // ============================================================================
@@ -28,16 +28,15 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
 }) => {
     const { t } = useTranslation();
 
-    const { nodeRef, style, handlers, state } = useFloatingDockBehavior({
+    const { nodeRef, style, onMouseDown, isDragging, dockSide } = useFloatingDock({
         onDragStart,
         onDragEnd
     });
-    const { isDragging, dockSide } = state;
 
     return (
         <div
             ref={nodeRef}
-            onMouseDown={handlers.onMouseDown}
+            onMouseDown={onMouseDown}
             style={style}
             className={`
                 absolute z-50 select-none
