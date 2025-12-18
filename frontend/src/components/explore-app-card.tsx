@@ -107,7 +107,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
 
   return (
     <div
-      className="group relative flex flex-col bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow h-full"
+      className="group relative flex flex-col bg-white dark:bg-slate-800 rounded-2xl shadow-[0_0_15px_rgba(0,0,0,0.1)] dark:shadow-[0_0_15px_rgba(0,0,0,0.4)] border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-[0_0_20px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_0_20px_rgba(0,0,0,0.6)] transition-all h-full"
     >
       <div
         className={`h-48 overflow-hidden relative cursor-pointer ${!showThumbnail ? `bg-gradient-to-br ${app.color}` : ''}`}
