@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ExternalLink, X, Zap } from 'lucide-react';
+import { ExternalLink, X } from 'lucide-react';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 import { AuthorBadge } from '@/components/author-badge';
 
@@ -20,20 +20,15 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
     return (
         <div className="flex flex-col w-full h-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md animate-fade-in shadow-none border-none rounded-none">
             {/* Header */}
-            <div className="flex items-center justify-between p-5 border-b border-slate-200/80 dark:border-slate-800/80 bg-gradient-to-r from-slate-50/80 to-white/80 dark:from-slate-900/80 dark:to-slate-800/80 backdrop-blur-sm flex-shrink-0">
-                <div className="flex items-center gap-4 min-w-0 flex-1">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br ${app.color} shrink-0 shadow-lg ring-2 ring-white/20 dark:ring-slate-700/30`}>
-                        <Zap className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                        <h3 className="font-bold text-lg text-slate-900 dark:text-white truncate mb-1">
-                            {app.name}
-                        </h3>
-                        <AuthorBadge
-                            name={app.author}
-                            identifier={app.authorProfileIdentifier}
-                        />
-                    </div>
+            <div className="flex items-center justify-between px-4 py-3 h-14 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex-shrink-0 z-10 relative">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <h3 className="font-bold text-base text-slate-900 dark:text-white truncate shrink-0 max-w-[50%]">
+                        {app.name}
+                    </h3>
+                    <AuthorBadge
+                        name={app.author}
+                        identifier={app.authorProfileIdentifier}
+                    />
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                     {app.url && (
