@@ -11,17 +11,17 @@ const SectionHeader = ({ title, reset }: { title: string; reset?: string }) => (
 
 const CandidateCard = ({ children, id, label, description, isTop = false }: { children: React.ReactNode; id: string; label: string; description?: string; isTop?: boolean }) => (
     <div className={`flex flex-col gap-3 group ${isTop ? 'scale-105' : ''}`}>
-        <div className={`bg-white dark:bg-slate-900 border ${isTop ? 'border-brand-500 shadow-brand-500/10 shadow-xl' : 'border-slate-200 dark:border-slate-800'} rounded-xl aspect-[4/3] flex items-center justify-center relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-brand-300 dark:hover:border-brand-700 hover:-translate-y-1`}>
+        <div className={`bg-white dark:bg-slate-900 border ${isTop ? 'border-violet-500 shadow-violet-500/10 shadow-xl' : 'border-slate-200 dark:border-slate-800'} rounded-xl aspect-[4/3] flex items-center justify-center relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-violet-300 dark:hover:border-violet-700 hover:-translate-y-1`}>
             <div className="absolute top-3 left-3 flex items-center gap-2">
                 <span className="text-[10px] font-mono text-slate-400 dark:text-slate-600">{id}</span>
-                {isTop && <span className="px-1.5 py-0.5 rounded-full bg-brand-100 dark:bg-brand-900 text-[9px] font-bold text-brand-600 dark:text-brand-300 uppercase tracking-wider">Top Pick</span>}
+                {isTop && <span className="px-1.5 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900 text-[9px] font-bold text-violet-600 dark:text-violet-300 uppercase tracking-wider">Top Pick</span>}
             </div>
             <div className={`transition-transform duration-500 group-hover:scale-110 ${isTop ? 'scale-125' : 'scale-110'}`}>
                 {children}
             </div>
         </div>
         <div>
-            <div className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors flex items-center gap-2">
+            <div className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors flex items-center gap-2">
                 {label}
             </div>
             {description && <div className="text-[11px] text-slate-500 leading-tight mt-1">{description}</div>}
@@ -35,8 +35,9 @@ const LogoContainer = ({ children }: { children: React.ReactNode }) => (
     </div>
 );
 
-// --- HELPER: SECTOR DRAWING ---
-const Sector = ({ start, end, color = "currentColor", r = 12, cx = 16, cy = 16 }: { start: number; end: number; color?: string; r?: number, cx?: number, cy?: number }) => {
+// --- HELPERS ---
+const Sector = ({ start, end, color = "currentColor" }: { start: number; end: number; color?: string }) => {
+    const r = 12, cx = 16, cy = 16;
     const toRad = (deg: number) => (deg * Math.PI) / 180;
     const x1 = cx + r * Math.cos(toRad(start));
     const y1 = cy + r * Math.sin(toRad(start));
@@ -45,17 +46,18 @@ const Sector = ({ start, end, color = "currentColor", r = 12, cx = 16, cy = 16 }
     const largeArcFlag = (end - start) > 180 ? 1 : 0;
     return <path d={`M${cx} ${cy} L${x1} ${y1} A${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`} fill={color} stroke="none" />;
 };
-// --- HELPER: RADIAL LEG (For Letter K) ---
-const RadialLeg = ({ angle, strokeWidth = 3 }: { angle: number; strokeWidth?: number }) => {
+
+const RadialLeg = ({ angle, strokeWidth = 3, color = "currentColor" }: { angle: number; strokeWidth?: number; color?: string }) => {
     const r = 12, cx = 16, cy = 16;
     const toRad = (deg: number) => (deg * Math.PI) / 180;
     const x = cx + r * Math.cos(toRad(angle));
     const y = cy + r * Math.sin(toRad(angle));
-    return <line x1={cx} y1={cy} x2={x} y2={y} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" />;
+    return <line x1={cx} y1={cy} x2={x} y2={y} stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />;
 };
 
 
 // --- RETAINED CANDIDATES (TOP 7) ---
+
 // 1. Original
 const LogoOriginal = () => (
     <LogoContainer>
@@ -124,7 +126,7 @@ const LogoMonoColor = () => (
     </LogoContainer>
 );
 
-// 7. Letter K (The Pacman Walker)
+// 7. Letter K (The Creature - Standard)
 const LogoLetterK = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
@@ -136,100 +138,126 @@ const LogoLetterK = () => (
 );
 
 
-// --- CREATIVE INNOVATION EXPLORATION ---
+// --- NEW PURPLE VARIANTS (Creature & Sectors) ---
 
-// 1. The Aperture (Focus)
-// Interlocking blades forming a G/Circle.
-const LogoAperture = () => (
+// 8. Deep Space K (Dark Violet)
+const LogoK_Deep = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
-            {/* 3 blades for simplicity */}
-            <path d="M16 16 L 16 4 A 12 12 0 0 1 27.5 12 Z" fill="#60a5fa" />
-            <path d="M16 16 L 27.5 12 A 12 12 0 0 1 18 27.8 Z" fill="#3b82f6" />
-            <path d="M16 16 L 18 27.8 A 12 12 0 0 1 4.5 20 Z" fill="#2563eb" />
-            <path d="M16 16 L 4.5 20 A 12 12 0 0 1 16 4 Z" fill="#1d4ed8" />
-            <circle cx="16" cy="16" r="3" fill="white" className="dark:fill-slate-900" />
+            <path d="M16 4 A12 12 0 0 0 16 28 V16 Z" fill="#4c1d95" />
+            <RadialLeg angle={-45} color="#c4b5fd" strokeWidth={3.5} />
+            <RadialLeg angle={45} color="#c4b5fd" strokeWidth={3.5} />
         </svg>
     </LogoContainer>
 );
 
-// 2. The Circuit (Connection)
-// Lines resembling a PCB trace forming a G.
-const LogoCircuit = () => (
+// 9. Neon K (Glowing Outline)
+const LogoK_Neon = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
-            <path d="M22 6 h-4 v 4 h -6 v 12 h 8 v -6 h -2" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="20" cy="16" r="2" fill="currentColor" />
-            <circle cx="18" cy="6" r="2" fill="currentColor" />
+            <path d="M16 4 A12 12 0 0 0 16 28 V16 Z" stroke="#a78bfa" strokeWidth="2" fill="none" />
+            <path d="M16 4 v 24" stroke="#a78bfa" strokeWidth="2" />
+            <RadialLeg angle={-45} color="#a78bfa" strokeWidth={2} />
+            <RadialLeg angle={45} color="#a78bfa" strokeWidth={2} />
         </svg>
     </LogoContainer>
 );
 
-// 3. The Orbit (Cloud)
-// A central planet with a satellite 'G' orbit.
-const LogoOrbit = () => (
+// 10. Accent K (Teal Leg)
+const LogoK_Accent = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="6" fill="currentColor" />
-            <path d="M16 4 a 12 12 0 0 0 0 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            <circle cx="16" cy="4" r="2.5" fill="#3b82f6" />
+            <path d="M16 4 A12 12 0 0 0 16 28 V16 Z" fill="#6d28d9" />
+            <RadialLeg angle={-45} color="#2dd4bf" strokeWidth={3} />
+            <RadialLeg angle={45} color="#a78bfa" strokeWidth={3} />
         </svg>
     </LogoContainer>
 );
 
-// 4. The Fold (Origami)
-// A folded ribbon creating a 3D G effect.
-const LogoFold = () => (
+// 11. Soft K (Gradient)
+const LogoK_Gradient = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
-            <path d="M20 6 L 12 6 L 12 26 L 22 26 L 22 16 L 16 16" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300 dark:text-slate-700" />
-            <path d="M20 6 L 12 6 L 12 26 L 22 26 L 22 16 L 16 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            <defs>
+                <linearGradient id="gradK" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#c084fc" />
+                    <stop offset="100%" stopColor="#7e22ce" />
+                </linearGradient>
+            </defs>
+            <path d="M16 4 A12 12 0 0 0 16 28 V16 Z" fill="url(#gradK)" />
+            <RadialLeg angle={-45} color="#a855f7" strokeWidth={3} />
+            <RadialLeg angle={45} color="#a855f7" strokeWidth={3} />
         </svg>
     </LogoContainer>
 );
 
-// 5. The Beam (Laser)
-// A scanning beam cutting through the darkness.
-const LogoBeam = () => (
-    <LogoContainer>
-        <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center relative overflow-hidden">
-            <div className="absolute top-0 bottom-0 left-[45%] w-1 bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,1)]"></div>
-            <div className="text-white font-bold text-xl relative z-10 mix-blend-overlay">G</div>
-        </div>
-    </LogoContainer>
-);
-
-// 6. The Mosaic (Data)
-// Small squares building up a G.
-const LogoMosaic = () => (
-    <LogoContainer>
-        <div className="grid grid-cols-3 gap-1 w-8 h-8">
-            <div className="bg-current rounded-[1px]"></div><div className="bg-current rounded-[1px]"></div><div className="bg-current rounded-[1px]"></div>
-            <div className="bg-current rounded-[1px]"></div><div className="opacity-0"></div><div className="opacity-0"></div>
-            <div className="bg-current rounded-[1px]"></div><div className="bg-current rounded-[1px]"></div><div className="bg-current rounded-[1px] bg-blue-500"></div>
-        </div>
-    </LogoContainer>
-);
-
-// 7. The Prism (Refraction)
-// Triangle G with light splitting.
-const LogoPrism = () => (
+// 12. Wide K (Wider Stance)
+const LogoK_Wide = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
-            <path d="M16 6 L 6 26 h 20 Z" stroke="currentColor" strokeWidth="2" />
-            <path d="M16 16 L 26 26" stroke="#3b82f6" strokeWidth="2" />
-            <path d="M16 16 L 6 26" stroke="#ec4899" strokeWidth="2" />
+            <path d="M16 4 A12 12 0 0 0 16 28 V16 Z" fill="#5b21b6" />
+            <RadialLeg angle={-30} color="#8b5cf6" strokeWidth={3} />
+            <RadialLeg angle={90} color="#8b5cf6" strokeWidth={3} />
         </svg>
     </LogoContainer>
 );
 
-// 8. The Loop (Infinity)
-// Continuous line G.
-const LogoLoop = () => (
+// 13. Midnight Sectors (Dark)
+const LogoSector_Dark = () => (
     <LogoContainer>
         <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
-            <path d="M18 10 c-6 0 -8 4 -8 8 s 2 8 8 8 h 2 c 4 0 6 -2 6 -6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-            <circle cx="26" cy="20" r="2" fill="#3b82f6" />
+            <Sector start={-90} end={-30} color="#4c1d95" />
+            <Sector start={0} end={90} color="#2e1065" />
+            <Sector start={90} end={180} color="#0f172a" />
+            <Sector start={180} end={270} color="#581c87" />
+        </svg>
+    </LogoContainer>
+);
+
+// 14. Vivid Sectors (Pink)
+const LogoSector_Vivid = () => (
+    <LogoContainer>
+        <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+            <Sector start={-90} end={-30} color="#e879f9" />
+            <Sector start={0} end={90} color="#7c3aed" />
+            <Sector start={90} end={180} color="#4c1d95" />
+            <Sector start={180} end={270} color="#8b5cf6" />
+        </svg>
+    </LogoContainer>
+);
+
+// 15. Exploded Purple
+const LogoSector_ExplodedPurple = () => (
+    <LogoContainer>
+        <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+            <g transform="translate(0.5, -0.5)"><Sector start={-90} end={-30} color="#a78bfa" /></g>
+            <g transform="translate(0.5, 0.5)"><Sector start={0} end={90} color="#7c3aed" /></g>
+            <g transform="translate(-0.5, 0.5)"><Sector start={90} end={180} color="#4c1d95" /></g>
+            <g transform="translate(-0.5, -0.5)"><Sector start={180} end={270} color="#c4b5fd" /></g>
+        </svg>
+    </LogoContainer>
+);
+
+// 16. Precise 30 Purple
+const LogoSector_Precise = () => (
+    <LogoContainer>
+        <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+            <Sector start={-90} end={-30} color="#a78bfa" />
+            <Sector start={0} end={90} color="#7c3aed" />
+            <Sector start={90} end={180} color="#5b21b6" />
+            <Sector start={180} end={270} color="#8b5cf6" />
+        </svg>
+    </LogoContainer>
+);
+
+// 17. Cyan Splash
+const LogoSector_Splash = () => (
+    <LogoContainer>
+        <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+            <Sector start={-90} end={-30} color="#22d3ee" />
+            <Sector start={0} end={90} color="#7c3aed" />
+            <Sector start={90} end={180} color="#4c1d95" />
+            <Sector start={180} end={270} color="#8b5cf6" />
         </svg>
     </LogoContainer>
 );
@@ -242,10 +270,10 @@ export const BrandingDesignPage = () => {
 
                 <header className="mb-8 text-center">
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
-                        Creative Divergence
+                        The Purple Convergence
                     </h1>
                     <p className="text-slate-500 max-w-lg mx-auto">
-                        Preserving the best, while exploring completely new geometric and metaphoric directions.
+                        Preserved finalists + exploration of "Letter K" and "Data Sectors" in Violet.
                     </p>
                 </header>
 
@@ -263,19 +291,27 @@ export const BrandingDesignPage = () => {
                     </div>
                 </section>
 
-                {/* SECTION 2: CREATIVE DIVERGENCE */}
+                {/* SECTION 2: LETTER K (PURPLE) */}
                 <section>
-                    <SectionHeader title="Creative Divergence" reset="New Metaphors & Geometries" />
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-                        <CandidateCard id="D1" label="The Aperture" description="Focus & Lens"><LogoAperture /></CandidateCard>
-                        <CandidateCard id="D2" label="The Circuit" description="PCB Connectivity"><LogoCircuit /></CandidateCard>
-                        <CandidateCard id="D3" label="The Orbit" description="Planetary Cloud"><LogoOrbit /></CandidateCard>
-                        <CandidateCard id="D4" label="The Fold" description="Structural Depth"><LogoFold /></CandidateCard>
+                    <SectionHeader title="Letter K: Purple Creature" reset="Personality driven in Violet" />
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-12">
+                        <CandidateCard id="K1" label="Deep Space" description="Dark violet contrast"><LogoK_Deep /></CandidateCard>
+                        <CandidateCard id="K2" label="Neon Outline" description="Glowing wireframe"><LogoK_Neon /></CandidateCard>
+                        <CandidateCard id="K3" label="Teal Accent" description="Pop of color"><LogoK_Accent /></CandidateCard>
+                        <CandidateCard id="K4" label="Soft Gradient" description="Smooth transition"><LogoK_Gradient /></CandidateCard>
+                        <CandidateCard id="K5" label="Wide Stance" description="Grounded posture"><LogoK_Wide /></CandidateCard>
+                    </div>
+                </section>
 
-                        <CandidateCard id="D5" label="The Beam" description="Laser Scan"><LogoBeam /></CandidateCard>
-                        <CandidateCard id="D6" label="The Mosaic" description="Data Blocks"><LogoMosaic /></CandidateCard>
-                        <CandidateCard id="D7" label="The Prism" description="Light Refraction"><LogoPrism /></CandidateCard>
-                        <CandidateCard id="D8" label="The Loop" description="Continuous Flow"><LogoLoop /></CandidateCard>
+                {/* SECTION 3: SECTOR (PURPLE) */}
+                <section>
+                    <SectionHeader title="Sectors: Purple Data" reset="Structure driven in Violet" />
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-12">
+                        <CandidateCard id="S1" label="Midnight" description="Deepest darks"><LogoSector_Dark /></CandidateCard>
+                        <CandidateCard id="S2" label="Vivid Pink" description="High energy accent"><LogoSector_Vivid /></CandidateCard>
+                        <CandidateCard id="S3" label="Exploded" description="Separated blocks"><LogoSector_ExplodedPurple /></CandidateCard>
+                        <CandidateCard id="S4" label="Precise 30" description="Optimal 'G' shape"><LogoSector_Precise /></CandidateCard>
+                        <CandidateCard id="S5" label="Cyan Splash" description="Electric contrast"><LogoSector_Splash /></CandidateCard>
                     </div>
                 </section>
 

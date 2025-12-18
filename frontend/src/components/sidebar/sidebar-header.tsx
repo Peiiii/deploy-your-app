@@ -8,6 +8,17 @@ interface SidebarHeaderProps {
   onToggleCollapsed: () => void;
 }
 
+// --- LOGO HELPER ---
+const Sector = ({ start, end, color = "currentColor", r = 12, cx = 16, cy = 16 }: { start: number; end: number; color?: string; r?: number, cx?: number, cy?: number }) => {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const x1 = cx + r * Math.cos(toRad(start));
+  const y1 = cy + r * Math.sin(toRad(start));
+  const x2 = cx + r * Math.cos(toRad(end));
+  const y2 = cy + r * Math.sin(toRad(end));
+  const largeArcFlag = (end - start) > 180 ? 1 : 0;
+  return <path d={`M${cx} ${cy} L${x1} ${y1} A${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`} fill={color} stroke="none" />;
+};
+
 export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
   collapsed,
   onToggleCollapsed,
@@ -24,13 +35,14 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
         >
           <X className="w-5 h-5" />
         </button>
-        {/* Dev Native Style: Code Brackets */}
-        <div className="relative w-9 h-9 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center shadow-sm group border border-slate-200 dark:border-slate-700/50">
-          <div className="flex items-center gap-[0.5px] font-mono leading-none select-none">
-            <span className="text-slate-400 text-xs">&lt;</span>
-            <span className="font-black text-slate-900 dark:text-white text-base">G</span>
-            <span className="text-brand-600 dark:text-brand-500 text-xs">/&gt;</span>
-          </div>
+        {/* Precise 30 Logo (Purple) */}
+        <div className="relative w-10 h-10 flex items-center justify-center">
+          <svg width="100%" height="100%" viewBox="0 0 32 32" fill="none">
+            <Sector start={-90} end={-30} color="#a78bfa" />
+            <Sector start={0} end={90} color="#7c3aed" />
+            <Sector start={90} end={180} color="#5b21b6" />
+            <Sector start={180} end={270} color="#8b5cf6" />
+          </svg>
         </div>
         {!collapsed && (
           <div>
