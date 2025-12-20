@@ -86,7 +86,7 @@ export const Header: React.FC = () => {
                 ) : (
                     <button
                         onClick={() => presenter.auth.openAuthModal('login')}
-                        className="hidden md:inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 text-white text-sm font-semibold hover:from-slate-800 hover:to-slate-700 dark:from-white dark:to-slate-100 dark:text-slate-900 dark:hover:from-slate-100 dark:hover:to-white shadow-lg shadow-slate-900/20 dark:shadow-white/10 hover:shadow-xl hover:shadow-slate-900/30 dark:hover:shadow-white/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                        className="hidden md:inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-brand-600 text-white text-sm font-bold hover:bg-brand-700 shadow-lg shadow-brand-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                     >
                         {t('common.signIn')}
                     </button>

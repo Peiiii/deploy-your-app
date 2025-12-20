@@ -62,7 +62,7 @@ export class IndexedDBProjectProvider implements IProjectProvider {
     const resolvedName =
       name && name.trim().length > 0
         ? name.trim()
-        : `new-app-${crypto.randomUUID().slice(0, 6)}`;
+        : `app-${crypto.randomUUID().slice(0, 6)}`;
     const newProject: Project = {
       id: crypto.randomUUID(),
       name: resolvedName,

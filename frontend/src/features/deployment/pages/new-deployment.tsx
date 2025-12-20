@@ -25,7 +25,7 @@ export const NewDeployment: React.FC = () => {
   useEffect(() => {
     if (!state.projectName.trim()) {
       presenter.deployment.setProjectName(
-        `new-app-${Math.random().toString(36).slice(2, 6)}`,
+        `app-${Math.random().toString(36).slice(2, 6)}`,
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
