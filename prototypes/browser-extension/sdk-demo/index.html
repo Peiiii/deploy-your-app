@@ -240,21 +240,24 @@
             <div class="panel-content">
                 <div class="code-block">
                     <span class="comment">// 1. 获取页面选中文字</span><br>
-                    <span class="keyword">const</span> <span class="variable">selection</span> = <span
+                    <span class="keyword">const</span> { <span class="variable">selection</span> } = <span
                         class="keyword">await</span> <span class="function">gemigo</span>.<span
-                        class="property">page</span>.<span class="function">getSelection</span>();<br><br>
-                    <span class="comment">// 2. 注册右键菜单</span><br>
-                    <span class="function">gemigo</span>.<span class="property">contextMenu</span>.<span
-                        class="function">register</span>({<br>
-                    &nbsp;&nbsp;<span class="property">id</span>: <span class="string">'translate'</span>,<br>
-                    &nbsp;&nbsp;<span class="property">title</span>: <span class="string">'翻译选中文字'</span>,<br>
-                    &nbsp;&nbsp;<span class="property">contexts</span>: [<span class="string">'selection'</span>]<br>
+                        class="property">extension</span>.<span class="function">getPageInfo</span>();<br><br>
+                    <span class="comment">// 2. 注册右键菜单 (manifest 配置)</span><br>
+                    <span class="function">gemigo</span>.<span class="property">extension</span>.<span
+                        class="function">onContextMenu</span>(<span class="string">'translate'</span>, <span
+                        class="keyword">async</span> (<span class="variable">data</span>) => {<br>
+                    &nbsp;&nbsp;<span class="keyword">const</span> <span class="variable">result</span> = <span
+                        class="keyword">await</span> <span class="function">gemigo</span>.<span
+                        class="property">ai</span>.<span class="function">translate</span>(<span
+                        class="variable">data</span>.<span class="property">text</span>);<br>
+                    &nbsp;&nbsp;<span class="keyword">return</span> <span class="variable">result</span>;<br>
                     });<br><br>
                     <span class="comment">// 3. 发送通知</span><br>
-                    <span class="function">gemigo</span>.<span class="property">notifications</span>.<span
-                        class="function">show</span>({<br>
+                    <span class="keyword">await</span> <span class="function">gemigo</span>.<span
+                        class="function">notify</span>({<br>
                     &nbsp;&nbsp;<span class="property">title</span>: <span class="string">'翻译完成'</span>,<br>
-                    &nbsp;&nbsp;<span class="property">message</span>: <span class="string">'点击查看结果'</span><br>
+                    &nbsp;&nbsp;<span class="property">body</span>: <span class="string">'点击查看结果'</span><br>
                     });
                 </div>
                 <div class="actions">

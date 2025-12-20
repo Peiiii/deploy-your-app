@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDK 使用场景 - 原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            min-height: 100vh;
+            padding: 32px;
+            color: #e2e8f0;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            color: #f8fafc;
+        }
+
+        .subtitle {
+            color: #a5b4fc;
+            font-size: 1rem;
+            margin-bottom: 32px;
+        }
+
+        .scenarios {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 24px;
+            max-width: 1400px;
+        }
+
+        .scenario-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .scenario-header {
+            padding: 20px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .scenario-header h3 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .scenario-header p {
+            font-size: 0.85rem;
+            color: #a5b4fc;
+        }
+
+        .scenario-icon {
+            font-size: 1.5rem;
+        }
+
+        .code-block {
+            padding: 20px 24px;
+            background: rgba(0, 0, 0, 0.3);
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        .code-block .comment {
+            color: #64748b;
+        }
+
+        .code-block .keyword {
+            color: #c084fc;
+        }
+
+        .code-block .string {
+            color: #4ade80;
+        }
+
+        .code-block .function {
+            color: #38bdf8;
+        }
+
+        .code-block .property {
+            color: #fcd34d;
+        }
+
+        .code-block .variable {
+            color: #f8fafc;
+        }
+
+        .api-list {
+            padding: 16px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .api-tag {
+            padding: 4px 10px;
+            background: rgba(139, 92, 246, 0.3);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-family: monospace;
+            color: #c4b5fd;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            margin: 40px 0 20px;
+            color: #e0e7ff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔧 SDK 使用场景演示</h1>
+    <p class="subtitle">展示 gemigo.extension.* API 在实际应用中的用法</p>
+
+    <h2 class="section-title">📖 页面内容读取</h2>
+    <div class="scenarios">
+
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <h3><span class="scenario-icon">🌐</span> AI 翻译助手</h3>
+                <p>获取用户选中的文字进行翻译</p>
+            </div>
+            <div class="code-block">
+                <span class="comment">// 获取选中文字</span><br>
+                <span class="keyword">const</span> <span class="variable">info</span> = <span
+                    class="keyword">await</span> <span class="function">gemigo</span>.<span
+                    class="property">extension</span>.<span class="function">getPageInfo</span>();<br>
+                <span class="keyword">const</span> <span class="variable">text</span> = <span
+                    class="variable">info</span>.<span class="property">selection</span>;<br><br>
+                <span class="comment">// 调用 AI 翻译</span><br>
+                <span class="keyword">const</span> <span class="variable">result</span> = <span
+                    class="keyword">await</span> <span class="function">gemigo</span>.<span
+                    class="property">ai</span>.<span class="function">translate</span>(<span
+                    class="variable">text</span>, { <span class="property">to</span>: <span class="string">'zh'</span>
+                });
+            </div>
+            <div class="api-list">
+                <span class="api-tag">getPageInfo()</span>
+                <span class="api-tag">ai.translate()</span>
+            </div>
+        </div>
+
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <h3><span class="scenario-icon">📰</span> 稍后阅读</h3>
+                <p>智能提取文章正文保存到本地</p>
+            </div>
+            <div class="code-block">
+                <span class="comment">// 智能提取正文</span><br>
+                <span class="keyword">const</span> <span class="variable">article</span> = <span
+                    class="keyword">await</span> <span class="function">gemigo</span>.<span
+                    class="property">extension</span>.<span class="function">extractArticle</span>();<br><br>
+                <span class="comment">// 保存到本地存储</span><br>
+                <span class="keyword">const</span> <span class="variable">saved</span> = <span
+                    class="keyword">await</span> <span class="function">gemigo</span>.<span
+                    class="property">storage</span>.<span class="function">get</span>(<span
+                    class="string">'articles'</span>) || [];<br>
+                <span class="variable">saved</span>.<span class="function">push</span>({ ...<span
+                    class="variable">article</span>, <span class="property">savedAt</span>: <span
+                    class="function">Date</span>.<span class="function">now</span>() });<br>
+                <span class="keyword">await</span> <span class="function">gemigo</span>.<span
+                    class="property">storage</span>.<span class="function">set</span>(<span
+                    class="string">'articles'</span>, <span class="variable">saved</span>);
+            </div>
+            <div class="api-list">
+                <span class="api-tag">extractArticle()</span>
+                <span class="api-tag">storage.set()</span>
+            </div>
+        </div>
+
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <h3><span class="scenario-icon">🔗</span> 链接收集器</h3>
+                <p>提取页面所有链接并分类整理</p>
+            </div>
+            <div class="code-block">
+                <span class="comment">// 提取所有链接</span><br>
+                <span class="keyword">const</span> <span class="variable">links</span> = <span
+                    class="keyword">await</span> <span class="function">gemigo</span>.<span
+                    class="property">extension</span>.<span class="function">extractLinks</span>();<br><br>
+                <span class="comment">// 过滤外部链接</span><br>
+                <span class="keyword">const</span> <span class="variable">external</span> = <span
+                    class="variable">links</span>.<span class="function">filter</span>(<span class="variable">l</span>
+                => <br>
+                &nbsp;&nbsp;!<span class="variable">l</span>.<span class="property">href</span>.<span
+                    class="function">includes</span>(<span class="variable">location</span>.<span
+                    class="property">hostname</span>)<br>
+                );
+            </div>
+            <div class="api-list">
+                <span class="api-tag">extractLinks()</span>
+            </div>
+        </div>
+
+    </div>
+
+    <h2 class="section-title">✏️ 页面内容修改</h2>
+    <div class="scenarios">
+
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <h3><span class="scenario-icon">🔍</span> 关键词高亮</h3>
+                <p>在页面中高亮显示搜索关键词</p>
+            </div>
+            <div class="code-block">
+                <span class="comment">// 高亮所有匹配元素</span><br>
+                <span class="keyword">const</span> <span class="variable">removeHighlight</span> = <span
+                    class="keyword">await</span> <span class="function">gemigo</span>.<span
+                    class="property">extension</span>.<span class="function">highlight</span>(<br>
+                &nbsp;&nbsp;<span class="string">'.search-result'</span>,<br>
+                &nbsp;&nbsp;{ <span class="property">color</span>: <span class="string">'#fef08a'</span>, <span
+                    class="property">duration</span>: <span class="number">5000</span> }<br>
+                );<br><br>
+                <span class="comment">// 5秒后自动移除，或手动调用</span><br>
+                <span class="function">removeHighlight</span>();
+            </div>
+            <div class="api-list">
+                <span class="api-tag">highlight()</span>
+            </div>
+        </div>
+
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <h3><span class="scenario-icon">💬</span> 翻译浮层</h3>
+                <p>在选中文字旁边显示翻译结果</p>
+            </div>
+            <div class="code-block">
+                <span class="comment">// 插入浮层组件</span><br>
+                <span class="keyword">const</span> <span class="variable">widget</span> = <span
+                    class="keyword">await</span> <span class="function">gemigo</span>.<span
+                    class="property">extension</span>.<span class="function">insertWidget</span>({<br>
+                &nbsp;&nbsp;<span class="property">html</span>: <span class="string">`&lt;div
+                    class="tooltip"&gt;${translation}&lt;/div&gt;`</span>,<br>
+                &nbsp;&nbsp;<span class="property">position</span>: { <span class="property">x</span>: <span
+                    class="variable">mouseX</span>, <span class="property">y</span>: <span
+                    class="variable">mouseY</span> }<br>
+                });<br><br>
+                <span class="comment">// 更新内容或移除</span><br>
+                <span class="variable">widget</span>.<span class="function">update</span>(<span
+                    class="string">'&lt;div&gt;新内容&lt;/div&gt;'</span>);<br>
+                <span class="variable">widget</span>.<span class="function">remove</span>();
+            </div>
+            <div class="api-list">
+                <span class="api-tag">insertWidget()</span>
+            </div>
+        </div>
+
+    </div>
+
+    <h2 class="section-title">👂 事件监听</h2>
+    <div class="scenarios">
+
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <h3><span class="scenario-icon">✨</span> 实时选中翻译</h3>
+                <p>监听用户选中文字，自动显示翻译</p>
+            </div>
+            <div class="code-block">
+                <span class="comment">// 监听选区变化</span><br>
+                <span class="keyword">const</span> <span class="variable">unsubscribe</span> = <span
+                    class="function">gemigo</span>.<span class="property">extension</span>.<span
+                    class="function">onSelectionChange</span>(<br>
+                &nbsp;&nbsp;<span class="keyword">async</span> (<span class="variable">text</span>) => {<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> (<span class="variable">text</span>.<span
+                    class="property">length</span> > <span class="number">3</span>) {<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">const</span> <span
+                    class="variable">result</span> = <span class="keyword">await</span> <span
+                    class="function">gemigo</span>.<span class="property">ai</span>.<span
+                    class="function">translate</span>(<span class="variable">text</span>);<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="function">showTooltip</span>(<span
+                    class="variable">result</span>);<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                &nbsp;&nbsp;}<br>
+                );<br><br>
+                <span class="comment">// 组件卸载时取消监听</span><br>
+                <span class="function">unsubscribe</span>();
+            </div>
+            <div class="api-list">
+                <span class="api-tag">onSelectionChange()</span>
+            </div>
+        </div>
+
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <h3><span class="scenario-icon">📍</span> 阅读进度追踪</h3>
+                <p>记录用户阅读进度，下次继续</p>
+            </div>
+            <div class="code-block">
+                <span class="comment">// 监听页面滚动</span><br>
+                <span class="function">gemigo</span>.<span class="property">extension</span>.<span
+                    class="function">onScroll</span>((<span class="variable">scrollY</span>) => {<br>
+                &nbsp;&nbsp;<span class="keyword">const</span> <span class="variable">progress</span> = <span
+                    class="variable">scrollY</span> / <span class="variable">document</span>.<span
+                    class="property">body</span>.<span class="property">scrollHeight</span>;<br>
+                &nbsp;&nbsp;<span class="function">gemigo</span>.<span class="property">storage</span>.<span
+                    class="function">set</span>(<span class="string">'progress'</span>, { <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="property">url</span>: <span class="variable">location</span>.<span
+                    class="property">href</span>, <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="property">progress</span> <br>
+                &nbsp;&nbsp;});<br>
+                });
+            </div>
+            <div class="api-list">
+                <span class="api-tag">onScroll()</span>
+                <span class="api-tag">storage.set()</span>
+            </div>
+        </div>
+
+    </div>
+
+    <h2 class="section-title">📸 截图与快捷键</h2>
+    <div class="scenarios">
+
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <h3><span class="scenario-icon">📷</span> 一键截图标注</h3>
+                <p>截取页面并添加标注分享</p>
+            </div>
+            <div class="code-block">
+                <span class="comment">// 截取可见区域</span><br>
+                <span class="keyword">const</span> <span class="variable">screenshot</span> = <span
+                    class="keyword">await</span> <span class="function">gemigo</span>.<span
+                    class="property">extension</span>.<span class="function">captureVisible</span>();<br><br>
+                <span class="comment">// 显示标注编辑器</span><br>
+                <span class="function">openAnnotationEditor</span>(<span class="variable">screenshot</span>);<br><br>
+                <span class="comment">// 或者截取整个页面</span><br>
+                <span class="keyword">const</span> <span class="variable">full</span> = <span
+                    class="keyword">await</span> <span class="function">gemigo</span>.<span
+                    class="property">extension</span>.<span class="function">captureFull</span>({<br>
+                &nbsp;&nbsp;<span class="property">maxHeight</span>: <span class="number">20000</span><br>
+                });
+            </div>
+            <div class="api-list">
+                <span class="api-tag">captureVisible()</span>
+                <span class="api-tag">captureFull()</span>
+            </div>
+        </div>
+
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <h3><span class="scenario-icon">⌨️</span> 快捷键操作</h3>
+                <p>注册快捷键快速触发功能</p>
+            </div>
+            <div class="code-block">
+                <span class="comment">// 注册翻译快捷键</span><br>
+                <span class="keyword">const</span> <span class="variable">unregister</span> = <span
+                    class="function">gemigo</span>.<span class="property">extension</span>.<span
+                    class="function">registerShortcut</span>(<br>
+                &nbsp;&nbsp;<span class="string">'Ctrl+Shift+T'</span>,<br>
+                &nbsp;&nbsp;<span class="keyword">async</span> () => {<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">const</span> { <span class="variable">selection</span> } =
+                <span class="keyword">await</span> <span class="function">gemigo</span>.<span
+                    class="property">extension</span>.<span class="function">getPageInfo</span>();<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> (<span class="variable">selection</span>) <span
+                    class="function">translateAndShow</span>(<span class="variable">selection</span>);<br>
+                &nbsp;&nbsp;}<br>
+                );<br><br>
+                <span class="comment">// 取消注册</span><br>
+                <span class="function">unregister</span>();
+            </div>
+            <div class="api-list">
+                <span class="api-tag">registerShortcut()</span>
+                <span class="api-tag">getPageInfo()</span>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

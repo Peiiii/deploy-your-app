@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDK 效果演示 - 原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f1f5f9;
+            min-height: 100vh;
+        }
+
+        .demo-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* 模拟的网页内容区 */
+        .webpage-mock {
+            flex: 1;
+            background: white;
+            padding: 40px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .webpage-mock h1 {
+            font-size: 2rem;
+            color: #1e293b;
+            margin-bottom: 16px;
+        }
+
+        .webpage-mock p {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 16px;
+        }
+
+        .webpage-mock .article-content {
+            max-width: 700px;
+        }
+
+        /* Side Panel 模拟 */
+        .sidepanel-mock {
+            width: 380px;
+            background: #f8fafc;
+            border-left: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidepanel-header {
+            padding: 16px 20px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidepanel-header .logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            border-radius: 8px;
+        }
+
+        .sidepanel-header h2 {
+            font-size: 1rem;
+            color: #1e293b;
+        }
+
+        /* 控制面板 */
+        .controls {
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .controls h3 {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .control-btn {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .control-btn:hover {
+            background: #f8fafc;
+            border-color: #8b5cf6;
+        }
+
+        .control-btn.active {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            border-color: transparent;
+        }
+
+        .control-btn .icon {
+            margin-right: 8px;
+        }
+
+        /* 效果展示说明 */
+        .effect-info {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .effect-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .effect-card h4 {
+            font-size: 0.9rem;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .effect-card p {
+            font-size: 0.8rem;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        /* 高亮效果 */
+        .highlight-effect {
+            background: linear-gradient(120deg, #fef08a 0%, #fef08a 100%);
+            background-size: 100% 40%;
+            background-repeat: no-repeat;
+            background-position: 0 90%;
+            transition: background-size 0.3s;
+        }
+
+        .highlight-effect.active {
+            background-size: 100% 100%;
+        }
+
+        /* 翻译浮层 */
+        .translation-tooltip {
+            position: absolute;
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid #e2e8f0;
+            max-width: 300px;
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+
+        .translation-tooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .translation-tooltip .original {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .translation-tooltip .translated {
+            font-size: 1rem;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .translation-tooltip .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        /* 选中浮窗按钮 */
+        .selection-action {
+            position: absolute;
+            background: #8b5cf6;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .selection-action.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 通知 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 400px;
+            background: white;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            z-index: 200;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.visible {
+            transform: translateX(0);
+        }
+
+        .notification .icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .notification .content h5 {
+            font-size: 0.95rem;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+
+        .notification .content p {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        /* 截图预览 */
+        .screenshot-preview {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .screenshot-preview.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .screenshot-preview .preview-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .screenshot-preview .preview-img {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .screenshot-preview h4 {
+            font-size: 1.1rem;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .screenshot-preview p {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .screenshot-preview button {
+            padding: 10px 24px;
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* 右键菜单 */
+        .context-menu {
+            position: absolute;
+            background: white;
+            border-radius: 10px;
+            padding: 8px 0;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid #e2e8f0;
+            z-index: 150;
+            min-width: 200px;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: all 0.15s;
+            pointer-events: none;
+        }
+
+        .context-menu.visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        .context-menu-item {
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            color: #1e293b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .context-menu-item:hover {
+            background: #f8fafc;
+        }
+
+        .context-menu-item.gemigo {
+            color: #7c3aed;
+            font-weight: 500;
+        }
+
+        .context-menu-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 4px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="demo-container">
+        <!-- 模拟的网页内容 -->
+        <div class="webpage-mock" id="webpage">
+            <div class="article-content">
+                <h1>The Future of AI-Powered Applications</h1>
+                <p>
+                    Artificial intelligence is rapidly transforming how we build and interact with software.
+                    From <span class="highlightable">natural language processing</span> to computer vision,
+                    AI capabilities are becoming more accessible to developers than ever before.
+                </p>
+                <p id="selectable-text">
+                    The democratization of AI means that even small teams can now build sophisticated
+                    applications that understand context, generate content, and automate complex tasks.
+                    <span class="highlightable">This represents a fundamental shift</span> in the software development
+                    paradigm.
+                </p>
+                <p>
+                    As we look to the future, the integration of AI into everyday tools will continue
+                    to accelerate, making technology more intuitive and powerful for everyone.
+                </p>
+            </div>
+
+            <!-- 效果元素 -->
+            <div class="translation-tooltip" id="tooltipTranslation" style="top: 180px; left: 200px;">
+                <button class="close-btn" onclick="hideTranslation()">×</button>
+                <div class="original">natural language processing</div>
+                <div class="translated">自然语言处理</div>
+            </div>
+
+            <div class="selection-action" id="selectionAction" style="top: 280px; left: 400px;">
+                ⚡ 用 AI 翻译
+            </div>
+
+            <div class="context-menu" id="contextMenu" style="top: 200px; left: 300px;">
+                <div class="context-menu-item">复制</div>
+                <div class="context-menu-item">粘贴</div>
+                <div class="context-menu-divider"></div>
+                <div class="context-menu-item gemigo">🌐 翻译选中文字</div>
+                <div class="context-menu-item gemigo">📝 AI 总结</div>
+                <div class="context-menu-item gemigo">🔗 保存到稍后阅读</div>
+            </div>
+        </div>
+
+        <!-- Side Panel 模拟 -->
+        <div class="sidepanel-mock">
+            <div class="sidepanel-header">
+                <div class="logo"></div>
+                <h2>GemiGo</h2>
+            </div>
+
+            <div class="controls">
+                <h3>点击演示效果</h3>
+                <button class="control-btn" onclick="demoHighlight()">
+                    <span class="icon">🔍</span> 高亮元素
+                </button>
+                <button class="control-btn" onclick="demoTranslation()">
+                    <span class="icon">💬</span> 翻译浮层
+                </button>
+                <button class="control-btn" onclick="demoSelection()">
+                    <span class="icon">✨</span> 选中浮窗
+                </button>
+                <button class="control-btn" onclick="demoContextMenu()">
+                    <span class="icon">📋</span> 右键菜单
+                </button>
+                <button class="control-btn" onclick="demoNotification()">
+                    <span class="icon">🔔</span> 通知
+                </button>
+                <button class="control-btn" onclick="demoScreenshot()">
+                    <span class="icon">📷</span> 截图
+                </button>
+            </div>
+
+            <div class="effect-info">
+                <div class="effect-card">
+                    <h4>💡 操作说明</h4>
+                    <p>点击上方按钮查看对应的 SDK 效果。每个效果展示了 gemigo.extension.* API 在实际运行时的视觉表现。</p>
+                </div>
+                <div class="effect-card" id="effectDescription">
+                    <h4>当前效果</h4>
+                    <p>点击按钮开始演示...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知 -->
+    <div class="notification" id="notification">
+        <div class="icon">🌐</div>
+        <div class="content">
+            <h5>翻译完成</h5>
+            <p>已将内容翻译为中文</p>
+        </div>
+    </div>
+
+    <!-- 截图预览 -->
+    <div class="screenshot-preview" id="screenshotPreview">
+        <div class="preview-content">
+            <div class="preview-img">📷 页面截图预览</div>
+            <h4>截图已完成</h4>
+            <p>captureVisible() 返回 base64 图片数据</p>
+            <button onclick="hideScreenshot()">关闭预览</button>
+        </div>
+    </div>
+
+    <script>
+        // 重置所有效果
+        function resetAll() {
+            document.querySelectorAll('.highlightable').forEach(el => el.classList.remove('highlight-effect', 'active'));
+            document.getElementById('tooltipTranslation').classList.remove('visible');
+            document.getElementById('selectionAction').classList.remove('visible');
+            document.getElementById('contextMenu').classList.remove('visible');
+            document.getElementById('notification').classList.remove('visible');
+            document.querySelectorAll('.control-btn').forEach(btn => btn.classList.remove('active'));
+        }
+
+        function updateDescription(title, desc) {
+            document.getElementById('effectDescription').innerHTML = `<h4>${title}</h4><p>${desc}</p>`;
+        }
+
+        function demoHighlight() {
+            resetAll();
+            event.target.closest('.control-btn').classList.add('active');
+            document.querySelectorAll('.highlightable').forEach(el => {
+                el.classList.add('highlight-effect');
+                setTimeout(() => el.classList.add('active'), 100);
+            });
+            updateDescription('🔍 highlight()', 'gemigo.extension.highlight() 可以高亮页面中匹配的元素，返回一个移除高亮的函数。');
+        }
+
+        function demoTranslation() {
+            resetAll();
+            event.target.closest('.control-btn').classList.add('active');
+            document.getElementById('tooltipTranslation').classList.add('visible');
+            updateDescription('💬 insertWidget()', 'gemigo.extension.insertWidget() 在页面中插入浮层组件，可以指定位置并动态更新内容。');
+        }
+
+        function hideTranslation() {
+            document.getElementById('tooltipTranslation').classList.remove('visible');
+        }
+
+        function demoSelection() {
+            resetAll();
+            event.target.closest('.control-btn').classList.add('active');
+            document.getElementById('selectionAction').classList.add('visible');
+            updateDescription('✨ selectionAction', '通过 manifest 配置的 selectionAction，当用户选中文字时显示快捷操作按钮。');
+        }
+
+        function demoContextMenu() {
+            resetAll();
+            event.target.closest('.control-btn').classList.add('active');
+            document.getElementById('contextMenu').classList.add('visible');
+            updateDescription('📋 onContextMenu()', '通过 manifest 配置 contextMenu，将应用功能集成到浏览器右键菜单中。');
+        }
+
+        function demoNotification() {
+            resetAll();
+            event.target.closest('.control-btn').classList.add('active');
+            document.getElementById('notification').classList.add('visible');
+            setTimeout(() => document.getElementById('notification').classList.remove('visible'), 3000);
+            updateDescription('🔔 notify()', 'gemigo.notify() 发送浏览器通知，可以包含标题、内容和操作按钮。');
+        }
+
+        function demoScreenshot() {
+            resetAll();
+            event.target.closest('.control-btn').classList.add('active');
+            document.getElementById('screenshotPreview').classList.add('visible');
+            updateDescription('📷 captureVisible()', 'gemigo.extension.captureVisible() 截取当前可见区域，返回 base64 图片。');
+        }
+
+        function hideScreenshot() {
+            document.getElementById('screenshotPreview').classList.remove('visible');
+        }
+
+        // 点击页面其他地方关闭菜单
+        document.getElementById('webpage').addEventListener('click', (e) => {
+            if (!e.target.closest('.context-menu')) {
+                document.getElementById('contextMenu').classList.remove('visible');
+            }
+        });
+    </script>
+</body>
+
+</html>
