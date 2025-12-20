@@ -49,53 +49,54 @@ const useAppInitialize = () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Reusable page content container with Header and page routes.
+ * Main content area with Header and routes.
+ * Width adjusts based on whether right panel is open.
  */
-const PageContent: React.FC<{ className?: string }> = ({ className }) => (
-  <main className={className}>
-    <Header />
-    <div className="flex-1 overflow-auto">
-      <AppRoutes />
-    </div>
-  </main>
-);
+const MainContent: React.FC = () => {
+  const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
+  const hasRightPanel = useUIStore((s) => s.rightPanelContent !== null);
+
+  const sidebarOffset = sidebarCollapsed ? 'md:ml-16' : 'md:ml-64';
+  // When right panel is open, reserve right half of remaining space
+  const rightPanelOffset = hasRightPanel ? 'lg:mr-[50%]' : '';
+
+  return (
+    <main
+      className={`h-full flex flex-col transition-all duration-300 ${sidebarOffset} ${rightPanelOffset}`}
+    >
+      <Header />
+      <div className="flex-1 overflow-auto">
+        <AppRoutes />
+      </div>
+    </main>
+  );
+};
 
 /**
- * Split layout container that handles the left/right panel arrangement.
+ * Right panel container, rendered at root level as sibling of Sidebar and MainContent.
  */
-const SplitLayout: React.FC = () => {
+const RightPanel: React.FC = () => {
   const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
   const rightPanelContent = useUIStore((s) => s.rightPanelContent);
 
-  const hasRightPanel = rightPanelContent !== null;
-  const sidebarOffset = sidebarCollapsed ? 'md:ml-16' : 'md:ml-64';
+  if (!rightPanelContent) return null;
+
+  // Width = 50% of (viewport - sidebar width)
+  const sidebarWidth = sidebarCollapsed ? '4rem' : '16rem';
 
   return (
-    <div className={`h-full flex transition-all duration-300 ${sidebarOffset}`}>
-      {/* Desktop: Left Column (hidden on mobile when panel is open) */}
-      <PageContent
-        className={`flex flex-col min-w-0 transition-all duration-500 ease-out relative z-10 ${
-          hasRightPanel ? 'w-1/2 flex-none hidden lg:flex' : 'flex-1 w-full'
-        }`}
-      />
-
-      {/* Mobile: Full-width content when panel is open */}
-      {hasRightPanel && (
-        <PageContent className="flex-1 flex flex-col min-w-0 lg:hidden" />
-      )}
-
-      {/* Right Panel Slot */}
-      {hasRightPanel && (
-        <aside className="w-full lg:w-1/2 flex-none h-full border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-50">
-          {rightPanelContent}
-        </aside>
-      )}
-    </div>
+    <aside
+      className="hidden lg:flex fixed top-0 right-0 bottom-0 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-40"
+      style={{ width: `calc((100vw - ${sidebarWidth}) / 2)` }}
+    >
+      {rightPanelContent}
+    </aside>
   );
 };
 
 /**
  * Main layout component that composes the app shell.
+ * Structure: LeftSidebar | MainContent | RightPanel (all siblings)
  */
 const MainLayout: React.FC = () => {
   useAppInitialize();
@@ -108,9 +109,10 @@ const MainLayout: React.FC = () => {
       <ConfirmDialog />
       <Toast />
 
-      {/* Layout */}
+      {/* Layout: Three siblings at root level */}
       <Sidebar />
-      <SplitLayout />
+      <MainContent />
+      <RightPanel />
     </div>
   );
 };
