@@ -38,7 +38,6 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
         const isActive = item.path === '/'
           ? location.pathname === '/'
           : location.pathname.startsWith(item.path);
-        const isHome = item.path === '/';
         return (
           <button
             key={item.path}
@@ -48,8 +47,7 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
                 setSidebarOpen(false);
               }
             }}
-            className={`group items-center gap-3 rounded-lg text-sm transition-all duration-200 relative overflow-hidden ${isHome ? 'hidden md:flex' : 'flex'
-              } ${collapsed ? 'w-10 h-10 justify-center p-0 mx-auto' : 'w-full min-h-[44px] px-4 py-3'
+            className={`group flex items-center gap-3 rounded-lg text-sm transition-all duration-200 relative overflow-hidden ${collapsed ? 'w-10 h-10 justify-center p-0 mx-auto' : 'w-full min-h-[44px] px-4 py-3'
               } ${isActive
                 ? 'font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 shadow-sm'
                 : 'font-medium text-slate-500 dark:text-gray-400 bg-transparent hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
