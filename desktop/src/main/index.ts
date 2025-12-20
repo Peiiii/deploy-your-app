@@ -1,9 +1,38 @@
 import { app, BrowserWindow, shell } from 'electron';
 import path from 'node:path';
-import { getDesktopEntryUrl, getDesktopProtocol, getWebOrigin } from '../config';
+import {
+  getDesktopCallbackUrl,
+  getDesktopEntryUrl,
+  getDesktopProtocol,
+  getWebOrigin,
+} from '../config';
 
 let mainWindow: BrowserWindow | null = null;
 let pendingDeepLink: string | null = null;
+
+const getExternalOAuthUrl = (url: string): string | null => {
+  try {
+    const parsed = new URL(url);
+    if (parsed.origin !== getWebOrigin()) {
+      return null;
+    }
+
+    const isGoogleStart = parsed.pathname === '/api/v1/auth/google/start';
+    const isGithubStart = parsed.pathname === '/api/v1/auth/github/start';
+    if (!isGoogleStart && !isGithubStart) {
+      return null;
+    }
+
+    const redirect = parsed.searchParams.get('redirect');
+    if (!redirect?.startsWith(`${getDesktopProtocol()}://`)) {
+      parsed.searchParams.set('redirect', getDesktopCallbackUrl());
+    }
+
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+};
 
 const createMainWindow = async (): Promise<void> => {
   const startUrl = getDesktopEntryUrl();
@@ -27,6 +56,18 @@ const createMainWindow = async (): Promise<void> => {
     shell.openExternal(url).catch(() => undefined);
     return { action: 'deny' };
   });
+
+  // Ensure OAuth always happens in the system browser (not inside the Electron webview),
+  // even when the web app uses window.location.href for the redirect.
+  const maybeOpenOAuthExternally = (event: Electron.Event, url: string) => {
+    const externalUrl = getExternalOAuthUrl(url);
+    if (!externalUrl) return;
+    event.preventDefault();
+    shell.openExternal(externalUrl).catch(() => undefined);
+  };
+
+  mainWindow.webContents.on('will-navigate', maybeOpenOAuthExternally);
+  mainWindow.webContents.on('will-redirect', maybeOpenOAuthExternally);
 
   mainWindow.on('closed', () => {
     mainWindow = null;

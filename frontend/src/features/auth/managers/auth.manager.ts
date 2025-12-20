@@ -12,8 +12,25 @@ const isDesktopShell = (): boolean => {
   return ua.includes('Electron') || searchParams.get('desktop') === '1';
 };
 
+const isElectronShell = (): boolean => {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  return ua.includes('Electron');
+};
+
 const getRedirectTarget = (): string =>
   isDesktopShell() ? DESKTOP_DEEP_LINK : window.location.href;
+
+const openDesktopOAuth = (url: string): boolean => {
+  if (!isElectronShell()) return false;
+
+  const opened = window.open(url, '_blank', 'noopener,noreferrer');
+  if (opened) {
+    opened.opener = null;
+    return true;
+  }
+  return false;
+};
 
 // Manager for auth-related actions. State is kept in the auth store; this
 // class only coordinates side-effects and updates the store.
@@ -110,16 +127,20 @@ export class AuthManager {
 
   loginWithGoogle = (): void => {
     const redirect = getRedirectTarget();
-    window.location.href = `${API_BASE}/auth/google/start?redirect=${encodeURIComponent(
+    const url = `${API_BASE}/auth/google/start?redirect=${encodeURIComponent(
       redirect,
     )}`;
+    if (openDesktopOAuth(url)) return;
+    window.location.href = url;
   };
 
   loginWithGithub = (): void => {
     const redirect = getRedirectTarget();
-    window.location.href = `${API_BASE}/auth/github/start?redirect=${encodeURIComponent(
+    const url = `${API_BASE}/auth/github/start?redirect=${encodeURIComponent(
       redirect,
     )}`;
+    if (openDesktopOAuth(url)) return;
+    window.location.href = url;
   };
 
   // -------------------
