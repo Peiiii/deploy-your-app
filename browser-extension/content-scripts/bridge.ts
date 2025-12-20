@@ -37,6 +37,41 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       }
       break;
 
+    case 'EXTRACT_ARTICLE':
+      try {
+        // Simple article extraction logic
+        const title = document.title || document.querySelector('h1')?.textContent || '';
+        
+        // Try to find article content
+        const articleSelectors = ['article', 'main', '.article', '.post', '.content', '#content'];
+        let content = '';
+        for (const selector of articleSelectors) {
+          const el = document.querySelector(selector);
+          if (el) {
+            content = el.textContent?.trim() || '';
+            break;
+          }
+        }
+        // Fallback to body text
+        if (!content) {
+          content = document.body.innerText;
+        }
+        
+        // Create excerpt
+        const excerpt = content.slice(0, 300).trim() + (content.length > 300 ? '...' : '');
+        
+        sendResponse({
+          success: true,
+          title,
+          content,
+          excerpt,
+          url: window.location.href,
+        });
+      } catch (e) {
+        sendResponse({ success: false, error: String(e) });
+      }
+      break;
+
     default:
       sendResponse({ error: 'Unknown message type: ' + message.type });
   }

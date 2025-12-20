@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SDK 测试应用</title>
+    <title>SDK Test App</title>
     <style>
         * {
             margin: 0;
@@ -24,14 +24,18 @@
             margin-bottom: 16px;
         }
 
+        .btn-group {
+            margin-bottom: 8px;
+        }
+
         .btn {
-            padding: 10px 20px;
+            padding: 10px 16px;
             margin: 4px;
             border: none;
             background: #8b5cf6;
             color: white;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             cursor: pointer;
         }
 
@@ -64,46 +68,56 @@
         .error {
             color: #ef4444;
         }
+
+        .screenshot {
+            max-width: 100%;
+            margin-top: 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
     </style>
 </head>
 
 <body>
-    <h1>🧪 GemiGo SDK 测试</h1>
-    <div class="status" id="status">连接中...</div>
+    <h1>🧪 GemiGo SDK Test</h1>
+    <div class="status" id="status">Connecting...</div>
 
-    <div>
-        <button class="btn" onclick="testGetPageInfo()">获取页面信息</button>
-        <button class="btn" onclick="testGetPageHTML()">获取页面 HTML</button>
-        <button class="btn" onclick="testGetSelection()">获取选中文字</button>
-        <button class="btn" onclick="testHighlight()">高亮测试</button>
-        <button class="btn" onclick="testNotify()">发送通知</button>
+    <div class="btn-group">
+        <button class="btn" onclick="testGetPageInfo()">Page Info</button>
+        <button class="btn" onclick="testGetPageHTML()">Page HTML</button>
+        <button class="btn" onclick="testGetSelection()">Selection</button>
+    </div>
+    <div class="btn-group">
+        <button class="btn" onclick="testHighlight()">Highlight</button>
+        <button class="btn" onclick="testNotify()">Notify</button>
+        <button class="btn" onclick="testCapture()">Screenshot</button>
+        <button class="btn" onclick="testExtract()">Extract Article</button>
     </div>
 
-    <div class="result" id="result">点击按钮测试 SDK API...</div>
+    <div class="result" id="result">Click a button to test SDK API...</div>
+    <img id="screenshot" class="screenshot" style="display:none" />
 
     <script src="https://unpkg.com/penpal@6.2.2/dist/penpal.min.js"></script>
     <script>
         let gemigo = null;
 
-        // 使用 penpal 连接到 Host
         const connection = Penpal.connectToParent({
-            methods: {
-                // App 暴露给 Host 的方法（如果需要）
-            }
+            methods: {}
         });
 
         connection.promise.then((parent) => {
             gemigo = parent;
-            document.getElementById('status').textContent = '✅ 已连接到 GemiGo';
+            document.getElementById('status').textContent = '✅ Connected to GemiGo';
             document.getElementById('status').className = 'status connected';
         }).catch((err) => {
-            document.getElementById('status').textContent = '❌ 连接失败: ' + err.message;
+            document.getElementById('status').textContent = '❌ Connection failed: ' + err.message;
             document.getElementById('status').className = 'status error';
         });
 
         function showResult(title, data) {
             document.getElementById('result').textContent =
                 `[${title}]\n` + JSON.stringify(data, null, 2);
+            document.getElementById('screenshot').style.display = 'none';
         }
 
         async function testGetPageInfo() {
@@ -133,10 +147,34 @@
         async function testNotify() {
             if (!gemigo) return showResult('Error', 'Not connected');
             const result = await gemigo.notify({
-                title: 'GemiGo 通知',
-                message: '这是一条测试通知！'
+                title: 'GemiGo Notification',
+                message: 'This is a test notification!'
             });
-            showResult('notify()', { success: result });
+            showResult('notify()', result);
+        }
+
+        async function testCapture() {
+            if (!gemigo) return showResult('Error', 'Not connected');
+            const result = await gemigo.captureVisible();
+            if (result.success && result.dataUrl) {
+                showResult('captureVisible()', { success: true, size: result.dataUrl.length });
+                const img = document.getElementById('screenshot');
+                img.src = result.dataUrl;
+                img.style.display = 'block';
+            } else {
+                showResult('captureVisible()', result);
+            }
+        }
+
+        async function testExtract() {
+            if (!gemigo) return showResult('Error', 'Not connected');
+            const result = await gemigo.extractArticle();
+            showResult('extractArticle()', {
+                success: result.success,
+                title: result.title,
+                excerpt: result.excerpt,
+                contentLength: result.content?.length
+            });
         }
     </script>
 </body>

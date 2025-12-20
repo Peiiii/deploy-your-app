@@ -122,4 +122,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     );
     return true;
   }
+
+  if (message.type === 'CAPTURE_VISIBLE') {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      const tab = tabs[0];
+      if (!tab?.id) {
+        sendResponse({ error: 'No active tab' });
+        return;
+      }
+      try {
+        const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, {
+          format: 'png',
+        });
+        sendResponse({ success: true, dataUrl });
+      } catch (err) {
+        console.error('[GemiGo] Capture error:', err);
+        sendResponse({ error: String(err) });
+      }
+    });
+    return true;
+  }
 });

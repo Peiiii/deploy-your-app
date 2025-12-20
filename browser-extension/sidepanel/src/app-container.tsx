@@ -84,6 +84,27 @@ const createHostMethods = () => ({
       );
     });
   },
+
+  // Capture visible tab screenshot
+  async captureVisible() {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({ type: 'CAPTURE_VISIBLE' }, (response) => {
+        resolve(response);
+      });
+    });
+  },
+
+  // Extract article content from page
+  async extractArticle() {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        { type: 'EXECUTE_IN_PAGE', payload: { type: 'EXTRACT_ARTICLE' } },
+        (response) => {
+          resolve(response);
+        }
+      );
+    });
+  },
 });
 
 export default function AppContainer({ app, onBack }: AppContainerProps) {
