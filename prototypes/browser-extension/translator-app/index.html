@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Translate</title>
+    <script src="https://unpkg.com/@gemigo/extension-sdk/dist/gemigo-extension-sdk.umd.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            margin: 0;
+            background: #f8fafc;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .label {
+            font-size: 0.8em;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .text-content {
+            font-size: 1.1em;
+            color: #1e293b;
+            min-height: 60px;
+        }
+
+        .result {
+            color: #2563eb;
+            font-weight: 500;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 8px 16px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .status {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.9em;
+            margin-top: 40px;
+        }
+
+        .icon-large {
+            font-size: 3em;
+            display: block;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="empty-state" class="status">
+        <span class="icon-large">👈</span>
+        Select text on the web page to translate
+    </div>
+
+    <div id="content" style="display: none;">
+        <div class="card">
+            <div class="label">Original</div>
+            <div id="original-text" class="text-content"></div>
+        </div>
+
+        <div class="card">
+            <div class="label">Translation (Simulated)</div>
+            <div id="translated-text" class="text-content result"></div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button id="btn-fetch">Get Current Selection</button>
+    </div>
+
+    <script>
+        document.getElementById('btn-fetch').addEventListener('click', fetchSelection);
+
+        function showTranslation(text) {
+            if (!text) return;
+
+            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('original-text').textContent = text;
+
+            // Mock translation logic (reverse string + some fancy unicode for effect)
+            // In a real app config, this would call an API
+            const simulated = "Translation: " + text.split('').reverse().join('');
+            document.getElementById('translated-text').textContent = simulated;
+        }
+
+        async function fetchSelection() {
+            try {
+                const text = await gemigo.getSelection();
+                if (text) {
+                    showTranslation(text);
+                } else {
+                    document.getElementById('original-text').textContent = "(No text selected)";
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Listen for right-click context menu events
+        gemigo.on('contextMenu', (event) => {
+            if (event.selectionText) {
+                showTranslation(event.selectionText);
+            }
+        });
+
+        // Initialize: check if there's a pending event from before we opened
+        gemigo.getContextMenuEvent().then(res => {
+            if (res.success && res.event && res.event.selectionText) {
+                showTranslation(res.event.selectionText);
+            } else {
+                // If opened normally, try to get selection immediately
+                fetchSelection();
+            }
+        });
+    </script>
+</body>
+
+</html>

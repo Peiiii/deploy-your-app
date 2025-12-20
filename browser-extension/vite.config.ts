@@ -1,34 +1,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
-import { copyFileSync, mkdirSync, existsSync, readdirSync } from 'fs';
-
-// Copy static assets to dist
-function copyStaticAssets() {
-  return {
-    name: 'copy-static-assets',
-    closeBundle() {
-      // Copy manifest.json
-      copyFileSync('manifest.json', 'dist/manifest.json');
-      
-      // Copy icons directory
-      const iconsDir = 'icons';
-      const distIconsDir = 'dist/icons';
-      if (existsSync(iconsDir)) {
-        if (!existsSync(distIconsDir)) {
-          mkdirSync(distIconsDir, { recursive: true });
-        }
-        readdirSync(iconsDir).forEach(file => {
-          copyFileSync(`${iconsDir}/${file}`, `${distIconsDir}/${file}`);
-        });
-      }
-      console.log('✓ Copied manifest.json and icons to dist/');
-    }
-  };
-}
+import { copyExtensionAssets } from './build-plugins';
 
 export default defineConfig({
-  plugins: [react(), copyStaticAssets()],
+  plugins: [
+    react(), 
+    copyExtensionAssets(__dirname)
+  ],
   build: {
     outDir: 'dist',
     rollupOptions: {

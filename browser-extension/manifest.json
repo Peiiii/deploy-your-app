@@ -24,11 +24,19 @@
   },
   "permissions": [
     "sidePanel",
-    "activeTab",
     "storage",
-    "notifications",
     "contextMenus",
-    "scripting"
+    "scripting",
+    "activeTab"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; frame-src 'self' http://localhost:*"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["*"],
+      "matches": ["<all_urls>"]
+    }
   ],
   "host_permissions": [
     "<all_urls>"

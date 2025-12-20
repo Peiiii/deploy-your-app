@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import AppContainer from './app-container';
+import { marketApps, MarketApp } from './market-apps';
 import AddAppModal from './add-app-modal';
+import './App.css'; // Ensure CSS is imported
 
 export interface InstalledApp {
   id: string;
@@ -29,13 +31,41 @@ function App() {
   const [installedApps, setInstalledApps] = useState<InstalledApp[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  // Load installed apps from storage
+  // Load installed apps from storage and sync with market
   useEffect(() => {
     chrome.storage.local.get(['installedApps'], (result) => {
-      if (result.installedApps && result.installedApps.length > 0) {
-        setInstalledApps(result.installedApps);
-      } else {
-        setInstalledApps(defaultApps);
+      let apps = result.installedApps || [];
+      
+      if (apps.length === 0) {
+        apps = defaultApps;
+      }
+
+      // Sync with market apps (update URLs/meta if changed)
+      const syncedApps = apps.map((app: InstalledApp) => {
+        // Find matching market app by ID (stripping any timestamp suffix if necessary, 
+        // but market installs use unique IDs like 'app-TIMESTAMP' currently. 
+        // Actually, we should check if the app *originated* from a market app ID.
+        // For simplicity, let's match by URL or Name if ID is dynamic.
+        // Better yet: Let's assume for now we perform a URL match update if found in market.
+        
+        const marketMatch = marketApps.find(m => m.url === app.url || m.name === app.name);
+        if (marketMatch) {
+            return {
+                ...app,
+                name: marketMatch.name,
+                description: marketMatch.description,
+                icon: marketMatch.icon,
+                iconBg: marketMatch.iconBg,
+                url: marketMatch.url
+            };
+        }
+        return app;
+      });
+
+      setInstalledApps(syncedApps);
+      // Persist the synced version back to storage
+      if (JSON.stringify(syncedApps) !== JSON.stringify(result.installedApps)) {
+        chrome.storage.local.set({ installedApps: syncedApps });
       }
     });
   }, []);
@@ -54,6 +84,23 @@ function App() {
     };
     saveApps([...installedApps, newApp]);
     setShowAddModal(false);
+  };
+
+  // Install from market
+  const handleInstallFromMarket = (marketApp: MarketApp) => {
+    // Check if URL already installed
+    if (installedApps.some(app => app.url === marketApp.url)) return;
+
+    const newApp: InstalledApp = {
+      id: `app-${Date.now()}`,
+      name: marketApp.name,
+      description: marketApp.description,
+      icon: marketApp.icon,
+      iconBg: marketApp.iconBg,
+      url: marketApp.url,
+    };
+    saveApps([...installedApps, newApp]);
+    setActiveTab('home'); // Switch to home to show new app
   };
 
   // Remove app
@@ -184,11 +231,40 @@ function App() {
       )}
 
       {activeTab === 'explore' && (
-        <div className="empty-state">
-          <div className="empty-state-icon">🔍</div>
-          <h3>Explore</h3>
-          <p>Discover more apps on the platform</p>
-        </div>
+        <>
+          <div className="section-title">Discover Apps</div>
+          <div className="app-list">
+            {marketApps.map((app) => {
+              const isInstalled = installedApps.some(installed => installed.url === app.url);
+              
+              return (
+                <div key={app.id} className="app-item-market">
+                  <div
+                    className="app-icon"
+                    style={{ background: app.iconBg }}
+                  >
+                    {app.icon}
+                  </div>
+                  <div className="app-info">
+                    <div className="app-name">{app.name}</div>
+                    <div className="app-desc">{app.description}</div>
+                    <div className="app-meta">
+                      <span className="app-category">{app.category}</span>
+                      <span className="app-author">by {app.author}</span>
+                    </div>
+                  </div>
+                  <button
+                    className={`install-btn ${isInstalled ? 'installed' : ''}`}
+                    onClick={() => !isInstalled && handleInstallFromMarket(app)}
+                    disabled={isInstalled}
+                  >
+                    {isInstalled ? 'Installed' : 'Install'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {/* Add App Modal */}
