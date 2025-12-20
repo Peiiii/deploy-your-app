@@ -3,3 +3,4 @@ packages:
   - "server"
   - "workers/*"
   - "desktop"
+  - "browser-extension"

@@ -60,46 +60,28 @@ interface AppManifest {
   icon: string;
   permissions: Permission[];  // 请求的能力
 }
-
-type Permission = 
-  | 'page:read'          // 读取当前页面内容
-  | 'page:modify'        // 修改页面 DOM
-  | 'contextMenu'        // 右键菜单
-  | 'notifications'      // 通知
-  | 'storage'            // 本地存储
-  | 'clipboard'          // 剪贴板
-  | 'tabs';              // 标签页操作
 ```
+
+> 📖 **权限定义**：详见 [APP_SDK_API.md - 应用清单规范](./tech/APP_SDK_API.md#应用清单规范-manifest)
+
 
 ### 3. SDK (`@gemigo/extension-sdk`)
 注入到 App iframe 中，提供与扩展通信的桥梁。
 
-```typescript
-// 示例 API
-const gemigo = window.gemigo;
+> 📖 **API 详细文档**：[docs/tech/APP_SDK_API.md](./tech/APP_SDK_API.md) - 第 3 节「浏览器扩展 API」
+>
+> 核心命名空间：`gemigo.extension.*`
 
-// 读取当前页面
-const pageContent = await gemigo.page.getContent();
-const selection = await gemigo.page.getSelection();
+**能力概览**：
 
-// 右键菜单
-gemigo.contextMenu.register({
-  id: 'my-action',
-  title: 'Process with MyApp',
-  contexts: ['selection'],
-  onClick: (info) => { /* ... */ }
-});
-
-// 通知
-gemigo.notifications.show({ title: 'Done!', message: '...' });
-
-// 存储
-await gemigo.storage.set('key', value);
-const data = await gemigo.storage.get('key');
-
-// 事件监听
-gemigo.events.on('page:changed', (url) => { /* ... */ });
-```
+| 分类 | 能力 |
+|------|------|
+| 页面读取 | `getPageInfo()`, `getPageHTML()`, `extractArticle()` 等 |
+| 页面修改 | `highlight()`, `insertWidget()`, `injectCSS()` |
+| 事件监听 | `onSelectionChange()`, `onNavigate()`, `onScroll()` |
+| 截图 | `captureVisible()`, `captureFull()` |
+| 快捷键 | `registerShortcut()` |
+| 菜单交互 | `onContextMenu()`, `onSelectionAction()` |
 
 ---
 
@@ -186,22 +168,30 @@ browser-extension/
 ### Phase 1: 基础框架
 - [ ] Side Panel 基础 UI (应用列表 + 导航)
 - [ ] App iframe 加载机制
-- [ ] SDK 基础通信 (postMessage)
+- [ ] SDK 基础通信 ([penpal](https://github.com/Aaronius/penpal) + postMessage)
 - [ ] 用户登录/同步应用列表
 
-### Phase 2: 核心能力
-- [ ] `page:read` - 读取页面内容
-- [ ] `storage` - 本地存储
-- [ ] `notifications` - 通知推送
+### Phase 2: 页面交互
+- [ ] `gemigo.extension.getPageInfo()` - 页面基本信息
+- [ ] `gemigo.extension.getPageHTML()` - 页面内容读取
+- [ ] `gemigo.extension.extractArticle()` - 正文提取
 - [ ] 权限请求弹窗
 
-### Phase 3: 高级交互
-- [ ] `contextMenu` - 右键菜单注册
-- [ ] `page:modify` - 页面 DOM 操作
-- [ ] `tabs` - 标签页操作
-- [ ] 应用间通信
+### Phase 3: 高级能力
+- [ ] `gemigo.extension.highlight()` - 元素高亮
+- [ ] `gemigo.extension.insertWidget()` - 浮层插入
+- [ ] `gemigo.extension.onContextMenu()` - 右键菜单
+- [ ] `gemigo.extension.captureVisible()` - 截图
+- [ ] `gemigo.extension.registerShortcut()` - 快捷键
 
 ### Phase 4: 生态
 - [ ] 应用市场展示 (侧边栏内)
 - [ ] 一键安装按钮 (网页端)
 - [ ] 开发者文档 & SDK 发布
+
+---
+
+## 相关资源
+
+- 📖 [SDK API 文档](./tech/APP_SDK_API.md)
+- 🎨 [交互原型](../prototypes/browser-extension/index.html)

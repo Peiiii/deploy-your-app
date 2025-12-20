@@ -1,5 +1,9 @@
 appId: com.gemigo.desktop
 productName: Gemigo Desktop
+protocols:
+  name: Gemigo Desktop
+  schemes:
+    - gemigo-desktop
 files:
   - dist/**
   - package.json
