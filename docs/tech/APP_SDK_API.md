@@ -441,20 +441,137 @@ gemigo.globalShortcut.register('Cmd+Shift+S', () => {
 
 ### <a id="extension"></a>Extension 扩展交互
 
-#### `gemigo.extension.onContextMenu(menuId, callback)`
+---
+
+#### 菜单与交互
+
+##### `gemigo.extension.onContextMenu(menuId, callback)`
 - **参数**:
   - `menuId`: `string` (manifest 中定义的 id)
   - `callback`: `(data: { text, pageUrl, pageTitle }) => Promise<any>`
 - **说明**: 处理右键菜单点击。
 
-#### `gemigo.extension.onSelectionAction(actionId, callback)`
+##### `gemigo.extension.onSelectionAction(actionId, callback)`
 - **说明**: 处理选中浮窗按钮点击。
 
-#### `gemigo.extension.getPageInfo()`
+---
+
+#### 页面内容读取 (Read)
+
+##### `gemigo.extension.getPageInfo()`
 - **返回**: `Promise<{ url: string, title: string, selection: string }>`
-- **说明**: 获取当前激活标签页的信息。
+- **说明**: 获取当前激活标签页的基本信息。
+
+##### `gemigo.extension.getPageHTML()`
+- **返回**: `Promise<string>`
+- **说明**: 获取当前页面的完整 HTML 内容。
+- **注意**: 跨域 iframe 内容可能无法读取，会抛出 `CROSS_ORIGIN` 错误。
+
+##### `gemigo.extension.getPageText()`
+- **返回**: `Promise<string>`
+- **说明**: 获取当前页面的纯文本内容（剔除 HTML 标签）。
+
+##### `gemigo.extension.queryElement(selector)`
+- **参数**: `selector: string` (CSS 选择器)
+- **返回**: `Promise<{ text: string, html: string, rect: DOMRect } | null>`
+- **说明**: 获取匹配元素的内容和位置信息。
+
+##### `gemigo.extension.extractArticle()`
+- **返回**: `Promise<{ title: string, content: string, author?: string, date?: string }>`
+- **说明**: 智能提取页面正文内容（基于 Readability 算法）。
+
+##### `gemigo.extension.extractLinks()`
+- **返回**: `Promise<Array<{ text: string, href: string }>>`
+- **说明**: 提取页面中所有链接。
+
+##### `gemigo.extension.extractImages()`
+- **返回**: `Promise<Array<{ src: string, alt: string, width: number, height: number }>>`
+- **说明**: 提取页面中所有图片。
 
 ---
+
+#### 页面内容修改 (Modify)
+
+> ⚠️ 需要 `extension.modify` 权限
+
+##### `gemigo.extension.highlight(selector, options?)`
+- **参数**:
+  - `selector`: `string` (CSS 选择器)
+  - `options`: `{ color?: string, duration?: number }`
+- **返回**: `Promise<() => void>` (返回移除高亮的函数)
+- **说明**: 高亮页面中匹配的元素。
+
+##### `gemigo.extension.insertWidget(config)`
+- **参数**:
+  - `config`: `{ html: string, position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | { x: number, y: number } }`
+- **返回**: `Promise<WidgetHandle>` (`{ remove(), update(html) }`)
+- **说明**: 在页面中插入浮层组件。组件会自动添加应用命名空间隔离样式。
+
+##### `gemigo.extension.injectCSS(css)`
+- **参数**: `css: string`
+- **返回**: `Promise<() => void>` (返回移除样式的函数)
+- **说明**: 注入自定义 CSS 样式。样式会自动添加应用专属前缀避免冲突。
+
+---
+
+#### 页面事件监听 (Events)
+
+##### `gemigo.extension.onSelectionChange(callback)`
+- **参数**: `callback: (text: string) => void`
+- **返回**: `() => void` (取消订阅函数)
+- **说明**: 监听用户选中文字的变化。
+
+##### `gemigo.extension.onNavigate(callback)`
+- **参数**: `callback: (url: string) => void`
+- **返回**: `() => void` (取消订阅函数)
+- **说明**: 监听页面跳转事件。
+
+##### `gemigo.extension.onScroll(callback)`
+- **参数**: `callback: (scrollY: number) => void`
+- **返回**: `() => void` (取消订阅函数)
+- **说明**: 监听页面滚动事件（已节流）。
+
+---
+
+#### 截图 (Capture)
+
+> ⚠️ 需要 `extension.capture` 权限
+
+##### `gemigo.extension.captureVisible()`
+- **返回**: `Promise<string>` (base64 PNG)
+- **说明**: 截取当前可见区域。
+
+##### `gemigo.extension.captureFull(options?)`
+- **参数**: `options`: `{ maxHeight?: number }` (默认最大 30000px)
+- **返回**: `Promise<string>` (base64 PNG)
+- **说明**: 截取整个页面（长截图）。
+
+---
+
+#### 快捷键 (Shortcuts)
+
+> ⚠️ 需要 `extension.shortcuts` 权限
+
+##### `gemigo.extension.registerShortcut(combo, callback)`
+- **参数**:
+  - `combo`: `string` (如 `'Ctrl+Shift+T'`, `'Cmd+Alt+S'`)
+  - `callback`: `() => void`
+- **返回**: `() => void` (取消注册函数)
+- **说明**: 注册页面级快捷键（仅在当前标签页激活时生效）。
+
+---
+
+#### 类型定义
+
+```typescript
+interface WidgetHandle {
+  remove(): void;
+  update(html: string): void;
+}
+```
+
+---
+
 
 ## <a id="应用清单规范-manifest"></a>4. 应用清单规范 (Manifest)
 
@@ -494,11 +611,13 @@ gemigo.globalShortcut.register('Cmd+Shift+S', () => {
     "fileWatch",
     "fileWrite",
     "ai",
-    "fileWrite",
-    "ai",
     "clipboard",
     "shell",
-    "network"
+    "network",
+    // 浏览器扩展专用权限
+    "extension.modify",    // 页面内容修改
+    "extension.capture",   // 截图
+    "extension.shortcuts"  // 快捷键
   ],
   
   // --- 后台能力配置 ---

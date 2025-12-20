@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDK 通信演示 - 原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Menlo', monospace;
+            background: #0f172a;
+            min-height: 100vh;
+            padding: 24px;
+            color: #e2e8f0;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            color: #f8fafc;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
+        .demo-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            max-width: 1200px;
+        }
+
+        .panel {
+            background: #1e293b;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 12px 16px;
+            background: #334155;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-header .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .panel-header .dot.green {
+            background: #22c55e;
+        }
+
+        .panel-header .dot.blue {
+            background: #3b82f6;
+        }
+
+        .panel-content {
+            padding: 16px;
+            min-height: 300px;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        .code-block .comment {
+            color: #64748b;
+        }
+
+        .code-block .keyword {
+            color: #c084fc;
+        }
+
+        .code-block .string {
+            color: #22c55e;
+        }
+
+        .code-block .function {
+            color: #38bdf8;
+        }
+
+        .code-block .variable {
+            color: #f8fafc;
+        }
+
+        .code-block .property {
+            color: #fcd34d;
+        }
+
+        /* Message Log */
+        .message-log {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+        }
+
+        .message.outgoing {
+            background: #1d4ed8;
+            margin-left: 20px;
+        }
+
+        .message.incoming {
+            background: #065f46;
+            margin-right: 20px;
+        }
+
+        .message-header {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-bottom: 6px;
+        }
+
+        .message-content {
+            font-family: 'Monaco', monospace;
+            word-break: break-all;
+        }
+
+        /* Action Buttons */
+        .actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .action-btn {
+            padding: 10px 16px;
+            background: #8b5cf6;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #7c3aed;
+        }
+
+        .action-btn.secondary {
+            background: #334155;
+        }
+
+        .action-btn.secondary:hover {
+            background: #475569;
+        }
+
+        /* Diagram */
+        .diagram {
+            margin-top: 32px;
+            padding: 24px;
+            background: #1e293b;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+
+        .diagram h3 {
+            font-size: 1rem;
+            margin-bottom: 16px;
+            color: #f8fafc;
+        }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .flow-box {
+            padding: 16px 24px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .flow-box.app {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
+        .flow-box.sdk {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        .flow-box.host {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .flow-box.browser {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .flow-arrow {
+            font-size: 1.5rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔌 SDK 通信演示</h1>
+    <p class="subtitle">演示 App (iframe) 与 Host (Side Panel) 之间的 postMessage 通信机制</p>
+
+    <div class="demo-container">
+        <div class="panel">
+            <div class="panel-header">
+                <span class="dot blue"></span>
+                App (iframe) - SDK 调用
+            </div>
+            <div class="panel-content">
+                <div class="code-block">
+                    <span class="comment">// 1. 获取页面选中文字</span><br>
+                    <span class="keyword">const</span> <span class="variable">selection</span> = <span
+                        class="keyword">await</span> <span class="function">gemigo</span>.<span
+                        class="property">page</span>.<span class="function">getSelection</span>();<br><br>
+                    <span class="comment">// 2. 注册右键菜单</span><br>
+                    <span class="function">gemigo</span>.<span class="property">contextMenu</span>.<span
+                        class="function">register</span>({<br>
+                    &nbsp;&nbsp;<span class="property">id</span>: <span class="string">'translate'</span>,<br>
+                    &nbsp;&nbsp;<span class="property">title</span>: <span class="string">'翻译选中文字'</span>,<br>
+                    &nbsp;&nbsp;<span class="property">contexts</span>: [<span class="string">'selection'</span>]<br>
+                    });<br><br>
+                    <span class="comment">// 3. 发送通知</span><br>
+                    <span class="function">gemigo</span>.<span class="property">notifications</span>.<span
+                        class="function">show</span>({<br>
+                    &nbsp;&nbsp;<span class="property">title</span>: <span class="string">'翻译完成'</span>,<br>
+                    &nbsp;&nbsp;<span class="property">message</span>: <span class="string">'点击查看结果'</span><br>
+                    });
+                </div>
+                <div class="actions">
+                    <button class="action-btn" onclick="simulateCall()">模拟 SDK 调用</button>
+                    <button class="action-btn secondary" onclick="clearLog()">清空日志</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <span class="dot green"></span>
+                Host (Side Panel) - 消息日志
+            </div>
+            <div class="panel-content">
+                <div class="message-log" id="messageLog">
+                    <div class="message outgoing">
+                        <div class="message-header">← App → Host</div>
+                        <div class="message-content">{ "type": "gemigo:request", "method": "page.getSelection", "id":
+                            "1" }</div>
+                    </div>
+                    <div class="message incoming">
+                        <div class="message-header">→ Host → App</div>
+                        <div class="message-content">{ "type": "gemigo:response", "id": "1", "data": "The quick brown
+                            fox..." }</div>
+                    </div>
+                    <div class="message outgoing">
+                        <div class="message-header">← App → Host</div>
+                        <div class="message-content">{ "type": "gemigo:request", "method": "contextMenu.register", "id":
+                            "2" }</div>
+                    </div>
+                    <div class="message incoming">
+                        <div class="message-header">→ Host → App</div>
+                        <div class="message-content">{ "type": "gemigo:response", "id": "2", "success": true }</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="diagram">
+        <h3>通信流程</h3>
+        <div class="flow-diagram">
+            <div class="flow-box app">🌐 App<br><small>(iframe)</small></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-box sdk">📦 SDK<br><small>(@gemigo/sdk)</small></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-box host">🖥️ Host<br><small>(Side Panel)</small></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-box browser">🌍 Browser<br><small>(chrome.* API)</small></div>
+        </div>
+    </div>
+
+    <script>
+        function simulateCall() {
+            const log = document.getElementById('messageLog');
+            const id = Date.now();
+
+            const request = document.createElement('div');
+            request.className = 'message outgoing';
+            request.innerHTML = `
+        <div class="message-header">← App → Host (${new Date().toLocaleTimeString()})</div>
+        <div class="message-content">{ "type": "gemigo:request", "method": "notifications.show", "id": "${id}" }</div>
+      `;
+            log.appendChild(request);
+
+            setTimeout(() => {
+                const response = document.createElement('div');
+                response.className = 'message incoming';
+                response.innerHTML = `
+          <div class="message-header">→ Host → App (${new Date().toLocaleTimeString()})</div>
+          <div class="message-content">{ "type": "gemigo:response", "id": "${id}", "success": true }</div>
+        `;
+                log.appendChild(response);
+                log.scrollTop = log.scrollHeight;
+            }, 500);
+        }
+
+        function clearLog() {
+            document.getElementById('messageLog').innerHTML = '';
+        }
+    </script>
+</body>
+
+</html>

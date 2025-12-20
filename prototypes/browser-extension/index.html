@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GemiGo 浏览器扩展原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+
+        .prototypes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .prototype-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .prototype-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .prototype-card h3 {
+            font-size: 1.25rem;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .prototype-card p {
+            color: #64748b;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .prototype-card a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+
+        .prototype-card a:hover {
+            opacity: 0.9;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .badge.ui {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .badge.interaction {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .badge.sdk {
+            background: #fef3c7;
+            color: #d97706;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🧩 GemiGo 浏览器扩展原型</h1>
+        <p class="subtitle">在正式开发前，探索和验证核心交互与视觉设计</p>
+
+        <div class="prototypes">
+            <div class="prototype-card">
+                <span class="badge ui">UI 设计</span>
+                <h3>Side Panel 主界面</h3>
+                <p>模拟 Chrome 侧边栏中的应用启动器界面，包含应用列表、搜索和导航。</p>
+                <a href="sidepanel-ui/index.html">查看原型 →</a>
+            </div>
+
+            <div class="prototype-card">
+                <span class="badge ui">UI 设计</span>
+                <h3>应用运行时容器</h3>
+                <p>展示应用在 iframe 中加载的效果，以及顶部工具栏的交互。</p>
+                <a href="app-container/index.html">查看原型 →</a>
+            </div>
+
+            <div class="prototype-card">
+                <span class="badge interaction">交互</span>
+                <h3>权限请求弹窗</h3>
+                <p>当应用请求敏感权限（如读取页面内容）时的用户授权流程。</p>
+                <a href="permission-modal/index.html">查看原型 →</a>
+            </div>
+
+            <div class="prototype-card">
+                <span class="badge sdk">SDK 演示</span>
+                <h3>SDK 通信演示</h3>
+                <p>演示 App (iframe) 与 Host (Side Panel) 之间的 postMessage 通信。</p>
+                <a href="sdk-demo/index.html">查看原型 →</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=400, initial-scale=1.0">
+    <title>GemiGo Side Panel - 原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            width: 400px;
+            min-height: 100vh;
+            margin: 0 auto;
+            border-left: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #1e293b;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            border-radius: 8px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 12px 20px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: #f1f5f9;
+        }
+
+        .tab.active {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        /* Search */
+        .search-container {
+            padding: 16px 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            padding-left: 44px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cpath d='m21 21-4.3-4.3'%3E%3C/path%3E%3C/svg%3E") 14px center no-repeat;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+        }
+
+        /* App List */
+        .section-title {
+            padding: 0 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+
+        .app-list {
+            padding: 0 12px;
+        }
+
+        .app-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .app-item:hover {
+            background: #f1f5f9;
+        }
+
+        .app-item.active {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+        }
+
+        .app-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .app-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .app-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+
+        .app-desc {
+            font-size: 0.8rem;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .app-status {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .status-live {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-building {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        /* Add App Button */
+        .add-app-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 12px;
+            padding: 14px 16px;
+            border: 2px dashed #e2e8f0;
+            border-radius: 12px;
+            background: transparent;
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-app-btn:hover {
+            border-color: #8b5cf6;
+            color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        /* Footer */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 400px;
+            padding: 16px 20px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .user-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        .open-dashboard-btn {
+            padding: 8px 14px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .open-dashboard-btn:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon"></div>
+            <span>Gemi<span style="color:#8b5cf6">Go</span></span>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" title="通知">🔔</button>
+            <button class="icon-btn" title="设置">⚙️</button>
+        </div>
+    </header>
+
+    <nav class="tabs">
+        <button class="tab active">首页</button>
+        <button class="tab">我的应用</button>
+        <button class="tab">探索</button>
+    </nav>
+
+    <div class="search-container">
+        <input type="text" class="search-input" placeholder="搜索应用...">
+    </div>
+
+    <div class="section-title">已安装应用</div>
+    <div class="app-list">
+        <div class="app-item active">
+            <div class="app-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">🌐</div>
+            <div class="app-info">
+                <div class="app-name">AI 翻译助手</div>
+                <div class="app-desc">选中文字即时翻译</div>
+            </div>
+            <span class="app-status status-live">运行中</span>
+        </div>
+
+        <div class="app-item">
+            <div class="app-icon" style="background: linear-gradient(135deg, #10b981, #059669);">✍️</div>
+            <div class="app-info">
+                <div class="app-name">写作优化器</div>
+                <div class="app-desc">优化你的文字表达</div>
+            </div>
+            <span class="app-status status-live">运行中</span>
+        </div>
+
+        <div class="app-item">
+            <div class="app-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">💻</div>
+            <div class="app-info">
+                <div class="app-name">代码助手</div>
+                <div class="app-desc">解释和生成代码</div>
+            </div>
+            <span class="app-status status-building">更新中</span>
+        </div>
+
+        <div class="app-item">
+            <div class="app-icon" style="background: linear-gradient(135deg, #ec4899, #db2777);">📸</div>
+            <div class="app-info">
+                <div class="app-name">截图标注</div>
+                <div class="app-desc">快速截图并添加标注</div>
+            </div>
+            <span class="app-status status-live">运行中</span>
+        </div>
+
+        <button class="add-app-btn">
+            <span style="font-size: 1.2rem;">➕</span>
+            <span>添加更多应用</span>
+        </button>
+    </div>
+
+    <footer class="footer">
+        <div class="user-info">
+            <div class="user-avatar">W</div>
+            <span class="user-name">Wang Xiaotao</span>
+        </div>
+        <button class="open-dashboard-btn">打开仪表板 →</button>
+    </footer>
+</body>
+
+</html>

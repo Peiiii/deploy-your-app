@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=400, initial-scale=1.0">
+    <title>应用容器 - 原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            width: 400px;
+            min-height: 100vh;
+            margin: 0 auto;
+            border-left: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* App Toolbar */
+        .app-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .app-icon-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
+        .app-header-info h2 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .app-header-info span {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .toolbar-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #94a3b8;
+            transition: all 0.2s;
+        }
+
+        .toolbar-btn:hover {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        /* Permission Bar */
+        .permission-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #fef3c7;
+            border-bottom: 1px solid #fcd34d;
+            font-size: 0.8rem;
+            color: #92400e;
+        }
+
+        .permission-bar button {
+            margin-left: auto;
+            padding: 4px 12px;
+            background: #f59e0b;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .permission-bar button:hover {
+            background: #d97706;
+        }
+
+        /* App Content (iframe placeholder) */
+        .app-content {
+            flex: 1;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .iframe-placeholder {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 32px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+
+        .iframe-placeholder .icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .iframe-placeholder h3 {
+            font-size: 1.25rem;
+            color: #1e293b;
+        }
+
+        .iframe-placeholder p {
+            font-size: 0.9rem;
+            color: #64748b;
+            text-align: center;
+            max-width: 300px;
+            line-height: 1.5;
+        }
+
+        /* Mock App UI */
+        .mock-app {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .mock-app-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+        }
+
+        .mock-app-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .mock-app-output {
+            flex: 1;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .mock-app-output h4 {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .mock-app-output p {
+            font-size: 0.95rem;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        /* Footer Actions */
+        .app-footer {
+            padding: 12px 16px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn.primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: #2563eb;
+        }
+
+        .action-btn.secondary {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .action-btn.secondary:hover {
+            background: #e2e8f0;
+        }
+
+        /* Tab Toggle */
+        .view-toggle {
+            display: none;
+        }
+
+        .view-toggle:checked~.iframe-placeholder {
+            display: none;
+        }
+
+        .view-toggle:checked~.mock-app {
+            display: flex;
+        }
+
+        .view-toggle:not(:checked)~.iframe-placeholder {
+            display: flex;
+        }
+
+        .view-toggle:not(:checked)~.mock-app {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-toolbar">
+        <button class="back-btn">←</button>
+        <div class="app-header">
+            <div class="app-icon-small">🌐</div>
+            <div class="app-header-info">
+                <h2>AI 翻译助手</h2>
+                <span>translate.gemigo.app</span>
+            </div>
+        </div>
+        <div class="toolbar-actions">
+            <button class="toolbar-btn" title="刷新">🔄</button>
+            <button class="toolbar-btn" title="新窗口打开">↗️</button>
+            <button class="toolbar-btn" title="更多">⋯</button>
+        </div>
+    </div>
+
+    <div class="permission-bar">
+        <span>⚠️</span>
+        <span>此应用请求读取当前页面内容</span>
+        <button>允许</button>
+    </div>
+
+    <div class="app-content">
+        <input type="checkbox" class="view-toggle" id="showApp" checked>
+
+        <div class="iframe-placeholder">
+            <div class="icon">🌐</div>
+            <h3>AI 翻译助手</h3>
+            <p>选中网页文字，点击下方按钮即可翻译。支持 100+ 语言互译。</p>
+            <label for="showApp"
+                style="padding: 12px 24px; background: #3b82f6; color: white; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                开始使用
+            </label>
+        </div>
+
+        <div class="mock-app">
+            <input type="text" class="mock-app-input" placeholder="输入或选中页面文字..."
+                value="The quick brown fox jumps over the lazy dog.">
+            <div class="mock-app-output">
+                <h4>翻译结果 (中文)</h4>
+                <p>敏捷的棕色狐狸跳过了懒惰的狗。</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-footer">
+        <button class="action-btn secondary">选中页面文字</button>
+        <button class="action-btn primary">翻译</button>
+    </div>
+</body>
+
+</html>

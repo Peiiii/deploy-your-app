@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>权限请求弹窗 - 原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal {
+            position: relative;
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 24px 24px 16px;
+            text-align: center;
+        }
+
+        .modal-header .app-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .modal-header p {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .permission-request {
+            padding: 0 24px 24px;
+        }
+
+        .permission-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+
+        .permission-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .permission-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .permission-icon.low {
+            background: #dcfce7;
+        }
+
+        .permission-icon.medium {
+            background: #fef3c7;
+        }
+
+        .permission-icon.high {
+            background: #fee2e2;
+        }
+
+        .permission-info h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+
+        .permission-info p {
+            font-size: 0.8rem;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        .permission-badge {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .badge-low {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .badge-medium {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-high {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .modal-footer {
+            padding: 16px 24px 24px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn.deny {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .modal-btn.deny:hover {
+            background: #e2e8f0;
+        }
+
+        .modal-btn.allow {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+        }
+
+        .modal-btn.allow:hover {
+            opacity: 0.9;
+        }
+
+        .remember-choice {
+            padding: 0 24px 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .remember-choice input {
+            width: 18px;
+            height: 18px;
+            accent-color: #8b5cf6;
+        }
+
+        .remember-choice label {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="modal-overlay"></div>
+
+    <div class="modal">
+        <div class="modal-header">
+            <div class="app-icon">🌐</div>
+            <h2>AI 翻译助手</h2>
+            <p>请求以下权限</p>
+        </div>
+
+        <div class="permission-request">
+            <div class="permission-title">此应用需要：</div>
+
+            <div class="permission-item">
+                <div class="permission-icon medium">📄</div>
+                <div class="permission-info">
+                    <h4>读取页面内容</h4>
+                    <p>允许应用读取当前页面的文字内容用于翻译</p>
+                </div>
+                <span class="permission-badge badge-medium">中等</span>
+            </div>
+
+            <div class="permission-item">
+                <div class="permission-icon low">🔔</div>
+                <div class="permission-info">
+                    <h4>发送通知</h4>
+                    <p>在翻译完成时推送通知提醒</p>
+                </div>
+                <span class="permission-badge badge-low">低</span>
+            </div>
+
+            <div class="permission-item">
+                <div class="permission-icon low">💾</div>
+                <div class="permission-info">
+                    <h4>本地存储</h4>
+                    <p>保存你的语言偏好和翻译历史</p>
+                </div>
+                <span class="permission-badge badge-low">低</span>
+            </div>
+        </div>
+
+        <div class="remember-choice">
+            <input type="checkbox" id="remember">
+            <label for="remember">记住我的选择</label>
+        </div>
+
+        <div class="modal-footer">
+            <button class="modal-btn deny">拒绝</button>
+            <button class="modal-btn allow">允许</button>
+        </div>
+    </div>
+</body>
+
+</html>
