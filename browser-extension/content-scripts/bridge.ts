@@ -1,12 +1,16 @@
 // GemiGo Content Script - Page Bridge
 
-console.log('[GemiGo] Content script loaded');
+console.log('[GemiGo] Content script loaded on:', window.location.href);
 
 // Listen for messages from Service Worker
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  console.log('[GemiGo] Received message:', message);
+  console.log('[GemiGo CS] Received message:', message.type);
 
   switch (message.type) {
+    case 'PING':
+      sendResponse({ pong: true });
+      break;
+
     case 'GET_PAGE_HTML':
       sendResponse({ html: document.documentElement.outerHTML });
       break;
@@ -34,7 +38,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       break;
 
     default:
-      sendResponse({ error: 'Unknown message type' });
+      sendResponse({ error: 'Unknown message type: ' + message.type });
   }
 
   return true; // Async response

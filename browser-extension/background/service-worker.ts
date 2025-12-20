@@ -26,21 +26,58 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener((info) => {
   if (info.menuItemId === 'gemigo-translate' && info.selectionText) {
     console.log('Translate:', info.selectionText);
-    // TODO: Send to Side Panel for processing
   }
 
   if (info.menuItemId === 'gemigo-summarize') {
     console.log('Summarize:', info.selectionText || 'page');
-    // TODO: Send to Side Panel for processing
   }
 });
 
+// Ensure content script is injected
+async function ensureContentScript(tabId: number): Promise<boolean> {
+  try {
+    // Try to ping the content script
+    const response = await chrome.tabs.sendMessage(tabId, { type: 'PING' });
+    return response?.pong === true;
+  } catch {
+    // Content script not loaded, inject it
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        files: ['content-scripts/bridge.js'],
+      });
+      return true;
+    } catch (err) {
+      console.error('[GemiGo] Failed to inject content script:', err);
+      return false;
+    }
+  }
+}
+
+// Execute command in page via content script
+async function executeInPage(tabId: number, payload: unknown): Promise<unknown> {
+  const injected = await ensureContentScript(tabId);
+  if (!injected) {
+    return { error: 'Failed to inject content script' };
+  }
+  
+  return new Promise((resolve) => {
+    chrome.tabs.sendMessage(tabId, payload, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('[GemiGo] Message error:', chrome.runtime.lastError);
+        resolve({ error: chrome.runtime.lastError.message });
+      } else {
+        resolve(response);
+      }
+    });
+  });
+}
+
 // Listen for messages from Side Panel
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('Message from:', sender.id, message);
+  console.log('[GemiGo SW] Message:', message.type, 'from:', sender.id);
 
   if (message.type === 'GET_PAGE_INFO') {
-    // Get current tab info
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tab = tabs[0];
       if (tab) {
@@ -49,17 +86,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           title: tab.title,
           favIconUrl: tab.favIconUrl,
         });
+      } else {
+        sendResponse({ error: 'No active tab' });
       }
     });
-    return true; // Async response
+    return true;
   }
 
   if (message.type === 'EXECUTE_IN_PAGE') {
-    // Send command to Content Script
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
       const tabId = tabs[0]?.id;
       if (tabId) {
-        chrome.tabs.sendMessage(tabId, message.payload, sendResponse);
+        const result = await executeInPage(tabId, message.payload);
+        sendResponse(result);
+      } else {
+        sendResponse({ error: 'No active tab' });
       }
     });
     return true;
