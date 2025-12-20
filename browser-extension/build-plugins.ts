@@ -1,9 +1,13 @@
+import { Plugin } from 'vite';
 import { copyFileSync, mkdirSync, existsSync, readdirSync, cpSync } from 'fs';
 import { resolve } from 'path';
 
-export function copyExtensionAssets(rootDir: string) {
+export function copyExtensionAssets(rootDir: string): Plugin {
   return {
     name: 'copy-extension-assets',
+    buildStart() {
+      this.addWatchFile(resolve(rootDir, 'manifest.json'));
+    },
     closeBundle() {
       // 1. Copy manifest.json
       copyFileSync(resolve(rootDir, 'manifest.json'), resolve(rootDir, 'dist/manifest.json'));

@@ -98,20 +98,21 @@
     <div class="result" id="result">Click a button to test SDK API...</div>
     <img id="screenshot" class="screenshot" style="display:none" />
 
-    <!-- GemiGo Extension SDK (Always use latest) -->
-    <script src="https://unpkg.com/@gemigo/extension-sdk/dist/gemigo-extension-sdk.umd.js"></script>
+    <!-- GemiGo Extension SDK (Use local for dev) -->
+    <script src="/common/gemigo-extension-sdk.js"></script>
     <script>
         // No more alias needed! 'gemigo' is now the global variable
         console.log('[Test App] SDK Loaded:', gemigo);
 
         // Subscribe immediately - no connect() needed
-        gemigo.on('contextMenu', (event) => {
+        // Use gemigo.extension.onContextMenu
+        gemigo.extension.onContextMenu((event) => {
             console.log('[Test App] Context menu event:', event);
             showResult('Context Menu Event (real-time)', event);
         });
 
         // Check for pending events on load
-        gemigo.getContextMenuEvent().then(result => {
+        gemigo.extension.getContextMenuEvent().then(result => {
             if (result.success && result.event) {
                 showResult('Context Menu Event (pending)', result.event);
             }
@@ -128,32 +129,34 @@
         }
 
         async function testGetPageInfo() {
+            // Common API - no change
             const result = await gemigo.getPageInfo();
             showResult('getPageInfo()', result);
         }
 
         async function testGetPageHTML() {
-            const result = await gemigo.getPageHTML();
+            const result = await gemigo.extension.getPageHTML();
             showResult('getPageHTML()', { length: result.length, preview: result.slice(0, 500) });
         }
 
         async function testGetSelection() {
-            const result = await gemigo.getSelection();
+            const result = await gemigo.extension.getSelection();
             showResult('getSelection()', { selection: result });
         }
 
         async function testHighlight() {
-            const result = await gemigo.highlight('h1, h2, h3');
+            const result = await gemigo.extension.highlight('h1, h2, h3');
             showResult('highlight()', result);
         }
 
         async function testNotify() {
+            // Common API - no change
             const result = await gemigo.notify('GemiGo Notification', 'This is a test notification!');
             showResult('notify()', result);
         }
 
         async function testCapture() {
-            const result = await gemigo.captureVisible();
+            const result = await gemigo.extension.captureVisible();
             if (result.success && result.dataUrl) {
                 showResult('captureVisible()', { success: true, size: result.dataUrl.length });
                 const img = document.getElementById('screenshot');
@@ -165,7 +168,7 @@
         }
 
         async function testExtract() {
-            const result = await gemigo.extractArticle();
+            const result = await gemigo.extension.extractArticle();
             showResult('extractArticle()', {
                 success: result.success,
                 title: result.title,
@@ -175,7 +178,7 @@
         }
 
         async function testContextMenu() {
-            const result = await gemigo.getContextMenuEvent();
+            const result = await gemigo.extension.getContextMenuEvent();
             if (result.success && result.event) {
                 showResult('getContextMenuEvent()', result.event);
             } else {

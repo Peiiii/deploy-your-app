@@ -13,7 +13,7 @@ export const marketApps: MarketApp[] = [
     description: 'Official test utilities for GemiGo SDK verification.',
     icon: '🧪',
     iconBg: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-    url: 'http://localhost:5173/prototypes/browser-extension/test-app/',
+    url: 'http://localhost:3000/test-app/index.html',
     category: 'Development',
     author: 'GemiGo Team'
   },
