@@ -163,6 +163,20 @@ pnpm deploy
 - `GET /api/v1/auth/github/start?redirect=<url>`
   - 同上，走 GitHub OAuth。
 
+### 4.0 桌面端（Electron）推荐的登录方式
+
+从产品体验与兼容性角度，桌面端建议**永远在系统默认浏览器里完成 Google/GitHub OAuth**（避免在 Electron WebView 内登录触发风控/体验割裂），并在登录完成后通过 deep link 回到桌面端。
+
+- 桌面端入口页建议带 `?desktop=1`（用于 Web 端识别“运行在桌面壳内”）。
+- OAuth 发起仍然走：
+  - `GET /api/v1/auth/google/start?redirect=<url>`
+  - `GET /api/v1/auth/github/start?redirect=<url>`
+- 其中 `redirect` 推荐使用：
+  - `gemigo-desktop://auth`
+  - 登录成功后 Worker 会 302 回到 `redirect`，桌面端接收 deep link 并完成桌面端会话写入/刷新页面。
+
+如果你使用本仓库的桌面壳（`desktop/`），它会在主窗口拦截上述 `/auth/*/start` 导航并改用系统浏览器打开，同时确保 `redirect` 指向 `gemigo-desktop://auth`。
+
 ### 4.1 前端建议的调用方式（伪代码）
 
 以 React + fetch 为例（仅示意）：
@@ -250,4 +264,3 @@ function loginWithGithub() {
 ---
 
 如果你在配置这些变量 / OAuth App 的过程中遇到具体报错（比如 Google/GitHub 返回错误、Worker 抛异常），可以把错误信息或相关 Worker 日志贴给我，我再帮你针对性排查。  
-

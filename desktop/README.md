@@ -20,3 +20,5 @@ pnpm --filter gemigo-desktop dev       # 构建后启动 Electron，加载远程
 - 仅作为“薄壳”：业务 UI/登录/接口沿用线上 Web。
 - 禁用 `nodeIntegration`，启用 `contextIsolation` 与 `sandbox`；无额外 preload 能力暴露。
 - 所有 `window.open` 会在系统默认浏览器中打开，避免在桌面端无限弹窗。
+- **OAuth 登录走系统浏览器**：当页面发起 `GET /api/v1/auth/google/start` 或 `GET /api/v1/auth/github/start` 跳转时，桌面端会拦截该导航并改为 `shell.openExternal(...)`，确保登录在系统默认浏览器完成（而不是在 Electron WebView 内）。
+- **登录完成回跳桌面端**：浏览器登录成功后会 302 到 `gemigo-desktop://auth?token=...`，桌面端收到 deep link 后用 token 完成一次“桌面端登录”，随后刷新主窗口回到入口页。
