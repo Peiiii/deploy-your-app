@@ -3,15 +3,15 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { copyFileSync, mkdirSync, existsSync, readdirSync } from 'fs';
 
-// 复制静态文件到 dist
+// Copy static assets to dist
 function copyStaticAssets() {
   return {
     name: 'copy-static-assets',
     closeBundle() {
-      // 复制 manifest.json
+      // Copy manifest.json
       copyFileSync('manifest.json', 'dist/manifest.json');
       
-      // 复制 icons 目录
+      // Copy icons directory
       const iconsDir = 'icons';
       const distIconsDir = 'dist/icons';
       if (existsSync(iconsDir)) {

@@ -12,7 +12,7 @@ pnpm --filter gemigo-desktop dev       # 构建后启动 Electron，加载远程
 ```
 
 - 覆盖入口：`DESKTOP_WEB_URL=https://staging.gemigo.io pnpm --filter gemigo-desktop dev`
-- 构建包（需要安装依赖）：`pnpm --filter gemigo-desktop pack`
+- 构建包（需要安装依赖）：`pnpm --filter gemigo-desktop run pack`
 - 如遇 `ELECTRON_RUN_AS_NODE=1` 导致 Electron 以 Node 模式运行（表现为 `require('electron').app` 为空），`dev` 脚本已强制清空该变量；手动运行时也可先 `unset ELECTRON_RUN_AS_NODE`。
 
 ### 行为说明
@@ -41,3 +41,20 @@ pnpm --filter gemigo-desktop dev       # 构建后启动 Electron，加载远程
 - macOS：`open 'gemigo-desktop://auth?token=test'`
 - Linux：`xdg-open 'gemigo-desktop://auth?token=test'`
 - Windows（PowerShell）：`Start-Process 'gemigo-desktop://auth?token=test'`
+
+### Release（下载安装）
+
+本项目支持两种方式获取安装包：
+
+1. **本地打包**
+   - 运行：`pnpm --filter gemigo-desktop run pack`
+   - 产物目录：`desktop/release/`（例如 macOS 的 `.dmg/.zip`、Windows 的 `.exe`、Linux 的 `.AppImage`）
+
+2. **GitHub Release 自动构建**
+   - 一条命令（推荐）：`pnpm release:desktop`（会读取 `desktop/package.json` 的版本号并 push `desktop-v<version>` tag）
+   - 打 Tag 触发：`desktop-v*`（例如：`desktop-v0.1.2`）
+   - Workflow：`.github/workflows/desktop-release.yml`
+   - Release 附件会包含 macOS / Windows / Linux 对应安装包
+
+注意：
+- 未做签名/公证的安装包在 macOS/Windows 可能会被系统拦截，需要用户手动“仍要打开”；正式发版建议补齐签名（mac notarization / Windows code signing）。

@@ -1,40 +1,75 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import AppContainer from './app-container';
+import AddAppModal from './add-app-modal';
 
-interface InstalledApp {
+export interface InstalledApp {
   id: string;
   name: string;
   description: string;
   icon: string;
   iconBg: string;
+  url: string;
 }
 
-const mockApps: InstalledApp[] = [
+// Default apps for demo
+const defaultApps: InstalledApp[] = [
   {
-    id: '1',
-    name: 'AI 翻译助手',
-    description: '选中文字即时翻译',
-    icon: '🌐',
-    iconBg: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-  },
-  {
-    id: '2',
-    name: '写作优化器',
-    description: '优化你的文字表达',
-    icon: '✍️',
-    iconBg: 'linear-gradient(135deg, #10b981, #059669)',
-  },
-  {
-    id: '3',
-    name: '代码助手',
-    description: '解释和生成代码',
-    icon: '💻',
-    iconBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
+    id: 'demo-1',
+    name: 'Demo App',
+    description: 'Demo application',
+    icon: '🎯',
+    iconBg: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+    url: 'https://example.com',
   },
 ];
 
 function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'apps' | 'explore'>('home');
-  const [activeAppId, setActiveAppId] = useState<string | null>(null);
+  const [activeApp, setActiveApp] = useState<InstalledApp | null>(null);
+  const [installedApps, setInstalledApps] = useState<InstalledApp[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  // Load installed apps from storage
+  useEffect(() => {
+    chrome.storage.local.get(['installedApps'], (result) => {
+      if (result.installedApps && result.installedApps.length > 0) {
+        setInstalledApps(result.installedApps);
+      } else {
+        setInstalledApps(defaultApps);
+      }
+    });
+  }, []);
+
+  // Save to storage when apps change
+  const saveApps = (apps: InstalledApp[]) => {
+    setInstalledApps(apps);
+    chrome.storage.local.set({ installedApps: apps });
+  };
+
+  // Add new app
+  const handleAddApp = (app: Omit<InstalledApp, 'id'>) => {
+    const newApp: InstalledApp = {
+      ...app,
+      id: `custom-${Date.now()}`,
+    };
+    saveApps([...installedApps, newApp]);
+    setShowAddModal(false);
+  };
+
+  // Remove app
+  const handleRemoveApp = (appId: string) => {
+    saveApps(installedApps.filter(app => app.id !== appId));
+  };
+
+  // Show app container if an app is active
+  if (activeApp) {
+    return (
+      <AppContainer
+        app={activeApp}
+        onBack={() => setActiveApp(null)}
+      />
+    );
+  }
 
   return (
     <div className="sidepanel">
@@ -47,10 +82,10 @@ function App() {
           </span>
         </div>
         <div className="header-actions">
-          <button className="icon-btn" title="通知">
+          <button className="icon-btn" title="Notifications">
             🔔
           </button>
-          <button className="icon-btn" title="设置">
+          <button className="icon-btn" title="Settings">
             ⚙️
           </button>
         </div>
@@ -62,32 +97,32 @@ function App() {
           className={`tab ${activeTab === 'home' ? 'active' : ''}`}
           onClick={() => setActiveTab('home')}
         >
-          首页
+          Home
         </button>
         <button
           className={`tab ${activeTab === 'apps' ? 'active' : ''}`}
           onClick={() => setActiveTab('apps')}
         >
-          我的应用
+          Apps
         </button>
         <button
           className={`tab ${activeTab === 'explore' ? 'active' : ''}`}
           onClick={() => setActiveTab('explore')}
         >
-          探索
+          Explore
         </button>
       </nav>
 
       {/* Content */}
       {activeTab === 'home' && (
         <>
-          <div className="section-title">已安装应用</div>
+          <div className="section-title">Installed Apps</div>
           <div className="app-list">
-            {mockApps.map((app) => (
+            {installedApps.map((app) => (
               <div
                 key={app.id}
-                className={`app-item ${activeAppId === app.id ? 'active' : ''}`}
-                onClick={() => setActiveAppId(app.id)}
+                className="app-item"
+                onClick={() => setActiveApp(app)}
               >
                 <div
                   className="app-icon"
@@ -101,24 +136,67 @@ function App() {
                 </div>
               </div>
             ))}
+
+            {/* Add App Button */}
+            <div
+              className="app-item add-app-btn"
+              onClick={() => setShowAddModal(true)}
+            >
+              <div className="app-icon add-icon">
+                +
+              </div>
+              <div className="app-info">
+                <div className="app-name">Add Custom App</div>
+                <div className="app-desc">Enter URL to add test app</div>
+              </div>
+            </div>
           </div>
         </>
       )}
 
       {activeTab === 'apps' && (
-        <div className="empty-state">
-          <div className="empty-state-icon">📦</div>
-          <h3>我的应用</h3>
-          <p>管理你安装的应用</p>
-        </div>
+        <>
+          <div className="section-title">Manage Apps</div>
+          <div className="app-list">
+            {installedApps.map((app) => (
+              <div key={app.id} className="app-item-manage">
+                <div
+                  className="app-icon"
+                  style={{ background: app.iconBg }}
+                >
+                  {app.icon}
+                </div>
+                <div className="app-info">
+                  <div className="app-name">{app.name}</div>
+                  <div className="app-desc">{app.url}</div>
+                </div>
+                <button
+                  className="remove-btn"
+                  onClick={() => handleRemoveApp(app.id)}
+                  title="Remove app"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {activeTab === 'explore' && (
         <div className="empty-state">
           <div className="empty-state-icon">🔍</div>
-          <h3>探索</h3>
-          <p>发现更多有趣的应用</p>
+          <h3>Explore</h3>
+          <p>Discover more apps on the platform</p>
         </div>
+      )}
+
+      {/* Add App Modal */}
+      {showAddModal && (
+        <AddAppModal
+          onAdd={handleAddApp}
+          onClose={() => setShowAddModal(false)}
+        />
       )}
     </div>
   );

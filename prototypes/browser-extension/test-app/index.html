@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDK 测试应用</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: #f8fafc;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            color: #1e293b;
+            margin-bottom: 16px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            margin: 4px;
+            border: none;
+            background: #8b5cf6;
+            color: white;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #7c3aed;
+        }
+
+        .result {
+            margin-top: 16px;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            white-space: pre-wrap;
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .status {
+            color: #64748b;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+        }
+
+        .connected {
+            color: #10b981;
+        }
+
+        .error {
+            color: #ef4444;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧪 GemiGo SDK 测试</h1>
+    <div class="status" id="status">连接中...</div>
+
+    <div>
+        <button class="btn" onclick="testGetPageInfo()">获取页面信息</button>
+        <button class="btn" onclick="testGetPageHTML()">获取页面 HTML</button>
+        <button class="btn" onclick="testGetSelection()">获取选中文字</button>
+        <button class="btn" onclick="testHighlight()">高亮测试</button>
+        <button class="btn" onclick="testNotify()">发送通知</button>
+    </div>
+
+    <div class="result" id="result">点击按钮测试 SDK API...</div>
+
+    <script src="https://unpkg.com/penpal@6.2.2/dist/penpal.min.js"></script>
+    <script>
+        let gemigo = null;
+
+        // 使用 penpal 连接到 Host
+        const connection = Penpal.connectToParent({
+            methods: {
+                // App 暴露给 Host 的方法（如果需要）
+            }
+        });
+
+        connection.promise.then((parent) => {
+            gemigo = parent;
+            document.getElementById('status').textContent = '✅ 已连接到 GemiGo';
+            document.getElementById('status').className = 'status connected';
+        }).catch((err) => {
+            document.getElementById('status').textContent = '❌ 连接失败: ' + err.message;
+            document.getElementById('status').className = 'status error';
+        });
+
+        function showResult(title, data) {
+            document.getElementById('result').textContent =
+                `[${title}]\n` + JSON.stringify(data, null, 2);
+        }
+
+        async function testGetPageInfo() {
+            if (!gemigo) return showResult('Error', 'Not connected');
+            const result = await gemigo.getPageInfo();
+            showResult('getPageInfo()', result);
+        }
+
+        async function testGetPageHTML() {
+            if (!gemigo) return showResult('Error', 'Not connected');
+            const result = await gemigo.getPageHTML();
+            showResult('getPageHTML()', { length: result.length, preview: result.slice(0, 500) });
+        }
+
+        async function testGetSelection() {
+            if (!gemigo) return showResult('Error', 'Not connected');
+            const result = await gemigo.getSelection();
+            showResult('getSelection()', { selection: result });
+        }
+
+        async function testHighlight() {
+            if (!gemigo) return showResult('Error', 'Not connected');
+            const result = await gemigo.highlight('h1, h2, h3');
+            showResult('highlight()', result);
+        }
+
+        async function testNotify() {
+            if (!gemigo) return showResult('Error', 'Not connected');
+            const result = await gemigo.notify({
+                title: 'GemiGo 通知',
+                message: '这是一条测试通知！'
+            });
+            showResult('notify()', { success: result });
+        }
+    </script>
+</body>
+
+</html>

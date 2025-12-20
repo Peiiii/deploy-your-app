@@ -1,46 +1,46 @@
 // GemiGo Browser Extension - Service Worker
 
-// 点击扩展图标时打开 Side Panel
+// Open Side Panel when extension icon is clicked
 chrome.action.onClicked.addListener((tab) => {
   if (tab.id) {
     chrome.sidePanel.open({ tabId: tab.id });
   }
 });
 
-// 注册右键菜单
+// Register context menus
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: 'gemigo-translate',
-    title: '用 GemiGo 翻译',
+    title: 'Translate with GemiGo',
     contexts: ['selection'],
   });
 
   chrome.contextMenus.create({
     id: 'gemigo-summarize',
-    title: '用 GemiGo 总结',
+    title: 'Summarize with GemiGo',
     contexts: ['selection', 'page'],
   });
 });
 
-// 处理右键菜单点击
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+// Handle context menu clicks
+chrome.contextMenus.onClicked.addListener((info) => {
   if (info.menuItemId === 'gemigo-translate' && info.selectionText) {
     console.log('Translate:', info.selectionText);
-    // TODO: 发送到 Side Panel 处理
+    // TODO: Send to Side Panel for processing
   }
 
   if (info.menuItemId === 'gemigo-summarize') {
     console.log('Summarize:', info.selectionText || 'page');
-    // TODO: 发送到 Side Panel 处理
+    // TODO: Send to Side Panel for processing
   }
 });
 
-// 监听来自 Side Panel 的消息
+// Listen for messages from Side Panel
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Message from:', sender.id, message);
 
   if (message.type === 'GET_PAGE_INFO') {
-    // 获取当前标签页信息
+    // Get current tab info
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tab = tabs[0];
       if (tab) {
@@ -51,11 +51,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
       }
     });
-    return true; // 表示异步响应
+    return true; // Async response
   }
 
   if (message.type === 'EXECUTE_IN_PAGE') {
-    // 向 Content Script 发送命令
+    // Send command to Content Script
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tabId = tabs[0]?.id;
       if (tabId) {

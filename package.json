@@ -20,6 +20,7 @@
     "deploy:workers": "pnpm --filter deploy-your-app-api-worker run deploy && pnpm --filter deploy-your-app-r2-gateway run deploy && pnpm --filter gemigo-screenshot-service run deploy && pnpm --filter deploy-your-app-genai-proxy-worker run deploy && pnpm --filter deploy-your-app-openai-gateway-worker run deploy",
     "deploy:genai-proxy": "pnpm --filter deploy-your-app-genai-proxy-worker run deploy",
     "deploy:openai-gateway": "pnpm --filter deploy-your-app-openai-gateway-worker run deploy",
+    "release:desktop": "node scripts/release-desktop.js",
     "lint": "eslint .",
     "test:genai-rewrite": "cd server && pnpm exec tsx ../scripts/test-genai-rewrite.ts",
     "preview": "pnpm --filter deploy-your-app-frontend preview"

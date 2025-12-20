@@ -34,3 +34,6 @@ data
 tmp
 .wrangler
 .dev.vars
+
+# Desktop packaging outputs
+desktop/release/

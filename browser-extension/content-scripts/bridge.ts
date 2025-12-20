@@ -1,9 +1,9 @@
-// GemiGo Content Script - 页面桥接脚本
+// GemiGo Content Script - Page Bridge
 
 console.log('[GemiGo] Content script loaded');
 
-// 监听来自 Service Worker 的消息
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+// Listen for messages from Service Worker
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   console.log('[GemiGo] Received message:', message);
 
   switch (message.type) {
@@ -37,10 +37,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ error: 'Unknown message type' });
   }
 
-  return true; // 异步响应
+  return true; // Async response
 });
 
-// 监听选区变化（可选，供后续使用）
+// Listen for selection changes (optional, for future use)
 let selectionTimeout: number | null = null;
 document.addEventListener('selectionchange', () => {
   if (selectionTimeout) {
@@ -49,7 +49,7 @@ document.addEventListener('selectionchange', () => {
   selectionTimeout = window.setTimeout(() => {
     const selection = window.getSelection()?.toString();
     if (selection && selection.length > 0) {
-      // 可以发送到 Service Worker
+      // Can send to Service Worker
       // chrome.runtime.sendMessage({ type: 'SELECTION_CHANGED', selection });
     }
   }, 300);
