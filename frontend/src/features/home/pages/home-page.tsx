@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import type { ExploreAppCard } from '@/components/explore-app-card';
@@ -6,6 +6,7 @@ import { usePresenter } from '@/contexts/presenter-context';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { useUIStore } from '@/stores/ui.store';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
+import { useRightPanel } from '@/hooks/use-right-panel';
 import { SourceType } from '@/types';
 import { HomeDeploySection } from '@/features/home/components/home-deploy-section';
 import { HomeExploreSection } from '@/features/home/components/home-explore-section';
@@ -16,10 +17,10 @@ export const Home: React.FC = () => {
   const navigate = useNavigate();
   const presenter = usePresenter();
   const user = useAuthStore((s) => s.user);
-  const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const setSidebarCollapsed = useUIStore((state) => state.actions.setSidebarCollapsed);
-  const [selectedApp, setSelectedApp] = useState<ExploreAppCard | null>(null);
+  const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const { isDesktop } = useBreakpoint();
+  const { openRightPanel, closeRightPanel, isOpen: isPanelOpen } = useRightPanel();
 
   const requireAuthAnd = (action: () => void) => {
     if (!user) {
@@ -36,12 +37,25 @@ export const Home: React.FC = () => {
     });
   };
 
+  const handleOpenInNewTab = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   const handleCardClick = (app: ExploreAppCard) => {
     if (app.url) {
       if (!isDesktop) {
         window.open(app.url, '_blank', 'noopener,noreferrer');
       } else {
-        setSelectedApp(app);
+        // Open the preview panel using the global service
+        openRightPanel(
+          <AppPreviewPanel
+            app={app}
+            onClose={closeRightPanel}
+            onOpenInNewTab={handleOpenInNewTab}
+          />,
+          { closeOnUnmount: true }
+        );
+        // Collapse sidebar for more space
         if (!sidebarCollapsed) {
           setSidebarCollapsed(true);
         }
@@ -49,20 +63,12 @@ export const Home: React.FC = () => {
     }
   };
 
-  const handleClosePreview = () => {
-    setSelectedApp(null);
-  };
-
-  const handleOpenInNewTab = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-900 relative flex flex-col">
-      <div className={`flex-1 flex flex-col lg:flex-row`}>
+      <div className="flex-1 flex flex-col">
         {/* Main Content Area */}
         <div
-          className={`transition-all duration-500 ease-out pb-8 ${selectedApp ? 'w-full lg:w-1/2' : 'w-full max-w-7xl mx-auto'
+          className={`transition-all duration-500 ease-out pb-8 ${isPanelOpen ? 'w-full' : 'w-full max-w-7xl mx-auto'
             }`}
         >
           {/* Bento Header */}
@@ -88,35 +94,19 @@ export const Home: React.FC = () => {
 
             {/* Deploy Section */}
             <HomeDeploySection
-              compact={!!selectedApp}
+              compact={isPanelOpen}
               onQuickDeploy={handleQuickDeploy}
             />
 
-            <div className={selectedApp ? 'h-4' : 'h-8'} />
+            <div className={isPanelOpen ? 'h-4' : 'h-8'} />
 
             {/* Explore Section */}
             <HomeExploreSection
-              compact={!!selectedApp}
+              compact={isPanelOpen}
               onCardClick={handleCardClick}
             />
           </div>
         </div>
-
-        {/* Right Column - Preview Panel */}
-        {selectedApp && (
-          <div
-            className="hidden lg:block fixed top-0 right-0 bottom-0 z-50 shadow-2xl border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
-            style={{
-              width: `calc((100vw - ${sidebarCollapsed ? '4rem' : '16rem'}) / 2)`,
-            }}
-          >
-            <AppPreviewPanel
-              app={selectedApp}
-              onClose={handleClosePreview}
-              onOpenInNewTab={handleOpenInNewTab}
-            />
-          </div>
-        )}
       </div>
     </div>
   );

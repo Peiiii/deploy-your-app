@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { create } from 'zustand';
 
 export type ToastVariant = 'success' | 'error' | 'info';
@@ -21,6 +22,9 @@ interface UIState {
   toast: ToastState | null;
   language: string;
   confirmDialog: ConfirmDialogState | null;
+  // Right Panel Service
+  rightPanelContent: ReactNode | null;
+  rightPanelId: string | null;
   actions: {
     toggleTheme: () => void;
     toggleSidebar: () => void;
@@ -32,6 +36,9 @@ interface UIState {
     setLanguage: (lang: string) => void;
     openConfirmDialog: (dialog: ConfirmDialogState) => void;
     closeConfirmDialog: () => void;
+    // Right Panel Service
+    openRightPanel: (content: ReactNode, id: string) => void;
+    closeRightPanel: (id?: string) => void;
   };
 }
 
@@ -50,6 +57,8 @@ export const useUIStore = create<UIState>((set) => ({
   toast: null,
   language: getInitialLanguage(),
   confirmDialog: null,
+  rightPanelContent: null,
+  rightPanelId: null,
   actions: {
     toggleTheme: () =>
       set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
@@ -69,5 +78,14 @@ export const useUIStore = create<UIState>((set) => ({
     },
     openConfirmDialog: (dialog) => set({ confirmDialog: dialog }),
     closeConfirmDialog: () => set({ confirmDialog: null }),
+    openRightPanel: (content, id) => set({ rightPanelContent: content, rightPanelId: id }),
+    closeRightPanel: (id) =>
+      set((state) => {
+        // If no id provided, force close. If id provided, only close if it matches.
+        if (!id || state.rightPanelId === id) {
+          return { rightPanelContent: null, rightPanelId: null };
+        }
+        return state;
+      }),
   },
 }));
