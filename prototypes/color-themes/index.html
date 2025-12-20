@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GemiGo 紫色宇宙 - 12种微调方案</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .theme-card {
+            transition: all 0.2s ease;
+        }
+
+        .theme-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .radius-style {
+            border-radius: 1.5rem;
+        }
+
+        /* Bento style */
+        .btn-radius {
+            border-radius: 9999px;
+        }
+
+        /* Project consistent buttons */
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-baseline': '#8b5cf6',
+                        // Group 1: Hue Shift (Towards Indigo/Blue) - Cooler
+                        'v1': '#7c5df5', 'v2': '#7356eb', 'v3': '#6366f1',
+                        // Group 2: Saturation Drop (Muted/Professional)
+                        'v4': '#8261e1', 'v5': '#7f65d6', 'v6': '#7067CF',
+                        // Group 3: Lightness Balance (Soft/Elegant)
+                        'v7': '#8c79df', 'v8': '#9685e5', 'v9': '#9490B3',
+                        // Group 4: Warmth (Towards Pink/Violet)
+                        'v10': '#9d5cf6', 'v11': '#a855f7', 'v12': '#c084fc',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-[#f8fafc] dark:bg-[#020617] min-h-screen p-6 md:p-12 transition-colors duration-300">
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">💜 GemiGo 紫色矩阵</h1>
+                <p class="text-gray-500 dark:text-gray-400">提供了 12 种基于不同维度的微调方案，点击色块快速预览。</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="document.documentElement.classList.toggle('dark')"
+                    class="px-5 py-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 btn-radius text-sm font-semibold shadow-sm hover:bg-gray-50 transition-colors">
+                    切换明/暗模式
+                </button>
+            </div>
+        </header>
+
+        <section class="mb-12">
+            <div
+                class="p-8 bg-white dark:bg-slate-900 radius-style border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row gap-10 items-center">
+                <div class="flex-shrink-0">
+                    <div class="text-xs font-bold text-gray-400 uppercase mb-3">当前基准色 (Baseline)</div>
+                    <div
+                        class="w-24 h-24 bg-brand-baseline radius-style shadow-2xl shadow-brand-baseline/40 flex items-center justify-center text-white text-2xl font-black">
+                        G</div>
+                    <div class="mt-4 font-mono text-sm text-center text-brand-baseline">#8b5cf6</div>
+                </div>
+                <div class="flex-1 space-y-6">
+                    <h2 class="text-xl font-bold dark:text-white">如何评估这些变状？</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">表格中的 12
+                        种方案分别从蓝色偏移、饱和度降低、明度柔化和暖度增加四个维度进行微调。建议在<strong>深色模式</strong>下观察是否有刺眼感，在<strong>浅色模式</strong>下观察是否有足够的品牌识别度。
+                    </p>
+                    <div class="flex gap-3">
+                        <button
+                            class="px-6 py-2.5 bg-brand-baseline text-white btn-radius text-sm font-bold shadow-lg shadow-brand-baseline/25">立即体验</button>
+                        <button
+                            class="px-6 py-2.5 border border-brand-baseline text-brand-baseline btn-radius text-sm font-bold">查看文档</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Row Rendering Loop (Synthetic) -->
+            <script>
+                const variants = [
+                    { id: 'V1', color: 'bg-v1', hex: '#7c5df5', label: '靛青偏置-1', desc: '微调色相至冷色' },
+                    { id: 'V2', color: 'bg-v2', hex: '#7356eb', label: '靛青偏置-2', desc: '更深邃的科技感' },
+                    { id: 'V3', color: 'bg-v3', hex: '#6366f1', label: 'Indigo', desc: '向标准 Indigo 靠拢' },
+                    { id: 'V4', color: 'bg-v4', hex: '#8261e1', label: '哑光紫-1', desc: '降低10%饱和度' },
+                    { id: 'V5', color: 'bg-v5', hex: '#7f65d6', label: '哑光紫-2', desc: '更稳重的商务质感' },
+                    { id: 'V6', color: 'bg-v6', hex: '#7067CF', label: 'Slate Purple', desc: '高灰度低冲击感' },
+                    { id: 'V7', color: 'bg-v7', hex: '#8c79df', label: '优雅薰衣草-1', desc: '提升明度并减弱色彩感' },
+                    { id: 'V8', color: 'bg-v8', hex: '#9685e5', label: '优雅薰衣草-2', desc: '极度温和的视觉感受' },
+                    { id: 'V9', color: 'bg-v9', hex: '#9490B3', label: '水洗紫', desc: '中性化，几乎无压力' },
+                    { id: 'V10', color: 'bg-v10', hex: '#9d5cf6', label: '暖紫-1', desc: '向暖色偏移，更有亲和力' },
+                    { id: 'V11', color: 'bg-v11', hex: '#a855f7', label: '暖紫-2', desc: '类似苹果的成熟紫' },
+                    { id: 'V12', color: 'bg-v12', hex: '#c084fc', label: '浅色调', desc: '高明度方案' },
+                ];
+
+                document.write(variants.map(v => `
+                    <div class="theme-card bg-white dark:bg-slate-900 p-5 radius-style border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col gap-5">
+                        <div class="flex justify-between items-start">
+                            <div class="w-10 h-10 ${v.color} rounded-xl shadow-md"></div>
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">${v.id}</span>
+                        </div>
+                        <div>
+                            <div class="text-[13px] font-bold dark:text-white">${v.label}</div>
+                            <div class="text-[11px] text-gray-400 mt-1 h-8 leading-tight">${v.desc}</div>
+                        </div>
+                        <div class="space-y-3 pt-2">
+                             <button class="w-full py-2.5 ${v.color} text-white btn-radius text-xs font-bold shadow-lg shadow-black/5 hover:opacity-90 transition-opacity">选取申请</button>
+                             <div class="font-mono text-[10px] text-center text-gray-400 select-all">${v.hex}</div>
+                        </div>
+                    </div>
+                `).join(''));
+            </script>
+        </div>
+
+        <section class="mt-16 bg-[#1e293b] dark:bg-slate-900 radius-style p-10 text-white relative overflow-hidden">
+            <div
+                class="absolute top-0 right-0 w-96 h-96 bg-v6/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2">
+            </div>
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+                <div class="max-w-md">
+                    <h2 class="text-2xl font-bold mb-4">最终优化建议</h2>
+                    <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                        如果追求平衡，推荐<strong>V1</strong>。如果女朋友觉得还是要“暗”一点，<strong>V6</strong> 是最具“低冲击感”的选择。圆角已经调整为 1.5rem
+                        (外框) 和 pill (按钮)，确保风格统一。</p>
+                    <div class="flex gap-3">
+                        <div class="w-10 h-10 bg-v1 rounded-lg"></div>
+                        <div class="w-10 h-10 bg-v6 rounded-lg"></div>
+                        <div class="w-10 h-10 bg-v11 rounded-lg"></div>
+                    </div>
+                </div>
+                <div class="w-full md:w-64 bg-slate-800/50 backdrop-blur-md p-6 radius-style border border-white/10">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-8 h-8 bg-v1 rounded-full border-2 border-white/20"></div>
+                        <div class="h-2 w-20 bg-white/20 rounded-full"></div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="h-2 w-full bg-white/5 rounded-full"></div>
+                        <div class="h-2 w-2/3 bg-white/5 rounded-full"></div>
+                    </div>
+                    <div class="mt-8">
+                        <button
+                            class="w-full py-2 bg-v1 rounded-full text-[10px] font-bold uppercase tracking-widest">Update
+                            Color</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="mt-16 py-8 text-center text-xs text-gray-400 flex justify-center gap-6 italic">
+            <span>&copy; 2025 GemiGo Color System</span>
+            <span>Created for User's Feedback Loop</span>
+        </footer>
+    </div>
+</body>
+
+</html>

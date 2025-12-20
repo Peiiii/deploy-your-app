@@ -243,7 +243,7 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
         <ExploreSkeletonGrid />
       ) : apps.length > 0 ? (
         <div>
-          <div className={`grid ${compact ? 'gap-4' : 'gap-6'} ${compact ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'}`}>
+          <div className={`grid ${compact ? 'gap-4' : 'gap-6'} ${compact ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'}`}>
             {apps.map((app, index) => (
               <div
                 key={app.id}
