@@ -73,15 +73,16 @@ const createHostMethods = () => ({
     });
   },
 
-  // Send notification
+  // Send notification via Service Worker
   async notify(options: { title: string; message: string }) {
-    chrome.notifications.create({
-      type: 'basic',
-      iconUrl: '/icons/icon48.png',
-      title: options.title,
-      message: options.message,
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        { type: 'SHOW_NOTIFICATION', payload: options },
+        (response) => {
+          resolve(response);
+        }
+      );
     });
-    return true;
   },
 });
 

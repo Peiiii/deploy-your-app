@@ -105,4 +105,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     return true;
   }
+
+  if (message.type === 'SHOW_NOTIFICATION') {
+    const { title, message: msg } = message.payload;
+    chrome.notifications.create(
+      `gemigo-${Date.now()}`,
+      {
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('icons/icon48.png'),
+        title: title || 'GemiGo',
+        message: msg || '',
+      },
+      (notificationId) => {
+        sendResponse({ success: true, notificationId });
+      }
+    );
+    return true;
+  }
 });
