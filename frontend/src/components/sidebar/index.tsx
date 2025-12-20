@@ -1,11 +1,10 @@
+import { useUIStore } from '@/stores/ui.store';
 import React from 'react';
-
-import { useUIStore } from '../stores/ui.store';
-import { SidebarHeader } from './sidebar/sidebar-header';
-import { SidebarNavigation } from './sidebar/sidebar-navigation';
-import { SidebarProjectList } from './sidebar/sidebar-project-list';
-import { SidebarUserProfile } from './sidebar/sidebar-user-profile';
-import { useSidebarProjects } from './sidebar/use-sidebar-projects';
+import { SidebarHeader } from './sidebar-header';
+import { SidebarNavigation } from './sidebar-navigation';
+import { SidebarProjectList } from './sidebar-project-list';
+import { SidebarUserProfile } from './sidebar-user-profile';
+import { useSidebarProjects } from './use-sidebar-projects';
 
 export const Sidebar: React.FC = () => {
   const sidebarOpen = useUIStore((state) => state.sidebarOpen);
