@@ -445,10 +445,14 @@ gemigo.globalShortcut.register('Cmd+Shift+S', () => {
 
 #### 菜单与交互
 
-##### `sdk.on('contextMenu', callback)`
+##### `gemigo.extension.onContextMenu(callback)`
 - **参数**:
-  - `callback`: `(event: { menuId, selectionText, pageUrl }) => void`
-- **说明**: 处理右键菜单点击。
+  - `callback`: `(event: { menuId: string, selectionText?: string, pageUrl?: string }) => void`
+- **说明**: 监听右键菜单点击事件。
+
+##### `gemigo.extension.getContextMenuEvent()`
+- **返回**: `Promise<{ success: boolean, event?: ... }>`
+- **说明**: 获取应用打开时挂起的上下文菜单事件。
 
 ##### `gemigo.extension.onSelectionAction(actionId, callback)`
 - **说明**: 处理选中浮窗按钮点击。
@@ -457,7 +461,7 @@ gemigo.globalShortcut.register('Cmd+Shift+S', () => {
 
 #### 页面内容读取 (Read)
 
-##### `sdk.getPageInfo()`
+##### `gemigo.extension.getPageInfo()`
 - **返回**: `Promise<{ url: string, title: string, favIconUrl?: string }>`
 - **说明**: 获取当前激活标签页的基本信息。
 
@@ -536,7 +540,7 @@ gemigo.globalShortcut.register('Cmd+Shift+S', () => {
 
 > ⚠️ 需要 `extension.capture` 权限
 
-##### `sdk.captureVisible()`
+##### `gemigo.extension.captureVisible()`
 - **返回**: `Promise<{ success: boolean, dataUrl?: string, error?: string }>`
 - **说明**: 截取当前可见区域。
 

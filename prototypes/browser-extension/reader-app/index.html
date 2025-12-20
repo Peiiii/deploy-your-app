@@ -89,8 +89,8 @@
             document.getElementById('error').style.display = 'none';
 
             try {
-                // Use the new simplified SDK
-                const result = await gemigo.extractArticle();
+                // Use the new simplified SDK with namespace
+                const result = await gemigo.extension.extractArticle();
 
                 if (result.success && (result.content || result.excerpt)) {
                     document.getElementById('article-title').textContent = result.title || 'Untitled';

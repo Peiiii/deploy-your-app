@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quick Translate</title>
+    <title>Quick Translate</title>
     <script src="https://unpkg.com/@gemigo/extension-sdk/dist/gemigo-extension-sdk.umd.js"></script>
     <style>
         body {
@@ -117,7 +118,8 @@
 
         async function fetchSelection() {
             try {
-                const text = await gemigo.getSelection();
+                // Use new namespace
+                const text = await gemigo.extension.getSelection();
                 if (text) {
                     showTranslation(text);
                 } else {
@@ -129,14 +131,14 @@
         }
 
         // Listen for right-click context menu events
-        gemigo.on('contextMenu', (event) => {
+        gemigo.extension.onContextMenu((event) => {
             if (event.selectionText) {
                 showTranslation(event.selectionText);
             }
         });
 
         // Initialize: check if there's a pending event from before we opened
-        gemigo.getContextMenuEvent().then(res => {
+        gemigo.extension.getContextMenuEvent().then(res => {
             if (res.success && res.event && res.event.selectionText) {
                 showTranslation(res.event.selectionText);
             } else {
