@@ -51,7 +51,10 @@ pnpm --filter gemigo-desktop dev       # 构建后启动 Electron，加载远程
    - 产物目录：`desktop/release/`（例如 macOS 的 `.dmg/.zip`、Windows 的 `.exe`、Linux 的 `.AppImage`）
 
 2. **GitHub Release 自动构建**
-   - 一条命令（推荐）：`pnpm release:desktop`（会读取 `desktop/package.json` 的版本号并 push `desktop-v<version>` tag）
+   - 一条命令（推荐）：`pnpm release:desktop`
+     - 默认会把 `desktop/package.json` 的版本做 `patch` 自增，并提交/推送，然后 push `desktop-v<version>` tag 触发 Release 构建
+     - 如不想 bump：`pnpm release:desktop --bump none`
+     - 手动指定 bump：`pnpm release:desktop --bump minor` / `pnpm release:desktop --bump major`
    - 打 Tag 触发：`desktop-v*`（例如：`desktop-v0.1.2`）
    - Workflow：`.github/workflows/desktop-release.yml`
    - Release 附件会包含 macOS / Windows / Linux 对应安装包

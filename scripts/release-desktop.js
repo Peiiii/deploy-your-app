@@ -23,6 +23,7 @@ const parseArgs = (argv) => {
     skipCleanCheck: false,
     annotate: true,
     message: null,
+    bump: 'patch',
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -45,6 +46,15 @@ const parseArgs = (argv) => {
       i += 1;
       continue;
     }
+    if (token === '--bump') {
+      args.bump = (argv[i + 1] ?? 'patch').toLowerCase();
+      i += 1;
+      continue;
+    }
+    if (token === '--no-bump') {
+      args.bump = 'none';
+      continue;
+    }
     if (token === '--help' || token === '-h') {
       args.help = true;
       continue;
@@ -63,7 +73,30 @@ Options:
   --skip-clean-check      Allow dirty working tree
   --lightweight           Create lightweight tag instead of annotated
   --message <text>        Tag message (annotated tag only)
+  --bump <type>           Version bump: patch|minor|major|none (default: patch)
+  --no-bump               Alias for --bump none
 `);
+};
+
+const bumpVersion = (rawVersion, bump) => {
+  if (bump === 'none') return rawVersion;
+
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(rawVersion);
+  if (!match) {
+    throw new Error(
+      `Unsupported version format: ${rawVersion}. Use x.y.z (no prerelease/build metadata).`,
+    );
+  }
+
+  const major = Number(match[1]);
+  const minor = Number(match[2]);
+  const patch = Number(match[3]);
+
+  if (bump === 'patch') return `${major}.${minor}.${patch + 1}`;
+  if (bump === 'minor') return `${major}.${minor + 1}.0`;
+  if (bump === 'major') return `${major + 1}.0.0`;
+
+  throw new Error(`Invalid bump type: ${bump}. Use patch|minor|major|none.`);
 };
 
 const main = () => {
@@ -76,10 +109,15 @@ const main = () => {
   const repoRoot = run('git rev-parse --show-toplevel');
   const desktopPkgPath = path.join(repoRoot, 'desktop', 'package.json');
   const desktopPkg = JSON.parse(fs.readFileSync(desktopPkgPath, 'utf8'));
-  const version = desktopPkg.version;
+  const currentVersion = desktopPkg.version;
 
-  if (typeof version !== 'string' || version.trim().length === 0) {
+  if (typeof currentVersion !== 'string' || currentVersion.trim().length === 0) {
     throw new Error(`Invalid desktop package version in ${desktopPkgPath}`);
+  }
+
+  const branch = run('git rev-parse --abbrev-ref HEAD', { cwd: repoRoot });
+  if (branch === 'HEAD') {
+    throw new Error('Detached HEAD; checkout a branch before releasing.');
   }
 
   if (!args.skipCleanCheck) {
@@ -91,7 +129,8 @@ const main = () => {
     }
   }
 
-  const tag = `desktop-v${version}`;
+  const nextVersion = bumpVersion(currentVersion, args.bump);
+  const tag = `desktop-v${nextVersion}`;
 
   try {
     run(`git rev-parse -q --verify "refs/tags/${tag}"`, { cwd: repoRoot });
@@ -103,10 +142,22 @@ const main = () => {
     }
   }
 
-  console.log(`[desktop-release] version=${version} tag=${tag} remote=${args.remote}`);
+  console.log(
+    `[desktop-release] current=${currentVersion} next=${nextVersion} bump=${args.bump} tag=${tag} remote=${args.remote} branch=${branch}`,
+  );
+
+  if (nextVersion !== currentVersion) {
+    desktopPkg.version = nextVersion;
+    fs.writeFileSync(desktopPkgPath, `${JSON.stringify(desktopPkg, null, 2)}\n`, 'utf8');
+    runInherit('git add desktop/package.json', { cwd: repoRoot });
+    runInherit(`git commit -m "chore(desktop): release v${nextVersion}"`, {
+      cwd: repoRoot,
+    });
+    runInherit(`git push ${args.remote} ${branch}`, { cwd: repoRoot });
+  }
 
   if (args.annotate) {
-    const message = args.message ?? `Gemigo Desktop ${version}`;
+    const message = args.message ?? `Gemigo Desktop ${nextVersion}`;
     runInherit(`git tag -a ${tag} -m "${message.replaceAll('"', '\\"')}"`, {
       cwd: repoRoot,
     });
