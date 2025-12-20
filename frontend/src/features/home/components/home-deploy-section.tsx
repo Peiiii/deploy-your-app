@@ -15,7 +15,7 @@ export const HomeDeploySection: React.FC<HomeDeploySectionProps> = ({
 
   return (
     <section
-      className={`relative group/section mb-8 ${compact ? 'lg:p-6' : ''}`}
+      className={`relative group/section ${compact ? 'mb-4' : 'mb-8'}`}
     >
       <div className="relative z-10">
         {/* Title removed, managed by parent */}

@@ -92,7 +92,7 @@ export const Home: React.FC = () => {
               onQuickDeploy={handleQuickDeploy}
             />
 
-            <div className="h-8" />
+            <div className={selectedApp ? 'h-4' : 'h-8'} />
 
             {/* Explore Section */}
             <HomeExploreSection
