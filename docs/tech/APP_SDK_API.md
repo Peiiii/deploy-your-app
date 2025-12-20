@@ -21,7 +21,7 @@
    - [Shell 系统集成](#shell-系统集成)
    - [GlobalShortcut 全局快捷键](#globalshortcut)
    - [Autostart 开机启动](#autostart)
-3. [浏览器扩展 API](#浏览器扩展-api)
+3. [浏览器扩展 API](#浏览器扩展-api) (通过 `@gemigo/extension-sdk` npm 包使用)
    - [Extension 扩展交互](#extension)
 4. [应用清单规范 (Manifest)](#应用清单规范-manifest)
 
@@ -445,10 +445,9 @@ gemigo.globalShortcut.register('Cmd+Shift+S', () => {
 
 #### 菜单与交互
 
-##### `gemigo.extension.onContextMenu(menuId, callback)`
+##### `sdk.on('contextMenu', callback)`
 - **参数**:
-  - `menuId`: `string` (manifest 中定义的 id)
-  - `callback`: `(data: { text, pageUrl, pageTitle }) => Promise<any>`
+  - `callback`: `(event: { menuId, selectionText, pageUrl }) => void`
 - **说明**: 处理右键菜单点击。
 
 ##### `gemigo.extension.onSelectionAction(actionId, callback)`
@@ -458,8 +457,8 @@ gemigo.globalShortcut.register('Cmd+Shift+S', () => {
 
 #### 页面内容读取 (Read)
 
-##### `gemigo.extension.getPageInfo()`
-- **返回**: `Promise<{ url: string, title: string, selection: string }>`
+##### `sdk.getPageInfo()`
+- **返回**: `Promise<{ url: string, title: string, favIconUrl?: string }>`
 - **说明**: 获取当前激活标签页的基本信息。
 
 ##### `gemigo.extension.getPageHTML()`
@@ -537,8 +536,8 @@ gemigo.globalShortcut.register('Cmd+Shift+S', () => {
 
 > ⚠️ 需要 `extension.capture` 权限
 
-##### `gemigo.extension.captureVisible()`
-- **返回**: `Promise<string>` (base64 PNG)
+##### `sdk.captureVisible()`
+- **返回**: `Promise<{ success: boolean, dataUrl?: string, error?: string }>`
 - **说明**: 截取当前可见区域。
 
 ##### `gemigo.extension.captureFull(options?)`

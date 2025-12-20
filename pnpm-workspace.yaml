@@ -4,3 +4,4 @@ packages:
   - "workers/*"
   - "desktop"
   - "browser-extension"
+  - "packages/*"

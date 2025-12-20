@@ -1,0 +1,23 @@
+{
+  "name": "@gemigo/extension-sdk",
+  "version": "0.1.0",
+  "description": "GemiGo Extension SDK for browser extension apps",
+  "main": "dist/gemigo-extension-sdk.umd.js",
+  "module": "dist/gemigo-extension-sdk.es.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "dependencies": {
+    "penpal": "^6.2.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vite": "^6.2.5",
+    "vite-plugin-dts": "^4.5.4"
+  }
+}

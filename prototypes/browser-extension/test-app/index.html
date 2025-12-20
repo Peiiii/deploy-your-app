@@ -98,27 +98,24 @@
     <div class="result" id="result">Click a button to test SDK API...</div>
     <img id="screenshot" class="screenshot" style="display:none" />
 
-    <script src="https://unpkg.com/penpal@6.2.2/dist/penpal.min.js"></script>
+    <!-- GemiGo Extension SDK (Always use latest) -->
+    <script src="https://unpkg.com/@gemigo/extension-sdk/dist/gemigo-extension-sdk.umd.js"></script>
     <script>
         let gemigo = null;
 
-        // Expose methods to Host (for Host → App callbacks)
-        const connection = Penpal.connectToParent({
-            methods: {
-                // This method will be called by Host when context menu events occur
-                onContextMenuEvent(event) {
-                    console.log('[Test App] Received context menu event:', event);
-                    showResult('Context Menu Event (real-time push)', event);
-                }
-            }
-        });
-
-        connection.promise.then(async (parent) => {
-            gemigo = parent;
-            document.getElementById('status').textContent = '✅ Connected to GemiGo';
+        // Connect using the SDK
+        GemigoExtensionSDK.connect().then(async (sdk) => {
+            gemigo = sdk;
+            document.getElementById('status').textContent = '✅ Connected to GemiGo (via SDK)';
             document.getElementById('status').className = 'status connected';
 
-            // Check for pending context menu event on load (for events before connection)
+            // Subscribe to real-time context menu events using SDK
+            gemigo.on('contextMenu', (event) => {
+                console.log('[Test App] Context menu event:', event);
+                showResult('Context Menu Event (real-time)', event);
+            });
+
+            // Check for pending context menu event on load
             const result = await gemigo.getContextMenuEvent();
             if (result.success && result.event) {
                 showResult('Context Menu Event (pending)', result.event);
@@ -127,7 +124,6 @@
             document.getElementById('status').textContent = '❌ Connection failed: ' + err.message;
             document.getElementById('status').className = 'status error';
         });
-
 
         function showResult(title, data) {
             document.getElementById('result').textContent =
@@ -161,10 +157,7 @@
 
         async function testNotify() {
             if (!gemigo) return showResult('Error', 'Not connected');
-            const result = await gemigo.notify({
-                title: 'GemiGo Notification',
-                message: 'This is a test notification!'
-            });
+            const result = await gemigo.notify('GemiGo Notification', 'This is a test notification!');
             showResult('notify()', result);
         }
 
@@ -198,7 +191,7 @@
             if (result.success && result.event) {
                 showResult('getContextMenuEvent()', result.event);
             } else {
-                showResult('getContextMenuEvent()', { status: 'No pending event. Try right-clicking on a page and selecting a GemiGo menu item.' });
+                showResult('getContextMenuEvent()', { status: 'No pending event. Right-click on a page and select a GemiGo menu item.' });
             }
         }
     </script>
