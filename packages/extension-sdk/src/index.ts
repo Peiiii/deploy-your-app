@@ -6,18 +6,21 @@
  * Usage (CDN):
  *   <script src="https://unpkg.com/@gemigo/extension-sdk/dist/gemigo-extension-sdk.umd.js"></script>
  *   <script>
- *     GemigoExtensionSDK.connect().then((gemigo) => {
- *       gemigo.getPageInfo().then(console.log);
+ *     // No connect() needed - just use the global gemigo object directly
+ *     gemigo.getPageInfo().then(console.log);
+ *     
+ *     gemigo.on('contextMenu', (event) => {
+ *       console.log('Context menu clicked:', event);
  *     });
  *   </script>
  * 
  * Usage (ES Module):
- *   import { connect } from '@gemigo/extension-sdk';
- *   const gemigo = await connect();
+ *   import gemigo from '@gemigo/extension-sdk';
+ *   
  *   const pageInfo = await gemigo.getPageInfo();
  */
 
-import { connectToParent, Connection } from 'penpal';
+import { connectToParent, Connection, AsyncMethodReturns } from 'penpal';
 
 // Event callback types
 type ContextMenuEventHandler = (event: {
@@ -46,11 +49,10 @@ interface HostMethods {
     success: boolean;
     event?: { menuId: string; selectionText?: string; pageUrl?: string };
   }>;
-  pollContextMenu(callback: ContextMenuEventHandler): Promise<{ check: () => void }>;
 }
 
-// SDK instance interface (what the app uses)
-export interface GemigoExtension {
+// SDK interface (what the app uses)
+export interface GemigoSDK {
   /** Get current page information */
   getPageInfo(): Promise<{ url: string; title: string; favIconUrl?: string }>;
   
@@ -101,22 +103,33 @@ const eventHandlers: {
   contextMenu: [],
 };
 
-// Connection instance
-let connection: Connection<HostMethods> | null = null;
-let hostMethods: HostMethods | null = null;
+// Internal connection promise
+let connectionPromise: Promise<AsyncMethodReturns<HostMethods>> | null = null;
 
 /**
- * Connect to the GemiGo extension host.
- * Must be called before using any SDK methods.
- * 
- * @returns Promise resolving to the GemiGo SDK instance
+ * Validates executing environment (basic check)
  */
-export async function connect(): Promise<GemigoExtension> {
-  if (hostMethods) {
-    return createSDKInstance(hostMethods);
+function isInIframe() {
+  try {
+    return window.self !== window.top;
+  } catch (e) {
+    return true; // Blocked access implies iframe
+  }
+}
+
+/**
+ * Get (or create) the connection to host
+ */
+function getHost(): Promise<AsyncMethodReturns<HostMethods>> {
+  if (connectionPromise) return connectionPromise;
+
+  if (!isInIframe()) {
+    console.warn('[GemiGo SDK] Not running in iframe. SDK calls will verify connection forever.');
+    // Return a never-resolving promise or mock in dev mode? 
+    // For now, let it hang or we could reject if strict.
   }
 
-  connection = connectToParent<HostMethods>({
+  const connection = connectToParent<HostMethods>({
     methods: {
       // Handler called by Host when context menu events occur
       onContextMenuEvent(event: { menuId: string; selectionText?: string; pageUrl?: string }) {
@@ -131,43 +144,51 @@ export async function connect(): Promise<GemigoExtension> {
     },
   });
 
-  hostMethods = await connection.promise;
-  return createSDKInstance(hostMethods);
+  connectionPromise = connection.promise;
+  return connectionPromise;
 }
 
 /**
- * Create SDK instance with clean API
+ * Proxy handler to auto-connect on method calls
  */
-function createSDKInstance(host: HostMethods): GemigoExtension {
-  return {
-    getPageInfo: () => host.getPageInfo(),
-    getPageHTML: () => host.getPageHTML(),
-    getPageText: () => host.getPageText(),
-    getSelection: () => host.getSelection(),
-    highlight: (selector, color) => host.highlight(selector, color),
-    notify: (title, message) => host.notify({ title, message }),
-    captureVisible: () => host.captureVisible(),
-    extractArticle: () => host.extractArticle(),
-    getContextMenuEvent: () => host.getContextMenuEvent(),
-    
-    on(event, handler) {
-      if (event === 'contextMenu') {
-        eventHandlers.contextMenu.push(handler);
-      }
-    },
-    
-    off(event, handler) {
-      if (event === 'contextMenu') {
-        if (handler) {
-          const idx = eventHandlers.contextMenu.indexOf(handler);
-          if (idx > -1) eventHandlers.contextMenu.splice(idx, 1);
-        } else {
-          eventHandlers.contextMenu = [];
-        }
-      }
-    },
-  };
-}
+const sdkInstance: GemigoSDK = {
+  // --- Proxy Methods (Auto-connect) ---
+  
+  getPageInfo: () => getHost().then(host => host.getPageInfo()),
+  getPageHTML: () => getHost().then(host => host.getPageHTML()),
+  getPageText: () => getHost().then(host => host.getPageText()),
+  getSelection: () => getHost().then(host => host.getSelection()),
+  highlight: (selector, color) => getHost().then(host => host.highlight(selector, color)),
+  notify: (title, message) => getHost().then(host => host.notify({ title, message })),
+  captureVisible: () => getHost().then(host => host.captureVisible()),
+  extractArticle: () => getHost().then(host => host.extractArticle()),
+  getContextMenuEvent: () => getHost().then(host => host.getContextMenuEvent()),
 
-// Export for CDN usage
-export default { connect };
+  // --- Local Methods (No await needed) ---
+  
+  on(event, handler) {
+    getHost(); // Ensure connection starts establishing even if just listening
+    if (event === 'contextMenu') {
+      eventHandlers.contextMenu.push(handler);
+    }
+  },
+  
+  off(event, handler) {
+    if (event === 'contextMenu') {
+      if (handler) {
+        const idx = eventHandlers.contextMenu.indexOf(handler);
+        if (idx > -1) eventHandlers.contextMenu.splice(idx, 1);
+      } else {
+        eventHandlers.contextMenu = [];
+      }
+    }
+  },
+};
+
+// Initialize connection immediately
+getHost().catch(err => {
+  console.debug('[GemiGo SDK] Auto-connect waiting...', err);
+});
+
+// Default export for ES modules and CDN global
+export default sdkInstance;

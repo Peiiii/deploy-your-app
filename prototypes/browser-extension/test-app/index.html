@@ -80,7 +80,7 @@
 
 <body>
     <h1>🧪 GemiGo SDK Test</h1>
-    <div class="status" id="status">Connecting...</div>
+    <div class="status" id="status">SDK Ready (Auto-connecting...)</div>
 
     <div class="btn-group">
         <button class="btn" onclick="testGetPageInfo()">Page Info</button>
@@ -101,28 +101,24 @@
     <!-- GemiGo Extension SDK (Always use latest) -->
     <script src="https://unpkg.com/@gemigo/extension-sdk/dist/gemigo-extension-sdk.umd.js"></script>
     <script>
-        let gemigo = null;
+        // No more alias needed! 'gemigo' is now the global variable
+        console.log('[Test App] SDK Loaded:', gemigo);
 
-        // Connect using the SDK
-        GemigoExtensionSDK.connect().then(async (sdk) => {
-            gemigo = sdk;
-            document.getElementById('status').textContent = '✅ Connected to GemiGo (via SDK)';
-            document.getElementById('status').className = 'status connected';
+        // Subscribe immediately - no connect() needed
+        gemigo.on('contextMenu', (event) => {
+            console.log('[Test App] Context menu event:', event);
+            showResult('Context Menu Event (real-time)', event);
+        });
 
-            // Subscribe to real-time context menu events using SDK
-            gemigo.on('contextMenu', (event) => {
-                console.log('[Test App] Context menu event:', event);
-                showResult('Context Menu Event (real-time)', event);
-            });
-
-            // Check for pending context menu event on load
-            const result = await gemigo.getContextMenuEvent();
+        // Check for pending events on load
+        gemigo.getContextMenuEvent().then(result => {
             if (result.success && result.event) {
                 showResult('Context Menu Event (pending)', result.event);
             }
-        }).catch((err) => {
-            document.getElementById('status').textContent = '❌ Connection failed: ' + err.message;
-            document.getElementById('status').className = 'status error';
+            document.getElementById('status').textContent = '✅ Connected to GemiGo';
+            document.getElementById('status').className = 'status connected';
+        }).catch(err => {
+            console.log('Connection pending or failed', err);
         });
 
         function showResult(title, data) {
@@ -132,37 +128,31 @@
         }
 
         async function testGetPageInfo() {
-            if (!gemigo) return showResult('Error', 'Not connected');
             const result = await gemigo.getPageInfo();
             showResult('getPageInfo()', result);
         }
 
         async function testGetPageHTML() {
-            if (!gemigo) return showResult('Error', 'Not connected');
             const result = await gemigo.getPageHTML();
             showResult('getPageHTML()', { length: result.length, preview: result.slice(0, 500) });
         }
 
         async function testGetSelection() {
-            if (!gemigo) return showResult('Error', 'Not connected');
             const result = await gemigo.getSelection();
             showResult('getSelection()', { selection: result });
         }
 
         async function testHighlight() {
-            if (!gemigo) return showResult('Error', 'Not connected');
             const result = await gemigo.highlight('h1, h2, h3');
             showResult('highlight()', result);
         }
 
         async function testNotify() {
-            if (!gemigo) return showResult('Error', 'Not connected');
             const result = await gemigo.notify('GemiGo Notification', 'This is a test notification!');
             showResult('notify()', result);
         }
 
         async function testCapture() {
-            if (!gemigo) return showResult('Error', 'Not connected');
             const result = await gemigo.captureVisible();
             if (result.success && result.dataUrl) {
                 showResult('captureVisible()', { success: true, size: result.dataUrl.length });
@@ -175,7 +165,6 @@
         }
 
         async function testExtract() {
-            if (!gemigo) return showResult('Error', 'Not connected');
             const result = await gemigo.extractArticle();
             showResult('extractArticle()', {
                 success: result.success,
@@ -186,12 +175,11 @@
         }
 
         async function testContextMenu() {
-            if (!gemigo) return showResult('Error', 'Not connected');
             const result = await gemigo.getContextMenuEvent();
             if (result.success && result.event) {
                 showResult('getContextMenuEvent()', result.event);
             } else {
-                showResult('getContextMenuEvent()', { status: 'No pending event. Right-click on a page and select a GemiGo menu item.' });
+                showResult('getContextMenuEvent()', { status: 'No pending event.' });
             }
         }
     </script>

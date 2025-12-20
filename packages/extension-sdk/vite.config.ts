@@ -8,7 +8,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: 'src/index.ts',
-      name: 'GemigoExtensionSDK',
+      name: 'gemigo',
       formats: ['umd', 'es'],
       fileName: (format) => `gemigo-extension-sdk.${format}.js`,
     },
