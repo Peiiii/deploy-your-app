@@ -61,3 +61,4 @@ pnpm --filter gemigo-desktop dev       # 构建后启动 Electron，加载远程
 
 注意：
 - 未做签名/公证的安装包在 macOS/Windows 可能会被系统拦截，需要用户手动“仍要打开”；正式发版建议补齐签名（mac notarization / Windows code signing）。
+- 我们使用 GitHub Actions 统一上传 Release 附件；`electron-builder` 在 CI 下默认会尝试自动 publish，为避免多端并发上传冲突，已强制 `--publish never`。

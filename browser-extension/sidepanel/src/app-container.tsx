@@ -105,7 +105,50 @@ const createHostMethods = () => ({
       );
     });
   },
+
+  // Get pending context menu event
+  async getContextMenuEvent() {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({ type: 'GET_CONTEXT_MENU_EVENT' }, (response) => {
+        resolve(response);
+      });
+    });
+  },
+
+  // Poll for context menu events (for apps to call on mount)
+  async pollContextMenu(callback: (event: { menuId: string; selectionText?: string }) => void) {
+    const check = async () => {
+      const result = await new Promise<{ success: boolean; event?: { menuId: string; selectionText?: string } }>((resolve) => {
+        chrome.runtime.sendMessage({ type: 'GET_CONTEXT_MENU_EVENT' }, (response) => {
+          resolve(response);
+        });
+      });
+      if (result.success && result.event) {
+        callback(result.event);
+      }
+    };
+    // Check immediately
+    check();
+    // Return cleanup function (caller can set up interval if needed)
+    return { check };
+  },
 });
+
+// Note: onContextMenuEvent is now handled by calling child.onContextMenuEvent() directly
+// Apps should expose this method via Penpal.connectToParent({ methods: { onContextMenuEvent } })
+
+// Listen for context menu events from Service Worker
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.type === 'CONTEXT_MENU_EVENT' && activeChildRef) {
+    // Call the App's onContextMenuEvent method if it exists
+    if (typeof activeChildRef.onContextMenuEvent === 'function') {
+      activeChildRef.onContextMenuEvent(message.event);
+    }
+  }
+});
+
+// Reference to currently active App child
+let activeChildRef: { onContextMenuEvent?: (event: unknown) => void } | null = null;
 
 export default function AppContainer({ app, onBack }: AppContainerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -123,12 +166,15 @@ export default function AppContainer({ app, onBack }: AppContainerProps) {
     connectionRef.current = connection;
 
     connection.promise.then((child) => {
-      console.log('[GemiGo Host] Connected to app:', app.name, child);
+      console.log('[GemiGo Host] Connected to app:', app.name);
+      // Store child reference for Host → App callbacks
+      activeChildRef = child as { onContextMenuEvent?: (event: unknown) => void };
     }).catch((err) => {
       console.error('[GemiGo Host] Connection failed:', err);
     });
 
     return () => {
+      activeChildRef = null;
       connection.destroy();
     };
   }, [app.id, app.name]);

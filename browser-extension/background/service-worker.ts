@@ -22,15 +22,47 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-// Handle context menu clicks
-chrome.contextMenus.onClicked.addListener((info) => {
-  if (info.menuItemId === 'gemigo-translate' && info.selectionText) {
-    console.log('Translate:', info.selectionText);
-  }
+// Store pending context menu events
+let pendingContextMenuEvent: {
+  menuId: string;
+  selectionText?: string;
+  pageUrl?: string;
+  timestamp: number;
+} | null = null;
 
-  if (info.menuItemId === 'gemigo-summarize') {
-    console.log('Summarize:', info.selectionText || 'page');
+// Handle context menu clicks
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  const menuId = String(info.menuItemId).replace('gemigo-', '');
+  
+  const event = {
+    menuId,
+    selectionText: info.selectionText,
+    pageUrl: info.pageUrl,
+    timestamp: Date.now(),
+  };
+  
+  // Store the event (both in memory and storage for persistence)
+  pendingContextMenuEvent = event;
+  
+  // Also store in chrome.storage for when Side Panel opens fresh
+  await chrome.storage.local.set({ pendingContextMenuEvent });
+  
+  console.log('[GemiGo] Context menu clicked:', menuId, info.selectionText?.slice(0, 50));
+  
+  // Open side panel
+  if (tab?.id) {
+    try {
+      await chrome.sidePanel.open({ tabId: tab.id });
+      console.log('[GemiGo] Side panel opened for tab:', tab.id);
+    } catch (err) {
+      console.error('[GemiGo] Failed to open side panel:', err);
+    }
   }
+  
+  // Broadcast event to Side Panel (for real-time updates)
+  chrome.runtime.sendMessage({ type: 'CONTEXT_MENU_EVENT', event }).catch(() => {
+    // Ignore error if no listeners
+  });
 });
 
 // Ensure content script is injected
@@ -140,6 +172,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ error: String(err) });
       }
     });
+    return true;
+  }
+
+  if (message.type === 'GET_CONTEXT_MENU_EVENT') {
+    // Use async wrapper
+    (async () => {
+      // Check memory first, then storage
+      let event = pendingContextMenuEvent;
+      
+      if (!event) {
+        // Try to get from storage
+        const stored = await chrome.storage.local.get(['pendingContextMenuEvent']);
+        event = stored.pendingContextMenuEvent;
+      }
+      
+      if (event && Date.now() - event.timestamp < 30000) {
+        // Clear both memory and storage
+        pendingContextMenuEvent = null;
+        await chrome.storage.local.remove(['pendingContextMenuEvent']);
+        sendResponse({ success: true, event });
+      } else {
+        sendResponse({ success: false, event: null });
+      }
+    })();
     return true;
   }
 });
