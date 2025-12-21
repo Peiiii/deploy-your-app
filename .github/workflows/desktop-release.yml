@@ -45,7 +45,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: desktop-${{ matrix.os }}
-          path: desktop/release/**
+          path: |
+            desktop/release/*.dmg
+            desktop/release/*.zip
+            desktop/release/*.exe
+            desktop/release/*.AppImage
+            desktop/release/*.blockmap
+            desktop/release/latest*.yml
 
   publish:
     name: Publish GitHub Release
