@@ -28,9 +28,29 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       sendResponse({ text: document.body.innerText });
       break;
 
-    case 'GET_SELECTION':
-      sendResponse({ selection: window.getSelection()?.toString() || '' });
+
+    case 'GET_SELECTION': {
+      const selection = window.getSelection();
+      const text = selection?.toString() || '';
+      let rect = null;
+      
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const domRect = range.getBoundingClientRect();
+        if (domRect.width > 0 && domRect.height > 0) {
+          // Convert viewport coords to page coords for scroll-following behavior
+          rect = {
+            x: domRect.x + window.scrollX,
+            y: domRect.y + window.scrollY,
+            width: domRect.width,
+            height: domRect.height,
+          };
+        }
+      }
+      
+      sendResponse({ text, rect });
       break;
+    }
 
     case 'HIGHLIGHT_ELEMENT': {
       try {
@@ -80,9 +100,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         container.className = 'gemigo-widget';
         container.innerHTML = message.html;
         
+        // Determine position mode: 'fixed' for viewport, 'absolute' for page
+        const positionMode = message.positionMode || 'absolute';
+        
         // Apply position styles
         Object.assign(container.style, {
-          position: 'fixed',
+          position: positionMode,
           zIndex: '2147483647', // Max z-index
           pointerEvents: 'auto',
         });
@@ -90,7 +113,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         // Handle position
         const pos = message.position;
         if (typeof pos === 'string') {
-          // Predefined positions
+          // Predefined positions (always use fixed)
+          container.style.position = 'fixed';
           const positions: Record<string, { top?: string; bottom?: string; left?: string; right?: string }> = {
             'top-left': { top: '16px', left: '16px' },
             'top-right': { top: '16px', right: '16px' },
@@ -292,17 +316,36 @@ document.addEventListener('selectionchange', () => {
     clearTimeout(selectionTimeout);
   }
   selectionTimeout = window.setTimeout(() => {
-    const selection = window.getSelection()?.toString() || '';
+    const sel = window.getSelection();
+    const text = sel?.toString() || '';
+    
     // Only send if selection changed
-    if (selection !== lastSelection) {
-      lastSelection = selection;
-      if (selection.length > 0) {
-        chrome.runtime.sendMessage({ 
-          type: 'SELECTION_CHANGED', 
-          selection,
-          url: window.location.href 
-        });
+    if (text !== lastSelection) {
+      lastSelection = text;
+      
+      // Get selection rect if available
+      // Get selection rect if available (page coordinates for scroll-following)
+      let rect = null;
+      if (sel && sel.rangeCount > 0 && text.length > 0) {
+        const range = sel.getRangeAt(0);
+        const domRect = range.getBoundingClientRect();
+        if (domRect.width > 0 && domRect.height > 0) {
+          // Convert viewport coords to page coords for scroll-following behavior
+          rect = {
+            x: domRect.x + window.scrollX,
+            y: domRect.y + window.scrollY,
+            width: domRect.width,
+            height: domRect.height,
+          };
+        }
       }
+      
+      chrome.runtime.sendMessage({ 
+        type: 'SELECTION_CHANGED', 
+        text,
+        rect,
+        url: window.location.href 
+      });
     }
   }, 300);
 });

@@ -17,7 +17,10 @@ export interface HostMethods {
   // Page content
   getPageHTML(): Promise<string>;
   getPageText(): Promise<string>;
-  getSelection(): Promise<string>;
+  getSelection(): Promise<{
+    text: string;
+    rect?: { x: number; y: number; width: number; height: number };
+  }>;
   
   // Page manipulation - highlight
   highlight(selector: string, color?: string): Promise<{ success: boolean; count?: number; highlightId?: string }>;

@@ -43,6 +43,13 @@
             padding: 20px;
             margin-bottom: 16px;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card.highlight {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(254, 240, 138, 0.5);
+            box-shadow: 0 0 20px rgba(254, 240, 138, 0.2);
         }
 
         .label {
@@ -51,6 +58,31 @@
             letter-spacing: 0.1em;
             opacity: 0.7;
             margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .live-indicator {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
         }
 
         .text-content {
@@ -69,6 +101,7 @@
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
+            margin-bottom: 16px;
         }
 
         button {
@@ -96,6 +129,11 @@
 
         button.primary:hover {
             background: #f0f0ff;
+        }
+
+        button.active {
+            background: #22c55e;
+            border-color: #22c55e;
         }
 
         .status {
@@ -126,23 +164,90 @@
             opacity: 0.7;
             margin-top: 12px;
         }
+
+        .toggle-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .toggle-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .toggle-label {
+            font-size: 0.9em;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.on {
+            background: #22c55e;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.on::after {
+            transform: translateX(22px);
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
         <h1>🌏 Quick Translate <span class="feature-tag">SDK Demo</span></h1>
-        <p class="subtitle">Select text on the web page or right-click to translate</p>
+        <p class="subtitle">Real-time translation as you select text</p>
+
+        <!-- Live Mode Settings -->
+        <div class="toggle-section">
+            <div class="toggle-row">
+                <span class="toggle-label">📡 Live Translation</span>
+                <div id="toggle-live" class="toggle-switch on" onclick="toggleLiveMode()"></div>
+            </div>
+            <div class="toggle-row">
+                <span class="toggle-label">💬 Auto Show Bubble</span>
+                <div id="toggle-bubble" class="toggle-switch" onclick="toggleAutoBubble()"></div>
+            </div>
+        </div>
 
         <div id="empty-state" class="status">
-            <span class="icon-large">👈</span>
-            Select text on any webpage,<br>
-            then click "Get Selection" or use context menu
+            <span class="icon-large">✨</span>
+            Select text on any webpage<br>
+            Translation appears automatically!
         </div>
 
         <div id="content" style="display: none;">
-            <div class="card">
-                <div class="label">Original Text</div>
+            <div id="original-card" class="card">
+                <div class="label">
+                    <span id="live-dot" class="live-indicator" style="display:none"></span>
+                    Original Text
+                </div>
                 <div id="original-text" class="text-content"></div>
             </div>
 
@@ -156,8 +261,8 @@
 
         <div class="actions">
             <button id="btn-fetch" class="primary">📋 Get Selection</button>
-            <button id="btn-bubble">💬 Show Bubble on Page</button>
-            <button id="btn-remove-bubble">✖ Remove Bubble</button>
+            <button id="btn-bubble">💬 Show Bubble</button>
+            <button id="btn-remove-bubble">✖ Remove</button>
         </div>
     </div>
 
@@ -165,6 +270,9 @@
         // State
         let currentWidgetId = null;
         let lastTranslation = null;
+        let lastSelectionRect = null;  // 保存选区位置
+        let liveMode = true;
+        let autoBubble = false;
 
         // DOM refs
         const emptyState = document.getElementById('empty-state');
@@ -172,20 +280,64 @@
         const originalText = document.getElementById('original-text');
         const translatedText = document.getElementById('translated-text');
         const widgetStatus = document.getElementById('widget-status');
+        const originalCard = document.getElementById('original-card');
+        const liveDot = document.getElementById('live-dot');
 
         // Event listeners
         document.getElementById('btn-fetch').addEventListener('click', fetchSelection);
         document.getElementById('btn-bubble').addEventListener('click', showBubbleOnPage);
         document.getElementById('btn-remove-bubble').addEventListener('click', removeBubble);
 
-        // Mock translation function (in real app, call AI API)
+        // Toggle handlers
+        function toggleLiveMode() {
+            liveMode = !liveMode;
+            document.getElementById('toggle-live').classList.toggle('on', liveMode);
+            liveDot.style.display = liveMode ? 'block' : 'none';
+        }
+
+        function toggleAutoBubble() {
+            autoBubble = !autoBubble;
+            document.getElementById('toggle-bubble').classList.toggle('on', autoBubble);
+        }
+
+        // Mock translation function (in real app, call gemigo.ai.translate)
         function translate(text) {
-            // Simple demo: reverse + add emoji
+            // Demo: simple word reversal with emoji
             return '🌐 ' + text.split(' ').reverse().join(' ');
         }
 
-        function showTranslation(text) {
-            if (!text) return;
+        // 生成翻译气泡 HTML
+        function createBubbleHtml(translation) {
+            return `
+                <div style="
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 14px 18px;
+                    border-radius: 12px;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.35);
+                    max-width: 280px;
+                    font-size: 14px;
+                    animation: fadeIn 0.2s ease-out;
+                ">
+                    <style>
+                        @keyframes fadeIn {
+                            from { opacity: 0; transform: translateY(4px); }
+                            to { opacity: 1; transform: translateY(0); }
+                        }
+                    </style>
+                    <div style="font-size: 0.9em; opacity: 0.8; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px;">
+                        ${escapeHtml(translation.original.slice(0, 80))}${translation.original.length > 80 ? '...' : ''}
+                    </div>
+                    <div style="font-weight: 500;">
+                        ${escapeHtml(translation.translated)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function showTranslation(text, isLive = false) {
+            if (!text || text.trim().length === 0) return;
 
             const translated = translate(text);
             lastTranslation = { original: text, translated };
@@ -194,35 +346,90 @@
             content.style.display = 'block';
             originalText.textContent = text;
             translatedText.textContent = translated;
+
+            // Visual feedback for live updates
+            if (isLive) {
+                originalCard.classList.add('highlight');
+                setTimeout(() => originalCard.classList.remove('highlight'), 500);
+            }
+
+            // Auto show bubble on page if enabled
+            if (autoBubble && isLive) {
+                showBubbleOnPage();
+            }
         }
 
         async function fetchSelection() {
             try {
-                const text = await gemigo.extension.getSelection();
-                if (text) {
-                    showTranslation(text);
+                const result = await gemigo.extension.getSelection();
+                if (result.text) {
+                    lastSelectionRect = result.rect || null;
+                    showTranslation(result.text, false);
                 } else {
-                    originalText.textContent = "(No text selected)";
-                    translatedText.textContent = "";
+                    widgetStatus.textContent = '⚠️ No text selected on page';
                 }
             } catch (err) {
                 console.error('Selection error:', err);
             }
         }
 
-        // ========== NEW: insertWidget Demo ==========
+        // ========== Live Translation with onSelectionChange ==========
+        gemigo.extension.onSelectionChange(async (text, rect, url) => {
+            if (!liveMode) return;
+
+            // 选区消失时，移除气泡
+            if (!text || text.trim().length === 0) {
+                if (currentWidgetId) {
+                    await gemigo.extension.removeWidget(currentWidgetId);
+                    currentWidgetId = null;
+                }
+                return;
+            }
+
+            console.log('[Translator] Live selection:', text.slice(0, 50));
+
+            // 翻译并更新侧边栏
+            const translated = translate(text);
+            lastTranslation = { original: text, translated };
+            lastSelectionRect = rect;
+
+            emptyState.style.display = 'none';
+            content.style.display = 'block';
+            originalText.textContent = text;
+            translatedText.textContent = translated;
+
+            // 如果开启自动气泡，在选区位置显示
+            if (autoBubble && rect) {
+                // 移除旧气泡
+                if (currentWidgetId) {
+                    await gemigo.extension.removeWidget(currentWidgetId);
+                }
+
+                const bubbleHtml = createBubbleHtml(lastTranslation);
+                const result = await gemigo.extension.insertWidget(bubbleHtml, {
+                    x: rect.x,
+                    y: rect.y + rect.height + 8
+                });
+
+                if (result.success) {
+                    currentWidgetId = result.widgetId;
+                    widgetStatus.textContent = '✅ Bubble shown near selection!';
+                }
+            }
+        });
+
+        // ========== insertWidget Demo ==========
         async function showBubbleOnPage() {
             if (!lastTranslation) {
                 widgetStatus.textContent = '⚠️ Translate some text first!';
                 return;
             }
 
-            // Remove existing bubble if any
+            // Remove existing bubble
             if (currentWidgetId) {
                 await gemigo.extension.removeWidget(currentWidgetId);
             }
 
-            // Create beautiful translation bubble HTML
             const bubbleHtml = `
                 <div style="
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -255,11 +462,19 @@
                 </div>
             `;
 
-            const result = await gemigo.extension.insertWidget(bubbleHtml, 'bottom-right');
-            
+            // 使用选区位置定位，如果没有则用 bottom-right
+            let position = 'bottom-right';
+            if (lastSelectionRect) {
+                position = {
+                    x: lastSelectionRect.x,
+                    y: lastSelectionRect.y + lastSelectionRect.height + 8  // 选区下方 8px
+                };
+            }
+            const result = await gemigo.extension.insertWidget(bubbleHtml, position);
+
             if (result.success) {
                 currentWidgetId = result.widgetId;
-                widgetStatus.textContent = '✅ Translation bubble shown on page!';
+                widgetStatus.textContent = '✅ Bubble shown on page!';
             } else {
                 widgetStatus.textContent = '❌ Failed: ' + result.error;
             }
@@ -270,34 +485,32 @@
                 widgetStatus.textContent = '⚠️ No bubble to remove';
                 return;
             }
-
-            const result = await gemigo.extension.removeWidget(currentWidgetId);
+            await gemigo.extension.removeWidget(currentWidgetId);
             currentWidgetId = null;
             widgetStatus.textContent = '🗑️ Bubble removed';
         }
 
-        // Escape HTML to prevent XSS
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        // Listen for context menu events
+        // Context menu events
         gemigo.extension.onContextMenu((event) => {
             if (event.selectionText) {
-                showTranslation(event.selectionText);
+                showTranslation(event.selectionText, false);
             }
         });
 
         // Check for pending context menu event on load
         gemigo.extension.getContextMenuEvent().then(res => {
             if (res.success && res.event && res.event.selectionText) {
-                showTranslation(res.event.selectionText);
+                showTranslation(res.event.selectionText, false);
             }
         });
 
-        console.log('[Translator App] Loaded with SDK:', gemigo);
+        console.log('[Translator App] Loaded with live translation support');
     </script>
 </body>
 

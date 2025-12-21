@@ -7,15 +7,18 @@
 import type { ContextMenuEvent } from '../types';
 
 /** Selection change event */
-export interface SelectionChangeEvent {
-  selection: string;
-  url?: string;
+/** Selection change event */
+export interface SelectionRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 /** Event handler type map */
 export interface EventHandlerMap {
   contextMenu: (event: ContextMenuEvent) => void;
-  selectionChange: (selection: string, url?: string) => void;
+  selectionChange: (text: string, rect: SelectionRect | null, url?: string) => void;
 }
 
 /** Event names */
@@ -77,10 +80,10 @@ export function getChildMethods() {
     onContextMenuEvent(event: ContextMenuEvent) {
       emit('contextMenu', event);
     },
-    onSelectionChange(selection: string, url?: string) {
+    onSelectionChange(text: string, rect: SelectionRect | null, url?: string) {
       handlers.selectionChange.forEach((handler) => {
         try {
-          handler(selection, url);
+          handler(text, rect, url);
         } catch (err) {
           console.error('[GemiGo SDK] Error in selectionChange handler:', err);
         }
@@ -88,3 +91,4 @@ export function getChildMethods() {
     },
   };
 }
+

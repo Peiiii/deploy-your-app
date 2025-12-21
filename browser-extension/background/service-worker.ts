@@ -203,7 +203,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'SELECTION_CHANGED') {
     chrome.runtime.sendMessage({
       type: 'SELECTION_CHANGED',
-      selection: message.selection,
+      text: message.text,
+      rect: message.rect,
       url: message.url,
     }).catch(() => {
       // Ignore if no listeners

@@ -520,9 +520,13 @@ gemigo.globalShortcut.register('Cmd+Shift+S', () => {
 #### 页面事件监听 (Events)
 
 ##### `gemigo.extension.onSelectionChange(callback)`
-- **参数**: `callback: (text: string) => void`
+- **参数**: `callback: (text: string, rect: { x, y, width, height } | null, url: string) => void`
 - **返回**: `() => void` (取消订阅函数)
-- **说明**: 监听用户选中文字的变化。
+- **说明**: 监听用户选中文字的变化。`rect` 为选区的页面坐标，可用于 `insertWidget` 定位。
+
+##### `gemigo.extension.getSelection()`
+- **返回**: `Promise<{ text: string, rect: { x, y, width, height } | null, url: string } | null>`
+- **说明**: 获取当前页面选中的文字和位置信息。
 
 ##### `gemigo.extension.onNavigate(callback)`
 - **参数**: `callback: (url: string) => void`

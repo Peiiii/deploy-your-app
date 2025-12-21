@@ -40,7 +40,7 @@ npm install @gemigo/extension-sdk
 | `getPageInfo()` | Get current page URL, title, favicon |
 | `getPageHTML()` | Get full page HTML content |
 | `getPageText()` | Get page text content |
-| `getSelection()` | Get selected text |
+| `getSelection()` | Get selected text and position `{ text, rect? }` |
 | `extractArticle()` | Extract article title, content, excerpt |
 | `extractLinks()` | Extract all links from page |
 | `extractImages()` | Extract all images from page |
@@ -69,6 +69,7 @@ npm install @gemigo/extension-sdk
 | Method | Description |
 |--------|-------------|
 | `onContextMenu(handler)` | Subscribe to context menu events |
+| `onSelectionChange(handler)` | Subscribe to selection changes `(text, rect, url)` |
 | `getContextMenuEvent()` | Get pending context menu event |
 
 ### Common APIs

@@ -161,7 +161,7 @@ export const extensionAPI = {
    * Register selection change event handler
    * @returns Unsubscribe function
    */
-  onSelectionChange: (handler: (selection: string, url?: string) => void): (() => void) => {
+  onSelectionChange: (handler: (text: string, rect: { x: number; y: number; width: number; height: number } | null, url?: string) => void): (() => void) => {
     getHost(); // Ensure connection starts
     return on('selectionChange', handler);
   },

@@ -122,9 +122,13 @@
         });
 
         // Subscribe to selection change events
-        gemigo.extension.onSelectionChange((selection, url) => {
-            console.log('[Test App] Selection changed:', selection);
-            showResult('Selection Changed (real-time)', { selection: selection.slice(0, 200), url });
+        gemigo.extension.onSelectionChange((text, rect, url) => {
+            console.log('[Test App] Selection changed:', text, rect);
+            showResult('Selection Changed (real-time)', {
+                text: text.slice(0, 100),
+                rect,
+                url
+            });
         });
 
         // Check for pending events on load

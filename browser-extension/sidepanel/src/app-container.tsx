@@ -281,7 +281,7 @@ chrome.runtime.onMessage.addListener((message) => {
   }
   if (message.type === 'SELECTION_CHANGED' && activeChildRef) {
     if (typeof activeChildRef.onSelectionChange === 'function') {
-      activeChildRef.onSelectionChange(message.selection, message.url);
+      activeChildRef.onSelectionChange(message.text, message.rect, message.url);
     }
   }
 });
@@ -289,7 +289,7 @@ chrome.runtime.onMessage.addListener((message) => {
 // Reference to currently active App child
 let activeChildRef: {
   onContextMenuEvent?: (event: unknown) => void;
-  onSelectionChange?: (selection: string, url: string) => void;
+  onSelectionChange?: (text: string, rect: { x: number; y: number; width: number; height: number } | null, url: string) => void;
 } | null = null;
 
 export default function AppContainer({ app, onBack }: AppContainerProps) {

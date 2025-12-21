@@ -245,10 +245,10 @@ function getChildMethods() {
 		onContextMenuEvent(e) {
 			emit("contextMenu", e);
 		},
-		onSelectionChange(e, v) {
-			handlers.selectionChange.forEach((y) => {
+		onSelectionChange(e, v, y) {
+			handlers.selectionChange.forEach((b) => {
 				try {
-					y(e, v);
+					b(e, v, y);
 				} catch (e) {
 					console.error("[GemiGo SDK] Error in selectionChange handler:", e);
 				}
