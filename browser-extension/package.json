@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite build --watch",
+    "dev": "concurrently \"vite build --watch\" \"serve demo-apps -p 3000 --cors\"",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -18,6 +18,8 @@
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^9.1.0",
+    "serve": "^14.2.0",
     "typescript": "^5.2.2",
     "vite": "^5.0.8"
   }

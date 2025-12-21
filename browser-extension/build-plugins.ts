@@ -27,3 +27,39 @@ export function copyExtensionAssets(rootDir: string): Plugin {
     }
   };
 }
+
+/**
+ * Plugin to copy SDK dist files to demo-apps/sdk/ for development
+ */
+export function copySDKToDemoApps(rootDir: string): Plugin {
+  return {
+    name: 'copy-sdk-to-demo-apps',
+    buildStart() {
+      const sdkSrc = resolve(rootDir, '../packages/extension-sdk/dist');
+      const sdkDest = resolve(rootDir, 'demo-apps/sdk');
+      
+      // Create destination directory if needed
+      if (!existsSync(sdkDest)) {
+        mkdirSync(sdkDest, { recursive: true });
+      }
+      
+      // Copy SDK files
+      const filesToCopy = ['gemigo-extension-sdk.umd.js', 'gemigo-extension-sdk.es.js'];
+      let copied = 0;
+      
+      filesToCopy.forEach(file => {
+        const srcPath = resolve(sdkSrc, file);
+        if (existsSync(srcPath)) {
+          copyFileSync(srcPath, resolve(sdkDest, file));
+          copied++;
+        }
+      });
+      
+      if (copied > 0) {
+        console.log(`✓ Copied ${copied} SDK files to demo-apps/sdk/`);
+      } else {
+        console.warn('⚠ SDK dist files not found. Run "pnpm build:sdk" first.');
+      }
+    }
+  };
+}

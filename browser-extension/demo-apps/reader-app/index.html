@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reader Mode</title>
+    <!-- GemiGo Extension SDK -->
+    <script src="/sdk/gemigo-extension-sdk.umd.js"></script>
+    <style>
+        body {
+            font-family: 'Merriweather', serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .meta {
+            color: #888;
+            font-style: italic;
+        }
+
+        .content {
+            font-size: 1.1em;
+        }
+
+        .placeholder {
+            text-align: center;
+            color: #888;
+            margin-top: 100px;
+        }
+
+        button {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading" class="placeholder">
+        <p>Connecting to GemiGo...</p>
+    </div>
+
+    <div id="reader" style="display: none;">
+        <div class="header">
+            <h1 id="article-title">Article Title</h1>
+            <div class="meta" id="article-url">Unknown Source</div>
+        </div>
+        <div id="article-content" class="content">
+            <!-- Content will be injected here -->
+        </div>
+    </div>
+
+    <div id="error" class="placeholder" style="display: none;">
+        <p>Could not extract article content.</p>
+        <button id="btn-retry">Try Again</button>
+    </div>
+
+    <script>
+        document.getElementById('btn-retry').addEventListener('click', loadArticle);
+
+        async function loadArticle() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('reader').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+
+            try {
+                // Use the new simplified SDK with namespace
+                const result = await gemigo.extension.extractArticle();
+
+                if (result.success && (result.content || result.excerpt)) {
+                    document.getElementById('article-title').textContent = result.title || 'Untitled';
+                    document.getElementById('article-url').textContent = result.url || 'Unknown Source';
+                    document.getElementById('article-content').innerHTML = result.content || result.excerpt;
+
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('reader').style.display = 'block';
+                } else {
+                    throw new Error('No content found');
+                }
+            } catch (err) {
+                console.error('Reader Error:', err);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').innerText = 'Could not extract content: ' + err.message;
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        // Auto-load on startup
+        loadArticle();
+    </script>
+</body>
+
+</html>

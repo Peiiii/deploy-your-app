@@ -1,12 +1,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
-import { copyExtensionAssets } from './build-plugins';
+import { copyExtensionAssets, copySDKToDemoApps } from './build-plugins';
 
 export default defineConfig({
   plugins: [
     react(), 
-    copyExtensionAssets(__dirname)
+    copyExtensionAssets(__dirname),
+    copySDKToDemoApps(__dirname),
   ],
   build: {
     outDir: 'dist',

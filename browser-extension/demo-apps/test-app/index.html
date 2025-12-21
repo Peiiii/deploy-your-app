@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDK Test App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: #f8fafc;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            color: #1e293b;
+            margin-bottom: 16px;
+        }
+
+        .btn-group {
+            margin-bottom: 8px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            margin: 4px;
+            border: none;
+            background: #8b5cf6;
+            color: white;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #7c3aed;
+        }
+
+        .result {
+            margin-top: 16px;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            white-space: pre-wrap;
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .status {
+            color: #64748b;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+        }
+
+        .connected {
+            color: #10b981;
+        }
+
+        .error {
+            color: #ef4444;
+        }
+
+        .screenshot {
+            max-width: 100%;
+            margin-top: 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧪 GemiGo SDK Test</h1>
+    <div class="status" id="status">SDK Ready (Auto-connecting...)</div>
+
+    <div class="btn-group">
+        <button class="btn" onclick="testGetPageInfo()">Page Info</button>
+        <button class="btn" onclick="testGetPageHTML()">Page HTML</button>
+        <button class="btn" onclick="testGetSelection()">Selection</button>
+    </div>
+    <div class="btn-group">
+        <button class="btn" onclick="testHighlight()">Highlight</button>
+        <button class="btn" onclick="testNotify()">Notify</button>
+        <button class="btn" onclick="testCapture()">Screenshot</button>
+        <button class="btn" onclick="testExtract()">Extract</button>
+        <button class="btn" onclick="testContextMenu()">Context Menu</button>
+    </div>
+
+    <div class="result" id="result">Click a button to test SDK API...</div>
+    <img id="screenshot" class="screenshot" style="display:none" />
+
+    <!-- GemiGo Extension SDK -->
+    <script src="/sdk/gemigo-extension-sdk.umd.js"></script>
+    <script>
+        // No more alias needed! 'gemigo' is now the global variable
+        console.log('[Test App] SDK Loaded:', gemigo);
+
+        // Subscribe immediately - no connect() needed
+        // Use gemigo.extension.onContextMenu
+        gemigo.extension.onContextMenu((event) => {
+            console.log('[Test App] Context menu event:', event);
+            showResult('Context Menu Event (real-time)', event);
+        });
+
+        // Check for pending events on load
+        gemigo.extension.getContextMenuEvent().then(result => {
+            if (result.success && result.event) {
+                showResult('Context Menu Event (pending)', result.event);
+            }
+            document.getElementById('status').textContent = '✅ Connected to GemiGo';
+            document.getElementById('status').className = 'status connected';
+        }).catch(err => {
+            console.log('Connection pending or failed', err);
+        });
+
+        function showResult(title, data) {
+            document.getElementById('result').textContent =
+                `[${title}]\n` + JSON.stringify(data, null, 2);
+            document.getElementById('screenshot').style.display = 'none';
+        }
+
+        async function testGetPageInfo() {
+            // Extension API
+            const result = await gemigo.extension.getPageInfo();
+            showResult('getPageInfo()', result);
+        }
+
+        async function testGetPageHTML() {
+            const result = await gemigo.extension.getPageHTML();
+            showResult('getPageHTML()', { length: result.length, preview: result.slice(0, 500) });
+        }
+
+        async function testGetSelection() {
+            const result = await gemigo.extension.getSelection();
+            showResult('getSelection()', { selection: result });
+        }
+
+        async function testHighlight() {
+            const result = await gemigo.extension.highlight('h1, h2, h3');
+            showResult('highlight()', result);
+        }
+
+        async function testNotify() {
+            // Common API - no change
+            const result = await gemigo.notify('GemiGo Notification', 'This is a test notification!');
+            showResult('notify()', result);
+        }
+
+        async function testCapture() {
+            const result = await gemigo.extension.captureVisible();
+            if (result.success && result.dataUrl) {
+                showResult('captureVisible()', { success: true, size: result.dataUrl.length });
+                const img = document.getElementById('screenshot');
+                img.src = result.dataUrl;
+                img.style.display = 'block';
+            } else {
+                showResult('captureVisible()', result);
+            }
+        }
+
+        async function testExtract() {
+            const result = await gemigo.extension.extractArticle();
+            showResult('extractArticle()', {
+                success: result.success,
+                title: result.title,
+                excerpt: result.excerpt,
+                contentLength: result.content?.length
+            });
+        }
+
+        async function testContextMenu() {
+            const result = await gemigo.extension.getContextMenuEvent();
+            if (result.success && result.event) {
+                showResult('getContextMenuEvent()', result.event);
+            } else {
+                showResult('getContextMenuEvent()', { status: 'No pending event.' });
+            }
+        }
+    </script>
+</body>
+
+</html>
