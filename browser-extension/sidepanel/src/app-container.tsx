@@ -56,7 +56,7 @@ export default function AppContainer({ app, onBack }: AppContainerProps) {
     // Establish Penpal connection
     const connection = connectToChild({
       iframe: iframeRef.current,
-      methods,
+      methods: methods as unknown as Record<string, (...args: unknown[]) => unknown>,
     });
 
     connectionRef.current = connection;
