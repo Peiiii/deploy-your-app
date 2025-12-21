@@ -105,6 +105,152 @@ async function executeInPage(tabId: number, payload: unknown): Promise<unknown> 
   });
 }
 
+const normalizeHeaders = (headers: Record<string, string> | undefined): Record<string, string> => {
+  if (!headers) return {};
+  const normalized: Record<string, string> = {};
+  Object.entries(headers).forEach(([key, value]) => {
+    if (typeof key !== 'string') return;
+    if (typeof value !== 'string') return;
+    normalized[key] = value;
+  });
+  return normalized;
+};
+
+const toBase64 = (buffer: ArrayBuffer): string => {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i += 1) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  // btoa expects Latin1; Uint8Array is safe for bytes
+  return btoa(binary);
+};
+
+const parseBody = (
+  body: unknown,
+  headers: Record<string, string>,
+): { body?: BodyInit; headers: Record<string, string> } => {
+  if (body === undefined || body === null) return { headers };
+
+  if (typeof body === 'string') {
+    return { body, headers };
+  }
+
+  if (typeof body === 'object') {
+    const contentTypeKey =
+      Object.keys(headers).find((k) => k.toLowerCase() === 'content-type') ?? null;
+    if (!contentTypeKey) {
+      headers['content-type'] = 'application/json';
+    }
+    return { body: JSON.stringify(body), headers };
+  }
+
+  return { body: String(body), headers };
+};
+
+const handleNetworkRequest = async (payload: {
+  url: string;
+  options?: {
+    method?: string;
+    headers?: Record<string, string>;
+    body?: string | object;
+    responseType?: 'json' | 'text' | 'arraybuffer';
+    timeoutMs?: number;
+    maxBytes?: number;
+  };
+}): Promise<{
+  success: boolean;
+  status?: number;
+  headers?: Record<string, string>;
+  data?: unknown;
+  error?: string;
+  code?: string;
+}> => {
+  let url: URL;
+  try {
+    url = new URL(payload.url);
+  } catch {
+    return { success: false, code: 'INVALID_URL', error: 'Invalid URL.' };
+  }
+
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+    return { success: false, code: 'INVALID_URL', error: 'Only http/https are allowed.' };
+  }
+
+  const method = payload.options?.method?.toUpperCase() ?? 'GET';
+  const responseType = payload.options?.responseType ?? 'json';
+  const timeoutMs = payload.options?.timeoutMs ?? 15_000;
+  const maxBytes = payload.options?.maxBytes ?? 2 * 1024 * 1024;
+
+  const headers = normalizeHeaders(payload.options?.headers);
+  const { body, headers: finalHeaders } = parseBody(payload.options?.body, headers);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url.toString(), {
+      method,
+      headers: finalHeaders,
+      body,
+      signal: controller.signal,
+      credentials: 'omit',
+      redirect: 'follow',
+    });
+
+    const resultHeaders: Record<string, string> = {};
+    res.headers.forEach((value, key) => {
+      resultHeaders[key] = value;
+    });
+
+    const contentLength = Number(res.headers.get('content-length') ?? '0');
+    if (contentLength && contentLength > maxBytes) {
+      return {
+        success: false,
+        code: 'MAX_BYTES_EXCEEDED',
+        error: `Response too large: ${contentLength} bytes.`,
+      };
+    }
+
+    const buffer = await res.arrayBuffer();
+    if (buffer.byteLength > maxBytes) {
+      return {
+        success: false,
+        code: 'MAX_BYTES_EXCEEDED',
+        error: `Response too large: ${buffer.byteLength} bytes.`,
+      };
+    }
+
+    if (responseType === 'arraybuffer') {
+      return {
+        success: true,
+        status: res.status,
+        headers: resultHeaders,
+        data: { encoding: 'base64', data: toBase64(buffer) },
+      };
+    }
+
+    const text = new TextDecoder().decode(buffer);
+    if (responseType === 'text') {
+      return { success: true, status: res.status, headers: resultHeaders, data: text };
+    }
+
+    try {
+      const json = text.length ? JSON.parse(text) : null;
+      return { success: true, status: res.status, headers: resultHeaders, data: json };
+    } catch {
+      return { success: true, status: res.status, headers: resultHeaders, data: text };
+    }
+  } catch (err) {
+    if (String(err).includes('AbortError')) {
+      return { success: false, code: 'TIMEOUT', error: 'Request timed out.' };
+    }
+    return { success: false, code: 'FETCH_ERROR', error: String(err) };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
 // Listen for messages from Side Panel
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('[GemiGo SW] Message:', message.type, 'from:', sender.id);
@@ -152,6 +298,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ success: true, notificationId });
       }
     );
+    return true;
+  }
+
+  if (message.type === 'NETWORK_REQUEST') {
+    (async () => {
+      const result = await handleNetworkRequest(message.payload);
+      sendResponse(result);
+    })();
     return true;
   }
 

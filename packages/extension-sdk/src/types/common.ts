@@ -7,6 +7,11 @@ export type Platform = 'web' | 'desktop' | 'extension';
 
 /** Environment capabilities */
 export interface Capabilities {
+  /** Persistent key-value storage */
+  storage: boolean;
+  /** Cross-origin/network proxy capability (host mediated) */
+  network: boolean;
+
   scheduler: boolean;
   fileWatch: boolean;
   fileWrite: boolean;
@@ -14,7 +19,14 @@ export interface Capabilities {
   clipboard: boolean;
   ai: boolean;
   shell: boolean;
-  network: boolean;
+
+  /** Extension-specific capability breakdown */
+  extension?: {
+    read: boolean;
+    events: boolean;
+    modify: boolean;
+    capture: boolean;
+  };
 }
 
 /** File entry information */

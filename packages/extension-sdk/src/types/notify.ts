@@ -34,6 +34,13 @@ export interface NotifyAPI {
    * @returns Result indicating success or failure
    */
   (options: NotifyOptions): Promise<NotifyResult>;
+
+  /**
+   * Backward-compatible signature
+   * @param title - Notification title
+   * @param message - Notification body
+   */
+  (title: string, message: string): Promise<NotifyResult>;
 }
 
 /** Notification action handler */

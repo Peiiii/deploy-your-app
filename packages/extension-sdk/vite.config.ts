@@ -10,9 +10,13 @@ export default defineConfig({
       entry: 'src/index.ts',
       name: 'gemigo',
       formats: ['umd', 'es'],
-      fileName: (format) => `gemigo-extension-sdk.${format}.js`,
+      fileName: (format) => `gemigo-app-sdk.${format}.js`,
     },
     rollupOptions: {
+      output: {
+        // Ensure `window.gemigo` is the SDK instance (default export), not `{ default: ... }`.
+        exports: 'default',
+      },
       // Don't bundle penpal, we'll include it inline for CDN
       // external: ['penpal'],
     },

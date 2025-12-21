@@ -11,6 +11,8 @@ export interface InstalledApp {
   icon: string;
   iconBg: string;
   url: string;
+  permissions?: Array<'extension.modify' | 'extension.capture' | 'network'>;
+  networkAllowlist?: string[];
 }
 
 // Default apps for demo
@@ -22,6 +24,8 @@ const defaultApps: InstalledApp[] = [
     icon: '🎯',
     iconBg: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
     url: 'https://example.com',
+    permissions: [],
+    networkAllowlist: [],
   },
 ];
 
@@ -56,7 +60,9 @@ function App() {
                 description: marketMatch.description,
                 icon: marketMatch.icon,
                 iconBg: marketMatch.iconBg,
-                url: marketMatch.url
+                url: marketMatch.url,
+                permissions: marketMatch.permissions ?? app.permissions ?? [],
+                networkAllowlist: marketMatch.networkAllowlist ?? app.networkAllowlist ?? [],
             };
         }
         return app;
@@ -83,6 +89,8 @@ function App() {
     const newApp: InstalledApp = {
       ...app,
       id: `custom-${encodeURIComponent(app.url)}`,
+      permissions: app.permissions ?? [],
+      networkAllowlist: app.networkAllowlist ?? [],
     };
     saveApps([...installedApps, newApp]);
     setShowAddModal(false);
@@ -100,6 +108,8 @@ function App() {
       icon: marketApp.icon,
       iconBg: marketApp.iconBg,
       url: marketApp.url,
+      permissions: marketApp.permissions ?? [],
+      networkAllowlist: marketApp.networkAllowlist ?? [],
     };
     saveApps([...installedApps, newApp]);
     setActiveTab('home'); // Switch to home to show new app

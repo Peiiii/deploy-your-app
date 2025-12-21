@@ -14,6 +14,8 @@ export const marketApps: MarketApp[] = [
     icon: '🧪',
     iconBg: 'linear-gradient(135deg, #3b82f6, #2563eb)',
     url: 'http://localhost:3000/test-app/index.html',
+    permissions: ['extension.modify', 'extension.capture', 'network'],
+    networkAllowlist: ['https://api.github.com', 'http://localhost:*'],
     category: 'Development',
     author: 'GemiGo Team'
   },
@@ -24,6 +26,8 @@ export const marketApps: MarketApp[] = [
     icon: '📖',
     iconBg: 'linear-gradient(135deg, #10b981, #059669)',
     url: 'http://localhost:3000/reader-app/index.html',
+    permissions: ['extension.modify'],
+    networkAllowlist: [],
     category: 'Productivity',
     author: 'GemiGo Team'
   },
@@ -34,6 +38,20 @@ export const marketApps: MarketApp[] = [
     icon: '🌏',
     iconBg: 'linear-gradient(135deg, #3b82f6, #2563eb)',
     url: 'http://localhost:3000/translator-app/index.html',
+    permissions: [],
+    networkAllowlist: [],
+    category: 'Utilities',
+    author: 'GemiGo Team'
+  },
+  {
+    id: 'link-analyzer',
+    name: 'Link Analyzer',
+    description: 'Analyze and categorize all links on the current page.',
+    icon: '🔗',
+    iconBg: 'linear-gradient(135deg, #22c55e, #16a34a)',
+    url: 'http://localhost:3000/link-analyzer/index.html',
+    permissions: ['extension.modify'],
+    networkAllowlist: [],
     category: 'Utilities',
     author: 'GemiGo Team'
   }

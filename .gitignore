@@ -38,3 +38,10 @@ tmp
 
 # Desktop packaging outputs
 desktop/release/
+
+# SDK build outputs (generated)
+packages/extension-sdk/dist/
+
+# SDK copied artifacts for local demo/prototypes (generated)
+browser-extension/demo-apps/sdk/
+prototypes/browser-extension/common/gemigo-app-sdk.js

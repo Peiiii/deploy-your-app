@@ -1,6 +1,6 @@
 # Extension SDK v1（浏览器插件场景）设计文档
 
-本文档面向“浏览器侧边栏运行第三方 App（iframe）”场景，定义 `@gemigo/extension-sdk` 的 v1 最小闭环能力、权限边界与实现拆分，目标是让上层应用能稳定构建“划词翻译/总结、阅读模式、网页标注”等高频用例，同时确保可维护、可扩展、可控风险。
+本文档面向“浏览器侧边栏运行第三方 App（iframe）”场景，定义统一 `@gemigo/app-sdk`（原 `@gemigo/extension-sdk`）在 extension 环境下的 v1 最小闭环能力、权限边界与实现拆分，目标是让上层应用能稳定构建“划词翻译/总结、阅读模式、网页标注”等高频用例，同时确保可维护、可扩展、可控风险。
 
 ---
 
@@ -36,7 +36,7 @@ v1 需要让第三方 App 在不直接接触 `chrome.*` 的前提下，完成三
 ### 3.1 组件职责
 
 - **App（iframe）**：第三方应用，运行在 `sidepanel` iframe 中
-- **SDK（App 内）**：`@gemigo/extension-sdk`，提供 `gemigo.*` API，对上层隐藏通信细节
+- **SDK（App 内）**：`@gemigo/app-sdk`（原 `@gemigo/extension-sdk`），提供 `gemigo.*` API，对上层隐藏通信细节
 - **Host（Side Panel）**：React 容器，负责 App 运行时、权限校验、与扩展能力对接
 - **Service Worker（MV3）**：长生命周期协调者，负责 `chrome.tabs/scripting` 等能力调用
 - **Content Script（页面注入）**：与真实网页 DOM 交互（读写页面、监听 selection 等）
@@ -263,4 +263,3 @@ Host UI 增加：
    - `extractArticle()` → `injectCSS()` 隐藏干扰元素/调整排版
 3. **权限体验**
    - 首次调用 `insertWidget/highlight/injectCSS` 时弹窗授权（或安装时授权），拒绝后返回可识别错误并不影响 App 继续运行
-

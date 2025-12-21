@@ -1,234 +1,177 @@
 /**
  * Browser Extension API types
- * These APIs are only available when gemigo.platform === 'extension'
+ *
+ * These APIs are only available when `gemigo.platform === 'extension'`.
+ *
+ * Note: This file defines the v1 "stable surface" used by the current Host/SW
+ * implementation. Future APIs are kept as optional to avoid blocking v1.
  */
 
-/** Page information */
 export interface PageInfo {
   url: string;
   title: string;
   favIconUrl?: string;
 }
 
-/** DOM element information */
-export interface ElementInfo {
-  text: string;
-  html: string;
-  rect: DOMRect;
-}
-
-/** Extracted article content */
-export interface ArticleContent {
-  title: string;
-  content: string;
-  author?: string;
-  date?: string;
-}
-
-/** Link information */
-export interface LinkInfo {
-  text: string;
-  href: string;
-}
-
-/** Image information */
-export interface ImageInfo {
-  src: string;
-  alt: string;
+export interface SelectionRect {
+  x: number;
+  y: number;
   width: number;
   height: number;
 }
 
-/** Highlight options */
+export interface SelectionResult {
+  text: string;
+  rect: SelectionRect | null;
+}
+
+export interface ElementInfo {
+  tagName: string;
+  text: string;
+  attributes: Record<string, string>;
+}
+
+export interface ArticleContent {
+  title: string;
+  content: string;
+  excerpt?: string;
+  url?: string;
+}
+
+export interface LinkInfo {
+  href: string;
+  text: string;
+  title?: string;
+}
+
+export interface ImageInfo {
+  src: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+}
+
 export interface HighlightOptions {
-  /** Highlight color */
   color?: string;
-  /** Duration in ms before auto-remove */
   duration?: number;
 }
 
-/** Widget position */
 export interface WidgetPosition {
   x: number;
   y: number;
 }
 
-/** Widget configuration */
 export interface WidgetConfig {
-  /** HTML content */
   html: string;
-  /** Position on page */
   position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | WidgetPosition;
 }
 
-/** Widget handle for controlling inserted widget */
 export interface WidgetHandle {
-  /** Remove the widget from page */
   remove(): void;
-  /** Update widget HTML content */
   update(html: string): void;
 }
 
-/** Full page capture options */
 export interface CaptureFullOptions {
-  /** Maximum height in pixels (default: 30000) */
   maxHeight?: number;
 }
 
-/** Context menu event */
 export interface ContextMenuEvent {
   menuId: string;
   selectionText?: string;
   pageUrl?: string;
 }
 
-/** Context menu event result */
 export interface ContextMenuEventResult {
   success: boolean;
   event?: ContextMenuEvent;
 }
 
-/** Capture result */
 export interface CaptureResult {
   success: boolean;
   dataUrl?: string;
   error?: string;
 }
 
-/** Browser Extension API */
+export interface HighlightResult {
+  success: boolean;
+  count?: number;
+  highlightId?: string;
+  error?: string;
+}
+
+export interface WidgetResult {
+  success: boolean;
+  widgetId?: string;
+  error?: string;
+}
+
+export interface CSSResult {
+  success: boolean;
+  styleId?: string;
+  error?: string;
+}
+
+export interface ExtractArticleResult {
+  success: boolean;
+  title?: string;
+  content?: string;
+  excerpt?: string;
+  url?: string;
+  error?: string;
+}
+
+export interface ExtractLinksResult {
+  success: boolean;
+  links?: LinkInfo[];
+  error?: string;
+}
+
+export interface ExtractImagesResult {
+  success: boolean;
+  images?: ImageInfo[];
+  error?: string;
+}
+
+export interface QueryElementResult {
+  success: boolean;
+  elements?: ElementInfo[];
+  count?: number;
+  error?: string;
+}
+
 export interface ExtensionAPI {
-  // ========== Menu & Interaction ==========
-
-  /**
-   * Listen for context menu clicks
-   * @param callback - Event handler
-   * @returns Unsubscribe function
-   */
-  onContextMenu(callback: (event: ContextMenuEvent) => void): () => void;
-
-  /**
-   * Get pending context menu event (when app opened via context menu)
-   */
-  getContextMenuEvent(): Promise<ContextMenuEventResult>;
-
-  /**
-   * Handle selection action button click
-   * @param actionId - Action ID from manifest
-   * @param callback - Handler function
-   */
-  onSelectionAction(actionId: string, callback: () => void): () => void;
-
-  // ========== Page Content Reading ==========
-
-  /**
-   * Get current tab's page info
-   */
   getPageInfo(): Promise<PageInfo>;
-
-  /**
-   * Get full page HTML
-   * @throws CROSS_ORIGIN error for cross-origin iframes
-   */
   getPageHTML(): Promise<string>;
-
-  /**
-   * Get page text content (stripped of HTML tags)
-   */
   getPageText(): Promise<string>;
+  getSelection(): Promise<SelectionResult>;
 
-  /**
-   * Query element by CSS selector
-   * @param selector - CSS selector
-   * @returns Element info or null
-   */
-  queryElement(selector: string): Promise<ElementInfo | null>;
+  extractArticle(): Promise<ExtractArticleResult>;
+  extractLinks(): Promise<ExtractLinksResult>;
+  extractImages(): Promise<ExtractImagesResult>;
+  queryElement(selector: string, limit?: number): Promise<QueryElementResult>;
 
-  /**
-   * Extract article content using Readability algorithm
-   */
-  extractArticle(): Promise<ArticleContent>;
+  highlight(selector: string, color?: string): Promise<HighlightResult>;
+  removeHighlight(highlightId: string): Promise<{ success: boolean; error?: string }>;
 
-  /**
-   * Extract all links from page
-   */
-  extractLinks(): Promise<LinkInfo[]>;
+  insertWidget(html: string, position?: string | WidgetPosition): Promise<WidgetResult>;
+  updateWidget(widgetId: string, html: string): Promise<{ success: boolean; error?: string }>;
+  removeWidget(widgetId: string): Promise<{ success: boolean; error?: string }>;
 
-  /**
-   * Extract all images from page
-   */
-  extractImages(): Promise<ImageInfo[]>;
+  injectCSS(css: string): Promise<CSSResult>;
+  removeCSS(styleId: string): Promise<{ success: boolean; error?: string }>;
 
-  // ========== Page Content Modification ==========
-  // Requires 'extension.modify' permission
-
-  /**
-   * Highlight elements matching selector
-   * @param selector - CSS selector
-   * @param options - Highlight options
-   * @returns Function to remove highlight
-   */
-  highlight(selector: string, options?: HighlightOptions): Promise<() => void>;
-
-  /**
-   * Insert a floating widget on page
-   * @param config - Widget configuration
-   * @returns Widget handle for control
-   */
-  insertWidget(config: WidgetConfig): Promise<WidgetHandle>;
-
-  /**
-   * Inject custom CSS styles
-   * @param css - CSS string
-   * @returns Function to remove injected styles
-   */
-  injectCSS(css: string): Promise<() => void>;
-
-  // ========== Page Events ==========
-
-  /**
-   * Listen for text selection changes
-   * @param callback - Selection change handler
-   * @returns Unsubscribe function
-   */
-  onSelectionChange(callback: (text: string) => void): () => void;
-
-  /**
-   * Listen for page navigation
-   * @param callback - Navigation handler
-   * @returns Unsubscribe function
-   */
-  onNavigate(callback: (url: string) => void): () => void;
-
-  /**
-   * Listen for page scroll (throttled)
-   * @param callback - Scroll handler
-   * @returns Unsubscribe function
-   */
-  onScroll(callback: (scrollY: number) => void): () => void;
-
-  // ========== Screenshot ==========
-  // Requires 'extension.capture' permission
-
-  /**
-   * Capture visible area screenshot
-   */
   captureVisible(): Promise<CaptureResult>;
 
-  /**
-   * Capture full page screenshot (long screenshot)
-   * @param options - Capture options
-   * @returns Base64 PNG data URL
-   */
-  captureFull(options?: CaptureFullOptions): Promise<string>;
+  getContextMenuEvent(): Promise<ContextMenuEventResult>;
+  onContextMenu(callback: (event: ContextMenuEvent) => void): () => void;
+  onSelectionChange(
+    handler: (text: string, rect: SelectionRect | null, url?: string) => void,
+  ): () => void;
 
-  // ========== Shortcuts ==========
-  // Requires 'extension.shortcuts' permission
-
-  /**
-   * Register page-level keyboard shortcut
-   * @param combo - Key combination (e.g. 'Ctrl+Shift+T')
-   * @param callback - Handler function
-   * @returns Unregister function
-   */
-  registerShortcut(combo: string, callback: () => void): () => void;
+  // Planned (optional) APIs.
+  onSelectionAction?: (actionId: string, callback: () => void) => () => void;
+  onNavigate?: (callback: (url: string) => void) => () => void;
+  onScroll?: (callback: (scrollY: number) => void) => () => void;
+  captureFull?: (options?: CaptureFullOptions) => Promise<CaptureResult>;
+  registerShortcut?: (combo: string, callback: () => void) => () => void;
 }

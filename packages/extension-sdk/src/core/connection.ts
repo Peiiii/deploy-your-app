@@ -13,7 +13,7 @@ import type { Capabilities } from '../types';
  */
 export interface HostMethods {
   // Handshake / environment info
-  getProtocolInfo?(): Promise<{
+  getProtocolInfo(): Promise<{
     protocolVersion: number;
     platform: 'extension';
     appId: string;
@@ -28,7 +28,7 @@ export interface HostMethods {
   getPageText(): Promise<string>;
   getSelection(): Promise<{
     text: string;
-    rect?: { x: number; y: number; width: number; height: number };
+    rect: { x: number; y: number; width: number; height: number } | null;
   }>;
   
   // Page manipulation - highlight
@@ -48,13 +48,13 @@ export interface HostMethods {
   notify(options: { title: string; message: string }): Promise<{ success: boolean }>;
 
   // Storage (per-app, namespaced by host)
-  storageGet?(key: string): Promise<{ success: boolean; value?: unknown }>;
-  storageSet?(key: string, value: unknown): Promise<{ success: boolean }>;
-  storageDelete?(key: string): Promise<{ success: boolean }>;
-  storageClear?(): Promise<{ success: boolean }>;
+  storageGet(key: string): Promise<{ success: boolean; value?: unknown }>;
+  storageSet(key: string, value: unknown): Promise<{ success: boolean }>;
+  storageDelete(key: string): Promise<{ success: boolean }>;
+  storageClear(): Promise<{ success: boolean }>;
 
   // Network proxy (host mediated)
-  networkRequest?(request: {
+  networkRequest(request: {
     url: string;
     options?: {
       method?: string;
@@ -117,6 +117,7 @@ export interface HostMethods {
  */
 export interface ChildMethods {
   onContextMenuEvent(event: ContextMenuEvent): void;
+  onSelectionChange?(text: string, rect: { x: number; y: number; width: number; height: number } | null, url?: string): void;
 }
 
 // Singleton connection promise

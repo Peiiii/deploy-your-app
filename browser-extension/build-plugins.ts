@@ -44,7 +44,7 @@ export function copySDKToDemoApps(rootDir: string): Plugin {
       }
       
       // Copy SDK files
-      const filesToCopy = ['gemigo-extension-sdk.umd.js', 'gemigo-extension-sdk.es.js'];
+      const filesToCopy = ['gemigo-app-sdk.umd.js', 'gemigo-app-sdk.es.js'];
       let copied = 0;
       
       filesToCopy.forEach(file => {

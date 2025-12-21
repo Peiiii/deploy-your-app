@@ -7,7 +7,7 @@ GemiGo App SDK that auto-adapts for Web / Desktop / Browser Extension.
 ### CDN (Recommended)
 
 ```html
-<script src="https://unpkg.com/@gemigo/app-sdk/dist/gemigo-extension-sdk.umd.js"></script>
+<script src="https://unpkg.com/@gemigo/app-sdk/dist/gemigo-app-sdk.umd.js"></script>
 ```
 
 ### npm
@@ -19,7 +19,7 @@ npm install @gemigo/app-sdk
 ## Quick Start
 
 ```html
-<script src="https://unpkg.com/@gemigo/app-sdk/dist/gemigo-extension-sdk.umd.js"></script>
+<script src="https://unpkg.com/@gemigo/app-sdk/dist/gemigo-app-sdk.umd.js"></script>
 <script>
   // SDK auto-connects, use gemigo.extension.* APIs directly
   gemigo.extension.getPageInfo().then(console.log);
@@ -81,7 +81,7 @@ npm install @gemigo/app-sdk
 ## Example: Translation Bubble
 
 ```html
-<script src="https://unpkg.com/@gemigo/app-sdk/dist/gemigo-extension-sdk.umd.js"></script>
+<script src="https://unpkg.com/@gemigo/app-sdk/dist/gemigo-app-sdk.umd.js"></script>
 <script>
   gemigo.extension.onContextMenu(async (event) => {
     if (event.selectionText) {

@@ -65,7 +65,7 @@ interface AppManifest {
 > 📖 **权限定义**：详见 [APP_SDK_API.md - 应用清单规范](./tech/APP_SDK_API.md#应用清单规范-manifest)
 
 
-### 3. SDK (`@gemigo/extension-sdk`)
+### 3. SDK (`@gemigo/app-sdk`，原 `@gemigo/extension-sdk`)
 注入到 App iframe 中，提供与扩展通信的桥梁。
 
 > 📖 **API 详细文档**：[docs/tech/APP_SDK_API.md](./tech/APP_SDK_API.md) - 第 3 节「浏览器扩展 API」
@@ -150,7 +150,7 @@ browser-extension/
 │   └── permission.ts    # 权限校验
 ├── content-scripts/     # 页面注入脚本
 │   └── bridge.ts        # 页面操作桥接
-├── sdk/                 # @gemigo/extension-sdk
+├── sdk/                 # @gemigo/app-sdk (原 @gemigo/extension-sdk)
 │   └── index.ts         # 注入到 App 的 SDK
 └── shared/
     └── types.ts

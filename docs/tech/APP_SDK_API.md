@@ -21,7 +21,7 @@
    - [Shell 系统集成](#shell-系统集成)
    - [GlobalShortcut 全局快捷键](#globalshortcut)
    - [Autostart 开机启动](#autostart)
-3. [浏览器扩展 API](#浏览器扩展-api) (通过 `@gemigo/extension-sdk` npm 包使用)
+3. [浏览器扩展 API](#浏览器扩展-api) (通过 `@gemigo/app-sdk` npm 包使用，原 `@gemigo/extension-sdk`)
    - [Extension 扩展交互](#extension)
 4. [应用清单规范 (Manifest)](#应用清单规范-manifest)
 
