@@ -4,15 +4,10 @@ GemiGo Extension SDK for building apps that run inside the GemiGo browser extens
 
 ## Installation
 
-### CDN (Recommended for simple apps)
+### CDN (Recommended)
 
 ```html
 <script src="https://unpkg.com/@gemigo/extension-sdk/dist/gemigo-extension-sdk.umd.js"></script>
-```
-
-Or use jsDelivr:
-```html
-<script src="https://cdn.jsdelivr.net/npm/@gemigo/extension-sdk/dist/gemigo-extension-sdk.umd.js"></script>
 ```
 
 ### npm
@@ -23,39 +18,22 @@ npm install @gemigo/extension-sdk
 
 ## Quick Start
 
-### CDN Usage
-
 ```html
 <script src="https://unpkg.com/@gemigo/extension-sdk/dist/gemigo-extension-sdk.umd.js"></script>
 <script>
-  GemigoExtensionSDK.connect().then((gemigo) => {
-    // Get current page info
-    gemigo.getPageInfo().then(console.log);
-    
-    // Subscribe to context menu events
-    gemigo.on('contextMenu', (event) => {
-      console.log('Menu clicked:', event.menuId, event.selectionText);
-    });
+  // SDK auto-connects, use gemigo.extension.* APIs directly
+  gemigo.extension.getPageInfo().then(console.log);
+  
+  // Subscribe to context menu events
+  gemigo.extension.onContextMenu((event) => {
+    console.log('Menu clicked:', event.menuId, event.selectionText);
   });
 </script>
 ```
 
-### ES Module Usage
-
-```js
-import { connect } from '@gemigo/extension-sdk';
-
-const gemigo = await connect();
-const pageInfo = await gemigo.getPageInfo();
-```
-
 ## API Reference
 
-### `connect(): Promise<GemigoExtension>`
-
-Connect to the GemiGo extension host. Must be called before using any SDK methods.
-
-### Page APIs
+### Page Content Reading
 
 | Method | Description |
 |--------|-------------|
@@ -64,49 +42,73 @@ Connect to the GemiGo extension host. Must be called before using any SDK method
 | `getPageText()` | Get page text content |
 | `getSelection()` | Get selected text |
 | `extractArticle()` | Extract article title, content, excerpt |
+| `extractLinks()` | Extract all links from page |
+| `extractImages()` | Extract all images from page |
+| `queryElement(selector, limit?)` | Query elements by CSS selector |
 
-### Action APIs
-
-| Method | Description |
-|--------|-------------|
-| `highlight(selector, color?)` | Highlight elements on page |
-| `notify(title, message)` | Send system notification |
-| `captureVisible()` | Capture screenshot of visible tab |
-
-### Event APIs
+### Page Manipulation
 
 | Method | Description |
 |--------|-------------|
-| `on('contextMenu', handler)` | Subscribe to context menu events |
-| `off('contextMenu', handler?)` | Unsubscribe from events |
+| `highlight(selector, color?)` | Highlight elements (returns highlightId) |
+| `removeHighlight(highlightId)` | Remove highlight |
+| `insertWidget(html, position)` | Insert floating widget |
+| `updateWidget(widgetId, html)` | Update widget content |
+| `removeWidget(widgetId)` | Remove widget |
+| `injectCSS(css)` | Inject CSS (returns styleId) |
+| `removeCSS(styleId)` | Remove injected CSS |
+
+### Screenshots
+
+| Method | Description |
+|--------|-------------|
+| `captureVisible()` | Capture visible area screenshot |
+
+### Events
+
+| Method | Description |
+|--------|-------------|
+| `onContextMenu(handler)` | Subscribe to context menu events |
 | `getContextMenuEvent()` | Get pending context menu event |
 
-## Example: Translation App
+### Common APIs
+
+| Method | Description |
+|--------|-------------|
+| `gemigo.notify(title, message)` | Send system notification |
+
+## Example: Translation Bubble
 
 ```html
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Translation App</title>
-</head>
-<body>
-  <div id="result"></div>
-  
-  <script src="https://unpkg.com/@gemigo/extension-sdk/dist/gemigo-extension-sdk.umd.js"></script>
-  <script>
-    GemigoExtensionSDK.connect().then(async (gemigo) => {
-      // Handle context menu "Translate" action
-      gemigo.on('contextMenu', async (event) => {
-        if (event.menuId === 'translate' && event.selectionText) {
-          // Your translation logic here
-          document.getElementById('result').textContent = 
-            `Translating: ${event.selectionText}`;
-        }
-      });
-    });
-  </script>
-</body>
-</html>
+<script src="https://unpkg.com/@gemigo/extension-sdk/dist/gemigo-extension-sdk.umd.js"></script>
+<script>
+  gemigo.extension.onContextMenu(async (event) => {
+    if (event.selectionText) {
+      const translated = await translateText(event.selectionText);
+      
+      // Show translation bubble on page
+      await gemigo.extension.insertWidget(
+        `<div style="background:#667eea;color:#fff;padding:16px;border-radius:12px;">
+          ${translated}
+        </div>`,
+        'bottom-right'
+      );
+    }
+  });
+</script>
+```
+
+## Example: Reader Mode
+
+```javascript
+// Inject reader-friendly CSS
+const { styleId } = await gemigo.extension.injectCSS(`
+  body { max-width: 720px; margin: 0 auto; font-family: Georgia, serif; }
+  nav, aside, .ads { display: none !important; }
+`);
+
+// Remove later
+await gemigo.extension.removeCSS(styleId);
 ```
 
 ## License

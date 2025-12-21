@@ -1,7 +1,7 @@
 {
   "name": "@gemigo/extension-sdk",
   "private": false,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "GemiGo Extension SDK for browser extension apps",
   "main": "dist/gemigo-extension-sdk.umd.js",

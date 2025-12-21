@@ -156,5 +156,13 @@ export const extensionAPI = {
     getHost(); // Ensure connection starts
     return on('contextMenu', handler);
   },
-};
 
+  /**
+   * Register selection change event handler
+   * @returns Unsubscribe function
+   */
+  onSelectionChange: (handler: (selection: string, url?: string) => void): (() => void) => {
+    getHost(); // Ensure connection starts
+    return on('selectionChange', handler);
+  },
+};

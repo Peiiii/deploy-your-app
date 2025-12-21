@@ -221,7 +221,10 @@ function initConnection(e) {
 		console.debug("[GemiGo SDK] Auto-connect waiting...", e);
 	});
 }
-var handlers = { contextMenu: [] };
+var handlers = {
+	contextMenu: [],
+	selectionChange: []
+};
 function on(e, v) {
 	return handlers[e].push(v), () => {
 		let y = handlers[e].indexOf(v);
@@ -238,9 +241,20 @@ function emit(e, v) {
 	});
 }
 function getChildMethods() {
-	return { onContextMenuEvent(e) {
-		emit("contextMenu", e);
-	} };
+	return {
+		onContextMenuEvent(e) {
+			emit("contextMenu", e);
+		},
+		onSelectionChange(e, v) {
+			handlers.selectionChange.forEach((y) => {
+				try {
+					y(e, v);
+				} catch (e) {
+					console.error("[GemiGo SDK] Error in selectionChange handler:", e);
+				}
+			});
+		}
+	};
 }
 const extensionAPI = {
 	getPageInfo: () => getHost().then((e) => e.getPageInfo()),
@@ -263,7 +277,8 @@ const extensionAPI = {
 	queryElement: (e, v) => getHost().then((y) => y.queryElement(e, v)),
 	captureVisible: () => getHost().then((e) => e.captureVisible()),
 	getContextMenuEvent: () => getHost().then((e) => e.getContextMenuEvent()),
-	onContextMenu: (e) => (getHost(), on("contextMenu", e))
+	onContextMenu: (e) => (getHost(), on("contextMenu", e)),
+	onSelectionChange: (e) => (getHost(), on("selectionChange", e))
 };
 function createSDK() {
 	return {

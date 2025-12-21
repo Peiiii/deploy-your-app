@@ -198,4 +198,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     })();
     return true;
   }
+
+  // Forward selection change events from content script to sidepanel
+  if (message.type === 'SELECTION_CHANGED') {
+    chrome.runtime.sendMessage({
+      type: 'SELECTION_CHANGED',
+      selection: message.selection,
+      url: message.url,
+    }).catch(() => {
+      // Ignore if no listeners
+    });
+    return false; // No response needed
+  }
 });

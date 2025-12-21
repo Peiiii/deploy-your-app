@@ -21,6 +21,8 @@
     "build:extension": "pnpm --filter @gemigo/browser-extension build",
     "build:sdk": "pnpm --filter @gemigo/extension-sdk build",
     "publish:sdk": "pnpm --filter @gemigo/extension-sdk build && pnpm --filter @gemigo/extension-sdk publish --access public --no-git-checks",
+    "release:sdk": "cd packages/extension-sdk && npm version patch && cd ../.. && pnpm publish:sdk",
+    "release:sdk:minor": "cd packages/extension-sdk && npm version minor && cd ../.. && pnpm publish:sdk",
     "serve:extension-apps": "npx serve prototypes/browser-extension -p 3000 --cors",
     "deploy:pages": "pnpm build:frontend && gh-pages -d frontend/dist -b gh-pages",
     "deploy:workers": "pnpm --filter deploy-your-app-api-worker run deploy && pnpm --filter deploy-your-app-r2-gateway run deploy && pnpm --filter gemigo-screenshot-service run deploy && pnpm --filter deploy-your-app-genai-proxy-worker run deploy && pnpm --filter deploy-your-app-openai-gateway-worker run deploy",

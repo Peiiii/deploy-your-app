@@ -272,18 +272,25 @@ const createHostMethods = () => ({
 // Note: onContextMenuEvent is now handled by calling child.onContextMenuEvent() directly
 // Apps should expose this method via Penpal.connectToParent({ methods: { onContextMenuEvent } })
 
-// Listen for context menu events from Service Worker
+// Listen for events from Service Worker
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'CONTEXT_MENU_EVENT' && activeChildRef) {
-    // Call the App's onContextMenuEvent method if it exists
     if (typeof activeChildRef.onContextMenuEvent === 'function') {
       activeChildRef.onContextMenuEvent(message.event);
+    }
+  }
+  if (message.type === 'SELECTION_CHANGED' && activeChildRef) {
+    if (typeof activeChildRef.onSelectionChange === 'function') {
+      activeChildRef.onSelectionChange(message.selection, message.url);
     }
   }
 });
 
 // Reference to currently active App child
-let activeChildRef: { onContextMenuEvent?: (event: unknown) => void } | null = null;
+let activeChildRef: {
+  onContextMenuEvent?: (event: unknown) => void;
+  onSelectionChange?: (selection: string, url: string) => void;
+} | null = null;
 
 export default function AppContainer({ app, onBack }: AppContainerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
