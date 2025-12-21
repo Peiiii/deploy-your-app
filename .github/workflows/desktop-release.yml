@@ -35,11 +35,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm lint
-
-      - name: Typecheck
-        run: pnpm exec tsc -b --pretty false
+      - name: Desktop checks
+        run: pnpm check:desktop
 
       - name: Build desktop installers
         run: pnpm --filter gemigo-desktop run pack

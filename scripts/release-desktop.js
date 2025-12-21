@@ -129,6 +129,10 @@ const main = () => {
     }
   }
 
+  // Desktop release should not be blocked by unrelated packages (e.g. browser extension).
+  // Run desktop-scoped checks only.
+  runInherit('pnpm check:desktop', { cwd: repoRoot });
+
   const nextVersion = bumpVersion(currentVersion, args.bump);
   const tag = `desktop-v${nextVersion}`;
 

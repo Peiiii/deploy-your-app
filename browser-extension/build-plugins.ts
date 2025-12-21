@@ -1,5 +1,5 @@
 import { Plugin } from 'vite';
-import { copyFileSync, mkdirSync, existsSync, readdirSync, cpSync } from 'fs';
+import { copyFileSync, mkdirSync, existsSync, readdirSync } from 'fs';
 import { resolve } from 'path';
 
 export function copyExtensionAssets(rootDir: string): Plugin {
@@ -27,4 +27,3 @@ export function copyExtensionAssets(rootDir: string): Plugin {
     }
   };
 }
-
