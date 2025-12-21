@@ -1,8 +1,13 @@
 /**
  * Core Module
- *
- * Re-exports from platforms for backward compatibility.
  */
 
-export { getHost, initConnection } from '../platforms';
-export type { HostMethods, ChildMethods } from '../platforms';
+export {
+  getHost,
+  tryGetHost,
+  initConnection,
+  isConnected,
+  hasConnectionFailed,
+} from './connection';
+
+export type { HostMethods, ChildMethods } from './connection';

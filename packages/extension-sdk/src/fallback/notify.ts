@@ -1,16 +1,12 @@
 /**
- * Common Notify Implementation
+ * Fallback Notify Implementation
  *
- * Uses Web Notifications API. Can be used by web and as fallback.
+ * Uses Web Notifications API when no host is available.
  */
 
-import type { NotifyOptions, NotifyResult } from '../../types';
+import type { NotifyOptions, NotifyResult } from '../types';
 
-/**
- * Web Notification API implementation.
- * Used by web platform and as fallback for other platforms.
- */
-export const webNotifyImpl = async (options: NotifyOptions): Promise<NotifyResult> => {
+export const fallbackNotify = async (options: NotifyOptions): Promise<NotifyResult> => {
   if (typeof window === 'undefined' || typeof Notification === 'undefined') {
     return { success: false, reason: 'not_supported' };
   }

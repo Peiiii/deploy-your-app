@@ -1,11 +1,11 @@
 /**
- * Extension Platform - Network Implementation
+ * Network API
  *
- * Uses Host RPC for cross-origin requests.
+ * Requires host connection. No fallback available.
  */
 
-import { getHost } from './connection';
-import type { NetworkAPI } from '../../types';
+import { tryGetHost } from '../core';
+import type { NetworkAPI } from '../types';
 
 class SDKError extends Error {
   constructor(public code: string, message: string) {
@@ -15,10 +15,10 @@ class SDKError extends Error {
 }
 
 const throwNotSupported = (feature: string): never => {
-  throw new SDKError('NOT_SUPPORTED', `${feature} is not supported.`);
+  throw new SDKError('NOT_SUPPORTED', `${feature} is not supported in this environment.`);
 };
 
-export const extensionNetwork: NetworkAPI = {
+export const networkAPI: NetworkAPI = {
   request: async <T = unknown>(
     url: string,
     options?: {
@@ -28,15 +28,14 @@ export const extensionNetwork: NetworkAPI = {
       responseType?: 'json' | 'text' | 'arraybuffer';
     },
   ) => {
-    const host = await getHost();
-    if (typeof host.networkRequest !== 'function') {
+    const host = await tryGetHost();
+    if (!host || typeof host.networkRequest !== 'function') {
       return throwNotSupported('network.request');
     }
 
     const res = await host.networkRequest({ url, options });
     if (!res.success) {
-      const code = res.code || 'INTERNAL_ERROR';
-      throw new SDKError(code, res.error || 'Network request failed.');
+      throw new SDKError(res.code || 'INTERNAL_ERROR', res.error || 'Network request failed.');
     }
 
     return {

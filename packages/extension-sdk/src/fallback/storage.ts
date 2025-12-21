@@ -1,10 +1,10 @@
 /**
- * Common Storage Implementation
+ * Fallback Storage Implementation
  *
- * localStorage-based storage that can be used by web and as fallback.
+ * Uses localStorage when no host is available.
  */
 
-import type { StorageAPI } from '../../types';
+import type { StorageAPI } from '../types';
 
 const localStoragePrefix = (): string => {
   const origin =
@@ -12,11 +12,7 @@ const localStoragePrefix = (): string => {
   return `gemigo:${origin}:`;
 };
 
-/**
- * localStorage-based storage implementation.
- * Used by web platform and as fallback for other platforms.
- */
-export const localStorageImpl: StorageAPI = {
+export const fallbackStorage: StorageAPI = {
   get: async <T = unknown>(key: string): Promise<T | null> => {
     if (typeof window === 'undefined' || !window.localStorage) return null;
     const raw = window.localStorage.getItem(`${localStoragePrefix()}${key}`);
