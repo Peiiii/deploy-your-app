@@ -11,7 +11,8 @@
   "dependencies": {
     "penpal": "^6.2.2",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "@gemigo/app-sdk": "workspace:*"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.260",

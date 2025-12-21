@@ -5,6 +5,7 @@
  */
 
 import type { AppConfig } from '../types';
+import type { HostMethods } from '@gemigo/app-sdk';
 import { createProtocolMethods } from './protocol';
 import { createStorageMethods } from './storage';
 import { createNetworkMethods } from './network';
@@ -17,8 +18,10 @@ import { createContextMenuMethods } from './context-menu';
 /**
  * Create all host methods for an app.
  * This is the main entry point exposed to the SDK via Penpal.
+ * 
+ * Returns an object that satisfies the HostMethods interface from SDK.
  */
-export const createHostMethods = (app: AppConfig) => ({
+export const createHostMethods = (app: AppConfig): HostMethods => ({
   ...createProtocolMethods(app),
   ...createStorageMethods(app.id),
   ...createNetworkMethods(app),
@@ -29,4 +32,3 @@ export const createHostMethods = (app: AppConfig) => ({
   ...createContextMenuMethods(),
 });
 
-export type HostMethods = ReturnType<typeof createHostMethods>;
