@@ -4,7 +4,7 @@
  * Handle context menu events from service worker.
  */
 
-import { sendMessage } from '../utils/messaging';
+import { sendMessage } from '../../utils/messaging';
 
 export const createContextMenuMethods = () => ({
   async getContextMenuEvent() {

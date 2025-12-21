@@ -6,14 +6,15 @@
 
 import type { AppConfig } from '../types';
 import type { HostMethods } from '@gemigo/app-sdk';
+
+// Core methods
 import { createProtocolMethods } from './protocol';
 import { createStorageMethods } from './storage';
 import { createNetworkMethods } from './network';
-import { createPageReadMethods } from './page-read';
-import { createPageModifyMethods } from './page-modify';
-import { createCaptureMethods } from './capture';
 import { createNotifyMethods } from './notify';
-import { createContextMenuMethods } from './context-menu';
+
+// Extension API methods
+import { createExtensionMethods } from './extension';
 
 /**
  * Create all host methods for an app.
@@ -22,13 +23,12 @@ import { createContextMenuMethods } from './context-menu';
  * Returns an object that satisfies the HostMethods interface from SDK.
  */
 export const createHostMethods = (app: AppConfig): HostMethods => ({
+  // Core
   ...createProtocolMethods(app),
   ...createStorageMethods(app.id),
   ...createNetworkMethods(app),
-  ...createPageReadMethods(),
-  ...createPageModifyMethods(app),
-  ...createCaptureMethods(app),
   ...createNotifyMethods(),
-  ...createContextMenuMethods(),
-});
 
+  // Extension API
+  ...createExtensionMethods(app),
+});

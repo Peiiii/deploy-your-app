@@ -5,7 +5,7 @@
  * These don't require special permissions.
  */
 
-import { sendMessage, executeInPage, getPageInfo as getPageInfoMsg } from '../utils/messaging';
+import { executeInPage, getPageInfo as getPageInfoMsg } from '../../utils/messaging';
 
 export const createPageReadMethods = () => ({
   async getPageInfo() {

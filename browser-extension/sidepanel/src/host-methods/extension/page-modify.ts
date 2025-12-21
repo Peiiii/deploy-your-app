@@ -5,9 +5,9 @@
  * Require 'extension.modify' permission.
  */
 
-import { executeInPage } from '../utils/messaging';
-import { requirePermission } from '../utils/response';
-import type { AppConfig } from '../types';
+import { executeInPage } from '../../utils/messaging';
+import { requirePermission } from '../../utils/response';
+import type { AppConfig } from '../../types';
 
 export const createPageModifyMethods = (app: AppConfig) => ({
   async highlight(selector: string, color?: string) {
