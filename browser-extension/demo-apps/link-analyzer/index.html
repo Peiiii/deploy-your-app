@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Analyzer</title>
+    <script src="/sdk/gemigo-extension-sdk.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-tag {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.6em;
+            font-weight: 500;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-number {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #4ade80;
+        }
+
+        .stat-label {
+            font-size: 0.75em;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-card.internal .stat-number {
+            color: #60a5fa;
+        }
+
+        .stat-card.external .stat-number {
+            color: #f472b6;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            color: #94a3b8;
+            font-size: 0.85em;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .tab.active {
+            background: rgba(74, 222, 128, 0.2);
+            border-color: rgba(74, 222, 128, 0.3);
+            color: #4ade80;
+        }
+
+        .links-list {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .link-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        .link-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .link-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .link-icon.internal {
+            background: rgba(96, 165, 250, 0.2);
+        }
+
+        .link-icon.external {
+            background: rgba(244, 114, 182, 0.2);
+        }
+
+        .link-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .link-text {
+            font-size: 0.9em;
+            color: #f1f5f9;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .link-url {
+            font-size: 0.75em;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: #0f172a;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+        }
+
+        button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #64748b;
+        }
+
+        .loading-spinner {
+            font-size: 2.5em;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>🔗 Link Analyzer <span class="feature-tag">extractLinks</span></h1>
+    </div>
+
+    <div id="loading" class="loading">
+        <span class="loading-spinner">⚡</span>
+        <p style="margin-top: 16px;">Analyzing page links...</p>
+    </div>
+
+    <div id="content" style="display: none;">
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="total-count">0</div>
+                <div class="stat-label">Total Links</div>
+            </div>
+            <div class="stat-card internal">
+                <div class="stat-number" id="internal-count">0</div>
+                <div class="stat-label">Internal</div>
+            </div>
+            <div class="stat-card external">
+                <div class="stat-number" id="external-count">0</div>
+                <div class="stat-label">External</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('all')">All</div>
+            <div class="tab" onclick="showTab('internal')">Internal</div>
+            <div class="tab" onclick="showTab('external')">External</div>
+        </div>
+
+        <div class="links-list" id="links-list"></div>
+
+        <div class="actions">
+            <button onclick="copyLinks()">📋 Copy All Links</button>
+            <button class="secondary" onclick="refresh()">🔄 Refresh</button>
+        </div>
+    </div>
+
+    <script>
+        let allLinks = [];
+        let currentFilter = 'all';
+        let pageHost = '';
+
+        async function analyzeLinks() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content').style.display = 'none';
+
+            try {
+                // Get page info for domain comparison
+                const pageInfo = await gemigo.extension.getPageInfo();
+                pageHost = new URL(pageInfo.url).hostname;
+
+                // Extract all links
+                const result = await gemigo.extension.extractLinks();
+
+                if (result.success && result.links) {
+                    allLinks = result.links.map(link => {
+                        try {
+                            const url = new URL(link.href, pageInfo.url);
+                            return {
+                                text: link.text || url.pathname,
+                                href: link.href,
+                                fullUrl: url.href,
+                                isInternal: url.hostname === pageHost || url.hostname === ''
+                            };
+                        } catch {
+                            return {
+                                text: link.text || link.href,
+                                href: link.href,
+                                fullUrl: link.href,
+                                isInternal: false
+                            };
+                        }
+                    });
+
+                    // Update stats
+                    const internal = allLinks.filter(l => l.isInternal).length;
+                    const external = allLinks.length - internal;
+
+                    document.getElementById('total-count').textContent = allLinks.length;
+                    document.getElementById('internal-count').textContent = internal;
+                    document.getElementById('external-count').textContent = external;
+
+                    renderLinks();
+
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('content').style.display = 'block';
+                } else {
+                    throw new Error('No links found');
+                }
+            } catch (err) {
+                console.error('Link analysis error:', err);
+                document.getElementById('loading').innerHTML = `
+                    <span style="font-size: 2.5em;">❌</span>
+                    <p style="margin-top: 16px;">Failed to analyze links</p>
+                    <button onclick="refresh()" style="margin-top: 16px;">Try Again</button>
+                `;
+            }
+        }
+
+        function renderLinks() {
+            const filtered = currentFilter === 'all'
+                ? allLinks
+                : allLinks.filter(l => currentFilter === 'internal' ? l.isInternal : !l.isInternal);
+
+            const container = document.getElementById('links-list');
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state">No links found in this category</div>';
+                return;
+            }
+
+            container.innerHTML = filtered.slice(0, 100).map(link => `
+                <div class="link-item">
+                    <div class="link-icon ${link.isInternal ? 'internal' : 'external'}">
+                        ${link.isInternal ? '🏠' : '🌐'}
+                    </div>
+                    <div class="link-content">
+                        <div class="link-text">${escapeHtml(link.text)}</div>
+                        <div class="link-url">${escapeHtml(link.href)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showTab(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            renderLinks();
+        }
+
+        async function copyLinks() {
+            const urls = allLinks.map(l => l.fullUrl).join('\n');
+            try {
+                await navigator.clipboard.writeText(urls);
+                alert(`✅ Copied ${allLinks.length} links to clipboard!`);
+            } catch {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = urls;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert(`✅ Copied ${allLinks.length} links!`);
+            }
+        }
+
+        function refresh() {
+            analyzeLinks();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        // Auto-analyze on load
+        analyzeLinks();
+        console.log('[Link Analyzer] Loaded with SDK:', gemigo);
+    </script>
+</body>
+
+</html>

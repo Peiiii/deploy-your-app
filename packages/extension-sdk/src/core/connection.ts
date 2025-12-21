@@ -6,11 +6,20 @@
 
 import { connectToParent, AsyncMethodReturns } from 'penpal';
 import type { ContextMenuEvent } from '../types';
+import type { Capabilities } from '../types';
 
 /**
  * Host methods interface - what the extension provides to apps
  */
 export interface HostMethods {
+  // Handshake / environment info
+  getProtocolInfo?(): Promise<{
+    protocolVersion: number;
+    platform: 'extension';
+    appId: string;
+    capabilities: Capabilities;
+  }>;
+
   // Page info
   getPageInfo(): Promise<{ url: string; title: string; favIconUrl?: string }>;
   
@@ -37,6 +46,32 @@ export interface HostMethods {
   
   // Notifications
   notify(options: { title: string; message: string }): Promise<{ success: boolean }>;
+
+  // Storage (per-app, namespaced by host)
+  storageGet?(key: string): Promise<{ success: boolean; value?: unknown }>;
+  storageSet?(key: string, value: unknown): Promise<{ success: boolean }>;
+  storageDelete?(key: string): Promise<{ success: boolean }>;
+  storageClear?(): Promise<{ success: boolean }>;
+
+  // Network proxy (host mediated)
+  networkRequest?(request: {
+    url: string;
+    options?: {
+      method?: string;
+      headers?: Record<string, string>;
+      body?: string | object;
+      responseType?: 'json' | 'text' | 'arraybuffer';
+      timeoutMs?: number;
+      maxBytes?: number;
+    };
+  }): Promise<{
+    success: boolean;
+    status?: number;
+    headers?: Record<string, string>;
+    data?: unknown;
+    error?: string;
+    code?: string;
+  }>;
   
   // Screenshot
   captureVisible(): Promise<{ success: boolean; dataUrl?: string; error?: string }>;
@@ -86,6 +121,9 @@ export interface ChildMethods {
 
 // Singleton connection promise
 let connectionPromise: Promise<AsyncMethodReturns<HostMethods>> | null = null;
+let defaultChildMethods: ChildMethods | undefined;
+
+const DEFAULT_TIMEOUT_MS = 1500;
 
 /**
  * Check if running inside an iframe
@@ -102,9 +140,13 @@ function isInIframe(): boolean {
  * Get or create connection to parent (extension host)
  * 
  * @param childMethods - Methods to expose to parent
+ * @param options - Connection options
  * @returns Promise resolving to host methods
  */
-export function getHost(childMethods?: ChildMethods): Promise<AsyncMethodReturns<HostMethods>> {
+export function getHost(
+  childMethods?: ChildMethods,
+  options?: { timeoutMs?: number }
+): Promise<AsyncMethodReturns<HostMethods>> {
   if (connectionPromise) return connectionPromise;
 
   if (!isInIframe()) {
@@ -112,23 +154,33 @@ export function getHost(childMethods?: ChildMethods): Promise<AsyncMethodReturns
   }
 
   const methods: Record<string, (...args: unknown[]) => unknown> = {};
-  if (childMethods) {
-    Object.assign(methods, childMethods);
+  const resolvedChildMethods = childMethods ?? defaultChildMethods;
+  if (resolvedChildMethods) {
+    Object.assign(methods, resolvedChildMethods);
   }
 
   const connection = connectToParent<HostMethods>({
     methods,
+    timeout: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
   });
 
-  connectionPromise = connection.promise;
+  connectionPromise = connection.promise.catch((err) => {
+    // Reset so future calls can retry (important for non-extension web iframes).
+    connectionPromise = null;
+    throw err;
+  });
   return connectionPromise;
 }
 
 /**
  * Initialize connection immediately (for faster first call)
  */
-export function initConnection(childMethods?: ChildMethods): void {
-  getHost(childMethods).catch(err => {
+export function initConnection(
+  childMethods?: ChildMethods,
+  options?: { timeoutMs?: number }
+): void {
+  defaultChildMethods = childMethods;
+  getHost(childMethods, options).catch(err => {
     console.debug('[GemiGo SDK] Auto-connect waiting...', err);
   });
 }
