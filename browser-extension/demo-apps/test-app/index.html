@@ -115,11 +115,16 @@
         // No more alias needed! 'gemigo' is now the global variable
         console.log('[Test App] SDK Loaded:', gemigo);
 
-        // Subscribe immediately - no connect() needed
-        // Use gemigo.extension.onContextMenu
+        // Subscribe to context menu events
         gemigo.extension.onContextMenu((event) => {
             console.log('[Test App] Context menu event:', event);
             showResult('Context Menu Event (real-time)', event);
+        });
+
+        // Subscribe to selection change events
+        gemigo.extension.onSelectionChange((selection, url) => {
+            console.log('[Test App] Selection changed:', selection);
+            showResult('Selection Changed (real-time)', { selection: selection.slice(0, 200), url });
         });
 
         // Check for pending events on load
