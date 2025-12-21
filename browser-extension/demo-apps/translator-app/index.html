@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quick Translate</title>
-    <title>Quick Translate</title>
     <!-- GemiGo Extension SDK -->
     <script src="/sdk/gemigo-extension-sdk.umd.js"></script>
     <style>
@@ -13,140 +12,292 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             padding: 20px;
             margin: 0;
-            background: #f8fafc;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subtitle {
+            opacity: 0.8;
+            font-size: 0.9em;
+            margin-bottom: 24px;
         }
 
         .card {
-            background: white;
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
             padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .label {
-            font-size: 0.8em;
-            color: #64748b;
+            font-size: 0.75em;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.1em;
+            opacity: 0.7;
             margin-bottom: 8px;
-            font-weight: 600;
         }
 
         .text-content {
             font-size: 1.1em;
-            color: #1e293b;
-            min-height: 60px;
+            line-height: 1.5;
+            min-height: 40px;
+            word-break: break-word;
         }
 
         .result {
-            color: #2563eb;
+            color: #fef08a;
             font-weight: 500;
         }
 
         .actions {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
         button {
-            padding: 8px 16px;
-            background: #2563eb;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.2);
             color: white;
-            border: none;
-            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
             cursor: pointer;
             font-weight: 500;
+            font-size: 0.9em;
+            transition: all 0.2s;
         }
 
         button:hover {
-            background: #1d4ed8;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        button.primary {
+            background: white;
+            color: #667eea;
+            border-color: white;
+        }
+
+        button.primary:hover {
+            background: #f0f0ff;
         }
 
         .status {
             text-align: center;
-            color: #94a3b8;
+            opacity: 0.8;
             font-size: 0.9em;
-            margin-top: 40px;
+            padding: 40px 20px;
         }
 
         .icon-large {
             font-size: 3em;
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 16px;
+        }
+
+        .feature-tag {
+            display: inline-block;
+            background: rgba(254, 240, 138, 0.2);
+            color: #fef08a;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            margin-left: 8px;
+        }
+
+        .widget-status {
+            font-size: 0.85em;
+            opacity: 0.7;
+            margin-top: 12px;
         }
     </style>
 </head>
 
 <body>
-    <div id="empty-state" class="status">
-        <span class="icon-large">👈</span>
-        Select text on the web page to translate
-    </div>
+    <div class="container">
+        <h1>🌏 Quick Translate <span class="feature-tag">SDK Demo</span></h1>
+        <p class="subtitle">Select text on the web page or right-click to translate</p>
 
-    <div id="content" style="display: none;">
-        <div class="card">
-            <div class="label">Original</div>
-            <div id="original-text" class="text-content"></div>
+        <div id="empty-state" class="status">
+            <span class="icon-large">👈</span>
+            Select text on any webpage,<br>
+            then click "Get Selection" or use context menu
         </div>
 
-        <div class="card">
-            <div class="label">Translation (Simulated)</div>
-            <div id="translated-text" class="text-content result"></div>
-        </div>
-    </div>
+        <div id="content" style="display: none;">
+            <div class="card">
+                <div class="label">Original Text</div>
+                <div id="original-text" class="text-content"></div>
+            </div>
 
-    <div class="actions">
-        <button id="btn-fetch">Get Current Selection</button>
+            <div class="card">
+                <div class="label">Translation (Demo)</div>
+                <div id="translated-text" class="text-content result"></div>
+            </div>
+
+            <div id="widget-status" class="widget-status"></div>
+        </div>
+
+        <div class="actions">
+            <button id="btn-fetch" class="primary">📋 Get Selection</button>
+            <button id="btn-bubble">💬 Show Bubble on Page</button>
+            <button id="btn-remove-bubble">✖ Remove Bubble</button>
+        </div>
     </div>
 
     <script>
+        // State
+        let currentWidgetId = null;
+        let lastTranslation = null;
+
+        // DOM refs
+        const emptyState = document.getElementById('empty-state');
+        const content = document.getElementById('content');
+        const originalText = document.getElementById('original-text');
+        const translatedText = document.getElementById('translated-text');
+        const widgetStatus = document.getElementById('widget-status');
+
+        // Event listeners
         document.getElementById('btn-fetch').addEventListener('click', fetchSelection);
+        document.getElementById('btn-bubble').addEventListener('click', showBubbleOnPage);
+        document.getElementById('btn-remove-bubble').addEventListener('click', removeBubble);
+
+        // Mock translation function (in real app, call AI API)
+        function translate(text) {
+            // Simple demo: reverse + add emoji
+            return '🌐 ' + text.split(' ').reverse().join(' ');
+        }
 
         function showTranslation(text) {
             if (!text) return;
 
-            document.getElementById('empty-state').style.display = 'none';
-            document.getElementById('content').style.display = 'block';
-            document.getElementById('original-text').textContent = text;
+            const translated = translate(text);
+            lastTranslation = { original: text, translated };
 
-            // Mock translation logic (reverse string + some fancy unicode for effect)
-            // In a real app config, this would call an API
-            const simulated = "Translation: " + text.split('').reverse().join('');
-            document.getElementById('translated-text').textContent = simulated;
+            emptyState.style.display = 'none';
+            content.style.display = 'block';
+            originalText.textContent = text;
+            translatedText.textContent = translated;
         }
 
         async function fetchSelection() {
             try {
-                // Use new namespace
                 const text = await gemigo.extension.getSelection();
                 if (text) {
                     showTranslation(text);
                 } else {
-                    document.getElementById('original-text').textContent = "(No text selected)";
+                    originalText.textContent = "(No text selected)";
+                    translatedText.textContent = "";
                 }
             } catch (err) {
-                console.error(err);
+                console.error('Selection error:', err);
             }
         }
 
-        // Listen for right-click context menu events
+        // ========== NEW: insertWidget Demo ==========
+        async function showBubbleOnPage() {
+            if (!lastTranslation) {
+                widgetStatus.textContent = '⚠️ Translate some text first!';
+                return;
+            }
+
+            // Remove existing bubble if any
+            if (currentWidgetId) {
+                await gemigo.extension.removeWidget(currentWidgetId);
+            }
+
+            // Create beautiful translation bubble HTML
+            const bubbleHtml = `
+                <div style="
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 16px 20px;
+                    border-radius: 16px;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+                    max-width: 320px;
+                    animation: slideIn 0.3s ease-out;
+                ">
+                    <style>
+                        @keyframes slideIn {
+                            from { opacity: 0; transform: translateY(10px); }
+                            to { opacity: 1; transform: translateY(0); }
+                        }
+                    </style>
+                    <div style="font-size: 0.75em; opacity: 0.7; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em;">
+                        🌏 Translation
+                    </div>
+                    <div style="font-size: 0.9em; opacity: 0.8; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 12px;">
+                        ${escapeHtml(lastTranslation.original.slice(0, 100))}${lastTranslation.original.length > 100 ? '...' : ''}
+                    </div>
+                    <div style="font-size: 1.1em; font-weight: 500;">
+                        ${escapeHtml(lastTranslation.translated)}
+                    </div>
+                    <div style="font-size: 0.7em; opacity: 0.5; margin-top: 12px; text-align: right;">
+                        Powered by GemiGo SDK
+                    </div>
+                </div>
+            `;
+
+            const result = await gemigo.extension.insertWidget(bubbleHtml, 'bottom-right');
+            
+            if (result.success) {
+                currentWidgetId = result.widgetId;
+                widgetStatus.textContent = '✅ Translation bubble shown on page!';
+            } else {
+                widgetStatus.textContent = '❌ Failed: ' + result.error;
+            }
+        }
+
+        async function removeBubble() {
+            if (!currentWidgetId) {
+                widgetStatus.textContent = '⚠️ No bubble to remove';
+                return;
+            }
+
+            const result = await gemigo.extension.removeWidget(currentWidgetId);
+            currentWidgetId = null;
+            widgetStatus.textContent = '🗑️ Bubble removed';
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Listen for context menu events
         gemigo.extension.onContextMenu((event) => {
             if (event.selectionText) {
                 showTranslation(event.selectionText);
             }
         });
 
-        // Initialize: check if there's a pending event from before we opened
+        // Check for pending context menu event on load
         gemigo.extension.getContextMenuEvent().then(res => {
             if (res.success && res.event && res.event.selectionText) {
                 showTranslation(res.event.selectionText);
-            } else {
-                // If opened normally, try to get selection immediately
-                fetchSelection();
             }
         });
+
+        console.log('[Translator App] Loaded with SDK:', gemigo);
     </script>
 </body>
 
