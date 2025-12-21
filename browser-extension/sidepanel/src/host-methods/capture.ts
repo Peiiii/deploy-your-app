@@ -6,14 +6,14 @@
  */
 
 import { captureVisible as captureVisibleMsg } from '../utils/messaging';
-import { hasPermission } from '../utils/permissions';
+import { requirePermission, fail } from '../utils/response';
 import type { AppConfig } from '../types';
 
 export const createCaptureMethods = (app: AppConfig) => ({
   async captureVisible() {
-    if (!hasPermission(app, 'extension.capture')) {
-      return { success: false, error: 'PERMISSION_DENIED' };
-    }
+    const denied = requirePermission(app, 'extension.capture');
+    if (denied) return denied;
+
     try {
       return await captureVisibleMsg<{
         success: boolean;
@@ -21,10 +21,7 @@ export const createCaptureMethods = (app: AppConfig) => ({
         error?: string;
       }>();
     } catch (err) {
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : String(err),
-      };
+      return fail(err instanceof Error ? err.message : String(err));
     }
   },
 });

@@ -7,24 +7,17 @@
 
 import { networkRequest as sendNetworkRequest } from '../utils/messaging';
 import { hasPermission, isUrlAllowed } from '../utils/permissions';
+import { fail } from '../utils/response';
 import type { AppConfig } from '../types';
 
 export const createNetworkMethods = (app: AppConfig) => ({
   async networkRequest(request: { url: string; options?: unknown }) {
     if (!hasPermission(app, 'network')) {
-      return {
-        success: false,
-        code: 'PERMISSION_DENIED',
-        error: 'Network permission denied.',
-      };
+      return fail('Network permission denied.', 'PERMISSION_DENIED');
     }
 
     if (!isUrlAllowed(request.url, app.networkAllowlist)) {
-      return {
-        success: false,
-        code: 'NETWORK_NOT_ALLOWED',
-        error: 'URL not in allowlist.',
-      };
+      return fail('URL not in allowlist.', 'NETWORK_NOT_ALLOWED');
     }
 
     try {
@@ -37,11 +30,7 @@ export const createNetworkMethods = (app: AppConfig) => ({
         code?: string;
       }>(request);
     } catch (err) {
-      return {
-        success: false,
-        code: 'INTERNAL_ERROR',
-        error: err instanceof Error ? err.message : String(err),
-      };
+      return fail(err instanceof Error ? err.message : String(err), 'INTERNAL_ERROR');
     }
   },
 });

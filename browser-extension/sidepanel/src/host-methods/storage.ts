@@ -4,6 +4,8 @@
  * Provides per-app isolated storage using chrome.storage.local.
  */
 
+import { ok, okWith } from '../utils/response';
+
 const storageKey = (appId: string, key: string): string => `app:${appId}:${key}`;
 
 const chromeStorageGet = async (key: string): Promise<unknown | undefined> => {
@@ -33,21 +35,21 @@ const chromeStorageClearPrefix = async (prefix: string): Promise<void> => {
 export const createStorageMethods = (appId: string) => ({
   async storageGet(key: string) {
     const value = await chromeStorageGet(storageKey(appId, key));
-    return { success: true, value };
+    return okWith({ value });
   },
 
   async storageSet(key: string, value: unknown) {
     await chromeStorageSet(storageKey(appId, key), value);
-    return { success: true };
+    return ok();
   },
 
   async storageDelete(key: string) {
     await chromeStorageRemove(storageKey(appId, key));
-    return { success: true };
+    return ok();
   },
 
   async storageClear() {
     await chromeStorageClearPrefix(`app:${appId}:`);
-    return { success: true };
+    return ok();
   },
 });
