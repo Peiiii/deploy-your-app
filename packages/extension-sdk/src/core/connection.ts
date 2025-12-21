@@ -9,6 +9,7 @@ import type {
   Capabilities,
   ContextMenuEvent,
   ExtensionRPCMethods,
+  RPCResult,
 } from '../types';
 
 // ========== RPC Method Interfaces (modular) ==========
@@ -27,16 +28,18 @@ export interface ProtocolRPCMethods {
 
 /**
  * Storage RPC methods
+ * Returns { success, value? } for consistency with Host implementation.
  */
 export interface StorageRPCMethods {
   storageGet(key: string): Promise<{ success: boolean; value?: unknown }>;
-  storageSet(key: string, value: unknown): Promise<{ success: boolean }>;
-  storageDelete(key: string): Promise<{ success: boolean }>;
-  storageClear(): Promise<{ success: boolean }>;
+  storageSet(key: string, value: unknown): Promise<RPCResult>;
+  storageDelete(key: string): Promise<RPCResult>;
+  storageClear(): Promise<RPCResult>;
 }
 
 /**
  * Network RPC methods
+ * Returns { success, status?, headers?, data?, error?, code? }
  */
 export interface NetworkRPCMethods {
   networkRequest(request: {
@@ -63,7 +66,7 @@ export interface NetworkRPCMethods {
  * Notification RPC methods
  */
 export interface NotifyRPCMethods {
-  notify(options: { title: string; message: string }): Promise<{ success: boolean }>;
+  notify(options: { title: string; message: string }): Promise<RPCResult>;
 }
 
 // ========== Combined Host Methods ==========
