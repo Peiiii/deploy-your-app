@@ -81,6 +81,8 @@ export type {
 // Extension API
 export type {
   PageInfo,
+  SelectionRect,
+  SelectionResult,
   ElementInfo,
   ArticleContent,
   LinkInfo,
@@ -93,6 +95,13 @@ export type {
   ContextMenuEvent,
   ContextMenuEventResult,
   CaptureResult,
+  HighlightResult,
+  WidgetResult,
+  CSSResult,
+  ExtractArticleResult,
+  ExtractLinksResult,
+  ExtractImagesResult,
+  QueryElementResult,
   ExtensionAPI,
 } from './extension';
 

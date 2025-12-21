@@ -5,11 +5,27 @@
  */
 
 import { connectToParent, AsyncMethodReturns } from 'penpal';
-import type { ContextMenuEvent } from '../types';
-import type { Capabilities } from '../types';
+import type {
+  Capabilities,
+  ContextMenuEvent,
+  ContextMenuEventResult,
+  PageInfo,
+  SelectionResult,
+  HighlightResult,
+  WidgetResult,
+  WidgetPosition,
+  CSSResult,
+  CaptureResult,
+  ExtractArticleResult,
+  ExtractLinksResult,
+  ExtractImagesResult,
+  QueryElementResult,
+} from '../types';
 
 /**
  * Host methods interface - what the extension provides to apps
+ * 
+ * This is the Penpal RPC contract. Return types should match types/extension.ts
  */
 export interface HostMethods {
   // Handshake / environment info
@@ -21,28 +37,25 @@ export interface HostMethods {
   }>;
 
   // Page info
-  getPageInfo(): Promise<{ url: string; title: string; favIconUrl?: string }>;
+  getPageInfo(): Promise<PageInfo>;
   
   // Page content
   getPageHTML(): Promise<string>;
   getPageText(): Promise<string>;
-  getSelection(): Promise<{
-    text: string;
-    rect: { x: number; y: number; width: number; height: number } | null;
-  }>;
+  getSelection(): Promise<SelectionResult>;
   
   // Page manipulation - highlight
-  highlight(selector: string, color?: string): Promise<{ success: boolean; count?: number; highlightId?: string }>;
-  removeHighlight(highlightId: string): Promise<{ success: boolean }>;
+  highlight(selector: string, color?: string): Promise<HighlightResult>;
+  removeHighlight(highlightId: string): Promise<{ success: boolean; error?: string }>;
   
   // Page manipulation - widget
-  insertWidget(config: { html: string; position: string | { x: number; y: number } }): Promise<{ success: boolean; widgetId?: string; error?: string }>;
+  insertWidget(config: { html: string; position: string | WidgetPosition }): Promise<WidgetResult>;
   updateWidget(widgetId: string, html: string): Promise<{ success: boolean; error?: string }>;
-  removeWidget(widgetId: string): Promise<{ success: boolean }>;
+  removeWidget(widgetId: string): Promise<{ success: boolean; error?: string }>;
   
   // Page manipulation - CSS
-  injectCSS(css: string): Promise<{ success: boolean; styleId?: string; error?: string }>;
-  removeCSS(styleId: string): Promise<{ success: boolean }>;
+  injectCSS(css: string): Promise<CSSResult>;
+  removeCSS(styleId: string): Promise<{ success: boolean; error?: string }>;
   
   // Notifications
   notify(options: { title: string; message: string }): Promise<{ success: boolean }>;
@@ -74,42 +87,16 @@ export interface HostMethods {
   }>;
   
   // Screenshot
-  captureVisible(): Promise<{ success: boolean; dataUrl?: string; error?: string }>;
+  captureVisible(): Promise<CaptureResult>;
   
-  // Article extraction
-  extractArticle(): Promise<{
-    success: boolean;
-    title?: string;
-    content?: string;
-    excerpt?: string;
-    url?: string;
-  }>;
-  
-  // Page data extraction
-  extractLinks(): Promise<{
-    success: boolean;
-    links?: { href: string; text: string; title?: string }[];
-    error?: string;
-  }>;
-  
-  extractImages(): Promise<{
-    success: boolean;
-    images?: { src: string; alt?: string; width?: number; height?: number }[];
-    error?: string;
-  }>;
-  
-  queryElement(selector: string, limit?: number): Promise<{
-    success: boolean;
-    elements?: { tagName: string; text: string; attributes: Record<string, string> }[];
-    count?: number;
-    error?: string;
-  }>;
+  // Content extraction
+  extractArticle(): Promise<ExtractArticleResult>;
+  extractLinks(): Promise<ExtractLinksResult>;
+  extractImages(): Promise<ExtractImagesResult>;
+  queryElement(selector: string, limit?: number): Promise<QueryElementResult>;
   
   // Context menu
-  getContextMenuEvent(): Promise<{
-    success: boolean;
-    event?: ContextMenuEvent;
-  }>;
+  getContextMenuEvent(): Promise<ContextMenuEventResult>;
 }
 
 /**
@@ -117,7 +104,11 @@ export interface HostMethods {
  */
 export interface ChildMethods {
   onContextMenuEvent(event: ContextMenuEvent): void;
-  onSelectionChange?(text: string, rect: { x: number; y: number; width: number; height: number } | null, url?: string): void;
+  onSelectionChange?(
+    text: string,
+    rect: { x: number; y: number; width: number; height: number } | null,
+    url?: string
+  ): void;
 }
 
 // Singleton connection promise
