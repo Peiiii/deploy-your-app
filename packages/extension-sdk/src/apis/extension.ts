@@ -111,6 +111,28 @@ export const extensionAPI = {
   removeCSS: (styleId: string): Promise<{ success: boolean }> =>
     getHost().then(host => host.removeCSS(styleId)),
 
+  // ========== Page Data Extraction ==========
+
+  /**
+   * Extract all links from the page
+   */
+  extractLinks: () =>
+    getHost().then(host => host.extractLinks()),
+
+  /**
+   * Extract all images from the page
+   */
+  extractImages: () =>
+    getHost().then(host => host.extractImages()),
+
+  /**
+   * Query elements by CSS selector
+   * @param selector - CSS selector
+   * @param limit - Max number of results (default 100)
+   */
+  queryElement: (selector: string, limit?: number) =>
+    getHost().then(host => host.queryElement(selector, limit)),
+
   // ========== Screenshots ==========
 
   /**

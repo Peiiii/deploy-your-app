@@ -62,3 +62,17 @@ pnpm --filter gemigo-desktop dev       # 构建后启动 Electron，加载远程
 注意：
 - 未做签名/公证的安装包在 macOS/Windows 可能会被系统拦截，需要用户手动“仍要打开”；正式发版建议补齐签名（mac notarization / Windows code signing）。
 - 我们使用 GitHub Actions 统一上传 Release 附件；`electron-builder` 在 CI 下默认会尝试自动 publish，为避免多端并发上传冲突，已强制 `--publish never`。
+- 需要完整的“如何获取证书/Team ID/配置 GitHub Secrets”的操作说明：见 `docs/DESKTOP_RELEASE.md`。
+
+### macOS 提示“已损坏，无法打开”
+
+这是 macOS Gatekeeper 对**未签名/未公证**应用的常见提示（尤其是从浏览器下载的 `.dmg/.zip`）。
+
+临时本地测试（仅用于你自己验证）：
+- 把 App 拖到 `/Applications` 后执行：`xattr -dr com.apple.quarantine "/Applications/Gemigo Desktop.app"`，再尝试打开。
+
+正式对外发布（推荐）：
+- 需要 Apple Developer Program 的 **Developer ID Application** 证书 + notarization。
+- 本仓库已支持在 Release 构建时自动签名/公证（见 `.github/workflows/desktop-release.yml`），需要配置 Secrets：
+  - `MACOS_CERTIFICATE_P12_BASE64` / `MACOS_CERTIFICATE_PASSWORD`
+  - `APPLE_ID` / `APPLE_APP_SPECIFIC_PASSWORD` / `APPLE_TEAM_ID`

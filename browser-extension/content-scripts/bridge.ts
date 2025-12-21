@@ -207,6 +207,75 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       }
       break;
 
+    case 'EXTRACT_LINKS': {
+      try {
+        const links: { href: string; text: string; title?: string }[] = [];
+        document.querySelectorAll('a[href]').forEach((el) => {
+          const anchor = el as HTMLAnchorElement;
+          // Skip internal anchors and javascript:
+          if (anchor.href && !anchor.href.startsWith('javascript:')) {
+            links.push({
+              href: anchor.href,
+              text: anchor.textContent?.trim() || '',
+              title: anchor.title || undefined,
+            });
+          }
+        });
+        sendResponse({ success: true, links });
+      } catch (e) {
+        sendResponse({ success: false, error: String(e) });
+      }
+      break;
+    }
+
+    case 'EXTRACT_IMAGES': {
+      try {
+        const images: { src: string; alt?: string; width?: number; height?: number }[] = [];
+        document.querySelectorAll('img[src]').forEach((el) => {
+          const img = el as HTMLImageElement;
+          if (img.src) {
+            images.push({
+              src: img.src,
+              alt: img.alt || undefined,
+              width: img.naturalWidth || undefined,
+              height: img.naturalHeight || undefined,
+            });
+          }
+        });
+        sendResponse({ success: true, images });
+      } catch (e) {
+        sendResponse({ success: false, error: String(e) });
+      }
+      break;
+    }
+
+    case 'QUERY_ELEMENT': {
+      try {
+        const elements = document.querySelectorAll(message.selector);
+        const results: { tagName: string; text: string; attributes: Record<string, string> }[] = [];
+        
+        elements.forEach((el, index) => {
+          if (index >= (message.limit || 100)) return;
+          
+          const attrs: Record<string, string> = {};
+          for (const attr of el.attributes) {
+            attrs[attr.name] = attr.value;
+          }
+          
+          results.push({
+            tagName: el.tagName.toLowerCase(),
+            text: el.textContent?.trim().slice(0, 200) || '',
+            attributes: attrs,
+          });
+        });
+        
+        sendResponse({ success: true, elements: results, count: elements.length });
+      } catch (e) {
+        sendResponse({ success: false, error: String(e) });
+      }
+      break;
+    }
+
     default:
       sendResponse({ error: 'Unknown message type: ' + message.type });
   }
@@ -214,17 +283,26 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   return true; // Async response
 });
 
-// Listen for selection changes (optional, for future use)
+// Selection change tracking
 let selectionTimeout: number | null = null;
+let lastSelection = '';
+
 document.addEventListener('selectionchange', () => {
   if (selectionTimeout) {
     clearTimeout(selectionTimeout);
   }
   selectionTimeout = window.setTimeout(() => {
-    const selection = window.getSelection()?.toString();
-    if (selection && selection.length > 0) {
-      // Can send to Service Worker
-      // chrome.runtime.sendMessage({ type: 'SELECTION_CHANGED', selection });
+    const selection = window.getSelection()?.toString() || '';
+    // Only send if selection changed
+    if (selection !== lastSelection) {
+      lastSelection = selection;
+      if (selection.length > 0) {
+        chrome.runtime.sendMessage({ 
+          type: 'SELECTION_CHANGED', 
+          selection,
+          url: window.location.href 
+        });
+      }
     }
   }, 300);
 });

@@ -100,6 +100,11 @@
         <button class="btn" onclick="testInjectCSS()">Inject CSS</button>
         <button class="btn" onclick="testRemoveCSS()">Remove CSS</button>
     </div>
+    <div class="btn-group">
+        <button class="btn" onclick="testExtractLinks()">Extract Links</button>
+        <button class="btn" onclick="testExtractImages()">Extract Images</button>
+        <button class="btn" onclick="testQueryElement()">Query Elements</button>
+    </div>
 
     <div class="result" id="result">Click a button to test SDK API...</div>
     <img id="screenshot" class="screenshot" style="display:none" />
@@ -252,6 +257,30 @@
                 currentHighlightId = result.highlightId;
             }
             showResult('highlight()', result);
+        }
+
+        // ========== P2 API Tests ==========
+        async function testExtractLinks() {
+            const result = await gemigo.extension.extractLinks();
+            showResult('extractLinks()', {
+                success: result.success,
+                count: result.links?.length || 0,
+                sample: result.links?.slice(0, 5)
+            });
+        }
+
+        async function testExtractImages() {
+            const result = await gemigo.extension.extractImages();
+            showResult('extractImages()', {
+                success: result.success,
+                count: result.images?.length || 0,
+                sample: result.images?.slice(0, 5)
+            });
+        }
+
+        async function testQueryElement() {
+            const result = await gemigo.extension.queryElement('h1, h2, h3, p', 10);
+            showResult('queryElement()', result);
         }
     </script>
 </body>

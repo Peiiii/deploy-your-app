@@ -47,6 +47,26 @@ export interface HostMethods {
     url?: string;
   }>;
   
+  // Page data extraction
+  extractLinks(): Promise<{
+    success: boolean;
+    links?: { href: string; text: string; title?: string }[];
+    error?: string;
+  }>;
+  
+  extractImages(): Promise<{
+    success: boolean;
+    images?: { src: string; alt?: string; width?: number; height?: number }[];
+    error?: string;
+  }>;
+  
+  queryElement(selector: string, limit?: number): Promise<{
+    success: boolean;
+    elements?: { tagName: string; text: string; attributes: Record<string, string> }[];
+    count?: number;
+    error?: string;
+  }>;
+  
   // Context menu
   getContextMenuEvent(): Promise<{
     success: boolean;

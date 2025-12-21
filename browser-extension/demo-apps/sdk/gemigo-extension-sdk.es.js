@@ -258,6 +258,9 @@ const extensionAPI = {
 	removeWidget: (e) => getHost().then((v) => v.removeWidget(e)),
 	injectCSS: (e) => getHost().then((v) => v.injectCSS(e)),
 	removeCSS: (e) => getHost().then((v) => v.removeCSS(e)),
+	extractLinks: () => getHost().then((e) => e.extractLinks()),
+	extractImages: () => getHost().then((e) => e.extractImages()),
+	queryElement: (e, v) => getHost().then((y) => y.queryElement(e, v)),
 	captureVisible: () => getHost().then((e) => e.captureVisible()),
 	getContextMenuEvent: () => getHost().then((e) => e.getContextMenuEvent()),
 	onContextMenu: (e) => (getHost(), on("contextMenu", e))

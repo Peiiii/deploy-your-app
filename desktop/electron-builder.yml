@@ -4,6 +4,7 @@ protocols:
   name: Gemigo Desktop
   schemes:
     - gemigo-desktop
+afterSign: scripts/notarize.cjs
 files:
   - dist/**
   - package.json
@@ -12,6 +13,7 @@ directories:
 asar: true
 npmRebuild: false
 mac:
+  hardenedRuntime: true
   target:
     - dmg
     - zip

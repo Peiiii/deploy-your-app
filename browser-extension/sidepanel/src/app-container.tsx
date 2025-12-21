@@ -163,6 +163,51 @@ const createHostMethods = () => ({
     });
   },
 
+  // Extract all links from page
+  async extractLinks() {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        {
+          type: 'EXECUTE_IN_PAGE',
+          payload: { type: 'EXTRACT_LINKS' },
+        },
+        (response) => {
+          resolve(response);
+        }
+      );
+    });
+  },
+
+  // Extract all images from page
+  async extractImages() {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        {
+          type: 'EXECUTE_IN_PAGE',
+          payload: { type: 'EXTRACT_IMAGES' },
+        },
+        (response) => {
+          resolve(response);
+        }
+      );
+    });
+  },
+
+  // Query elements by selector
+  async queryElement(selector: string, limit?: number) {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        {
+          type: 'EXECUTE_IN_PAGE',
+          payload: { type: 'QUERY_ELEMENT', selector, limit },
+        },
+        (response) => {
+          resolve(response);
+        }
+      );
+    });
+  },
+
   // Send notification via Service Worker
   async notify(options: { title: string; message: string }) {
     return new Promise((resolve) => {
