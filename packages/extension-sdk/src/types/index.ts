@@ -15,7 +15,7 @@ export type {
   NotifyAction,
   NotifyOptions,
   NotifyResult,
-  NotifyAPI,
+  NotifyFn,
   NotificationActionHandler,
 } from './notify';
 

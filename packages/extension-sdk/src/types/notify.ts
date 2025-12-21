@@ -26,22 +26,8 @@ export interface NotifyResult {
   reason?: string;
 }
 
-/** Notify API */
-export interface NotifyAPI {
-  /**
-   * Send a system notification
-   * @param options - Notification options
-   * @returns Result indicating success or failure
-   */
-  (options: NotifyOptions): Promise<NotifyResult>;
-
-  /**
-   * Backward-compatible signature
-   * @param title - Notification title
-   * @param message - Notification body
-   */
-  (title: string, message: string): Promise<NotifyResult>;
-}
+/** Notify function signature */
+export type NotifyFn = (options: NotifyOptions) => Promise<NotifyResult>;
 
 /** Notification action handler */
 export type NotificationActionHandler = (actionId: string, callback: () => void) => () => void;

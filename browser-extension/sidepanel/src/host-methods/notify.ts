@@ -4,11 +4,14 @@
  * Send notifications using Chrome Notifications API.
  */
 
-import { ok, fail } from '../utils/response';
-
 export const createNotifyMethods = () => ({
   async notify(options: { title: string; message: string }) {
-    return new Promise<{ success: boolean }>((resolve) => {
+    return new Promise<{ success: boolean; error?: string }>((resolve) => {
+      if (!options?.title || !options?.message) {
+        resolve({ success: false, error: 'Missing title or message' });
+        return;
+      }
+
       const notificationId = `gemigo-${Date.now()}`;
       chrome.notifications.create(
         notificationId,
@@ -20,10 +23,9 @@ export const createNotifyMethods = () => ({
         },
         () => {
           if (chrome.runtime.lastError) {
-            console.error('[GemiGo] Notification error:', chrome.runtime.lastError);
-            resolve(fail('Notification failed'));
+            resolve({ success: false, error: chrome.runtime.lastError.message });
           } else {
-            resolve(ok());
+            resolve({ success: true });
           }
         }
       );

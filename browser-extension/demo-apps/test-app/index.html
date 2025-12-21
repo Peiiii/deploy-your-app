@@ -178,8 +178,8 @@
         }
 
         async function testNotify() {
-            // Common API - no change
-            const result = await gemigo.notify('GemiGo Notification', 'This is a test notification!');
+            // Common API - uses options object
+            const result = await gemigo.notify({ title: 'GemiGo Notification', body: 'This is a test notification!' });
             showResult('notify()', result);
         }
 
