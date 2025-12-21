@@ -78,9 +78,11 @@ function App() {
 
   // Add new app
   const handleAddApp = (app: Omit<InstalledApp, 'id'>) => {
+    if (installedApps.some((installed) => installed.url === app.url)) return;
+
     const newApp: InstalledApp = {
       ...app,
-      id: `custom-${Date.now()}`,
+      id: `custom-${encodeURIComponent(app.url)}`,
     };
     saveApps([...installedApps, newApp]);
     setShowAddModal(false);
@@ -92,7 +94,7 @@ function App() {
     if (installedApps.some(app => app.url === marketApp.url)) return;
 
     const newApp: InstalledApp = {
-      id: `app-${Date.now()}`,
+      id: `market-${encodeURIComponent(marketApp.url)}`,
       name: marketApp.name,
       description: marketApp.description,
       icon: marketApp.icon,

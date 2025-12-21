@@ -5,6 +5,11 @@ on:
     branches:
       - main
       - master
+    paths:
+      - Dockerfile
+      - server/**
+      - scripts/deploy.sh
+      - .github/workflows/deploy.yml
   workflow_dispatch:
 
 jobs:
