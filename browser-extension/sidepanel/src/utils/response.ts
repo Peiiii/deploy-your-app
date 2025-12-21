@@ -5,6 +5,7 @@
  */
 
 import { hasPermission as checkPermission } from './permissions';
+import type { RPCResult } from '@gemigo/app-sdk';
 import type { AppConfig, AppPermission } from '../types';
 
 // ========== Response Helpers ==========
@@ -17,7 +18,7 @@ export const ok = () => ({ success: true as const });
 /**
  * Success response with data.
  */
-export const okWith = <T extends object>(data: T) => ({ success: true as const, ...data });
+export const okWith = <T>(data: T): RPCResult<T> => ({ success: true, data });
 
 /**
  * Failure response.

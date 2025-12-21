@@ -23,38 +23,38 @@ export interface ProtocolRPCMethods {
     appId: string;
     capabilities: Capabilities;
   }>;
+  ping(): Promise<{ pong: boolean }>;
 }
 
 export interface StorageRPCMethods {
-  storageGet(key: string): Promise<{ success: boolean; value?: unknown }>;
+  storageGet(key: string): Promise<{ success: boolean; data?: unknown }>;
   storageSet(key: string, value: unknown): Promise<RPCResult>;
   storageDelete(key: string): Promise<RPCResult>;
   storageClear(): Promise<RPCResult>;
 }
 
 export interface NetworkRPCMethods {
-  networkRequest(request: {
-    url: string;
+  networkRequest(
+    url: string,
     options?: {
       method?: string;
       headers?: Record<string, string>;
       body?: string | object;
       responseType?: 'json' | 'text' | 'arraybuffer';
       timeoutMs?: number;
-      maxBytes?: number;
-    };
-  }): Promise<{
+    }
+  ): Promise<{
     success: boolean;
     status?: number;
     headers?: Record<string, string>;
-    data?: unknown;
+    data?: any;
     error?: string;
     code?: string;
   }>;
 }
 
 export interface NotifyRPCMethods {
-  notify(options: { title: string; message: string }): Promise<RPCResult>;
+  notify(payload: { title: string; message: string }): Promise<RPCResult<string>>;
 }
 
 /**
@@ -174,4 +174,49 @@ export function initConnection(
 ): void {
   defaultChildMethods = childMethods;
   tryGetHost(childMethods, options);
+}
+
+/**
+ * Generic host call with optional fallback.
+ */
+export async function callHost<T>(
+  methodName: keyof HostMethods,
+  args: any[] = [],
+  fallback?: (...args: any[]) => T | Promise<T>
+): Promise<T> {
+  const host = await tryGetHost();
+  if (host && typeof (host as any)[methodName] === 'function') {
+    const res = await (host as any)[methodName](...args);
+    // Success/Value unwrapping (matches Host side ok/okWith)
+    if (res?.success !== false) {
+      // Prioritize .data (standard RPCResult), then .value (legacy), then res itself
+      const val = res?.data !== undefined ? res.data : (res?.value !== undefined ? res.value : res);
+      return val as T;
+    }
+    // If explicitly failed and there's a fallback, use it. Otherwise throw.
+    if (fallback) return fallback(...args);
+    throw new Error(res?.error || `Host method ${String(methodName)} failed`);
+  }
+
+  if (fallback) return fallback(...args);
+  throw new Error(`Method ${String(methodName)} not supported in this environment`);
+}
+
+/**
+ * Create a simple RPC proxy for a set of methods.
+ */
+export function createRPCProxy<T extends Record<string, any>>(
+  methodNames: readonly string[],
+  config: {
+    mapping?: Record<string, keyof HostMethods>;
+    fallbacks?: Record<string, (...args: any[]) => any>;
+  } = {}
+): T {
+  const proxy: any = {};
+  for (const name of methodNames) {
+    const hostMethod = config.mapping?.[name] || (name as keyof HostMethods);
+    const fallback = config.fallbacks?.[name];
+    proxy[name] = (...args: any[]) => callHost(hostMethod, args, fallback);
+  }
+  return proxy as T;
 }

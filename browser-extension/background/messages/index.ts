@@ -1,18 +1,154 @@
 /**
- * Background Messages Index
+ * Background Messages - Unified Handlers
+ *
+ * Declarative configuration with simple and special handlers.
+ * Strictly implements relevant parts of HostMethods and ChildMethods.
  */
 
-import type { MessageHandlerMap } from '../types';
-import { pageMessages } from './page';
-import { networkMessages } from './network';
-import { captureMessages } from './capture';
-import { contextMenuMessages } from './context-menu';
+import type { HostMethods, ChildMethods, RPCResult } from '@gemigo/app-sdk';
+import { getActiveTab } from '../utils/tab';
 
-export { setPendingContextMenuEvent } from './context-menu';
+// ========== Simple Handlers ==========
 
-export const allMessages: MessageHandlerMap = {
-  ...pageMessages,
-  ...networkMessages,
-  ...captureMessages,
-  ...contextMenuMessages,
+const simpleHandlers = {
+  getPageInfo: async () => {
+    const tab = await getActiveTab();
+    return tab ? { url: tab.url || '', title: tab.title || '', favIconUrl: tab.favIconUrl } : null;
+  },
+
+  // EXECUTE_IN_PAGE is now handled by transparent routing
+
+  captureVisible: async () => {
+    const tab = await getActiveTab();
+    if (!tab?.id) return { success: false, error: 'No active tab' };
+    try {
+      const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' });
+      return { success: true, dataUrl };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    }
+  },
+
+  notify: (payload: { title: string; message: string }) =>
+    new Promise<RPCResult<string>>((resolve) => {
+      chrome.notifications.create(
+        `gemigo-${Date.now()}`,
+        {
+          type: 'basic',
+          iconUrl: chrome.runtime.getURL('icons/icon48.png'),
+          title: payload.title || 'GemiGo',
+          message: payload.message || '',
+        },
+        (notificationId) => resolve({ success: true, data: notificationId })
+      );
+    }),
+
+  onSelectionChange: (text: string, rect: any, url: string) => {
+    chrome.runtime
+      .sendMessage({ type: 'onSelectionChange', payload: [text, rect, url] })
+      .catch(() => {});
+    return undefined;
+  },
+
+  onContextMenuEvent: (event: any) => {
+    chrome.runtime.sendMessage({ type: 'onContextMenuEvent', payload: [event] }).catch(() => {});
+    return undefined;
+  },
+
+  ping: async () => ({ pong: true }),
+};
+
+// ========== Network Handler ==========
+
+async function handleNetworkRequest(
+  url: string,
+  options?: {
+    method?: string;
+    headers?: Record<string, string>;
+    body?: string | object;
+    responseType?: 'json' | 'text' | 'arraybuffer';
+    timeoutMs?: number;
+  }
+) {
+  const method = options?.method || 'GET';
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), options?.timeoutMs || 30000);
+
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: options?.headers,
+      body: options?.body ? (typeof options.body === 'string' ? options.body : JSON.stringify(options.body)) : undefined,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    const headers: Record<string, string> = {};
+    response.headers.forEach((v, k) => (headers[k] = v));
+
+    let data;
+    if (options?.responseType === 'arraybuffer') {
+      data = await response.arrayBuffer();
+    } else if (options?.responseType === 'text') {
+      data = await response.text();
+    } else {
+      try {
+        data = await response.json();
+      } catch {
+        data = await response.text();
+      }
+    }
+
+    return { success: true, status: response.status, headers, data };
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (String(err).includes('AbortError')) {
+      return { success: false, code: 'TIMEOUT', error: 'Request timed out.' };
+    }
+    return { success: false, code: 'FETCH_ERROR', error: String(err) };
+  }
+}
+
+// ========== Context Menu Handler ==========
+
+let pendingContextMenuEvent: { menuId: string; selectionText?: string; pageUrl?: string; timestamp: number } | null =
+  null;
+
+export function setPendingContextMenuEvent(
+  event: { menuId: string; selectionText?: string; pageUrl?: string; timestamp: number } | null
+) {
+  pendingContextMenuEvent = event;
+}
+
+async function handleContextMenuEvent() {
+  let event = pendingContextMenuEvent;
+  if (!event) {
+    const stored = await chrome.storage.local.get(['pendingContextMenuEvent']);
+    event = stored.pendingContextMenuEvent;
+  }
+  if (event && Date.now() - event.timestamp < 30000) {
+    pendingContextMenuEvent = null;
+    await chrome.storage.local.remove(['pendingContextMenuEvent']);
+    return { success: true, event };
+  }
+  return { success: true, event: undefined };
+}
+
+// ========== Special Handlers ==========
+
+const specialHandlers = {
+  networkRequest: handleNetworkRequest,
+  getContextMenuEvent: handleContextMenuEvent,
+};
+
+// ========== Export ==========
+
+/**
+ * Registry of all messages handled by the background script.
+ * Strictly typed as a subset of HostMethods and ChildMethods.
+ */
+export const allMessages: Partial<HostMethods & ChildMethods> = {
+  ...simpleHandlers,
+  ...specialHandlers,
 };

@@ -146,7 +146,7 @@ export interface QueryElementResult {
  * HostMethods extends this interface.
  */
 export interface ExtensionRPCMethods {
-  getPageInfo(): Promise<PageInfo>;
+  getPageInfo(): Promise<PageInfo | null>;
   getPageHTML(): Promise<string>;
   getPageText(): Promise<string>;
   getSelection(): Promise<SelectionResult>;

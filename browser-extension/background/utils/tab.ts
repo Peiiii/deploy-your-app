@@ -9,7 +9,7 @@ export async function getActiveTab(): Promise<chrome.tabs.Tab | null> {
 
 export async function ensureContentScript(tabId: number): Promise<boolean> {
   try {
-    const response = await chrome.tabs.sendMessage(tabId, { type: 'PING' });
+    const response = await chrome.tabs.sendMessage(tabId, { type: 'ping' });
     return response?.pong === true;
   } catch {
     try {

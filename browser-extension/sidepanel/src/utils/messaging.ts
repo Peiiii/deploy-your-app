@@ -1,17 +1,33 @@
 /**
  * Chrome Runtime Messaging Utilities
  * 
- * Provides type-safe wrappers around chrome.runtime.sendMessage
- * with proper error handling.
+ * Provides a generic, type-safe wrapper around chrome.runtime.sendMessage.
+ * Completely decoupled from specific API business logic.
  */
 
+import type { HostMethods } from '@gemigo/app-sdk';
+
 /**
- * Send a message to the service worker and wait for response.
- * Rejects if chrome.runtime.lastError is set.
+ * Message Routing Direction
  */
-export const sendMessage = <T>(message: unknown): Promise<T> =>
+export type Routing = 'background' | 'content-script';
+
+/**
+ * Standard RPC Request Structure
+ */
+export interface RPCRequest {
+  type: keyof HostMethods | string;
+  payload?: any[];
+  routing?: Routing;
+}
+
+/**
+ * Send a message to the browser extension environment and wait for response.
+ * Completely generic and used by Host Method factories to route calls.
+ */
+export const sendMessage = <T>(request: RPCRequest): Promise<T> =>
   new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage(message, (response) => {
+    chrome.runtime.sendMessage(request, (response) => {
       if (chrome.runtime.lastError) {
         reject(new Error(chrome.runtime.lastError.message));
       } else {
@@ -19,42 +35,3 @@ export const sendMessage = <T>(message: unknown): Promise<T> =>
       }
     });
   });
-
-/**
- * Execute a command in the active tab's page context via content script.
- */
-export const executeInPage = <T>(
-  type: string,
-  payload?: Record<string, unknown>
-): Promise<T> =>
-  sendMessage<T>({
-    type: 'EXECUTE_IN_PAGE',
-    payload: { type, ...payload },
-  });
-
-/**
- * Get info about the current page (URL, title, favicon).
- */
-export const getPageInfo = <T>(): Promise<T> =>
-  sendMessage<T>({ type: 'GET_PAGE_INFO' });
-
-/**
- * Capture visible tab screenshot.
- */
-export const captureVisible = <T>(): Promise<T> =>
-  sendMessage<T>({ type: 'CAPTURE_VISIBLE' });
-
-/**
- * Send a network request via service worker proxy.
- */
-export const networkRequest = <T>(payload: {
-  url: string;
-  options?: unknown;
-}): Promise<T> =>
-  sendMessage<T>({ type: 'NETWORK_REQUEST', payload });
-
-/**
- * Show a notification via service worker.
- */
-export const notify = <T>(options: { title: string; message: string }): Promise<T> =>
-  sendMessage<T>({ type: 'NOTIFY', ...options });

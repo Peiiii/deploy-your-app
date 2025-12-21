@@ -10,11 +10,12 @@ console.log('[GemiGo] Content script loaded on:', window.location.href);
 
 // Message dispatcher
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  const handler = allMessages[message.type];
+  const handler = (allMessages as any)[message.type];
 
   if (handler) {
     try {
-      const result = handler(message, sender);
+      const args = Array.isArray(message.payload) ? message.payload : [];
+      const result = (handler as any)(...args, sender);
       if (result instanceof Promise) {
         result.then(sendResponse).catch((e) => sendResponse({ error: String(e) }));
         return true;
@@ -62,9 +63,7 @@ document.addEventListener('selectionchange', () => {
 
       chrome.runtime.sendMessage({
         type: 'SELECTION_CHANGED',
-        text,
-        rect,
-        url: window.location.href,
+        payload: [text, rect, window.location.href],
       });
     }
   }, 300);
