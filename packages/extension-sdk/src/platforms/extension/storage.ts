@@ -1,14 +1,24 @@
 /**
- * Extension Storage Adapter
- *
- * Uses Host RPC for storage in browser extension environment.
+ * Extension Platform - Storage Implementation
+ * 
+ * Uses Host RPC for chrome.storage access.
  */
 
-import { getHost } from '../../../core';
-import { throwNotSupported, SDKError } from '../../platform';
-import type { StorageAdapter } from './types';
+import { getHost } from './connection';
+import type { StorageAPI } from '../../types';
 
-export const extensionStorageAdapter: StorageAdapter = {
+class SDKError extends Error {
+  constructor(public code: string, message: string) {
+    super(message);
+    this.name = 'SDKError';
+  }
+}
+
+const throwNotSupported = (feature: string): never => {
+  throw new SDKError('NOT_SUPPORTED', `${feature} is not supported.`);
+};
+
+export const extensionStorage: StorageAPI = {
   get: async <T = unknown>(key: string): Promise<T | null> => {
     const host = await getHost();
     if (typeof host.storageGet !== 'function') {

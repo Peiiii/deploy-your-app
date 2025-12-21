@@ -1,10 +1,10 @@
 /**
- * Web Storage Adapter
+ * Common Storage Implementation
  *
- * Uses localStorage for persistent storage in web environment.
+ * localStorage-based storage that can be used by web and as fallback.
  */
 
-import type { StorageAdapter } from './types';
+import type { StorageAPI } from '../../types';
 
 const localStoragePrefix = (): string => {
   const origin =
@@ -12,7 +12,11 @@ const localStoragePrefix = (): string => {
   return `gemigo:${origin}:`;
 };
 
-export const webStorageAdapter: StorageAdapter = {
+/**
+ * localStorage-based storage implementation.
+ * Used by web platform and as fallback for other platforms.
+ */
+export const localStorageImpl: StorageAPI = {
   get: async <T = unknown>(key: string): Promise<T | null> => {
     if (typeof window === 'undefined' || !window.localStorage) return null;
     const raw = window.localStorage.getItem(`${localStoragePrefix()}${key}`);

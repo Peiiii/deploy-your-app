@@ -1,9 +1,8 @@
 /**
- * Core module exports
+ * Core Module
+ *
+ * Re-exports from platforms for backward compatibility.
  */
 
-export { getHost, initConnection } from './connection';
-export type { HostMethods, ChildMethods } from './connection';
-
-export { on, emit, getChildMethods } from './event-bus';
-export type { EventHandlerMap, EventName } from './event-bus';
+export { getHost, initConnection } from '../platforms';
+export type { HostMethods, ChildMethods } from '../platforms';

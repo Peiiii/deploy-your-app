@@ -1,7 +1,8 @@
 /**
- * Penpal Connection Management
- * 
- * Handles the iframe-to-parent communication channel using penpal.
+ * Extension Platform - Penpal Connection
+ *
+ * Handles iframe-to-parent communication using Penpal.
+ * Moved from core/connection.ts for platform organization.
  */
 
 import { connectToParent, AsyncMethodReturns } from 'penpal';
@@ -10,13 +11,10 @@ import type {
   ContextMenuEvent,
   ExtensionRPCMethods,
   RPCResult,
-} from '../types';
+} from '../../types';
 
-// ========== RPC Method Interfaces (modular) ==========
+// ========== RPC Method Interfaces ==========
 
-/**
- * Protocol handshake methods
- */
 export interface ProtocolRPCMethods {
   getProtocolInfo(): Promise<{
     protocolVersion: number;
@@ -26,10 +24,6 @@ export interface ProtocolRPCMethods {
   }>;
 }
 
-/**
- * Storage RPC methods
- * Returns { success, value? } for consistency with Host implementation.
- */
 export interface StorageRPCMethods {
   storageGet(key: string): Promise<{ success: boolean; value?: unknown }>;
   storageSet(key: string, value: unknown): Promise<RPCResult>;
@@ -37,10 +31,6 @@ export interface StorageRPCMethods {
   storageClear(): Promise<RPCResult>;
 }
 
-/**
- * Network RPC methods
- * Returns { success, status?, headers?, data?, error?, code? }
- */
 export interface NetworkRPCMethods {
   networkRequest(request: {
     url: string;
@@ -62,20 +52,10 @@ export interface NetworkRPCMethods {
   }>;
 }
 
-/**
- * Notification RPC methods
- */
 export interface NotifyRPCMethods {
   notify(options: { title: string; message: string }): Promise<RPCResult>;
 }
 
-// ========== Combined Host Methods ==========
-
-/**
- * Host methods interface - what the extension provides to apps
- *
- * Composed from modular RPC method interfaces for extensibility.
- */
 export interface HostMethods extends 
   ExtensionRPCMethods,
   ProtocolRPCMethods,
@@ -83,11 +63,6 @@ export interface HostMethods extends
   NetworkRPCMethods,
   NotifyRPCMethods {}
 
-// ========== Child Methods ==========
-
-/**
- * Child methods interface - what apps expose to the extension host
- */
 export interface ChildMethods {
   onContextMenuEvent(event: ContextMenuEvent): void;
   onSelectionChange?(
@@ -112,9 +87,6 @@ function isInIframe(): boolean {
   }
 }
 
-/**
- * Get or create connection to parent (extension host)
- */
 export function getHost(
   childMethods?: ChildMethods,
   options?: { timeoutMs?: number }
@@ -143,9 +115,6 @@ export function getHost(
   return connectionPromise;
 }
 
-/**
- * Initialize connection immediately (for faster first call)
- */
 export function initConnection(
   childMethods?: ChildMethods,
   options?: { timeoutMs?: number }
