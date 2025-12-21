@@ -10,6 +10,7 @@
 import {
   webAdapter,
   extensionAdapter,
+  desktopAdapter,
   initExtensionPlatform,
 } from './platforms';
 import type { PlatformAdapter } from './platforms';
@@ -56,8 +57,7 @@ const getAdapter = (): PlatformAdapter => {
     case 'extension':
       return extensionAdapter;
     case 'desktop':
-      // TODO: implement desktop adapter
-      return webAdapter;
+      return desktopAdapter;
     case 'web':
     default:
       return webAdapter;

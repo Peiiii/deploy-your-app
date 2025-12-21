@@ -10,3 +10,4 @@ export { localStorageImpl, webNotifyImpl } from './common';
 export { webAdapter } from './web';
 export { extensionAdapter, initExtensionPlatform, getHost, initConnection } from './extension';
 export type { HostMethods, ChildMethods } from './extension';
+export { desktopAdapter } from './desktop';
