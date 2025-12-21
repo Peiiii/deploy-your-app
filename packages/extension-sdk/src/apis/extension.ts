@@ -7,6 +7,27 @@
 import { getHost, on } from '../core';
 import type { ContextMenuEvent, ContextMenuEventResult, CaptureResult } from '../types';
 
+/** Widget insertion result */
+export interface WidgetResult {
+  success: boolean;
+  widgetId?: string;
+  error?: string;
+}
+
+/** CSS injection result */
+export interface CSSResult {
+  success: boolean;
+  styleId?: string;
+  error?: string;
+}
+
+/** Highlight result with cleanup ID */
+export interface HighlightResult {
+  success: boolean;
+  count?: number;
+  highlightId?: string;
+}
+
 /**
  * Extension API object
  */
@@ -38,13 +59,57 @@ export const extensionAPI = {
    */
   extractArticle: () => getHost().then(host => host.extractArticle()),
 
-  // ========== Page Manipulation ==========
+  // ========== Page Manipulation - Highlight ==========
 
   /**
    * Highlight elements matching selector
+   * @returns Result with highlightId for cleanup
    */
-  highlight: (selector: string, color?: string) =>
+  highlight: (selector: string, color?: string): Promise<HighlightResult> =>
     getHost().then(host => host.highlight(selector, color)),
+
+  /**
+   * Remove highlight by ID
+   */
+  removeHighlight: (highlightId: string): Promise<{ success: boolean }> =>
+    getHost().then(host => host.removeHighlight(highlightId)),
+
+  // ========== Page Manipulation - Widget ==========
+
+  /**
+   * Insert a widget (floating element) in the page
+   * @param html - HTML content of the widget
+   * @param position - 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | { x, y }
+   */
+  insertWidget: (html: string, position: string | { x: number; y: number } = 'bottom-right'): Promise<WidgetResult> =>
+    getHost().then(host => host.insertWidget({ html, position })),
+
+  /**
+   * Update widget content
+   */
+  updateWidget: (widgetId: string, html: string): Promise<{ success: boolean; error?: string }> =>
+    getHost().then(host => host.updateWidget(widgetId, html)),
+
+  /**
+   * Remove a widget
+   */
+  removeWidget: (widgetId: string): Promise<{ success: boolean }> =>
+    getHost().then(host => host.removeWidget(widgetId)),
+
+  // ========== Page Manipulation - CSS ==========
+
+  /**
+   * Inject CSS into the page
+   * @returns Result with styleId for cleanup
+   */
+  injectCSS: (css: string): Promise<CSSResult> =>
+    getHost().then(host => host.injectCSS(css)),
+
+  /**
+   * Remove injected CSS by ID
+   */
+  removeCSS: (styleId: string): Promise<{ success: boolean }> =>
+    getHost().then(host => host.removeCSS(styleId)),
 
   // ========== Screenshots ==========
 
@@ -70,3 +135,4 @@ export const extensionAPI = {
     return on('contextMenu', handler);
   },
 };
+

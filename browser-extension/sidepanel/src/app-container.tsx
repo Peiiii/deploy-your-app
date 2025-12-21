@@ -58,13 +58,103 @@ const createHostMethods = () => ({
     });
   },
 
-  // Highlight element
+  // Highlight element (returns highlightId for removal)
   async highlight(selector: string, color?: string) {
     return new Promise((resolve) => {
       chrome.runtime.sendMessage(
         {
           type: 'EXECUTE_IN_PAGE',
           payload: { type: 'HIGHLIGHT_ELEMENT', selector, color },
+        },
+        (response) => {
+          resolve(response);
+        }
+      );
+    });
+  },
+
+  // Remove highlight
+  async removeHighlight(highlightId: string) {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        {
+          type: 'EXECUTE_IN_PAGE',
+          payload: { type: 'REMOVE_HIGHLIGHT', highlightId },
+        },
+        (response) => {
+          resolve(response);
+        }
+      );
+    });
+  },
+
+  // Insert widget in page
+  async insertWidget(config: { html: string; position: string | { x: number; y: number } }) {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        {
+          type: 'EXECUTE_IN_PAGE',
+          payload: { type: 'INSERT_WIDGET', ...config },
+        },
+        (response) => {
+          resolve(response);
+        }
+      );
+    });
+  },
+
+  // Update widget content
+  async updateWidget(widgetId: string, html: string) {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        {
+          type: 'EXECUTE_IN_PAGE',
+          payload: { type: 'UPDATE_WIDGET', widgetId, html },
+        },
+        (response) => {
+          resolve(response);
+        }
+      );
+    });
+  },
+
+  // Remove widget
+  async removeWidget(widgetId: string) {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        {
+          type: 'EXECUTE_IN_PAGE',
+          payload: { type: 'REMOVE_WIDGET', widgetId },
+        },
+        (response) => {
+          resolve(response);
+        }
+      );
+    });
+  },
+
+  // Inject CSS
+  async injectCSS(css: string) {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        {
+          type: 'EXECUTE_IN_PAGE',
+          payload: { type: 'INJECT_CSS', css },
+        },
+        (response) => {
+          resolve(response);
+        }
+      );
+    });
+  },
+
+  // Remove injected CSS
+  async removeCSS(styleId: string) {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        {
+          type: 'EXECUTE_IN_PAGE',
+          payload: { type: 'REMOVE_CSS', styleId },
         },
         (response) => {
           resolve(response);

@@ -19,8 +19,18 @@ export interface HostMethods {
   getPageText(): Promise<string>;
   getSelection(): Promise<string>;
   
-  // Page manipulation
-  highlight(selector: string, color?: string): Promise<{ success: boolean; count?: number }>;
+  // Page manipulation - highlight
+  highlight(selector: string, color?: string): Promise<{ success: boolean; count?: number; highlightId?: string }>;
+  removeHighlight(highlightId: string): Promise<{ success: boolean }>;
+  
+  // Page manipulation - widget
+  insertWidget(config: { html: string; position: string | { x: number; y: number } }): Promise<{ success: boolean; widgetId?: string; error?: string }>;
+  updateWidget(widgetId: string, html: string): Promise<{ success: boolean; error?: string }>;
+  removeWidget(widgetId: string): Promise<{ success: boolean }>;
+  
+  // Page manipulation - CSS
+  injectCSS(css: string): Promise<{ success: boolean; styleId?: string; error?: string }>;
+  removeCSS(styleId: string): Promise<{ success: boolean }>;
   
   // Notifications
   notify(options: { title: string; message: string }): Promise<{ success: boolean }>;

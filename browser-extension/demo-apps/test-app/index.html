@@ -94,6 +94,12 @@
         <button class="btn" onclick="testExtract()">Extract</button>
         <button class="btn" onclick="testContextMenu()">Context Menu</button>
     </div>
+    <div class="btn-group">
+        <button class="btn" onclick="testInsertWidget()">Insert Widget</button>
+        <button class="btn" onclick="testRemoveWidget()">Remove Widget</button>
+        <button class="btn" onclick="testInjectCSS()">Inject CSS</button>
+        <button class="btn" onclick="testRemoveCSS()">Remove CSS</button>
+    </div>
 
     <div class="result" id="result">Click a button to test SDK API...</div>
     <img id="screenshot" class="screenshot" style="display:none" />
@@ -144,11 +150,6 @@
             showResult('getSelection()', { selection: result });
         }
 
-        async function testHighlight() {
-            const result = await gemigo.extension.highlight('h1, h2, h3');
-            showResult('highlight()', result);
-        }
-
         async function testNotify() {
             // Common API - no change
             const result = await gemigo.notify('GemiGo Notification', 'This is a test notification!');
@@ -184,6 +185,73 @@
             } else {
                 showResult('getContextMenuEvent()', { status: 'No pending event.' });
             }
+        }
+
+        // ========== New P1 API Tests ==========
+        let currentWidgetId = null;
+        let currentStyleId = null;
+        let currentHighlightId = null;
+
+        async function testInsertWidget() {
+            const widgetHtml = `
+                <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 16px 24px; border-radius: 12px; font-family: sans-serif; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+                    <div style="font-weight: 600; margin-bottom: 8px;">🎉 GemiGo Widget</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">This widget was inserted by SDK!</div>
+                </div>
+            `;
+            const result = await gemigo.extension.insertWidget(widgetHtml, 'bottom-right');
+            if (result.success) {
+                currentWidgetId = result.widgetId;
+            }
+            showResult('insertWidget()', result);
+        }
+
+        async function testRemoveWidget() {
+            if (!currentWidgetId) {
+                showResult('removeWidget()', { error: 'No widget to remove. Insert one first.' });
+                return;
+            }
+            const result = await gemigo.extension.removeWidget(currentWidgetId);
+            currentWidgetId = null;
+            showResult('removeWidget()', result);
+        }
+
+        async function testInjectCSS() {
+            const css = `
+                body {
+                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+                }
+                h1, h2, h3 {
+                    color: #e94560 !important;
+                    text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+                }
+                p {
+                    color: #eee !important;
+                }
+            `;
+            const result = await gemigo.extension.injectCSS(css);
+            if (result.success) {
+                currentStyleId = result.styleId;
+            }
+            showResult('injectCSS()', result);
+        }
+
+        async function testRemoveCSS() {
+            if (!currentStyleId) {
+                showResult('removeCSS()', { error: 'No CSS to remove. Inject some first.' });
+                return;
+            }
+            const result = await gemigo.extension.removeCSS(currentStyleId);
+            currentStyleId = null;
+            showResult('removeCSS()', result);
+        }
+
+        async function testHighlight() {
+            const result = await gemigo.extension.highlight('h1, h2, h3');
+            if (result.success) {
+                currentHighlightId = result.highlightId;
+            }
+            showResult('highlight()', result);
         }
     </script>
 </body>

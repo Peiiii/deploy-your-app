@@ -249,6 +249,15 @@ const extensionAPI = {
 	getSelection: () => getHost().then((e) => e.getSelection()),
 	extractArticle: () => getHost().then((e) => e.extractArticle()),
 	highlight: (e, v) => getHost().then((y) => y.highlight(e, v)),
+	removeHighlight: (e) => getHost().then((v) => v.removeHighlight(e)),
+	insertWidget: (e, v = "bottom-right") => getHost().then((y) => y.insertWidget({
+		html: e,
+		position: v
+	})),
+	updateWidget: (e, v) => getHost().then((y) => y.updateWidget(e, v)),
+	removeWidget: (e) => getHost().then((v) => v.removeWidget(e)),
+	injectCSS: (e) => getHost().then((v) => v.injectCSS(e)),
+	removeCSS: (e) => getHost().then((v) => v.removeCSS(e)),
 	captureVisible: () => getHost().then((e) => e.captureVisible()),
 	getContextMenuEvent: () => getHost().then((e) => e.getContextMenuEvent()),
 	onContextMenu: (e) => (getHost(), on("contextMenu", e))
