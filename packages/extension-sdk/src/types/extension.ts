@@ -139,7 +139,13 @@ export interface QueryElementResult {
   error?: string;
 }
 
-export interface ExtensionAPI {
+/**
+ * Extension RPC Methods - shared between SDK and Host
+ *
+ * These methods are the actual RPC calls to the extension host.
+ * HostMethods extends this interface.
+ */
+export interface ExtensionRPCMethods {
   getPageInfo(): Promise<PageInfo>;
   getPageHTML(): Promise<string>;
   getPageText(): Promise<string>;
@@ -163,6 +169,13 @@ export interface ExtensionAPI {
   captureVisible(): Promise<CaptureResult>;
 
   getContextMenuEvent(): Promise<ContextMenuEventResult>;
+}
+
+/**
+ * Full Extension API - includes RPC methods + local event handlers
+ */
+export interface ExtensionAPI extends ExtensionRPCMethods {
+  // Local event handlers (not RPC)
   onContextMenu(callback: (event: ContextMenuEvent) => void): () => void;
   onSelectionChange(
     handler: (text: string, rect: SelectionRect | null, url?: string) => void,
@@ -175,3 +188,4 @@ export interface ExtensionAPI {
   captureFull?: (options?: CaptureFullOptions) => Promise<CaptureResult>;
   registerShortcut?: (combo: string, callback: () => void) => () => void;
 }
+

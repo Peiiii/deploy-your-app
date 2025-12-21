@@ -102,6 +102,7 @@ export type {
   ExtractLinksResult,
   ExtractImagesResult,
   QueryElementResult,
+  ExtensionRPCMethods,
   ExtensionAPI,
 } from './extension';
 

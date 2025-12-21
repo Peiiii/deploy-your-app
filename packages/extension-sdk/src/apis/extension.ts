@@ -5,28 +5,12 @@
  */
 
 import { getHost, on } from '../core';
-import type { ContextMenuEvent, ContextMenuEventResult, CaptureResult } from '../types';
-
-/** Widget insertion result */
-export interface WidgetResult {
-  success: boolean;
-  widgetId?: string;
-  error?: string;
-}
-
-/** CSS injection result */
-export interface CSSResult {
-  success: boolean;
-  styleId?: string;
-  error?: string;
-}
-
-/** Highlight result with cleanup ID */
-export interface HighlightResult {
-  success: boolean;
-  count?: number;
-  highlightId?: string;
-}
+import type {
+  ContextMenuEvent,
+  HighlightResult,
+  WidgetResult,
+  WidgetPosition,
+} from '../types';
 
 /**
  * Extension API object
@@ -81,8 +65,8 @@ export const extensionAPI = {
    * @param html - HTML content of the widget
    * @param position - 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | { x, y }
    */
-  insertWidget: (html: string, position: string | { x: number; y: number } = 'bottom-right'): Promise<WidgetResult> =>
-    getHost().then(host => host.insertWidget({ html, position })),
+  insertWidget: (html: string, position?: string | WidgetPosition): Promise<WidgetResult> =>
+    getHost().then(host => host.insertWidget(html, position)),
 
   /**
    * Update widget content
@@ -100,69 +84,61 @@ export const extensionAPI = {
 
   /**
    * Inject CSS into the page
-   * @returns Result with styleId for cleanup
    */
-  injectCSS: (css: string): Promise<CSSResult> =>
-    getHost().then(host => host.injectCSS(css)),
+  injectCSS: (css: string) => getHost().then(host => host.injectCSS(css)),
 
   /**
-   * Remove injected CSS by ID
+   * Remove injected CSS
    */
-  removeCSS: (styleId: string): Promise<{ success: boolean }> =>
-    getHost().then(host => host.removeCSS(styleId)),
+  removeCSS: (styleId: string) => getHost().then(host => host.removeCSS(styleId)),
 
   // ========== Page Data Extraction ==========
 
   /**
-   * Extract all links from the page
+   * Extract all links from page
    */
-  extractLinks: () =>
-    getHost().then(host => host.extractLinks()),
+  extractLinks: () => getHost().then(host => host.extractLinks()),
 
   /**
-   * Extract all images from the page
+   * Extract all images from page
    */
-  extractImages: () =>
-    getHost().then(host => host.extractImages()),
+  extractImages: () => getHost().then(host => host.extractImages()),
 
   /**
-   * Query elements by CSS selector
-   * @param selector - CSS selector
-   * @param limit - Max number of results (default 100)
+   * Query elements by selector
    */
   queryElement: (selector: string, limit?: number) =>
     getHost().then(host => host.queryElement(selector, limit)),
 
-  // ========== Screenshots ==========
+  // ========== Screenshot ==========
 
   /**
-   * Capture visible area
+   * Capture visible area as screenshot
    */
-  captureVisible: (): Promise<CaptureResult> =>
-    getHost().then(host => host.captureVisible()),
+  captureVisible: () => getHost().then(host => host.captureVisible()),
 
   // ========== Context Menu ==========
 
   /**
    * Get pending context menu event
    */
-  getContextMenuEvent: (): Promise<ContextMenuEventResult> =>
-    getHost().then(host => host.getContextMenuEvent()),
+  getContextMenuEvent: () => getHost().then(host => host.getContextMenuEvent()),
 
   /**
    * Register context menu event handler
    */
-  onContextMenu: (handler: (event: ContextMenuEvent) => void): (() => void) => {
-    getHost(); // Ensure connection starts
-    return on('contextMenu', handler);
+  onContextMenu: (callback: (event: ContextMenuEvent) => void): (() => void) => {
+    getHost(); // Ensure connection
+    return on('contextMenu', callback);
   },
 
   /**
-   * Register selection change event handler
-   * @returns Unsubscribe function
+   * Register selection change handler
    */
-  onSelectionChange: (handler: (text: string, rect: { x: number; y: number; width: number; height: number } | null, url?: string) => void): (() => void) => {
-    getHost(); // Ensure connection starts
+  onSelectionChange: (
+    handler: (text: string, rect: { x: number; y: number; width: number; height: number } | null, url?: string) => void,
+  ): (() => void) => {
+    getHost(); // Ensure connection
     return on('selectionChange', handler);
   },
 };

@@ -31,7 +31,7 @@ export const createPageModifyMethods = (app: AppConfig) => ({
     return executeInPage<{ success: boolean; error?: string }>('REMOVE_HIGHLIGHT', { highlightId });
   },
 
-  async insertWidget(config: { html: string; position: string | { x: number; y: number } }) {
+  async insertWidget(html: string, position?: string | { x: number; y: number }) {
     if (!hasPermission(app, 'extension.modify')) {
       return PERMISSION_DENIED;
     }
@@ -39,7 +39,7 @@ export const createPageModifyMethods = (app: AppConfig) => ({
       success: boolean;
       widgetId?: string;
       error?: string;
-    }>('INSERT_WIDGET', config);
+    }>('INSERT_WIDGET', { html, position: position ?? 'bottom-right' });
   },
 
   async updateWidget(widgetId: string, html: string) {

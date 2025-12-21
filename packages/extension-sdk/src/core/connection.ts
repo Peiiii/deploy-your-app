@@ -8,65 +8,37 @@ import { connectToParent, AsyncMethodReturns } from 'penpal';
 import type {
   Capabilities,
   ContextMenuEvent,
-  ContextMenuEventResult,
-  PageInfo,
-  SelectionResult,
-  HighlightResult,
-  WidgetResult,
-  WidgetPosition,
-  CSSResult,
-  CaptureResult,
-  ExtractArticleResult,
-  ExtractLinksResult,
-  ExtractImagesResult,
-  QueryElementResult,
+  ExtensionRPCMethods,
 } from '../types';
 
+// ========== RPC Method Interfaces (modular) ==========
+
 /**
- * Host methods interface - what the extension provides to apps
- * 
- * This is the Penpal RPC contract. Return types should match types/extension.ts
+ * Protocol handshake methods
  */
-export interface HostMethods {
-  // Handshake / environment info
+export interface ProtocolRPCMethods {
   getProtocolInfo(): Promise<{
     protocolVersion: number;
     platform: 'extension';
     appId: string;
     capabilities: Capabilities;
   }>;
+}
 
-  // Page info
-  getPageInfo(): Promise<PageInfo>;
-  
-  // Page content
-  getPageHTML(): Promise<string>;
-  getPageText(): Promise<string>;
-  getSelection(): Promise<SelectionResult>;
-  
-  // Page manipulation - highlight
-  highlight(selector: string, color?: string): Promise<HighlightResult>;
-  removeHighlight(highlightId: string): Promise<{ success: boolean; error?: string }>;
-  
-  // Page manipulation - widget
-  insertWidget(config: { html: string; position: string | WidgetPosition }): Promise<WidgetResult>;
-  updateWidget(widgetId: string, html: string): Promise<{ success: boolean; error?: string }>;
-  removeWidget(widgetId: string): Promise<{ success: boolean; error?: string }>;
-  
-  // Page manipulation - CSS
-  injectCSS(css: string): Promise<CSSResult>;
-  removeCSS(styleId: string): Promise<{ success: boolean; error?: string }>;
-  
-  // Notifications
-  notify(options: { title: string; message: string }): Promise<{ success: boolean }>;
-
-  // Storage (per-app, namespaced by host)
+/**
+ * Storage RPC methods
+ */
+export interface StorageRPCMethods {
   storageGet(key: string): Promise<{ success: boolean; value?: unknown }>;
   storageSet(key: string, value: unknown): Promise<{ success: boolean }>;
   storageDelete(key: string): Promise<{ success: boolean }>;
   storageClear(): Promise<{ success: boolean }>;
+}
 
-  // Network proxy (host mediated)
+/**
+ * Network RPC methods
+ */
+export interface NetworkRPCMethods {
   networkRequest(request: {
     url: string;
     options?: {
@@ -85,19 +57,30 @@ export interface HostMethods {
     error?: string;
     code?: string;
   }>;
-  
-  // Screenshot
-  captureVisible(): Promise<CaptureResult>;
-  
-  // Content extraction
-  extractArticle(): Promise<ExtractArticleResult>;
-  extractLinks(): Promise<ExtractLinksResult>;
-  extractImages(): Promise<ExtractImagesResult>;
-  queryElement(selector: string, limit?: number): Promise<QueryElementResult>;
-  
-  // Context menu
-  getContextMenuEvent(): Promise<ContextMenuEventResult>;
 }
+
+/**
+ * Notification RPC methods
+ */
+export interface NotifyRPCMethods {
+  notify(options: { title: string; message: string }): Promise<{ success: boolean }>;
+}
+
+// ========== Combined Host Methods ==========
+
+/**
+ * Host methods interface - what the extension provides to apps
+ *
+ * Composed from modular RPC method interfaces for extensibility.
+ */
+export interface HostMethods extends 
+  ExtensionRPCMethods,
+  ProtocolRPCMethods,
+  StorageRPCMethods,
+  NetworkRPCMethods,
+  NotifyRPCMethods {}
+
+// ========== Child Methods ==========
 
 /**
  * Child methods interface - what apps expose to the extension host
@@ -111,15 +94,13 @@ export interface ChildMethods {
   ): void;
 }
 
-// Singleton connection promise
+// ========== Connection Management ==========
+
 let connectionPromise: Promise<AsyncMethodReturns<HostMethods>> | null = null;
 let defaultChildMethods: ChildMethods | undefined;
 
 const DEFAULT_TIMEOUT_MS = 1500;
 
-/**
- * Check if running inside an iframe
- */
 function isInIframe(): boolean {
   try {
     return window.self !== window.top;
@@ -130,10 +111,6 @@ function isInIframe(): boolean {
 
 /**
  * Get or create connection to parent (extension host)
- * 
- * @param childMethods - Methods to expose to parent
- * @param options - Connection options
- * @returns Promise resolving to host methods
  */
 export function getHost(
   childMethods?: ChildMethods,
@@ -157,7 +134,6 @@ export function getHost(
   });
 
   connectionPromise = connection.promise.catch((err) => {
-    // Reset so future calls can retry (important for non-extension web iframes).
     connectionPromise = null;
     throw err;
   });
