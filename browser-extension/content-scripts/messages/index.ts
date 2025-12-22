@@ -5,7 +5,7 @@
  * Strictly implements ExtensionRPCMethods for type safety.
  */
 
-import type { ExtensionRPCMethods } from '@gemigo/app-sdk';
+import type { ExtensionRPCMethods, WidgetPosition } from '@gemigo/app-sdk';
 
 // ========== Registries (stateful) ==========
 
@@ -30,7 +30,12 @@ const simpleHandlers = {
       const range = selection.getRangeAt(0);
       const domRect = range.getBoundingClientRect();
       if (domRect.width > 0 && domRect.height > 0) {
-        rect = { x: domRect.x + window.scrollX, y: domRect.y + window.scrollY, width: domRect.width, height: domRect.height };
+        rect = {
+          x: domRect.x + window.scrollX,
+          y: domRect.y + window.scrollY,
+          width: domRect.width,
+          height: domRect.height,
+        };
       }
     }
     return { text, rect };
@@ -43,12 +48,17 @@ const simpleHandlers = {
       let content = '';
       for (const sel of selectors) {
         const el = document.querySelector(sel);
-        if (el) { content = el.textContent?.trim() || ''; break; }
+        if (el) {
+          content = el.textContent?.trim() || '';
+          break;
+        }
       }
       if (!content) content = document.body.innerText;
       const excerpt = content.slice(0, 300).trim() + (content.length > 300 ? '...' : '');
       return { success: true, title, content, excerpt, url: window.location.href };
-    } catch (e) { return { success: false, error: String(e) }; }
+    } catch (e) {
+      return { success: false, error: String(e) };
+    }
   },
 
   extractLinks: async () => {
@@ -61,7 +71,9 @@ const simpleHandlers = {
         }
       });
       return { success: true, links };
-    } catch (e) { return { success: false, error: String(e) }; }
+    } catch (e) {
+      return { success: false, error: String(e) };
+    }
   },
 
   extractImages: async () => {
@@ -72,7 +84,9 @@ const simpleHandlers = {
         if (img.src) images.push({ src: img.src, alt: img.alt || undefined });
       });
       return { success: true, images };
-    } catch (e) { return { success: false, error: String(e) }; }
+    } catch (e) {
+      return { success: false, error: String(e) };
+    }
   },
 
   queryElement: async (selector: string, limit = 100) => {
@@ -83,10 +97,16 @@ const simpleHandlers = {
         if (i >= limit) return;
         const attrs: Record<string, string> = {};
         for (const attr of el.attributes) attrs[attr.name] = attr.value;
-        results.push({ tagName: el.tagName.toLowerCase(), text: el.textContent?.trim().slice(0, 200) || '', attributes: attrs });
+        results.push({
+          tagName: el.tagName.toLowerCase(),
+          text: el.textContent?.trim().slice(0, 200) || '',
+          attributes: attrs,
+        });
       });
       return { success: true, elements: results, count: elements.length };
-    } catch (e) { return { success: false, error: String(e) }; }
+    } catch (e) {
+      return { success: false, error: String(e) };
+    }
   },
 };
 
@@ -107,58 +127,86 @@ const statefulHandlers = {
       });
       highlightRegistry.set(highlightId, highlighted);
       return { success: true, count: elements.length, highlightId };
-    } catch (e) { return { success: false, error: String(e) }; }
+    } catch (e) {
+      return { success: false, error: String(e) };
+    }
   },
 
   removeHighlight: async (highlightId: string) => {
     try {
       const elements = highlightRegistry.get(highlightId);
       if (elements) {
-        elements.forEach((el) => { el.style.backgroundColor = el.dataset.gemigoOriginalBg || ''; delete el.dataset.gemigoOriginalBg; });
+        elements.forEach((el) => {
+          el.style.backgroundColor = el.dataset.gemigoOriginalBg || '';
+          delete el.dataset.gemigoOriginalBg;
+        });
         highlightRegistry.delete(highlightId);
       }
       return { success: true };
-    } catch (e) { return { success: false, error: String(e) }; }
+    } catch (e) {
+      return { success: false, error: String(e) };
+    }
   },
 
-  insertWidget: async (html: string, position: any, positionMode = 'absolute') => {
+  insertWidget: async (html: string, position?: string | WidgetPosition) => {
     try {
       const widgetId = generateId();
       const container = document.createElement('div');
       container.id = widgetId;
       container.className = 'gemigo-widget';
       container.innerHTML = html;
-      Object.assign(container.style, { position: positionMode, zIndex: '2147483647', pointerEvents: 'auto' });
+      Object.assign(container.style, {
+        position: 'absolute',
+        zIndex: '2147483647',
+        pointerEvents: 'auto',
+      });
+
       if (typeof position === 'string') {
         container.style.position = 'fixed';
         const positions: Record<string, { top?: string; bottom?: string; left?: string; right?: string }> = {
-          'top-left': { top: '16px', left: '16px' }, 'top-right': { top: '16px', right: '16px' },
-          'bottom-left': { bottom: '16px', left: '16px' }, 'bottom-right': { bottom: '16px', right: '16px' },
+          'top-left': { top: '16px', left: '16px' },
+          'top-right': { top: '16px', right: '16px' },
+          'bottom-left': { bottom: '16px', left: '16px' },
+          'bottom-right': { bottom: '16px', right: '16px' },
         };
         Object.assign(container.style, positions[position] || positions['bottom-right']);
       } else if (position && typeof position.x === 'number') {
-        container.style.left = `${position.x}px`; container.style.top = `${position.y}px`;
+        container.style.left = `${position.x}px`;
+        container.style.top = `${position.y}px`;
       }
+
       document.body.appendChild(container);
       widgetRegistry.set(widgetId, container);
       return { success: true, widgetId };
-    } catch (e) { return { success: false, error: String(e) }; }
+    } catch (e) {
+      return { success: false, error: String(e) };
+    }
   },
 
   updateWidget: async (widgetId: string, html: string) => {
     try {
       const widget = widgetRegistry.get(widgetId);
-      if (widget) { widget.innerHTML = html; return { success: true }; }
+      if (widget) {
+        widget.innerHTML = html;
+        return { success: true };
+      }
       return { success: false, error: 'Widget not found' };
-    } catch (e) { return { success: false, error: String(e) }; }
+    } catch (e) {
+      return { success: false, error: String(e) };
+    }
   },
 
   removeWidget: async (widgetId: string) => {
     try {
       const widget = widgetRegistry.get(widgetId);
-      if (widget) { widget.remove(); widgetRegistry.delete(widgetId); }
+      if (widget) {
+        widget.remove();
+        widgetRegistry.delete(widgetId);
+      }
       return { success: true };
-    } catch (e) { return { success: false, error: String(e) }; }
+    } catch (e) {
+      return { success: false, error: String(e) };
+    }
   },
 
   injectCSS: async (css: string) => {
@@ -170,15 +218,22 @@ const statefulHandlers = {
       document.head.appendChild(style);
       styleRegistry.set(styleId, style);
       return { success: true, styleId };
-    } catch (e) { return { success: false, error: String(e) }; }
+    } catch (e) {
+      return { success: false, error: String(e) };
+    }
   },
 
   removeCSS: async (styleId: string) => {
     try {
       const style = styleRegistry.get(styleId);
-      if (style) { style.remove(); styleRegistry.delete(styleId); }
+      if (style) {
+        style.remove();
+        styleRegistry.delete(styleId);
+      }
       return { success: true };
-    } catch (e) { return { success: false, error: String(e) }; }
+    } catch (e) {
+      return { success: false, error: String(e) };
+    }
   },
 
   getPageInfo: async () => {

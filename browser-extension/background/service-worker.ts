@@ -25,7 +25,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (tab?.id) {
     try { await chrome.sidePanel.open({ tabId: tab.id }); } catch (e) { console.error('[GemiGo] SW open sidepanel failed:', e); }
   }
-  chrome.runtime.sendMessage({ type: 'onContextMenuEvent', payload: [event] }).catch(() => {});
+  chrome.runtime.sendMessage({ type: 'onContextMenu', payload: [event] }).catch(() => { });
+
 });
 
 // ========== Transparent Router ==========

@@ -13,6 +13,7 @@ import type {
   RPCResult,
   Platform,
 } from '../types';
+import { SDKEvents } from './event-bus';
 
 // ========== RPC Method Interfaces ==========
 
@@ -62,24 +63,19 @@ export interface NotifyRPCMethods {
  * Same interface for all platforms.
  */
 export interface HostMethods
-  extends
-    ExtensionRPCMethods,
-    ProtocolRPCMethods,
-    StorageRPCMethods,
-    NetworkRPCMethods,
-    NotifyRPCMethods {}
+  extends ExtensionRPCMethods,
+  ProtocolRPCMethods,
+  StorageRPCMethods,
+  NetworkRPCMethods,
+  NotifyRPCMethods { }
 
 /**
- * Child methods interface - what apps expose to the host
+ * Child methods interface - what apps expose to the host.
+ * Automatically derived from SDK event definitions.
  */
-export interface ChildMethods {
-  onContextMenuEvent(event: ContextMenuEvent): void;
-  onSelectionChange?(
-    text: string,
-    rect: { x: number; y: number; width: number; height: number } | null,
-    url?: string
-  ): void;
-}
+export type ChildMethods = {
+  [K in keyof SDKEvents]?: (...args: SDKEvents[K]) => void;
+};
 
 // ========== Connection State ==========
 
@@ -131,7 +127,8 @@ export async function tryGetHost(
         resolvedHost = host;
         return host;
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('[GemiGo Connection] Promise failed:', err);
         connectionFailed = true;
         connectionPromise = null;
         return null;
@@ -171,10 +168,7 @@ export function hasConnectionFailed(): boolean {
 /**
  * Initialize connection immediately.
  */
-export function initConnection(
-  childMethods?: ChildMethods,
-  options?: { timeoutMs?: number }
-): void {
+export function initConnection(childMethods?: ChildMethods, options?: { timeoutMs?: number }): void {
   defaultChildMethods = childMethods;
   tryGetHost(childMethods, options);
 }

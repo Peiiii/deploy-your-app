@@ -4,75 +4,30 @@
  * Renders an app in an iframe and establishes Penpal communication.
  */
 
-import { useEffect, useRef } from 'react';
-import { connectToChild, Connection } from 'penpal';
-import { createHostMethods } from './host-methods';
+import { useRef } from 'react';
+import { useAppConnection, AppBridgeRegistry } from './hooks/use-app-connection';
 import type { AppConfig } from './types';
+
 
 interface AppContainerProps {
   app: AppConfig;
   onBack: () => void;
 }
 
-type ActiveChildRef = {
-  onContextMenu?: (event: unknown) => void;
-
-  onSelectionChange?: (
-    text: string,
-    rect: { x: number; y: number; width: number; height: number } | null,
-    url?: string
-  ) => void;
-};
-
-// Reference to currently active App child for event forwarding
-let activeChildRef: ActiveChildRef | null = null;
-
 /**
- * Handle SELECTION_CHANGED messages from service worker.
+ * Handle messages from service worker (SELECTION_CHANGED, CONTEXT_MENU_CLICKED).
  */
 chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === 'SELECTION_CHANGED' && activeChildRef?.onSelectionChange) {
-    const [text, rect, url] = message.payload || [];
-    activeChildRef.onSelectionChange(text || '', rect || null, url);
-  }
-
-  if (message.type === 'CONTEXT_MENU_CLICKED' && activeChildRef?.onContextMenu) {
-    activeChildRef.onContextMenu(message.event);
-  }
+  AppBridgeRegistry.dispatch(message);
 });
+
 
 export default function AppContainer({ app, onBack }: AppContainerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const connectionRef = useRef<Connection<object> | null>(null);
 
-  useEffect(() => {
-    if (!iframeRef.current) return;
+  // Manage Penpal connection via custom hook
+  useAppConnection(iframeRef, app);
 
-    // Create host methods for this app
-    const methods = createHostMethods(app);
-
-    // Establish Penpal connection
-    const connection = connectToChild({
-      iframe: iframeRef.current,
-      methods: methods as unknown as Record<string, (...args: unknown[]) => unknown>,
-    });
-
-    connectionRef.current = connection;
-
-    connection.promise
-      .then((child) => {
-        console.log('[GemiGo Host] Connected to app:', app.name);
-        activeChildRef = child as ActiveChildRef;
-      })
-      .catch((err) => {
-        console.error('[GemiGo Host] Connection failed:', err);
-      });
-
-    return () => {
-      activeChildRef = null;
-      connection.destroy();
-    };
-  }, [app]);
 
   return (
     <div className="app-container">

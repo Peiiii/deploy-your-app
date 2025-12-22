@@ -62,9 +62,10 @@ document.addEventListener('selectionchange', () => {
       }
 
       chrome.runtime.sendMessage({
-        type: 'SELECTION_CHANGED',
+        type: 'onSelectionChange',
         payload: [text, rect, window.location.href],
       });
+
     }
   }, 300);
 });

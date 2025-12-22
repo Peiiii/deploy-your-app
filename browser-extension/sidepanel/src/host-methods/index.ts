@@ -22,9 +22,10 @@ interface MethodConfig {
 
 // ========== Complete Method Configuration ==========
 
-const CONFIG: Record<string, MethodConfig> = {
+const CONFIG: Partial<Record<keyof HostMethods, MethodConfig>> = {
   // Protocol (Discovery)
   getProtocolInfo: {
+
     local: (app) => ({
       protocolVersion: 1,
       platform: 'extension',

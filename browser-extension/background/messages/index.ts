@@ -5,7 +5,7 @@
  * Strictly implements relevant parts of HostMethods and ChildMethods.
  */
 
-import type { HostMethods, ChildMethods, RPCResult } from '@gemigo/app-sdk';
+import type { HostMethods, ChildMethods, RPCResult, SelectionRect, ContextMenuEvent } from '@gemigo/app-sdk';
 import { getActiveTab } from '../utils/tab';
 
 // ========== Simple Handlers ==========
@@ -43,16 +43,12 @@ const simpleHandlers = {
       );
     }),
 
-  onSelectionChange: (text: string, rect: any, url: string) => {
-    chrome.runtime
-      .sendMessage({ type: 'onSelectionChange', payload: [text, rect, url] })
-      .catch(() => {});
-    return undefined;
+  onSelectionChange: (text: string, rect: SelectionRect | null, url?: string) => {
+    chrome.runtime.sendMessage({ type: 'onSelectionChange', payload: [text, rect, url] }).catch(() => { });
   },
 
-  onContextMenuEvent: (event: any) => {
-    chrome.runtime.sendMessage({ type: 'onContextMenuEvent', payload: [event] }).catch(() => {});
-    return undefined;
+  onContextMenu: (event: ContextMenuEvent) => {
+    chrome.runtime.sendMessage({ type: 'onContextMenu', payload: [event] }).catch(() => { });
   },
 
   ping: async () => ({ pong: true }),
@@ -112,12 +108,9 @@ async function handleNetworkRequest(
 
 // ========== Context Menu Handler ==========
 
-let pendingContextMenuEvent: { menuId: string; selectionText?: string; pageUrl?: string; timestamp: number } | null =
-  null;
+let pendingContextMenuEvent: ContextMenuEvent | null = null;
 
-export function setPendingContextMenuEvent(
-  event: { menuId: string; selectionText?: string; pageUrl?: string; timestamp: number } | null
-) {
+export function setPendingContextMenuEvent(event: ContextMenuEvent | null) {
   pendingContextMenuEvent = event;
 }
 
@@ -127,7 +120,9 @@ async function handleContextMenuEvent() {
     const stored = await chrome.storage.local.get(['pendingContextMenuEvent']);
     event = stored.pendingContextMenuEvent;
   }
-  if (event && Date.now() - event.timestamp < 30000) {
+
+  // Note: timestamps are handled by the background logic
+  if (event) {
     pendingContextMenuEvent = null;
     await chrome.storage.local.remove(['pendingContextMenuEvent']);
     return { success: true, event };
