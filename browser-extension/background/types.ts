@@ -22,15 +22,6 @@ export type CommonHandlers = Pick<HostMethods,
 export type NetworkHandlers = Pick<HostMethods,
     | 'networkRequest'
 >;
-
-/**
- * Bridge/Transparent handlers falling back to sidepanel events
- */
-export type BridgeHandlers = Pick<ChildMethods,
-    | 'onSelectionChange'
->;
-
-
 /**
  * Handlers explicitly implemented strictly within the controller/background logic
  */
@@ -39,6 +30,13 @@ export type InternalHandlers = Pick<HostMethods,
 >;
 
 /**
+ * Events explicitly emitted by the background script (not including transparent proxies)
+ */
+export type BackgroundEvents = Pick<ChildMethods, 'onContextMenu'>;
+
+/**
  * Complete set of handlers managed by the Background Controller
  */
-export type BackgroundHandlers = CommonHandlers & NetworkHandlers & BridgeHandlers & InternalHandlers;
+export type BackgroundHandlers = CommonHandlers & NetworkHandlers & InternalHandlers;
+
+

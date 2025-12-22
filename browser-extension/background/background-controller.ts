@@ -1,32 +1,28 @@
-/**
- * Background Service Orchestrator
- * 
- * Encapsulates the entire background process flow: 
- * Lifecycle management, Message Routing, and State.
- */
-
+import { BaseExtensionController } from '../core/base-controller';
 import { getActiveTab, executeInPage } from './utils/tab';
 import type { ContextMenuEvent } from '@gemigo/app-sdk';
+import type { BackgroundHandlers, BackgroundEvents } from './types';
 
-/**
- * Methods explicitly implemented in the background script.
- * Combination of HostMethods (RPC) and ChildMethods (Events).
- */
-import type { BackgroundHandlers } from './types';
-
-class GemiGoBackgroundController {
+class GemiGoBackgroundController extends BaseExtensionController<BackgroundHandlers, BackgroundEvents> {
     // State
     private pendingContextMenuEvent: ContextMenuEvent | null = null;
-    private handlers: BackgroundHandlers = {} as BackgroundHandlers;
 
     /**
      * Registers message handlers and starts services.
      */
     public provideHandlers = (handlers: Omit<BackgroundHandlers, 'getContextMenuEvent'>) => {
-        this.handlers = {
-            ...handlers,
+        // We manually merge "internal" handlers with external ones
+        const innerHandlers = {
             getContextMenuEvent: this.getContextMenuEventImpl,
+        } as Partial<BackgroundHandlers>;
+
+        // Call base provider logic manually (since super.property is invalid)
+        this.handlers = {
+            ...this.handlers,
+            ...handlers,
+            ...innerHandlers
         } as BackgroundHandlers;
+
     };
 
     /**
@@ -107,8 +103,8 @@ class GemiGoBackgroundController {
             }
         }
 
-        // Direct push notification
-        chrome.runtime.sendMessage({ type: 'onContextMenu', payload: [event] }).catch(() => { });
+        // Direct push notification using Base method
+        this.sendEvent('onContextMenu', [event]);
     };
 
     // ========== Routing Layer ==========
@@ -116,19 +112,14 @@ class GemiGoBackgroundController {
     private initRouter = () => {
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             // Stage 1: Route to Content Script (Transparent Proxy)
+            // This logic is unique to Background, so we handle it before calling base.handleMessage
             if (message.routing === 'content-script') {
                 this.routeToContentScript(message, sendResponse);
                 return true;
             }
 
-            // Stage 2: Route to Local Background Handlers
-            const handler = (this.handlers as any)[message.type];
-            if (handler) {
-                this.dispatchToHandler(handler, message, sender, sendResponse);
-                return true;
-            }
-
-            return false;
+            // Stage 2: Route to Local Background Handlers (Base Logic)
+            return this.handleMessage(message, sender, sendResponse);
         });
     };
 
@@ -142,30 +133,9 @@ class GemiGoBackgroundController {
             sendResponse({ success: false, error: String(e) });
         }
     };
-
-    private dispatchToHandler = async (
-        handler: (...args: any[]) => any,
-        message: any,
-        sender: chrome.runtime.MessageSender,
-        sendResponse: (res: any) => void
-    ) => {
-        try {
-            const args = Array.isArray(message.payload) ? message.payload : [];
-            const result = handler(...args, sender);
-
-            if (result instanceof Promise) {
-                const resolved = await result;
-                sendResponse(resolved);
-            } else if (result !== undefined) {
-                sendResponse(result);
-            }
-        } catch (e) {
-            console.error(`[GemiGo] Handler error [${message.type}]:`, e);
-            sendResponse({ success: false, error: String(e) });
-        }
-    };
 }
 
 // Export singleton instance
 export const backgroundController = new GemiGoBackgroundController();
+
 

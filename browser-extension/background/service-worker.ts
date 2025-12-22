@@ -4,8 +4,9 @@
  * Main entry point.
  */
 
-import { backgroundController } from './backgruond-controller';
-import { createTransparentHandlers } from './utils/bridge';
+import { backgroundController } from './background-controller';
+
+
 import { commonHandlers } from './handlers/common';
 import { networkHandlers } from './handlers/network';
 
@@ -13,8 +14,6 @@ import { networkHandlers } from './handlers/network';
 backgroundController.provideHandlers({
     ...commonHandlers,
     ...networkHandlers,
-    ...createTransparentHandlers(['onSelectionChange']),
-
 });
 
 backgroundController.start();
