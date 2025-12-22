@@ -92,26 +92,6 @@ const onFileDrop = stubHandler('onFileDrop');
 
 // ========== SDK Configuration ==========
 
-const extensionRpcMethodNames = [
-  'getPageInfo',
-  'getPageHTML',
-  'getPageText',
-  'getSelection',
-  'extractArticle',
-  'extractLinks',
-  'extractImages',
-  'queryElement',
-  'highlight',
-  'removeHighlight',
-  'insertWidget',
-  'updateWidget',
-  'removeWidget',
-  'injectCSS',
-  'removeCSS',
-  'captureVisible',
-  'getContextMenuEvent',
-] as const;
-
 export const { sdk, childMethods } = createSDK<GemigoSDK, ChildMethods>({
   getters: {
     platform: () => hostInfo?.platform ?? 'web',
@@ -138,7 +118,27 @@ export const { sdk, childMethods } = createSDK<GemigoSDK, ChildMethods>({
       },
     },
     extension: {
-      rpc: { methods: extensionRpcMethodNames },
+      rpc: {
+        methods: [
+          'getPageInfo',
+          'getPageHTML',
+          'getPageText',
+          'getSelection',
+          'extractArticle',
+          'extractLinks',
+          'extractImages',
+          'queryElement',
+          'highlight',
+          'removeHighlight',
+          'insertWidget',
+          'updateWidget',
+          'removeWidget',
+          'injectCSS',
+          'removeCSS',
+          'captureVisible',
+          'getContextMenuEvent',
+        ]
+      },
       events: ['onContextMenu', 'onSelectionChange'],
     },
   },

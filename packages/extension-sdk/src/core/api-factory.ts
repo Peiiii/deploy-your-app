@@ -146,7 +146,11 @@ export function createSDK<
 >(config: {
     /** Sub-modules (e.g., storage, extension) */
     modules?: {
-        [K in keyof TSDK]?: any;
+        [K in keyof TSDK]?: NonNullable<TSDK[K]> extends (...args: any[]) => any
+        ? never
+        : NonNullable<TSDK[K]> extends object
+        ? APIConfig<NonNullable<TSDK[K]>>
+        : never;
     };
     /** Standalone functions (e.g., notify) */
     actions?: {
