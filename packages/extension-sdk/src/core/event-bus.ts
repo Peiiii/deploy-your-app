@@ -63,10 +63,11 @@ export function createEventBus<TEvents extends Record<string, unknown[]>>(): Eve
  */
 export type SDKEvents = {
     // Extension events
-    'extension:contextMenu': Parameters<Parameters<ExtensionAPI["onContextMenu"]>[0]>;
-    'extension:selectionChange': Parameters<Parameters<ExtensionAPI["onSelectionChange"]>[0]>;
+    'onContextMenu': Parameters<Parameters<ExtensionAPI["onContextMenu"]>[0]>;
+    'onSelectionChange': Parameters<Parameters<ExtensionAPI["onSelectionChange"]>[0]>;
     // Add more SDK-wide events here as needed
 };
+
 
 /**
  * Shared SDK event bus instance

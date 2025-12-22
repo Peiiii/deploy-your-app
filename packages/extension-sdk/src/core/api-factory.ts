@@ -16,12 +16,15 @@ export interface APIConfig<TAPI extends object> {
         fallbacks?: Partial<Record<keyof TAPI, (...args: any[]) => any>>;
     };
     /** Event methods mapping to SDK event bus */
-    events?: {
+    events?:
+    | readonly (keyof TAPI)[]
+    | {
         [K in keyof TAPI]?:
         | keyof SDKEvents
         | { event: keyof SDKEvents; childMethod?: string };
     };
 }
+
 
 /**
  * Create a unified API instance from a declarative configuration.
@@ -47,27 +50,43 @@ export function createUnifiedAPI<TAPI extends object, TChild extends object = Re
 
     // 2. Process Event methods
     if (config.events) {
-        for (const [sdkMethod, eventCfg] of Object.entries(config.events)) {
-            if (!eventCfg) continue;
+        if (Array.isArray(config.events)) {
+            // Zero-config: use method name as event and child method name
+            for (const sdkMethod of config.events) {
+                const eventName = sdkMethod as keyof SDKEvents;
+                api[sdkMethod] = (callback: EventHandler<any>) => {
+                    ensureConnection?.();
+                    return sdkEventBus.on(eventName, callback);
+                };
+                childMethods[sdkMethod] = (...args: any[]) => {
+                    sdkEventBus.emit(eventName, ...args as any);
+                };
+            }
+        } else {
+            // Manual config
+            for (const [sdkMethod, eventCfg] of Object.entries(config.events)) {
+                if (!eventCfg) continue;
 
-            const cfg = eventCfg as (keyof SDKEvents | { event: keyof SDKEvents; childMethod?: string });
-            const eventName = typeof cfg === 'string' ? cfg : cfg.event;
-            const childMethodName = typeof cfg === 'object' && 'childMethod' in cfg && cfg.childMethod
-                ? cfg.childMethod
-                : sdkMethod;
+                const cfg = eventCfg as (keyof SDKEvents | { event: keyof SDKEvents; childMethod?: string });
+                const eventName = typeof cfg === 'string' ? cfg : cfg.event;
+                const childMethodName = typeof cfg === 'object' && 'childMethod' in cfg && cfg.childMethod
+                    ? cfg.childMethod
+                    : sdkMethod;
 
-            // Subscriber (App listens to events)
-            api[sdkMethod] = (callback: EventHandler<any>) => {
-                ensureConnection?.();
-                return sdkEventBus.on(eventName, callback);
-            };
+                // Subscriber (App listens to events)
+                api[sdkMethod] = (callback: EventHandler<any>) => {
+                    ensureConnection?.();
+                    return sdkEventBus.on(eventName, callback);
+                };
 
-            // Emitter (Host triggers events)
-            childMethods[childMethodName] = (...args: any[]) => {
-                sdkEventBus.emit(eventName, ...args as any);
-            };
+                // Emitter (Host triggers events)
+                childMethods[childMethodName] = (...args: any[]) => {
+                    sdkEventBus.emit(eventName, ...args as any);
+                };
+            }
         }
     }
+
 
 
     return { api: api as TAPI, childMethods };

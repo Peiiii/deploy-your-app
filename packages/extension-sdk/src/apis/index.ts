@@ -1,5 +1,4 @@
 /**
-
  * APIs Module
  *
  * Consolidated SDK creation using the master createSDK factory.
@@ -93,11 +92,26 @@ const onFileDrop = stubHandler('onFileDrop');
 
 // ========== SDK Configuration ==========
 
+const extensionRpcMethodNames = [
+  'getPageInfo',
+  'getPageHTML',
+  'getPageText',
+  'getSelection',
+  'extractArticle',
+  'extractLinks',
+  'extractImages',
+  'queryElement',
+  'highlight',
+  'removeHighlight',
+  'insertWidget',
+  'updateWidget',
+  'removeWidget',
+  'injectCSS',
+  'removeCSS',
+  'captureVisible',
+  'getContextMenuEvent',
+] as const;
 
-/**
- * Ultimate SDK Creation
- * Consolidates modules, actions, getters, and stubs into a single factory call.
- */
 export const { sdk, childMethods } = createSDK<GemigoSDK, ChildMethods>({
   getters: {
     platform: () => hostInfo?.platform ?? 'web',
@@ -124,31 +138,8 @@ export const { sdk, childMethods } = createSDK<GemigoSDK, ChildMethods>({
       },
     },
     extension: {
-      rpc: {
-        methods: [
-          'getPageInfo',
-          'getPageHTML',
-          'getPageText',
-          'getSelection',
-          'extractArticle',
-          'extractLinks',
-          'extractImages',
-          'queryElement',
-          'highlight',
-          'removeHighlight',
-          'insertWidget',
-          'updateWidget',
-          'removeWidget',
-          'injectCSS',
-          'removeCSS',
-          'captureVisible',
-          'getContextMenuEvent',
-        ]
-      },
-      events: {
-        onContextMenu: { event: 'extension:contextMenu', childMethod: 'onContextMenuEvent' },
-        onSelectionChange: 'extension:selectionChange',
-      },
+      rpc: { methods: extensionRpcMethodNames },
+      events: ['onContextMenu', 'onSelectionChange'],
     },
   },
   actions: {
@@ -167,4 +158,5 @@ export const { sdk, childMethods } = createSDK<GemigoSDK, ChildMethods>({
     onFileDrop,
   },
 });
+
 

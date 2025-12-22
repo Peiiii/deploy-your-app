@@ -15,7 +15,8 @@ interface AppContainerProps {
 }
 
 type ActiveChildRef = {
-  onContextMenuEvent?: (event: unknown) => void;
+  onContextMenu?: (event: unknown) => void;
+
   onSelectionChange?: (
     text: string,
     rect: { x: number; y: number; width: number; height: number } | null,
@@ -39,9 +40,10 @@ chrome.runtime.onMessage.addListener((message) => {
     );
   }
 
-  if (message.type === 'CONTEXT_MENU_CLICKED' && activeChildRef?.onContextMenuEvent) {
-    activeChildRef.onContextMenuEvent(message.event);
+  if (message.type === 'CONTEXT_MENU_CLICKED' && activeChildRef?.onContextMenu) {
+    activeChildRef.onContextMenu(message.event);
   }
+
 });
 
 export default function AppContainer({ app, onBack }: AppContainerProps) {
