@@ -211,6 +211,26 @@ body {
   color: #1e293b;
 }
 
+.refresh-btn {
+  padding: 8px 12px;
+  border: none;
+  background: #f1f5f9;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refresh-btn:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
 .app-title {
   display: flex;
   align-items: center;

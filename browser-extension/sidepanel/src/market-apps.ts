@@ -55,4 +55,16 @@ export const marketApps: MarketApp[] = [
     category: 'Utilities',
     author: 'GemiGo Team',
   },
+  {
+    id: 'agent-alchemist',
+    name: 'Agent Alchemist',
+    description: 'Autonomous AI agent that can browse, analyze and modify the web for you.',
+    icon: '🔮',
+    iconBg: 'linear-gradient(135deg, #8b5cf6, #d946ef)',
+    url: 'http://localhost:3000/ai-agent/dist/index.html',
+    permissions: ['extension.modify', 'extension.capture', 'network'],
+    networkAllowlist: ['https://openai-api.gemigo.io', 'http://localhost:*'],
+    category: 'AI',
+    author: 'GemiGo Team',
+  },
 ];

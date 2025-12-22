@@ -18,14 +18,14 @@ export interface InstalledApp {
 // Default apps for demo
 const defaultApps: InstalledApp[] = [
   {
-    id: 'demo-1',
-    name: 'Demo App',
-    description: 'Demo application',
-    icon: '🎯',
-    iconBg: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-    url: 'https://example.com',
-    permissions: [],
-    networkAllowlist: [],
+    id: 'agent-alchemist',
+    name: 'Agent Alchemist',
+    description: 'Autonomous AI agent that can browse, analyze and modify the web for you.',
+    icon: '🔮',
+    iconBg: 'linear-gradient(135deg, #8b5cf6, #d946ef)',
+    url: 'http://localhost:3000/ai-agent/index.html',
+    permissions: ['extension.modify', 'extension.capture', 'network'],
+    networkAllowlist: ['https://openai-api.gemigo.io', 'http://localhost:*'],
   },
 ];
 

@@ -4,4 +4,5 @@ packages:
   - "workers/*"
   - "desktop"
   - "browser-extension"
+  - "browser-extension/demo-apps/*"
   - "packages/*"
