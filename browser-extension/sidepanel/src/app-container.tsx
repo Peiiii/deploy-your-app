@@ -78,12 +78,15 @@ export default function AppContainer({ app, onBack }: AppContainerProps) {
 
   return (
     <div className="app-container">
-      <div className="app-header">
+      <div className="app-toolbar">
         <button className="back-btn" onClick={onBack}>
           ←
         </button>
-        <span className="app-icon">{app.icon}</span>
-        <span className="app-name">{app.name}</span>
+        <div className="app-title">
+          <span className="app-title-icon">{app.icon}</span>
+          <span className="app-name">{app.name}</span>
+        </div>
+        <div style={{ width: 42 }} /> {/* Spacer to balance the back button width */}
       </div>
       <iframe
         ref={iframeRef}
