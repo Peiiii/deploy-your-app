@@ -103,8 +103,9 @@ class GemiGoBackgroundController extends BaseExtensionController<BackgroundHandl
             }
         }
 
-        // Direct push notification using Base method
-        this.sendEvent('onContextMenu', [event]);
+        // Direct push notification using Base proxy
+        this.events.onContextMenu(event);
+
     };
 
     // ========== Routing Layer ==========

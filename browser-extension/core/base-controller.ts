@@ -6,8 +6,27 @@
  * @template H - Type of Handlers (RPC methods provided by this controller)
  * @template E - Type of Events (Events capable of being sent by this controller)
  */
-export abstract class BaseExtensionController<H extends Record<string, any>, E = void> {
+export abstract class BaseExtensionController<H extends Record<string, any>, E extends object = object> {
+
     protected handlers: H = {} as H;
+
+    /**
+     * Proxy object to dispatch events as method calls.
+     * Example: this.events.onSelectionChange(text, rect)
+     */
+    protected events: Required<E>;
+
+    constructor() {
+        // Create a proxy to intercept calls to this.events.xxx(...)
+        this.events = new Proxy({} as unknown as Required<E>, {
+            get: (target, prop) => {
+                return (...args: any[]) => {
+                    this.sendEventImpl(String(prop), args);
+                };
+            },
+        });
+    }
+
 
     /**
      * Registers handlers implementation.

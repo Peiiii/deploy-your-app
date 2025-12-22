@@ -42,8 +42,9 @@ class GemiGoContentController extends BaseExtensionController<ContentHandlers, C
                         }
                     }
 
-                    // Use inherited sendEvent
-                    this.sendEvent("onSelectionChange", [text, rect, window.location.href]);
+                    // Use inherited events proxy
+                    this.events.onSelectionChange(text, rect, window.location.href);
+
                 }
             }, 300);
         });
