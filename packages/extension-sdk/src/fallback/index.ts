@@ -6,3 +6,5 @@
 
 export { fallbackStorage } from './storage';
 export { fallbackNotify } from './notify';
+export { fallbackNetwork } from './network';
+

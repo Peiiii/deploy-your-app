@@ -66,7 +66,7 @@ export interface HostMethods extends
   ProtocolRPCMethods,
   StorageRPCMethods,
   NetworkRPCMethods,
-  NotifyRPCMethods {}
+  NotifyRPCMethods { }
 
 /**
  * Child methods interface - what apps expose to the host
@@ -220,3 +220,21 @@ export function createRPCProxy<T extends Record<string, any>>(
   }
   return proxy as T;
 }
+
+/**
+ * Wrap an async function with a fallback.
+ * If the primary function throws, the fallback is called with the same arguments.
+ */
+export function withFallback<TArgs extends unknown[], TResult>(
+  primary: (...args: TArgs) => Promise<TResult>,
+  fallback: (...args: TArgs) => TResult | Promise<TResult>
+): (...args: TArgs) => Promise<TResult> {
+  return async (...args: TArgs): Promise<TResult> => {
+    try {
+      return await primary(...args);
+    } catch {
+      return fallback(...args);
+    }
+  };
+}
+

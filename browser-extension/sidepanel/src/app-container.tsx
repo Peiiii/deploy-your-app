@@ -31,10 +31,11 @@ let activeChildRef: ActiveChildRef | null = null;
  */
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'SELECTION_CHANGED' && activeChildRef?.onSelectionChange) {
+    const [text, rect, url] = message.payload || [];
     activeChildRef.onSelectionChange(
-      message.text || '',
-      message.rect || null,
-      message.url
+      text || '',
+      rect || null,
+      url
     );
   }
 

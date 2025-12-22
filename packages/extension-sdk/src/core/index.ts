@@ -10,6 +10,8 @@ export {
   hasConnectionFailed,
   callHost,
   createRPCProxy,
+  withFallback,
 } from './connection';
 
 export type { HostMethods, ChildMethods } from './connection';
+
