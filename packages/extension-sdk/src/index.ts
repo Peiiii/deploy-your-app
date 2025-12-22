@@ -19,7 +19,8 @@
  *   const pageInfo = await gemigo.extension?.getPageInfo();
  */
 
-import gemigo, { SDKError } from './sdk';
+import gemigo from './sdk';
+import { SDKError } from './types';
 
 // Keep current (browser) usage unchanged:
 // - UMD global `gemigo` is the SDK instance (not `{ default: ... }`)
@@ -30,7 +31,8 @@ export default gemigo;
 
 // Type-only exports (no runtime named exports, so UMD stays compatible)
 export type * from './types';
-export type { SDKError, SDKErrorCode } from './sdk';
+export type { SDKError, SDKErrorCode } from './types';
+
 
 // Host-side types (for implementing host adapters)
 export type { HostMethods, ChildMethods } from './core';

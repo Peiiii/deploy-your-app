@@ -4,8 +4,9 @@
  * Consolidates RPC and event-based APIs into a single declarative configuration.
  */
 
-import { createRPCProxy, HostMethods, tryGetHost } from './connection';
+import { createRPCProxy, HostMethods, tryGetHost, callHost } from './connection';
 import { sdkEventBus, SDKEvents, EventHandler } from './event-bus';
+
 
 export interface APIConfig<TAPI extends object> {
     /** RPC methods mapping to host functions */
@@ -68,5 +69,96 @@ export function createUnifiedAPI<TAPI extends object, TChild extends object = Re
         }
     }
 
+
     return { api: api as TAPI, childMethods };
+}
+
+/**
+ * Create a standalone RPC action with argument transformation and fallback handling.
+ *
+ * @param methodName - Host method name to call
+ * @param config - Action configuration
+ * @returns An async function that handles the full RPC cycle
+ */
+export function createRPCAction<TArgs extends any[], TResult, THostResult = any>(
+    methodName: keyof HostMethods,
+    config: {
+        /** Transform input arguments for host method */
+        transform?: (...args: TArgs) => any[];
+        /** Fallback if host fails */
+        fallback: (...args: TArgs) => TResult | Promise<TResult>;
+        /** Process host result */
+        onSuccess?: (result: THostResult) => TResult;
+    }
+): (...args: TArgs) => Promise<TResult> {
+    return async (...args: TArgs): Promise<TResult> => {
+        try {
+            const hostArgs = config.transform ? config.transform(...args) : args;
+            const result = await callHost<THostResult>(methodName, hostArgs);
+            if (config.onSuccess) return config.onSuccess(result);
+            return result as unknown as TResult;
+        } catch {
+            return config.fallback(...args);
+        }
+    };
+}
+
+/**
+ * Master SDK Action Configuration
+ */
+export interface ActionConfig<TFunc extends (...args: any[]) => any> {
+    method: keyof HostMethods;
+    /** Transform input arguments for host method */
+    transform?: (...args: Parameters<TFunc>) => any[];
+    /** Fallback if host fails */
+    fallback: TFunc;
+    /** Process host result */
+    onSuccess?: (
+        result: any
+    ) => ReturnType<TFunc> extends Promise<infer R> ? R : ReturnType<TFunc>;
+}
+
+/**
+ * Master SDK Factory - Create the entire SDK and child methods from a single config.
+ */
+export function createSDK<
+    TSDK extends object,
+    TChild extends object = Record<string, any>
+>(config: {
+    /** Sub-modules (e.g., storage, extension) */
+    modules?: {
+        [K in keyof TSDK]?: any;
+    };
+    /** Standalone functions (e.g., notify) */
+    actions?: {
+        [K in keyof TSDK]?: TSDK[K] extends (...args: any[]) => any
+        ? ActionConfig<TSDK[K]>
+        : never;
+    };
+    /** Static values or stubs (e.g., platform, ai) */
+    statics?: {
+        [K in keyof TSDK]?: TSDK[K];
+    };
+}): { sdk: TSDK; childMethods: TChild } {
+    const sdk = (config.statics ? { ...config.statics } : {}) as any;
+    const mergedChildMethods = {} as any;
+
+    // 1. Create Modules
+    if (config.modules) {
+        for (const [name, modConfig] of Object.entries(config.modules)) {
+            const { api, childMethods } = createUnifiedAPI(modConfig as any);
+            sdk[name] = api;
+            Object.assign(mergedChildMethods, childMethods);
+        }
+    }
+
+    // 2. Create Actions
+    if (config.actions) {
+        for (const [name, actionConfig] of Object.entries(config.actions)) {
+            const cfg = actionConfig as any;
+            sdk[name] = createRPCAction(cfg.method, cfg);
+        }
+    }
+
+    return { sdk: sdk as TSDK, childMethods: mergedChildMethods as TChild };
 }

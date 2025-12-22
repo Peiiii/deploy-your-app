@@ -5,7 +5,17 @@
  */
 
 // Common types
-export type { Platform, Capabilities, FileEntry, FileStat, RPCResult, RPCResultWithData } from './common';
+export type {
+  Platform,
+  Capabilities,
+  FileEntry,
+  FileStat,
+  RPCResult,
+  RPCResultWithData,
+  SDKErrorCode,
+} from './common';
+export { SDKError } from './common';
+
 
 // Storage API
 export type { StorageAPI } from './storage';

@@ -16,8 +16,9 @@ export const fallbackNotify = async (options: NotifyOptions): Promise<NotifyResu
   }
 
   try {
-    new Notification(options.title, { body: options.body, icon: options.icon });
+    new Notification(options.title, { body: options.message, icon: options.icon });
     return { success: true };
+
   } catch {
     return { success: false, reason: 'failed_to_notify' };
   }

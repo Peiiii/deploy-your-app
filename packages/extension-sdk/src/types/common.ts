@@ -5,6 +5,26 @@
 /** Current platform type */
 export type Platform = 'web' | 'desktop' | 'extension';
 
+/** SDK Error Codes */
+export type SDKErrorCode =
+  | 'NOT_SUPPORTED'
+  | 'PERMISSION_DENIED'
+  | 'NETWORK_NOT_ALLOWED'
+  | 'TIMEOUT'
+  | 'INTERNAL_ERROR'
+  | 'NOT_CONNECTED';
+
+/** Unified SDK Error class */
+export class SDKError extends Error {
+  constructor(public code: SDKErrorCode, message: string) {
+    super(message);
+    this.name = 'SDKError';
+    // Ensure properly prototype chain for instanceof
+    Object.setPrototypeOf(this, SDKError.prototype);
+  }
+}
+
+
 /** Environment capabilities */
 export interface Capabilities {
   /** Persistent key-value storage */

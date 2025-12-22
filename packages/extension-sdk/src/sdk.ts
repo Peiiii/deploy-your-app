@@ -6,17 +6,8 @@
  */
 
 import {
-  aiAPI,
+  sdkBase,
   extensionChildMethods,
-  clipboardAPI,
-  dialogAPI,
-  extensionAPI,
-  fileAPI,
-  networkAPI,
-  notify,
-  onFileDrop,
-  onNotificationAction,
-  storageAPI,
 } from './apis';
 import { initConnection, tryGetHost } from './core';
 import type {
@@ -24,23 +15,6 @@ import type {
   GemigoSDK,
   Platform
 } from './types';
-
-// ========== SDK Error ==========
-
-export class SDKError extends Error {
-  constructor(public code: string, message: string) {
-    super(message);
-    this.name = 'SDKError';
-  }
-}
-
-export type SDKErrorCode =
-  | 'NOT_SUPPORTED'
-  | 'PERMISSION_DENIED'
-  | 'NETWORK_NOT_ALLOWED'
-  | 'TIMEOUT'
-  | 'INTERNAL_ERROR'
-  | 'NOT_CONNECTED';
 
 // ========== State ==========
 
@@ -74,7 +48,6 @@ async function initSDK(): Promise<void> {
   }
 }
 
-
 // ========== SDK Object ==========
 
 const sdk: GemigoSDK = {
@@ -84,21 +57,9 @@ const sdk: GemigoSDK = {
   get capabilities(): Capabilities {
     return hostInfo?.capabilities ?? defaultCapabilities;
   },
-
-  // Core APIs
-  storage: storageAPI,
-  network: networkAPI,
-  notify: notify as GemigoSDK['notify'],
-  extension: extensionAPI,
-
-  // Stubs
-  onNotificationAction: onNotificationAction as GemigoSDK['onNotificationAction'],
-  ai: aiAPI,
-  clipboard: clipboardAPI,
-  dialog: dialogAPI,
-  onFileDrop: onFileDrop as GemigoSDK['onFileDrop'],
-  file: fileAPI,
+  ...sdkBase,
 };
+
 
 // Eager init
 initSDK();

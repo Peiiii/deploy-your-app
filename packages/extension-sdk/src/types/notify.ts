@@ -12,8 +12,9 @@ export interface NotifyAction {
 export interface NotifyOptions {
   /** Notification title (required) */
   title: string;
-  /** Notification body text */
-  body?: string;
+  /** Notification message text */
+  message?: string;
+
   /** Icon URL */
   icon?: string;
   /** Action buttons (desktop only) */
