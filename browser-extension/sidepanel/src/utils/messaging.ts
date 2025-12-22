@@ -1,6 +1,6 @@
 /**
  * Chrome Runtime Messaging Utilities
- * 
+ *
  * Provides a generic, type-safe wrapper around chrome.runtime.sendMessage.
  * Completely decoupled from specific API business logic.
  */

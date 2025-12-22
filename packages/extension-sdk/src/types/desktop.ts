@@ -102,7 +102,10 @@ export interface FileWatchAPI {
 }
 
 /** File watch callback handler */
-export type FileWatchHandler = (callbackId: string, handler: (event: FileWatchEvent) => void) => void;
+export type FileWatchHandler = (
+  callbackId: string,
+  handler: (event: FileWatchEvent) => void
+) => void;
 
 // ========== Shell API ==========
 

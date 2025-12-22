@@ -16,14 +16,16 @@ export type SDKErrorCode =
 
 /** Unified SDK Error class */
 export class SDKError extends Error {
-  constructor(public code: SDKErrorCode, message: string) {
+  constructor(
+    public code: SDKErrorCode,
+    message: string
+  ) {
     super(message);
     this.name = 'SDKError';
     // Ensure properly prototype chain for instanceof
     Object.setPrototypeOf(this, SDKError.prototype);
   }
 }
-
 
 /** Environment capabilities */
 export interface Capabilities {
@@ -91,4 +93,3 @@ export interface RPCResult<T = void> {
  * RPC result with required data (for successful operations).
  */
 export type RPCResultWithData<T> = RPCResult<T> & { data: T };
-

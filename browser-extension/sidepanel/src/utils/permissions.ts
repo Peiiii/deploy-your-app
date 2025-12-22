@@ -1,6 +1,6 @@
 /**
  * Permission Utilities
- * 
+ *
  * Handles permission checking and URL allowlist matching.
  */
 
@@ -9,10 +9,8 @@ import type { AppPermission, AppConfig } from '../types';
 /**
  * Check if an app has a specific permission.
  */
-export const hasPermission = (
-  app: AppConfig,
-  permission: AppPermission
-): boolean => Boolean(app.permissions?.includes(permission));
+export const hasPermission = (app: AppConfig, permission: AppPermission): boolean =>
+  Boolean(app.permissions?.includes(permission));
 
 /**
  * Check if a URL matches the app's network allowlist.
@@ -21,10 +19,7 @@ export const hasPermission = (
  * - Wildcard subdomain: '*.example.com'
  * - Wildcard port: 'http://localhost:*'
  */
-export const isUrlAllowed = (
-  url: string,
-  allowlist: string[] | undefined
-): boolean => {
+export const isUrlAllowed = (url: string, allowlist: string[] | undefined): boolean => {
   if (!allowlist || allowlist.length === 0) return false;
 
   let parsed: URL;

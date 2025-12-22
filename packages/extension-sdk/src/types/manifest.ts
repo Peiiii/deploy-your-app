@@ -24,13 +24,7 @@ export type PermissionType =
   | 'extension.shortcuts';
 
 /** File scope paths */
-export type FileScope =
-  | '$DOWNLOAD'
-  | '$DOCUMENT'
-  | '$PICTURE'
-  | '$DESKTOP'
-  | '$APP_DATA'
-  | '$TEMP';
+export type FileScope = '$DOWNLOAD' | '$DOCUMENT' | '$PICTURE' | '$DESKTOP' | '$APP_DATA' | '$TEMP';
 
 /** Context menu context types */
 export type ContextMenuContext = 'selection' | 'page' | 'image';

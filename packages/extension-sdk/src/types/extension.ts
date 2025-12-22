@@ -178,7 +178,7 @@ export interface ExtensionAPI extends ExtensionRPCMethods {
   // Local event handlers (not RPC)
   onContextMenu(callback: (event: ContextMenuEvent) => void): () => void;
   onSelectionChange(
-    handler: (text: string, rect: SelectionRect | null, url?: string) => void,
+    handler: (text: string, rect: SelectionRect | null, url?: string) => void
   ): () => void;
 
   // Planned (optional) APIs.
@@ -188,4 +188,3 @@ export interface ExtensionAPI extends ExtensionRPCMethods {
   captureFull?: (options?: CaptureFullOptions) => Promise<CaptureResult>;
   registerShortcut?: (combo: string, callback: () => void) => () => void;
 }
-

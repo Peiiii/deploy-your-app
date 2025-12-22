@@ -8,13 +8,7 @@
 import { createSDK } from '../core';
 import type { ChildMethods } from '../core';
 import { fallbackStorage, fallbackNetwork, fallbackNotify } from '../fallback';
-import type {
-  NotifyOptions,
-  NotifyResult,
-  GemigoSDK,
-  Platform,
-  Capabilities,
-} from '../types';
+import type { NotifyOptions, NotifyResult, GemigoSDK, Platform, Capabilities } from '../types';
 import { SDKError } from '../types';
 
 // ========== Environment State ==========
@@ -47,9 +41,14 @@ const throwNotSupported = (feature: string): never => {
   throw new SDKError('NOT_SUPPORTED', `${feature} is not supported in this environment.`);
 };
 
-const stubAsync = <T = never>(feature: string) => async (): Promise<T> =>
-  throwNotSupported(feature);
-const stubHandler = <T = never>(feature: string) => (): T => throwNotSupported(feature);
+const stubAsync =
+  <T = never>(feature: string) =>
+  async (): Promise<T> =>
+    throwNotSupported(feature);
+const stubHandler =
+  <T = never>(feature: string) =>
+  (): T =>
+    throwNotSupported(feature);
 
 const aiAPI = {
   chat: stubAsync('ai.chat'),
@@ -101,7 +100,12 @@ export const { sdk, childMethods } = createSDK<GemigoSDK, ChildMethods>({
     storage: {
       rpc: {
         methods: ['get', 'set', 'delete', 'clear'],
-        mapping: { get: 'storageGet', set: 'storageSet', delete: 'storageDelete', clear: 'storageClear' },
+        mapping: {
+          get: 'storageGet',
+          set: 'storageSet',
+          delete: 'storageDelete',
+          clear: 'storageClear',
+        },
         fallbacks: {
           get: fallbackStorage.get,
           set: fallbackStorage.set,
@@ -137,7 +141,7 @@ export const { sdk, childMethods } = createSDK<GemigoSDK, ChildMethods>({
           'removeCSS',
           'captureVisible',
           'getContextMenuEvent',
-        ]
+        ],
       },
       events: ['onContextMenu', 'onSelectionChange'],
     },
@@ -158,5 +162,3 @@ export const { sdk, childMethods } = createSDK<GemigoSDK, ChildMethods>({
     onFileDrop,
   },
 });
-
-

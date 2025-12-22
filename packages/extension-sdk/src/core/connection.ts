@@ -61,12 +61,13 @@ export interface NotifyRPCMethods {
  * Host methods interface - what the host provides to apps.
  * Same interface for all platforms.
  */
-export interface HostMethods extends
-  ExtensionRPCMethods,
-  ProtocolRPCMethods,
-  StorageRPCMethods,
-  NetworkRPCMethods,
-  NotifyRPCMethods { }
+export interface HostMethods
+  extends
+    ExtensionRPCMethods,
+    ProtocolRPCMethods,
+    StorageRPCMethods,
+    NetworkRPCMethods,
+    NotifyRPCMethods {}
 
 /**
  * Child methods interface - what apps expose to the host
@@ -146,7 +147,9 @@ export async function tryGetHost(
 export async function getHost(): Promise<AsyncMethodReturns<HostMethods>> {
   const host = await tryGetHost();
   if (!host) {
-    throw new Error('Not connected to host. SDK may be running outside of a supported environment.');
+    throw new Error(
+      'Not connected to host. SDK may be running outside of a supported environment.'
+    );
   }
   return host;
 }
@@ -190,7 +193,7 @@ export async function callHost<T>(
     // Success/Value unwrapping (matches Host side ok/okWith)
     if (res?.success !== false) {
       // Prioritize .data (standard RPCResult), then .value (legacy), then res itself
-      const val = res?.data !== undefined ? res.data : (res?.value !== undefined ? res.value : res);
+      const val = res?.data !== undefined ? res.data : res?.value !== undefined ? res.value : res;
       return val as T;
     }
     // If explicitly failed and there's a fallback, use it. Otherwise throw.
@@ -237,4 +240,3 @@ export function withFallback<TArgs extends unknown[], TResult>(
     }
   };
 }
-

@@ -1,6 +1,6 @@
 /**
  * App Container Component
- * 
+ *
  * Renders an app in an iframe and establishes Penpal communication.
  */
 
@@ -33,17 +33,12 @@ let activeChildRef: ActiveChildRef | null = null;
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'SELECTION_CHANGED' && activeChildRef?.onSelectionChange) {
     const [text, rect, url] = message.payload || [];
-    activeChildRef.onSelectionChange(
-      text || '',
-      rect || null,
-      url
-    );
+    activeChildRef.onSelectionChange(text || '', rect || null, url);
   }
 
   if (message.type === 'CONTEXT_MENU_CLICKED' && activeChildRef?.onContextMenu) {
     activeChildRef.onContextMenu(message.event);
   }
-
 });
 
 export default function AppContainer({ app, onBack }: AppContainerProps) {

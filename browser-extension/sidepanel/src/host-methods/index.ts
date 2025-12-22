@@ -20,45 +20,60 @@ interface MethodConfig {
   local?: (app: AppConfig, ...args: any[]) => any;
 }
 
-
-
 // ========== Complete Method Configuration ==========
 
 const CONFIG: Record<string, MethodConfig> = {
   // Protocol (Discovery)
   getProtocolInfo: {
     local: (app) => ({
-      protocolVersion: 1, platform: 'extension', appId: app.id,
-      capabilities: { 
-        storage: true, notification: true, 
+      protocolVersion: 1,
+      platform: 'extension',
+      appId: app.id,
+      capabilities: {
+        storage: true,
+        notification: true,
         network: hasPermission(app, 'network') && (app.networkAllowlist?.length ?? 0) > 0,
-        extension: { 
-          read: true, events: true, 
-          modify: hasPermission(app, 'extension.modify'), 
-          capture: hasPermission(app, 'extension.capture') 
-        } 
-      }
+        extension: {
+          read: true,
+          events: true,
+          modify: hasPermission(app, 'extension.modify'),
+          capture: hasPermission(app, 'extension.capture'),
+        },
+      },
     }),
   },
 
   // Storage
-  storageGet: { local: (app, key) => chrome.storage.local.get([`app:${app.id}:${key}`]).then(s => okWith({ value: s[`app:${app.id}:${key}`] })) },
-  storageSet: { local: (app, key, value) => chrome.storage.local.set({ [`app:${app.id}:${key}`]: value }).then(() => ok()) },
-  storageDelete: { local: (app, key) => chrome.storage.local.remove([`app:${app.id}:${key}`]).then(() => ok()) },
+  storageGet: {
+    local: (app, key) =>
+      chrome.storage.local
+        .get([`app:${app.id}:${key}`])
+        .then((s) => okWith({ value: s[`app:${app.id}:${key}`] })),
+  },
+  storageSet: {
+    local: (app, key, value) =>
+      chrome.storage.local.set({ [`app:${app.id}:${key}`]: value }).then(() => ok()),
+  },
+  storageDelete: {
+    local: (app, key) => chrome.storage.local.remove([`app:${app.id}:${key}`]).then(() => ok()),
+  },
   storageClear: {
     local: async (app) => {
       const all = await chrome.storage.local.get(null);
-      const keys = Object.keys(all).filter(k => k.startsWith(`app:${app.id}:`));
+      const keys = Object.keys(all).filter((k) => k.startsWith(`app:${app.id}:`));
       if (keys.length > 0) await chrome.storage.local.remove(keys);
       return ok();
-    }
+    },
   },
 
   // Network
   networkRequest: {
     routing: 'background',
     permission: 'network',
-    local: (app, url) => !isUrlAllowed(url, app.networkAllowlist) ? fail('URL not allowed', 'NETWORK_NOT_ALLOWED') : null
+    local: (app, url) =>
+      !isUrlAllowed(url, app.networkAllowlist)
+        ? fail('URL not allowed', 'NETWORK_NOT_ALLOWED')
+        : null,
   },
 
   // Notifications

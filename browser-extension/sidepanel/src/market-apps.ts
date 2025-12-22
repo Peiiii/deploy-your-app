@@ -17,7 +17,7 @@ export const marketApps: MarketApp[] = [
     permissions: ['extension.modify', 'extension.capture', 'network'],
     networkAllowlist: ['https://api.github.com', 'http://localhost:*'],
     category: 'Development',
-    author: 'GemiGo Team'
+    author: 'GemiGo Team',
   },
   {
     id: 'demo-reader',
@@ -29,7 +29,7 @@ export const marketApps: MarketApp[] = [
     permissions: ['extension.modify'],
     networkAllowlist: [],
     category: 'Productivity',
-    author: 'GemiGo Team'
+    author: 'GemiGo Team',
   },
   {
     id: 'translator-app',
@@ -41,7 +41,7 @@ export const marketApps: MarketApp[] = [
     permissions: [],
     networkAllowlist: [],
     category: 'Utilities',
-    author: 'GemiGo Team'
+    author: 'GemiGo Team',
   },
   {
     id: 'link-analyzer',
@@ -53,6 +53,6 @@ export const marketApps: MarketApp[] = [
     permissions: ['extension.modify'],
     networkAllowlist: [],
     category: 'Utilities',
-    author: 'GemiGo Team'
-  }
+    author: 'GemiGo Team',
+  },
 ];

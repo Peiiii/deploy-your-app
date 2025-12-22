@@ -1,18 +1,13 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
-import { defineConfig, globalIgnores } from 'eslint/config'
+import js from '@eslint/js';
+import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import tseslint from 'typescript-eslint';
+import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
   // Ignore compiled / generated artifacts and cloned user builds.
-  globalIgnores([
-    'dist',
-    'server/dist',
-    'data',
-    'data/builds',
-  ]),
+  globalIgnores(['dist', 'server/dist', 'packages/extension-sdk/dist', 'data', 'data/builds']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -35,7 +30,13 @@ export default defineConfig([
   {
     // Ignore cloned user repos under .deploy-builds from linting to avoid
     // raising errors on user code we don't control.
-    files: ['.deploy-builds/**/*.{ts,tsx}', 'server/routes.ts'],
+    // Also relax any-type rules for bridge layers (SDK & Extension).
+    files: [
+      '.deploy-builds/**/*.{ts,tsx}',
+      'server/routes.ts',
+      'packages/extension-sdk/src/**/*.{ts,tsx}',
+      'browser-extension/**/*.{ts,tsx}',
+    ],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       'react-hooks/purity': 'off',
@@ -47,4 +48,4 @@ export default defineConfig([
       'react-hooks/exhaustive-deps': 'off',
     },
   },
-])
+]);

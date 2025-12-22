@@ -1,6 +1,6 @@
 /**
  * GemiGo SDK Types
- * 
+ *
  * Complete TypeScript type definitions for the GemiGo SDK API.
  */
 
@@ -16,7 +16,6 @@ export type {
 } from './common';
 export { SDKError } from './common';
 
-
 // Storage API
 export type { StorageAPI } from './storage';
 
@@ -30,20 +29,10 @@ export type {
 } from './notify';
 
 // AI API
-export type {
-  ChatMessage,
-  ChatResponse,
-  TranslateOptions,
-  TranslateResult,
-  AIAPI,
-} from './ai';
+export type { ChatMessage, ChatResponse, TranslateOptions, TranslateResult, AIAPI } from './ai';
 
 // Clipboard API
-export type {
-  ClipboardContent,
-  ClipboardChangeCallback,
-  ClipboardAPI,
-} from './clipboard';
+export type { ClipboardContent, ClipboardChangeCallback, ClipboardAPI } from './clipboard';
 
 // Dialog API
 export type {
@@ -136,11 +125,7 @@ export type {
 
 // ========== Main SDK Interface ==========
 
-import {
-  Platform,
-  Capabilities,
-  SDKError,
-} from './common';
+import { Platform, Capabilities, SDKError } from './common';
 import type { StorageAPI } from './storage';
 import type { NotifyOptions, NotifyResult } from './notify';
 import type { AIAPI } from './ai';
@@ -161,7 +146,7 @@ import type { ExtensionAPI } from './extension';
 
 /**
  * Complete GemiGo SDK interface
- * 
+ *
  * Available APIs depend on the current platform:
  * - `web`: Common APIs only
  * - `desktop`: Common + Desktop APIs
@@ -180,7 +165,6 @@ export interface GemigoSDK {
   readonly SDKError: typeof SDKError;
 
   // ========== Common APIs ==========
-
 
   /** Persistent key-value storage */
   storage: StorageAPI;
