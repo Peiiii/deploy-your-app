@@ -7,8 +7,9 @@ import type {
     ExtractLinksResult,
     ExtractImagesResult
 } from '@gemigo/app-sdk';
+import type { ExtractHandlers } from '../types';
 
-export const extractHandlers = {
+export const extractHandlers: ExtractHandlers = {
     extractArticle: async (): Promise<ExtractArticleResult> => {
         try {
             const title = document.title || document.querySelector('h1')?.textContent || '';

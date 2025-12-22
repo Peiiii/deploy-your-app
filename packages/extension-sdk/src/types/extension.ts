@@ -147,6 +147,7 @@ export interface QueryElementResult {
  */
 export interface ExtensionRPCMethods {
   getPageInfo(): Promise<PageInfo | null>;
+
   getPageHTML(): Promise<string>;
   getPageText(): Promise<string>;
   getSelection(): Promise<SelectionResult>;

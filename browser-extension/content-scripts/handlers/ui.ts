@@ -2,7 +2,7 @@
  * Page UI Manipulation Handlers
  */
 
-import type { HighlightResult, WidgetPosition, WidgetResult, CSSResult } from '@gemigo/app-sdk';
+import type { CSSResult, HighlightResult, WidgetPosition, WidgetResult } from '@gemigo/app-sdk';
 
 const widgetRegistry = new Map<string, HTMLElement>();
 const styleRegistry = new Map<string, HTMLStyleElement>();
@@ -10,7 +10,9 @@ const highlightRegistry = new Map<string, HTMLElement[]>();
 let idCounter = 0;
 const generateId = () => `gemigo-${Date.now()}-${++idCounter}`;
 
-export const uiHandlers = {
+import type { UiHandlers } from '../types';
+
+export const uiHandlers: UiHandlers = {
     highlight: async (selector: string, color?: string): Promise<HighlightResult> => {
         try {
             const highlightId = generateId();

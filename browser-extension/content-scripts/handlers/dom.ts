@@ -2,9 +2,11 @@
  * DOM Core Handlers
  */
 
-import type { SelectionResult, ElementInfo, QueryElementResult } from '@gemigo/app-sdk';
+import type { ElementInfo, QueryElementResult, SelectionResult } from '@gemigo/app-sdk';
+import type { DomHandlers } from '../types';
 
-export const domHandlers = {
+
+export const domHandlers: DomHandlers = {
     ping: async () => ({ pong: true }),
     getPageHTML: async () => document.documentElement.outerHTML,
     getPageText: async () => document.body.innerText,

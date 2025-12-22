@@ -1,14 +1,20 @@
 /**
  * GemiGo Content Script - Entry Point
  * 
- * Harmonizes Observer and Router layers.
+ * Composes handlers and starts the controller.
  */
 
-import { initObserver } from './observer';
-import { initRouter } from './router';
+import { contentController } from './content-controller';
+import { domHandlers } from './handlers/dom';
+import { extractHandlers } from './handlers/extract';
+import { uiHandlers } from './handlers/ui';
 
-// Initialize layers
-initObserver();
-initRouter();
+// Inject handlers
+contentController.provideHandlers({
+    ...domHandlers,
+    ...extractHandlers,
+    ...uiHandlers,
+});
 
-console.log('[GemiGo] Content script initialized on:', window.location.href);
+// Start services
+contentController.start();
