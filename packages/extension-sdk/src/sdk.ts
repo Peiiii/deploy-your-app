@@ -7,7 +7,7 @@
 
 import {
   aiAPI,
-  childMethods,
+  extensionChildMethods,
   clipboardAPI,
   dialogAPI,
   extensionAPI,
@@ -62,7 +62,7 @@ const defaultCapabilities: Capabilities = {
 // ========== Init ==========
 
 async function initSDK(): Promise<void> {
-  initConnection(childMethods, { timeoutMs: 1500 });
+  initConnection(extensionChildMethods, { timeoutMs: 1500 });
   const host = await tryGetHost();
   if (host && typeof host.getProtocolInfo === 'function') {
     try {
