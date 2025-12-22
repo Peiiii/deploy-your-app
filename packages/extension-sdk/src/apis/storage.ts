@@ -4,13 +4,13 @@
  * Uses host storage if available, otherwise falls back to localStorage.
  */
 
-import { createRPCProxy } from '../core';
+import { createUnifiedAPI } from '../core';
 import { fallbackStorage } from '../fallback';
 import type { StorageAPI } from '../types';
 
-export const storageAPI = createRPCProxy<StorageAPI>(
-  ['get', 'set', 'delete', 'clear'],
-  {
+export const { api: storageAPI } = createUnifiedAPI<StorageAPI>({
+  rpc: {
+    methods: ['get', 'set', 'delete', 'clear'],
     mapping: {
       get: 'storageGet',
       set: 'storageSet',
@@ -23,5 +23,6 @@ export const storageAPI = createRPCProxy<StorageAPI>(
       delete: (key: string) => fallbackStorage.delete(key),
       clear: () => fallbackStorage.clear(),
     },
-  }
-);
+  },
+});
+

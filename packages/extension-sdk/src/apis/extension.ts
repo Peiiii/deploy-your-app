@@ -1,25 +1,12 @@
 /**
  * Extension API
  *
- * Page interaction APIs using declarative RPC proxy.
+ * Page interaction APIs using declarative configuration.
  */
 
-import { createRPCProxy, tryGetHost, createEventPair } from '../core';
 import type { ChildMethods } from '../core';
-import type { ExtensionAPI, ExtensionRPCMethods } from '../types';
-
-// ========== Event Configuration ==========
-
-const extensionEventConfig = {
-  onContextMenuEvent: 'extension:contextMenu',
-  onSelectionChange: 'extension:selectionChange',
-} as const;
-
-const { emitters, subscribers } = createEventPair(extensionEventConfig, tryGetHost);
-
-// ========== Child Methods (Host → SDK events) ==========
-
-export const childMethods: ChildMethods = emitters;
+import { createUnifiedAPI } from '../core';
+import type { ExtensionAPI } from '../types';
 
 // ========== RPC Method List ==========
 
@@ -43,19 +30,24 @@ export const extensionRpcMethodNames = [
   'getContextMenuEvent',
 ] as const;
 
-// ========== Extension API ==========
+// ========== Unified API Configuration ==========
 
-export const extensionCallbackAPI: Pick<ExtensionAPI, 'onContextMenu' | 'onSelectionChange'> = {
-  onContextMenu: subscribers.onContextMenuEvent,
-  onSelectionChange: subscribers.onSelectionChange,
-};
+export const { api: extensionAPI, childMethods: extensionChildMethods } = createUnifiedAPI<ExtensionAPI, ChildMethods>(
+  {
 
-export const extensionHostAPI: ExtensionRPCMethods = createRPCProxy<ExtensionRPCMethods>(extensionRpcMethodNames);
+    rpc: {
+      methods: extensionRpcMethodNames,
+    },
+    events: {
+      onContextMenu: {
+        event: 'extension:contextMenu',
+        childMethod: 'onContextMenuEvent',
+      },
+      onSelectionChange: 'extension:selectionChange',
+    },
+  },
+);
 
-export const extensionAPI: ExtensionAPI = {
-  ...extensionHostAPI,
-  ...extensionCallbackAPI,
-};
 
 
 

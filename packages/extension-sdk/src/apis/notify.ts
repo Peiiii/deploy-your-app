@@ -4,20 +4,31 @@
  * Uses host notify if available, otherwise falls back to Web Notifications.
  */
 
-import { callHost, withFallback } from '../core';
+import { createUnifiedAPI, callHost } from '../core';
 import { fallbackNotify } from '../fallback';
 import type { NotifyOptions, NotifyResult } from '../types';
 
-// ========== Primary Implementation ==========
+// ========== Unified API Configuration ==========
 
-const hostNotify = async (options: NotifyOptions): Promise<NotifyResult> => {
-  await callHost<string>('notify', [{ title: options.title, message: options.body || '' }]);
-  return { success: true };
-};
-
-// ========== Notify Function ==========
+const { api } = createUnifiedAPI<{ notify(options: NotifyOptions): Promise<NotifyResult> }>({
+  rpc: {
+    methods: ['notify'],
+    fallbacks: {
+      notify: fallbackNotify,
+    },
+  },
+});
 
 /**
  * Send a notification
  */
-export const notify = withFallback(hostNotify, fallbackNotify);
+export const notify = async (options: NotifyOptions): Promise<NotifyResult> => {
+  try {
+    // We do a manual call here to handle the { title, body } -> { title, message } transformation
+    await callHost('notify', [{ title: options.title, message: options.body || '' }]);
+    return { success: true };
+  } catch {
+    return fallbackNotify(options);
+  }
+};
+
