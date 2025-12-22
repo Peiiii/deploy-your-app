@@ -5,24 +5,24 @@
  * Uses Penpal for host communication, with fallbacks for no-host scenarios.
  */
 
-import { tryGetHost, initConnection } from './core';
 import {
-  storageAPI,
-  networkAPI,
-  notify,
-  extensionAPI,
-  childMethods,
   aiAPI,
+  childMethods,
   clipboardAPI,
   dialogAPI,
+  extensionAPI,
   fileAPI,
-  onNotificationAction,
+  networkAPI,
+  notify,
   onFileDrop,
+  onNotificationAction,
+  storageAPI,
 } from './apis';
+import { initConnection, tryGetHost } from './core';
 import type {
-  GemigoSDK,
-  Platform,
   Capabilities,
+  GemigoSDK,
+  Platform
 } from './types';
 
 // ========== SDK Error ==========
@@ -73,6 +73,7 @@ async function initSDK(): Promise<void> {
     }
   }
 }
+
 
 // ========== SDK Object ==========
 

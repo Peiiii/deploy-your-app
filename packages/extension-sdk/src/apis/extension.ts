@@ -4,33 +4,26 @@
  * Page interaction APIs using declarative RPC proxy.
  */
 
-import { createRPCProxy, tryGetHost } from '../core';
+import { createRPCProxy, tryGetHost, createEventPair } from '../core';
 import type { ChildMethods } from '../core';
-import type { ExtensionAPI, ContextMenuEvent } from '../types';
+import type { ExtensionAPI, ExtensionRPCMethods } from '../types';
 
-// ========== Event Bus ==========
+// ========== Event Configuration ==========
 
-type EventHandler = (...args: unknown[]) => void;
-const handlers: Map<string, Set<EventHandler>> = new Map();
+const extensionEventConfig = {
+  onContextMenuEvent: 'extension:contextMenu',
+  onSelectionChange: 'extension:selectionChange',
+} as const;
 
-function on(event: string, handler: EventHandler): () => void {
-  if (!handlers.has(event)) handlers.set(event, new Set());
-  handlers.get(event)!.add(handler);
-  return () => handlers.get(event)?.delete(handler);
-}
+const { emitters, subscribers } = createEventPair(extensionEventConfig, tryGetHost);
 
-function emit(event: string, ...args: unknown[]): void {
-  handlers.get(event)?.forEach((h) => h(...args));
-}
+// ========== Child Methods (Host → SDK events) ==========
 
-export const childMethods: ChildMethods = {
-  onContextMenuEvent: (event: ContextMenuEvent) => emit('contextMenu', event),
-  onSelectionChange: (text, rect, url) => emit('selectionChange', text, rect, url),
-};
+export const childMethods: ChildMethods = emitters;
 
-// ========== Method List ==========
+// ========== RPC Method List ==========
 
-const rpcMethods = [
+export const extensionRpcMethodNames = [
   'getPageInfo',
   'getPageHTML',
   'getPageText',
@@ -52,15 +45,17 @@ const rpcMethods = [
 
 // ========== Extension API ==========
 
-export const extensionAPI: ExtensionAPI = {
-  ...createRPCProxy<any>(rpcMethods),
-
-  onContextMenu: (callback) => {
-    tryGetHost();
-    return on('contextMenu', callback as EventHandler);
-  },
-  onSelectionChange: (handler) => {
-    tryGetHost();
-    return on('selectionChange', handler as EventHandler);
-  },
+export const extensionCallbackAPI: Pick<ExtensionAPI, 'onContextMenu' | 'onSelectionChange'> = {
+  onContextMenu: subscribers.onContextMenuEvent,
+  onSelectionChange: subscribers.onSelectionChange,
 };
+
+export const extensionHostAPI: ExtensionRPCMethods = createRPCProxy<ExtensionRPCMethods>(extensionRpcMethodNames);
+
+export const extensionAPI: ExtensionAPI = {
+  ...extensionHostAPI,
+  ...extensionCallbackAPI,
+};
+
+
+

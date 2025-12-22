@@ -206,14 +206,14 @@ export async function callHost<T>(
  * Create a simple RPC proxy for a set of methods.
  */
 export function createRPCProxy<T extends Record<string, any>>(
-  methodNames: readonly string[],
+  methodNames: readonly (keyof T)[],
   config: {
     mapping?: Record<string, keyof HostMethods>;
     fallbacks?: Record<string, (...args: any[]) => any>;
   } = {}
 ): T {
   const proxy: any = {};
-  for (const name of methodNames) {
+  for (const name of methodNames as string[]) {
     const hostMethod = config.mapping?.[name] || (name as keyof HostMethods);
     const fallback = config.fallbacks?.[name];
     proxy[name] = (...args: any[]) => callHost(hostMethod, args, fallback);
