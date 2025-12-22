@@ -2,21 +2,46 @@
  * APIs Module
  *
  * Consolidated SDK creation using the master createSDK factory.
+ * This module defines the SDK structure and maintains runtime state.
  */
 
 import { createSDK } from '../core';
 import type { ChildMethods } from '../core';
 import { fallbackStorage, fallbackNetwork, fallbackNotify } from '../fallback';
 import type {
-  StorageAPI,
-  NetworkAPI,
-  ExtensionAPI,
   NotifyOptions,
   NotifyResult,
   GemigoSDK,
+  Platform,
+  Capabilities,
 } from '../types';
 import { SDKError } from '../types';
 
+// ========== Environment State ==========
+
+let hostInfo: { platform: Platform; capabilities: Capabilities } | null = null;
+
+const defaultCapabilities: Capabilities = {
+  storage: true,
+  network: false,
+  scheduler: false,
+  fileWatch: false,
+  fileWrite: false,
+  notification: true,
+  clipboard: false,
+  ai: false,
+  shell: false,
+  extension: { read: false, events: false, modify: false, capture: false },
+};
+
+/**
+ * Update the SDK's host environment information.
+ */
+export const updateHostInfo = (info: { platform: Platform; capabilities: Capabilities } | null) => {
+  hostInfo = info;
+};
+
+// ========== Stubs ==========
 
 const throwNotSupported = (feature: string): never => {
   throw new SDKError('NOT_SUPPORTED', `${feature} is not supported in this environment.`);
@@ -88,12 +113,14 @@ const extensionRpcMethodNames = [
 ] as const;
 
 /**
- * Optimized SDK Creation
- * Consolidates all modules, actions, and stubs into a single factory call.
+ * Ultimate SDK Creation
+ * Consolidates modules, actions, getters, and stubs into a single factory call.
  */
-const { sdk: sdkBase, childMethods: extensionChildMethods } = createSDK<GemigoSDK, ChildMethods>({
-
-
+export const { sdk, childMethods } = createSDK<GemigoSDK, ChildMethods>({
+  getters: {
+    platform: () => hostInfo?.platform ?? 'web',
+    capabilities: () => hostInfo?.capabilities ?? defaultCapabilities,
+  },
   modules: {
     storage: {
       rpc: {
@@ -128,7 +155,6 @@ const { sdk: sdkBase, childMethods: extensionChildMethods } = createSDK<GemigoSD
       fallback: fallbackNotify,
     },
   },
-
   statics: {
     ai: aiAPI,
     clipboard: clipboardAPI,
@@ -138,7 +164,4 @@ const { sdk: sdkBase, childMethods: extensionChildMethods } = createSDK<GemigoSD
     onFileDrop,
   },
 });
-
-// Primary SDK and Host-Bridge exports
-export { sdkBase, extensionChildMethods };
 

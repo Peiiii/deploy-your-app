@@ -135,6 +135,10 @@ export function createSDK<
         ? ActionConfig<TSDK[K]>
         : never;
     };
+    /** Dynamic getter properties (e.g., platform, capabilities) */
+    getters?: {
+        [K in keyof TSDK]?: () => TSDK[K];
+    };
     /** Static values or stubs (e.g., platform, ai) */
     statics?: {
         [K in keyof TSDK]?: TSDK[K];
@@ -160,5 +164,37 @@ export function createSDK<
         }
     }
 
+    // 3. Apply Getters
+    if (config.getters) {
+        for (const [name, getter] of Object.entries(config.getters)) {
+            Object.defineProperty(sdk, name, {
+                get: getter as () => any,
+                enumerable: true,
+                configurable: true,
+            });
+        }
+    }
+
     return { sdk: sdk as TSDK, childMethods: mergedChildMethods as TChild };
 }
+
+/**
+ * Bootstrap the SDK connection and discover host protocol info.
+ */
+export async function bootstrapSDK(
+    childMethods: any,
+    options: { timeoutMs?: number } = {}
+): Promise<any> {
+    const { initConnection } = await import('./connection');
+    initConnection(childMethods, options);
+    const host = await tryGetHost();
+    if (host && typeof host.getProtocolInfo === 'function') {
+        try {
+            return await host.getProtocolInfo();
+        } catch {
+            return null;
+        }
+    }
+    return null;
+}
+

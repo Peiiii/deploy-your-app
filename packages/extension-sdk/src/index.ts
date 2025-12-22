@@ -2,38 +2,34 @@
  * GemiGo App SDK (unified)
  * 
  * One SDK that auto-adapts for Web / Desktop / Browser Extension.
- * 
- * Usage (CDN):
- *   <script src="https://unpkg.com/@gemigo/app-sdk/dist/gemigo-app-sdk.umd.js"></script>
- *   <script>
- *     gemigo.extension?.getPageInfo().then(console.log);
- *     
- *     gemigo.extension?.onContextMenu((event) => {
- *       console.log('Context menu clicked:', event);
- *     });
- *   </script>
- * 
- * Usage (ES Module):
- *   import gemigo from '@gemigo/app-sdk';
- *   
- *   const pageInfo = await gemigo.extension?.getPageInfo();
+ * Main entry point for the SDK library.
  */
 
-import gemigo from './sdk';
+import { sdk as gemigo, childMethods, updateHostInfo } from './apis';
 import { SDKError } from './types';
+import { bootstrapSDK } from './core';
 
-// Keep current (browser) usage unchanged:
-// - UMD global `gemigo` is the SDK instance (not `{ default: ... }`)
-// - Attach `SDKError` for advanced use (optional)
+
+// ========== Centralized Initialization ==========
+
+// Perform bootstrap connection and protocol discovery eagerly
+bootstrapSDK(childMethods, { timeoutMs: 1500 }).then((info) => {
+    if (info) updateHostInfo(info);
+});
+
+
+// ========== Compatibility ==========
+
+// Attach SDKError for advanced use (optional global access)
 (gemigo as unknown as { SDKError?: typeof SDKError }).SDKError = SDKError;
 
 export default gemigo;
+
+// ========== Exports ==========
 
 // Type-only exports (no runtime named exports, so UMD stays compatible)
 export type * from './types';
 export type { SDKError, SDKErrorCode } from './types';
 
-
 // Host-side types (for implementing host adapters)
 export type { HostMethods, ChildMethods } from './core';
-
