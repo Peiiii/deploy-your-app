@@ -4,9 +4,9 @@
  * Logic for cross-origin network requests.
  */
 
-import type { HostMethods } from '@gemigo/app-sdk';
 
-export type NetworkHandlers = Pick<HostMethods, 'networkRequest'>;
+
+import type { NetworkHandlers } from '../types';
 
 export const networkHandlers: NetworkHandlers = {
     networkRequest: async (url, options) => {

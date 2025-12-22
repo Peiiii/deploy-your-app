@@ -6,15 +6,13 @@
  */
 
 import { getActiveTab, executeInPage } from './utils/tab';
-import type { ContextMenuEvent, HostMethods, ChildMethods } from '@gemigo/app-sdk';
+import type { ContextMenuEvent } from '@gemigo/app-sdk';
 
 /**
  * Methods explicitly implemented in the background script.
  * Combination of HostMethods (RPC) and ChildMethods (Events).
  */
-export type BackgroundHandlers =
-    Pick<HostMethods, 'ping' | 'getPageInfo' | 'captureVisible' | 'notify' | 'getContextMenuEvent' | 'networkRequest'> &
-    Pick<ChildMethods, 'onSelectionChange' | 'onContextMenu'>;
+import type { BackgroundHandlers } from './types';
 
 class GemiGoBackgroundController {
     // State

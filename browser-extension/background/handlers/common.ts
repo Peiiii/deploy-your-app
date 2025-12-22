@@ -4,10 +4,10 @@
  * Logic for environment, browser UI, and notifications.
  */
 
-import type { HostMethods } from '@gemigo/app-sdk';
+
 import { getActiveTab } from '../utils/tab';
 
-export type CommonHandlers = Pick<HostMethods, 'ping' | 'getPageInfo' | 'captureVisible' | 'notify'>;
+import type { CommonHandlers } from '../types';
 
 export const commonHandlers: CommonHandlers = {
     ping: async () => ({ pong: true }),
