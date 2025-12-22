@@ -1,4 +1,5 @@
 /**
+
  * APIs Module
  *
  * Consolidated SDK creation using the master createSDK factory.
@@ -92,25 +93,6 @@ const onFileDrop = stubHandler('onFileDrop');
 
 // ========== SDK Configuration ==========
 
-const extensionRpcMethodNames = [
-  'getPageInfo',
-  'getPageHTML',
-  'getPageText',
-  'getSelection',
-  'extractArticle',
-  'extractLinks',
-  'extractImages',
-  'queryElement',
-  'highlight',
-  'removeHighlight',
-  'insertWidget',
-  'updateWidget',
-  'removeWidget',
-  'injectCSS',
-  'removeCSS',
-  'captureVisible',
-  'getContextMenuEvent',
-] as const;
 
 /**
  * Ultimate SDK Creation
@@ -142,7 +124,27 @@ export const { sdk, childMethods } = createSDK<GemigoSDK, ChildMethods>({
       },
     },
     extension: {
-      rpc: { methods: extensionRpcMethodNames },
+      rpc: {
+        methods: [
+          'getPageInfo',
+          'getPageHTML',
+          'getPageText',
+          'getSelection',
+          'extractArticle',
+          'extractLinks',
+          'extractImages',
+          'queryElement',
+          'highlight',
+          'removeHighlight',
+          'insertWidget',
+          'updateWidget',
+          'removeWidget',
+          'injectCSS',
+          'removeCSS',
+          'captureVisible',
+          'getContextMenuEvent',
+        ]
+      },
       events: {
         onContextMenu: { event: 'extension:contextMenu', childMethod: 'onContextMenuEvent' },
         onSelectionChange: 'extension:selectionChange',
@@ -156,6 +158,7 @@ export const { sdk, childMethods } = createSDK<GemigoSDK, ChildMethods>({
     },
   },
   statics: {
+    SDKError,
     ai: aiAPI,
     clipboard: clipboardAPI,
     dialog: dialogAPI,

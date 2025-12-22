@@ -136,7 +136,11 @@ export type {
 
 // ========== Main SDK Interface ==========
 
-import type { Platform, Capabilities } from './common';
+import {
+  Platform,
+  Capabilities,
+  SDKError,
+} from './common';
 import type { StorageAPI } from './storage';
 import type { NotifyOptions, NotifyResult } from './notify';
 import type { AIAPI } from './ai';
@@ -172,7 +176,11 @@ export interface GemigoSDK {
   /** Available capabilities for current environment */
   readonly capabilities: Capabilities;
 
+  /** SDK Error class for error handling and instanceof checks */
+  readonly SDKError: typeof SDKError;
+
   // ========== Common APIs ==========
+
 
   /** Persistent key-value storage */
   storage: StorageAPI;
