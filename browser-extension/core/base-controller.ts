@@ -19,7 +19,7 @@ export abstract class BaseExtensionController<H extends Record<string, any>, E e
     constructor() {
         // Create a proxy to intercept calls to this.events.xxx(...)
         this.events = new Proxy({} as unknown as Required<E>, {
-            get: (target, prop) => {
+            get: (_target, prop) => {
                 return (...args: any[]) => {
                     this.sendEventImpl(String(prop), args);
                 };
@@ -47,9 +47,11 @@ export abstract class BaseExtensionController<H extends Record<string, any>, E e
         const handler = this.handlers[message.type];
 
         if (handler) {
+            console.debug(`[GemiGo] Handling message: ${message.type}`, { payload: message.payload });
             this.dispatchToHandler(handler, message, sender, sendResponse);
             return true;
         }
+        console.debug(`[GemiGo] No handler for message: ${message.type}`);
         return false;
     };
 

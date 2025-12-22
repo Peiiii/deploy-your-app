@@ -31,12 +31,16 @@
     "notifications"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; frame-src 'self' http://localhost:*"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; frame-src 'self' http://localhost:* https://*"
   },
   "web_accessible_resources": [
     {
-      "resources": ["*"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
   "host_permissions": [
@@ -44,8 +48,12 @@
   ],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content-scripts/bridge.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content-scripts/loader.js"
+      ],
       "run_at": "document_idle"
     }
   ]

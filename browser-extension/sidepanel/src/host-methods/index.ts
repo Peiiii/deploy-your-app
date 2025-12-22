@@ -1,80 +1,43 @@
 /**
- * GemiGo Sidepanel - Unified Host Methods
- *
- * Full declarative configuration for all methods exposed to the App SDK.
+ * Sidepanel Host Router
+ * 
+ * Replaces the static createHostMethods factory.
+ * Routes requests to either Local Controller or External Extension (Background/Content).
  */
 
 import type { HostMethods } from '@gemigo/app-sdk';
 import type { AppConfig } from '../types';
 import { sendMessage } from '../utils/messaging';
-import { ok, okWith, fail, requirePermission } from '../utils/response';
-import { hasPermission, isUrlAllowed } from '../utils/permissions';
-
-// ========== Types & Helpers ==========
+import { requirePermission } from '../utils/response';
+import { isUrlAllowed } from '../utils/permissions';
+import { fail } from '../utils/response';
+import { sidepanelController } from '../sidepanel-controller';
 
 type Routing = 'background' | 'content-script';
 
 interface MethodConfig {
   routing?: Routing;
   permission?: 'extension.modify' | 'extension.capture' | 'network';
-  local?: (app: AppConfig, ...args: any[]) => any;
+  // Local execution is now delegated to the controller
+  isLocal?: boolean;
 }
 
-// ========== Complete Method Configuration ==========
+// Configuration Map
+const ROUTE_CONFIG: Partial<Record<keyof HostMethods, MethodConfig>> = {
+  // Local Controller Methods
+  getProtocolInfo: { isLocal: true },
+  storageGet: { isLocal: true },
+  storageSet: { isLocal: true },
+  storageDelete: { isLocal: true },
+  storageClear: { isLocal: true },
 
-const CONFIG: Partial<Record<keyof HostMethods, MethodConfig>> = {
-  // Protocol (Discovery)
-  getProtocolInfo: {
-
-    local: (app) => ({
-      protocolVersion: 1,
-      platform: 'extension',
-      appId: app.id,
-      capabilities: {
-        storage: true,
-        notification: true,
-        network: hasPermission(app, 'network') && (app.networkAllowlist?.length ?? 0) > 0,
-        extension: {
-          read: true,
-          events: true,
-          modify: hasPermission(app, 'extension.modify'),
-          capture: hasPermission(app, 'extension.capture'),
-        },
-      },
-    }),
-  },
-
-  // Storage
-  storageGet: {
-    local: (app, key) =>
-      chrome.storage.local
-        .get([`app:${app.id}:${key}`])
-        .then((s) => okWith({ value: s[`app:${app.id}:${key}`] })),
-  },
-  storageSet: {
-    local: (app, key, value) =>
-      chrome.storage.local.set({ [`app:${app.id}:${key}`]: value }).then(() => ok()),
-  },
-  storageDelete: {
-    local: (app, key) => chrome.storage.local.remove([`app:${app.id}:${key}`]).then(() => ok()),
-  },
-  storageClear: {
-    local: async (app) => {
-      const all = await chrome.storage.local.get(null);
-      const keys = Object.keys(all).filter((k) => k.startsWith(`app:${app.id}:`));
-      if (keys.length > 0) await chrome.storage.local.remove(keys);
-      return ok();
-    },
-  },
-
-  // Network
+  // Network (Special case: check allowlist then route)
   networkRequest: {
     routing: 'background',
     permission: 'network',
-    local: (app, url) =>
-      !isUrlAllowed(url, app.networkAllowlist)
-        ? fail('URL not allowed', 'NETWORK_NOT_ALLOWED')
-        : null,
+    // We handle allowlist check as a "middleware" or "pre-check" here, 
+    // or we could implement it as a local handler that eventually forwards?
+    // Let's keep the existing logic: check permission -> check allowlist -> route.
   },
 
   // Notifications
@@ -84,7 +47,7 @@ const CONFIG: Partial<Record<keyof HostMethods, MethodConfig>> = {
   getPageInfo: { routing: 'background' },
   getContextMenuEvent: { routing: 'background' },
 
-  // Content Script Methods (All passthrough)
+  // Content Script Methods
   getPageHTML: { routing: 'content-script' },
   getPageText: { routing: 'content-script' },
   getSelection: { routing: 'content-script' },
@@ -104,12 +67,13 @@ const CONFIG: Partial<Record<keyof HostMethods, MethodConfig>> = {
   captureVisible: { routing: 'background', permission: 'extension.capture' },
 };
 
-// ========== Factory ==========
-
+/**
+ * Creates the host methods object for a given app.
+ */
 export const createHostMethods = (app: AppConfig): HostMethods => {
   const methods: any = {};
 
-  Object.entries(CONFIG).forEach(([name, config]) => {
+  Object.entries(ROUTE_CONFIG).forEach(([name, config]) => {
     methods[name] = async (...args: any[]) => {
       // 1. Permission Check
       if (config.permission) {
@@ -117,19 +81,25 @@ export const createHostMethods = (app: AppConfig): HostMethods => {
         if (denied) return denied;
       }
 
-      // 2. Local Pre-processing / Implementation
-      if (config.local) {
-        const localResult = await config.local(app, ...args);
-        if (localResult !== null && (config.routing === undefined || localResult !== undefined)) {
-          return localResult;
+      // 2. Special Logic: Network Allowlist
+      if (name === 'networkRequest') {
+        const url = args[0];
+        if (!isUrlAllowed(url, app.networkAllowlist)) {
+          return fail('URL not allowed', 'NETWORK_NOT_ALLOWED');
         }
       }
 
-      // 3. Routing
+      // 3. Local Execution via Controller
+      if (config.isLocal) {
+        const result = await sidepanelController.executeLocalHandler(name as keyof HostMethods, app, args);
+        if (result !== undefined) return result;
+      }
+
+      // 4. Routing to External Contexts
       if (config.routing) {
         return sendMessage({
-          type: name, // Use identical name as type
-          payload: args, // Always send as an array of arguments
+          type: name,
+          payload: args,
           routing: config.routing,
         });
       }
