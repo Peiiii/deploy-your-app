@@ -1,21 +1,7 @@
-/**
- * Content Script Controller
- * 
- * Orchestrates message routing and DOM observation.
- */
+import { BaseExtensionController } from '../core/base-controller';
+import type { ContentEvents, ContentHandlers } from './types';
 
-import type { ContentHandlers } from './types';
-
-
-class GemiGoContentController {
-    private handlers: ContentHandlers = {} as ContentHandlers;
-
-    /**
-     * Registers message handlers.
-     */
-    public provideHandlers = (handlers: ContentHandlers) => {
-        this.handlers = { ...this.handlers, ...handlers };
-    };
+class GemiGoContentController extends BaseExtensionController<ContentHandlers, ContentEvents> {
 
     /**
      * Starts content script services.
@@ -56,11 +42,8 @@ class GemiGoContentController {
                         }
                     }
 
-                    // Standardized SDK event name and payload
-                    chrome.runtime.sendMessage({
-                        type: 'onSelectionChange',
-                        payload: [text, rect, window.location.href],
-                    }).catch(() => { });
+                    // Use inherited sendEvent
+                    this.sendEvent("onSelectionChange", [text, rect, window.location.href]);
                 }
             }, 300);
         });
@@ -68,37 +51,11 @@ class GemiGoContentController {
 
     private initRouter = () => {
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-            const handler = (this.handlers as any)[message.type];
-
-            if (handler) {
-                this.dispatchToHandler(handler, message, sender, sendResponse);
-                return true; // Keep channel open
-            }
-            return false;
+            // Use inherited handleMessage
+            return this.handleMessage(message, sender, sendResponse);
         });
-    };
-
-    private dispatchToHandler = async (
-        handler: (...args: any[]) => any,
-        message: any,
-        sender: chrome.runtime.MessageSender,
-        sendResponse: (res: any) => void
-    ) => {
-        try {
-            const args = Array.isArray(message.payload) ? message.payload : [];
-            const result = handler(...args, sender);
-
-            if (result instanceof Promise) {
-                const resolvedValue = await result;
-                sendResponse(resolvedValue);
-            } else {
-                sendResponse(result);
-            }
-        } catch (e) {
-            console.error(`[GemiGo] Handler error [${message.type}]:`, e);
-            sendResponse({ success: false, error: String(e) });
-        }
     };
 }
 
 export const contentController = new GemiGoContentController();
+

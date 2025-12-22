@@ -13,7 +13,8 @@ import { networkHandlers } from './handlers/network';
 backgroundController.provideHandlers({
     ...commonHandlers,
     ...networkHandlers,
-    ...createTransparentHandlers(['onSelectionChange', 'onContextMenu']),
+    ...createTransparentHandlers(['onSelectionChange']),
+
 });
 
 backgroundController.start();

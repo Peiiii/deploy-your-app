@@ -28,8 +28,8 @@ export type NetworkHandlers = Pick<HostMethods,
  */
 export type BridgeHandlers = Pick<ChildMethods,
     | 'onSelectionChange'
-    | 'onContextMenu'
 >;
+
 
 /**
  * Handlers explicitly implemented strictly within the controller/background logic

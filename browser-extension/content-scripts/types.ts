@@ -4,7 +4,13 @@
  * Centralized type definitions for content script handlers.
  */
 
-import type { HostMethods } from '@gemigo/app-sdk';
+import type { HostMethods, ChildMethods } from '@gemigo/app-sdk';
+
+/**
+ * Events derived from SDK definitions
+ */
+export type ContentEvents = Pick<ChildMethods, 'onSelectionChange'>;
+
 
 /**
  * Core DOM manipulation handlers
