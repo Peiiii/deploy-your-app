@@ -4,31 +4,42 @@
   --font-display: "Orbitron", sans-serif;
 }
 
+html,
+body,
+#root {
+  height: 100%;
+}
+
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
+  background-color: #ffffff;
+  color: #09090b;
+  /* neutral-950 */
 }
 
 /* Custom styles that aren't easily done in TW utility classes or needed global */
 .glass-card {
-  @apply bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-2xl;
+  @apply bg-zinc-900/40 backdrop-blur-xl border border-white/10 shadow-2xl;
 }
 
 .cyber-gradient-text {
-  @apply bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent;
+  @apply text-white;
 }
 
 .bg-mesh {
   background-image:
-    radial-gradient(at 0% 0%, hsla(186, 100%, 35%, 0.15) 0, transparent 50%),
-    radial-gradient(at 100% 0%, hsla(282, 100%, 35%, 0.15) 0, transparent 50%),
-    radial-gradient(at 100% 100%, hsla(202, 100%, 35%, 0.15) 0, transparent 50%),
-    radial-gradient(at 0% 100%, hsla(186, 100%, 35%, 0.15) 0, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.03) 0, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(255, 255, 255, 0.02) 0, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(255, 255, 255, 0.03) 0, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(255, 255, 255, 0.02) 0, transparent 50%);
 }
 
 .halo-blue {
-  box-shadow: 0 0 50px -12px rgba(6, 182, 212, 0.3);
+  box-shadow: 0 0 50px -12px rgba(255, 255, 255, 0.1);
 }
 
 ::-webkit-scrollbar {
@@ -40,9 +51,70 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-800 rounded-full h-1;
+  @apply bg-zinc-800 rounded-full h-1;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-700;
+  @apply bg-zinc-700;
+}
+
+/* Agent Labs Chat Theme Overrides - OpenAI-inspired Light Mode */
+:root {
+  --background: 255 255 255;
+  /* white */
+  --foreground: 9 9 11;
+  /* neutral-950 */
+  --card: 255 255 255;
+  --card-foreground: 9 9 11;
+  --popover: 255 255 255;
+  --popover-foreground: 9 9 11;
+  --primary: 9 9 11;
+  /* black primary */
+  --primary-foreground: 255 255 255;
+  --secondary: 244 244 245;
+  /* neutral-100 */
+  --secondary-foreground: 9 9 11;
+  --muted: 244 244 245;
+  --muted-foreground: 113 113 122;
+  /* neutral-500 */
+  --accent: 244 244 245;
+  --accent-foreground: 9 9 11;
+  --destructive: 239 68 68;
+  --destructive-foreground: 250 250 250;
+  --border: 228 228 231;
+  /* neutral-200 */
+  --input: 228 228 231;
+  --ring: 9 9 11;
+  --radius: 0.75rem;
+}
+
+.agent-chat-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Specific component overrides for light theme */
+.agent-chat-container footer {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.agent-chat-container [data-role="assistant"] {
+  background-color: #f7f7f8 !important;
+  /* chatgpt style light gray */
+  color: #1f1f1f !important;
+  border: 1px solid rgba(0, 0, 0, 0.03) !important;
+}
+
+.agent-chat-container [data-role="user"] {
+  background-color: #ffffff !important;
+  color: #1f1f1f !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.agent-chat-container pre {
+  background-color: #0d0d0d !important;
+  color: #ffffff !important;
 }
