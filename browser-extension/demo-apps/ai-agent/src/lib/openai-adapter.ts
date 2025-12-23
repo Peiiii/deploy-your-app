@@ -1,6 +1,10 @@
 /**
- * OpenAI API adapter for the Agent Alchemist.
- * Handles stream parsing and message serialization.
+ * OpenAI API utilities for @agent-labs.
+ * 
+ * This module provides helper functions for working with OpenAI-compatible APIs:
+ * - serializeToOpenAI: Convert UIMessage[] to OpenAI message format
+ * - parseOpenAIStream: Parse SSE stream from OpenAI API
+ * - mapToolsToOpenAI: Convert ToolDefinition[] to OpenAI function format
  */
 
 import type { ToolDefinition, ToolInvocation, UIMessage } from '@agent-labs/agent-chat';
@@ -28,6 +32,14 @@ const decoder = new TextDecoder();
 
 /**
  * Parse an SSE stream from OpenAI-compatible API into chunks.
+ * 
+ * @example
+ * ```ts
+ * const response = await fetch(endpoint, { ... });
+ * for await (const chunk of parseOpenAIStream(response)) {
+ *   console.log(chunk);
+ * }
+ * ```
  */
 export async function* parseOpenAIStream(response: Response): AsyncGenerator<OpenAIChatChunk> {
     if (!response.body) {
@@ -55,7 +67,7 @@ export async function* parseOpenAIStream(response: Response): AsyncGenerator<Ope
                 const parsed = JSON.parse(payload) as OpenAIChatChunk;
                 yield parsed;
             } catch (err) {
-                console.warn('[Agent] Failed to parse stream chunk', err);
+                console.warn('[OpenAI Adapter] Failed to parse stream chunk', err);
             }
         }
 
@@ -78,9 +90,22 @@ export async function* parseOpenAIStream(response: Response): AsyncGenerator<Ope
 // ============================================================================
 
 /**
- * Convert UI messages to OpenAI-compatible message format.
+ * Convert AgentChat UIMessage[] to OpenAI-compatible message format.
+ * 
+ * Handles:
+ * - System, user, and assistant messages
+ * - Tool calls (only includes tool_calls when non-empty)
+ * - Tool results
+ * 
+ * @example
+ * ```ts
+ * const messages = serializeToOpenAI(uiMessages);
+ * const response = await fetch(endpoint, {
+ *   body: JSON.stringify({ messages, model: 'gpt-4o' }),
+ * });
+ * ```
  */
-export function serializeMessages(uiMessages: UIMessage[]): OpenAIMessage[] {
+export function serializeToOpenAI(uiMessages: UIMessage[]): OpenAIMessage[] {
     const result: OpenAIMessage[] = [];
 
     for (const msg of uiMessages) {
@@ -138,7 +163,15 @@ export function serializeMessages(uiMessages: UIMessage[]): OpenAIMessage[] {
 // ============================================================================
 
 /**
- * Convert tool definitions to OpenAI function calling format.
+ * Convert ToolDefinition[] to OpenAI function calling format.
+ * 
+ * @example
+ * ```ts
+ * const tools = mapToolsToOpenAI(toolDefinitions);
+ * const response = await fetch(endpoint, {
+ *   body: JSON.stringify({ tools, tool_choice: 'auto' }),
+ * });
+ * ```
  */
 export function mapToolsToOpenAI(tools: ToolDefinition[]) {
     return tools.map((tool) => ({
@@ -150,3 +183,6 @@ export function mapToolsToOpenAI(tools: ToolDefinition[]) {
         },
     }));
 }
+
+// Backward compatibility alias
+export const serializeMessages = serializeToOpenAI;

@@ -1,10 +1,22 @@
 import React, { useMemo } from 'react';
 import { AgentChat, useAgentChat } from '@agent-labs/agent-chat';
 import '@agent-labs/agent-chat/dist/index.css';
-import { getToolExecutors, AGENT_TOOL_DEFS, createGemigoAgent } from './lib/agent';
+
+import { createOpenAIAgent, AGENT_TOOL_DEFS, getToolExecutors, API_ENDPOINT, MODEL } from './lib/agent';
 
 const App: React.FC = () => {
-  const agent = useMemo(() => createGemigoAgent(), []);
+  const agent = useMemo(
+    () =>
+      createOpenAIAgent({
+        endpoint: API_ENDPOINT,
+        model: MODEL,
+        apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+        defaultTools: AGENT_TOOL_DEFS,
+        debug: import.meta.env.DEV,
+      }),
+    []
+  );
+
   const toolExecutors = useMemo(() => getToolExecutors(), []);
 
   const { sessionManager } = useAgentChat({
