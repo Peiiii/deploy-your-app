@@ -83,6 +83,7 @@ export function convertGoogleToOpenAI(
     if (responseFormat) {
       openaiRequest.response_format = responseFormat;
       ensureJsonOnlyInstruction(openaiRequest.messages, responseFormat);
+      ensureSchemaKeyInstruction(openaiRequest.messages, responseFormat);
     }
   }
 
@@ -114,13 +115,17 @@ export function convertOpenAIToGoogle(
   const message = choice?.message;
 
   const parts: GooglePart[] = [];
-  if (message?.content) {
+  const structuredJson = extractStructuredOutputJson(message);
+  if (structuredJson) {
+    parts.push({ text: structuredJson });
+  } else if (message?.content) {
     parts.push({ text: message.content });
   }
 
   if (message?.tool_calls) {
     for (const call of message.tool_calls) {
       if (call.type === 'function') {
+        if (call.function.name === '__structured_output') continue;
         parts.push({
           functionCall: {
             name: call.function.name,
@@ -199,7 +204,7 @@ function resolveResponseFormat(
     const schema = normalizeSchemaLikeToJsonSchema(schemaCandidate);
     return {
       type: 'json_schema',
-      json_schema: { name: 'response', schema },
+      json_schema: { name: 'response', schema, strict: true },
     };
   }
 
@@ -225,6 +230,84 @@ function ensureJsonOnlyInstruction(
   messages[systemIndex] = { role: 'system', content: `${existing}\n\n${base}`.trim() };
 }
 
+function ensureSchemaKeyInstruction(
+  messages: OpenAIMessage[],
+  responseFormat: OpenAIResponseFormat,
+): void {
+  if (responseFormat.type !== 'json_schema') return;
+  const schema = responseFormat.json_schema.schema;
+
+  const keyHint = buildKeyHintFromJsonSchema(schema);
+  if (!keyHint) return;
+
+  const systemIndex = messages.findIndex((m) => m.role === 'system');
+  const addition = `JSON MUST include the following required keys:\n${keyHint}`;
+
+  if (systemIndex === -1) {
+    messages.unshift({ role: 'system', content: addition });
+    return;
+  }
+
+  const existing = messages[systemIndex]?.content || '';
+  if (existing.includes('JSON MUST include the following required keys:')) return;
+  messages[systemIndex] = { role: 'system', content: `${existing}\n\n${addition}`.trim() };
+}
+
+function buildKeyHintFromJsonSchema(schema: Record<string, unknown>): string {
+  const type = schema.type;
+  if (type !== 'object') return '';
+
+  const required = Array.isArray(schema.required)
+    ? schema.required.filter((k) => typeof k === 'string')
+    : [];
+
+  const properties = isPlainObject(schema.properties)
+    ? (schema.properties as Record<string, unknown>)
+    : {};
+
+  if (!required.length) return '';
+
+  const lines: string[] = [];
+  for (const key of required.slice(0, 20)) {
+    const prop = properties[key];
+    const hint = describeSchemaKey(prop, 2);
+    lines.push(hint ? `- ${key}: ${hint}` : `- ${key}`);
+  }
+
+  if (required.length > 20) {
+    lines.push(`- ... (${required.length - 20} more)`);
+  }
+
+  return lines.join('\n');
+}
+
+function describeSchemaKey(schema: unknown, depthLeft: number): string {
+  if (!schema || typeof schema !== 'object' || Array.isArray(schema)) return '';
+
+  const s = schema as Record<string, unknown>;
+  const type = s.type;
+
+  if (type === 'string' || type === 'number' || type === 'integer' || type === 'boolean') {
+    return String(type);
+  }
+
+  if (type === 'array') {
+    const itemHint = depthLeft > 0 ? describeSchemaKey(s.items, depthLeft - 1) : '';
+    return itemHint ? `array<${itemHint}>` : 'array';
+  }
+
+  if (type === 'object') {
+    if (depthLeft <= 0) return 'object';
+    const required = Array.isArray(s.required)
+      ? s.required.filter((k) => typeof k === 'string').slice(0, 10)
+      : [];
+    if (!required.length) return 'object';
+    return `object{required: ${required.join(', ')}}`;
+  }
+
+  return '';
+}
+
 function mapFinishReason(reason?: string): string {
   const map: Record<string, string> = {
     stop: 'STOP',
@@ -245,6 +328,38 @@ function safeJsonParse(value: string): Record<string, unknown> | null {
   } catch {
     return null;
   }
+}
+
+function extractStructuredOutputJson(
+  message:
+    | {
+        tool_calls?: Array<{
+          type: string;
+          function: { name: string; arguments: string };
+        }>;
+      }
+    | undefined,
+): string {
+  const calls = message?.tool_calls;
+  if (!calls?.length) return '';
+
+  for (const call of calls) {
+    if (call.type !== 'function') continue;
+    if (call.function.name !== '__structured_output') continue;
+
+    const raw = call.function.arguments;
+    if (typeof raw !== 'string' || raw.length === 0) return '';
+
+    // Best-effort parse; fall back to raw string if it's already JSON text.
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      return JSON.stringify(parsed);
+    } catch {
+      return raw;
+    }
+  }
+
+  return '';
 }
 
 function normalizeSchemaLikeToJsonSchema(schemaLike: Record<string, unknown>): Record<string, unknown> {

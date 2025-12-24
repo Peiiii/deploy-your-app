@@ -143,9 +143,19 @@ async function fetchWithResponseFormatFallback(
     return res;
   }
 
-  const { response_format, ...rest } = openaiRequest;
-  void response_format;
-  return doFetch(rest);
+  if (openaiRequest.stream) {
+    console.warn('[genai-proxy] Upstream rejected `response_format`; retrying without it (stream).');
+    const { response_format, ...rest } = openaiRequest;
+    void response_format;
+    return doFetch(rest);
+  }
+
+  console.warn(
+    '[genai-proxy] Upstream rejected `response_format`; retrying with forced tool calling (non-stream).',
+  );
+
+  const toolRequest = buildStructuredOutputToolRequest(openaiRequest);
+  return doFetch(toolRequest);
 }
 
 function shouldRetryWithoutResponseFormat(status: number, bodyText: string): boolean {
@@ -158,6 +168,84 @@ function shouldRetryWithoutResponseFormat(status: number, bodyText: string): boo
     text.includes('unexpected') ||
     text.includes('not allowed')
   );
+}
+
+function buildStructuredOutputToolRequest(openaiRequest: OpenAIChatRequest): OpenAIChatRequest {
+  const responseFormat = openaiRequest.response_format;
+  const schemaCandidate =
+    responseFormat && responseFormat.type === 'json_schema'
+      ? responseFormat.json_schema.schema
+      : null;
+
+  const schema = ensureObjectJsonSchema(schemaCandidate);
+  const toolName = '__structured_output';
+
+  const instruction =
+    `You MUST call the function ${toolName} exactly once to provide the final answer.` +
+    ` Do not output any additional text. Ensure the arguments strictly follow the JSON schema.`;
+
+  const { response_format, ...rest } = openaiRequest;
+  void response_format;
+
+  const messages = appendSystemInstruction(rest.messages, instruction);
+
+  return {
+    ...rest,
+    messages,
+    temperature: 0,
+    tools: [
+      ...(rest.tools || []),
+      {
+        type: 'function',
+        function: {
+          name: toolName,
+          description:
+            'Return the final answer as a JSON object matching the provided schema.',
+          parameters: schema,
+        },
+      },
+    ],
+    tool_choice: { type: 'function', function: { name: toolName } },
+    parallel_tool_calls: false,
+  };
+}
+
+function appendSystemInstruction(
+  messages: OpenAIChatRequest['messages'],
+  addition: string,
+): OpenAIChatRequest['messages'] {
+  const systemIndex = messages.findIndex((m) => m.role === 'system');
+  if (systemIndex === -1) {
+    return [{ role: 'system', content: addition }, ...messages];
+  }
+
+  const existing = messages[systemIndex]?.content || '';
+  if (existing.includes(addition)) return messages;
+
+  const next = [...messages];
+  next[systemIndex] = { role: 'system', content: `${existing}\n\n${addition}`.trim() };
+  return next;
+}
+
+function ensureObjectJsonSchema(schemaCandidate: unknown): Record<string, unknown> {
+  if (isPlainObject(schemaCandidate)) {
+    const type = schemaCandidate.type;
+    if (type === 'object') return schemaCandidate;
+    // If schema isn't an object schema, wrap it so tool arguments remain an object.
+    return {
+      type: 'object',
+      properties: { value: schemaCandidate },
+      required: ['value'],
+      additionalProperties: false,
+    };
+  }
+
+  // As a fallback, accept any object.
+  return { type: 'object', additionalProperties: true };
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
 function safeJsonParseChunk(value: string): OpenAIStreamChunk | null {

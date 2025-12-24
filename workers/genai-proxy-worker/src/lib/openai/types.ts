@@ -13,6 +13,11 @@ export interface OpenAITool {
   };
 }
 
+export type OpenAIToolChoice =
+  | 'auto'
+  | 'none'
+  | { type: 'function'; function: { name: string } };
+
 export type OpenAIResponseFormat =
   | { type: 'json_object' }
   | {
@@ -36,6 +41,8 @@ export interface OpenAIChatRequest {
   frequency_penalty?: number;
   seed?: number;
   tools?: OpenAITool[];
+  tool_choice?: OpenAIToolChoice;
+  parallel_tool_calls?: boolean;
   response_format?: OpenAIResponseFormat;
 }
 
