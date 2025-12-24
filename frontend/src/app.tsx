@@ -62,10 +62,10 @@ const MainContent: React.FC = () => {
 
   return (
     <main
-      className={`h-full flex flex-col transition-all duration-300 ${sidebarOffset} ${rightPanelOffset}`}
+      className={`h-full overflow-y-auto overflow-x-hidden flex flex-col transition-all duration-300 ${sidebarOffset} ${rightPanelOffset}`}
     >
       <Header />
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1">
         <AppRoutes />
       </div>
     </main>
