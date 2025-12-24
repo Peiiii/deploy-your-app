@@ -146,7 +146,7 @@ export const ExploreApps: React.FC = () => {
           <SearchBar value={searchQuery} onChange={actions.setSearchQuery} />
         </div>
 
-        <p className="text-slate-500 dark:text-gray-400">
+        <p className="text-slate-500 dark:text-gray-400 text-left">
           {t('explore.discoverApps')} {t('explore.spendCreditsSupportCreators')}
         </p>
 
@@ -165,20 +165,15 @@ export const ExploreApps: React.FC = () => {
                   key={idx}
                   className="flex flex-col rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden animate-pulse"
                 >
-                  <div className="h-44 bg-slate-100 dark:bg-slate-800" />
-                  <div className="p-5 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700" />
-                      <div className="space-y-2 flex-1">
-                        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
-                        <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-1/2" />
+                  <div className="aspect-video bg-slate-100 dark:bg-slate-800" />
+                  <div className="p-3 space-y-3">
+                    <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <div className="w-4 h-4 rounded-full bg-slate-100 dark:bg-slate-800" />
+                        <div className="w-12 h-2 bg-slate-100 dark:bg-slate-800 rounded" />
                       </div>
-                    </div>
-                    <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-full" />
-                    <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-5/6" />
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
-                      <div className="w-24 h-3 bg-slate-100 dark:bg-slate-800 rounded" />
-                      <div className="w-16 h-3 bg-slate-200 dark:bg-slate-700 rounded" />
+                      <div className="w-6 h-2 bg-slate-100 dark:bg-slate-800 rounded" />
                     </div>
                   </div>
                 </div>

@@ -129,27 +129,21 @@ interface ExploreSkeletonGridProps {
 
 const ExploreSkeletonGrid: React.FC<ExploreSkeletonGridProps> = ({ compact }) => {
   return (
-    <div className={`grid ${compact ? 'gap-4' : 'gap-6'} ${compact ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+    <div className={`grid ${compact ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-6`}>
       {Array.from({ length: 6 }).map((_, idx) => (
         <div
           key={idx}
-          style={{ animationDelay: `${idx * 100}ms` }}
-          className="flex flex-col rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden animate-fade-in"
+          className="flex flex-col rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden animate-pulse"
         >
-          <div className="h-44 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 animate-pulse" />
-          <div className="p-5 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 animate-pulse" />
-              <div className="space-y-2 flex-1">
-                <div className="h-4 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-slate-700 dark:via-slate-800 dark:to-slate-700 rounded w-3/4 animate-pulse" />
-                <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-1/2 animate-pulse" />
+          <div className="aspect-video bg-slate-100 dark:bg-slate-800" />
+          <div className="p-3 space-y-3">
+            <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <div className="w-4 h-4 rounded-full bg-slate-100 dark:bg-slate-800" />
+                <div className="w-12 h-2 bg-slate-100 dark:bg-slate-800 rounded" />
               </div>
-            </div>
-            <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-full animate-pulse" />
-            <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-5/6 animate-pulse" />
-            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
-              <div className="w-24 h-3 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
-              <div className="w-16 h-3 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+              <div className="w-6 h-2 bg-slate-100 dark:bg-slate-800 rounded" />
             </div>
           </div>
         </div>
@@ -186,16 +180,16 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
   } = useHomeExploreFeed();
 
   return (
-    <section className="animate-fade-in">
+    <section className="animate-fade-in text-left">
       <div className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ${compact ? 'mb-4' : 'mb-6'}`}>
         <div className="space-y-1">
           <h2
-            className={`font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-100 dark:to-white bg-clip-text text-transparent ${compact ? 'text-xl md:text-2xl' : 'text-2xl sm:text-3xl md:text-4xl'
+            className={`font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-100 dark:to-white bg-clip-text text-transparent text-left ${compact ? 'text-xl md:text-2xl' : 'text-2xl sm:text-3xl md:text-4xl'
               }`}
           >
             {t('explore.exploreApps')}
           </h2>
-          <p className={`text-slate-600 dark:text-slate-400 ${compact ? 'text-xs md:text-sm' : 'text-sm md:text-base'}`}>
+          <p className={`text-slate-600 dark:text-slate-400 text-left ${compact ? 'text-xs md:text-sm' : 'text-sm md:text-base'}`}>
             {t('explore.discoverApps')}
           </p>
         </div>
@@ -247,20 +241,15 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
         <ExploreSkeletonGrid compact={compact} />
       ) : apps.length > 0 ? (
         <div>
-          <div className={`grid ${compact ? 'gap-4' : 'gap-6'} ${compact ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
-            {apps.map((app, index) => (
-              <div
+          <div className={`grid ${compact ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-6`}>
+            {apps.map((app) => (
+              <ExploreAppCardView
                 key={app.id}
-                style={{ animationDelay: `${index * 50}ms` }}
-                className="animate-fade-in"
-              >
-                <ExploreAppCardView
-                  app={app}
-                  activeTag={activeTag}
-                  setActiveTag={setActiveTag}
-                  onCardClick={() => onCardClick(app)}
-                />
-              </div>
+                app={app}
+                activeTag={activeTag}
+                setActiveTag={setActiveTag}
+                onCardClick={() => onCardClick(app)}
+              />
             ))}
           </div>
 
