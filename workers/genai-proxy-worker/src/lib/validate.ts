@@ -1,6 +1,10 @@
 import type { GoogleGenerateContentRequest } from './google/types';
 
 export function validateTextOnlyRequest(req: GoogleGenerateContentRequest): string | null {
+  if (!req.contents?.length && !req.systemInstruction) {
+    return 'Missing `contents`: provide a prompt string or Gemini-style contents array.';
+  }
+
   for (const content of req.contents || []) {
     for (const part of content.parts || []) {
       const hasText = typeof part.text === 'string';
@@ -13,4 +17,3 @@ export function validateTextOnlyRequest(req: GoogleGenerateContentRequest): stri
   }
   return null;
 }
-

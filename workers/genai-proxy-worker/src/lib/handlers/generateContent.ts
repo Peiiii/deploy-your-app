@@ -1,8 +1,8 @@
 import { errorResponse } from '@deploy-your-app/worker-kit';
 import { getChatCompletionsUrl, getUpstreamApiKeyOrThrow, type Env } from '../env';
+import { normalizeGenerateContentRequest } from '../google/normalize';
 import { validateTextOnlyRequest } from '../validate';
-import type { GoogleGenerateContentRequest } from '../google/types';
-import type { OpenAIChatResponse, OpenAIStreamChunk } from '../openai/types';
+import type { OpenAIChatRequest, OpenAIChatResponse, OpenAIStreamChunk } from '../openai/types';
 import {
   convertGoogleToOpenAI,
   convertOpenAIStreamChunkToGoogle,
@@ -14,7 +14,11 @@ export async function handleGenerateContent(
   env: Env,
   opts: { stream: boolean },
 ): Promise<Response> {
-  const googleRequest = (await request.json()) as GoogleGenerateContentRequest;
+  const normalizeResult = normalizeGenerateContentRequest(await request.json());
+  if (normalizeResult.error) {
+    return errorResponse(400, normalizeResult.error);
+  }
+  const googleRequest = normalizeResult.value;
 
   const validationError = validateTextOnlyRequest(googleRequest);
   if (validationError) {
@@ -40,14 +44,11 @@ export async function handleGenerateContent(
 
   const targetUrl = getChatCompletionsUrl(env);
 
-  const upstreamResponse = await fetch(targetUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${upstreamApiKey}`,
-    },
-    body: JSON.stringify(openaiRequest),
-  });
+  const upstreamResponse = await fetchWithResponseFormatFallback(
+    targetUrl,
+    upstreamApiKey,
+    openaiRequest,
+  );
 
   if (!upstreamResponse.ok) {
     const text = await upstreamResponse.text();
@@ -115,6 +116,48 @@ export async function handleGenerateContent(
       Connection: 'keep-alive',
     },
   });
+}
+
+async function fetchWithResponseFormatFallback(
+  targetUrl: string,
+  upstreamApiKey: string,
+  openaiRequest: OpenAIChatRequest,
+): Promise<Response> {
+  const doFetch = (body: OpenAIChatRequest) =>
+    fetch(targetUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${upstreamApiKey}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+  const res = await doFetch(openaiRequest);
+  if (res.ok) return res;
+
+  if (!openaiRequest.response_format) return res;
+
+  // Some OpenAI-compatible providers reject `response_format`. Retry once without it.
+  if (!shouldRetryWithoutResponseFormat(res.status, await res.clone().text())) {
+    return res;
+  }
+
+  const { response_format, ...rest } = openaiRequest;
+  void response_format;
+  return doFetch(rest);
+}
+
+function shouldRetryWithoutResponseFormat(status: number, bodyText: string): boolean {
+  if (status < 400 || status >= 500) return false;
+  const text = bodyText.toLowerCase();
+  return (
+    text.includes('response_format') ||
+    text.includes('json_schema') ||
+    text.includes('unknown field') ||
+    text.includes('unexpected') ||
+    text.includes('not allowed')
+  );
 }
 
 function safeJsonParseChunk(value: string): OpenAIStreamChunk | null {

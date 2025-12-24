@@ -13,6 +13,17 @@ export interface OpenAITool {
   };
 }
 
+export type OpenAIResponseFormat =
+  | { type: 'json_object' }
+  | {
+      type: 'json_schema';
+      json_schema: {
+        name: string;
+        schema: Record<string, unknown>;
+        strict?: boolean;
+      };
+    };
+
 export interface OpenAIChatRequest {
   model: string;
   messages: OpenAIMessage[];
@@ -21,7 +32,11 @@ export interface OpenAIChatRequest {
   max_tokens?: number;
   top_p?: number;
   stop?: string[];
+  presence_penalty?: number;
+  frequency_penalty?: number;
+  seed?: number;
   tools?: OpenAITool[];
+  response_format?: OpenAIResponseFormat;
 }
 
 export interface OpenAIChatResponse {
@@ -57,4 +72,3 @@ export interface OpenAIStreamChunk {
     finish_reason?: string;
   }>;
 }
-
