@@ -133,7 +133,7 @@ const ExploreSkeletonGrid: React.FC<ExploreSkeletonGridProps> = ({ compact }) =>
       {Array.from({ length: 6 }).map((_, idx) => (
         <div
           key={idx}
-          className="flex flex-col rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden animate-pulse"
+          className="flex flex-col rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden shadow-sm animate-pulse mb-6"
         >
           <div className="aspect-video bg-slate-100 dark:bg-slate-800" />
           <div className="p-3 space-y-3">

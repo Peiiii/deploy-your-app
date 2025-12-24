@@ -106,7 +106,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   return (
     <div
       onClick={handleRootClick}
-      className="group relative flex flex-col bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/50 overflow-hidden hover:shadow-xl transition-all cursor-pointer break-inside-avoid mb-4"
+      className="group relative flex flex-col bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer break-inside-avoid mb-6"
     >
       {/* Image Area */}
       <div
