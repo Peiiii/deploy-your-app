@@ -1,18 +1,13 @@
 /**
  * Agent exports for the AI Agent demo app.
- * 
- * Re-exports core functionality from the modular lib files.
+ *
+ * Keep this file as a stable import surface for the demo app.
+ * The actual agent implementation comes from @agent-labs/agent-toolkit.
  */
 
-// Re-export the factory function
-export { createOpenAIAgent, type OpenAIAgentOptions } from './openai-agent';
+export { createOpenAIChatAgent } from '@agent-labs/agent-toolkit';
+export { useParseTools, useAgentChatController, AgentChatWindow } from '@agent-labs/agent-chat';
 
-// Re-export serialization utilities
-export { serializeToOpenAI, parseOpenAIStream, mapToolsToOpenAI } from './openai-adapter';
+export { AGENT_TOOL_DEFS, createGemigoTools, useGemigoTools, getToolExecutors } from './tools';
 
-// Re-export tool definitions and executors
-export { AGENT_TOOL_DEFS } from './tools/definitions';
-export { getToolExecutors } from './tools/executors';
-
-// Re-export config
-export { API_ENDPOINT, MODEL, SYSTEM_PROMPT } from './config';
+export { OPENAI_BASE_URL, MODEL, SYSTEM_PROMPT } from './config';
