@@ -6,7 +6,11 @@
  */
 
 export { createOpenAIChatAgent } from '@agent-labs/agent-toolkit';
-export { useParseTools, useAgentChatController, AgentChatWindow } from '@agent-labs/agent-chat';
+export {
+  AgentChat,
+  useParseTools,
+  useAgentSessionManager as useAgentChatController,
+} from '@agent-labs/agent-chat';
 
 export { AGENT_TOOL_DEFS, createGemigoTools, useGemigoTools, getToolExecutors } from './tools';
 

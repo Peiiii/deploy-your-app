@@ -8,11 +8,10 @@ export function createGemigoTools(): Tool[] {
   const executors = getToolExecutors();
   return AGENT_TOOL_DEFS.map((def) => {
     const execute = executors[def.name];
-    return execute ? ({ ...def, execute } satisfies Tool) : ({ ...def } satisfies Tool);
+    return { ...def, execute } satisfies Tool;
   });
 }
 
 export function useGemigoTools(): Tool[] {
   return useMemo(() => createGemigoTools(), []);
 }
-

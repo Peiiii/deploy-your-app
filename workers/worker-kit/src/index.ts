@@ -44,7 +44,10 @@ export function createWorkerApp<Bindings extends object>(opts?: {
       cors({
         origin: '*',
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-        allowHeaders: ['Content-Type', 'Authorization', 'x-goog-api-key'],
+        // IMPORTANT: do not hardcode allowHeaders.
+        // hono/cors will automatically reflect `Access-Control-Request-Headers` on OPTIONS
+        // when `allowHeaders` is empty, which is required for OpenAI JS SDK headers
+        // (e.g. `x-stainless-*`, `openai-*`) and other OpenAI-compatible clients.
         ...opts?.cors,
       }),
     );
