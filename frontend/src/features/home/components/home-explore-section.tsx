@@ -123,9 +123,13 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   );
 };
 
-const ExploreSkeletonGrid: React.FC = () => {
+interface ExploreSkeletonGridProps {
+  compact: boolean;
+}
+
+const ExploreSkeletonGrid: React.FC<ExploreSkeletonGridProps> = ({ compact }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className={`grid ${compact ? 'gap-4' : 'gap-6'} ${compact ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
       {Array.from({ length: 6 }).map((_, idx) => (
         <div
           key={idx}
@@ -240,10 +244,10 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
       </div>
 
       {isLoadingExplore ? (
-        <ExploreSkeletonGrid />
+        <ExploreSkeletonGrid compact={compact} />
       ) : apps.length > 0 ? (
         <div>
-          <div className={`grid ${compact ? 'gap-4' : 'gap-6'} ${compact ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'}`}>
+          <div className={`grid ${compact ? 'gap-4' : 'gap-6'} ${compact ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
             {apps.map((app, index) => (
               <div
                 key={app.id}
