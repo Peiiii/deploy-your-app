@@ -55,6 +55,23 @@ export class ProjectActions {
         }
     };
 
+    toggleExtensionSupport = async () => {
+        const project = this.getCurrentProject();
+        if (!project) return;
+
+        const actions = useProjectSettingsStore.getState().actions;
+        actions.setError(null);
+
+        try {
+            const nextValue = !(project.isExtensionSupported ?? false);
+            await this.projectManager.updateProject(project.id, { isExtensionSupported: nextValue });
+        } catch (err) {
+            console.error(err);
+            const t = i18n.t.bind(i18n);
+            actions.setError(t('project.failedToUpdateExtensionSupport', 'Failed to update extension support.'));
+        }
+    };
+
     deleteProject = async (): Promise<boolean> => {
         const project = this.getCurrentProject();
         if (!project) return false;

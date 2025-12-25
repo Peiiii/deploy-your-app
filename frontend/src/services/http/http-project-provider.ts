@@ -74,6 +74,7 @@ export class HttpProjectProvider implements IProjectProvider {
       category?: string;
       tags?: string[];
       isPublic?: boolean;
+      isExtensionSupported?: boolean;
     },
   ): Promise<Project> {
     const response = await fetch(

@@ -3,14 +3,25 @@ import { copyFileSync, mkdirSync, existsSync, readdirSync } from 'fs';
 import { resolve } from 'path';
 
 export function copyExtensionAssets(rootDir: string): Plugin {
+  let mode: string | undefined;
   return {
     name: 'copy-extension-assets',
+    configResolved(config) {
+      mode = config.mode;
+    },
     buildStart() {
       this.addWatchFile(resolve(rootDir, 'manifest.json'));
+      this.addWatchFile(resolve(rootDir, 'manifest.dev.json'));
     },
     closeBundle() {
-      // 1. Copy manifest.json
-      copyFileSync(resolve(rootDir, 'manifest.json'), resolve(rootDir, 'dist/manifest.json'));
+      const useDevManifest =
+        process.env.GEMIGO_EXTENSION_DEV === '1' || mode === 'development';
+      const manifestPath = useDevManifest && existsSync(resolve(rootDir, 'manifest.dev.json'))
+        ? resolve(rootDir, 'manifest.dev.json')
+        : resolve(rootDir, 'manifest.json');
+
+      // 1. Copy manifest
+      copyFileSync(manifestPath, resolve(rootDir, 'dist/manifest.json'));
       
       // 2. Copy icons directory
       const iconsDir = resolve(rootDir, 'icons');
@@ -22,6 +33,9 @@ export function copyExtensionAssets(rootDir: string): Plugin {
         readdirSync(iconsDir).forEach(file => {
           copyFileSync(resolve(iconsDir, file), resolve(distIconsDir, file));
         });
+      }
+      if (useDevManifest) {
+        console.log('✓ Using dev manifest (development mode)');
       }
       console.log('✓ Copied manifest.json and icons to dist/');
     }

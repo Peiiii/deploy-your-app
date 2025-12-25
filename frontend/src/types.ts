@@ -26,6 +26,9 @@ export interface Project {
   isPublic?: boolean;
   // Soft delete flag used by admin/ops.
   isDeleted?: boolean;
+  // Whether this project can appear in browser-extension surfaces.
+  // Legacy projects without this flag are treated as NOT extension-supported.
+  isExtensionSupported?: boolean;
   name: string;
   repoUrl: string; // Used as source identifier (URL for git, filename for zip)
   sourceType?: SourceType;

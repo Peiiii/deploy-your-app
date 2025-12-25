@@ -98,11 +98,22 @@ class ProjectsController {
   async listExploreProjects(request: Request, _env: ApiWorkerEnv, db: D1Database): Promise<Response> {
     const url = new URL(request.url);
     const sortParam = url.searchParams.get('sort');
+    const extensionParam = url.searchParams.get('is_extension_supported');
+    const normalizedExtensionParam = extensionParam?.trim().toLowerCase();
+    const isExtensionSupported =
+      normalizedExtensionParam === undefined
+        ? undefined
+        : ['1', 'true', 'yes'].includes(normalizedExtensionParam)
+          ? true
+          : ['0', 'false', 'no'].includes(normalizedExtensionParam)
+            ? false
+            : undefined;
     const result = await exploreService.getExploreProjects(db, {
       search: url.searchParams.get('search')?.trim() || undefined,
       category: url.searchParams.get('category')?.trim() || undefined,
       tag: url.searchParams.get('tag')?.trim() || undefined,
       sort: sortParam === 'popularity' ? 'popularity' : 'recent',
+      ...(typeof isExtensionSupported === 'boolean' ? { isExtensionSupported } : {}),
       page: Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1),
       pageSize: Math.min(50, Math.max(1, parseInt(url.searchParams.get('pageSize') || '12', 10) || 12)),
     });
@@ -155,13 +166,16 @@ class ProjectsController {
     await this.requireProjectOwner(db, id, user.id, 'update it');
 
     const body = await readJson(request);
-    const { name, slug, repoUrl, description, category, tags, isPublic } = body;
+    const { name, slug, repoUrl, description, category, tags, isPublic, isExtensionSupported } = body;
 
-    if ([name, slug, repoUrl, description, category, tags, isPublic].every((v) => v === undefined)) {
+    if ([name, slug, repoUrl, description, category, tags, isPublic, isExtensionSupported].every((v) => v === undefined)) {
       throw new ValidationError('At least one field must be provided');
     }
     if (isPublic !== undefined && typeof isPublic !== 'boolean') {
       throw new ValidationError('isPublic must be a boolean');
+    }
+    if (isExtensionSupported !== undefined && typeof isExtensionSupported !== 'boolean') {
+      throw new ValidationError('isExtensionSupported must be a boolean');
     }
 
     const project = await projectService.updateProject(db, id, {
@@ -172,6 +186,7 @@ class ProjectsController {
       ...(category !== undefined && { category: validateOptionalString(category) }),
       ...(tags !== undefined && { tags: validateOptionalArray(tags, String) }),
       ...(isPublic !== undefined && { isPublic }),
+      ...(isExtensionSupported !== undefined && { isExtensionSupported }),
     });
 
     if (!project) throw new NotFoundError('Project not found');

@@ -1,77 +1,73 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import AppContainer from './app-container';
-import { marketApps, MarketApp } from './market-apps';
-import AddAppModal from './add-app-modal';
 import './App.css'; // Ensure CSS is imported
+import type { AppConfig } from './types';
 
-export interface InstalledApp {
+type ExploreProject = {
   id: string;
   name: string;
+  description?: string;
+  url?: string;
+  providerUrl?: string;
+  status?: string;
+  isExtensionSupported?: boolean;
+};
+
+type ExploreProjectsResponse = {
+  items: ExploreProject[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
+
+export interface InstalledApp extends AppConfig {
   description: string;
-  icon: string;
   iconBg: string;
-  url: string;
-  permissions?: Array<'extension.modify' | 'extension.capture' | 'network'>;
-  networkAllowlist?: string[];
 }
 
-// Default apps for demo
-const defaultApps: InstalledApp[] = [
-  {
-    id: 'agent-alchemist',
-    name: 'Agent Alchemist',
-    description: 'Autonomous AI agent that can browse, analyze and modify the web for you.',
-    icon: '🔮',
-    iconBg: 'linear-gradient(135deg, #8b5cf6, #d946ef)',
-    url: 'http://localhost:3000/ai-agent/index.html',
-    permissions: ['extension.modify', 'extension.capture', 'network'],
-    networkAllowlist: ['https://openai-api.gemigo.io', 'http://localhost:*'],
-  },
-];
+const DEFAULT_API_BASE_URL = 'https://gemigo.io';
+const API_BASE_URL_STORAGE_KEY = 'apiBaseUrl';
+const DEFAULT_ICON_BG = 'linear-gradient(135deg, #0ea5e9, #6366f1)';
+const DEFAULT_PAGE_SIZE = 50;
+
+function pickIcon(projectName: string): string {
+  const letter = (projectName || '').trim().charAt(0);
+  return letter ? letter.toUpperCase() : '🧩';
+}
+
+function getProjectLiveUrl(project: ExploreProject): string | null {
+  const candidate = project.url ?? project.providerUrl ?? null;
+  if (!candidate) return null;
+  const normalized = candidate.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function isAllowedExtensionFrameUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' && parsed.hostname.endsWith('.gemigo.app');
+  } catch {
+    return false;
+  }
+}
 
 function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'apps' | 'explore'>('home');
   const [activeApp, setActiveApp] = useState<InstalledApp | null>(null);
   const [installedApps, setInstalledApps] = useState<InstalledApp[]>([]);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [apiBaseUrl, setApiBaseUrl] = useState<string>(DEFAULT_API_BASE_URL);
+  const [exploreProjects, setExploreProjects] = useState<ExploreProject[]>([]);
+  const [exploreQuery, setExploreQuery] = useState<string>('');
+  const [exploreStatus, setExploreStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const [exploreError, setExploreError] = useState<string>('');
 
-  // Load installed apps from storage and sync with market
+  // Load installed apps + API base URL (Phase 1: no built-in demo apps)
   useEffect(() => {
-    chrome.storage.local.get(['installedApps'], (result) => {
-      let apps = result.installedApps || [];
-
-      if (apps.length === 0) {
-        apps = defaultApps;
-      }
-
-      // Sync with market apps (update URLs/meta if changed)
-      const syncedApps = apps.map((app: InstalledApp) => {
-        // Find matching market app by ID (stripping any timestamp suffix if necessary,
-        // but market installs use unique IDs like 'app-TIMESTAMP' currently.
-        // Actually, we should check if the app *originated* from a market app ID.
-        // For simplicity, let's match by URL or Name if ID is dynamic.
-        // Better yet: Let's assume for now we perform a URL match update if found in market.
-
-        const marketMatch = marketApps.find((m) => m.url === app.url || m.name === app.name);
-        if (marketMatch) {
-          return {
-            ...app,
-            name: marketMatch.name,
-            description: marketMatch.description,
-            icon: marketMatch.icon,
-            iconBg: marketMatch.iconBg,
-            url: marketMatch.url,
-            permissions: marketMatch.permissions ?? app.permissions ?? [],
-            networkAllowlist: marketMatch.networkAllowlist ?? app.networkAllowlist ?? [],
-          };
-        }
-        return app;
-      });
-
-      setInstalledApps(syncedApps);
-      // Persist the synced version back to storage
-      if (JSON.stringify(syncedApps) !== JSON.stringify(result.installedApps)) {
-        chrome.storage.local.set({ installedApps: syncedApps });
+    chrome.storage.local.get(['installedApps', API_BASE_URL_STORAGE_KEY], (result) => {
+      setInstalledApps(result.installedApps || []);
+      const storedBase = result[API_BASE_URL_STORAGE_KEY];
+      if (typeof storedBase === 'string' && storedBase.length > 0) {
+        setApiBaseUrl(storedBase);
       }
     });
   }, []);
@@ -82,37 +78,72 @@ function App() {
     chrome.storage.local.set({ installedApps: apps });
   };
 
-  // Add new app
-  const handleAddApp = (app: Omit<InstalledApp, 'id'>) => {
-    if (installedApps.some((installed) => installed.url === app.url)) return;
-
-    const newApp: InstalledApp = {
-      ...app,
-      id: `custom-${encodeURIComponent(app.url)}`,
-      permissions: app.permissions ?? [],
-      networkAllowlist: app.networkAllowlist ?? [],
-    };
-    saveApps([...installedApps, newApp]);
-    setShowAddModal(false);
+  const saveApiBaseUrl = (url: string) => {
+    setApiBaseUrl(url);
+    chrome.storage.local.set({ [API_BASE_URL_STORAGE_KEY]: url });
   };
 
-  // Install from market
-  const handleInstallFromMarket = (marketApp: MarketApp) => {
-    // Check if URL already installed
-    if (installedApps.some((app) => app.url === marketApp.url)) return;
+  const exploreApps = useMemo(() => {
+    return exploreProjects
+      .filter((p) => (p.isExtensionSupported ?? false))
+      .filter((p) => p.status === 'Live')
+      .map((p) => {
+        const url = getProjectLiveUrl(p);
+        if (!url) return null;
+        if (!isAllowedExtensionFrameUrl(url)) return null;
+        return {
+          id: p.id,
+          name: p.name,
+          description: p.description || '',
+          icon: pickIcon(p.name),
+          iconBg: DEFAULT_ICON_BG,
+          url,
+        } satisfies InstalledApp;
+      })
+      .filter((v): v is InstalledApp => Boolean(v));
+  }, [exploreProjects]);
 
-    const newApp: InstalledApp = {
-      id: `market-${encodeURIComponent(marketApp.url)}`,
-      name: marketApp.name,
-      description: marketApp.description,
-      icon: marketApp.icon,
-      iconBg: marketApp.iconBg,
-      url: marketApp.url,
-      permissions: marketApp.permissions ?? [],
-      networkAllowlist: marketApp.networkAllowlist ?? [],
-    };
+  const refreshExplore = async () => {
+    setExploreStatus('loading');
+    setExploreError('');
+    try {
+      const base = apiBaseUrl.replace(/\/+$/, '');
+      const query = new URLSearchParams();
+      query.set('is_extension_supported', '1');
+      query.set('page', '1');
+      query.set('pageSize', String(DEFAULT_PAGE_SIZE));
+      query.set('sort', 'recent');
+      if (exploreQuery.trim().length > 0) {
+        query.set('search', exploreQuery.trim());
+      }
+
+      const url = `${base}/api/v1/projects/explore?${query.toString()}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to load explore apps (${response.status})`);
+      }
+      const data = (await response.json()) as ExploreProjectsResponse;
+      setExploreProjects(Array.isArray(data.items) ? data.items : []);
+      setExploreStatus('ready');
+    } catch (e) {
+      setExploreProjects([]);
+      setExploreStatus('error');
+      setExploreError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab !== 'explore') return;
+    if (exploreStatus !== 'idle') return;
+    void refreshExplore();
+  }, [activeTab, exploreStatus]);
+
+  const handleInstallFromExplore = (app: InstalledApp) => {
+    if (installedApps.some((installed) => installed.url === app.url)) return;
+
+    const newApp: InstalledApp = { ...app, id: `project-${encodeURIComponent(app.id)}` };
     saveApps([...installedApps, newApp]);
-    setActiveTab('home'); // Switch to home to show new app
+    setActiveTab('home');
   };
 
   // Remove app
@@ -172,6 +203,14 @@ function App() {
         <>
           <div className="section-title">Installed Apps</div>
           <div className="app-list">
+            {installedApps.length === 0 && (
+              <div className="app-item-manage">
+                <div className="app-info">
+                  <div className="app-name">No apps installed</div>
+                  <div className="app-desc">Go to Explore to install extension-compatible apps.</div>
+                </div>
+              </div>
+            )}
             {installedApps.map((app) => (
               <div key={app.id} className="app-item" onClick={() => setActiveApp(app)}>
                 <div className="app-icon" style={{ background: app.iconBg }}>
@@ -183,15 +222,6 @@ function App() {
                 </div>
               </div>
             ))}
-
-            {/* Add App Button */}
-            <div className="app-item add-app-btn" onClick={() => setShowAddModal(true)}>
-              <div className="app-icon add-icon">+</div>
-              <div className="app-info">
-                <div className="app-name">Add Custom App</div>
-                <div className="app-desc">Enter URL to add test app</div>
-              </div>
-            </div>
           </div>
         </>
       )}
@@ -224,27 +254,71 @@ function App() {
 
       {activeTab === 'explore' && (
         <>
-          <div className="section-title">Discover Apps</div>
+          <div className="section-title">Explore (Extension-compatible)</div>
           <div className="app-list">
-            {marketApps.map((app) => {
-              const isInstalled = installedApps.some((installed) => installed.url === app.url);
+            <div className="app-item-manage" style={{ alignItems: 'flex-start' }}>
+              <div className="app-info" style={{ width: '100%' }}>
+                <div className="app-name">API Base URL</div>
+                <div className="app-desc">
+                  Phase 1 reuses the platform Explore API and filters by <code>is_extension_supported=1</code>.
+                </div>
+                <input
+                  style={{ width: '100%', marginTop: 8 }}
+                  value={apiBaseUrl}
+                  onChange={(e) => saveApiBaseUrl(e.target.value)}
+                  placeholder={DEFAULT_API_BASE_URL}
+                />
+                <input
+                  style={{ width: '100%', marginTop: 8 }}
+                  value={exploreQuery}
+                  onChange={(e) => setExploreQuery(e.target.value)}
+                  placeholder="Search…"
+                />
+                <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                  <button
+                    className="install-btn"
+                    onClick={refreshExplore}
+                    disabled={exploreStatus === 'loading'}
+                  >
+                    {exploreStatus === 'loading' ? 'Loading…' : 'Refresh'}
+                  </button>
+                </div>
+                {exploreStatus === 'error' && (
+                  <div className="app-desc" style={{ marginTop: 8, color: '#ef4444' }}>
+                    Failed to load explore apps: {exploreError}
+                  </div>
+                )}
+              </div>
+            </div>
 
+            {exploreStatus === 'ready' && exploreApps.length === 0 && (
+              <div className="app-item-manage">
+                <div className="app-info">
+                  <div className="app-name">No extension apps</div>
+                  <div className="app-desc">
+                    No projects matched the extension filter (or they are not Live / not under <code>*.gemigo.app</code>).
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {exploreApps.map((app) => {
+              const isInstalled = installedApps.some((installed) => installed.url === app.url);
               return (
                 <div key={app.id} className="app-item-market">
-                  <div className="app-icon" style={{ background: app.iconBg }}>
+                  <div className="app-icon" style={{ background: app.iconBg || DEFAULT_ICON_BG }}>
                     {app.icon}
                   </div>
                   <div className="app-info">
                     <div className="app-name">{app.name}</div>
                     <div className="app-desc">{app.description}</div>
                     <div className="app-meta">
-                      <span className="app-category">{app.category}</span>
-                      <span className="app-author">by {app.author}</span>
+                      <span className="app-category">extension</span>
                     </div>
                   </div>
                   <button
                     className={`install-btn ${isInstalled ? 'installed' : ''}`}
-                    onClick={() => !isInstalled && handleInstallFromMarket(app)}
+                    onClick={() => !isInstalled && handleInstallFromExplore(app)}
                     disabled={isInstalled}
                   >
                     {isInstalled ? 'Installed' : 'Install'}
@@ -255,9 +329,6 @@ function App() {
           </div>
         </>
       )}
-
-      {/* Add App Modal */}
-      {showAddModal && <AddAppModal onAdd={handleAddApp} onClose={() => setShowAddModal(false)} />}
     </div>
   );
 }

@@ -105,6 +105,7 @@ export class ProjectManager {
       category?: string;
       tags?: string[];
       isPublic?: boolean;
+      isExtensionSupported?: boolean;
     },
   ) => {
     try {

@@ -197,6 +197,7 @@ class ProjectService {
       category?: string;
       tags?: string[];
       isPublic?: boolean;
+      isExtensionSupported?: boolean;
     },
   ): Promise<Project | null> {
     if (patch.slug !== undefined) {

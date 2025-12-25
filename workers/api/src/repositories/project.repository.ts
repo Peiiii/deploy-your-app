@@ -24,6 +24,7 @@ export interface ProjectQueryOptions {
   tag?: string;
   onlyPublic?: boolean;
   includeDeleted?: boolean;
+  isExtensionSupported?: boolean;
   ownerId?: string;
   sort?: 'recent' | 'name';
   limit?: number;
@@ -55,7 +56,8 @@ class ProjectRepository {
           html_content TEXT,
           owner_id TEXT,
           is_public INTEGER,
-          is_deleted INTEGER
+          is_deleted INTEGER,
+          is_extension_supported INTEGER
         )`,
       )
       .run();
@@ -94,6 +96,23 @@ class ProjectRepository {
     } catch {
       // Ignore error if column already exists.
     }
+
+    // Extension surfaces flag: legacy rows default to "not supported".
+    try {
+      await db
+        .prepare(
+          `ALTER TABLE projects ADD COLUMN is_extension_supported INTEGER DEFAULT 0`,
+        )
+        .run();
+    } catch {
+      // Ignore error if column already exists.
+    }
+
+    await db
+      .prepare(
+        `CREATE INDEX IF NOT EXISTS idx_projects_extension_supported ON projects(is_extension_supported)`,
+      )
+      .run();
 
     // Tombstone table to remember which slugs have ever been used, so that
     // future projects cannot reuse them even after hard deletion.
@@ -136,12 +155,23 @@ class ProjectRepository {
       isDeleted = false;
     }
 
+    let isExtensionSupported: boolean | undefined;
+    if (typeof row.is_extension_supported === 'number') {
+      isExtensionSupported = !!row.is_extension_supported;
+    } else if (typeof row.is_extension_supported === 'string') {
+      const normalized = row.is_extension_supported.toLowerCase();
+      isExtensionSupported = normalized === '1' || normalized === 'true';
+    } else {
+      isExtensionSupported = false;
+    }
+
     return {
       id: String(row.id),
       ownerId:
         typeof row.owner_id === 'string' ? (row.owner_id as string) : undefined,
       isPublic,
       isDeleted,
+      isExtensionSupported,
       name: String(row.name),
       repoUrl: String(row.repo_url),
       sourceType: sourceTypeValue
@@ -189,8 +219,8 @@ class ProjectRepository {
         `INSERT INTO projects (
           id, name, repo_url, source_type, slug, analysis_id, last_deployed, status,
           url, description, framework, category, tags, deploy_target, provider_url,
-          cloudflare_project_name, html_content, owner_id, is_public, is_deleted
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+          cloudflare_project_name, html_content, owner_id, is_public, is_deleted, is_extension_supported
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
         RETURNING *`,
       )
       .bind(
@@ -213,6 +243,7 @@ class ProjectRepository {
         input.htmlContent ?? null,
         input.ownerId ?? null,
         input.isPublic === undefined ? 1 : input.isPublic ? 1 : 0,
+        input.isExtensionSupported ? 1 : 0,
       )
       .first<ProjectRow>();
 
@@ -279,6 +310,11 @@ class ProjectRepository {
 
     if (options.onlyPublic) {
       where.push('is_public = 1');
+    }
+
+    if (typeof options.isExtensionSupported === 'boolean') {
+      where.push('is_extension_supported = ?');
+      params.push(options.isExtensionSupported ? 1 : 0);
     }
 
     if (options.ownerId) {
@@ -402,6 +438,7 @@ class ProjectRepository {
       category?: string;
       tags?: string[];
       isPublic?: boolean;
+      isExtensionSupported?: boolean;
     },
   ): Promise<Project | null> {
     await this.ensureSchema(db);
@@ -435,6 +472,10 @@ class ProjectRepository {
     if (patch.isPublic !== undefined) {
       statements.push('is_public = ?');
       params.push(patch.isPublic ? 1 : 0);
+    }
+    if (patch.isExtensionSupported !== undefined) {
+      statements.push('is_extension_supported = ?');
+      params.push(patch.isExtensionSupported ? 1 : 0);
     }
 
     if (statements.length === 0) {
