@@ -68,9 +68,12 @@ export async function executeInPage(tabId: number, payload: any): Promise<unknow
   const isHealthy = await ensureContentScript(tabId);
   if (!isHealthy) {
     const tab = await chrome.tabs.get(tabId).catch(() => null);
-    const errorMsg = `Content script not available on ${tab?.url || 'tab ' + tabId}`;
+    const url = tab?.url || '';
+    const errorMsg = url
+      ? `Content script not available on ${url}. Please grant site access in the extension (Enable on this site / Power Mode) and retry.`
+      : `Content script not available on tab ${tabId}. Please grant site access in the extension and retry.`;
     console.warn(`[GemiGo] ${errorMsg} for message:`, payload.type);
-    return { success: false, error: errorMsg };
+    return { success: false, error: errorMsg, code: 'CONTENT_SCRIPT_NOT_AVAILABLE' };
   }
 
   return new Promise((resolve) => {

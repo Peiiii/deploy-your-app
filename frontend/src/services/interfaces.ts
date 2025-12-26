@@ -34,6 +34,7 @@ export interface IProjectProvider {
       category?: string;
       tags?: string[];
       isPublic?: boolean;
+      isExtensionSupported?: boolean;
     },
   ): Promise<Project>;
   updateProjectDeployment(

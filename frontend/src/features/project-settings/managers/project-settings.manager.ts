@@ -84,6 +84,7 @@ export class ProjectSettingsManager {
     this.projectActions.loadAnalytics(projectId, range);
   loadReactions = (projectId: string) => this.projectActions.loadReactions(projectId);
   togglePublicVisibility = () => this.projectActions.togglePublicVisibility();
+  toggleExtensionSupport = () => this.projectActions.toggleExtensionSupport();
   deleteProject = () => this.projectActions.deleteProject();
   toggleLike = () => this.projectActions.toggleLike();
   toggleFavorite = () => this.projectActions.toggleFavorite();

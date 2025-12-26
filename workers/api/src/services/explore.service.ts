@@ -18,6 +18,7 @@ export class ExploreService {
             search?: string;
             category?: string;
             tag?: string;
+            isExtensionSupported?: boolean;
             sort?: 'recent' | 'popularity';
             page?: number;
             pageSize?: number;
@@ -37,6 +38,9 @@ export class ExploreService {
             category: options.category,
             tag: options.tag,
             onlyPublic: true,
+            ...(typeof options.isExtensionSupported === 'boolean'
+                ? { isExtensionSupported: options.isExtensionSupported }
+                : {}),
         });
 
         const idList = allPublic.map((p) => p.id);

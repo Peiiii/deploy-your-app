@@ -112,6 +112,7 @@ export class IndexedDBProjectProvider implements IProjectProvider {
       category?: string;
       tags?: string[];
       isPublic?: boolean;
+      isExtensionSupported?: boolean;
     },
   ): Promise<Project> {
     const project = await db.get<Project>('projects', id);
@@ -129,6 +130,9 @@ export class IndexedDBProjectProvider implements IProjectProvider {
       ...(patch.category !== undefined ? { category: patch.category } : {}),
       ...(patch.tags !== undefined ? { tags: patch.tags.slice() } : {}),
       ...(patch.isPublic !== undefined ? { isPublic: patch.isPublic } : {}),
+      ...(patch.isExtensionSupported !== undefined
+        ? { isExtensionSupported: patch.isExtensionSupported }
+        : {}),
     };
     await db.put('projects', updated);
     return updated;

@@ -24,6 +24,16 @@ export const SettingsGeneralTab: React.FC<SettingsGeneralTabProps> = ({
 
     // Visibility state
     const showInExplore = project.isPublic ?? true;
+    const isExtensionSupported = project.isExtensionSupported ?? false;
+    const canEnableExtensionSupport = (() => {
+        if (!projectUrl) return false;
+        try {
+            const host = new URL(projectUrl).hostname;
+            return host.endsWith('.gemigo.app');
+        } catch {
+            return false;
+        }
+    })();
 
     return (
         <div className="space-y-8 animate-fade-in">
@@ -64,6 +74,45 @@ export const SettingsGeneralTab: React.FC<SettingsGeneralTabProps> = ({
                         >
                             <span
                                 className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${showInExplore ? 'translate-x-6' : 'translate-x-1'
+                                    }`}
+                            />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Section: Browser Extension */}
+                <div className="p-6 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-start justify-between gap-4">
+                        <div className="space-y-1">
+                            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                                {t('project.enableInExtension', 'Enable in Browser Extension')}
+                            </h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                {canEnableExtensionSupport
+                                    ? t(
+                                        'project.enableInExtensionDescription',
+                                        'Allow this project to appear in the browser extension Explore list.',
+                                    )
+                                    : t(
+                                        'project.enableInExtensionRequiresGemigoApp',
+                                        'Requires a live URL under https://*.gemigo.app to run inside the extension.',
+                                    )}
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            role="switch"
+                            aria-checked={isExtensionSupported}
+                            disabled={!canEnableExtensionSupport}
+                            onClick={presenter.projectSettings.toggleExtensionSupport}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isExtensionSupported
+                                ? 'bg-brand-500'
+                                : 'bg-slate-200 dark:bg-slate-700'
+                                } ${canEnableExtensionSupport ? '' : 'opacity-50 cursor-not-allowed'}`}
+                            title={t('project.toggleExtensionSupport', 'Toggle extension support')}
+                        >
+                            <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${isExtensionSupported ? 'translate-x-6' : 'translate-x-1'
                                     }`}
                             />
                         </button>

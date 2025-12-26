@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite build --watch\" \"serve demo-apps -p 3000 --cors\"",
+    "dev": "concurrently \"vite build --watch --mode development\" \"serve demo-apps -p 3000 --cors\"",
     "build": "vite build",
     "format": "prettier --write .",
     "lint": "eslint .",

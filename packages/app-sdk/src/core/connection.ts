@@ -8,7 +8,6 @@
 import { connectToParent, AsyncMethodReturns } from 'penpal';
 import type {
   Capabilities,
-  ContextMenuEvent,
   ExtensionRPCMethods,
   RPCResult,
   Platform,

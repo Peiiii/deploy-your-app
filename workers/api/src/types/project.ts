@@ -16,6 +16,9 @@ export interface Project {
   isPublic?: boolean;
   // Soft delete flag (admin/offline cleanup). Deleted projects should be hidden from public feeds.
   isDeleted?: boolean;
+  // Whether this project is allowed to appear in the browser-extension surfaces.
+  // Legacy projects without this flag are treated as NOT extension-supported.
+  isExtensionSupported?: boolean;
   name: string;
   repoUrl: string;
   sourceType?: SourceType;
@@ -54,6 +57,7 @@ export interface CreateProjectRecordInput {
   id: string;
   ownerId?: string;
   isPublic?: boolean;
+  isExtensionSupported?: boolean;
   name: string;
   repoUrl: string;
   sourceType?: SourceType;
