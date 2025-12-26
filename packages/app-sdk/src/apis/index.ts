@@ -8,7 +8,7 @@
 import { createSDK } from '../core';
 import type { ChildMethods } from '../core';
 import { fallbackStorage, fallbackNetwork, fallbackNotify } from '../fallback';
-import type { NotifyOptions, NotifyResult, GemigoSDK, Platform, Capabilities } from '../types';
+import type { GemigoSDK, Platform, Capabilities } from '../types';
 import { SDKError } from '../types';
 
 // ========== Environment State ==========
