@@ -7,7 +7,13 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
   // Ignore compiled / generated artifacts and cloned user builds.
-  globalIgnores(['dist', 'server/dist', 'packages/extension-sdk/dist', 'data', 'data/builds']),
+  globalIgnores([
+    'dist',
+    'server/dist',
+    'packages/**/dist',
+    'data',
+    'data/builds',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -35,6 +41,7 @@ export default defineConfig([
       '.deploy-builds/**/*.{ts,tsx}',
       'server/routes.ts',
       'packages/extension-sdk/src/**/*.{ts,tsx}',
+      'packages/app-sdk/src/**/*.{ts,tsx}',
       'browser-extension/**/*.{ts,tsx}',
     ],
     rules: {

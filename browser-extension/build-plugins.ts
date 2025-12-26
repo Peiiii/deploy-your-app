@@ -49,7 +49,7 @@ export function copySDKToDemoApps(rootDir: string): Plugin {
   return {
     name: 'copy-sdk-to-demo-apps',
     buildStart() {
-      const sdkSrc = resolve(rootDir, '../packages/extension-sdk/dist');
+      const sdkSrc = resolve(rootDir, '../packages/app-sdk/dist');
       const sdkDest = resolve(rootDir, 'demo-apps/sdk');
       
       // Create destination directory if needed
