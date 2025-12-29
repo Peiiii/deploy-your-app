@@ -257,8 +257,8 @@
     "tagsPlaceholder": "Comma separated, e.g. chatbot,landing-page",
     "likeAndFavorite": "Like & favorite",
     "likeAndFavoriteDescription": "Express appreciation or save this app to your favorites.",
-    "showInExplore": "Show in Explore & recommendations",
-    "showInExploreDescription": "Turn this off if you want to keep the app private to your dashboard.",
+    "showInExplore": "Show in Explore",
+    "showInExploreDescription": "Make this project discoverable in the public Explore feed.",
     "saveMetadata": "Save metadata",
     "metadata": "Metadata",
     "thumbnail": "App cover image",
@@ -307,7 +307,11 @@
     "totalLikes": "Total Likes",
     "totalFavorites": "Total Favorites",
     "notConfigured": "Not configured",
-    "repoAutoSaved": "Repository URL saved automatically before deployment"
+    "repoAutoSaved": "Repository URL saved automatically before deployment",
+    "enableInExtension": "Enable in Browser Extension",
+    "enableInExtensionDescription": "Allow this project to appear in the browser extension Explore list.",
+    "enableInExtensionRequiresGemigoApp": "Requires a live URL under https://*.gemigo.app to run inside the extension.",
+    "toggleExtensionSupport": "Toggle extension support"
   },
   "ui": {
     "dashboard": "Dashboard",
