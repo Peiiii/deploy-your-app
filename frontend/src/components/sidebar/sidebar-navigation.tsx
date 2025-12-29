@@ -47,15 +47,18 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
                 setSidebarOpen(false);
               }
             }}
-            className={`group flex items-center gap-3 rounded-lg text-sm transition-all duration-200 relative overflow-hidden ${collapsed ? 'w-10 h-10 justify-center p-0 mx-auto' : 'w-full min-h-[44px] px-4 py-3'
+            className={`group flex items-center gap-3 rounded-xl text-[15px] transition-all duration-300 relative overflow-hidden ${collapsed ? 'w-10 h-10 justify-center p-0 mx-auto' : 'w-full min-h-[44px] px-4 py-2.5'
               } ${isActive
-                ? 'font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 shadow-sm'
-                : 'font-medium text-slate-500 dark:text-gray-400 bg-transparent hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                ? 'font-bold text-brand-600 dark:text-white bg-brand-50/50 dark:bg-white/10'
+                : 'font-medium text-slate-500 dark:text-slate-400 bg-transparent hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-white/5'
               }`}
           >
-            <item.icon className={`flex-shrink-0 transition-colors ${collapsed ? 'w-5 h-5' : 'w-5 h-5'} ${isActive ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 group-hover:text-slate-600 dark:text-gray-500 dark:group-hover:text-gray-300'}`} />
+            <item.icon className={`flex-shrink-0 transition-transform duration-300 group-hover:scale-110 ${collapsed ? 'w-5 h-5' : 'w-5 h-5'} ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500'}`} />
             {!collapsed && (
               <span className="relative z-10 whitespace-nowrap flex-shrink-0">{item.label}</span>
+            )}
+            {isActive && !collapsed && (
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-brand-600 dark:bg-brand-400 rounded-r-full" />
             )}
           </button>
         );

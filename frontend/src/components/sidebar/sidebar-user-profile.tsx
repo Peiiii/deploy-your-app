@@ -30,11 +30,11 @@ export const SidebarUserProfile: React.FC<SidebarUserProfileProps> = ({ collapse
   };
 
   return (
-    <div className={`p-4 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-black/20 ${collapsed ? 'flex justify-center' : ''}`}>
+    <div className={`p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 ${collapsed ? 'flex justify-center' : ''}`}>
       <button
         type="button"
         onClick={handleClick}
-        className={`flex items-center gap-3 w-full bg-transparent dark:bg-transparent hover:bg-slate-200/50 dark:hover:bg-white/5 p-2 rounded-lg transition-colors group ${collapsed ? 'justify-center' : ''}`}
+        className={`flex items-center gap-3 w-full bg-transparent p-2 rounded-xl transition-all duration-300 hover:bg-slate-200/50 dark:hover:bg-white/5 active:scale-95 group ${collapsed ? 'justify-center' : ''}`}
       >
         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 ring-2 ring-white dark:ring-slate-800 group-hover:ring-purple-500/50 dark:group-hover:ring-purple-400/50 transition-all shrink-0 flex items-center justify-center text-xs font-semibold text-white">
           {(authUser?.displayName || authUser?.email || 'U')
