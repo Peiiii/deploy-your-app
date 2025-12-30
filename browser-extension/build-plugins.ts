@@ -37,7 +37,7 @@ export function copyExtensionAssets(rootDir: string): Plugin {
       if (useDevManifest) {
         console.log('✓ Using dev manifest (development mode)');
       }
-      console.log('✓ Copied manifest.json and icons to dist/');
+      console.log('✓ Copied manifest and icons to dist/');
     }
   };
 }
@@ -46,9 +46,16 @@ export function copyExtensionAssets(rootDir: string): Plugin {
  * Plugin to copy SDK dist files to demo-apps/sdk/ for development
  */
 export function copySDKToDemoApps(rootDir: string): Plugin {
+  let mode: string | undefined;
   return {
     name: 'copy-sdk-to-demo-apps',
+    configResolved(config) {
+      mode = config.mode;
+    },
     buildStart() {
+      // Only needed for local demo-apps during development.
+      if (mode !== 'development') return;
+
       const sdkSrc = resolve(rootDir, '../packages/app-sdk/dist');
       const sdkDest = resolve(rootDir, 'demo-apps/sdk');
       
