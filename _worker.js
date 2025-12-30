@@ -66,6 +66,24 @@ export default {
 
     // For non-API requests, fall back to the static asset handler.
     // Without this, your HTML/CSS/JS will not be served.
-    return env.ASSETS.fetch(request);
+    const assetResponse = await env.ASSETS.fetch(request);
+    if (assetResponse.status !== 404) {
+      return assetResponse;
+    }
+
+    // SPA fallback: serve index.html for client-side routes.
+    // This is required so URLs like /privacy-policy can be opened directly.
+    const isHtmlRequest =
+      request.method === 'GET' &&
+      (request.headers.get('accept') || '').includes('text/html');
+    const looksLikeAsset = url.pathname.includes('.') || url.pathname.startsWith('/assets/');
+    if (!isHtmlRequest || looksLikeAsset) {
+      return assetResponse;
+    }
+
+    const indexUrl = new URL(url);
+    indexUrl.pathname = '/index.html';
+    indexUrl.search = '';
+    return env.ASSETS.fetch(new Request(indexUrl.toString(), request));
   },
 };
