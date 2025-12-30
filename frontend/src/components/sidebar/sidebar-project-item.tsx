@@ -33,11 +33,10 @@ export const SidebarProjectItem: React.FC<SidebarProjectItemProps> = ({
 
   return (
     <div
-      className={`group flex items-center gap-2 rounded-lg text-xs font-medium transition-all duration-200 w-full px-3 py-2 ${
-        isActive
-          ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800'
-          : 'text-slate-600 dark:text-gray-400 bg-transparent dark:bg-transparent hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800'
-      }`}
+      className={`group flex items-center gap-2 rounded-xl text-[13px] font-medium transition-all duration-300 w-full px-3 py-2 ${isActive
+          ? 'text-brand-600 dark:text-white bg-brand-50/50 dark:bg-white/10'
+          : 'text-slate-600 dark:text-slate-400 bg-transparent hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'
+        }`}
     >
       <button
         onClick={handleClick}
@@ -51,12 +50,11 @@ export const SidebarProjectItem: React.FC<SidebarProjectItemProps> = ({
         className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-slate-300 dark:hover:bg-slate-700"
         title={isPinned ? t('navigation.unpinProject') : t('navigation.pinProject')}
       >
-        <Pin 
-          className={`w-3 h-3 transition-colors ${
-            isPinned 
-              ? 'text-purple-600 dark:text-purple-400' 
+        <Pin
+          className={`w-3 h-3 transition-colors ${isPinned
+              ? 'text-purple-600 dark:text-purple-400'
               : 'text-slate-500 dark:text-gray-400'
-          }`}
+            }`}
           fill={isPinned ? 'currentColor' : 'none'}
         />
       </button>

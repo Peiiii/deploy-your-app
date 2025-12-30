@@ -8,6 +8,7 @@ import { MyProfile } from '@/features/profile/pages/my-profile';
 import { PublicProfile } from '@/features/profile/pages/public-profile';
 import { AdminProjectsPage } from '@/features/admin/pages/admin-projects';
 import { BrandingDesignPage } from '@/features/design/pages/branding-design-page';
+import { PrivacyPolicyPage } from '@/features/legal/pages/privacy-policy';
 
 export const AppRoutes = () => (
     <Routes>
@@ -21,6 +22,8 @@ export const AppRoutes = () => (
         <Route path="/design/branding" element={<BrandingDesignPage />} />
         <Route path="/me" element={<MyProfile />} />
         <Route path="/u/:id" element={<PublicProfile />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
 );

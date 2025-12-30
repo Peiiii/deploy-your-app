@@ -39,6 +39,9 @@ tmp
 # Desktop packaging outputs
 desktop/release/
 
+# Browser extension packaging outputs
+browser-extension/release/
+
 # SDK build outputs (generated)
 packages/extension-sdk/dist/
 

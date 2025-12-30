@@ -28,7 +28,7 @@ export const Sidebar: React.FC = () => {
         />
       )}
 
-      <div className={`h-screen fixed left-0 top-0 flex flex-col bg-app-surface border border-app-border border-r-0 z-50 transition-all duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      <div className={`h-screen fixed left-0 top-0 flex flex-col bg-app-surface dark:bg-slate-900 border-r border-app-border dark:border-slate-800/50 z-50 transition-all duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0 md:flex ${sidebarCollapsed ? 'w-16 md:w-16' : 'w-64 md:w-64'
         }`}>
         <SidebarHeader
@@ -36,7 +36,7 @@ export const Sidebar: React.FC = () => {
           onToggleCollapsed={toggleSidebarCollapsed}
         />
 
-        <nav className={`flex-1 flex flex-col min-h-0 ${sidebarCollapsed ? 'px-2' : 'px-4'}`}>
+        <nav className={`flex-1 flex flex-col min-h-0 overflow-y-auto scrollbar-hide py-2 ${sidebarCollapsed ? 'px-2 gap-4' : 'px-4 gap-6'}`}>
           <SidebarNavigation collapsed={sidebarCollapsed} />
 
           {!sidebarCollapsed && (

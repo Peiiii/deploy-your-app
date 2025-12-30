@@ -120,6 +120,7 @@ Phase 1 最小字段（复用 `GET /api/v1/projects/explore` 返回的 `Project`
 ### 4.2 构建
 
 - `pnpm --filter @gemigo/browser-extension build`
+ - `pnpm package:extension`（生成 Web Store 上传用 zip）
 
 ### 4.3 功能自测（人工）
 

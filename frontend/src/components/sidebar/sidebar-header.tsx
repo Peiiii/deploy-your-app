@@ -70,7 +70,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
 
       {!collapsed && (
         <div className="px-6 mb-2">
-          <p className="text-[10px] font-semibold text-slate-400 dark:text-gray-400 uppercase tracking-wider mb-2">
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.1em] mb-2">
             {t('navigation.myProjects').toUpperCase()}
           </p>
         </div>

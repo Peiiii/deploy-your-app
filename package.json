@@ -19,6 +19,7 @@
     "build:frontend": "pnpm --filter deploy-your-app-frontend build",
     "build:desktop": "pnpm --filter gemigo-desktop build",
     "build:extension": "pnpm --filter @gemigo/browser-extension build",
+    "package:extension": "pnpm build:extension && node scripts/package-extension.mjs",
     "build:sdk": "pnpm --filter @gemigo/app-sdk build",
     "publish:sdk": "pnpm --filter @gemigo/app-sdk build && pnpm --filter @gemigo/app-sdk publish --access public --no-git-checks",
     "release:sdk": "cd packages/app-sdk && npm version patch && cd ../.. && pnpm publish:sdk",

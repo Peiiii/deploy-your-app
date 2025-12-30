@@ -253,8 +253,8 @@
     "tagsPlaceholder": "逗号分隔，例如：chatbot,landing-page",
     "likeAndFavorite": "点赞和收藏",
     "likeAndFavoriteDescription": "表达赞赏或将此应用保存到您的收藏夹。",
-    "showInExplore": "在探索和推荐中显示",
-    "showInExploreDescription": "如果您想将应用保持为仅仪表板可见，请关闭此选项。",
+    "showInExplore": "在‘探索’中显示",
+    "showInExploreDescription": "允许此项目出现在公开的应用探索列表中。",
     "saveMetadata": "保存元数据",
     "metadata": "元数据",
     "thumbnail": "项目封面图",
@@ -303,7 +303,11 @@
     "totalLikes": "总点赞数",
     "totalFavorites": "总收藏数",
     "notConfigured": "未配置",
-    "repoAutoSaved": "仓库地址已在部署前自动保存"
+    "repoAutoSaved": "仓库地址已在部署前自动保存",
+    "enableInExtension": "在浏览器扩展中启用",
+    "enableInExtensionDescription": "允许此项目出现在浏览器扩展的探索列表中。",
+    "enableInExtensionRequiresGemigoApp": "需要在 https://*.gemigo.app 下的实时 URL 才能在扩展中运行。",
+    "toggleExtensionSupport": "切换扩展支持"
   },
   "ui": {
     "dashboard": "仪表板",
