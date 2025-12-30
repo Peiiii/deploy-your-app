@@ -31,15 +31,10 @@
     "notifications"
   ],
   "host_permissions": [
-    "https://*.gemigo.io/*",
-    "https://*.gemigo.app/*"
-  ],
-  "optional_host_permissions": [
-    "https://*/*",
-    "http://*/*"
+    "<all_urls>"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; frame-src 'self' https://*.gemigo.app; connect-src https://*.gemigo.io https://*.gemigo.app"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; frame-src 'self' https://*.gemigo.app; connect-src https://gemigo.io https://*.gemigo.io https://gemigo.app https://*.gemigo.app"
   },
   "web_accessible_resources": [
     {

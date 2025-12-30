@@ -99,64 +99,6 @@ export default function AppContainer({ app, onBack }: AppContainerProps) {
     };
   }, [app.id]);
 
-  const requestSiteAccess = async () => {
-    setSiteAccessError('');
-
-    if (!originPattern) {
-      setSiteAccessError('No active page URL detected.');
-      return;
-    }
-
-    const granted = await new Promise<boolean>((resolve) => {
-      chrome.permissions.request({ origins: [originPattern] }, (ok) => resolve(Boolean(ok)));
-    });
-
-    if (!granted) {
-      setSiteAccessError('Permission request was denied.');
-      return;
-    }
-
-    setSiteAccess('granted');
-    // Trigger a ping to ensure the content script is injected and ready.
-    try {
-      await sendMessage({ type: 'ping', routing: 'content-script' });
-    } catch (e) {
-      setSiteAccessError(e instanceof Error ? e.message : String(e));
-    }
-  };
-
-  const requestAllSitesAccess = async () => {
-    setSiteAccessError('');
-
-    const granted = await new Promise<boolean>((resolve) => {
-      chrome.permissions.request(
-        { origins: ['https://*/*', 'http://*/*'] },
-        (ok) => resolve(Boolean(ok)),
-      );
-    });
-
-    if (!granted) {
-      setSiteAccessError('Permission request was denied.');
-      return;
-    }
-
-    // Re-check current origin after granting.
-    if (!originPattern) {
-      setSiteAccess('granted');
-      return;
-    }
-
-    chrome.permissions.contains({ origins: [originPattern] }, (has) => {
-      setSiteAccess(has ? 'granted' : 'missing');
-    });
-
-    try {
-      await sendMessage({ type: 'ping', routing: 'content-script' });
-    } catch (e) {
-      setSiteAccessError(e instanceof Error ? e.message : String(e));
-    }
-  };
-
   const retryInject = async () => {
     setSiteAccessError('');
     try {
@@ -221,7 +163,7 @@ export default function AppContainer({ app, onBack }: AppContainerProps) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ opacity: 0.9, fontWeight: 600 }}>页面权限</div>
+          <div style={{ opacity: 0.9, fontWeight: 600 }}>页面访问</div>
           <span
             style={{
               padding: '2px 8px',
@@ -236,22 +178,6 @@ export default function AppContainer({ app, onBack }: AppContainerProps) {
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
             <button className="install-btn" onClick={retryInject} title="重试注入/连接 content script">
               重试
-            </button>
-            <button
-              className="install-btn"
-              onClick={requestSiteAccess}
-              disabled={siteAccess === 'restricted' || !originPattern}
-              title={originPattern ? `授权：${originPattern}` : '未检测到可授权的页面'}
-            >
-              仅授权当前站点
-            </button>
-            <button
-              className="install-btn"
-              onClick={requestAllSitesAccess}
-              disabled={siteAccess === 'restricted'}
-              title="授予所有站点访问权限（可随时在扩展设置中撤销）"
-            >
-              Power Mode
             </button>
           </div>
         </div>
