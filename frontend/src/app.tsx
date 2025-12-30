@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
 import { Sidebar } from '@/components/sidebar';
 import { Header } from '@/components/header';
 import { AppRoutes } from '@/routes';
@@ -9,6 +10,7 @@ import { AuthModal } from '@/features/auth/components/auth-modal';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Toast } from '@/components/toast';
 import { CrispChat } from '@/components/crisp-chat';
+import { PrivacyPolicyPage } from '@/features/legal/pages/privacy-policy';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hooks
@@ -122,6 +124,15 @@ const MainLayout: React.FC = () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function App() {
+  const location = useLocation();
+  const pathname = location.pathname || '/';
+  const isPrivacyPolicy =
+    pathname === '/privacy-policy' || pathname === '/privacy';
+
+  if (isPrivacyPolicy) {
+    return <PrivacyPolicyPage />;
+  }
+
   return (
     <PresenterProvider>
       <MainLayout />
