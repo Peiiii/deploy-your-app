@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import AppContainer from './app-container';
+import { ExploreFeed } from './explore-feed';
 import './App.css'; // Ensure CSS is imported
 import type { AppConfig } from './types';
 
@@ -11,6 +12,10 @@ type ExploreProject = {
   providerUrl?: string;
   status?: string;
   isExtensionSupported?: boolean;
+  thumbnailUrl?: string;
+  author?: string;
+  likesCount?: number;
+  favoritesCount?: number;
 };
 
 type ExploreProjectsResponse = {
@@ -23,6 +28,9 @@ type ExploreProjectsResponse = {
 export interface InstalledApp extends AppConfig {
   description: string;
   iconBg: string;
+  author?: string;
+  likesCount?: number;
+  favoritesCount?: number;
 }
 
 const DEFAULT_API_BASE_URL = 'https://gemigo.io';
@@ -83,7 +91,6 @@ function App() {
   const [apiBaseUrlDraft, setApiBaseUrlDraft] = useState<string>(DEFAULT_API_BASE_URL);
   const [apiBaseUrlError, setApiBaseUrlError] = useState<string>('');
   const [exploreProjects, setExploreProjects] = useState<ExploreProject[]>([]);
-  const [exploreQuery, setExploreQuery] = useState<string>('');
   const [exploreStatus, setExploreStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [exploreError, setExploreError] = useState<string>('');
   const [hoveredAppId, setHoveredAppId] = useState<string | null>(null);
@@ -157,9 +164,13 @@ function App() {
           icon: pickIcon(p.name),
           iconBg: DEFAULT_ICON_BG,
           url,
-        } satisfies InstalledApp;
+          thumbnailUrl: p.thumbnailUrl || (url ? `https://image.thum.io/get/width/600/crop/800/noanimate/${url}` : undefined),
+          author: p.author || 'Gemigo User',
+          likesCount: p.likesCount || 0,
+          favoritesCount: p.favoritesCount || 0,
+        } as InstalledApp;
       })
-      .filter((v): v is InstalledApp => Boolean(v));
+      .filter((v): v is InstalledApp => v !== null);
   }, [exploreProjects]);
 
   const refreshExplore = async () => {
@@ -172,9 +183,7 @@ function App() {
       query.set('page', '1');
       query.set('pageSize', String(DEFAULT_PAGE_SIZE));
       query.set('sort', 'recent');
-      if (exploreQuery.trim().length > 0) {
-        query.set('search', exploreQuery.trim());
-      }
+
 
       const url = `${base}/api/v1/projects/explore?${query.toString()}`;
       const response = await fetch(url);
@@ -400,75 +409,43 @@ function App() {
 
       {activeTab === 'explore' && (
         <>
-          <div className="section-title">Explore (Extension-compatible)</div>
-          <div className="app-list">
-            <div className="app-item-manage" style={{ alignItems: 'flex-start' }}>
-              <div className="app-info" style={{ width: '100%' }}>
-                <div className="app-name">Search</div>
-                <div className="app-desc">
-                  Filter: <code>is_extension_supported=1</code>. API: <code>{apiBaseUrl}</code>
-                </div>
-                <input
-                  style={{ width: '100%', marginTop: 8 }}
-                  value={exploreQuery}
-                  onChange={(e) => setExploreQuery(e.target.value)}
-                  placeholder="Search…"
-                />
-                <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                  <button
-                    className="install-btn"
-                    onClick={refreshExplore}
-                    disabled={exploreStatus === 'loading'}
-                  >
-                    {exploreStatus === 'loading' ? 'Loading…' : 'Refresh'}
-                  </button>
-                  <button className="install-btn" onClick={() => setActiveTab('settings')}>
-                    Settings
-                  </button>
-                </div>
-                {exploreStatus === 'error' && (
-                  <div className="app-desc" style={{ marginTop: 8, color: '#ef4444', whiteSpace: 'normal' }}>
-                    Failed to load explore apps: {exploreError}
-                  </div>
-                )}
-              </div>
-            </div>
+          <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Explore (TikTok Mode)</span>
+            <button className="icon-btn" onClick={refreshExplore} title="Refresh Feed" style={{ width: 24, height: 24, fontSize: 12 }}>
+              ↻
+            </button>
+          </div>
 
-            {exploreStatus === 'ready' && exploreApps.length === 0 && (
-              <div className="app-item-manage">
-                <div className="app-info">
-                  <div className="app-name">No extension apps</div>
-                  <div className="app-desc">
-                    No projects matched the extension filter (or they are not Live / not under <code>*.gemigo.app</code>).
-                  </div>
-                </div>
+          <div className="explore-container">
+            {exploreStatus === 'loading' && (
+              <div className="empty-state">
+                <div className="empty-state-icon">⌛</div>
+                <p>Loading your feed...</p>
               </div>
             )}
 
-            {exploreApps.map((app) => {
-              const isInstalled = installedApps.some((installed) => installed.url === app.url);
-              return (
-                <div key={app.id} className="app-item-market">
-                  <div className="app-icon" style={{ background: app.iconBg || DEFAULT_ICON_BG }}>
-                    {app.icon}
-                  </div>
-                  <div className="app-info">
-                    <div className="app-name">{app.name}</div>
-                    <div className="app-desc">{app.description}</div>
-                    <div className="app-meta">
-                      <span className="app-category">extension</span>
-                    </div>
-                  </div>
-                  <button
-                    className={`install-btn ${isInstalled ? 'installed' : ''}`}
-                    onClick={() => !isInstalled && handleInstallFromExplore(app)}
-                    disabled={isInstalled}
-                  >
-                    {isInstalled ? 'Installed' : 'Install'}
-                  </button>
-                </div>
-              );
-            })}
+            {exploreStatus === 'error' && (
+              <div className="empty-state">
+                <div className="empty-state-icon">⚠️</div>
+                <p>Failed to load feed: {exploreError}</p>
+                <button className="install-btn" onClick={refreshExplore} style={{ marginTop: 12 }}>Retry</button>
+              </div>
+            )}
+
+            {exploreStatus === 'ready' && exploreApps.length === 0 && (
+              <div className="empty-state">
+                <div className="empty-state-icon">📭</div>
+                <p>No extension apps found.</p>
+              </div>
+            )}
+
+            {exploreStatus === 'ready' && exploreApps.length > 0 && (
+              <ExploreFeed
+                apps={exploreApps}
+                onInstall={handleInstallFromExplore}
+                installedApps={installedApps}
+              />
+            )}
           </div>
         </>
       )}

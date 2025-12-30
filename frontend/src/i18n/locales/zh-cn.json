@@ -38,7 +38,8 @@
     "loadingProjectDetails": "加载项目详情...",
     "copyUrl": "复制链接",
     "copied": "已复制",
-    "add": "添加"
+    "add": "添加",
+    "clickToEnter": "点击进入应用"
   },
   "navigation": {
     "home": "首页",
@@ -225,7 +226,22 @@
     "sortByRecent": "按时间",
     "popularity": "热度",
     "recent": "最新",
-    "loadMore": "加载更多"
+    "loadMore": "加载更多",
+    "gridView": "网格模式",
+    "feedView": "视频流模式",
+    "feed": {
+      "following": "关注",
+      "explore": "探索",
+      "exitFullscreen": "退出全屏",
+      "follow": "关注",
+      "followers": "关注者",
+      "commentsCount": "{{count}} 条评论",
+      "addComment": "添加评论...",
+      "send": "发送",
+      "share": "分享",
+      "originalSound": "原声",
+      "interactive": "互动"
+    }
   },
   "project": {
     "projectSettings": "项目设置",

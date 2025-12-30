@@ -17,6 +17,7 @@ export interface AppConfig {
   url: string;
   permissions?: AppPermission[];
   networkAllowlist?: string[];
+  thumbnailUrl?: string;
 }
 
 import type { HostMethods, ChildMethods } from '@gemigo/app-sdk';

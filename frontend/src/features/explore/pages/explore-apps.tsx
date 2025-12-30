@@ -1,11 +1,12 @@
-import { Search } from 'lucide-react';
-import React from 'react';
+import { Search, LayoutGrid, Smartphone } from 'lucide-react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ExploreAppCardView } from '@/components/explore-app-card';
 import { PageLayout } from '@/components/page-layout';
 import { useExploreStore, CATEGORIES, type CategoryFilter } from '@/features/explore/stores/explore.store';
 import { usePresenter } from '@/contexts/presenter-context';
+import { ExploreFeed } from '../components/explore-feed';
 
 
 
@@ -94,6 +95,8 @@ export const ExploreApps: React.FC = () => {
   const isLoading = useExploreStore((s) => s.isLoading);
   const actions = useExploreStore((s) => s.actions);
 
+  const [viewMode, setViewMode] = useState<'grid' | 'feed'>('feed');
+
   // Load on mount
   React.useEffect(() => {
     presenter.explore.refresh();
@@ -124,6 +127,10 @@ export const ExploreApps: React.FC = () => {
     [activeTag, actions],
   );
 
+  if (viewMode === 'feed') {
+    return <ExploreFeed apps={apps} onToggleView={() => setViewMode('grid')} />;
+  }
+
   return (
     <PageLayout
       title={
@@ -135,8 +142,32 @@ export const ExploreApps: React.FC = () => {
         </div>
       }
       actions={
-        <div className="hidden md:block">
-          <SearchBar value={searchQuery} onChange={actions.setSearchQuery} />
+        <div className="flex items-center gap-3">
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+            <button
+              onClick={() => setViewMode('feed')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'feed'
+                  ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                }`}
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              {t('explore.feedView')}
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'grid'
+                  ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              {t('explore.gridView')}
+            </button>
+          </div>
+          <div className="hidden md:block">
+            <SearchBar value={searchQuery} onChange={actions.setSearchQuery} />
+          </div>
         </div>
       }
     >
@@ -149,8 +180,6 @@ export const ExploreApps: React.FC = () => {
         <p className="text-slate-500 dark:text-gray-400 text-left">
           {t('explore.discoverApps')} {t('explore.spendCreditsSupportCreators')}
         </p>
-
-
 
         <CategoryFilterBar
           activeCategory={activeCategory}

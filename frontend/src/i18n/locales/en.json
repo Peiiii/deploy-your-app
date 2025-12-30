@@ -39,6 +39,7 @@
     "copyUrl": "Copy URL",
     "copied": "Copied",
     "add": "Add",
+    "clickToEnter": "Click to Enter",
     "justNow": "Just now",
     "minutesAgo": "m ago",
     "hoursAgo": "h ago",
@@ -229,7 +230,22 @@
     "sortByRecent": "Recent",
     "popularity": "Popularity",
     "recent": "Recent",
-    "loadMore": "Load More"
+    "loadMore": "Load More",
+    "gridView": "Grid View",
+    "feedView": "Feed View",
+    "feed": {
+      "following": "Following",
+      "explore": "Explore",
+      "exitFullscreen": "Exit Fullscreen",
+      "follow": "Follow",
+      "followers": "Followers",
+      "commentsCount": "{{count}} comments",
+      "addComment": "Add comment...",
+      "send": "Send",
+      "share": "Share",
+      "originalSound": "Original Sound",
+      "interactive": "INTERACTIVE"
+    }
   },
   "project": {
     "projectSettings": "Project Settings",
