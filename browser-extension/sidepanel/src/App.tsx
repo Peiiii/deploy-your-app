@@ -76,7 +76,7 @@ function isAllowedExtensionFrameUrl(url: string): boolean {
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'apps' | 'explore' | 'settings'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'explore' | 'settings'>('home');
   const [activeApp, setActiveApp] = useState<InstalledApp | null>(null);
   const [installedApps, setInstalledApps] = useState<InstalledApp[]>([]);
   const [apiBaseUrl, setApiBaseUrl] = useState<string>(DEFAULT_API_BASE_URL);
@@ -86,6 +86,8 @@ function App() {
   const [exploreQuery, setExploreQuery] = useState<string>('');
   const [exploreStatus, setExploreStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [exploreError, setExploreError] = useState<string>('');
+  const [hoveredAppId, setHoveredAppId] = useState<string | null>(null);
+  const [menuOpenAppId, setMenuOpenAppId] = useState<string | null>(null);
 
   const isDevExtension = useMemo(() => {
     try {
@@ -195,6 +197,20 @@ function App() {
     void refreshExplore();
   }, [activeTab, exploreStatus]);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.app-item-actions')) {
+        setMenuOpenAppId(null);
+      }
+    };
+
+    if (menuOpenAppId) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [menuOpenAppId]);
+
   const handleInstallFromExplore = (app: InstalledApp) => {
     if (installedApps.some((installed) => installed.url === app.url)) return;
 
@@ -246,12 +262,6 @@ function App() {
           Home
         </button>
         <button
-          className={`tab ${activeTab === 'apps' ? 'active' : ''}`}
-          onClick={() => setActiveTab('apps')}
-        >
-          Apps
-        </button>
-        <button
           className={`tab ${activeTab === 'explore' ? 'active' : ''}`}
           onClick={() => setActiveTab('explore')}
         >
@@ -273,7 +283,21 @@ function App() {
               </div>
             )}
             {installedApps.map((app) => (
-              <div key={app.id} className="app-item" onClick={() => setActiveApp(app)}>
+              <div
+                key={app.id}
+                className="app-item"
+                onClick={() => {
+                  if (menuOpenAppId !== app.id) {
+                    setActiveApp(app);
+                  }
+                }}
+                onMouseEnter={() => setHoveredAppId(app.id)}
+                onMouseLeave={() => {
+                  if (menuOpenAppId !== app.id) {
+                    setHoveredAppId(null);
+                  }
+                }}
+              >
                 <div className="app-icon" style={{ background: app.iconBg }}>
                   {app.icon}
                 </div>
@@ -281,32 +305,44 @@ function App() {
                   <div className="app-name">{app.name}</div>
                   <div className="app-desc">{app.description}</div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {activeTab === 'apps' && (
-        <>
-          <div className="section-title">Manage Apps</div>
-          <div className="app-list">
-            {installedApps.map((app) => (
-              <div key={app.id} className="app-item-manage">
-                <div className="app-icon" style={{ background: app.iconBg }}>
-                  {app.icon}
-                </div>
-                <div className="app-info">
-                  <div className="app-name">{app.name}</div>
-                  <div className="app-desc">{app.url}</div>
-                </div>
-                <button
-                  className="remove-btn"
-                  onClick={() => handleRemoveApp(app.id)}
-                  title="Remove app"
-                >
-                  ✕
-                </button>
+                {hoveredAppId === app.id && (
+                  <div
+                    className="app-item-actions"
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseEnter={() => {
+                      setHoveredAppId(app.id);
+                      if (menuOpenAppId === app.id) {
+                        setMenuOpenAppId(app.id);
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredAppId(null);
+                      setMenuOpenAppId(null);
+                    }}
+                  >
+                    <button
+                      className="more-actions-btn"
+                      onClick={() => setMenuOpenAppId(menuOpenAppId === app.id ? null : app.id)}
+                      title="More actions"
+                    >
+                      ⋯
+                    </button>
+                    {menuOpenAppId === app.id && (
+                      <div className="actions-menu">
+                        <button
+                          className="actions-menu-item delete"
+                          onClick={() => {
+                            handleRemoveApp(app.id);
+                            setMenuOpenAppId(null);
+                            setHoveredAppId(null);
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>

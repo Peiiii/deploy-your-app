@@ -1,10 +1,6 @@
-<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="128" height="128" rx="24" fill="url(#gradient)"/>
-  <text x="64" y="80" text-anchor="middle" font-size="48" font-family="Arial" fill="white" font-weight="bold">Go</text>
-  <defs>
-    <linearGradient id="gradient" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#8b5cf6"/>
-      <stop offset="1" stop-color="#7c3aed"/>
-    </linearGradient>
-  </defs>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M16 16 L16 4 A12 12 0 0 1 26.3923 10 Z" fill="#a78bfa" />
+  <path d="M16 16 L28 16 A12 12 0 0 1 16 28 Z" fill="#7c3aed" />
+  <path d="M16 16 L16 28 A12 12 0 0 1 4 16 Z" fill="#5b21b6" />
+  <path d="M16 16 L4 16 A12 12 0 0 1 16 4 Z" fill="#8b5cf6" />
 </svg>

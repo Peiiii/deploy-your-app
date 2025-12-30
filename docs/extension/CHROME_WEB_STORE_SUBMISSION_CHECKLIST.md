@@ -20,6 +20,10 @@
 - 图 2：Explore 列表（展示平台应用）
 - 图 3：App 运行页（包含「页面权限」条、Power Mode、授权当前站点按钮）
 
+4) **商店图标（128×128 PNG）**
+- 文件路径：`browser-extension/icons/icon128.png`
+- 该图标已与 Web 端 `logo.svg` 保持一致
+
 ---
 
 ## B. 打包（我已经帮你做成一条命令）
