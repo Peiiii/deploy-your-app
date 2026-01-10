@@ -94,7 +94,7 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({ apps, onToggleView }) 
         <div className="fixed inset-0 z-[100] bg-black overflow-hidden flex flex-col">
             {/* Custom Auto-Hiding Header */}
             <div
-                className={`fixed top-0 left-0 right-0 z-[110] px-6 h-20 flex items-center justify-between transition-all duration-500 ease-in-out bg-gradient-to-b from-black/60 to-transparent ${showHeader ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'
+                className={`fixed top-0 left-0 right-0 z-[110] px-6 h-20 flex items-center justify-between transition-all duration-500 ease-in-out bg-gradient-to-b from-black/30 to-transparent ${showHeader ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'
                     }`}
             >
                 {/* Left Side - Back Button */}
@@ -280,7 +280,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
         <div className="h-full w-full relative bg-black flex flex-col overflow-hidden">
             {/* Interaction Header (Dedicated Top Space) */}
             {isEntered && (
-                <div className="h-16 w-full flex items-center justify-between px-4 bg-black/40 backdrop-blur-lg border-b border-white/10 z-50">
+                <div className="h-16 w-full flex items-center justify-between px-4 bg-black/20 backdrop-blur-md border-b border-white/5 z-50">
                     {/* Left: Author Info */}
                     <div className="flex items-center gap-2 p-1.5 bg-white/5 rounded-full pr-3 border border-white/10 backdrop-blur-md shadow-lg">
                         <div className={`w-8 h-8 rounded-full bg-gradient-to-tr ${app.color} flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-md`}>
@@ -327,10 +327,10 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                             <img
                                 src={app.thumbnailUrl}
                                 alt={app.name}
-                                className="w-full h-full object-cover transition-transform duration-500 scale-[0.98] rounded-xl opacity-80"
+                                className="w-full h-full object-cover transition-transform duration-500 rounded-xl opacity-100"
                             />
                         ) : (
-                            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${app.color} scale-[0.98] rounded-xl`}>
+                            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${app.color} rounded-xl`}>
                                 <span className="text-9xl font-black text-white/20 select-none">
                                     {app.name.charAt(0).toUpperCase()}
                                 </span>
@@ -342,15 +342,15 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                 {/* Interaction Shield */}
                 {!isEntered && (
                     <div
-                        className="absolute inset-0 z-10 cursor-pointer bg-black/40 backdrop-blur-[1px] flex flex-col items-center justify-center group transition-all duration-300"
+                        className="absolute inset-0 z-10 cursor-pointer bg-transparent flex flex-col items-center justify-center group transition-all duration-300"
                         onClick={handleEnter}
                     >
                         {isRendered && (
                             <>
-                                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center border-2 border-white/40 group-hover:scale-110 transition-transform duration-300">
-                                    <Play className="w-10 h-10 text-white fill-current translate-x-1" />
+                                <div className="w-16 h-16 rounded-full border-2 border-white flex items-center justify-center filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-300">
+                                    <Play className="w-8 h-8 text-white fill-current translate-x-0.5" />
                                 </div>
-                                <p className="mt-4 text-white font-bold text-lg drop-shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <p className="mt-4 text-white font-bold text-lg drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                     {t('common.clickToEnter')}
                                 </p>
                             </>
@@ -359,7 +359,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                 )}
 
                 {/* TikTok-style UI Overlay (Info remains visible or fades partially) */}
-                <div className={`absolute inset-0 pointer-events-none z-10 flex flex-col justify-end p-6 bg-gradient-to-t from-black/80 via-transparent to-transparent transition-all duration-500 ${isEntered ? 'opacity-40 -translate-y-4' : 'opacity-100 translate-y-0'
+                <div className={`absolute bottom-0 left-0 right-0 h-[40%] pointer-events-none z-10 flex flex-col justify-end p-6 bg-gradient-to-t from-black/30 to-transparent transition-all duration-500 ${isEntered ? 'opacity-40 -translate-y-4' : 'opacity-100 translate-y-0'
                     }`}>
                     {/* Bottom Info */}
                     <div className="max-w-[80%] text-white mb-4">
