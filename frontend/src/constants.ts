@@ -17,6 +17,9 @@ export const API_ROUTES = {
   PROJECT_REACTIONS: (id: string) =>
     `/projects/${encodeURIComponent(id)}/reactions`,
   PROJECT_REACTIONS_BULK: '/projects/reactions',
+  PROJECT_COMMENTS: (id: string) =>
+    `/projects/${encodeURIComponent(id)}/comments`,
+  COMMENT_BY_ID: (id: string) => `/comments/${encodeURIComponent(id)}`,
   PROJECT_LIKE: (id: string) => `/projects/${encodeURIComponent(id)}/like`,
   PROJECT_FAVORITE: (id: string) =>
     `/projects/${encodeURIComponent(id)}/favorite`,

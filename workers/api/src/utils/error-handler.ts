@@ -39,6 +39,13 @@ export class ConfigurationError extends AppError {
   }
 }
 
+export class RateLimitError extends AppError {
+  constructor(message = 'Too many requests') {
+    super(message, 429, 'RATE_LIMIT');
+    this.name = 'RateLimitError';
+  }
+}
+
 export function handleError(error: unknown): Response {
   if (error instanceof AppError) {
     console.error(`[${error.name}] ${error.message}`, {

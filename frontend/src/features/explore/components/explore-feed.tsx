@@ -5,27 +5,39 @@ import { Heart, MessageCircle, Star, Share2, Play, X, ChevronLeft } from 'lucide
 import type { ExploreAppCard } from '@/components/explore-app-card';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useReactionStore } from '@/stores/reaction.store';
+import type { ProjectComment } from '@/types';
+import { createProjectComment, deleteComment, fetchProjectComments } from '@/services/http/comments-api';
 
 interface ExploreFeedProps {
     apps: ExploreAppCard[];
     onToggleView: () => void;
 }
 
-interface Comment {
-    id: string;
-    author: string;
-    avatar: string;
-    text: string;
-    timestamp: string;
-    likes: number;
-}
+const buildAvatarFallback = (author: ProjectComment['author']): string => {
+    const base = author.handle || author.displayName || 'U';
+    return base.trim().slice(0, 1).toUpperCase() || 'U';
+};
 
-const MOCK_COMMENTS: Comment[] = [
-    { id: '1', author: 'AI_Master', avatar: 'A', text: '这个应用太强了！简直是生产力神器。', timestamp: '2小时前', likes: 124 },
-    { id: '2', author: 'DesignExplorer', avatar: 'D', text: 'UI 设计得很高级，毛玻璃效果很有质感。', timestamp: '5小时前', likes: 89 },
-    { id: '3', author: 'CodeRunner', avatar: 'C', text: '希望能增加更多的主题选择！', timestamp: '1天前', likes: 45 },
-    { id: '4', author: 'Gemigo_Fan', avatar: 'G', text: '这就是我一直在找的工具。', timestamp: '2天前', likes: 231 },
-];
+const buildAuthorLabel = (author: ProjectComment['author']): string => {
+    if (author.handle && author.handle.trim().length > 0) {
+        return `@${author.handle}`;
+    }
+    return author.displayName?.trim() || 'User';
+};
+
+const formatRelativeTime = (iso: string): string => {
+    const ts = Date.parse(iso);
+    if (!Number.isFinite(ts)) return '';
+    const diffSeconds = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+    if (diffSeconds < 60) return '刚刚';
+    const minutes = Math.floor(diffSeconds / 60);
+    if (minutes < 60) return `${minutes}分钟前`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}小时前`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}天前`;
+    return new Date(ts).toLocaleDateString();
+};
 
 export const ExploreFeed: React.FC<ExploreFeedProps> = ({ apps, onToggleView }) => {
     const { t } = useTranslation();
@@ -152,8 +164,13 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
     const reactionEntry = useReactionStore((s) => s.byProjectId[app.id]);
     const [isEntered, setIsEntered] = useState(false);
     const [isCommentsOpen, setIsCommentsOpen] = useState(false);
-    const [comments, setComments] = useState<Comment[]>(MOCK_COMMENTS);
+    const [comments, setComments] = useState<ProjectComment[]>([]);
+    const [commentsTotal, setCommentsTotal] = useState(0);
+    const [commentsLoading, setCommentsLoading] = useState(false);
+    const [commentsError, setCommentsError] = useState<string | null>(null);
     const [newComment, setNewComment] = useState('');
+    const [replyTo, setReplyTo] = useState<ProjectComment | null>(null);
+    const [isSubmittingComment, setIsSubmittingComment] = useState(false);
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
     const likesCount = reactionEntry?.likesCount ?? 0;
@@ -161,28 +178,90 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
     const favoritesCount = reactionEntry?.favoritesCount ?? 0;
     const isFavorited = reactionEntry?.favoritedByCurrentUser ?? false;
 
-    const handleAddComment = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newComment.trim()) return;
+    const openComments = () => {
+        setIsCommentsOpen(true);
+        setCommentsError(null);
+        setCommentsLoading(true);
 
-        const comment: Comment = {
-            id: Date.now().toString(),
-            author: 'You',
-            avatar: 'U',
-            text: newComment,
-            timestamp: '刚刚',
-            likes: 0,
-        };
+        fetchProjectComments(app.id, { page: 1, pageSize: 30 })
+            .then((data) => {
+                setComments(data.items);
+                setCommentsTotal(data.total);
+            })
+            .catch((err) => {
+                console.error('Failed to load comments', err);
+                setCommentsError('Failed to load comments');
+            })
+            .finally(() => {
+                setCommentsLoading(false);
+            });
+    };
 
-        setComments([comment, ...comments]);
+    const closeComments = () => {
+        setIsCommentsOpen(false);
+        setReplyTo(null);
         setNewComment('');
+        setCommentsError(null);
+    };
+
+    const handleAddComment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const content = newComment.trim();
+        if (!content) return;
+
+        const user = presenter.auth.getCurrentUser();
+        if (!user) {
+            presenter.auth.openAuthModal('login');
+            return;
+        }
+
+        setIsSubmittingComment(true);
+        setCommentsError(null);
+        try {
+            const created = await createProjectComment(app.id, {
+                content,
+                replyToCommentId: replyTo?.id ?? null,
+            });
+            setComments((prev) => [created, ...prev]);
+            setCommentsTotal((prev) => prev + 1);
+            setNewComment('');
+            setReplyTo(null);
+        } catch (err) {
+            console.error('Failed to create comment', err);
+            if (err instanceof Error && err.message === 'unauthorized') {
+                presenter.auth.openAuthModal('login');
+                return;
+            }
+            setCommentsError(err instanceof Error ? err.message : 'Failed to create comment');
+        } finally {
+            setIsSubmittingComment(false);
+        }
+    };
+
+    const handleDeleteComment = async (commentId: string) => {
+        setCommentsError(null);
+        try {
+            await deleteComment(commentId);
+            setComments((prev) => prev.filter((c) => c.id !== commentId));
+            setCommentsTotal((prev) => Math.max(0, prev - 1));
+        } catch (err) {
+            console.error('Failed to delete comment', err);
+            if (err instanceof Error && err.message === 'unauthorized') {
+                presenter.auth.openAuthModal('login');
+                return;
+            }
+            setCommentsError(err instanceof Error ? err.message : 'Failed to delete comment');
+        }
     };
 
     // Reset enter state when moving away
     useEffect(() => {
         if (!isActive && isEntered) {
-            setIsEntered(false);
-            onEnterStateChange(false);
+            const timer = window.setTimeout(() => {
+                setIsEntered(false);
+                onEnterStateChange(false);
+            }, 0);
+            return () => window.clearTimeout(timer);
         }
     }, [isActive, isEntered, onEnterStateChange]);
 
@@ -328,12 +407,12 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                     <div className="flex flex-col items-center gap-1">
                         <div
                             className="p-2 transition-transform active:scale-90 cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
-                            onClick={() => setIsCommentsOpen(true)}
+                            onClick={openComments}
                         >
                             <MessageCircle className="w-8 h-8 text-white fill-white/20" />
                         </div>
                         <span className="text-white text-xs font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                            {comments.length + 852}
+                            {commentsTotal}
                         </span>
                     </div>
 
@@ -366,7 +445,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                     <div
                         className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${isCommentsOpen ? 'opacity-100' : 'opacity-0'
                             }`}
-                        onClick={() => setIsCommentsOpen(false)}
+                        onClick={closeComments}
                     />
 
                     {/* Drawer Content */}
@@ -377,9 +456,9 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                         {/* Header */}
                         <div className="flex items-center justify-between p-4 border-b border-white/5">
                             <div className="w-8" />
-                            <h4 className="text-white font-bold text-sm">{t('explore.feed.commentsCount', { count: comments.length + 852 })}</h4>
+                            <h4 className="text-white font-bold text-sm">{t('explore.feed.commentsCount', { count: commentsTotal })}</h4>
                             <button
-                                onClick={() => setIsCommentsOpen(false)}
+                                onClick={closeComments}
                                 className="w-8 h-8 flex items-center justify-center text-white/60 hover:text-white"
                             >
                                 <X className="w-5 h-5" />
@@ -388,22 +467,57 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
 
                         {/* Comment List */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                            {comments.map((comment) => (
+                            {commentsLoading && (
+                                <div className="text-white/40 text-sm">Loading…</div>
+                            )}
+
+                            {!commentsLoading && commentsError && (
+                                <div className="text-red-400 text-sm">{commentsError}</div>
+                            )}
+
+                            {!commentsLoading && !commentsError && comments.length === 0 && (
+                                <div className="text-white/40 text-sm">还没有评论，来抢沙发吧。</div>
+                            )}
+
+                            {!commentsLoading && comments.map((comment) => (
                                 <div key={comment.id} className="flex gap-3">
-                                    <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white shadow-inner ${comment.author === 'You' ? `bg-gradient-to-tr ${app.color}` : 'bg-slate-700'
+                                    <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white shadow-inner ${comment.author.id === presenter.auth.getCurrentUser()?.id ? `bg-gradient-to-tr ${app.color}` : 'bg-slate-700'
                                         }`}>
-                                        {comment.avatar}
+                                        {comment.author.avatarUrl ? (
+                                            <img src={comment.author.avatarUrl} alt="" className="w-full h-full object-cover rounded-full" />
+                                        ) : (
+                                            buildAvatarFallback(comment.author)
+                                        )}
                                     </div>
                                     <div className="flex-1 space-y-1">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-white/60 text-xs font-bold">{comment.author}</span>
-                                            <div className="flex flex-col items-center gap-0.5">
-                                                <Heart className="w-3.5 h-3.5 text-white/40" />
-                                                <span className="text-[10px] text-white/40">{comment.likes}</span>
+                                            <span className="text-white/60 text-xs font-bold">{buildAuthorLabel(comment.author)}</span>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setReplyTo(comment)}
+                                                    className="text-white/40 text-[11px] hover:text-white/70"
+                                                >
+                                                    回复
+                                                </button>
+                                                {comment.canDelete && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteComment(comment.id)}
+                                                        className="text-white/40 text-[11px] hover:text-red-300"
+                                                    >
+                                                        删除
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
-                                        <p className="text-white text-sm leading-relaxed">{comment.text}</p>
-                                        <p className="text-white/40 text-[10px]">{comment.timestamp}</p>
+                                        {(comment.replyTo?.handle || comment.replyTo?.displayName) && (
+                                            <p className="text-white/40 text-xs">
+                                                回复 {comment.replyTo?.handle ? `@${comment.replyTo.handle}` : comment.replyTo?.displayName}
+                                            </p>
+                                        )}
+                                        <p className="text-white text-sm leading-relaxed">{comment.content}</p>
+                                        <p className="text-white/40 text-[10px]">{formatRelativeTime(comment.createdAt)}</p>
                                     </div>
                                 </div>
                             ))}
@@ -415,22 +529,42 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                             className="p-4 border-t border-white/10 flex items-center gap-3 bg-[#1e1e1e]"
                         >
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white bg-gradient-to-tr ${app.color}`}>
-                                U
+                                {buildAvatarFallback({
+                                    id: presenter.auth.getCurrentUser()?.id ?? 'me',
+                                    handle: presenter.auth.getCurrentUser()?.handle ?? null,
+                                    displayName: presenter.auth.getCurrentUser()?.displayName ?? null,
+                                    avatarUrl: presenter.auth.getCurrentUser()?.avatarUrl ?? null,
+                                })}
                             </div>
-                            <input
-                                type="text"
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                placeholder={t('explore.feed.addComment')}
-                                className="flex-1 bg-white/5 border-none rounded-full px-4 py-2 text-white text-sm focus:ring-1 focus:ring-white/20 placeholder:text-white/20"
-                            />
+                            <div className="flex-1 flex flex-col gap-2">
+                                {replyTo && (
+                                    <div className="flex items-center justify-between text-[11px] text-white/50">
+                                        <span>回复 {buildAuthorLabel(replyTo.author)}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setReplyTo(null)}
+                                            className="text-white/40 hover:text-white/70"
+                                        >
+                                            取消
+                                        </button>
+                                    </div>
+                                )}
+                                <input
+                                    type="text"
+                                    value={newComment}
+                                    onChange={(e) => setNewComment(e.target.value)}
+                                    placeholder={replyTo ? '写下你的回复…' : t('explore.feed.addComment')}
+                                    className="w-full bg-white/5 border-none rounded-full px-4 py-2 text-white text-sm focus:ring-1 focus:ring-white/20 placeholder:text-white/20"
+                                    maxLength={500}
+                                />
+                            </div>
                             <button
                                 type="submit"
-                                disabled={!newComment.trim()}
+                                disabled={!newComment.trim() || isSubmittingComment}
                                 className={`text-sm font-bold transition-colors ${newComment.trim() ? 'text-[#ff0050]' : 'text-white/20'
                                     }`}
                             >
-                                {t('explore.feed.send')}
+                                {isSubmittingComment ? '...' : t('explore.feed.send')}
                             </button>
                         </form>
                     </div>
@@ -439,5 +573,3 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
         </div >
     );
 };
-
-

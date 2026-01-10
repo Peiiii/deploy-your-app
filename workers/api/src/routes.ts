@@ -8,6 +8,7 @@ import { analyticsController } from './controllers/analytics.controller';
 import { engagementController } from './controllers/engagement.controller';
 import { profileController } from './controllers/profile.controller';
 import { adminController } from './controllers/admin.controller';
+import { commentsController } from './controllers/comments.controller';
 
 /**
  * Build the API router for a given request/environment.
@@ -292,6 +293,31 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
         req,
         requireDb(),
       ),
+  });
+
+  // -----------------
+  // Comments routes (community discussions)
+  // -----------------
+
+  router.add({
+    path: '/api/v1/projects/:id/comments',
+    method: 'GET',
+    handler: (req, params) =>
+      commentsController.listProjectComments(req, env, requireDb(), params.id),
+  });
+
+  router.add({
+    path: '/api/v1/projects/:id/comments',
+    method: 'POST',
+    handler: (req, params) =>
+      commentsController.createProjectComment(req, env, requireDb(), params.id),
+  });
+
+  router.add({
+    path: '/api/v1/comments/:id',
+    method: 'DELETE',
+    handler: (req, params) =>
+      commentsController.deleteComment(req, env, requireDb(), params.id),
   });
 
   // -----------------

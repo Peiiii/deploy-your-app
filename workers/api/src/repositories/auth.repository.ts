@@ -74,6 +74,15 @@ class AuthRepository {
     authSchemaEnsured = true;
   }
 
+  /**
+   * Ensure auth/user tables exist.
+   * Some modules (e.g. comments) may need to join user info even when the
+   * request is unauthenticated.
+   */
+  async ensureAuthSchema(db: D1Database): Promise<void> {
+    await this.ensureSchema(db);
+  }
+
   private mapRowToUser(row: Record<string, unknown>): User {
     return {
       id: String(row.id),
