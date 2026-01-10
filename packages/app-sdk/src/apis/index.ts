@@ -10,6 +10,7 @@ import type { ChildMethods } from '../core';
 import { fallbackStorage, fallbackNetwork, fallbackNotify } from '../fallback';
 import type { GemigoSDK, Platform, Capabilities } from '../types';
 import { SDKError } from '../types';
+import { webAuth } from '../web/auth';
 
 // ========== Environment State ==========
 
@@ -154,6 +155,7 @@ export const { sdk, childMethods } = createSDK<GemigoSDK, ChildMethods>({
   },
   statics: {
     SDKError,
+    auth: webAuth,
     ai: aiAPI,
     clipboard: clipboardAPI,
     dialog: dialogAPI,

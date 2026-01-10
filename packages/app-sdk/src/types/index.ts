@@ -19,6 +19,9 @@ export { SDKError } from './common';
 // Storage API
 export type { StorageAPI } from './storage';
 
+// Auth API (App identity)
+export type { AuthAPI, AuthLoginOptions, AuthScope, AuthTokenResponse } from './auth';
+
 // Notify API
 export type {
   NotifyAction,
@@ -127,6 +130,7 @@ export type {
 
 import { Platform, Capabilities, SDKError } from './common';
 import type { StorageAPI } from './storage';
+import type { AuthAPI } from './auth';
 import type { NotifyOptions, NotifyResult } from './notify';
 import type { AIAPI } from './ai';
 import type { ClipboardAPI } from './clipboard';
@@ -168,6 +172,9 @@ export interface GemigoSDK {
 
   /** Persistent key-value storage */
   storage: StorageAPI;
+
+  /** App identity & login (App SDK V0) */
+  auth: AuthAPI;
 
   /**
    * Send system notification

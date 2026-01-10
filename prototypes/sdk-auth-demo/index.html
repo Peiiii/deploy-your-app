@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GemiGo SDK Auth Demo</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        padding: 24px;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+      pre {
+        background: #0b1220;
+        color: #e2e8f0;
+        padding: 16px;
+        border-radius: 12px;
+        overflow: auto;
+      }
+      button {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        background: #fff;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      button:hover {
+        background: #f8fafc;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>GemiGo SDK Auth Demo</h1>
+    <p>
+      This page is a local-only demo to validate the V0 auth flow (popup broker + PKCE).
+    </p>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:16px 0;">
+      <button id="login">Login via gemigo.auth.login()</button>
+      <button id="verify">Verify token via /api/v1/sdk/me</button>
+      <button id="debug">Debug via /api/v1/sdk/_debug</button>
+      <button id="clear">Clear output</button>
+    </div>
+
+    <h3>Output</h3>
+    <pre id="out">(no output yet)</pre>
+
+    <script src="/packages/app-sdk/dist/gemigo-app-sdk.umd.js"></script>
+    <script>
+      const out = document.getElementById('out');
+      const btnLogin = document.getElementById('login');
+      const btnVerify = document.getElementById('verify');
+      const btnDebug = document.getElementById('debug');
+      const btnClear = document.getElementById('clear');
+
+      let lastToken = null;
+
+      const log = (title, payload) => {
+        const block = [
+          `# ${title}`,
+          typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2),
+          '',
+        ].join('\n');
+        out.textContent = out.textContent === '(no output yet)' ? block : out.textContent + '\n' + block;
+      };
+
+      const getApiBaseUrl = () => {
+        // Prefer calling Wrangler dev directly to avoid any Vite proxy/CORS surprises.
+        return 'http://127.0.0.1:8787/api/v1';
+      };
+
+      async function verifyMe() {
+        const accessToken = (lastToken && lastToken.accessToken) || (gemigo.auth.getAccessToken && gemigo.auth.getAccessToken());
+        if (!accessToken) {
+          log('Verify /sdk/me', 'No accessToken yet. Click Login first.');
+          return;
+        }
+        const api = getApiBaseUrl();
+        const res = await fetch(`${api}/sdk/me`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        const data = await res.json().catch(() => ({}));
+        log(`GET ${api}/sdk/me (${res.status})`, data);
+      }
+
+      async function debugStats() {
+        const api = getApiBaseUrl();
+        const res = await fetch(`${api}/sdk/_debug`, { method: 'GET' });
+        const data = await res.json().catch(() => ({}));
+        log(`GET ${api}/sdk/_debug (${res.status})`, data);
+      }
+
+      btnLogin.addEventListener('click', async () => {
+        out.textContent = '(no output yet)';
+        log('Login', 'Starting login…');
+        try {
+          const token = await gemigo.auth.login({
+            platformOrigin: 'http://localhost:5173',
+            apiBaseUrl: getApiBaseUrl(),
+            // In this demo we use a fixed appId. In real hosted apps this can be derived from `<slug>.gemigo.app`.
+            appId: 'demo-app',
+            scopes: ['identity:basic'],
+          });
+          lastToken = token;
+          log('Login result', token);
+          await verifyMe();
+        } catch (err) {
+          log('Login error', String(err && err.message ? err.message : err));
+        }
+      });
+
+      btnVerify.addEventListener('click', async () => {
+        try {
+          await verifyMe();
+        } catch (err) {
+          log('Verify error', String(err && err.message ? err.message : err));
+        }
+      });
+
+      btnDebug.addEventListener('click', async () => {
+        try {
+          await debugStats();
+        } catch (err) {
+          log('Debug error', String(err && err.message ? err.message : err));
+        }
+      });
+
+      btnClear.addEventListener('click', () => {
+        out.textContent = '(no output yet)';
+        lastToken = null;
+      });
+    </script>
+  </body>
+</html>

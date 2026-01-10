@@ -173,6 +173,9 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
+    const [thumbError, setThumbError] = useState(false);
+    const showThumbnail = app.thumbnailUrl && !thumbError;
+
     const likesCount = reactionEntry?.likesCount ?? 0;
     const isLiked = reactionEntry?.likedByCurrentUser ?? false;
     const favoritesCount = reactionEntry?.favoritesCount ?? 0;
@@ -323,15 +326,17 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                     />
                 ) : (
                     <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
-                        {app.thumbnailUrl ? (
+                        {showThumbnail ? (
                             <img
                                 src={app.thumbnailUrl}
                                 alt={app.name}
                                 className="w-full h-full object-cover transition-transform duration-500 rounded-xl opacity-100"
+                                onError={() => setThumbError(true)}
                             />
                         ) : (
-                            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${app.color} rounded-xl`}>
-                                <span className="text-9xl font-black text-white/20 select-none">
+                            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${app.color} rounded-xl relative overflow-hidden`}>
+                                <div className="absolute inset-0 bg-black/5" />
+                                <span className="text-[20rem] font-black text-white mix-blend-overlay opacity-50 select-none transform -rotate-12 scale-150">
                                     {app.name.charAt(0).toUpperCase()}
                                 </span>
                             </div>

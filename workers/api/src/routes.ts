@@ -9,6 +9,7 @@ import { engagementController } from './controllers/engagement.controller';
 import { profileController } from './controllers/profile.controller';
 import { adminController } from './controllers/admin.controller';
 import { commentsController } from './controllers/comments.controller';
+import { sdkAuthController } from './controllers/sdk-auth.controller';
 
 /**
  * Build the API router for a given request/environment.
@@ -318,6 +319,38 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     method: 'DELETE',
     handler: (req, params) =>
       commentsController.deleteComment(req, env, requireDb(), params.id),
+  });
+
+  // -----------------
+  // SDK Auth routes (App SDK V0)
+  // -----------------
+
+  router.add({
+    path: '/api/v1/sdk/authorize',
+    method: 'POST',
+    handler: (req) =>
+      sdkAuthController.authorize(req, env, requireDb()),
+  });
+
+  router.add({
+    path: '/api/v1/sdk/token',
+    method: 'POST',
+    handler: (req) =>
+      sdkAuthController.token(req, env, requireDb()),
+  });
+
+  router.add({
+    path: '/api/v1/sdk/me',
+    method: 'GET',
+    handler: (req) =>
+      sdkAuthController.me(req, env, requireDb()),
+  });
+
+  router.add({
+    path: '/api/v1/sdk/_debug',
+    method: 'GET',
+    handler: (req) =>
+      sdkAuthController.debug(req, env, requireDb()),
   });
 
   // -----------------

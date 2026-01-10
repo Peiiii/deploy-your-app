@@ -11,6 +11,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Toast } from '@/components/toast';
 import { CrispChat } from '@/components/crisp-chat';
 import { PrivacyPolicyPage } from '@/features/legal/pages/privacy-policy';
+import { SdkAuthBrokerPage } from '@/features/sdk-auth/pages/sdk-auth-broker';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hooks
@@ -128,9 +129,23 @@ export default function App() {
   const pathname = location.pathname || '/';
   const isPrivacyPolicy =
     pathname === '/privacy-policy' || pathname === '/privacy';
+  const isSdkAuthBroker = pathname === '/sdk/broker';
 
   if (isPrivacyPolicy) {
     return <PrivacyPolicyPage />;
+  }
+
+  if (isSdkAuthBroker) {
+    return (
+      <PresenterProvider>
+        <div className="min-h-screen bg-black text-white">
+          <AuthModal />
+          <ConfirmDialog />
+          <Toast />
+          <SdkAuthBrokerPage />
+        </div>
+      </PresenterProvider>
+    );
   }
 
   return (
