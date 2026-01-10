@@ -50,7 +50,7 @@
 
 1. App 调用 `sdk.auth.login({ scopes })`
 2. SDK 生成：`state`、`code_verifier`、`code_challenge`
-3. 打开 `https://auth.gemigo.io/sdk/authorize?...&code_challenge=...&state=...`
+3. 打开 `https://gemigo.io/sdk/authorize?...&code_challenge=...&state=...`
 4. 用户在 `gemigo.io` 完成登录 + 授权（首次）
 5. 平台重定向回 App 的 `redirect_uri`：`https://<slug>.gemigo.app/sdk/callback?code=...&state=...`
 6. App 侧 SDK 校验 `state`，调用 `sdk.auth.exchangeCode(code)`（携带 `code_verifier`）
@@ -58,7 +58,7 @@
 
 ### 2) 续期（A/B 不同）
 
-- A（独立子域）：token 临期 → `sdk.auth.ensureValidToken()` → 打开 `https://auth.gemigo.io/sdk/broker`（popup/redirect）→ broker 在 first-party 环境下刷新 → `postMessage` 新 token 给 App
+- A（独立子域）：token 临期 → `sdk.auth.ensureValidToken()` → 打开 `https://gemigo.io/sdk/broker`（popup/redirect）→ broker 在 first-party 环境下刷新 → `postMessage` 新 token 给 App
 - B（iframe）：父页面定时刷新 → `postMessage` 新 token 给 iframe
 
 ---
@@ -74,7 +74,7 @@
 3. `app_users`：平台 user 与 app-scoped user 的映射（类似 openid）
    - `app_id, user_id, app_user_id`
 
-### API/页面（`auth.gemigo.io`）
+### API/页面（`gemigo.io`）
 
 - `GET /sdk/authorize`（HTML）：登录 + 授权页（首次弹窗）
 - `POST /sdk/token`（JSON）：`code + code_verifier` → `access_token`
@@ -107,4 +107,3 @@ V0 是否接受：**独立子域（A）在 token 续期时可能需要弹窗/跳
 
 - Yes：按本文方案开工（最稳）
 - No：需要改域名策略（同站点）或引入更复杂的刷新机制（实现/维护成本会显著上升）
-

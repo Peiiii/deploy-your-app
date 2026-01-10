@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "concurrently \"pnpm --filter deploy-your-app-frontend dev\" \"pnpm --filter deploy-your-app-server dev\" \"pnpm --filter deploy-your-app-api-worker dev\"",
     "typecheck": "tsc -b --pretty false",
-    "check": "pnpm lint && pnpm typecheck",
+    "check:domains": "node scripts/check-gemigo-domain-registry.mjs",
+    "check": "pnpm lint && pnpm typecheck && pnpm check:domains",
     "check:desktop": "pnpm exec eslint desktop/src --max-warnings 0 && pnpm --filter gemigo-desktop run typecheck",
     "test:auth:local": "tsx scripts/test-auth-local.ts",
     "dev:frontend": "pnpm --filter deploy-your-app-frontend dev",

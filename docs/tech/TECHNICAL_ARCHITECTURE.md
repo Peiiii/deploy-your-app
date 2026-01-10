@@ -295,6 +295,8 @@ API 接收请求，验证权限
 | `gemigo.app` | 应用托管 |
 | `{slug}.gemigo.app` | 单个应用 |
 
+更完整的对外域名/路由清单（单一真相来源）：`docs/tech/APP_SDK_AUTH_V0_TECH_SPEC.md`。
+
 ---
 
 ## 六、开发命令
