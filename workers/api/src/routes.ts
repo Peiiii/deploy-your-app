@@ -242,6 +242,12 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   });
   router.add({
     path: '/api/v1/cloud/db/collections/:collection/docs/:id',
+    method: 'PUT',
+    handler: (req, params) =>
+      sdkCloudController.dbSetDoc(req, env, requireDb(), params.collection, params.id),
+  });
+  router.add({
+    path: '/api/v1/cloud/db/collections/:collection/docs/:id',
     method: 'DELETE',
     handler: (req, params) =>
       sdkCloudController.dbDeleteDoc(req, env, requireDb(), params.collection, params.id),
@@ -251,6 +257,35 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     method: 'POST',
     handler: (req, params) =>
       sdkCloudController.dbQuery(req, env, requireDb(), params.collection),
+  });
+
+  // Cloud Blob (signed URLs backed by R2)
+  router.add({
+    path: '/api/v1/cloud/blob/upload-url',
+    method: 'POST',
+    handler: (req) => sdkCloudController.blobCreateUploadUrl(req, env, requireDb()),
+  });
+  router.add({
+    path: '/api/v1/cloud/blob/download-url',
+    method: 'POST',
+    handler: (req) => sdkCloudController.blobGetDownloadUrl(req, env, requireDb()),
+  });
+  router.add({
+    path: '/api/v1/cloud/blob/upload',
+    method: 'PUT',
+    handler: (req) => sdkCloudController.blobUpload(req, env),
+  });
+  router.add({
+    path: '/api/v1/cloud/blob/download',
+    method: 'GET',
+    handler: (req) => sdkCloudController.blobDownload(req, env),
+  });
+
+  // Cloud Functions (RPC)
+  router.add({
+    path: '/api/v1/cloud/functions/call',
+    method: 'POST',
+    handler: (req) => sdkCloudController.functionsCall(req, env, requireDb()),
   });
 
   // -----------------

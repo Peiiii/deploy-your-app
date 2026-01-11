@@ -1,13 +1,20 @@
 import { sdkAuthRepository } from '../repositories/sdk-auth.repository';
 import { sdkCloudRepository } from '../repositories/sdk-cloud.repository';
-import { UnauthorizedError, ValidationError } from '../utils/error-handler';
+import { ConfigurationError, NotFoundError, UnauthorizedError, ValidationError } from '../utils/error-handler';
 import type { ApiWorkerEnv } from '../types/env';
 import type {
   CloudDbCreateDocInput,
   CloudDbDocResponse,
   CloudDbQueryInput,
   CloudDbQueryResponse,
+  CloudDbSetDocInput,
   CloudDbUpdateDocInput,
+  CloudBlobCreateUploadUrlInput,
+  CloudBlobCreateUploadUrlResponse,
+  CloudBlobGetDownloadUrlInput,
+  CloudBlobGetDownloadUrlResponse,
+  CloudFunctionsCallInput,
+  CloudFunctionsCallResponse,
   CloudKvDeleteInput,
   CloudKvGetResponse,
   CloudKvListResponse,
@@ -161,6 +168,126 @@ function normalizeLimit(raw: unknown, max: number, fallback: number): number {
   const n = typeof raw === 'number' ? raw : Number(raw);
   if (!Number.isFinite(n) || n <= 0) return fallback;
   return Math.min(Math.floor(n), max);
+}
+
+function base64UrlEncode(bytes: Uint8Array): string {
+  let binary = '';
+  for (const b of bytes) binary += String.fromCharCode(b);
+  const base64 = btoa(binary);
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
+function base64UrlDecode(input: string): Uint8Array {
+  const normalized = input.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+async function hmacSha256Base64Url(secret: string, data: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(data));
+  return base64UrlEncode(new Uint8Array(sig));
+}
+
+type BlobTokenOp = 'upload' | 'download';
+type BlobTokenPayload = {
+  op: BlobTokenOp;
+  key: string;
+  exp: number;
+  contentType?: string | null;
+};
+
+async function signBlobToken(secret: string, payload: BlobTokenPayload): Promise<string> {
+  const payloadB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(payload)));
+  const sigB64 = await hmacSha256Base64Url(secret, payloadB64);
+  return `${payloadB64}.${sigB64}`;
+}
+
+async function verifyBlobToken(secret: string, token: string): Promise<BlobTokenPayload> {
+  const parts = token.split('.');
+  if (parts.length !== 2) throw new ValidationError('invalid_token');
+  const [payloadB64, sigB64] = parts;
+  const expected = await hmacSha256Base64Url(secret, payloadB64);
+  if (expected !== sigB64) throw new ValidationError('invalid_token');
+  const payloadJson = new TextDecoder().decode(base64UrlDecode(payloadB64));
+  const payload = JSON.parse(payloadJson) as BlobTokenPayload;
+  if (!payload || typeof payload !== 'object') throw new ValidationError('invalid_token');
+  if (payload.op !== 'upload' && payload.op !== 'download') throw new ValidationError('invalid_token');
+  if (typeof payload.key !== 'string' || !payload.key) throw new ValidationError('invalid_token');
+  if (typeof payload.exp !== 'number' || !Number.isFinite(payload.exp)) throw new ValidationError('invalid_token');
+  if (Date.now() > payload.exp) throw new ValidationError('token_expired');
+  return payload;
+}
+
+function requireBlobSigningSecret(env: ApiWorkerEnv): string {
+  const secret = env.SDK_CLOUD_BLOB_SIGNING_SECRET?.trim();
+  if (!secret) {
+    throw new ConfigurationError('Missing SDK_CLOUD_BLOB_SIGNING_SECRET (required for cloud.blob).');
+  }
+  return secret;
+}
+
+function requireBlobBucket(env: ApiWorkerEnv): R2Bucket {
+  if (!env.ASSETS) throw new ConfigurationError('R2 bucket binding "ASSETS" is not configured.');
+  return env.ASSETS;
+}
+
+function requireBlobVisibility(raw: unknown): 'private' | 'public' {
+  const v = normalizeVisibility(raw).toLowerCase();
+  if (v === 'private' || v === 'public') return v;
+  throw new ValidationError('visibility must be "private" or "public"');
+}
+
+function normalizeBlobPath(raw: unknown): string {
+  if (raw === undefined || raw === null) return crypto.randomUUID();
+  if (typeof raw !== 'string') throw new ValidationError('path must be a string');
+  const trimmed = raw.trim().replace(/^\/+/, '');
+  if (!trimmed) return crypto.randomUUID();
+  if (trimmed.length > 512) throw new ValidationError('path is too long');
+  const parts = trimmed.split('/');
+  if (parts.some((p) => !p || p === '.' || p === '..')) throw new ValidationError('path is invalid');
+  if (parts.some((p) => p.length > 128)) throw new ValidationError('path is invalid');
+  return parts.join('/');
+}
+
+function buildBlobKey(input: {
+  appId: string;
+  appUserId: string;
+  visibility: 'private' | 'public';
+  path: string;
+}): string {
+  return `sdk-cloud/blobs/${input.appId}/${input.visibility}/${input.appUserId}/${input.path}`;
+}
+
+function parseBlobKey(key: string): { appId: string; visibility: 'private' | 'public'; ownerId: string } | null {
+  const parts = key.split('/');
+  // sdk-cloud/blobs/<appId>/<visibility>/<ownerId>/<...path>
+  if (parts.length < 6) return null;
+  if (parts[0] !== 'sdk-cloud' || parts[1] !== 'blobs') return null;
+  const appId = parts[2] ?? '';
+  const visibility = parts[3] ?? '';
+  const ownerId = parts[4] ?? '';
+  if (!appId || !ownerId) return null;
+  if (visibility !== 'private' && visibility !== 'public') return null;
+  return { appId, visibility, ownerId };
+}
+
+function requireFunctionName(raw: unknown): string {
+  if (typeof raw !== 'string') throw new ValidationError('name is required');
+  const name = raw.trim();
+  if (!name) throw new ValidationError('name is required');
+  if (name.length > 128) throw new ValidationError('name is too long');
+  if (!/^[a-zA-Z0-9._:-]+$/.test(name)) throw new ValidationError('name is invalid');
+  return name;
 }
 
 export class SdkCloudService {
@@ -639,6 +766,105 @@ export class SdkCloudService {
     }
   }
 
+  async dbSetDoc(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    collectionRaw: string,
+    id: string,
+    input: CloudDbSetDocInput,
+  ): Promise<CloudDbDocResponse> {
+    const startedAt = Date.now();
+    const ctx = await this.requireSdkContext(request, db);
+    requireScope(ctx.scopes, 'db:rw');
+
+    const collection = requireCollection(collectionRaw);
+    const docId = requireDocId(id);
+
+    try {
+      const existing = await sdkCloudRepository.findDbDoc(db, {
+        appId: ctx.appId,
+        collection,
+        id: docId,
+      });
+
+      if (existing && existing.ownerId !== ctx.appUserId) {
+        throw new UnauthorizedError('forbidden');
+      }
+
+      const ifMatch = normalizeOptionalString(input.ifMatch, 'ifMatch', 128);
+      if (existing && ifMatch && existing.etag !== ifMatch) throw new ValidationError('etag_mismatch');
+
+      const visibility =
+        input.visibility === undefined
+          ? existing?.visibility ?? 'private'
+          : normalizeVisibility(input.visibility);
+      const refType =
+        input.refType === undefined
+          ? existing?.refType ?? null
+          : normalizeOptionalString(input.refType, 'refType', 64);
+      const refId =
+        input.refId === undefined
+          ? existing?.refId ?? null
+          : normalizeOptionalString(input.refId, 'refId', 128);
+
+      const dataJson = JSON.stringify(input.data ?? {});
+      const bytes = new TextEncoder().encode(dataJson).byteLength;
+      if (bytes > 256 * 1024) throw new ValidationError('doc_too_large');
+
+      const now = Date.now();
+      const etag = crypto.randomUUID();
+      const row = await sdkCloudRepository.upsertDbDoc(db, {
+        appId: ctx.appId,
+        collection,
+        id: docId,
+        ownerId: existing?.ownerId ?? ctx.appUserId,
+        visibility,
+        refType,
+        refId,
+        dataJson,
+        createdAt: existing?.createdAt ?? now,
+        updatedAt: now,
+        etag,
+      });
+
+      const result = {
+        id: row.id,
+        ownerId: row.ownerId,
+        visibility: row.visibility,
+        refType: row.refType,
+        refId: row.refId,
+        data: parseJson(row.dataJson),
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        etag: row.etag,
+      };
+
+      logCloudEvent(env, 'info', {
+        op: 'db_set',
+        appId: ctx.appId,
+        appUserId: ctx.appUserId,
+        collection,
+        id: docId,
+        bytes,
+        ms: Date.now() - startedAt,
+      });
+
+      return result;
+    } catch (err) {
+      logCloudEvent(env, 'error', {
+        op: 'db_set',
+        appId: ctx.appId,
+        appUserId: ctx.appUserId,
+        collection,
+        id: docId,
+        ms: Date.now() - startedAt,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      throw err;
+    }
+  }
+
   async dbDeleteDoc(
     request: Request,
     env: ApiWorkerEnv,
@@ -706,8 +932,12 @@ export class SdkCloudService {
       if (c.field === 'refId') where.refId = value;
     }
 
+    // Allow querying other users' data only when explicitly scoped to public docs.
+    // This enables community/forum "author page" patterns while keeping private docs isolated.
     if (where.ownerId && where.ownerId !== ctx.appUserId) {
-      throw new UnauthorizedError('forbidden');
+      if (String(where.visibility).toLowerCase() !== 'public') {
+        throw new UnauthorizedError('forbidden');
+      }
     }
 
     const orderBy = input.orderBy ?? { field: 'createdAt', direction: 'desc' };
@@ -773,6 +1003,205 @@ export class SdkCloudService {
         where,
         orderBy: { field, direction },
         limit,
+        ms: Date.now() - startedAt,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      throw err;
+    }
+  }
+
+  // -----------------
+  // Cloud Blob
+  // -----------------
+
+  async blobCreateUploadUrl(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    input: CloudBlobCreateUploadUrlInput,
+  ): Promise<CloudBlobCreateUploadUrlResponse> {
+    const startedAt = Date.now();
+    const ctx = await this.requireSdkContext(request, db);
+    requireScope(ctx.scopes, 'blob:rw');
+
+    const visibility = requireBlobVisibility(input.visibility);
+    const path = normalizeBlobPath(input.path);
+    const contentType =
+      typeof input.contentType === 'string' && input.contentType.trim()
+        ? input.contentType.trim().slice(0, 128)
+        : null;
+    const expiresIn = normalizeLimit(input.expiresIn, 600, 300);
+
+    const key = buildBlobKey({ appId: ctx.appId, appUserId: ctx.appUserId, visibility, path });
+    const secret = requireBlobSigningSecret(env);
+    const token = await signBlobToken(secret, {
+      op: 'upload',
+      key,
+      exp: Date.now() + expiresIn * 1000,
+      contentType,
+    });
+
+    const origin = new URL(request.url).origin;
+    const uploadUrl = `${origin}/api/v1/cloud/blob/upload?token=${encodeURIComponent(token)}`;
+
+    logCloudEvent(env, 'info', {
+      op: 'blob_upload_url',
+      appId: ctx.appId,
+      appUserId: ctx.appUserId,
+      visibility,
+      key,
+      ms: Date.now() - startedAt,
+    });
+
+    return { fileId: key, uploadUrl, expiresIn };
+  }
+
+  async blobGetDownloadUrl(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    input: CloudBlobGetDownloadUrlInput,
+  ): Promise<CloudBlobGetDownloadUrlResponse> {
+    const startedAt = Date.now();
+    const ctx = await this.requireSdkContext(request, db);
+    requireScope(ctx.scopes, 'blob:rw');
+
+    if (typeof input.fileId !== 'string' || !input.fileId.trim()) {
+      throw new ValidationError('fileId is required');
+    }
+    const fileId = input.fileId.trim();
+    const parsed = parseBlobKey(fileId);
+    if (!parsed) throw new ValidationError('invalid_fileId');
+    if (parsed.appId !== ctx.appId) throw new UnauthorizedError('forbidden');
+    if (parsed.visibility === 'private' && parsed.ownerId !== ctx.appUserId) {
+      throw new UnauthorizedError('forbidden');
+    }
+
+    const expiresIn = normalizeLimit(input.expiresIn, 600, 300);
+    const secret = requireBlobSigningSecret(env);
+    const token = await signBlobToken(secret, {
+      op: 'download',
+      key: fileId,
+      exp: Date.now() + expiresIn * 1000,
+    });
+
+    const origin = new URL(request.url).origin;
+    const url = `${origin}/api/v1/cloud/blob/download?token=${encodeURIComponent(token)}`;
+
+    logCloudEvent(env, 'info', {
+      op: 'blob_download_url',
+      appId: ctx.appId,
+      appUserId: ctx.appUserId,
+      fileId,
+      ms: Date.now() - startedAt,
+    });
+
+    return { fileId, url, expiresIn };
+  }
+
+  async blobUpload(request: Request, env: ApiWorkerEnv, token: string): Promise<{ fileId: string; etag: string | null }> {
+    const startedAt = Date.now();
+    if (request.method !== 'PUT') throw new ValidationError('method_not_allowed');
+    const secret = requireBlobSigningSecret(env);
+    const payload = await verifyBlobToken(secret, token);
+    if (payload.op !== 'upload') throw new ValidationError('invalid_token');
+
+    const bucket = requireBlobBucket(env);
+    const contentLength = request.headers.get('content-length');
+    if (contentLength) {
+      const n = Number(contentLength);
+      if (Number.isFinite(n) && n > 10 * 1024 * 1024) throw new ValidationError('file_too_large');
+    }
+    if (!request.body) throw new ValidationError('missing_body');
+
+    const contentType = payload.contentType ?? request.headers.get('content-type');
+    const result = await bucket.put(payload.key, request.body, {
+      httpMetadata: { contentType: contentType || undefined },
+    });
+
+    logCloudEvent(env, 'info', {
+      op: 'blob_upload',
+      key: payload.key,
+      ms: Date.now() - startedAt,
+    });
+
+    return { fileId: payload.key, etag: result?.etag ?? null };
+  }
+
+  async blobDownload(request: Request, env: ApiWorkerEnv, token: string): Promise<Response> {
+    const startedAt = Date.now();
+    void request;
+    const secret = requireBlobSigningSecret(env);
+    const payload = await verifyBlobToken(secret, token);
+    if (payload.op !== 'download') throw new ValidationError('invalid_token');
+
+    const bucket = requireBlobBucket(env);
+    const obj = await bucket.get(payload.key);
+    if (!obj) throw new NotFoundError('not_found');
+
+    const parsed = parseBlobKey(payload.key);
+    const headers = new Headers();
+    if (obj.httpMetadata?.contentType) headers.set('content-type', obj.httpMetadata.contentType);
+    if (obj.size !== undefined) headers.set('content-length', String(obj.size));
+    headers.set('etag', obj.etag);
+    headers.set('cache-control', parsed?.visibility === 'public' ? 'public, max-age=60' : 'private, max-age=0');
+
+    logCloudEvent(env, 'info', {
+      op: 'blob_download',
+      key: payload.key,
+      ms: Date.now() - startedAt,
+    });
+
+    return new Response(obj.body, { status: 200, headers });
+  }
+
+  // -----------------
+  // Cloud Functions
+  // -----------------
+
+  async functionsCall(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    input: CloudFunctionsCallInput,
+  ): Promise<CloudFunctionsCallResponse> {
+    const startedAt = Date.now();
+    const ctx = await this.requireSdkContext(request, db);
+    requireScope(ctx.scopes, 'functions:invoke');
+
+    const name = requireFunctionName(input.name);
+
+    try {
+      let data: unknown;
+      switch (name) {
+        case 'cloud.ping': {
+          data = {
+            ok: true,
+            now: Date.now(),
+            appId: ctx.appId,
+            appUserId: ctx.appUserId,
+          };
+          break;
+        }
+        default:
+          throw new ValidationError('unknown_function');
+      }
+
+      logCloudEvent(env, 'info', {
+        op: 'fn_call',
+        appId: ctx.appId,
+        appUserId: ctx.appUserId,
+        name,
+        ms: Date.now() - startedAt,
+      });
+
+      return { data };
+    } catch (err) {
+      logCloudEvent(env, 'error', {
+        op: 'fn_call',
+        appId: ctx.appId,
+        appUserId: ctx.appUserId,
+        name,
         ms: Date.now() - startedAt,
         error: err instanceof Error ? err.message : String(err),
       });

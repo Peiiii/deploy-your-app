@@ -111,6 +111,54 @@
 - **返回**: `CloudDbCollection`
 - **说明**: 集合/文档模型（对齐 `db.collection` 心智）。
 
+> 读取隔离：默认只能读取“自己是 owner 的文档”和“`visibility=public` 的文档”。如果你要查询某个用户的公开内容，需要同时带上 `where('ownerId','==',...)` 与 `where('visibility','==','public')`。
+
+#### `CloudDbCollection.add(data, options?)`
+- **参数**:
+  - `data: any`
+  - `options?: { id?: string; visibility?: 'private'|'public'; refType?: string; refId?: string }`
+- **返回**: `Promise<CloudDbDoc>`
+
+#### `CloudDbCollection.doc(id)`
+- **返回**: `CloudDbDocumentRef`
+
+#### `CloudDbDocumentRef.get()`
+- **返回**: `Promise<CloudDbDoc>`
+
+#### `CloudDbDocumentRef.set(data, options?)` 🆕
+- **说明**: Upsert（不存在则创建，存在则覆盖数据）。适合“用户资料/profile”这类固定 id 的文档。
+- **参数**:
+  - `data: any`
+  - `options?: { ifMatch?: string; visibility?: 'private'|'public'; refType?: string; refId?: string }`
+- **返回**: `Promise<CloudDbDoc>`
+
+#### `CloudDbDocumentRef.update(patch, options?)`
+- **说明**: Patch 更新（浅合并），仅 owner 可写。
+- **返回**: `Promise<CloudDbDoc>`
+
+#### `CloudDbDocumentRef.delete()`
+- **返回**: `Promise<void>`
+
+#### `CloudDbCollection.query()`
+- **返回**: `CloudDbQueryBuilder`
+
+#### `gemigo.cloud.blob.createUploadUrl(input)` 🆕
+- **说明**: 生成短时上传 URL（不需要在上传请求中带 Authorization header）。
+- **参数**: `input: { path?: string; visibility?: 'private'|'public'; contentType?: string; expiresIn?: number }`
+- **返回**: `Promise<{ fileId: string; uploadUrl: string; expiresIn: number }>`
+
+#### `gemigo.cloud.blob.getDownloadUrl(input)` 🆕
+- **说明**: 生成短时下载 URL（可直接用于 `<img src=...>`）。
+- **参数**: `input: { fileId: string; expiresIn?: number }`
+- **返回**: `Promise<{ fileId: string; url: string; expiresIn: number }>`
+
+#### `gemigo.cloud.functions.call(name, payload?)` 🆕
+- **说明**: 平台托管云函数 RPC（V0 内置函数从 `cloud.ping` 开始）。
+- **参数**:
+  - `name: string`（如 `'cloud.ping'`）
+  - `payload?: any`
+- **返回**: `Promise<any>`
+
 ---
 
 ### <a id="notify"></a>Notify 通知

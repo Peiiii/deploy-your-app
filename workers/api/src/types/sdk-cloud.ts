@@ -46,6 +46,14 @@ export interface CloudDbUpdateDocInput {
   ifMatch?: unknown;
 }
 
+export interface CloudDbSetDocInput {
+  visibility?: unknown;
+  refType?: unknown;
+  refId?: unknown;
+  data?: unknown;
+  ifMatch?: unknown;
+}
+
 export interface CloudDbQueryResponse {
   items: CloudDbDocResponse[];
   nextCursor: string | null;
@@ -87,3 +95,43 @@ export interface CloudKvListResponse {
   nextCursor: string | null;
 }
 
+// -----------------
+// Cloud Blob (R2-backed; signed upload/download URLs)
+// -----------------
+
+export interface CloudBlobCreateUploadUrlInput {
+  path?: unknown;
+  visibility?: unknown;
+  contentType?: unknown;
+  expiresIn?: unknown;
+}
+
+export interface CloudBlobCreateUploadUrlResponse {
+  fileId: string;
+  uploadUrl: string;
+  expiresIn: number;
+}
+
+export interface CloudBlobGetDownloadUrlInput {
+  fileId?: unknown;
+  expiresIn?: unknown;
+}
+
+export interface CloudBlobGetDownloadUrlResponse {
+  fileId: string;
+  url: string;
+  expiresIn: number;
+}
+
+// -----------------
+// Cloud Functions (RPC)
+// -----------------
+
+export interface CloudFunctionsCallInput {
+  name?: unknown;
+  data?: unknown;
+}
+
+export interface CloudFunctionsCallResponse {
+  data: unknown;
+}

@@ -64,6 +64,10 @@ export interface CloudDbQueryResult<T = unknown> {
 
 export interface CloudDbDocumentRef<T = unknown> {
   get(): Promise<CloudDbDoc<T>>;
+  set(
+    data: T,
+    options?: { ifMatch?: string; visibility?: CloudVisibility; refType?: string; refId?: string },
+  ): Promise<CloudDbDoc<T>>;
   update(patch: Partial<T>, options?: { ifMatch?: string }): Promise<CloudDbDoc<T>>;
   delete(): Promise<void>;
 }
@@ -90,12 +94,20 @@ export interface CloudDbAPI {
 }
 
 export interface CloudBlobAPI {
-  createUploadUrl(_input: unknown): Promise<never>;
-  getDownloadUrl(_input: unknown): Promise<never>;
+  createUploadUrl(input: {
+    path?: string;
+    visibility?: CloudVisibility;
+    contentType?: string;
+    expiresIn?: number;
+  }): Promise<{ fileId: string; uploadUrl: string; expiresIn: number }>;
+  getDownloadUrl(input: {
+    fileId: string;
+    expiresIn?: number;
+  }): Promise<{ fileId: string; url: string; expiresIn: number }>;
 }
 
 export interface CloudFunctionsAPI {
-  call(_name: string, _payload: unknown): Promise<never>;
+  call<T = unknown>(name: string, payload?: unknown): Promise<T>;
 }
 
 export interface CloudAPI {
@@ -104,4 +116,3 @@ export interface CloudAPI {
   blob: CloudBlobAPI;
   functions: CloudFunctionsAPI;
 }
-

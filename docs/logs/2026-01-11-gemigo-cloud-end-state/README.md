@@ -19,7 +19,7 @@
 
 ## 本次改动（已落代码）
 
-### 1) API Worker：新增 Gemigo Cloud（DB/KV）端点
+### 1) API Worker：新增 Gemigo Cloud（DB/KV/Blob/Functions）端点
 
 新增文件：
 
@@ -38,19 +38,34 @@
   - `POST /api/v1/cloud/db/collections/:collection/docs`
   - `GET /api/v1/cloud/db/collections/:collection/docs/:id`
   - `PATCH /api/v1/cloud/db/collections/:collection/docs/:id`
+  - `PUT /api/v1/cloud/db/collections/:collection/docs/:id`（Upsert：不存在创建/存在覆盖）
   - `DELETE /api/v1/cloud/db/collections/:collection/docs/:id`
   - `POST /api/v1/cloud/db/collections/:collection/query`
+  - `POST /api/v1/cloud/blob/upload-url`（返回短时 `uploadUrl`）
+  - `PUT /api/v1/cloud/blob/upload?token=...`（用短时 token 上传 R2）
+  - `POST /api/v1/cloud/blob/download-url`（返回短时 `url`）
+  - `GET /api/v1/cloud/blob/download?token=...`（用短时 token 下载 R2）
+  - `POST /api/v1/cloud/functions/call`（RPC）
 
 权限（V0 先按终态骨架定好）：
 
 - `cloud.kv`：要求 scope `storage:rw`
 - `cloud.db`：要求 scope `db:rw`
+- `cloud.blob`：要求 scope `blob:rw`（签名 URL 模式；上传/下载本身不需要 Authorization header）
+- `cloud.functions`：要求 scope `functions:invoke`
 
 日志：
 
 - `workers/api/src/types/env.ts` 新增环境变量 `SDK_CLOUD_LOG_LEVEL`（`off|error|info|debug`）
   - 默认 `error`（只打失败）
   - 设为 `info` 可看到每次请求的 `op/appId/appUserId/ms/bytes` 等元信息（不打印用户数据内容）
+
+Blob 配置：
+
+- `workers/api/src/types/env.ts` 新增 `SDK_CLOUD_BLOB_SIGNING_SECRET`
+  - 用于签名短时上传/下载 URL（避免把 Bearer token 暴露到“上传请求”里）
+  - 本地：`workers/api/.dev.vars` 已加默认值
+  - 线上：用 `wrangler secret put SDK_CLOUD_BLOB_SIGNING_SECRET` 配置
 
 ### 2) App SDK：新增 `gemigo.cloud`（web 环境可用）
 
@@ -69,12 +84,14 @@
 
 - `gemigo.cloud.kv.*`：已实现（直连 API Worker，Bearer token）
 - `gemigo.cloud.db.collection(...).add/doc/query()`：已实现最小集合模型（受限 where/orderBy/cursor）
-- `gemigo.cloud.blob` / `gemigo.cloud.functions`：占位（暂抛 `NOT_SUPPORTED`）
+- `gemigo.cloud.db.collection(...).doc(id).set(data, options?)`：已实现（Upsert）
+- `gemigo.cloud.blob.createUploadUrl/getDownloadUrl`：已实现（短时签名 URL）
+- `gemigo.cloud.functions.call(name, payload?)`：已实现（V0 内置 `cloud.ping`）
 
 ### 3) Demo：补齐 scopes 并增加 cloud 验证
 
 - `prototypes/sdk-auth-demo/index.html`：
-  - 登录 scopes 增加 `storage:rw`、`db:rw`
+  - 登录 scopes 增加 `storage:rw`、`db:rw`（以及后续可选：`blob:rw`、`functions:invoke`）
   - 增加按钮用于验证 `gemigo.cloud.kv` 与 `gemigo.cloud.db`
 
 ---
@@ -108,6 +125,9 @@ python3 -m http.server 3001 -d .
 - `Login via gemigo.auth.login()`
 - `KV: set/get/list` (calls `/api/v1/cloud/kv/*`)
 - `DB: create/query` (calls `/api/v1/cloud/db/*`)
+- `DB: upsert via doc(id).set(...)`（验证固定 id 文档）
+- `Functions: cloud.ping`（验证 RPC）
+- `Blob: createUploadUrl -> PUT uploadUrl -> getDownloadUrl`（验证文件上传/下载）
 
 （可选）打开 Worker 日志：
 
@@ -123,7 +143,13 @@ python3 -m http.server 3001 -d .
 pnpm --filter deploy-your-app-api-worker run deploy
 ```
 
-2) 发布 App SDK：
+2) 配置 blob 签名 secret（只需要做一次；或轮转时更新）：
+
+```bash
+pnpm --filter deploy-your-app-api-worker wrangler secret put SDK_CLOUD_BLOB_SIGNING_SECRET
+```
+
+3) 发布 App SDK：
 
 ```bash
 pnpm build:sdk

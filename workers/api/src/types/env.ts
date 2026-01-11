@@ -33,4 +33,10 @@ export interface ApiWorkerEnv {
    * Default: "error" (only log failures)
    */
   SDK_CLOUD_LOG_LEVEL?: string;
+
+  /**
+   * Secret used to sign short-lived upload/download URLs for `cloud.blob`.
+   * Set via `wrangler secret put SDK_CLOUD_BLOB_SIGNING_SECRET`.
+   */
+  SDK_CLOUD_BLOB_SIGNING_SECRET?: string;
 }

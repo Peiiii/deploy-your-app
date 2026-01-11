@@ -173,6 +173,24 @@ class WebCloudDbCollection<T> implements CloudDbCollection<T> {
         fetchJson<CloudDbDoc<T>>(
           `/cloud/db/collections/${encodeURIComponent(collection)}/docs/${encodeURIComponent(id)}`,
         ),
+      set: async (
+        data: T,
+        options?: { ifMatch?: string; visibility?: CloudVisibility; refType?: string; refId?: string },
+      ) =>
+        fetchJson<CloudDbDoc<T>>(
+          `/cloud/db/collections/${encodeURIComponent(collection)}/docs/${encodeURIComponent(id)}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              data,
+              ifMatch: options?.ifMatch,
+              visibility: options?.visibility,
+              refType: options?.refType,
+              refId: options?.refId,
+            }),
+          },
+        ),
       update: async (patch: Partial<T>, options?: { ifMatch?: string }) =>
         fetchJson<CloudDbDoc<T>>(
           `/cloud/db/collections/${encodeURIComponent(collection)}/docs/${encodeURIComponent(id)}`,
@@ -207,16 +225,45 @@ export const webCloud: CloudAPI = {
     },
   },
   blob: {
-    async createUploadUrl(): Promise<never> {
-      throw new SDKError('NOT_SUPPORTED', 'cloud.blob is not implemented yet.');
+    async createUploadUrl(input: {
+      path?: string;
+      visibility?: CloudVisibility;
+      contentType?: string;
+      expiresIn?: number;
+    }): Promise<{ fileId: string; uploadUrl: string; expiresIn: number }> {
+      return fetchJson(`/cloud/blob/upload-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          path: input.path,
+          visibility: input.visibility,
+          contentType: input.contentType,
+          expiresIn: input.expiresIn,
+        }),
+      });
     },
-    async getDownloadUrl(): Promise<never> {
-      throw new SDKError('NOT_SUPPORTED', 'cloud.blob is not implemented yet.');
+    async getDownloadUrl(input: {
+      fileId: string;
+      expiresIn?: number;
+    }): Promise<{ fileId: string; url: string; expiresIn: number }> {
+      return fetchJson(`/cloud/blob/download-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileId: input.fileId,
+          expiresIn: input.expiresIn,
+        }),
+      });
     },
   },
   functions: {
-    async call(): Promise<never> {
-      throw new SDKError('NOT_SUPPORTED', 'cloud.functions is not implemented yet.');
+    async call<T = unknown>(name: string, payload?: unknown): Promise<T> {
+      const res = await fetchJson<{ data: T }>(`/cloud/functions/call`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, data: payload ?? null }),
+      });
+      return res.data;
     },
   },
 };

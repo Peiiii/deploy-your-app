@@ -1,7 +1,15 @@
 import { sdkCloudService } from '../services/sdk-cloud.service';
 import { jsonResponse, readJson } from '../utils/http';
 import type { ApiWorkerEnv } from '../types/env';
-import type { CloudDbCreateDocInput, CloudDbQueryInput, CloudDbUpdateDocInput } from '../types/sdk-cloud';
+import type {
+  CloudBlobCreateUploadUrlInput,
+  CloudBlobGetDownloadUrlInput,
+  CloudDbCreateDocInput,
+  CloudDbQueryInput,
+  CloudDbSetDocInput,
+  CloudDbUpdateDocInput,
+  CloudFunctionsCallInput,
+} from '../types/sdk-cloud';
 
 class SdkCloudController {
   // -----------
@@ -82,6 +90,19 @@ class SdkCloudController {
     return jsonResponse(result);
   }
 
+  async dbSetDoc(
+    request: Request,
+    _env: ApiWorkerEnv,
+    db: D1Database,
+    collection: string,
+    id: string,
+  ): Promise<Response> {
+    const env = _env;
+    const body = (await readJson(request)) as CloudDbSetDocInput;
+    const result = await sdkCloudService.dbSetDoc(request, env, db, collection, id, body);
+    return jsonResponse(result);
+  }
+
   async dbDeleteDoc(
     request: Request,
     _env: ApiWorkerEnv,
@@ -103,6 +124,52 @@ class SdkCloudController {
     const env = _env;
     const body = (await readJson(request)) as CloudDbQueryInput;
     const result = await sdkCloudService.dbQuery(request, env, db, collection, body);
+    return jsonResponse(result);
+  }
+
+  // -----------
+  // Blob
+  // -----------
+
+  async blobCreateUploadUrl(request: Request, _env: ApiWorkerEnv, db: D1Database): Promise<Response> {
+    const env = _env;
+    const body = (await readJson(request)) as CloudBlobCreateUploadUrlInput;
+    const result = await sdkCloudService.blobCreateUploadUrl(request, env, db, body);
+    return jsonResponse(result);
+  }
+
+  async blobGetDownloadUrl(request: Request, _env: ApiWorkerEnv, db: D1Database): Promise<Response> {
+    const env = _env;
+    const body = (await readJson(request)) as CloudBlobGetDownloadUrlInput;
+    const result = await sdkCloudService.blobGetDownloadUrl(request, env, db, body);
+    return jsonResponse(result);
+  }
+
+  async blobUpload(request: Request, _env: ApiWorkerEnv): Promise<Response> {
+    const env = _env;
+    const url = new URL(request.url);
+    const token = (url.searchParams.get('token') ?? '').trim();
+    if (!token) return jsonResponse({ error: 'token is required' }, 400);
+    const result = await sdkCloudService.blobUpload(request, env, token);
+    return jsonResponse(result);
+  }
+
+  async blobDownload(request: Request, _env: ApiWorkerEnv): Promise<Response> {
+    const env = _env;
+    const url = new URL(request.url);
+    const token = (url.searchParams.get('token') ?? '').trim();
+    if (!token) return jsonResponse({ error: 'token is required' }, 400);
+    return sdkCloudService.blobDownload(request, env, token);
+  }
+
+  // -----------
+  // Functions
+  // -----------
+
+  async functionsCall(request: Request, _env: ApiWorkerEnv, db: D1Database): Promise<Response> {
+    const env = _env;
+    const body = (await readJson(request)) as CloudFunctionsCallInput;
+    const result = await sdkCloudService.functionsCall(request, env, db, body);
     return jsonResponse(result);
   }
 }

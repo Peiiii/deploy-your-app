@@ -10,6 +10,7 @@
 2. [核心概念](#核心概念)
    - [三种应用形态](#三种应用形态)
    - [渐进增强](#渐进增强)
+   - [云端托管 (Gemigo Cloud)](#云端托管-gemigo-cloud)
 3. [快速开始 (Hello World)](#快速开始)
 4. [教程示例](#教程示例)
    - [示例 1：极简记事本 (Web/全平台)](#示例-1极简记事本)
@@ -60,6 +61,87 @@ if (gemigo.capabilities.fileWrite) {
   // Web 端：提供下载链接
   downloadFile('log.txt', content);
 }
+```
+
+### <a id="云端托管-gemigo-cloud"></a>云端托管 (Gemigo Cloud)
+
+如果你的应用需要：
+
+- **跨设备恢复数据**（用户换设备/清缓存后数据还在）
+- **共享/社区数据**（帖子/评论/点赞等）
+
+请使用 `gemigo.cloud`（平台托管后端能力），而不是仅使用 `gemigo.storage`。
+
+约定：
+
+- `gemigo.storage.*`：本地/宿主存储（轻量、离线友好，但不保证跨设备）
+- `gemigo.cloud.*`：云端托管（需要登录 + scopes）
+
+使用 `gemigo.cloud` 的最小流程：
+
+1) 触发登录（必须在用户点击事件里调用，避免弹窗被拦截）：
+
+```js
+await gemigo.auth.login({
+  // 按需申请 scopes（最小权限）。如果你的应用用不到 blob/functions，可以不申请。
+  scopes: ['identity:basic', 'storage:rw', 'db:rw', 'blob:rw', 'functions:invoke'],
+});
+```
+
+2) 用户私有数据（KV）：
+
+```js
+await gemigo.cloud.kv.set('settings/theme', { mode: 'dark' });
+const theme = await gemigo.cloud.kv.get('settings/theme');
+```
+
+3) 社区/共享数据（集合/文档）：
+
+```js
+const posts = gemigo.cloud.db.collection('posts');
+await posts.add({ title: 'Hello', body: 'First post' }, { visibility: 'public' });
+const feed = await posts.query().where('visibility', '==', 'public').orderBy('createdAt', 'desc').limit(20).get();
+```
+
+说明：
+
+- `kv` 默认按“应用 + 当前登录用户”隔离（天然是用户私有数据）。
+- `db` 文档默认只有 owner 可读写；当 `visibility='public'` 时，其他用户可读（用于社区/广场/作者主页等）。
+
+如果你要做“作者主页 / 浏览某个用户发过的公开内容”，推荐把 `ownerId` 作为过滤条件，并且**显式要求公开**：
+
+```js
+const authorPosts = await posts
+  .query()
+  .where('ownerId', '==', someAppUserId)
+  .where('visibility', '==', 'public')
+  .orderBy('createdAt', 'desc')
+  .limit(20)
+  .get();
+```
+
+4) 上传图片/附件（Blob，适合头像/封面/帖子图片等）：
+
+```js
+const { fileId, uploadUrl } = await gemigo.cloud.blob.createUploadUrl({
+  path: `posts/${crypto.randomUUID()}.png`,
+  visibility: 'public',
+  contentType: 'image/png',
+});
+await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'image/png' }, body: fileBlob });
+// 把 fileId 存到你的文档里（如 posts/avatars/...）
+```
+
+展示图片（返回的是短时 URL，可直接用于 `<img src=...>`）：
+
+```js
+const { url } = await gemigo.cloud.blob.getDownloadUrl({ fileId });
+```
+
+5) 云函数（Functions，平台托管计算/RPC）：
+
+```js
+const ping = await gemigo.cloud.functions.call('cloud.ping');
 ```
 
 ---

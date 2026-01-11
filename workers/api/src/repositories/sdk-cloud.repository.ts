@@ -106,8 +106,22 @@ export class SdkCloudRepository {
 
     await db
       .prepare(
+        `CREATE INDEX IF NOT EXISTS idx_sdk_db_docs_ref_visibility_created
+         ON sdk_db_docs(app_id, collection, ref_type, ref_id, visibility, created_at, id)`,
+      )
+      .run();
+
+    await db
+      .prepare(
         `CREATE INDEX IF NOT EXISTS idx_sdk_db_docs_owner_created
          ON sdk_db_docs(app_id, collection, owner_id, created_at, id)`,
+      )
+      .run();
+
+    await db
+      .prepare(
+        `CREATE INDEX IF NOT EXISTS idx_sdk_db_docs_collection_visibility_created
+         ON sdk_db_docs(app_id, collection, visibility, created_at, id)`,
       )
       .run();
 
@@ -378,6 +392,69 @@ export class SdkCloudRepository {
     };
   }
 
+  async upsertDbDoc(
+    db: D1Database,
+    input: {
+      appId: string;
+      collection: string;
+      id: string;
+      ownerId: string;
+      visibility: CloudVisibility;
+      refType: string | null;
+      refId: string | null;
+      dataJson: string;
+      createdAt: number;
+      updatedAt: number;
+      etag: string;
+    },
+  ): Promise<CloudDbDocRow> {
+    await this.ensureSchema(db);
+    const row = await db
+      .prepare(
+        `INSERT INTO sdk_db_docs (
+          app_id, collection, id, owner_id, visibility, ref_type, ref_id,
+          data_json, created_at, updated_at, etag
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(app_id, collection, id) DO UPDATE SET
+          visibility = excluded.visibility,
+          ref_type = excluded.ref_type,
+          ref_id = excluded.ref_id,
+          data_json = excluded.data_json,
+          updated_at = excluded.updated_at,
+          etag = excluded.etag
+        RETURNING *`,
+      )
+      .bind(
+        input.appId,
+        input.collection,
+        input.id,
+        input.ownerId,
+        input.visibility,
+        input.refType,
+        input.refId,
+        input.dataJson,
+        input.createdAt,
+        input.updatedAt,
+        input.etag,
+      )
+      .first<AnyRow>();
+
+    if (!row) throw new Error('Failed to upsert doc.');
+    return {
+      appId: asString(row.app_id),
+      collection: asString(row.collection),
+      id: asString(row.id),
+      ownerId: asString(row.owner_id),
+      visibility: asString(row.visibility),
+      refType: row.ref_type === null ? null : asString(row.ref_type),
+      refId: row.ref_id === null ? null : asString(row.ref_id),
+      dataJson: asString(row.data_json),
+      createdAt: asNumber(row.created_at),
+      updatedAt: asNumber(row.updated_at),
+      etag: asString(row.etag),
+    };
+  }
+
   async deleteDbDoc(
     db: D1Database,
     input: { appId: string; collection: string; id: string },
@@ -474,4 +551,3 @@ export class SdkCloudRepository {
 }
 
 export const sdkCloudRepository = new SdkCloudRepository();
-
