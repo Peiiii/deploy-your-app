@@ -2,6 +2,7 @@ import type { AuthAPI, AuthLoginOptions, AuthTokenResponse, AuthScope } from '..
 import { SDKError } from '../types/common';
 
 let currentToken: AuthTokenResponse | null = null;
+let currentApiBaseUrl: string | null = null;
 
 function base64UrlEncode(bytes: Uint8Array): string {
   let binary = '';
@@ -72,6 +73,10 @@ async function exchangeCode(
     throw new Error(data.error || 'Failed to exchange code');
   }
   return (await res.json()) as AuthTokenResponse;
+}
+
+export function getWebApiBaseUrl(): string {
+  return currentApiBaseUrl || 'https://gemigo.io/api/v1';
 }
 
 export const webAuth: AuthAPI = {
@@ -174,6 +179,7 @@ export const webAuth: AuthAPI = {
 
     const token = await exchangeCode(apiBaseUrl, result.code, codeVerifier);
     currentToken = token;
+    currentApiBaseUrl = apiBaseUrl;
     return token;
   },
 

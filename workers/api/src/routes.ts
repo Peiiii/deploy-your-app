@@ -10,6 +10,7 @@ import { profileController } from './controllers/profile.controller';
 import { adminController } from './controllers/admin.controller';
 import { commentsController } from './controllers/comments.controller';
 import { sdkAuthController } from './controllers/sdk-auth.controller';
+import { sdkCloudController } from './controllers/sdk-cloud.controller';
 
 /**
  * Build the API router for a given request/environment.
@@ -193,6 +194,63 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     method: 'POST',
     handler: (req, params) =>
       projectsController.uploadThumbnail(req, env, requireDb(), params.id),
+  });
+
+  // -----------------
+  // Gemigo Cloud (App SDK hosted backend)
+  // -----------------
+  // Cloud KV (user-private)
+  router.add({
+    path: '/api/v1/cloud/kv/get',
+    method: 'GET',
+    handler: (req) => sdkCloudController.kvGet(req, env, requireDb()),
+  });
+  router.add({
+    path: '/api/v1/cloud/kv/set',
+    method: 'POST',
+    handler: (req) => sdkCloudController.kvSet(req, env, requireDb()),
+  });
+  router.add({
+    path: '/api/v1/cloud/kv/delete',
+    method: 'POST',
+    handler: (req) => sdkCloudController.kvDelete(req, env, requireDb()),
+  });
+  router.add({
+    path: '/api/v1/cloud/kv/list',
+    method: 'GET',
+    handler: (req) => sdkCloudController.kvList(req, env, requireDb()),
+  });
+
+  // Cloud DB (collections)
+  router.add({
+    path: '/api/v1/cloud/db/collections/:collection/docs',
+    method: 'POST',
+    handler: (req, params) =>
+      sdkCloudController.dbCreateDoc(req, env, requireDb(), params.collection),
+  });
+  router.add({
+    path: '/api/v1/cloud/db/collections/:collection/docs/:id',
+    method: 'GET',
+    handler: (req, params) =>
+      sdkCloudController.dbGetDoc(req, env, requireDb(), params.collection, params.id),
+  });
+  router.add({
+    path: '/api/v1/cloud/db/collections/:collection/docs/:id',
+    method: 'PATCH',
+    handler: (req, params) =>
+      sdkCloudController.dbUpdateDoc(req, env, requireDb(), params.collection, params.id),
+  });
+  router.add({
+    path: '/api/v1/cloud/db/collections/:collection/docs/:id',
+    method: 'DELETE',
+    handler: (req, params) =>
+      sdkCloudController.dbDeleteDoc(req, env, requireDb(), params.collection, params.id),
+  });
+  router.add({
+    path: '/api/v1/cloud/db/collections/:collection/query',
+    method: 'POST',
+    handler: (req, params) =>
+      sdkCloudController.dbQuery(req, env, requireDb(), params.collection),
   });
 
   // -----------------

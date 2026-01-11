@@ -2,6 +2,8 @@
 
 目标：上层应用只接入 **一个 SDK**（`gemigo`），无需关心运行在 Web / Desktop / Browser Extension，SDK 自动适配并通过 `capabilities` 提供可用能力集合；未支持能力必须可预测失败（统一错误码），而不是挂起或 silent fail。
 
+平台化能力（对齐小程序：身份 + 托管存储 + 托管计算）的路线图：`docs/sdk/APP_SDK_PLATFORM_ROADMAP.md`。
+
 ---
 
 ## 1. 约束与原则
@@ -93,4 +95,3 @@
 2. `gemigo.storage.*` 在 extension 环境可用且按 appId 隔离。
 3. `gemigo.network.request()` 在 extension 环境可用，且会被 allowlist 正确拒绝/放行。
 4. web 环境加载 SDK 不会“卡死等待 host”，不可用能力明确返回 `NOT_SUPPORTED`。
-

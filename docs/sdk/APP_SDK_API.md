@@ -9,6 +9,7 @@
 1. [通用 API](#通用-api)
    - [Environment 环境](#environment)
    - [Storage 存储](#storage)
+   - [Cloud 云端托管](#cloud)
    - [Notify 通知](#notify)
    - [AI 人工智能](#ai)
    - [Clipboard 剪贴板](#clipboard)
@@ -75,6 +76,40 @@
 #### `gemigo.storage.clear()`
 - **返回**: `Promise<void>`
 - **说明**: 清空当前应用的所有数据。
+
+---
+
+### <a id="cloud"></a>Cloud 云端托管
+
+提供平台托管的云端能力（无需自建后端），用于跨设备数据与共享数据能力。
+
+> 约定：`gemigo.storage` 仍表示本地/宿主存储；云端托管能力统一在 `gemigo.cloud` 下。
+
+#### `gemigo.cloud.kv.get(key)`
+- **参数**: `key: string`
+- **返回**: `Promise<{ key: string, value: any, etag: string, updatedAt: number }>`
+
+#### `gemigo.cloud.kv.set(key, value, options?)`
+- **参数**:
+  - `key: string`
+  - `value: any`
+  - `options?: { ifMatch?: string }`
+- **返回**: `Promise<{ key: string, etag: string, updatedAt: number }>`
+
+#### `gemigo.cloud.kv.delete(key, options?)`
+- **参数**:
+  - `key: string`
+  - `options?: { ifMatch?: string }`
+- **返回**: `Promise<void>`
+
+#### `gemigo.cloud.kv.list(options?)`
+- **参数**: `options?: { prefix?: string, limit?: number, cursor?: string }`
+- **返回**: `Promise<{ items: Array<{ key, etag, updatedAt, valueBytes }>, nextCursor: string | null }>`
+
+#### `gemigo.cloud.db.collection(name)`
+- **参数**: `name: string`
+- **返回**: `CloudDbCollection`
+- **说明**: 集合/文档模型（对齐 `db.collection` 心智）。
 
 ---
 

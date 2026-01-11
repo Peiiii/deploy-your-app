@@ -41,6 +41,8 @@
       <button id="login">Login via gemigo.auth.login()</button>
       <button id="verify">Verify token via /api/v1/sdk/me</button>
       <button id="debug">Debug via /api/v1/sdk/_debug</button>
+      <button id="kv">KV: set/get/list</button>
+      <button id="db">DB: create/query</button>
       <button id="clear">Clear output</button>
     </div>
 
@@ -53,6 +55,8 @@
       const btnLogin = document.getElementById('login');
       const btnVerify = document.getElementById('verify');
       const btnDebug = document.getElementById('debug');
+      const btnKv = document.getElementById('kv');
+      const btnDb = document.getElementById('db');
       const btnClear = document.getElementById('clear');
 
       let lastToken = null;
@@ -95,6 +99,40 @@
         log(`GET ${api}/sdk/_debug (${res.status})`, data);
       }
 
+      async function cloudKvRoundtrip() {
+        if (!gemigo.cloud || !gemigo.cloud.kv) {
+          log('Cloud KV', 'gemigo.cloud.kv is not available. Did you rebuild the SDK?');
+          return;
+        }
+        const key = `demo/kv/${Date.now()}`;
+        const setRes = await gemigo.cloud.kv.set(key, { hello: 'world', at: Date.now() });
+        log('cloud.kv.set', setRes);
+        const getRes = await gemigo.cloud.kv.get(key);
+        log('cloud.kv.get', getRes);
+        const listRes = await gemigo.cloud.kv.list({ prefix: 'demo/kv/', limit: 10 });
+        log('cloud.kv.list', listRes);
+      }
+
+      async function cloudDbRoundtrip() {
+        if (!gemigo.cloud || !gemigo.cloud.db) {
+          log('Cloud DB', 'gemigo.cloud.db is not available. Did you rebuild the SDK?');
+          return;
+        }
+        const posts = gemigo.cloud.db.collection('posts');
+        const created = await posts.add(
+          { title: 'Hello Gemigo Cloud', body: 'First post', at: Date.now() },
+          { visibility: 'public', refType: 'demo', refId: 'sdk-auth-demo' },
+        );
+        log('cloud.db.posts.add', created);
+        const query = await posts
+          .query()
+          .where('visibility', '==', 'public')
+          .orderBy('createdAt', 'desc')
+          .limit(5)
+          .get();
+        log('cloud.db.posts.query', query);
+      }
+
       btnLogin.addEventListener('click', async () => {
         out.textContent = '(no output yet)';
         log('Login', 'Starting login…');
@@ -104,7 +142,7 @@
             apiBaseUrl: getApiBaseUrl(),
             // In this demo we use a fixed appId. In real hosted apps this can be derived from `<slug>.gemigo.app`.
             appId: 'demo-app',
-            scopes: ['identity:basic'],
+            scopes: ['identity:basic', 'storage:rw', 'db:rw'],
           });
           lastToken = token;
           log('Login result', token);
@@ -127,6 +165,22 @@
           await debugStats();
         } catch (err) {
           log('Debug error', String(err && err.message ? err.message : err));
+        }
+      });
+
+      btnKv.addEventListener('click', async () => {
+        try {
+          await cloudKvRoundtrip();
+        } catch (err) {
+          log('Cloud KV error', String(err && err.message ? err.message : err));
+        }
+      });
+
+      btnDb.addEventListener('click', async () => {
+        try {
+          await cloudDbRoundtrip();
+        } catch (err) {
+          log('Cloud DB error', String(err && err.message ? err.message : err));
         }
       });
 

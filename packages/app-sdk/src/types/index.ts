@@ -22,6 +22,26 @@ export type { StorageAPI } from './storage';
 // Auth API (App identity)
 export type { AuthAPI, AuthLoginOptions, AuthScope, AuthTokenResponse } from './auth';
 
+// Gemigo Cloud (hosted backend)
+export type {
+  CloudAPI,
+  CloudScope,
+  CloudVisibility,
+  CloudKvAPI,
+  CloudKvItemMeta,
+  CloudDbAPI,
+  CloudDbCollection,
+  CloudDbDoc,
+  CloudDbDocumentRef,
+  CloudDbQueryBuilder,
+  CloudDbQueryInput,
+  CloudDbQueryResult,
+  CloudDbWhere,
+  CloudDbWhereOp,
+  CloudBlobAPI,
+  CloudFunctionsAPI,
+} from './cloud';
+
 // Notify API
 export type {
   NotifyAction,
@@ -131,6 +151,7 @@ export type {
 import { Platform, Capabilities, SDKError } from './common';
 import type { StorageAPI } from './storage';
 import type { AuthAPI } from './auth';
+import type { CloudAPI } from './cloud';
 import type { NotifyOptions, NotifyResult } from './notify';
 import type { AIAPI } from './ai';
 import type { ClipboardAPI } from './clipboard';
@@ -175,6 +196,9 @@ export interface GemigoSDK {
 
   /** App identity & login (App SDK V0) */
   auth: AuthAPI;
+
+  /** Gemigo Cloud (hosted backend) */
+  cloud: CloudAPI;
 
   /**
    * Send system notification

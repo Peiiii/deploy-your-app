@@ -26,4 +26,11 @@ export interface ApiWorkerEnv {
   GOOGLE_CLIENT_SECRET?: string;
   GITHUB_CLIENT_ID?: string;
   GITHUB_CLIENT_SECRET?: string;
+
+  /**
+   * Controls audit/debug logging for Gemigo Cloud endpoints.
+   * Values: "off" | "error" | "info" | "debug"
+   * Default: "error" (only log failures)
+   */
+  SDK_CLOUD_LOG_LEVEL?: string;
 }

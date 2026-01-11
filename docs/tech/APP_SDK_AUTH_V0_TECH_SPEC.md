@@ -2,6 +2,8 @@
 
 目标：让任意接入 `@gemigo/app-sdk` 的 App（包含 vibe coding 生成的网站）可靠获得“当前用户是谁”，并为后续“托管存储/托管计算”建立可控的安全边界。
 
+托管存储（V0）方案调研与推荐：`docs/tech/APP_SDK_STORAGE_V0_RESEARCH.md`。
+
 ---
 
 ## 1. 约束（决定了方案长什么样）
@@ -56,7 +58,7 @@
 | Host | 用途 | 归属/实现 | 备注 |
 |---|---|---|---|
 | `gemigo.io` | 平台 Web（含 broker UI） | Pages/静态站点 | broker 建议固定在 `https://gemigo.io/sdk/broker` |
-| `api.gemigo.io` | 平台 API（含 App SDK Auth） | `workers/api`（Cloudflare Worker） | canonical API：`https://api.gemigo.io/api/v1` |
+| `api.gemigo.io` | 平台 API（含 App SDK Auth） | `workers/api`（Cloudflare Worker） | **规划 canonical API（尚未启用）**：`https://api.gemigo.io/api/v1`（现阶段请用 `https://gemigo.io/api/v1`，见 4.3） |
 | `backend.gemigo.io` | Node 部署服务（内部/半内部） | `server`（Aliyun Docker） | Worker 通过 `DEPLOY_SERVICE_BASE_URL` 回源 |
 | `openai-api.gemigo.io` | OpenAI-compatible 网关 | `workers/openai-gateway-worker` | 仅暴露允许的 `/v1/*` |
 | `genai-api.gemigo.io` | GenAI 兼容网关 | `workers/genai-proxy-worker` | 仅暴露允许的 `/v1beta/*` |
@@ -64,6 +66,17 @@
 | `staging.gemigo.io` | 预发环境（可选） | 视部署而定 | 仅用于测试/灰度 |
 | `gemigo.app` | App 根域 | R2/Worker 网关体系 | 见 `workers/r2-gateway` |
 | `*.gemigo.app` | 单个 App 子域 | `workers/r2-gateway`（Cloudflare Worker） | `https://<slug>.gemigo.app` |
+
+### 4.3 现状（线上现在实际可用的入口）
+
+目前线上“可用且已部署”的入口是：
+
+- 平台 Web / broker：`https://gemigo.io/sdk/broker`
+- 平台 API（含 SDK Auth）：`https://gemigo.io/api/v1/*`（通过 Pages 的 `frontend/public/_worker.js` 反代到后端/Worker）
+
+而 `api.gemigo.io` 目前未完成绑定（DNS/Worker custom domain），所以**现阶段不要依赖 `https://api.gemigo.io`**。
+
+迁移建议（不影响现网）：后续一旦把 API Worker 绑定到 `api.gemigo.io`，可以继续保留 `https://gemigo.io/api/v1` 作为兼容别名（仍由 `_worker.js` 反代）。
 
 ### 4.2 Auth V0 的 API 路由（挂在 `api.gemigo.io`）
 
@@ -84,4 +97,3 @@
 3) **责任人/评审**：为该文件与相关路由配置设置 CODEOWNERS（可选，但强烈建议），任何改动必须由平台 owner review。
 
 > 这三点里，只有“自动校验”能真正阻止后续变更把单一真相来源弄脏；没有自动化，文档必然过期。
-
