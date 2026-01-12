@@ -155,6 +155,7 @@ pnpm release:sdk
 
 - Worker URL：`https://gemigo-api.15353764479037.workers.dev`
 - Worker Version ID：`c0a8e571-3c58-470a-896f-06268b4b1d80`
+- SDK：`@gemigo/app-sdk@0.2.8`（npm `latest`）
 
 ### 如何验证（线上）
 
@@ -163,6 +164,14 @@ curl -sS https://gemigo-api.15353764479037.workers.dev/api/v1/sdk/_debug
 ```
 
 预期返回 200 JSON（例如 `{"activeTokens":0}`）。
+
+### 如何验证（SDK 版本）
+
+```bash
+npm view @gemigo/app-sdk version
+```
+
+预期返回：`0.2.8`。
 
 ---
 

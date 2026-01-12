@@ -1,7 +1,7 @@
 {
   "name": "@gemigo/app-sdk",
   "private": false,
-  "version": "0.2.7",
+  "version": "0.2.8",
   "type": "module",
   "description": "GemiGo App SDK (auto-adapts for web/desktop/extension)",
   "main": "dist/gemigo-app-sdk.umd.js",
