@@ -131,6 +131,25 @@
           .limit(5)
           .get();
         log('cloud.db.posts.query', query);
+
+        if (typeof gemigo.cloud.database !== 'function') {
+          log('wx.cloud style', 'gemigo.cloud.database() is not available. Did you rebuild the SDK?');
+          return;
+        }
+
+        const db = gemigo.cloud.database();
+        const _ = db.command;
+        const wxPosts = db.collection('posts');
+        const wxCreated = await wxPosts.add({
+          data: { title: 'wx.cloud style', body: 'Facade add()', at: Date.now() },
+        });
+        log('cloud.database().collection().add', wxCreated);
+        const wxQuery = await wxPosts
+          .where({ visibility: _.eq('public') })
+          .orderBy('createdAt', 'desc')
+          .limit(5)
+          .get();
+        log('cloud.database().collection().where().get', wxQuery);
       }
 
       btnLogin.addEventListener('click', async () => {

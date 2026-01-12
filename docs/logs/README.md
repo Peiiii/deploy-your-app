@@ -6,3 +6,6 @@
 
 - `YYYY-MM-DD-<topic>/README.md`
 
+最近更新：
+
+- `2026-01-12-wx-cloud-facade-alignment`：wx.cloud 风格全家桶对齐（App SDK + Cloud DB 语义修正）

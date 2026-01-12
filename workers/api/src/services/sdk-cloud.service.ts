@@ -98,6 +98,8 @@ function normalizeVisibility(raw: unknown): CloudVisibility {
   const v = raw.trim();
   if (!v) return 'private';
   if (v.length > 32) throw new ValidationError('visibility is invalid');
+  const lowered = v.toLowerCase();
+  if (lowered === 'private' || lowered === 'public') return lowered;
   return v;
 }
 
@@ -927,17 +929,9 @@ export class SdkCloudService {
       const value = typeof c.value === 'string' ? c.value : '';
       if (!value) continue;
       if (c.field === 'ownerId') where.ownerId = value;
-      if (c.field === 'visibility') where.visibility = value;
+      if (c.field === 'visibility') where.visibility = normalizeVisibility(value);
       if (c.field === 'refType') where.refType = value;
       if (c.field === 'refId') where.refId = value;
-    }
-
-    // Allow querying other users' data only when explicitly scoped to public docs.
-    // This enables community/forum "author page" patterns while keeping private docs isolated.
-    if (where.ownerId && where.ownerId !== ctx.appUserId) {
-      if (String(where.visibility).toLowerCase() !== 'public') {
-        throw new UnauthorizedError('forbidden');
-      }
     }
 
     const orderBy = input.orderBy ?? { field: 'createdAt', direction: 'desc' };
@@ -950,6 +944,7 @@ export class SdkCloudService {
       const { items, nextCursor } = await sdkCloudRepository.queryDbDocs(db, {
         appId: ctx.appId,
         collection,
+        viewerAppUserId: ctx.appUserId,
         where: {
           ownerId: where.ownerId,
           visibility: where.visibility,
@@ -961,13 +956,8 @@ export class SdkCloudService {
         cursor,
       });
 
-      const visible = items.filter((row) => {
-        if (row.ownerId === ctx.appUserId) return true;
-        return String(row.visibility).toLowerCase() === 'public';
-      });
-
       const result = {
-        items: visible.map((row) => ({
+        items: items.map((row) => ({
           id: row.id,
           ownerId: row.ownerId,
           visibility: row.visibility,

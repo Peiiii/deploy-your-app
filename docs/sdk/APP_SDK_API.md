@@ -111,7 +111,7 @@
 - **返回**: `CloudDbCollection`
 - **说明**: 集合/文档模型（对齐 `db.collection` 心智）。
 
-> 读取隔离：默认只能读取“自己是 owner 的文档”和“`visibility=public` 的文档”。如果你要查询某个用户的公开内容，需要同时带上 `where('ownerId','==',...)` 与 `where('visibility','==','public')`。
+> 读取隔离：默认只能读取“自己是 owner 的文档”和“`visibility=public` 的文档”。当你查询其他用户（`ownerId != 当前用户`）时，服务端会自动只返回公开文档（无需强制你显式写 `where('visibility','==','public')`）。
 
 #### `CloudDbCollection.add(data, options?)`
 - **参数**:
@@ -142,6 +142,37 @@
 #### `CloudDbCollection.query()`
 - **返回**: `CloudDbQueryBuilder`
 
+#### `gemigo.cloud.init(options?)`（小程序风格）🆕
+- **说明**: 对齐 `wx.cloud.init({ env })` 的写法；当前仅保留配置位（未来可用于多环境路由）。
+- **参数**: `options?: { env?: string }`
+- **返回**: `void`
+
+#### `gemigo.cloud.database()`（小程序风格）🆕
+- **说明**: 对齐 `wx.cloud.database()`；返回一个带 `collection()` 与 `command` 的数据库对象。
+- **返回**: `WxCloudDatabase`
+
+#### `WxCloudDatabase.collection(name)`（小程序风格）🆕
+- **说明**: 返回集合引用（同时也是 query 对象），支持链式：`where/orderBy/limit/skip/get`。
+
+```js
+const db = gemigo.cloud.database();
+const _ = db.command;
+const posts = db.collection('posts');
+const feed = await posts.where({ visibility: _.eq('public') }).orderBy('createdAt', 'desc').limit(20).get();
+```
+
+#### `WxCloudCollection.add({ data })`（小程序风格）🆕
+- **返回**: `Promise<{ _id: string }>`
+
+#### `WxCloudCollection.doc(id)`（小程序风格）🆕
+- **返回**: `WxCloudDocumentRef`
+
+#### `WxCloudDocumentRef.get()`（小程序风格）🆕
+- **返回**: `Promise<{ data: { _id: string, ... } }>`
+
+#### `WxCloudDocumentRef.set({ data })` / `update({ data })` / `remove()`（小程序风格）🆕
+- **说明**: `update` 支持浅层字段更新；支持有限的 `db.command`（`inc/set/remove`）以对齐常见写法。
+
 #### `gemigo.cloud.blob.createUploadUrl(input)` 🆕
 - **说明**: 生成短时上传 URL（不需要在上传请求中带 Authorization header）。
 - **参数**: `input: { path?: string; visibility?: 'private'|'public'; contentType?: string; expiresIn?: number }`
@@ -158,6 +189,16 @@
   - `name: string`（如 `'cloud.ping'`）
   - `payload?: any`
 - **返回**: `Promise<any>`
+
+#### `gemigo.cloud.callFunction({ name, data })`（小程序风格）🆕
+- **说明**: 对齐 `wx.cloud.callFunction`；返回 `{ result }`。
+
+#### `gemigo.cloud.uploadFile({ cloudPath, filePath })`（小程序风格）🆕
+- **说明**: 对齐 `wx.cloud.uploadFile`；Web 端 `filePath` 传 `Blob/File`。
+- **返回**: `Promise<{ fileID: string }>`
+
+#### `gemigo.cloud.getTempFileURL({ fileList })`（小程序风格）🆕
+- **说明**: 对齐 `wx.cloud.getTempFileURL`；返回短时可访问 URL（可直接用于 `<img src=...>`）。
 
 ---
 

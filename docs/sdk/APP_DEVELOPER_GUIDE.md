@@ -103,18 +103,28 @@ await posts.add({ title: 'Hello', body: 'First post' }, { visibility: 'public' }
 const feed = await posts.query().where('visibility', '==', 'public').orderBy('createdAt', 'desc').limit(20).get();
 ```
 
+小程序（`wx.cloud`）风格写法（推荐，心智更一致）：
+
+```js
+const db = gemigo.cloud.database();
+const _ = db.command;
+
+const posts = db.collection('posts');
+await posts.add({ data: { title: 'Hello', body: 'First post' } });
+const feed = await posts.where({ visibility: _.eq('public') }).orderBy('createdAt', 'desc').limit(20).get();
+```
+
 说明：
 
 - `kv` 默认按“应用 + 当前登录用户”隔离（天然是用户私有数据）。
 - `db` 文档默认只有 owner 可读写；当 `visibility='public'` 时，其他用户可读（用于社区/广场/作者主页等）。
 
-如果你要做“作者主页 / 浏览某个用户发过的公开内容”，推荐把 `ownerId` 作为过滤条件，并且**显式要求公开**：
+如果你要做“作者主页 / 浏览某个用户发过的公开内容”，推荐把 `ownerId` 作为过滤条件；服务端会自动只返回公开文档（`visibility='public'`）：
 
 ```js
 const authorPosts = await posts
   .query()
   .where('ownerId', '==', someAppUserId)
-  .where('visibility', '==', 'public')
   .orderBy('createdAt', 'desc')
   .limit(20)
   .get();

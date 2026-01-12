@@ -474,6 +474,7 @@ export class SdkCloudRepository {
     input: {
       appId: string;
       collection: string;
+      viewerAppUserId: string;
       where: { ownerId?: string; visibility?: string; refType?: string; refId?: string };
       orderBy: { field: 'createdAt' | 'updatedAt'; direction: 'asc' | 'desc' };
       limit: number;
@@ -485,13 +486,32 @@ export class SdkCloudRepository {
     const clauses: string[] = ['app_id = ?', 'collection = ?'];
     const params: unknown[] = [input.appId, input.collection];
 
+    // Access control (V0 default rules):
+    // - owner can read all their docs
+    // - others can only read visibility='public'
+    //
+    // If querying a specific ownerId that isn't the viewer, force public.
     if (input.where.ownerId) {
       clauses.push('owner_id = ?');
       params.push(input.where.ownerId);
+      if (input.where.ownerId !== input.viewerAppUserId) {
+        clauses.push('LOWER(visibility) = ?');
+        params.push('public');
+      }
+    } else {
+      clauses.push('(owner_id = ? OR LOWER(visibility) = ?)');
+      params.push(input.viewerAppUserId, 'public');
     }
+
     if (input.where.visibility) {
-      clauses.push('visibility = ?');
-      params.push(input.where.visibility);
+      const lowered = input.where.visibility.toLowerCase();
+      if (lowered === 'public' || lowered === 'private') {
+        clauses.push('LOWER(visibility) = ?');
+        params.push(lowered);
+      } else {
+        clauses.push('visibility = ?');
+        params.push(input.where.visibility);
+      }
     }
     if (input.where.refType !== undefined) {
       clauses.push('ref_type = ?');

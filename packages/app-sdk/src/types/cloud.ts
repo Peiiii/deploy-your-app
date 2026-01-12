@@ -110,9 +110,107 @@ export interface CloudFunctionsAPI {
   call<T = unknown>(name: string, payload?: unknown): Promise<T>;
 }
 
+// -----------------
+// WeChat Mini Program–style Facade (wx.cloud.*)
+// -----------------
+
+export type WxCloudQueryDirection = 'asc' | 'desc';
+
+export type WxCloudCommandExpr =
+  | { __gemigoWxCmd: 'eq'; value: unknown }
+  | { __gemigoWxCmd: 'inc'; value: number }
+  | { __gemigoWxCmd: 'set'; value: unknown }
+  | { __gemigoWxCmd: 'remove' };
+
+export interface WxCloudCommand {
+  eq(value: unknown): WxCloudCommandExpr;
+  inc(n: number): WxCloudCommandExpr;
+  set(value: unknown): WxCloudCommandExpr;
+  remove(): WxCloudCommandExpr;
+}
+
+export interface WxCloudGetResult<TDoc = unknown> {
+  data: TDoc[];
+}
+
+export interface WxCloudAddResult {
+  _id: string;
+}
+
+export interface WxCloudRemoveResult {
+  stats: { removed: number };
+}
+
+export interface WxCloudDocumentRef<TData = unknown> {
+  get(): Promise<{ data: (TData & { _id: string }) }>;
+  set(input: { data: TData }): Promise<void>;
+  update(input: { data: Partial<TData> }): Promise<void>;
+  remove(): Promise<WxCloudRemoveResult>;
+}
+
+export interface WxCloudQuery<TData = unknown> {
+  where(condition: Record<string, unknown>): WxCloudQuery<TData>;
+  orderBy(field: string, direction?: WxCloudQueryDirection): WxCloudQuery<TData>;
+  limit(n: number): WxCloudQuery<TData>;
+  skip(n: number): WxCloudQuery<TData>;
+  get(): Promise<WxCloudGetResult<TData & { _id: string }>>;
+}
+
+export interface WxCloudCollection<TData = unknown> extends WxCloudQuery<TData> {
+  add(input: { data: TData }): Promise<WxCloudAddResult>;
+  doc(id: string): WxCloudDocumentRef<TData>;
+}
+
+export interface WxCloudDatabase {
+  readonly command: WxCloudCommand;
+  collection<TData = unknown>(name: string): WxCloudCollection<TData>;
+}
+
+export interface WxCloudCallFunctionInput {
+  name: string;
+  data?: unknown;
+}
+
+export interface WxCloudCallFunctionResult<TResult = unknown> {
+  result: TResult;
+}
+
+export interface WxCloudUploadFileInput {
+  cloudPath: string;
+  filePath: Blob;
+}
+
+export interface WxCloudUploadFileResult {
+  fileID: string;
+}
+
+export interface WxCloudGetTempFileURLInput {
+  fileList: Array<string | { fileID: string }>;
+}
+
+export interface WxCloudGetTempFileURLResult {
+  fileList: Array<{
+    fileID: string;
+    tempFileURL: string;
+    status: number;
+    errMsg?: string;
+  }>;
+}
+
 export interface CloudAPI {
   kv: CloudKvAPI;
   db: CloudDbAPI;
   blob: CloudBlobAPI;
   functions: CloudFunctionsAPI;
+
+  /** wx.cloud.init-style facade (currently a no-op config holder) */
+  init(options?: { env?: string }): void;
+  /** wx.cloud.database() facade */
+  database(): WxCloudDatabase;
+  /** wx.cloud.callFunction facade */
+  callFunction<TResult = unknown>(input: WxCloudCallFunctionInput): Promise<WxCloudCallFunctionResult<TResult>>;
+  /** wx.cloud.uploadFile facade (web accepts Blob/File) */
+  uploadFile(input: WxCloudUploadFileInput): Promise<WxCloudUploadFileResult>;
+  /** wx.cloud.getTempFileURL facade */
+  getTempFileURL(input: WxCloudGetTempFileURLInput): Promise<WxCloudGetTempFileURLResult>;
 }
