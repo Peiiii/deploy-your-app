@@ -110,7 +110,7 @@ const db = gemigo.cloud.database();
 const _ = db.command;
 
 const posts = db.collection('posts');
-await posts.add({ data: { title: 'Hello', body: 'First post', createdAt: db.serverDate() } });
+await posts.add({ data: { title: 'Hello', body: 'First post', visibility: 'public', createdAt: db.serverDate() } });
 const first = await posts.where({ visibility: _.eq('public') }).orderBy('createdAt', 'desc').limit(20).get();
 const feed = first.data;
 
