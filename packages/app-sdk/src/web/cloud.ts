@@ -20,6 +20,7 @@ import type {
   WxCloudQuery,
   WxCloudQueryDirection,
   WxCloudRemoveResult,
+  WxCloudServerDate,
   WxCloudUploadFileInput,
   WxCloudUploadFileResult,
 } from '../types/cloud';
@@ -231,33 +232,31 @@ class WebCloudDbCollection<T> implements CloudDbCollection<T> {
 // wx.cloud Facade (API shape alignment)
 // -----------------
 
-function isWxCommandExpr(value: unknown): value is WxCloudCommandExpr {
-  return Boolean(value && typeof value === 'object' && '__gemigoWxCmd' in (value as any));
-}
-
-function requireWxEq(expr: unknown): string {
-  if (isWxCommandExpr(expr)) {
-    if ((expr as WxCloudCommandExpr).__gemigoWxCmd !== 'eq') {
-      throw new SDKError('NOT_SUPPORTED', 'Only db.command.eq(...) is supported in where() for now.');
-    }
-    const v = (expr as any).value;
-    return typeof v === 'string' ? v : String(v ?? '');
-  }
-  return typeof expr === 'string' ? expr : String(expr ?? '');
-}
-
-function toWxDoc<TData>(doc: CloudDbDoc<TData>): TData & { _id: string } {
+function toWxDoc<TData>(doc: CloudDbDoc<TData>): TData & { _id: string; _openid: string } {
   const data = (doc.data && typeof doc.data === 'object' && !Array.isArray(doc.data) ? doc.data : {}) as TData;
-  return { ...(data as any), _id: doc.id };
+  // Force system fields to match platform truth (prevent user spoofing).
+  return { ...(data as any), _id: doc.id, _openid: doc.ownerId };
 }
 
 function createWxCommand(): WxCloudCommand {
   return {
     eq: (value) => ({ __gemigoWxCmd: 'eq', value }),
+    neq: (value) => ({ __gemigoWxCmd: 'neq', value }),
+    gt: (value) => ({ __gemigoWxCmd: 'gt', value }),
+    gte: (value) => ({ __gemigoWxCmd: 'gte', value }),
+    lt: (value) => ({ __gemigoWxCmd: 'lt', value }),
+    lte: (value) => ({ __gemigoWxCmd: 'lte', value }),
+    in: (list) => ({ __gemigoWxCmd: 'in', value: Array.isArray(list) ? list : [] }),
+    nin: (list) => ({ __gemigoWxCmd: 'nin', value: Array.isArray(list) ? list : [] }),
     inc: (n) => ({ __gemigoWxCmd: 'inc', value: n }),
     set: (value) => ({ __gemigoWxCmd: 'set', value }),
     remove: () => ({ __gemigoWxCmd: 'remove' }),
   };
+}
+
+function createWxServerDate(options?: { offset?: number }): WxCloudServerDate {
+  const offset = typeof options?.offset === 'number' && Number.isFinite(options.offset) ? options.offset : undefined;
+  return offset === undefined ? { __gemigoWxType: 'serverDate' } : { __gemigoWxType: 'serverDate', offset };
 }
 
 type WxQueryState = {
@@ -265,40 +264,11 @@ type WxQueryState = {
   orderBy: { field: string; direction: WxCloudQueryDirection };
   limit: number;
   skip: number;
+  cursor: string | null;
 };
 
 function normalizeWxDirection(dir?: WxCloudQueryDirection): WxCloudQueryDirection {
   return dir === 'asc' ? 'asc' : 'desc';
-}
-
-function applyWxUpdateCommands<TData extends Record<string, unknown>>(
-  current: TData,
-  patch: Record<string, unknown>,
-): TData {
-  const next: Record<string, unknown> = { ...current };
-  for (const [key, raw] of Object.entries(patch)) {
-    if (!isWxCommandExpr(raw)) {
-      next[key] = raw;
-      continue;
-    }
-    const expr = raw as WxCloudCommandExpr;
-    if (expr.__gemigoWxCmd === 'set') {
-      next[key] = (expr as any).value;
-      continue;
-    }
-    if (expr.__gemigoWxCmd === 'remove') {
-      delete next[key];
-      continue;
-    }
-    if (expr.__gemigoWxCmd === 'inc') {
-      const delta = Number((expr as any).value);
-      const prev = Number((next as any)[key] ?? 0);
-      next[key] = (Number.isFinite(prev) ? prev : 0) + (Number.isFinite(delta) ? delta : 0);
-      continue;
-    }
-    throw new SDKError('NOT_SUPPORTED', `Unsupported command: ${String(expr.__gemigoWxCmd)}`);
-  }
-  return next as TData;
 }
 
 async function wxQueryPage<TData>(
@@ -307,36 +277,16 @@ async function wxQueryPage<TData>(
   cursor: string | null,
   limit: number,
 ): Promise<CloudDbQueryResult<TData>> {
-  let q = new WebCloudDbQueryBuilder<TData>(collectionName);
-
-  const where = state.where;
-  const docIdRaw = where._id;
-  if (docIdRaw !== undefined) {
-    throw new SDKError('NOT_SUPPORTED', 'where({_id: ...}) is only supported via doc(id).get().');
-  }
-
-  const supportedFields: Array<'ownerId' | 'visibility' | 'refType' | 'refId'> = [
-    'ownerId',
-    'visibility',
-    'refType',
-    'refId',
-  ];
-
-  for (const field of supportedFields) {
-    if (where[field] === undefined) continue;
-    const value = requireWxEq(where[field]);
-    if (!value) continue;
-    q = q.where(field, '==' as CloudDbWhereOp, value);
-  }
-
-  const { field, direction } = state.orderBy;
-  if (field !== 'createdAt' && field !== 'updatedAt') {
-    throw new SDKError('NOT_SUPPORTED', 'orderBy only supports createdAt/updatedAt for now.');
-  }
-  q = q.orderBy(field, direction);
-  q = q.limit(limit);
-  if (cursor) q = q.startAfter(cursor);
-  return q.get();
+  return fetchJson(`/cloud/db/collections/${encodeURIComponent(collectionName)}/query`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      where: state.where,
+      orderBy: state.orderBy,
+      limit,
+      cursor,
+    }),
+  });
 }
 
 function createWxQuery<TData extends Record<string, unknown>>(
@@ -349,6 +299,7 @@ function createWxQuery<TData extends Record<string, unknown>>(
     orderBy: state?.orderBy ?? { field: 'createdAt', direction: 'desc' },
     limit: state?.limit ?? 20,
     skip: state?.skip ?? 0,
+    cursor: state?.cursor ?? null,
   };
 
   const api: WxCloudQuery<TData> = {
@@ -376,6 +327,44 @@ function createWxQuery<TData extends Record<string, unknown>>(
         skip: Math.max(0, Math.floor(Number(n) || 0)),
       });
     },
+    startAfter(cursor: string) {
+      const trimmed = String(cursor ?? '').trim();
+      if (!trimmed) {
+        throw new SDKError('INTERNAL_ERROR', 'startAfter(cursor) requires a non-empty cursor');
+      }
+      return createWxQuery<TData>(collectionName, command, {
+        ...resolved,
+        cursor: trimmed,
+      });
+    },
+    async count() {
+      return fetchJson(`/cloud/db/collections/${encodeURIComponent(collectionName)}/count`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ where: resolved.where }),
+      });
+    },
+    async update(input: { data: Record<string, unknown> }) {
+      const patch = input?.data as unknown;
+      if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
+        throw new SDKError('INTERNAL_ERROR', 'update({data}) must be an object');
+      }
+      if ('_openid' in (patch as any)) {
+        throw new SDKError('PERMISSION_DENIED', 'Cannot write system field _openid');
+      }
+      return fetchJson(`/cloud/db/collections/${encodeURIComponent(collectionName)}/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ where: resolved.where, data: patch }),
+      });
+    },
+    async remove(): Promise<WxCloudRemoveResult> {
+      return fetchJson(`/cloud/db/collections/${encodeURIComponent(collectionName)}/remove`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ where: resolved.where }),
+      });
+    },
     async get(): Promise<WxCloudGetResult<TData & { _id: string }>> {
       const hardLimit = Math.min(resolved.limit, 100);
       const hardSkip = resolved.skip;
@@ -383,7 +372,7 @@ function createWxQuery<TData extends Record<string, unknown>>(
         throw new SDKError('NOT_SUPPORTED', 'skip(n) is capped at 1000; use cursor pagination instead.');
       }
 
-      let cursor: string | null = null;
+      let pageCursor: string | null = resolved.cursor ?? null;
       let remainingSkip = hardSkip;
       let remainingTake = hardLimit;
       const out: Array<TData & { _id: string }> = [];
@@ -394,7 +383,7 @@ function createWxQuery<TData extends Record<string, unknown>>(
         const page: CloudDbQueryResult<TData> = await wxQueryPage<TData>(
           collectionName,
           resolved,
-          cursor,
+          pageCursor,
           pageLimit,
         );
         requests += 1;
@@ -414,15 +403,15 @@ function createWxQuery<TData extends Record<string, unknown>>(
           remainingTake = Math.max(0, remainingTake - page.items.length);
         }
 
-        cursor = page.nextCursor;
-        if (!cursor) break;
+        pageCursor = page.nextCursor;
+        if (!pageCursor) break;
       }
 
       if (requests >= 30) {
         throw new SDKError('NOT_SUPPORTED', 'skip/limit query requires too many requests; narrow your query.');
       }
 
-      return { data: out };
+      return { data: out, _meta: { nextCursor: pageCursor } };
     },
   };
 
@@ -434,6 +423,7 @@ function createWxDatabase(): WxCloudDatabase {
   const command = createWxCommand();
   return {
     command,
+    serverDate: (options?: { offset?: number }) => createWxServerDate(options),
     collection<TData = unknown>(name: string) {
       const trimmed = String(name).trim();
       if (!trimmed) {
@@ -445,7 +435,21 @@ function createWxDatabase(): WxCloudDatabase {
       const collectionApi = {
         ...baseQuery,
         add: async (input: { data: TData }): Promise<WxCloudAddResult> => {
-          const doc = await webCloud.db.collection<TData>(trimmed).add(input?.data as TData);
+          const raw = input?.data as any;
+          if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+            if ('_openid' in raw) {
+              throw new SDKError('PERMISSION_DENIED', 'Cannot write system field _openid');
+            }
+          }
+          const idFromData = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw._id : undefined;
+          const dataSansId = raw && typeof raw === 'object' && !Array.isArray(raw) ? { ...raw } : raw;
+          if (dataSansId && typeof dataSansId === 'object' && !Array.isArray(dataSansId)) {
+            delete (dataSansId as any)._id;
+          }
+
+          const doc = await webCloud.db.collection<TData>(trimmed).add(dataSansId as TData, {
+            id: idFromData ? String(idFromData) : undefined,
+          });
           return { _id: doc.id };
         },
         doc: (id: string) => {
@@ -453,9 +457,15 @@ function createWxDatabase(): WxCloudDatabase {
           return {
             get: async () => {
               const doc = await ref.get();
-              return { data: toWxDoc(doc) };
+              return { data: toWxDoc(doc) as any };
             },
             set: async (input: { data: TData }) => {
+              const raw = input?.data as any;
+              if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+                if ('_openid' in raw) {
+                  throw new SDKError('PERMISSION_DENIED', 'Cannot write system field _openid');
+                }
+              }
               await ref.set(input?.data as TData);
             },
             update: async (input: { data: Partial<TData> }) => {
@@ -463,19 +473,11 @@ function createWxDatabase(): WxCloudDatabase {
               if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
                 throw new SDKError('INTERNAL_ERROR', 'update({data}) must be an object');
               }
-
-              const hasCommand = Object.values(patch as Record<string, unknown>).some(isWxCommandExpr);
-              if (!hasCommand) {
-                await ref.update(patch as Partial<TData>);
-                return;
+              if ('_openid' in (patch as any)) {
+                throw new SDKError('PERMISSION_DENIED', 'Cannot write system field _openid');
               }
-
-              const current = await ref.get();
-              const next = applyWxUpdateCommands(
-                (current.data ?? {}) as Record<string, unknown>,
-                patch as Record<string, unknown>,
-              );
-              await ref.set(next as TData, { ifMatch: current.etag });
+              // Support wx-style update commands (inc/set/remove) server-side.
+              await ref.update(patch as Partial<TData>);
             },
             remove: async (): Promise<WxCloudRemoveResult> => {
               await ref.delete();

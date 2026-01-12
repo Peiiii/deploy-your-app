@@ -38,6 +38,44 @@ export interface CloudDbDocRow {
   etag: string;
 }
 
+export type CloudDbPermissionMode =
+  | 'visibility_owner_or_public'
+  | 'all_read_creator_write'
+  | 'creator_read_write'
+  | 'all_read_readonly'
+  | 'none';
+
+export interface CloudDbCollectionPermissionRow {
+  appId: string;
+  collection: string;
+  mode: CloudDbPermissionMode;
+  updatedAt: number;
+}
+
+export type CloudDbWhereOp = '==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'nin';
+
+export interface CloudDbCondition {
+  field: string;
+  op: CloudDbWhereOp;
+  value: unknown;
+}
+
+export interface CloudDbOrderBy {
+  field: string;
+  direction: 'asc' | 'desc';
+}
+
+export interface CloudDbQueryCursor {
+  isNull: 0 | 1;
+  v: unknown;
+  id: string;
+}
+
+export type CloudDbReadPolicy =
+  | { kind: 'all' }
+  | { kind: 'owner_only'; ownerId: string }
+  | { kind: 'owner_or_public'; ownerId: string };
+
 export class SdkCloudRepository {
   private async ensureSchema(db: D1Database): Promise<void> {
     if (sdkCloudSchemaEnsured) return;
@@ -79,6 +117,18 @@ export class SdkCloudRepository {
           updated_at INTEGER NOT NULL,
           etag TEXT NOT NULL,
           PRIMARY KEY (app_id, collection, id)
+        )`,
+      )
+      .run();
+
+    await db
+      .prepare(
+        `CREATE TABLE IF NOT EXISTS sdk_db_collection_permissions (
+          app_id TEXT NOT NULL,
+          collection TEXT NOT NULL,
+          mode TEXT NOT NULL,
+          updated_at INTEGER NOT NULL,
+          PRIMARY KEY (app_id, collection)
         )`,
       )
       .run();
@@ -469,85 +519,289 @@ export class SdkCloudRepository {
       .run();
   }
 
+  async getDbCollectionPermission(
+    db: D1Database,
+    input: { appId: string; collection: string },
+  ): Promise<CloudDbCollectionPermissionRow | null> {
+    await this.ensureSchema(db);
+    const row = await db
+      .prepare(
+        `SELECT * FROM sdk_db_collection_permissions
+         WHERE app_id = ? AND collection = ?
+         LIMIT 1`,
+      )
+      .bind(input.appId, input.collection)
+      .first<AnyRow>();
+    if (!row) return null;
+    return {
+      appId: asString(row.app_id),
+      collection: asString(row.collection),
+      mode: asString(row.mode) as CloudDbPermissionMode,
+      updatedAt: asNumber(row.updated_at),
+    };
+  }
+
+  async setDbCollectionPermission(
+    db: D1Database,
+    input: { appId: string; collection: string; mode: CloudDbPermissionMode; updatedAt: number },
+  ): Promise<CloudDbCollectionPermissionRow> {
+    await this.ensureSchema(db);
+    const row = await db
+      .prepare(
+        `INSERT INTO sdk_db_collection_permissions (app_id, collection, mode, updated_at)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(app_id, collection) DO UPDATE SET
+           mode = excluded.mode,
+           updated_at = excluded.updated_at
+         RETURNING *`,
+      )
+      .bind(input.appId, input.collection, input.mode, input.updatedAt)
+      .first<AnyRow>();
+    if (!row) throw new Error('Failed to persist collection permission.');
+    return {
+      appId: asString(row.app_id),
+      collection: asString(row.collection),
+      mode: asString(row.mode) as CloudDbPermissionMode,
+      updatedAt: asNumber(row.updated_at),
+    };
+  }
+
+  private buildJsonPath(field: string): string {
+    const trimmed = field.trim();
+    if (!trimmed) throw new Error('field is required');
+    // Allow dot notation. Each segment must be [A-Za-z0-9_]+ (matches our v0 SDK constraints).
+    const parts = trimmed.split('.');
+    if (parts.some((p) => !p || !/^[A-Za-z0-9_]+$/.test(p))) {
+      throw new Error(`invalid field path: ${field}`);
+    }
+    return `$.${parts.join('.')}`;
+  }
+
+  private resolveDbFieldExpr(field: string): { expr: string; kind: 'column' | 'data' } {
+    const f = field.trim();
+    if (f === '_id' || f === 'id') return { expr: 'id', kind: 'column' };
+    if (f === '_openid' || f === 'ownerId') return { expr: 'owner_id', kind: 'column' };
+    if (f === 'createdAt') return { expr: 'created_at', kind: 'column' };
+    if (f === 'updatedAt') return { expr: 'updated_at', kind: 'column' };
+    if (f === 'visibility') return { expr: 'visibility', kind: 'column' };
+    if (f === 'refType') return { expr: 'ref_type', kind: 'column' };
+    if (f === 'refId') return { expr: 'ref_id', kind: 'column' };
+    const path = this.buildJsonPath(f);
+    return { expr: `json_extract(data_json, '${path}')`, kind: 'data' };
+  }
+
+  private buildWhereSql(input: {
+    appId: string;
+    collection: string;
+    conditions: CloudDbCondition[];
+  }): { clauses: string[]; params: unknown[]; usedDataFields: string[] } {
+    const clauses: string[] = ['app_id = ?', 'collection = ?'];
+    const params: unknown[] = [input.appId, input.collection];
+    const usedDataFields: string[] = [];
+
+    for (const cond of input.conditions) {
+      const { expr, kind } = this.resolveDbFieldExpr(cond.field);
+      if (kind === 'data') usedDataFields.push(cond.field.trim());
+
+      const op = cond.op;
+      if (op === 'in' || op === 'nin') {
+        const list = Array.isArray(cond.value) ? cond.value : [];
+        if (list.length === 0) {
+          clauses.push(op === 'in' ? '0=1' : '1=1');
+          continue;
+        }
+        const placeholders = list.map(() => '?').join(', ');
+        clauses.push(`${expr} ${op === 'in' ? 'IN' : 'NOT IN'} (${placeholders})`);
+        params.push(...list);
+        continue;
+      }
+
+      if (cond.value === null) {
+        clauses.push(`${expr} ${op === '!=' ? 'IS NOT' : 'IS'} NULL`);
+        continue;
+      }
+
+      const sqlOp =
+        op === '==' ? '=' : op === '!=' ? '<>' : op === '<' ? '<' : op === '<=' ? '<=' : op === '>' ? '>' : '>=';
+      clauses.push(`${expr} ${sqlOp} ?`);
+      params.push(cond.value);
+    }
+
+    return { clauses, params, usedDataFields };
+  }
+
   async queryDbDocs(
     db: D1Database,
     input: {
       appId: string;
       collection: string;
-      viewerAppUserId: string;
-      where: { ownerId?: string; visibility?: string; refType?: string; refId?: string };
-      orderBy: { field: 'createdAt' | 'updatedAt'; direction: 'asc' | 'desc' };
+      conditions: CloudDbCondition[];
+      orderBy: CloudDbOrderBy;
       limit: number;
-      cursor: { ts: number; id: string } | null;
+      cursor: { field: string; direction: 'asc' | 'desc'; isNull: 0 | 1; v: unknown; id: string } | null;
+      readPolicy: CloudDbReadPolicy;
     },
-  ): Promise<{ items: CloudDbDocRow[]; nextCursor: { ts: number; id: string } | null }> {
+  ): Promise<{ items: CloudDbDocRow[]; nextCursor: CloudDbQueryCursor | null }> {
     await this.ensureSchema(db);
 
-    const clauses: string[] = ['app_id = ?', 'collection = ?'];
-    const params: unknown[] = [input.appId, input.collection];
+    const { clauses, params } = this.buildWhereSql({
+      appId: input.appId,
+      collection: input.collection,
+      conditions: input.conditions,
+    });
 
-    // Access control (V0 default rules):
-    // - owner can read all their docs
-    // - others can only read visibility='public'
-    //
-    // If querying a specific ownerId that isn't the viewer, force public.
-    if (input.where.ownerId) {
+    if (input.readPolicy.kind === 'owner_only') {
       clauses.push('owner_id = ?');
-      params.push(input.where.ownerId);
-      if (input.where.ownerId !== input.viewerAppUserId) {
-        clauses.push('LOWER(visibility) = ?');
-        params.push('public');
-      }
-    } else {
+      params.push(input.readPolicy.ownerId);
+    }
+    if (input.readPolicy.kind === 'owner_or_public') {
       clauses.push('(owner_id = ? OR LOWER(visibility) = ?)');
-      params.push(input.viewerAppUserId, 'public');
+      params.push(input.readPolicy.ownerId, 'public');
     }
 
-    if (input.where.visibility) {
-      const lowered = input.where.visibility.toLowerCase();
-      if (lowered === 'public' || lowered === 'private') {
-        clauses.push('LOWER(visibility) = ?');
-        params.push(lowered);
-      } else {
-        clauses.push('visibility = ?');
-        params.push(input.where.visibility);
-      }
-    }
-    if (input.where.refType !== undefined) {
-      clauses.push('ref_type = ?');
-      params.push(input.where.refType);
-    }
-    if (input.where.refId !== undefined) {
-      clauses.push('ref_id = ?');
-      params.push(input.where.refId);
-    }
+    const whereSql = `WHERE ${clauses.join(' AND ')}`;
+    const { expr: orderExpr } = this.resolveDbFieldExpr(input.orderBy.field);
+    const dir = input.orderBy.direction === 'asc' ? 'ASC' : 'DESC';
+    const nullKeyExpr = `(${orderExpr} IS NULL)`;
 
-    const orderColumn = input.orderBy.field === 'updatedAt' ? 'updated_at' : 'created_at';
-    const dir = input.orderBy.direction.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-
+    let cursorSql = '';
     if (input.cursor) {
-      if (dir === 'DESC') {
-        clauses.push(`(${orderColumn} < ? OR (${orderColumn} = ? AND id < ?))`);
-        params.push(input.cursor.ts, input.cursor.ts, input.cursor.id);
+      if (input.cursor.field !== input.orderBy.field || input.cursor.direction !== input.orderBy.direction) {
+        throw new Error('cursor does not match orderBy');
+      }
+      // NULLs are always last (nullKey asc). Within same nullKey:
+      // - DESC: smaller values are later
+      // - ASC: larger values are later
+      if (input.cursor.isNull === 1) {
+        cursorSql = `AND ${nullKeyExpr} = 1 AND id ${dir === 'DESC' ? '<' : '>'} ?`;
+        params.push(input.cursor.id);
+      } else if (dir === 'DESC') {
+        cursorSql = `AND (${nullKeyExpr} > 0 OR (${nullKeyExpr} = 0 AND (${orderExpr} < ? OR (${orderExpr} = ? AND id < ?))))`;
+        params.push(input.cursor.v, input.cursor.v, input.cursor.id);
       } else {
-        clauses.push(`(${orderColumn} > ? OR (${orderColumn} = ? AND id > ?))`);
-        params.push(input.cursor.ts, input.cursor.ts, input.cursor.id);
+        cursorSql = `AND (${nullKeyExpr} > 0 OR (${nullKeyExpr} = 0 AND (${orderExpr} > ? OR (${orderExpr} = ? AND id > ?))))`;
+        params.push(input.cursor.v, input.cursor.v, input.cursor.id);
       }
     }
-
-    const whereSql = clauses.length > 0 ? `WHERE ${clauses.join(' AND ')}` : '';
 
     const rows = await db
       .prepare(
-        `SELECT * FROM sdk_db_docs
+        `SELECT *, ${orderExpr} as __order_value, ${nullKeyExpr} as __order_is_null FROM sdk_db_docs
          ${whereSql}
-         ORDER BY ${orderColumn} ${dir}, id ${dir}
+         ${cursorSql}
+         ORDER BY ${nullKeyExpr} ASC, ${orderExpr} ${dir}, id ${dir}
          LIMIT ?`,
       )
       .bind(...params, input.limit + 1)
       .all<AnyRow>();
 
-    const list = (rows.results ?? []).map((row) => ({
+    const list = (rows.results ?? []).map((row) => {
+      const isNull = asNumber((row as AnyRow).__order_is_null) ? 1 : 0;
+      const orderValue = (row as AnyRow).__order_value as unknown;
+      const doc: CloudDbDocRow = {
+        appId: asString(row.app_id),
+        collection: asString(row.collection),
+        id: asString(row.id),
+        ownerId: asString(row.owner_id),
+        visibility: asString(row.visibility),
+        refType: row.ref_type === null ? null : asString(row.ref_type),
+        refId: row.ref_id === null ? null : asString(row.ref_id),
+        dataJson: asString(row.data_json),
+        createdAt: asNumber(row.created_at),
+        updatedAt: asNumber(row.updated_at),
+        etag: asString(row.etag),
+      };
+      const cursor: CloudDbQueryCursor = {
+        isNull: isNull as 0 | 1,
+        v: isNull ? null : orderValue,
+        id: doc.id,
+      };
+      return { doc, cursor };
+    });
+
+    const hasMore = list.length > input.limit;
+    const items = hasMore ? list.slice(0, input.limit) : list;
+    const last = items[items.length - 1];
+    const nextCursor = hasMore && last ? last.cursor : null;
+    return { items: items.map((x) => x.doc), nextCursor };
+  }
+
+  async countDbDocs(
+    db: D1Database,
+    input: { appId: string; collection: string; conditions: CloudDbCondition[]; readPolicy: CloudDbReadPolicy },
+  ): Promise<number> {
+    await this.ensureSchema(db);
+    const { clauses, params } = this.buildWhereSql({
+      appId: input.appId,
+      collection: input.collection,
+      conditions: input.conditions,
+    });
+
+    if (input.readPolicy.kind === 'owner_only') {
+      clauses.push('owner_id = ?');
+      params.push(input.readPolicy.ownerId);
+    }
+    if (input.readPolicy.kind === 'owner_or_public') {
+      clauses.push('(owner_id = ? OR LOWER(visibility) = ?)');
+      params.push(input.readPolicy.ownerId, 'public');
+    }
+
+    const whereSql = `WHERE ${clauses.join(' AND ')}`;
+    const row = await db
+      .prepare(`SELECT COUNT(*) as cnt FROM sdk_db_docs ${whereSql}`)
+      .bind(...params)
+      .first<AnyRow>();
+    return asNumber(row?.cnt);
+  }
+
+  async removeDbDocs(
+    db: D1Database,
+    input: { appId: string; collection: string; ownerId: string; conditions: CloudDbCondition[] },
+  ): Promise<number> {
+    await this.ensureSchema(db);
+    const { clauses, params } = this.buildWhereSql({
+      appId: input.appId,
+      collection: input.collection,
+      conditions: input.conditions,
+    });
+
+    clauses.push('owner_id = ?');
+    params.push(input.ownerId);
+
+    const whereSql = `WHERE ${clauses.join(' AND ')}`;
+    const res = await db
+      .prepare(`DELETE FROM sdk_db_docs ${whereSql}`)
+      .bind(...params)
+      .run();
+    return asNumber(res?.meta?.changes);
+  }
+
+  listDbDocsForOwner = async (
+    db: D1Database,
+    input: {
+      appId: string;
+      collection: string;
+      ownerId: string;
+      conditions: CloudDbCondition[];
+      limit: number;
+    },
+  ): Promise<CloudDbDocRow[]> => {
+    await this.ensureSchema(db);
+    const { clauses, params } = this.buildWhereSql({
+      appId: input.appId,
+      collection: input.collection,
+      conditions: input.conditions,
+    });
+    clauses.push('owner_id = ?');
+    params.push(input.ownerId);
+
+    const whereSql = `WHERE ${clauses.join(' AND ')}`;
+    const rows = await db
+      .prepare(`SELECT * FROM sdk_db_docs ${whereSql} LIMIT ?`)
+      .bind(...params, input.limit)
+      .all<AnyRow>();
+
+    return (rows.results ?? []).map((row) => ({
       appId: asString(row.app_id),
       collection: asString(row.collection),
       id: asString(row.id),
@@ -560,14 +814,7 @@ export class SdkCloudRepository {
       updatedAt: asNumber(row.updated_at),
       etag: asString(row.etag),
     }));
-
-    const hasMore = list.length > input.limit;
-    const items = hasMore ? list.slice(0, input.limit) : list;
-    const last = items[items.length - 1];
-    const lastTs = last ? (input.orderBy.field === 'updatedAt' ? last.updatedAt : last.createdAt) : 0;
-    const nextCursor = hasMore && last ? { ts: lastTs, id: last.id } : null;
-    return { items, nextCursor };
-  }
+  };
 }
 
 export const sdkCloudRepository = new SdkCloudRepository();

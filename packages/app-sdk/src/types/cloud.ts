@@ -118,19 +118,40 @@ export type WxCloudQueryDirection = 'asc' | 'desc';
 
 export type WxCloudCommandExpr =
   | { __gemigoWxCmd: 'eq'; value: unknown }
+  | { __gemigoWxCmd: 'neq'; value: unknown }
+  | { __gemigoWxCmd: 'gt'; value: unknown }
+  | { __gemigoWxCmd: 'gte'; value: unknown }
+  | { __gemigoWxCmd: 'lt'; value: unknown }
+  | { __gemigoWxCmd: 'lte'; value: unknown }
+  | { __gemigoWxCmd: 'in'; value: unknown[] }
+  | { __gemigoWxCmd: 'nin'; value: unknown[] }
   | { __gemigoWxCmd: 'inc'; value: number }
   | { __gemigoWxCmd: 'set'; value: unknown }
   | { __gemigoWxCmd: 'remove' };
 
 export interface WxCloudCommand {
   eq(value: unknown): WxCloudCommandExpr;
+  neq(value: unknown): WxCloudCommandExpr;
+  gt(value: unknown): WxCloudCommandExpr;
+  gte(value: unknown): WxCloudCommandExpr;
+  lt(value: unknown): WxCloudCommandExpr;
+  lte(value: unknown): WxCloudCommandExpr;
+  in(list: unknown[]): WxCloudCommandExpr;
+  nin(list: unknown[]): WxCloudCommandExpr;
   inc(n: number): WxCloudCommandExpr;
   set(value: unknown): WxCloudCommandExpr;
   remove(): WxCloudCommandExpr;
 }
 
+export type WxCloudServerDate = { __gemigoWxType: 'serverDate'; offset?: number };
+
 export interface WxCloudGetResult<TDoc = unknown> {
   data: TDoc[];
+  /**
+   * GemiGo extension: opaque cursor for efficient pagination.
+   * - Kept in `_meta` to preserve wx.cloud-style `{ data }` shape.
+   */
+  _meta?: { nextCursor: string | null };
 }
 
 export interface WxCloudAddResult {
@@ -139,6 +160,14 @@ export interface WxCloudAddResult {
 
 export interface WxCloudRemoveResult {
   stats: { removed: number };
+}
+
+export interface WxCloudCountResult {
+  total: number;
+}
+
+export interface WxCloudUpdateResult {
+  stats: { updated: number };
 }
 
 export interface WxCloudDocumentRef<TData = unknown> {
@@ -153,7 +182,15 @@ export interface WxCloudQuery<TData = unknown> {
   orderBy(field: string, direction?: WxCloudQueryDirection): WxCloudQuery<TData>;
   limit(n: number): WxCloudQuery<TData>;
   skip(n: number): WxCloudQuery<TData>;
+  /**
+   * GemiGo extension: cursor pagination (recommended over large skip).
+   * Cursor is obtained from `_meta.nextCursor` of a previous `get()`.
+   */
+  startAfter(cursor: string): WxCloudQuery<TData>;
   get(): Promise<WxCloudGetResult<TData & { _id: string }>>;
+  count(): Promise<WxCloudCountResult>;
+  update(input: { data: Record<string, unknown> }): Promise<WxCloudUpdateResult>;
+  remove(): Promise<WxCloudRemoveResult>;
 }
 
 export interface WxCloudCollection<TData = unknown> extends WxCloudQuery<TData> {
@@ -163,6 +200,7 @@ export interface WxCloudCollection<TData = unknown> extends WxCloudQuery<TData> 
 
 export interface WxCloudDatabase {
   readonly command: WxCloudCommand;
+  serverDate(options?: { offset?: number }): WxCloudServerDate;
   collection<TData = unknown>(name: string): WxCloudCollection<TData>;
 }
 

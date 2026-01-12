@@ -5,8 +5,15 @@ import type { ApiWorkerEnv } from '../types/env';
 import type {
   CloudDbCreateDocInput,
   CloudDbDocResponse,
+  CloudDbWhereOp,
+  CloudDbWhere,
   CloudDbQueryInput,
   CloudDbQueryResponse,
+  CloudDbCountResponse,
+  CloudDbWhereUpdateInput,
+  CloudDbWhereUpdateResponse,
+  CloudDbWhereRemoveInput,
+  CloudDbWhereRemoveResponse,
   CloudDbSetDocInput,
   CloudDbUpdateDocInput,
   CloudBlobCreateUploadUrlInput,
@@ -22,6 +29,7 @@ import type {
   CloudKvSetResponse,
   CloudVisibility,
 } from '../types/sdk-cloud';
+import type { CloudDbPermissionMode, CloudDbReadPolicy } from '../repositories/sdk-cloud.repository';
 
 function requireBearerToken(request: Request): string {
   const header = request.headers.get('authorization') || request.headers.get('Authorization');
@@ -74,6 +82,57 @@ function asObject(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+type WxServerDateSentinel = { __gemigoWxType: 'serverDate'; offset?: number };
+
+function isWxServerDateSentinel(value: unknown): value is WxServerDateSentinel {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const rec = value as { __gemigoWxType?: unknown; offset?: unknown };
+  if (rec.__gemigoWxType !== 'serverDate') return false;
+  if (rec.offset === undefined) return true;
+  return typeof rec.offset === 'number' && Number.isFinite(rec.offset);
+}
+
+function materializeWxSentinels(value: unknown, depth = 0): unknown {
+  if (depth > 50) return null;
+
+  if (isWxServerDateSentinel(value)) {
+    const offset = typeof value.offset === 'number' && Number.isFinite(value.offset) ? value.offset : 0;
+    return Date.now() + offset;
+  }
+
+  if (!value || typeof value !== 'object') return value;
+  if (Array.isArray(value)) return value.map((v) => materializeWxSentinels(v, depth + 1));
+
+  const obj = value as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    out[k] = materializeWxSentinels(v, depth + 1);
+  }
+  return out;
+}
+
+function stripWxSystemFields(
+  value: unknown,
+  mode: 'strict' | 'lenient',
+  depth = 0,
+): unknown {
+  if (depth > 50) return null;
+  if (!value || typeof value !== 'object') return value;
+  if (Array.isArray(value)) return value.map((v) => stripWxSystemFields(v, mode, depth + 1));
+
+  const obj = value as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (k === '_openid') {
+      if (mode === 'strict') throw new ValidationError('cannot_write_system_field:_openid');
+      continue;
+    }
+    if (k === '_id') continue;
+    out[k] = stripWxSystemFields(v, mode, depth + 1);
+  }
+  return out;
+}
+
 function requireCollection(raw: string): string {
   const value = raw.trim();
   if (!value) throw new ValidationError('collection is required');
@@ -122,25 +181,233 @@ function requireDocId(raw: unknown): string {
   return id;
 }
 
-function parseCursor(raw: unknown): { ts: number; id: string } | null {
+function isCloudDbPermissionMode(value: unknown): value is CloudDbPermissionMode {
+  return (
+    value === 'visibility_owner_or_public' ||
+    value === 'all_read_creator_write' ||
+    value === 'creator_read_write' ||
+    value === 'all_read_readonly' ||
+    value === 'none'
+  );
+}
+
+async function resolveDbPermissionMode(
+  db: D1Database,
+  input: { appId: string; collection: string },
+): Promise<CloudDbPermissionMode> {
+  const row = await sdkCloudRepository.getDbCollectionPermission(db, input);
+  if (row && isCloudDbPermissionMode(row.mode)) return row.mode;
+  return 'visibility_owner_or_public';
+}
+
+function requireWriteAllowed(mode: CloudDbPermissionMode): void {
+  if (mode === 'all_read_readonly' || mode === 'none') {
+    throw new UnauthorizedError('forbidden');
+  }
+}
+
+function requireReadAllowed(mode: CloudDbPermissionMode): void {
+  if (mode === 'none') throw new UnauthorizedError('forbidden');
+}
+
+function toDbReadPolicy(mode: CloudDbPermissionMode, viewerAppUserId: string): CloudDbReadPolicy {
+  if (mode === 'all_read_creator_write' || mode === 'all_read_readonly') return { kind: 'all' };
+  if (mode === 'creator_read_write') return { kind: 'owner_only', ownerId: viewerAppUserId };
+  return { kind: 'owner_or_public', ownerId: viewerAppUserId };
+}
+
+function enforceVisibilityOwnerOrPublicQuerySubset(
+  conditions: Array<{ field: string; op: CloudDbWhereOp; value: unknown }>,
+  viewerAppUserId: string,
+): void {
+  const hasEq = (field: string, predicate?: (value: unknown) => boolean): boolean =>
+    conditions.some((c) => c.op === '==' && c.field.trim() === field && (predicate ? predicate(c.value) : true));
+
+  const isOwnerEq =
+    hasEq('_openid', (v) => String(v ?? '') === viewerAppUserId) ||
+    hasEq('ownerId', (v) => String(v ?? '') === viewerAppUserId);
+
+  const isPublicEq = hasEq('visibility', (v) => String(v ?? '').toLowerCase() === 'public');
+
+  const isIdEq = hasEq('_id') || hasEq('id');
+
+  // Mimic "Security Rules subset" guardrails:
+  // queries must clearly target an allowed read-branch, instead of relying on silent server-side filtering.
+  if (!isOwnerEq && !isPublicEq && !isIdEq) {
+    throw new UnauthorizedError('query_requires_owner_or_public_filter');
+  }
+}
+
+type DbCursorV0 = { ts: number; id: string };
+type DbCursorV1 = { v: 1; q: string; last: { isNull: 0 | 1; v: unknown; id: string } };
+
+type ParsedDbCursor =
+  | { version: 1; q: string; last: { isNull: 0 | 1; v: unknown; id: string } }
+  | { version: 0; last: { isNull: 0 | 1; v: number; id: string } };
+
+function normalizeJsonForKey(value: unknown): unknown {
+  if (value === null) return null;
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value;
+  if (typeof value === 'bigint') return value.toString();
+  if (Array.isArray(value)) return value.map(normalizeJsonForKey);
+  if (typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    const out: Record<string, unknown> = {};
+    for (const key of Object.keys(obj).sort()) out[key] = normalizeJsonForKey(obj[key]);
+    return out;
+  }
+  return String(value);
+}
+
+function buildDbQueryKey(input: {
+  collection: string;
+  orderBy: { field: string; direction: 'asc' | 'desc' };
+  where: CloudDbWhere[];
+}): string {
+  const normalizedWhere = input.where
+    .map((c) => ({
+      field: typeof c.field === 'string' ? c.field.trim() : '',
+      op: normalizeDbWhereOp(c.op),
+      value: normalizeJsonForKey(c.value),
+    }))
+    .filter((c) => Boolean(c.field))
+    .sort((a, b) => {
+      if (a.field !== b.field) return a.field < b.field ? -1 : 1;
+      if (a.op !== b.op) return a.op < b.op ? -1 : 1;
+      const av = JSON.stringify(a.value);
+      const bv = JSON.stringify(b.value);
+      if (av !== bv) return av < bv ? -1 : 1;
+      return 0;
+    });
+  return JSON.stringify({
+    collection: input.collection,
+    orderBy: input.orderBy,
+    where: normalizedWhere,
+  });
+}
+
+function parseCursor(raw: unknown): ParsedDbCursor | null {
   if (!raw) return null;
   if (typeof raw !== 'string') return null;
   try {
     const decoded = JSON.parse(atob(raw)) as unknown;
     if (!decoded || typeof decoded !== 'object') return null;
-    const rec = decoded as { ts?: unknown; id?: unknown };
-    const ts = typeof rec.ts === 'number' ? rec.ts : Number(rec.ts);
-    const id = typeof rec.id === 'string' ? rec.id : '';
+    const rec = decoded as Record<string, unknown>;
+
+    if (rec['v'] === 1) {
+      const q = typeof rec['q'] === 'string' ? rec['q'] : '';
+      const last = rec['last'];
+      if (!q || !last || typeof last !== 'object' || Array.isArray(last)) return null;
+      const lastRec = last as Record<string, unknown>;
+      const id = typeof lastRec['id'] === 'string' ? lastRec['id'] : '';
+      const isNull = lastRec['isNull'] === 1 ? 1 : 0;
+      const v = lastRec['v'];
+      if (!id) return null;
+      return { version: 1, q, last: { isNull, v, id } };
+    }
+
+    const v0 = rec as Partial<DbCursorV0>;
+    const ts = typeof v0.ts === 'number' ? v0.ts : Number(v0.ts);
+    const id = typeof v0.id === 'string' ? v0.id : '';
     if (!Number.isFinite(ts) || !id) return null;
-    return { ts, id };
+    return { version: 0, last: { isNull: 0, v: ts, id } };
   } catch {
     return null;
   }
 }
 
-function encodeCursor(cursor: { ts: number; id: string } | null): string | null {
+function encodeCursor(cursor: { q: string; last: { isNull: 0 | 1; v: unknown; id: string } } | null): string | null {
   if (!cursor) return null;
-  return btoa(JSON.stringify(cursor));
+  return btoa(JSON.stringify({ v: 1, q: cursor.q, last: cursor.last } satisfies DbCursorV1));
+}
+
+function isWxCommandExpr(value: unknown): value is { __gemigoWxCmd: string; value?: unknown } {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  return typeof (value as Record<string, unknown>)['__gemigoWxCmd'] === 'string';
+}
+
+function applyWxUpdatePatch(
+  current: Record<string, unknown>,
+  patch: Record<string, unknown>,
+): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...current };
+  for (const [field, raw] of Object.entries(patch)) {
+    if (!field) continue;
+    if (field.includes('.')) throw new ValidationError('nested_update_not_supported');
+
+    if (!isWxCommandExpr(raw)) {
+      next[field] = raw;
+      continue;
+    }
+
+    const cmd = raw.__gemigoWxCmd;
+    if (cmd === 'set') {
+      next[field] = raw.value;
+      continue;
+    }
+    if (cmd === 'remove') {
+      delete next[field];
+      continue;
+    }
+    if (cmd === 'inc') {
+      const delta = Number(raw.value);
+      if (!Number.isFinite(delta)) throw new ValidationError('inc requires a finite number');
+      const prev = Number(next[field] ?? 0);
+      next[field] = (Number.isFinite(prev) ? prev : 0) + delta;
+      continue;
+    }
+
+    throw new ValidationError(`unsupported_update_command:${cmd}`);
+  }
+  return next;
+}
+
+function normalizeDbWhereOp(raw: unknown): CloudDbWhereOp {
+  // Support wx-style command names (db.command.*) and their operator equivalents.
+  if (raw === 'eq') return '==';
+  if (raw === 'neq') return '!=';
+  if (raw === 'gt') return '>';
+  if (raw === 'gte') return '>=';
+  if (raw === 'lt') return '<';
+  if (raw === 'lte') return '<=';
+  if (raw === '==' || raw === '!=' || raw === '<' || raw === '<=' || raw === '>' || raw === '>=' || raw === 'in' || raw === 'nin') {
+    return raw;
+  }
+  return '==';
+}
+
+function normalizeDbWhereInput(whereRaw: unknown): CloudDbWhere[] {
+  if (!whereRaw) return [];
+
+  if (Array.isArray(whereRaw)) {
+    return whereRaw
+      .filter((x) => Boolean(x && typeof x === 'object'))
+      .map((x) => {
+        const rec = x as Record<string, unknown>;
+        return {
+          field: typeof rec['field'] === 'string' ? (rec['field'] as string) : '',
+          op: normalizeDbWhereOp(rec['op']),
+          value: rec['value'],
+        } satisfies CloudDbWhere;
+      })
+      .filter((x) => Boolean(x.field));
+  }
+
+  if (typeof whereRaw === 'object') {
+    const obj = whereRaw as Record<string, unknown>;
+    const out: CloudDbWhere[] = [];
+    for (const [field, raw] of Object.entries(obj)) {
+      if (!field) continue;
+      if (isWxCommandExpr(raw)) {
+        out.push({ field, op: normalizeDbWhereOp(raw.__gemigoWxCmd), value: raw.value });
+      } else {
+        out.push({ field, op: '==', value: raw });
+      }
+    }
+    return out;
+  }
+
+  return [];
 }
 
 function parseKvCursor(raw: unknown): { updatedAt: number; key: string } | null {
@@ -550,11 +817,14 @@ export class SdkCloudService {
     requireScope(ctx.scopes, 'db:rw');
 
     const collection = requireCollection(collectionRaw);
+    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+    requireWriteAllowed(permissionMode);
     const id = requireDocId(input.id);
     const visibility = normalizeVisibility(input.visibility);
     const refType = normalizeOptionalString(input.refType, 'refType', 64);
     const refId = normalizeOptionalString(input.refId, 'refId', 128);
-    const dataJson = JSON.stringify(input.data ?? {});
+    const sanitized = stripWxSystemFields(materializeWxSentinels(input.data ?? {}), 'strict');
+    const dataJson = JSON.stringify(sanitized ?? {});
 
     const bytes = new TextEncoder().encode(dataJson).byteLength;
     if (bytes > 256 * 1024) throw new ValidationError('doc_too_large');
@@ -628,14 +898,20 @@ export class SdkCloudService {
     requireScope(ctx.scopes, 'db:rw');
 
     const collection = requireCollection(collectionRaw);
+    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+    requireReadAllowed(permissionMode);
     try {
       const row = await sdkCloudRepository.findDbDoc(db, { appId: ctx.appId, collection, id });
       if (!row) throw new ValidationError('not_found');
 
+      if (permissionMode === 'creator_read_write') {
+        if (row.ownerId !== ctx.appUserId) throw new UnauthorizedError('forbidden');
+      } else if (permissionMode === 'visibility_owner_or_public') {
       const isOwner = row.ownerId === ctx.appUserId;
       const isPublic = String(row.visibility).toLowerCase() === 'public';
       if (!isOwner && !isPublic) {
         throw new UnauthorizedError('forbidden');
+      }
       }
 
       const result = {
@@ -687,6 +963,8 @@ export class SdkCloudService {
     requireScope(ctx.scopes, 'db:rw');
 
     const collection = requireCollection(collectionRaw);
+    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+    requireWriteAllowed(permissionMode);
     try {
       const existing = await sdkCloudRepository.findDbDoc(db, { appId: ctx.appId, collection, id });
       if (!existing) throw new ValidationError('not_found');
@@ -711,8 +989,11 @@ export class SdkCloudService {
       if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
         throw new ValidationError('patch must be an object');
       }
-      const merged = { ...asObject(currentData), ...asObject(patch) };
-      const dataJson = JSON.stringify(merged);
+      const sanitizedCurrent = stripWxSystemFields(currentData, 'lenient');
+      const sanitizedPatch = stripWxSystemFields(materializeWxSentinels(patch), 'strict');
+      const merged = applyWxUpdatePatch(asObject(sanitizedCurrent), asObject(sanitizedPatch));
+      const normalized = merged;
+      const dataJson = JSON.stringify(normalized ?? {});
       const bytes = new TextEncoder().encode(dataJson).byteLength;
       if (bytes > 256 * 1024) throw new ValidationError('doc_too_large');
 
@@ -781,6 +1062,8 @@ export class SdkCloudService {
     requireScope(ctx.scopes, 'db:rw');
 
     const collection = requireCollection(collectionRaw);
+    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+    requireWriteAllowed(permissionMode);
     const docId = requireDocId(id);
 
     try {
@@ -810,7 +1093,8 @@ export class SdkCloudService {
           ? existing?.refId ?? null
           : normalizeOptionalString(input.refId, 'refId', 128);
 
-      const dataJson = JSON.stringify(input.data ?? {});
+      const sanitized = stripWxSystemFields(materializeWxSentinels(input.data ?? {}), 'strict');
+      const dataJson = JSON.stringify(sanitized ?? {});
       const bytes = new TextEncoder().encode(dataJson).byteLength;
       if (bytes > 256 * 1024) throw new ValidationError('doc_too_large');
 
@@ -879,6 +1163,8 @@ export class SdkCloudService {
     requireScope(ctx.scopes, 'db:rw');
 
     const collection = requireCollection(collectionRaw);
+    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+    requireWriteAllowed(permissionMode);
     try {
       const existing = await sdkCloudRepository.findDbDoc(db, { appId: ctx.appId, collection, id });
       if (!existing) return;
@@ -919,41 +1205,45 @@ export class SdkCloudService {
     requireScope(ctx.scopes, 'db:rw');
 
     const collection = requireCollection(collectionRaw);
-    const whereList = Array.isArray(input.where) ? input.where : [];
-    const where: { ownerId?: string; visibility?: string; refType?: string; refId?: string } = {};
-
-    for (const cond of whereList) {
-      if (!cond || typeof cond !== 'object') continue;
-      const c = cond as { field?: unknown; op?: unknown; value?: unknown };
-      if (c.op !== '==') continue;
-      const value = typeof c.value === 'string' ? c.value : '';
-      if (!value) continue;
-      if (c.field === 'ownerId') where.ownerId = value;
-      if (c.field === 'visibility') where.visibility = normalizeVisibility(value);
-      if (c.field === 'refType') where.refType = value;
-      if (c.field === 'refId') where.refId = value;
+    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+    requireReadAllowed(permissionMode);
+    const readPolicy = toDbReadPolicy(permissionMode, ctx.appUserId);
+    const conditions = normalizeDbWhereInput(input.where).map((c) => ({
+      field: c.field,
+      op: c.op,
+      value: materializeWxSentinels(c.value),
+    }));
+    if (permissionMode === 'visibility_owner_or_public') {
+      enforceVisibilityOwnerOrPublicQuerySubset(conditions, ctx.appUserId);
     }
 
     const orderBy = input.orderBy ?? { field: 'createdAt', direction: 'desc' };
-    const field = orderBy.field === 'updatedAt' ? 'updatedAt' : 'createdAt';
+    const field = typeof orderBy.field === 'string' ? orderBy.field : 'createdAt';
     const direction = orderBy.direction === 'asc' ? 'asc' : 'desc';
     const limit = normalizeLimit(input.limit, 100, 20);
     const cursor = parseCursor(input.cursor);
+    if (input.cursor && !cursor) {
+      throw new ValidationError('invalid_cursor');
+    }
+    const queryKey = buildDbQueryKey({
+      collection,
+      orderBy: { field, direction },
+      where: conditions,
+    });
+
+    if (cursor?.version === 1 && cursor.q !== queryKey) {
+      throw new ValidationError('cursor_mismatch');
+    }
 
     try {
       const { items, nextCursor } = await sdkCloudRepository.queryDbDocs(db, {
         appId: ctx.appId,
         collection,
-        viewerAppUserId: ctx.appUserId,
-        where: {
-          ownerId: where.ownerId,
-          visibility: where.visibility,
-          refType: where.refType,
-          refId: where.refId,
-        },
+        conditions,
         orderBy: { field, direction },
         limit,
-        cursor,
+        cursor: cursor ? { field, direction, ...cursor.last } : null,
+        readPolicy,
       });
 
       const result = {
@@ -968,7 +1258,7 @@ export class SdkCloudService {
           updatedAt: row.updatedAt,
           etag: row.etag,
         })),
-        nextCursor: encodeCursor(nextCursor),
+        nextCursor: encodeCursor(nextCursor ? { q: queryKey, last: nextCursor } : null),
       };
 
       logCloudEvent(env, 'info', {
@@ -976,7 +1266,7 @@ export class SdkCloudService {
         appId: ctx.appId,
         appUserId: ctx.appUserId,
         collection,
-        where,
+        where: conditions,
         orderBy: { field, direction },
         limit,
         returned: result.items.length,
@@ -990,9 +1280,204 @@ export class SdkCloudService {
         appId: ctx.appId,
         appUserId: ctx.appUserId,
         collection,
-        where,
+        where: conditions,
         orderBy: { field, direction },
         limit,
+        ms: Date.now() - startedAt,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      throw err;
+    }
+  }
+
+  async dbCount(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    collectionRaw: string,
+    input: CloudDbQueryInput,
+  ): Promise<CloudDbCountResponse> {
+    const startedAt = Date.now();
+    const ctx = await this.requireSdkContext(request, db);
+    requireScope(ctx.scopes, 'db:rw');
+    const collection = requireCollection(collectionRaw);
+    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+    requireReadAllowed(permissionMode);
+    const readPolicy = toDbReadPolicy(permissionMode, ctx.appUserId);
+    const conditions = normalizeDbWhereInput(input.where).map((c) => ({
+      field: c.field,
+      op: c.op,
+      value: materializeWxSentinels(c.value),
+    }));
+    if (permissionMode === 'visibility_owner_or_public') {
+      enforceVisibilityOwnerOrPublicQuerySubset(conditions, ctx.appUserId);
+    }
+
+    try {
+      const total = await sdkCloudRepository.countDbDocs(db, {
+        appId: ctx.appId,
+        collection,
+        conditions,
+        readPolicy,
+      });
+
+      logCloudEvent(env, 'info', {
+        op: 'db_count',
+        appId: ctx.appId,
+        appUserId: ctx.appUserId,
+        collection,
+        where: conditions,
+        ms: Date.now() - startedAt,
+      });
+
+      return { total };
+    } catch (err) {
+      logCloudEvent(env, 'error', {
+        op: 'db_count',
+        appId: ctx.appId,
+        appUserId: ctx.appUserId,
+        collection,
+        where: conditions,
+        ms: Date.now() - startedAt,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      throw err;
+    }
+  }
+
+  async dbWhereRemove(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    collectionRaw: string,
+    input: CloudDbWhereRemoveInput,
+  ): Promise<CloudDbWhereRemoveResponse> {
+    const startedAt = Date.now();
+    const ctx = await this.requireSdkContext(request, db);
+    requireScope(ctx.scopes, 'db:rw');
+    const collection = requireCollection(collectionRaw);
+    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+    requireWriteAllowed(permissionMode);
+    const conditions = normalizeDbWhereInput(input.where).map((c) => ({
+      field: c.field,
+      op: c.op,
+      value: materializeWxSentinels(c.value),
+    }));
+
+    try {
+      const removed = await sdkCloudRepository.removeDbDocs(db, {
+        appId: ctx.appId,
+        collection,
+        ownerId: ctx.appUserId,
+        conditions,
+      });
+
+      logCloudEvent(env, 'info', {
+        op: 'db_where_remove',
+        appId: ctx.appId,
+        appUserId: ctx.appUserId,
+        collection,
+        where: conditions,
+        removed,
+        ms: Date.now() - startedAt,
+      });
+
+      return { stats: { removed } };
+    } catch (err) {
+      logCloudEvent(env, 'error', {
+        op: 'db_where_remove',
+        appId: ctx.appId,
+        appUserId: ctx.appUserId,
+        collection,
+        where: conditions,
+        ms: Date.now() - startedAt,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      throw err;
+    }
+  }
+
+  async dbWhereUpdate(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    collectionRaw: string,
+    input: CloudDbWhereUpdateInput,
+  ): Promise<CloudDbWhereUpdateResponse> {
+    const startedAt = Date.now();
+    const ctx = await this.requireSdkContext(request, db);
+    requireScope(ctx.scopes, 'db:rw');
+
+    const collection = requireCollection(collectionRaw);
+    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+    requireWriteAllowed(permissionMode);
+    const conditions = normalizeDbWhereInput(input.where).map((c) => ({
+      field: c.field,
+      op: c.op,
+      value: materializeWxSentinels(c.value),
+    }));
+
+    try {
+      const patchRaw = input.data;
+      if (!patchRaw || typeof patchRaw !== 'object' || Array.isArray(patchRaw)) {
+        throw new ValidationError('update data must be an object');
+      }
+      const sanitizedPatch = stripWxSystemFields(materializeWxSentinels(patchRaw), 'strict');
+
+      const docs = await sdkCloudRepository.listDbDocsForOwner(db, {
+        appId: ctx.appId,
+        collection,
+        ownerId: ctx.appUserId,
+        conditions,
+        limit: 1000,
+      });
+
+      const updates = docs.map((row) => {
+        const currentData = parseJson(row.dataJson);
+        const sanitizedCurrent = stripWxSystemFields(currentData, 'lenient');
+        const merged = applyWxUpdatePatch(asObject(sanitizedCurrent), asObject(sanitizedPatch));
+        const dataJson = JSON.stringify(merged ?? {});
+        const bytes = new TextEncoder().encode(dataJson).byteLength;
+        if (bytes > 256 * 1024) throw new ValidationError('doc_too_large');
+        return { row, dataJson };
+      });
+
+      let updated = 0;
+      for (const item of updates) {
+        const now = Date.now();
+        const etag = crypto.randomUUID();
+        const res = await sdkCloudRepository.updateDbDoc(db, {
+          appId: ctx.appId,
+          collection,
+          id: item.row.id,
+          visibility: item.row.visibility,
+          refType: item.row.refType,
+          refId: item.row.refId,
+          dataJson: item.dataJson,
+          updatedAt: now,
+          etag,
+        });
+        if (res) updated += 1;
+      }
+
+      logCloudEvent(env, 'info', {
+        op: 'db_where_update',
+        appId: ctx.appId,
+        appUserId: ctx.appUserId,
+        collection,
+        where: conditions,
+        updated,
+        ms: Date.now() - startedAt,
+      });
+
+      return { stats: { updated } };
+    } catch (err) {
+      logCloudEvent(env, 'error', {
+        op: 'db_where_update',
+        appId: ctx.appId,
+        appUserId: ctx.appUserId,
+        collection,
+        where: conditions,
         ms: Date.now() - startedAt,
         error: err instanceof Error ? err.message : String(err),
       });

@@ -3,17 +3,17 @@ export type CloudVisibility = 'private' | 'public' | string;
 export type CloudDbOrderByField = 'createdAt' | 'updatedAt';
 export type CloudDbOrderDirection = 'asc' | 'desc';
 
-export type CloudDbWhereOp = '==';
+export type CloudDbWhereOp = '==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'nin';
 
 export interface CloudDbWhere {
-  field: 'ownerId' | 'visibility' | 'refType' | 'refId';
+  field: string;
   op: CloudDbWhereOp;
-  value: string;
+  value: unknown;
 }
 
 export interface CloudDbQueryInput {
-  where?: CloudDbWhere[];
-  orderBy?: { field: CloudDbOrderByField; direction: CloudDbOrderDirection };
+  where?: CloudDbWhere[] | Record<string, unknown>;
+  orderBy?: { field: CloudDbOrderByField | string; direction: CloudDbOrderDirection };
   limit?: number;
   cursor?: string | null;
 }
@@ -57,6 +57,27 @@ export interface CloudDbSetDocInput {
 export interface CloudDbQueryResponse {
   items: CloudDbDocResponse[];
   nextCursor: string | null;
+}
+
+export interface CloudDbCountResponse {
+  total: number;
+}
+
+export interface CloudDbWhereUpdateInput {
+  where?: CloudDbWhere[] | Record<string, unknown>;
+  data?: unknown;
+}
+
+export interface CloudDbWhereUpdateResponse {
+  stats: { updated: number };
+}
+
+export interface CloudDbWhereRemoveInput {
+  where?: CloudDbWhere[] | Record<string, unknown>;
+}
+
+export interface CloudDbWhereRemoveResponse {
+  stats: { removed: number };
 }
 
 export interface CloudKvGetResponse {

@@ -258,6 +258,24 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     handler: (req, params) =>
       sdkCloudController.dbQuery(req, env, requireDb(), params.collection),
   });
+  router.add({
+    path: '/api/v1/cloud/db/collections/:collection/count',
+    method: 'POST',
+    handler: (req, params) =>
+      sdkCloudController.dbCount(req, env, requireDb(), params.collection),
+  });
+  router.add({
+    path: '/api/v1/cloud/db/collections/:collection/update',
+    method: 'POST',
+    handler: (req, params) =>
+      sdkCloudController.dbWhereUpdate(req, env, requireDb(), params.collection),
+  });
+  router.add({
+    path: '/api/v1/cloud/db/collections/:collection/remove',
+    method: 'POST',
+    handler: (req, params) =>
+      sdkCloudController.dbWhereRemove(req, env, requireDb(), params.collection),
+  });
 
   // Cloud Blob (signed URLs backed by R2)
   router.add({
@@ -295,6 +313,20 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     path: '/api/v1/admin/projects',
     method: 'GET',
     handler: (req) => adminController.listProjects(req, env, requireDb()),
+  });
+
+  router.add({
+    path: '/api/v1/admin/cloud/db/apps/:appId/collections/:collection/permission',
+    method: 'GET',
+    handler: (req, params) =>
+      adminController.getCloudDbCollectionPermission(req, env, requireDb(), params.appId, params.collection),
+  });
+
+  router.add({
+    path: '/api/v1/admin/cloud/db/apps/:appId/collections/:collection/permission',
+    method: 'PUT',
+    handler: (req, params) =>
+      adminController.setCloudDbCollectionPermission(req, env, requireDb(), params.appId, params.collection),
   });
 
   router.add({

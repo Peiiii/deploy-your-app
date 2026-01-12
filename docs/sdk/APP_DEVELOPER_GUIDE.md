@@ -110,21 +110,35 @@ const db = gemigo.cloud.database();
 const _ = db.command;
 
 const posts = db.collection('posts');
-await posts.add({ data: { title: 'Hello', body: 'First post' } });
-const feed = await posts.where({ visibility: _.eq('public') }).orderBy('createdAt', 'desc').limit(20).get();
+await posts.add({ data: { title: 'Hello', body: 'First post', createdAt: db.serverDate() } });
+const first = await posts.where({ visibility: _.eq('public') }).orderBy('createdAt', 'desc').limit(20).get();
+const feed = first.data;
+
+// cursor-first（推荐）：用 `_meta.nextCursor` 翻下一页（比大 skip 更稳定）
+const cursor = first._meta?.nextCursor;
+if (cursor) {
+  const second = await posts.where({ visibility: _.eq('public') }).orderBy('createdAt', 'desc').limit(20).startAfter(cursor).get();
+  console.log('page2', second.data);
+}
+
+// 批量能力（对齐小程序 where().count/update/remove）
+const total = await posts.where({ visibility: _.eq('public') }).count();
+await posts.where({ _id: _.eq('some-id') }).update({ data: { views: _.inc(1) } });
+await posts.where({ _id: _.eq('some-id') }).remove();
 ```
 
 说明：
 
 - `kv` 默认按“应用 + 当前登录用户”隔离（天然是用户私有数据）。
-- `db` 文档默认只有 owner 可读写；当 `visibility='public'` 时，其他用户可读（用于社区/广场/作者主页等）。
+- `db` 的默认可见性由 collection 级 `permissionMode` 决定；当前默认仅 owner 可读写 + `visibility='public'` 可被他人读取（用于社区/广场/作者主页等）。
 
-如果你要做“作者主页 / 浏览某个用户发过的公开内容”，推荐把 `ownerId` 作为过滤条件；服务端会自动只返回公开文档（`visibility='public'`）：
+如果你要做“作者主页 / 浏览某个用户发过的公开内容”，推荐把 `ownerId` + `visibility='public'` 作为过滤条件（服务端也会强制公开可读边界，且避免静默过滤）：
 
 ```js
 const authorPosts = await posts
   .query()
   .where('ownerId', '==', someAppUserId)
+  .where('visibility', '==', 'public')
   .orderBy('createdAt', 'desc')
   .limit(20)
   .get();

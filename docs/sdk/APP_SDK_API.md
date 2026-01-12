@@ -111,7 +111,11 @@
 - **返回**: `CloudDbCollection`
 - **说明**: 集合/文档模型（对齐 `db.collection` 心智）。
 
-> 读取隔离：默认只能读取“自己是 owner 的文档”和“`visibility=public` 的文档”。当你查询其他用户（`ownerId != 当前用户`）时，服务端会自动只返回公开文档（无需强制你显式写 `where('visibility','==','public')`）。
+> 读取隔离：默认 `permissionMode=visibility_owner_or_public`：
+> - 服务端强制只允许读取“自己是 owner 的文档”和“`visibility=public` 的文档”；
+> - 为了避免“静默过滤导致行为不透明”，query/count 还要求你**显式写出 owner/public 分支**（例如 `where visibility='public'`，或按 `_id` 精确查询）。
+
+> 说明：该行为由 collection 级 `permissionMode` 控制；当前默认值为 `visibility_owner_or_public`，平台管理员可按需调整为更接近微信的 legacy 权限模式。
 
 #### `CloudDbCollection.add(data, options?)`
 - **参数**:
@@ -161,6 +165,15 @@ const posts = db.collection('posts');
 const feed = await posts.where({ visibility: _.eq('public') }).orderBy('createdAt', 'desc').limit(20).get();
 ```
 
+#### `WxCloudDatabase.serverDate(options?)`（小程序风格）🆕
+- **说明**: 对齐 `db.serverDate()`；用于把字段值设置为服务端时间（避免客户端时钟不准）。
+- **参数**: `options?: { offset?: number }`（毫秒）
+
+```js
+const db = gemigo.cloud.database();
+await db.collection('posts').add({ data: { createdAt: db.serverDate() } });
+```
+
 #### `WxCloudCollection.add({ data })`（小程序风格）🆕
 - **返回**: `Promise<{ _id: string }>`
 
@@ -172,6 +185,26 @@ const feed = await posts.where({ visibility: _.eq('public') }).orderBy('createdA
 
 #### `WxCloudDocumentRef.set({ data })` / `update({ data })` / `remove()`（小程序风格）🆕
 - **说明**: `update` 支持浅层字段更新；支持有限的 `db.command`（`inc/set/remove`）以对齐常见写法。
+
+#### `WxCloudQuery.startAfter(cursor)`（分页扩展）🆕
+- **说明**: 通过 cursor 分页（推荐用于 feed/无限滚动）。cursor 从 `get()` 返回的 `_meta.nextCursor` 获取。
+
+```js
+const first = await posts.where({ visibility: _.eq('public') }).orderBy('createdAt', 'desc').limit(20).get();
+const cursor = first._meta?.nextCursor;
+if (cursor) {
+  const second = await posts.where({ visibility: _.eq('public') }).orderBy('createdAt', 'desc').limit(20).startAfter(cursor).get();
+}
+```
+
+#### `WxCloudQuery.count()` / `update({ data })` / `remove()`（小程序风格）🆕
+- **说明**: 对齐小程序 `where().count/update/remove` 能力（批量能力）。
+
+```js
+const total = await posts.where({ visibility: _.eq('public') }).count();
+const updated = await posts.where({ _id: _.eq('some-id') }).update({ data: { views: _.inc(1) } });
+const removed = await posts.where({ _id: _.eq('some-id') }).remove();
+```
 
 #### `gemigo.cloud.blob.createUploadUrl(input)` 🆕
 - **说明**: 生成短时上传 URL（不需要在上传请求中带 Authorization header）。

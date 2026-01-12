@@ -28,10 +28,26 @@
 - `workers/api/src/services/sdk-cloud.service.ts`
   - 移除 query 的二次“visible filter”，避免 cursor 基于不可见数据生成导致的分页跳跃/潜在信息泄露；
   - `visibility` 解析改为：对 `public/private` 做大小写归一，其它自定义值保持原样（降低破坏性）。
+  - cursor 协议升级为不透明游标（v1），与 `collection + where + orderBy` 绑定；不匹配时报 `invalid_cursor/cursor_mismatch`。
 
 影响（行为变更）：
 
-- 查询其他用户内容不再强制你显式写 `where visibility='public'`；服务端自动只返回公开文档。
+- 在默认 `permissionMode=visibility_owner_or_public` 下，query/count 需要显式写出 owner/public 分支（例如 `where visibility='public'`），避免“静默过滤”。
+
+### 1.1) API Worker：补齐 where().count/update/remove
+
+- 新增端点：
+  - `POST /api/v1/cloud/db/collections/:collection/count`
+  - `POST /api/v1/cloud/db/collections/:collection/update`
+  - `POST /api/v1/cloud/db/collections/:collection/remove`
+- 语义（v0 暂定）：`update/remove` 仅对 owner 的文档生效；`count` 复用读侧可见性规则。
+
+### 1.2) API Worker：补齐 collection 级 permissionMode（Legacy Permission 雏形）
+
+- 新增表：`sdk_db_collection_permissions`
+- Admin API（仅管理员可调用）：
+  - `GET /api/v1/admin/cloud/db/apps/:appId/collections/:collection/permission`
+  - `PUT /api/v1/admin/cloud/db/apps/:appId/collections/:collection/permission`（body: `{ mode }`）
 
 ### 2) App SDK：新增 `wx.cloud` 风格 facade（全家桶）
 
@@ -44,6 +60,7 @@
 - `packages/app-sdk/src/web/cloud.ts`
   - 实现 `gemigo.cloud.database()`：支持 `collection().where().orderBy().limit().skip().get()`；
   - 实现 `doc.get/set/update/remove`（`update` 支持有限 `command`，并用 `etag/ifMatch` 做并发保护）；
+  - 实现 `where().count/update/remove`（批量能力），并支持 where 的 `db.command` 查询操作符；
   - 实现 `callFunction`（转发到 `cloud.functions.call`）；
   - 实现 `uploadFile/getTempFileURL`（基于现有 `cloud.blob`）。
 
@@ -126,4 +143,3 @@ pnpm release:sdk
 
 - 风险：历史数据若存在 `visibility='Public'` 等大小写不一致，已通过 `LOWER(visibility)` 读侧兼容；写入侧对 `public/private` 做归一。
 - facade 的 `skip(n)` 为模拟实现且有上限；需要大分页请用 cursor（`startAfter`）或改用更窄的查询。
-

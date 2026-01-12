@@ -5,7 +5,12 @@ import type {
   CloudBlobCreateUploadUrlInput,
   CloudBlobGetDownloadUrlInput,
   CloudDbCreateDocInput,
+  CloudDbCountResponse,
   CloudDbQueryInput,
+  CloudDbWhereRemoveInput,
+  CloudDbWhereRemoveResponse,
+  CloudDbWhereUpdateInput,
+  CloudDbWhereUpdateResponse,
   CloudDbSetDocInput,
   CloudDbUpdateDocInput,
   CloudFunctionsCallInput,
@@ -124,6 +129,42 @@ class SdkCloudController {
     const env = _env;
     const body = (await readJson(request)) as CloudDbQueryInput;
     const result = await sdkCloudService.dbQuery(request, env, db, collection, body);
+    return jsonResponse(result);
+  }
+
+  async dbCount(
+    request: Request,
+    _env: ApiWorkerEnv,
+    db: D1Database,
+    collection: string,
+  ): Promise<Response> {
+    const env = _env;
+    const body = (await readJson(request)) as CloudDbQueryInput;
+    const result: CloudDbCountResponse = await sdkCloudService.dbCount(request, env, db, collection, body);
+    return jsonResponse(result);
+  }
+
+  async dbWhereUpdate(
+    request: Request,
+    _env: ApiWorkerEnv,
+    db: D1Database,
+    collection: string,
+  ): Promise<Response> {
+    const env = _env;
+    const body = (await readJson(request)) as CloudDbWhereUpdateInput;
+    const result: CloudDbWhereUpdateResponse = await sdkCloudService.dbWhereUpdate(request, env, db, collection, body);
+    return jsonResponse(result);
+  }
+
+  async dbWhereRemove(
+    request: Request,
+    _env: ApiWorkerEnv,
+    db: D1Database,
+    collection: string,
+  ): Promise<Response> {
+    const env = _env;
+    const body = (await readJson(request)) as CloudDbWhereRemoveInput;
+    const result: CloudDbWhereRemoveResponse = await sdkCloudService.dbWhereRemove(request, env, db, collection, body);
     return jsonResponse(result);
   }
 

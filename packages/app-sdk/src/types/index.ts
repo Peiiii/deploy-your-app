@@ -30,6 +30,7 @@ export type {
   WxCloudQueryDirection,
   WxCloudCommandExpr,
   WxCloudCommand,
+  WxCloudServerDate,
   WxCloudGetResult,
   WxCloudAddResult,
   WxCloudRemoveResult,

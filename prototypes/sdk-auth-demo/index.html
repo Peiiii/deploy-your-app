@@ -141,15 +141,44 @@
         const _ = db.command;
         const wxPosts = db.collection('posts');
         const wxCreated = await wxPosts.add({
-          data: { title: 'wx.cloud style', body: 'Facade add()', at: Date.now() },
+          data: { title: 'wx.cloud style', body: 'Facade add()', at: db.serverDate() },
         });
         log('cloud.database().collection().add', wxCreated);
-        const wxQuery = await wxPosts
+
+        const wxCount = await wxPosts.where({ visibility: _.eq('public') }).count();
+        log('cloud.database().collection().where().count', wxCount);
+
+        const wxWhereUpdate = await wxPosts.where({ _id: _.eq(wxCreated._id) }).update({
+          data: {
+            views: _.inc(1),
+            body: _.set('Updated via where().update()'),
+            updatedAt: db.serverDate(),
+          },
+        });
+        log('cloud.database().collection().where().update', wxWhereUpdate);
+
+        const wxUpdatedDoc = await wxPosts.doc(wxCreated._id).get();
+        log('cloud.database().collection().doc().get (after update)', wxUpdatedDoc);
+        const wxFirstPage = await wxPosts
           .where({ visibility: _.eq('public') })
           .orderBy('createdAt', 'desc')
           .limit(5)
           .get();
-        log('cloud.database().collection().where().get', wxQuery);
+        log('cloud.database().collection().where().get (page1)', wxFirstPage);
+
+        const nextCursor = wxFirstPage && wxFirstPage._meta ? wxFirstPage._meta.nextCursor : null;
+        if (nextCursor) {
+          const wxSecondPage = await wxPosts
+            .where({ visibility: _.eq('public') })
+            .orderBy('createdAt', 'desc')
+            .limit(5)
+            .startAfter(nextCursor)
+            .get();
+          log('cloud.database().collection().startAfter().get (page2)', wxSecondPage);
+        }
+
+        const wxWhereRemove = await wxPosts.where({ _id: _.eq(wxCreated._id) }).remove();
+        log('cloud.database().collection().where().remove', wxWhereRemove);
       }
 
       btnLogin.addEventListener('click', async () => {
