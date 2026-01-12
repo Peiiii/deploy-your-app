@@ -130,9 +130,9 @@ await posts.where({ _id: _.eq('some-id') }).remove();
 说明：
 
 - `kv` 默认按“应用 + 当前登录用户”隔离（天然是用户私有数据）。
-- `db` 的默认可见性由 collection 级 `permissionMode` 决定；当前默认仅 owner 可读写 + `visibility='public'` 可被他人读取（用于社区/广场/作者主页等）。
+- `db` 的默认行为对齐微信 legacy：默认仅创建者可读写（`creator_read_write`）；若要做“公开广场/社区”，请配置 Security Rules（建议用模板规则）。
 
-如果你要做“作者主页 / 浏览某个用户发过的公开内容”，推荐把 `ownerId` + `visibility='public'` 作为过滤条件（服务端也会强制公开可读边界，且避免静默过滤）：
+如果你要做“作者主页 / 浏览某个用户发过的公开内容”，需要为该 collection 配置 Security Rules（例如“public 可读 + 自己可写”的模板），然后在查询里带上规则分支的等值条件（例如 `visibility='public'`）：
 
 ```js
 const authorPosts = await posts

@@ -2,6 +2,7 @@ import { sdkAuthRepository } from '../repositories/sdk-auth.repository';
 import { sdkCloudRepository } from '../repositories/sdk-cloud.repository';
 import { ConfigurationError, NotFoundError, UnauthorizedError, ValidationError } from '../utils/error-handler';
 import type { ApiWorkerEnv } from '../types/env';
+import { parseSecurityRulesV0, rulesBranches, type SecurityRulesV0 } from '../utils/sdk-cloud-rules';
 import type {
   CloudDbCreateDocInput,
   CloudDbDocResponse,
@@ -29,7 +30,7 @@ import type {
   CloudKvSetResponse,
   CloudVisibility,
 } from '../types/sdk-cloud';
-import type { CloudDbPermissionMode, CloudDbReadPolicy } from '../repositories/sdk-cloud.repository';
+import type { CloudDbPermissionMode } from '../repositories/sdk-cloud.repository';
 
 function requireBearerToken(request: Request): string {
   const header = request.headers.get('authorization') || request.headers.get('Authorization');
@@ -183,7 +184,6 @@ function requireDocId(raw: unknown): string {
 
 function isCloudDbPermissionMode(value: unknown): value is CloudDbPermissionMode {
   return (
-    value === 'visibility_owner_or_public' ||
     value === 'all_read_creator_write' ||
     value === 'creator_read_write' ||
     value === 'all_read_readonly' ||
@@ -197,7 +197,7 @@ async function resolveDbPermissionMode(
 ): Promise<CloudDbPermissionMode> {
   const row = await sdkCloudRepository.getDbCollectionPermission(db, input);
   if (row && isCloudDbPermissionMode(row.mode)) return row.mode;
-  return 'visibility_owner_or_public';
+  return 'creator_read_write';
 }
 
 function requireWriteAllowed(mode: CloudDbPermissionMode): void {
@@ -210,32 +210,67 @@ function requireReadAllowed(mode: CloudDbPermissionMode): void {
   if (mode === 'none') throw new UnauthorizedError('forbidden');
 }
 
-function toDbReadPolicy(mode: CloudDbPermissionMode, viewerAppUserId: string): CloudDbReadPolicy {
-  if (mode === 'all_read_creator_write' || mode === 'all_read_readonly') return { kind: 'all' };
-  if (mode === 'creator_read_write') return { kind: 'owner_only', ownerId: viewerAppUserId };
-  return { kind: 'owner_or_public', ownerId: viewerAppUserId };
+async function resolveSecurityRules(
+  db: D1Database,
+  input: { appId: string; collection: string },
+): Promise<SecurityRulesV0 | null> {
+  const row = await sdkCloudRepository.getDbCollectionSecurityRules(db, input);
+  if (!row) return null;
+  const parsed = JSON.parse(row.rulesJson) as unknown;
+  return parseSecurityRulesV0(parsed);
 }
 
-function enforceVisibilityOwnerOrPublicQuerySubset(
+function hasQueryEq(
   conditions: Array<{ field: string; op: CloudDbWhereOp; value: unknown }>,
-  viewerAppUserId: string,
+  field: string,
+  predicate?: (value: unknown) => boolean,
+): boolean {
+  return conditions.some(
+    (c) => c.op === '==' && c.field.trim() === field && (predicate ? predicate(c.value) : true),
+  );
+}
+
+function enforceSecurityRulesQuerySubset(
+  rules: SecurityRulesV0,
+  expr: 'read' | 'write',
+  conditions: Array<{ field: string; op: CloudDbWhereOp; value: unknown }>,
+  ctx: { appUserId: string },
 ): void {
-  const hasEq = (field: string, predicate?: (value: unknown) => boolean): boolean =>
-    conditions.some((c) => c.op === '==' && c.field.trim() === field && (predicate ? predicate(c.value) : true));
+  // v0: query must include all equality constraints of at least one branch.
+  const branches = rulesBranches(expr === 'read' ? rules.read : rules.write);
+  const ok = branches.some((branch) =>
+    branch.allOf.every((cond) => {
+      const field = cond.field;
+      if (cond.value && typeof cond.value === 'object' && 'var' in cond.value && cond.value.var === 'auth.openid') {
+        return (
+          hasQueryEq(conditions, field, (v) => String(v ?? '') === ctx.appUserId) ||
+          (field === '_openid' && hasQueryEq(conditions, 'ownerId', (v) => String(v ?? '') === ctx.appUserId)) ||
+          (field === 'ownerId' && hasQueryEq(conditions, '_openid', (v) => String(v ?? '') === ctx.appUserId))
+        );
+      }
+      return hasQueryEq(conditions, field, (v) => JSON.stringify(v) === JSON.stringify(cond.value));
+    }),
+  );
 
-  const isOwnerEq =
-    hasEq('_openid', (v) => String(v ?? '') === viewerAppUserId) ||
-    hasEq('ownerId', (v) => String(v ?? '') === viewerAppUserId);
+  if (!ok) throw new UnauthorizedError('query_not_subset_of_rules');
+}
 
-  const isPublicEq = hasEq('visibility', (v) => String(v ?? '').toLowerCase() === 'public');
-
-  const isIdEq = hasEq('_id') || hasEq('id');
-
-  // Mimic "Security Rules subset" guardrails:
-  // queries must clearly target an allowed read-branch, instead of relying on silent server-side filtering.
-  if (!isOwnerEq && !isPublicEq && !isIdEq) {
-    throw new UnauthorizedError('query_requires_owner_or_public_filter');
-  }
+function evalRulesForDoc(
+  rules: SecurityRulesV0,
+  expr: 'read' | 'write',
+  doc: Record<string, unknown>,
+  ctx: { appUserId: string },
+): boolean {
+  const branches = rulesBranches(expr === 'read' ? rules.read : rules.write);
+  return branches.some((branch) =>
+    branch.allOf.every((cond) => {
+      const value = doc[cond.field];
+      if (cond.value && typeof cond.value === 'object' && 'var' in cond.value && cond.value.var === 'auth.openid') {
+        return String(value ?? '') === ctx.appUserId;
+      }
+      return JSON.stringify(value) === JSON.stringify(cond.value);
+    }),
+  );
 }
 
 type DbCursorV0 = { ts: number; id: string };
@@ -817,8 +852,6 @@ export class SdkCloudService {
     requireScope(ctx.scopes, 'db:rw');
 
     const collection = requireCollection(collectionRaw);
-    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
-    requireWriteAllowed(permissionMode);
     const id = requireDocId(input.id);
     const visibility = normalizeVisibility(input.visibility);
     const refType = normalizeOptionalString(input.refType, 'refType', 64);
@@ -830,6 +863,24 @@ export class SdkCloudService {
     if (bytes > 256 * 1024) throw new ValidationError('doc_too_large');
 
     try {
+      const rules = await resolveSecurityRules(db, { appId: ctx.appId, collection });
+      if (rules) {
+        const docForRules = {
+          ...asObject(sanitized),
+          _id: id,
+          _openid: ctx.appUserId,
+          visibility,
+          refType,
+          refId,
+        };
+        if (!evalRulesForDoc(rules, 'write', docForRules, { appUserId: ctx.appUserId })) {
+          throw new UnauthorizedError('forbidden');
+        }
+      } else {
+        const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+        requireWriteAllowed(permissionMode);
+      }
+
       const now = Date.now();
       const etag = crypto.randomUUID();
       const row = await sdkCloudRepository.insertDbDoc(db, {
@@ -898,20 +949,29 @@ export class SdkCloudService {
     requireScope(ctx.scopes, 'db:rw');
 
     const collection = requireCollection(collectionRaw);
-    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
-    requireReadAllowed(permissionMode);
     try {
       const row = await sdkCloudRepository.findDbDoc(db, { appId: ctx.appId, collection, id });
       if (!row) throw new ValidationError('not_found');
 
-      if (permissionMode === 'creator_read_write') {
-        if (row.ownerId !== ctx.appUserId) throw new UnauthorizedError('forbidden');
-      } else if (permissionMode === 'visibility_owner_or_public') {
-      const isOwner = row.ownerId === ctx.appUserId;
-      const isPublic = String(row.visibility).toLowerCase() === 'public';
-      if (!isOwner && !isPublic) {
-        throw new UnauthorizedError('forbidden');
-      }
+      const rules = await resolveSecurityRules(db, { appId: ctx.appId, collection });
+      if (rules) {
+        const docForRules = {
+          ...asObject(parseJson(row.dataJson)),
+          _id: row.id,
+          _openid: row.ownerId,
+          visibility: row.visibility,
+          refType: row.refType,
+          refId: row.refId,
+        };
+        if (!evalRulesForDoc(rules, 'read', docForRules, { appUserId: ctx.appUserId })) {
+          throw new UnauthorizedError('forbidden');
+        }
+      } else {
+        const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+        requireReadAllowed(permissionMode);
+        if (permissionMode === 'creator_read_write' && row.ownerId !== ctx.appUserId) {
+          throw new UnauthorizedError('forbidden');
+        }
       }
 
       const result = {
@@ -963,12 +1023,27 @@ export class SdkCloudService {
     requireScope(ctx.scopes, 'db:rw');
 
     const collection = requireCollection(collectionRaw);
-    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
-    requireWriteAllowed(permissionMode);
     try {
       const existing = await sdkCloudRepository.findDbDoc(db, { appId: ctx.appId, collection, id });
       if (!existing) throw new ValidationError('not_found');
-      if (existing.ownerId !== ctx.appUserId) throw new UnauthorizedError('forbidden');
+      const rules = await resolveSecurityRules(db, { appId: ctx.appId, collection });
+      if (rules) {
+        const docForRules = {
+          ...asObject(parseJson(existing.dataJson)),
+          _id: existing.id,
+          _openid: existing.ownerId,
+          visibility: existing.visibility,
+          refType: existing.refType,
+          refId: existing.refId,
+        };
+        if (!evalRulesForDoc(rules, 'write', docForRules, { appUserId: ctx.appUserId })) {
+          throw new UnauthorizedError('forbidden');
+        }
+      } else {
+        const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+        requireWriteAllowed(permissionMode);
+        if (existing.ownerId !== ctx.appUserId) throw new UnauthorizedError('forbidden');
+      }
 
       const ifMatch = normalizeOptionalString(input.ifMatch, 'ifMatch', 128);
       if (ifMatch && existing.etag !== ifMatch) throw new ValidationError('etag_mismatch');
@@ -1062,8 +1137,6 @@ export class SdkCloudService {
     requireScope(ctx.scopes, 'db:rw');
 
     const collection = requireCollection(collectionRaw);
-    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
-    requireWriteAllowed(permissionMode);
     const docId = requireDocId(id);
 
     try {
@@ -1073,8 +1146,29 @@ export class SdkCloudService {
         id: docId,
       });
 
-      if (existing && existing.ownerId !== ctx.appUserId) {
-        throw new UnauthorizedError('forbidden');
+      const rules = await resolveSecurityRules(db, { appId: ctx.appId, collection });
+      if (rules) {
+        const existingDocForRules = existing
+          ? {
+              ...asObject(parseJson(existing.dataJson)),
+              _id: existing.id,
+              _openid: existing.ownerId,
+              visibility: existing.visibility,
+              refType: existing.refType,
+              refId: existing.refId,
+            }
+          : null;
+        if (existingDocForRules) {
+          if (!evalRulesForDoc(rules, 'write', existingDocForRules, { appUserId: ctx.appUserId })) {
+            throw new UnauthorizedError('forbidden');
+          }
+        }
+      } else {
+        const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+        requireWriteAllowed(permissionMode);
+        if (existing && existing.ownerId !== ctx.appUserId) {
+          throw new UnauthorizedError('forbidden');
+        }
       }
 
       const ifMatch = normalizeOptionalString(input.ifMatch, 'ifMatch', 128);
@@ -1097,6 +1191,20 @@ export class SdkCloudService {
       const dataJson = JSON.stringify(sanitized ?? {});
       const bytes = new TextEncoder().encode(dataJson).byteLength;
       if (bytes > 256 * 1024) throw new ValidationError('doc_too_large');
+
+      if (rules) {
+        const docForRules = {
+          ...asObject(sanitized),
+          _id: docId,
+          _openid: existing?.ownerId ?? ctx.appUserId,
+          visibility,
+          refType,
+          refId,
+        };
+        if (!evalRulesForDoc(rules, 'write', docForRules, { appUserId: ctx.appUserId })) {
+          throw new UnauthorizedError('forbidden');
+        }
+      }
 
       const now = Date.now();
       const etag = crypto.randomUUID();
@@ -1163,12 +1271,27 @@ export class SdkCloudService {
     requireScope(ctx.scopes, 'db:rw');
 
     const collection = requireCollection(collectionRaw);
-    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
-    requireWriteAllowed(permissionMode);
     try {
       const existing = await sdkCloudRepository.findDbDoc(db, { appId: ctx.appId, collection, id });
       if (!existing) return;
-      if (existing.ownerId !== ctx.appUserId) throw new UnauthorizedError('forbidden');
+      const rules = await resolveSecurityRules(db, { appId: ctx.appId, collection });
+      if (rules) {
+        const docForRules = {
+          ...asObject(parseJson(existing.dataJson)),
+          _id: existing.id,
+          _openid: existing.ownerId,
+          visibility: existing.visibility,
+          refType: existing.refType,
+          refId: existing.refId,
+        };
+        if (!evalRulesForDoc(rules, 'write', docForRules, { appUserId: ctx.appUserId })) {
+          throw new UnauthorizedError('forbidden');
+        }
+      } else {
+        const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+        requireWriteAllowed(permissionMode);
+        if (existing.ownerId !== ctx.appUserId) throw new UnauthorizedError('forbidden');
+      }
       await sdkCloudRepository.deleteDbDoc(db, { appId: ctx.appId, collection, id });
 
       logCloudEvent(env, 'info', {
@@ -1205,16 +1328,20 @@ export class SdkCloudService {
     requireScope(ctx.scopes, 'db:rw');
 
     const collection = requireCollection(collectionRaw);
-    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
-    requireReadAllowed(permissionMode);
-    const readPolicy = toDbReadPolicy(permissionMode, ctx.appUserId);
+    const rules = await resolveSecurityRules(db, { appId: ctx.appId, collection });
     const conditions = normalizeDbWhereInput(input.where).map((c) => ({
       field: c.field,
       op: c.op,
       value: materializeWxSentinels(c.value),
     }));
-    if (permissionMode === 'visibility_owner_or_public') {
-      enforceVisibilityOwnerOrPublicQuerySubset(conditions, ctx.appUserId);
+    if (rules) {
+      enforceSecurityRulesQuerySubset(rules, 'read', conditions, { appUserId: ctx.appUserId });
+    } else {
+      const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+      requireReadAllowed(permissionMode);
+      if (permissionMode === 'creator_read_write') {
+        conditions.push({ field: '_openid', op: '==', value: ctx.appUserId });
+      }
     }
 
     const orderBy = input.orderBy ?? { field: 'createdAt', direction: 'desc' };
@@ -1243,7 +1370,6 @@ export class SdkCloudService {
         orderBy: { field, direction },
         limit,
         cursor: cursor ? { field, direction, ...cursor.last } : null,
-        readPolicy,
       });
 
       const result = {
@@ -1301,16 +1427,20 @@ export class SdkCloudService {
     const ctx = await this.requireSdkContext(request, db);
     requireScope(ctx.scopes, 'db:rw');
     const collection = requireCollection(collectionRaw);
-    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
-    requireReadAllowed(permissionMode);
-    const readPolicy = toDbReadPolicy(permissionMode, ctx.appUserId);
+    const rules = await resolveSecurityRules(db, { appId: ctx.appId, collection });
     const conditions = normalizeDbWhereInput(input.where).map((c) => ({
       field: c.field,
       op: c.op,
       value: materializeWxSentinels(c.value),
     }));
-    if (permissionMode === 'visibility_owner_or_public') {
-      enforceVisibilityOwnerOrPublicQuerySubset(conditions, ctx.appUserId);
+    if (rules) {
+      enforceSecurityRulesQuerySubset(rules, 'read', conditions, { appUserId: ctx.appUserId });
+    } else {
+      const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+      requireReadAllowed(permissionMode);
+      if (permissionMode === 'creator_read_write') {
+        conditions.push({ field: '_openid', op: '==', value: ctx.appUserId });
+      }
     }
 
     try {
@@ -1318,7 +1448,6 @@ export class SdkCloudService {
         appId: ctx.appId,
         collection,
         conditions,
-        readPolicy,
       });
 
       logCloudEvent(env, 'info', {
@@ -1356,8 +1485,6 @@ export class SdkCloudService {
     const ctx = await this.requireSdkContext(request, db);
     requireScope(ctx.scopes, 'db:rw');
     const collection = requireCollection(collectionRaw);
-    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
-    requireWriteAllowed(permissionMode);
     const conditions = normalizeDbWhereInput(input.where).map((c) => ({
       field: c.field,
       op: c.op,
@@ -1365,12 +1492,40 @@ export class SdkCloudService {
     }));
 
     try {
-      const removed = await sdkCloudRepository.removeDbDocs(db, {
-        appId: ctx.appId,
-        collection,
-        ownerId: ctx.appUserId,
-        conditions,
-      });
+      const rules = await resolveSecurityRules(db, { appId: ctx.appId, collection });
+      let removed = 0;
+      if (rules) {
+        enforceSecurityRulesQuerySubset(rules, 'write', conditions, { appUserId: ctx.appUserId });
+        const docs = await sdkCloudRepository.listDbDocs(db, {
+          appId: ctx.appId,
+          collection,
+          conditions,
+          limit: 1000,
+        });
+        for (const doc of docs) {
+          const docForRules = {
+            ...asObject(parseJson(doc.dataJson)),
+            _id: doc.id,
+            _openid: doc.ownerId,
+            visibility: doc.visibility,
+            refType: doc.refType,
+            refId: doc.refId,
+          };
+          if (!evalRulesForDoc(rules, 'write', docForRules, { appUserId: ctx.appUserId })) continue;
+          await sdkCloudRepository.deleteDbDoc(db, { appId: ctx.appId, collection, id: doc.id });
+          removed += 1;
+        }
+      } else {
+        const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+        requireWriteAllowed(permissionMode);
+        const removedNow = await sdkCloudRepository.removeDbDocs(db, {
+          appId: ctx.appId,
+          collection,
+          ownerId: ctx.appUserId,
+          conditions,
+        });
+        removed = removedNow;
+      }
 
       logCloudEvent(env, 'info', {
         op: 'db_where_remove',
@@ -1409,8 +1564,6 @@ export class SdkCloudService {
     requireScope(ctx.scopes, 'db:rw');
 
     const collection = requireCollection(collectionRaw);
-    const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
-    requireWriteAllowed(permissionMode);
     const conditions = normalizeDbWhereInput(input.where).map((c) => ({
       field: c.field,
       op: c.op,
@@ -1418,28 +1571,51 @@ export class SdkCloudService {
     }));
 
     try {
+      const rules = await resolveSecurityRules(db, { appId: ctx.appId, collection });
       const patchRaw = input.data;
       if (!patchRaw || typeof patchRaw !== 'object' || Array.isArray(patchRaw)) {
         throw new ValidationError('update data must be an object');
       }
       const sanitizedPatch = stripWxSystemFields(materializeWxSentinels(patchRaw), 'strict');
 
-      const docs = await sdkCloudRepository.listDbDocsForOwner(db, {
-        appId: ctx.appId,
-        collection,
-        ownerId: ctx.appUserId,
-        conditions,
-        limit: 1000,
-      });
+      let docs: Awaited<ReturnType<typeof sdkCloudRepository.listDbDocs>>;
+      if (rules) {
+        enforceSecurityRulesQuerySubset(rules, 'write', conditions, { appUserId: ctx.appUserId });
+        docs = await sdkCloudRepository.listDbDocs(db, { appId: ctx.appId, collection, conditions, limit: 1000 });
+      } else {
+        const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
+        requireWriteAllowed(permissionMode);
+        docs = await sdkCloudRepository.listDbDocsForOwner(db, {
+          appId: ctx.appId,
+          collection,
+          ownerId: ctx.appUserId,
+          conditions,
+          limit: 1000,
+        });
+      }
 
-      const updates = docs.map((row) => {
+      const updates = docs.flatMap((row) => {
+        if (rules) {
+          const docForRules = {
+            ...asObject(parseJson(row.dataJson)),
+            _id: row.id,
+            _openid: row.ownerId,
+            visibility: row.visibility,
+            refType: row.refType,
+            refId: row.refId,
+          };
+          if (!evalRulesForDoc(rules, 'write', docForRules, { appUserId: ctx.appUserId })) {
+            return [];
+          }
+        }
+
         const currentData = parseJson(row.dataJson);
         const sanitizedCurrent = stripWxSystemFields(currentData, 'lenient');
         const merged = applyWxUpdatePatch(asObject(sanitizedCurrent), asObject(sanitizedPatch));
         const dataJson = JSON.stringify(merged ?? {});
         const bytes = new TextEncoder().encode(dataJson).byteLength;
         if (bytes > 256 * 1024) throw new ValidationError('doc_too_large');
-        return { row, dataJson };
+        return [{ row, dataJson }];
       });
 
       let updated = 0;

@@ -330,6 +330,20 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   });
 
   router.add({
+    path: '/api/v1/admin/cloud/db/apps/:appId/collections/:collection/security-rules',
+    method: 'GET',
+    handler: (req, params) =>
+      adminController.getCloudDbCollectionSecurityRules(req, env, requireDb(), params.appId, params.collection),
+  });
+
+  router.add({
+    path: '/api/v1/admin/cloud/db/apps/:appId/collections/:collection/security-rules',
+    method: 'PUT',
+    handler: (req, params) =>
+      adminController.setCloudDbCollectionSecurityRules(req, env, requireDb(), params.appId, params.collection),
+  });
+
+  router.add({
     path: '/api/v1/admin/projects/:id',
     method: 'DELETE',
     handler: (req, params) =>

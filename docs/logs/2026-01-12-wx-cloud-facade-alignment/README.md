@@ -13,26 +13,24 @@
 
 - **对齐写法（API facade）**：提供 `wx.cloud` 风格的 `gemigo.cloud.database()/callFunction/uploadFile/getTempFileURL` 等全家桶；
 - **不对齐的点（但提供兼容外观）**：`skip(n)` 不做真实 SQL OFFSET，改为“多次 cursor 请求模拟 + 上限保护”，避免走向不可扩展实现；
-- **DB 访问控制必须服务端强制**：默认规则为“自己可读写全部；他人仅可读 `visibility='public'`”，并把筛选下推到 SQL，避免二次过滤导致的分页/游标问题。
+- **DB 访问控制必须服务端强制**：不在平台代码里写任何“业务预设逻辑”（例如基于 `visibility` 的默认规则）；默认走协议里的 Legacy Permission，社区/公开广场通过 Security Rules（JSON DSL v0）配置实现。
 
 ---
 
 ## 本次改动（已落代码）
 
-### 1) API Worker：修复 Cloud DB Query 的可见性与分页语义
+### 1) API Worker：对齐协议的权限模型与分页语义
 
 - `workers/api/src/repositories/sdk-cloud.repository.ts`
-  - 把“可见性规则”下推到 SQL：默认 `(owner_id = viewer OR LOWER(visibility)='public')`；
-  - 当 query 指定 `ownerId != viewer` 时，服务端强制只查询公开文档（`LOWER(visibility)='public'`）；
-  - 兼容历史数据 `visibility='Public'` 等大小写（使用 `LOWER(visibility)`）。
+  - 支持系统字段映射：`_id <-> id`、`_openid <-> owner_id`；
+  - 支持稳定 cursor（与 `orderBy` 绑定，使用 `(orderValue, id)` 做 tie-break），并在服务端编码成不透明 cursor。
 - `workers/api/src/services/sdk-cloud.service.ts`
-  - 移除 query 的二次“visible filter”，避免 cursor 基于不可见数据生成导致的分页跳跃/潜在信息泄露；
-  - `visibility` 解析改为：对 `public/private` 做大小写归一，其它自定义值保持原样（降低破坏性）。
-  - cursor 协议升级为不透明游标（v1），与 `collection + where + orderBy` 绑定；不匹配时报 `invalid_cursor/cursor_mismatch`。
+  - Legacy Permission 默认值为 `creator_read_write`（对齐微信的“仅创建者可读写”心智），并实现隐式追加 `_openid == auth.openid`（读/写侧）；
+  - Security Rules 模式下，服务端执行规则子集校验（query/count/update/remove）与逐文档评估（doc.get/write）。
 
 影响（行为变更）：
 
-- 在默认 `permissionMode=visibility_owner_or_public` 下，query/count 需要显式写出 owner/public 分支（例如 `where visibility='public'`），避免“静默过滤”。
+- 默认 legacy 为 `creator_read_write`（仅创建者可读写）；公开广场/社区必须通过 Security Rules（规则模板）显式配置（平台不再“猜测你要公开”）。
 
 ### 1.1) API Worker：补齐 where().count/update/remove
 
@@ -40,14 +38,19 @@
   - `POST /api/v1/cloud/db/collections/:collection/count`
   - `POST /api/v1/cloud/db/collections/:collection/update`
   - `POST /api/v1/cloud/db/collections/:collection/remove`
-- 语义（v0 暂定）：`update/remove` 仅对 owner 的文档生效；`count` 复用读侧可见性规则。
+- 语义：
+  - Legacy Permission：`creator_read_write` 下等价于隐式 `_openid == auth.openid`（因此只会影响自己的文档）。
+  - Security Rules：先做“查询子集”校验，再逐文档评估是否可写。
 
-### 1.2) API Worker：补齐 collection 级 permissionMode（Legacy Permission 雏形）
+### 1.2) API Worker：补齐 collection 级 Legacy Permission / Security Rules 配置入口
 
 - 新增表：`sdk_db_collection_permissions`
+- 新增表：`sdk_db_collection_security_rules`
 - Admin API（仅管理员可调用）：
   - `GET /api/v1/admin/cloud/db/apps/:appId/collections/:collection/permission`
   - `PUT /api/v1/admin/cloud/db/apps/:appId/collections/:collection/permission`（body: `{ mode }`）
+  - `GET /api/v1/admin/cloud/db/apps/:appId/collections/:collection/security-rules`
+  - `PUT /api/v1/admin/cloud/db/apps/:appId/collections/:collection/security-rules`（body: `{ rules }`）
 
 ### 2) App SDK：新增 `wx.cloud` 风格 facade（全家桶）
 
@@ -107,6 +110,15 @@ python3 -m http.server 3001 -d .
 - `Cloud DB roundtrip`
   - 观察输出：既有 `gemigo.cloud.db.collection(...).query()`（旧写法）也有 `gemigo.cloud.database()`（wx 风格）。
 
+5)（可选，验证 Security Rules / 子集约束）
+
+前提：你的账号需要是管理员（Worker env 里 `ADMIN_EMAILS` 或 `ADMIN_USER_IDS` 命中）。
+
+通过 Admin API 给 `demo-app/posts` 写入一份规则模板（公开可读 + 自己可写），然后在 demo 里用 `visibility='public'` 查询验证：
+
+- `PUT /api/v1/admin/cloud/db/apps/demo-app/collections/posts/security-rules`（body: `{ rules }`）
+- 预期：`where({ visibility: _.eq('public') }).get()` 可以读到 public 文档；且当 where 不包含任何规则分支所需的等值条件时，服务端返回 `PERMISSION_DENIED`（不会静默过滤）。
+
 工程质量检查（必须）：
 
 ```bash
@@ -118,13 +130,13 @@ pnpm typecheck
 
 ## 如何发布 / 部署
 
-1) 部署 API Worker（包含 DB Query 语义修复）：
+1) 部署 API Worker：
 
 ```bash
 pnpm --filter deploy-your-app-api-worker run deploy
 ```
 
-2) 发布 App SDK：
+2) 发布 App SDK（仅当 `packages/app-sdk` 有改动时才需要）：
 
 ```bash
 pnpm build:sdk
@@ -137,9 +149,24 @@ pnpm publish:sdk
 pnpm release:sdk
 ```
 
+### 本次发布信息
+
+- Worker URL：`https://gemigo-api.15353764479037.workers.dev`
+- Worker Version ID：`25ee5284-2528-44db-b818-3cfd5a957570`
+
+### 如何验证（线上）
+
+```bash
+curl -sS https://gemigo-api.15353764479037.workers.dev/api/v1/sdk/_debug
+```
+
+预期返回 200 JSON（例如 `{"activeTokens":0}`）。
+
 ---
 
 ## 风险与回滚点
 
-- 风险：历史数据若存在 `visibility='Public'` 等大小写不一致，已通过 `LOWER(visibility)` 读侧兼容；写入侧对 `public/private` 做归一。
+- 风险：默认权限为 `creator_read_write`，如果业务侧期望“公开可读”，必须显式配置 Security Rules（模板），否则会出现“查不到别人数据”的体感差异。
+- 风险：Security Rules DSL v0 能力有限（仅 `==` + `anyOf/allOf` + `auth.openid`），复杂规则需要等 v1 扩展；当前会通过 `PERMISSION_DENIED(query_not_subset_of_rules)` 早失败，不会静默过滤。
+- 回滚点：通过 Admin API 把该 collection 的 permission mode 改为 `all_read_creator_write`（临时放开读），或移除/调整该 collection 的 Security Rules 配置。
 - facade 的 `skip(n)` 为模拟实现且有上限；需要大分页请用 cursor（`startAfter`）或改用更窄的查询。

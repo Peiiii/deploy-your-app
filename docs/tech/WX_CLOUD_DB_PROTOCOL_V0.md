@@ -203,7 +203,7 @@ Document 是一个 JSON 对象，分为：
 - 平台拒绝不满足规则子集的查询（微信语义：查询条件必须是规则的子集）
 - 支持字段级校验（白名单/类型/长度）作为可选增强
 
-> 本协议只定义“必须存在规则系统及其语义”，不强制规则 DSL 的具体语法；但需要在实现文档中给出唯一语法并版本化。
+> 规则 DSL 必须唯一且版本化。GemiGo 的实现采用 JSON DSL v0，详见 `docs/tech/WX_CLOUD_DB_SECURITY_RULES_DSL_V0.md`。
 
 ### 5.2 身份上下文（auth）
 
@@ -329,3 +329,4 @@ const res = await posts.orderBy('createdAt', 'desc').limit(20).get()
 1) **Web 场景的登录态**：微信容器可隐式携带身份；Web 必须显式登录获取短期 token（安全边界，不可避免）。
 2) **skip 的实现细节**：为了可扩展性，平台不承诺“必须使用数据库 OFFSET 实现”；但 **承诺外部可观测行为等价于 offset**（在确定性排序与上限范围内），超出范围必须明确报错/引导 cursor。
 3) **规则 DSL 语法**：微信有官方规则语法；本协议只要求“规则系统与语义必须等价”，具体 DSL 必须另文版本化（避免把 DSL 锁死在协议里导致演进困难）。
+   - GemiGo 实现：`docs/tech/WX_CLOUD_DB_SECURITY_RULES_DSL_V0.md`（JSON DSL v0）

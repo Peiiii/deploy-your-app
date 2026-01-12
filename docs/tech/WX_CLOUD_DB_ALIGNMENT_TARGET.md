@@ -20,7 +20,7 @@
 
 1) **提供 `wx.cloud` 风格 facade 作为主入口**：开发者写法优先对齐微信；底层仍可保留 `gemigo.cloud.db.*` 作为高级/原生接口。
 2) **系统字段用下划线前缀（与微信一致）**：`_id`、`_openid`、`_createTime/_updateTime` 等，避免和业务字段混淆。
-3) **权限/可见性必须服务端强制**：微信靠规则/权限配置；我们也必须在服务端实现等价能力（最小可行先做默认规则，逐步扩展）。
+3) **权限/可见性必须服务端强制**：微信靠规则/权限配置；我们也必须在服务端实现等价能力（默认走 Legacy Permission；公开/共享通过 Security Rules 模式配置）。
 4) **性能陷阱要“外观对齐、语义可控”**：例如 `skip(n)` 允许写，但内部不走真实 OFFSET，必须有上限/保护并引导 cursor 分页。
 
 ---
@@ -256,9 +256,9 @@ posts.doc(postId).update({
 
 我做出的决策：
 
-- V0 默认规则（已部分落地）：自己可读写全部；他人仅可读 `public`；
-- V1 增强：可配置到 collection 级的 read/write 策略（owner/public/role），并支持字段白名单；
-- V2：更完整的规则表达（必要时再做 DSL/表达式引擎）。
+- **默认不做任何平台预设逻辑**：平台不会因为看到 `visibility='public'` 就“猜测你要公开”，所有读写边界必须来自服务端强制的权限/规则配置。
+- **Legacy Permission（对齐微信基础权限）**：默认值为 `creator_read_write`（仅创建者可读写），并复刻“查询/批量操作隐式追加 `_openid == auth.openid`”的外部行为。
+- **Security Rules（对齐微信规则子集语义）**：以版本化 DSL 进行配置（`docs/tech/WX_CLOUD_DB_SECURITY_RULES_DSL_V0.md`），通过“规则模板”解决易用性，而不是硬编码平台预设。
 
 ---
 
@@ -307,7 +307,7 @@ posts.doc(postId).update({
 
 | 能力 | 微信 | 我们目标 | 当前状态 |
 |---|---|---|---|
-| 规则配置 | 控制台 rules | 服务端 rules | ⚠️ 已实现 legacy permissionMode（Admin API 配置）；Security Rules 仍待实现 |
+| 规则配置 | 控制台 rules | 服务端 rules | ⚠️ 已实现 Legacy Permission + Security Rules（JSON DSL v0，仍有能力限制） |
 
 ---
 

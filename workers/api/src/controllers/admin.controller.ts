@@ -5,14 +5,15 @@ import { getSessionIdFromRequest } from '../utils/auth';
 import { authRepository } from '../repositories/auth.repository';
 import { configService } from '../services/config.service';
 import { sdkCloudRepository, type CloudDbPermissionMode } from '../repositories/sdk-cloud.repository';
+import { parseSecurityRulesV0 } from '../utils/sdk-cloud-rules';
 import type { ApiWorkerEnv } from '../types/env';
 
 class AdminController {
-  private async requireAdmin(
+  private requireAdmin = async (
     request: Request,
     env: ApiWorkerEnv,
     db: D1Database,
-  ) {
+  ) => {
     const sessionId = getSessionIdFromRequest(request);
     if (!sessionId) {
       throw new UnauthorizedError('Admin access requires login.');
@@ -22,13 +23,13 @@ class AdminController {
       throw new UnauthorizedError('Admin access denied.');
     }
     return sessionWithUser.user;
-  }
+  };
 
-  async listProjects(
+  listProjects = async (
     request: Request,
     env: ApiWorkerEnv,
     db: D1Database,
-  ): Promise<Response> {
+  ): Promise<Response> => {
     await this.requireAdmin(request, env, db);
 
     const url = new URL(request.url);
@@ -48,14 +49,14 @@ class AdminController {
     });
 
     return jsonResponse(result);
-  }
+  };
 
-  async softDeleteProject(
+  softDeleteProject = async (
     request: Request,
     env: ApiWorkerEnv,
     db: D1Database,
     id: string,
-  ): Promise<Response> {
+  ): Promise<Response> => {
     await this.requireAdmin(request, env, db);
     const project = await projectService.getProjectByIdIncludingDeleted(db, id);
     if (!project) {
@@ -66,14 +67,14 @@ class AdminController {
       throw new NotFoundError('Project not found');
     }
     return new Response(null, { status: 204 });
-  }
+  };
 
-  async restoreProject(
+  restoreProject = async (
     request: Request,
     env: ApiWorkerEnv,
     db: D1Database,
     id: string,
-  ): Promise<Response> {
+  ): Promise<Response> => {
     await this.requireAdmin(request, env, db);
     const project = await projectService.getProjectByIdIncludingDeleted(db, id);
     if (!project) {
@@ -84,20 +85,19 @@ class AdminController {
       throw new NotFoundError('Project not found');
     }
     return new Response(null, { status: 204 });
-  }
+  };
 
-  private normalizeSlug(raw: string, label: string): string {
+  private normalizeSlug = (raw: string, label: string): string => {
     const value = String(raw ?? '').trim();
     if (!value) throw new ValidationError(`${label} is required`);
     if (value.length > 64) throw new ValidationError(`${label} is too long`);
     if (!/^[a-z0-9][a-z0-9-_]*$/.test(value)) throw new ValidationError(`${label} is invalid`);
     return value;
-  }
+  };
 
-  private normalizeDbPermissionMode(raw: unknown): CloudDbPermissionMode {
+  private normalizeDbPermissionMode = (raw: unknown): CloudDbPermissionMode => {
     const mode = typeof raw === 'string' ? raw.trim() : '';
     if (
-      mode === 'visibility_owner_or_public' ||
       mode === 'all_read_creator_write' ||
       mode === 'creator_read_write' ||
       mode === 'all_read_readonly' ||
@@ -106,15 +106,15 @@ class AdminController {
       return mode;
     }
     throw new ValidationError('invalid permission mode');
-  }
+  };
 
-  async getCloudDbCollectionPermission(
+  getCloudDbCollectionPermission = async (
     request: Request,
     env: ApiWorkerEnv,
     db: D1Database,
     appIdRaw: string,
     collectionRaw: string,
-  ): Promise<Response> {
+  ): Promise<Response> => {
     await this.requireAdmin(request, env, db);
     const appId = this.normalizeSlug(appIdRaw, 'appId');
     const collection = this.normalizeSlug(collectionRaw, 'collection');
@@ -122,18 +122,18 @@ class AdminController {
     return jsonResponse({
       appId,
       collection,
-      mode: row?.mode ?? 'visibility_owner_or_public',
+      mode: row?.mode ?? 'creator_read_write',
       updatedAt: row?.updatedAt ?? null,
     });
-  }
+  };
 
-  async setCloudDbCollectionPermission(
+  setCloudDbCollectionPermission = async (
     request: Request,
     env: ApiWorkerEnv,
     db: D1Database,
     appIdRaw: string,
     collectionRaw: string,
-  ): Promise<Response> {
+  ): Promise<Response> => {
     await this.requireAdmin(request, env, db);
     const appId = this.normalizeSlug(appIdRaw, 'appId');
     const collection = this.normalizeSlug(collectionRaw, 'collection');
@@ -146,7 +146,54 @@ class AdminController {
       updatedAt: Date.now(),
     });
     return jsonResponse(row);
-  }
+  };
+
+  getCloudDbCollectionSecurityRules = async (
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    appIdRaw: string,
+    collectionRaw: string,
+  ): Promise<Response> => {
+    await this.requireAdmin(request, env, db);
+    const appId = this.normalizeSlug(appIdRaw, 'appId');
+    const collection = this.normalizeSlug(collectionRaw, 'collection');
+    const row = await sdkCloudRepository.getDbCollectionSecurityRules(db, { appId, collection });
+    return jsonResponse({
+      appId,
+      collection,
+      rules: row ? (JSON.parse(row.rulesJson) as unknown) : null,
+      updatedAt: row?.updatedAt ?? null,
+    });
+  };
+
+  setCloudDbCollectionSecurityRules = async (
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    appIdRaw: string,
+    collectionRaw: string,
+  ): Promise<Response> => {
+    await this.requireAdmin(request, env, db);
+    const appId = this.normalizeSlug(appIdRaw, 'appId');
+    const collection = this.normalizeSlug(collectionRaw, 'collection');
+    const body = (await readJson(request)) as { rules?: unknown };
+    const rules = parseSecurityRulesV0(body?.rules);
+    const rulesJson = JSON.stringify(rules);
+    if (rulesJson.length > 32 * 1024) throw new ValidationError('rules too large');
+    const row = await sdkCloudRepository.setDbCollectionSecurityRules(db, {
+      appId,
+      collection,
+      rulesJson,
+      updatedAt: Date.now(),
+    });
+    return jsonResponse({
+      appId: row.appId,
+      collection: row.collection,
+      rules,
+      updatedAt: row.updatedAt,
+    });
+  };
 }
 
 export const adminController = new AdminController();

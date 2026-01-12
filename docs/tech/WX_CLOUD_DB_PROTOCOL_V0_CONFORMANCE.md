@@ -26,7 +26,7 @@
 | `startAfter(cursor)` | 扩展（cursor-first） | ✅ | `get()` 返回 `_meta.nextCursor` |
 | `doc.get/set/update/remove` | 必须 | ⚠️ | `update` 已支持 `inc/set/remove`；整体仍是“单行读改写”（非多文档事务） |
 | `collection.count()` | 必须 | ✅ | `where().count()` 已实现 |
-| `collection.update/remove`（批量） | 必须 | ⚠️ | `where().update/remove` 已实现；当前仅 owner 生效，且缺 rules 子集校验 |
+| `collection.update/remove`（批量） | 必须 | ⚠️ | `where().update/remove` 已实现；Legacy 下等价隐式 `_openid==auth.openid`；Security Rules 下做规则子集校验 + 逐文档评估（v0 规则能力仍有限） |
 
 ---
 
@@ -44,9 +44,9 @@
 
 | 能力 | 协议要求 | 状态 | 备注 |
 |---|---|---:|---|
-| Legacy Permission 四种模式 | 必须 | ⚠️ | 已实现 collection 级 `permissionMode`（含 4 种 legacy + 1 种平台扩展），通过 Admin API 配置 |
+| Legacy Permission 四种模式 | 必须 | ✅ | collection 级 `permissionMode`（仅 4 种 legacy），通过 Admin API 配置 |
 | Legacy “隐式追加 _openid 条件” | 必须 | ⚠️ | `creator_read_write` 模式下读侧/写侧均会隐式限制为 owner |
-| Security Rules（规则子集语义） | 必须 | ⚠️ | `visibility_owner_or_public` 模式下已要求 query/count 显式包含 owner/public 分支（避免静默过滤）；完整规则 DSL 仍待实现 |
+| Security Rules（规则子集语义） | 必须 | ⚠️ | 已支持 v0 JSON rules（仅 `anyOf/allOf` + `==` + `auth.openid`）；query/count/update/remove 做子集校验并服务端强制 |
 
 ---
 

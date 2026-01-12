@@ -39,7 +39,6 @@ export interface CloudDbDocRow {
 }
 
 export type CloudDbPermissionMode =
-  | 'visibility_owner_or_public'
   | 'all_read_creator_write'
   | 'creator_read_write'
   | 'all_read_readonly'
@@ -49,6 +48,13 @@ export interface CloudDbCollectionPermissionRow {
   appId: string;
   collection: string;
   mode: CloudDbPermissionMode;
+  updatedAt: number;
+}
+
+export interface CloudDbCollectionSecurityRulesRow {
+  appId: string;
+  collection: string;
+  rulesJson: string;
   updatedAt: number;
 }
 
@@ -70,11 +76,6 @@ export interface CloudDbQueryCursor {
   v: unknown;
   id: string;
 }
-
-export type CloudDbReadPolicy =
-  | { kind: 'all' }
-  | { kind: 'owner_only'; ownerId: string }
-  | { kind: 'owner_or_public'; ownerId: string };
 
 export class SdkCloudRepository {
   private async ensureSchema(db: D1Database): Promise<void> {
@@ -127,6 +128,18 @@ export class SdkCloudRepository {
           app_id TEXT NOT NULL,
           collection TEXT NOT NULL,
           mode TEXT NOT NULL,
+          updated_at INTEGER NOT NULL,
+          PRIMARY KEY (app_id, collection)
+        )`,
+      )
+      .run();
+
+    await db
+      .prepare(
+        `CREATE TABLE IF NOT EXISTS sdk_db_collection_security_rules (
+          app_id TEXT NOT NULL,
+          collection TEXT NOT NULL,
+          rules_json TEXT NOT NULL,
           updated_at INTEGER NOT NULL,
           PRIMARY KEY (app_id, collection)
         )`,
@@ -566,6 +579,53 @@ export class SdkCloudRepository {
     };
   }
 
+  async getDbCollectionSecurityRules(
+    db: D1Database,
+    input: { appId: string; collection: string },
+  ): Promise<CloudDbCollectionSecurityRulesRow | null> {
+    await this.ensureSchema(db);
+    const row = await db
+      .prepare(
+        `SELECT * FROM sdk_db_collection_security_rules
+         WHERE app_id = ? AND collection = ?
+         LIMIT 1`,
+      )
+      .bind(input.appId, input.collection)
+      .first<AnyRow>();
+    if (!row) return null;
+    return {
+      appId: asString(row.app_id),
+      collection: asString(row.collection),
+      rulesJson: asString(row.rules_json),
+      updatedAt: asNumber(row.updated_at),
+    };
+  }
+
+  async setDbCollectionSecurityRules(
+    db: D1Database,
+    input: { appId: string; collection: string; rulesJson: string; updatedAt: number },
+  ): Promise<CloudDbCollectionSecurityRulesRow> {
+    await this.ensureSchema(db);
+    const row = await db
+      .prepare(
+        `INSERT INTO sdk_db_collection_security_rules (app_id, collection, rules_json, updated_at)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(app_id, collection) DO UPDATE SET
+           rules_json = excluded.rules_json,
+           updated_at = excluded.updated_at
+         RETURNING *`,
+      )
+      .bind(input.appId, input.collection, input.rulesJson, input.updatedAt)
+      .first<AnyRow>();
+    if (!row) throw new Error('Failed to persist security rules.');
+    return {
+      appId: asString(row.app_id),
+      collection: asString(row.collection),
+      rulesJson: asString(row.rules_json),
+      updatedAt: asNumber(row.updated_at),
+    };
+  }
+
   private buildJsonPath(field: string): string {
     const trimmed = field.trim();
     if (!trimmed) throw new Error('field is required');
@@ -639,7 +699,6 @@ export class SdkCloudRepository {
       orderBy: CloudDbOrderBy;
       limit: number;
       cursor: { field: string; direction: 'asc' | 'desc'; isNull: 0 | 1; v: unknown; id: string } | null;
-      readPolicy: CloudDbReadPolicy;
     },
   ): Promise<{ items: CloudDbDocRow[]; nextCursor: CloudDbQueryCursor | null }> {
     await this.ensureSchema(db);
@@ -649,15 +708,6 @@ export class SdkCloudRepository {
       collection: input.collection,
       conditions: input.conditions,
     });
-
-    if (input.readPolicy.kind === 'owner_only') {
-      clauses.push('owner_id = ?');
-      params.push(input.readPolicy.ownerId);
-    }
-    if (input.readPolicy.kind === 'owner_or_public') {
-      clauses.push('(owner_id = ? OR LOWER(visibility) = ?)');
-      params.push(input.readPolicy.ownerId, 'public');
-    }
 
     const whereSql = `WHERE ${clauses.join(' AND ')}`;
     const { expr: orderExpr } = this.resolveDbFieldExpr(input.orderBy.field);
@@ -728,7 +778,7 @@ export class SdkCloudRepository {
 
   async countDbDocs(
     db: D1Database,
-    input: { appId: string; collection: string; conditions: CloudDbCondition[]; readPolicy: CloudDbReadPolicy },
+    input: { appId: string; collection: string; conditions: CloudDbCondition[] },
   ): Promise<number> {
     await this.ensureSchema(db);
     const { clauses, params } = this.buildWhereSql({
@@ -736,15 +786,6 @@ export class SdkCloudRepository {
       collection: input.collection,
       conditions: input.conditions,
     });
-
-    if (input.readPolicy.kind === 'owner_only') {
-      clauses.push('owner_id = ?');
-      params.push(input.readPolicy.ownerId);
-    }
-    if (input.readPolicy.kind === 'owner_or_public') {
-      clauses.push('(owner_id = ? OR LOWER(visibility) = ?)');
-      params.push(input.readPolicy.ownerId, 'public');
-    }
 
     const whereSql = `WHERE ${clauses.join(' AND ')}`;
     const row = await db
@@ -775,6 +816,43 @@ export class SdkCloudRepository {
       .run();
     return asNumber(res?.meta?.changes);
   }
+
+  listDbDocs = async (
+    db: D1Database,
+    input: {
+      appId: string;
+      collection: string;
+      conditions: CloudDbCondition[];
+      limit: number;
+    },
+  ): Promise<CloudDbDocRow[]> => {
+    await this.ensureSchema(db);
+    const { clauses, params } = this.buildWhereSql({
+      appId: input.appId,
+      collection: input.collection,
+      conditions: input.conditions,
+    });
+
+    const whereSql = `WHERE ${clauses.join(' AND ')}`;
+    const rows = await db
+      .prepare(`SELECT * FROM sdk_db_docs ${whereSql} LIMIT ?`)
+      .bind(...params, input.limit)
+      .all<AnyRow>();
+
+    return (rows.results ?? []).map((row) => ({
+      appId: asString(row.app_id),
+      collection: asString(row.collection),
+      id: asString(row.id),
+      ownerId: asString(row.owner_id),
+      visibility: asString(row.visibility),
+      refType: row.ref_type === null ? null : asString(row.ref_type),
+      refId: row.ref_id === null ? null : asString(row.ref_id),
+      dataJson: asString(row.data_json),
+      createdAt: asNumber(row.created_at),
+      updatedAt: asNumber(row.updated_at),
+      etag: asString(row.etag),
+    }));
+  };
 
   listDbDocsForOwner = async (
     db: D1Database,

@@ -111,11 +111,9 @@
 - **返回**: `CloudDbCollection`
 - **说明**: 集合/文档模型（对齐 `db.collection` 心智）。
 
-> 读取隔离：默认 `permissionMode=visibility_owner_or_public`：
-> - 服务端强制只允许读取“自己是 owner 的文档”和“`visibility=public` 的文档”；
-> - 为了避免“静默过滤导致行为不透明”，query/count 还要求你**显式写出 owner/public 分支**（例如 `where visibility='public'`，或按 `_id` 精确查询）。
-
-> 说明：该行为由 collection 级 `permissionMode` 控制；当前默认值为 `visibility_owner_or_public`，平台管理员可按需调整为更接近微信的 legacy 权限模式。
+> 权限说明（对齐微信演进）：
+> - 默认 legacy：`permissionMode=creator_read_write`（仅创建者可读写），服务端会对 query/count **隐式追加** `_openid == auth.openid`。
+> - 若启用 Security Rules：服务端按规则强制，并要求 query/count/update/remove 的条件是规则的子集（不会“静默过滤”）。
 
 #### `CloudDbCollection.add(data, options?)`
 - **参数**:
@@ -164,6 +162,8 @@ const _ = db.command;
 const posts = db.collection('posts');
 const feed = await posts.where({ visibility: _.eq('public') }).orderBy('createdAt', 'desc').limit(20).get();
 ```
+
+> 注意：默认权限为 `creator_read_write`（仅创建者可读写）。若要实现“公开可读”的 feed，需要为该 collection 配置 Security Rules（例如 `docs/tech/WX_CLOUD_DB_SECURITY_RULES_DSL_V0.md` 的模板）。
 
 #### `WxCloudDatabase.serverDate(options?)`（小程序风格）🆕
 - **说明**: 对齐 `db.serverDate()`；用于把字段值设置为服务端时间（避免客户端时钟不准）。
