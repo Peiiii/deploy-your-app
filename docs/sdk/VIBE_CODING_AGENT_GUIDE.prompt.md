@@ -3,6 +3,9 @@
 > 本文档供 AI Coding Agent（如 Cursor、Windsurf、Claude、Cline 等）使用。  
 > 用户可将本文档复制给 AI Agent，帮助其快速理解 GemiGo 平台并开发可部署的应用。
 
+> 如果你要开发“第三方应用接入 App SDK（Auth + DB）”，请优先阅读：
+> - `docs/sdk/APP_SDK_THIRD_PARTY_AGENT_GUIDE.md`
+
 ---
 
 ## 🌐 平台简介

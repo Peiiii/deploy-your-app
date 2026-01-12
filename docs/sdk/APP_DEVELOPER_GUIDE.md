@@ -20,6 +20,8 @@
 
 > 🔍 需要查看 API 详情？请查阅 [API 参考文档](./APP_SDK_API.md)
 
+> 🤖 第三方应用接入（Auth + DB，Agent 友好）：请查阅 [APP_SDK_THIRD_PARTY_AGENT_GUIDE](./APP_SDK_THIRD_PARTY_AGENT_GUIDE.md)
+
 ---
 
 ## <a id="简介"></a>1. 简介
