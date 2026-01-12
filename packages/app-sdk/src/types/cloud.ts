@@ -33,9 +33,6 @@ export interface CloudKvAPI {
 export interface CloudDbDoc<T = unknown> {
   id: string;
   ownerId: string;
-  visibility: CloudVisibility;
-  refType: string | null;
-  refId: string | null;
   data: T;
   createdAt: number;
   updatedAt: number;
@@ -45,9 +42,9 @@ export interface CloudDbDoc<T = unknown> {
 export type CloudDbWhereOp = '==';
 
 export interface CloudDbWhere {
-  field: 'ownerId' | 'visibility' | 'refType' | 'refId';
+  field: string;
   op: CloudDbWhereOp;
-  value: string;
+  value: unknown;
 }
 
 export interface CloudDbQueryInput {
@@ -66,14 +63,14 @@ export interface CloudDbDocumentRef<T = unknown> {
   get(): Promise<CloudDbDoc<T>>;
   set(
     data: T,
-    options?: { ifMatch?: string; visibility?: CloudVisibility; refType?: string; refId?: string },
+    options?: { ifMatch?: string },
   ): Promise<CloudDbDoc<T>>;
   update(patch: Partial<T>, options?: { ifMatch?: string }): Promise<CloudDbDoc<T>>;
   delete(): Promise<void>;
 }
 
 export interface CloudDbQueryBuilder<T = unknown> {
-  where(field: CloudDbWhere['field'], op: CloudDbWhereOp, value: string): CloudDbQueryBuilder<T>;
+  where(field: string, op: CloudDbWhereOp, value: unknown): CloudDbQueryBuilder<T>;
   orderBy(field: 'createdAt' | 'updatedAt', direction?: 'asc' | 'desc'): CloudDbQueryBuilder<T>;
   limit(n: number): CloudDbQueryBuilder<T>;
   startAfter(cursor: string): CloudDbQueryBuilder<T>;
@@ -83,7 +80,7 @@ export interface CloudDbQueryBuilder<T = unknown> {
 export interface CloudDbCollection<T = unknown> {
   add(
     data: T,
-    options?: { id?: string; visibility?: CloudVisibility; refType?: string; refId?: string },
+    options?: { id?: string },
   ): Promise<CloudDbDoc<T>>;
   doc(id: string): CloudDbDocumentRef<T>;
   query(): CloudDbQueryBuilder<T>;

@@ -119,7 +119,7 @@ class WebCloudDbQueryBuilder<T> implements CloudDbQueryBuilder<T> {
     };
   }
 
-  where(field: 'ownerId' | 'visibility' | 'refType' | 'refId', op: CloudDbWhereOp, value: string) {
+  where(field: string, op: CloudDbWhereOp, value: unknown) {
     return new WebCloudDbQueryBuilder<T>(this.collectionName, {
       ...this.state,
       where: [...this.state.where, { field, op, value }],
@@ -166,16 +166,13 @@ class WebCloudDbCollection<T> implements CloudDbCollection<T> {
 
   async add(
     data: T,
-    options?: { id?: string; visibility?: CloudVisibility; refType?: string; refId?: string },
+    options?: { id?: string },
   ): Promise<CloudDbDoc<T>> {
     return fetchJson(`/cloud/db/collections/${encodeURIComponent(this.name)}/docs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id: options?.id,
-        visibility: options?.visibility,
-        refType: options?.refType,
-        refId: options?.refId,
         data,
       }),
     });
@@ -190,7 +187,7 @@ class WebCloudDbCollection<T> implements CloudDbCollection<T> {
         ),
       set: async (
         data: T,
-        options?: { ifMatch?: string; visibility?: CloudVisibility; refType?: string; refId?: string },
+        options?: { ifMatch?: string },
       ) =>
         fetchJson<CloudDbDoc<T>>(
           `/cloud/db/collections/${encodeURIComponent(collection)}/docs/${encodeURIComponent(id)}`,
@@ -200,9 +197,6 @@ class WebCloudDbCollection<T> implements CloudDbCollection<T> {
             body: JSON.stringify({
               data,
               ifMatch: options?.ifMatch,
-              visibility: options?.visibility,
-              refType: options?.refType,
-              refId: options?.refId,
             }),
           },
         ),
@@ -236,6 +230,33 @@ function toWxDoc<TData>(doc: CloudDbDoc<TData>): TData & { _id: string; _openid:
   const data = (doc.data && typeof doc.data === 'object' && !Array.isArray(doc.data) ? doc.data : {}) as TData;
   // Force system fields to match platform truth (prevent user spoofing).
   return { ...(data as any), _id: doc.id, _openid: doc.ownerId };
+}
+
+function isWxInternalSentinel(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const rec = value as Record<string, unknown>;
+  return typeof rec.__gemigoWxCmd === 'string' || rec.__gemigoWxType === 'serverDate';
+}
+
+function assertNoWxSystemFields(value: unknown, input: { allowId: boolean }): void {
+  if (!value || typeof value !== 'object') return;
+  if (Array.isArray(value)) {
+    for (const item of value) assertNoWxSystemFields(item, input);
+    return;
+  }
+  if (isWxInternalSentinel(value)) return;
+
+  const obj = value as Record<string, unknown>;
+  for (const [k, v] of Object.entries(obj)) {
+    if (k.startsWith('_')) {
+      if (input.allowId && k === '_id') {
+        // Allowed only for add({data:{_id}}) where it maps to doc id.
+      } else {
+        throw new SDKError('PERMISSION_DENIED', `Cannot write system field ${k}`);
+      }
+    }
+    assertNoWxSystemFields(v, input);
+  }
 }
 
 function createWxCommand(): WxCloudCommand {
@@ -436,11 +457,7 @@ function createWxDatabase(): WxCloudDatabase {
         ...baseQuery,
         add: async (input: { data: TData }): Promise<WxCloudAddResult> => {
           const raw = input?.data as any;
-          if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
-            if ('_openid' in raw) {
-              throw new SDKError('PERMISSION_DENIED', 'Cannot write system field _openid');
-            }
-          }
+          assertNoWxSystemFields(raw, { allowId: true });
           const idFromData = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw._id : undefined;
           const dataSansId = raw && typeof raw === 'object' && !Array.isArray(raw) ? { ...raw } : raw;
           if (dataSansId && typeof dataSansId === 'object' && !Array.isArray(dataSansId)) {
@@ -461,11 +478,7 @@ function createWxDatabase(): WxCloudDatabase {
             },
             set: async (input: { data: TData }) => {
               const raw = input?.data as any;
-              if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
-                if ('_openid' in raw) {
-                  throw new SDKError('PERMISSION_DENIED', 'Cannot write system field _openid');
-                }
-              }
+              assertNoWxSystemFields(raw, { allowId: false });
               await ref.set(input?.data as TData);
             },
             update: async (input: { data: Partial<TData> }) => {
@@ -473,9 +486,7 @@ function createWxDatabase(): WxCloudDatabase {
               if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
                 throw new SDKError('INTERNAL_ERROR', 'update({data}) must be an object');
               }
-              if ('_openid' in (patch as any)) {
-                throw new SDKError('PERMISSION_DENIED', 'Cannot write system field _openid');
-              }
+              assertNoWxSystemFields(patch, { allowId: false });
               // Support wx-style update commands (inc/set/remove) server-side.
               await ref.update(patch as Partial<TData>);
             },

@@ -120,8 +120,14 @@
         }
         const posts = gemigo.cloud.db.collection('posts');
         const created = await posts.add(
-          { title: 'Hello Gemigo Cloud', body: 'First post', at: Date.now() },
-          { visibility: 'public', refType: 'demo', refId: 'sdk-auth-demo' },
+          {
+            title: 'Hello Gemigo Cloud',
+            body: 'First post',
+            at: Date.now(),
+            visibility: 'public',
+            refType: 'demo',
+            refId: 'sdk-auth-demo',
+          },
         );
         log('cloud.db.posts.add', created);
         const query = await posts

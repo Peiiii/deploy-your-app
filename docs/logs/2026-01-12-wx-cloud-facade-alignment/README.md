@@ -24,9 +24,11 @@
 - `workers/api/src/repositories/sdk-cloud.repository.ts`
   - 支持系统字段映射：`_id <-> id`、`_openid <-> owner_id`；
   - 支持稳定 cursor（与 `orderBy` 绑定，使用 `(orderValue, id)` 做 tie-break），并在服务端编码成不透明 cursor。
+  - 协议对齐（B 方案）：`visibility/refType/refId` 不再作为平台字段；历史列数据会一次性迁移进 `data_json`（业务字段）。
 - `workers/api/src/services/sdk-cloud.service.ts`
   - Legacy Permission 默认值为 `creator_read_write`（对齐微信的“仅创建者可读写”心智），并实现隐式追加 `_openid == auth.openid`（读/写侧）；
   - Security Rules 模式下，服务端执行规则子集校验（query/count/update/remove）与逐文档评估（doc.get/write）。
+  - 协议对齐：服务端禁止写入除 `_id` 外的任何下划线字段（`_openid` 由平台注入），避免与系统字段语义冲突。
 
 影响（行为变更）：
 
@@ -152,7 +154,7 @@ pnpm release:sdk
 ### 本次发布信息
 
 - Worker URL：`https://gemigo-api.15353764479037.workers.dev`
-- Worker Version ID：`25ee5284-2528-44db-b818-3cfd5a957570`
+- Worker Version ID：`c0a8e571-3c58-470a-896f-06268b4b1d80`
 
 ### 如何验证（线上）
 

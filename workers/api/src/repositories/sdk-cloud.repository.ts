@@ -1,5 +1,3 @@
-import type { CloudVisibility } from '../types/sdk-cloud';
-
 let sdkCloudSchemaEnsured = false;
 
 type AnyRow = Record<string, unknown>;
@@ -29,9 +27,6 @@ export interface CloudDbDocRow {
   collection: string;
   id: string;
   ownerId: string;
-  visibility: CloudVisibility;
-  refType: string | null;
-  refId: string | null;
   dataJson: string;
   createdAt: number;
   updatedAt: number;
@@ -78,7 +73,7 @@ export interface CloudDbQueryCursor {
 }
 
 export class SdkCloudRepository {
-  private async ensureSchema(db: D1Database): Promise<void> {
+  private ensureSchema = async (db: D1Database): Promise<void> => {
     if (sdkCloudSchemaEnsured) return;
 
     await db
@@ -118,6 +113,16 @@ export class SdkCloudRepository {
           updated_at INTEGER NOT NULL,
           etag TEXT NOT NULL,
           PRIMARY KEY (app_id, collection, id)
+        )`,
+      )
+      .run();
+
+    await db
+      .prepare(
+        `CREATE TABLE IF NOT EXISTS sdk_db_meta (
+          key TEXT NOT NULL,
+          updated_at INTEGER NOT NULL,
+          PRIMARY KEY (key)
         )`,
       )
       .run();
@@ -188,8 +193,34 @@ export class SdkCloudRepository {
       )
       .run();
 
+    // End-state alignment: `visibility/refType/refId` are NOT platform fields, only business fields in `data_json`.
+    // One-time migration: backfill old rows that stored them in columns.
+    const migrationKey = 'migrate_sdk_db_docs_columns_into_data_v1';
+    const migrationRow = await db
+      .prepare(`SELECT key FROM sdk_db_meta WHERE key = ? LIMIT 1`)
+      .bind(migrationKey)
+      .first<AnyRow>();
+    if (!migrationRow) {
+      await db
+        .prepare(
+          `UPDATE sdk_db_docs
+           SET data_json = json_insert(
+             data_json,
+             '$.visibility', visibility,
+             '$.refType', ref_type,
+             '$.refId', ref_id
+           )
+           WHERE
+             (json_extract(data_json, '$.visibility') IS NULL AND visibility IS NOT NULL AND visibility <> '')
+             OR (json_extract(data_json, '$.refType') IS NULL AND ref_type IS NOT NULL AND ref_type <> '')
+             OR (json_extract(data_json, '$.refId') IS NULL AND ref_id IS NOT NULL AND ref_id <> '')`,
+        )
+        .run();
+      await db.prepare(`INSERT INTO sdk_db_meta (key, updated_at) VALUES (?, ?)`).bind(migrationKey, Date.now()).run();
+    }
+
     sdkCloudSchemaEnsured = true;
-  }
+  };
 
   // -----------------
   // Cloud KV
@@ -349,9 +380,9 @@ export class SdkCloudRepository {
         input.collection,
         input.id,
         input.ownerId,
-        input.visibility,
-        input.refType,
-        input.refId,
+        '',
+        null,
+        null,
         input.dataJson,
         input.createdAt,
         input.updatedAt,
@@ -365,9 +396,6 @@ export class SdkCloudRepository {
       collection: asString(row.collection),
       id: asString(row.id),
       ownerId: asString(row.owner_id),
-      visibility: asString(row.visibility),
-      refType: row.ref_type === null ? null : asString(row.ref_type),
-      refId: row.ref_id === null ? null : asString(row.ref_id),
       dataJson: asString(row.data_json),
       createdAt: asNumber(row.created_at),
       updatedAt: asNumber(row.updated_at),
@@ -394,9 +422,6 @@ export class SdkCloudRepository {
       collection: asString(row.collection),
       id: asString(row.id),
       ownerId: asString(row.owner_id),
-      visibility: asString(row.visibility),
-      refType: row.ref_type === null ? null : asString(row.ref_type),
-      refId: row.ref_id === null ? null : asString(row.ref_id),
       dataJson: asString(row.data_json),
       createdAt: asNumber(row.created_at),
       updatedAt: asNumber(row.updated_at),
@@ -410,9 +435,6 @@ export class SdkCloudRepository {
       appId: string;
       collection: string;
       id: string;
-      visibility: CloudVisibility;
-      refType: string | null;
-      refId: string | null;
       dataJson: string;
       updatedAt: number;
       etag: string;
@@ -422,14 +444,11 @@ export class SdkCloudRepository {
     const row = await db
       .prepare(
         `UPDATE sdk_db_docs
-         SET visibility = ?, ref_type = ?, ref_id = ?, data_json = ?, updated_at = ?, etag = ?
+         SET data_json = ?, updated_at = ?, etag = ?
          WHERE app_id = ? AND collection = ? AND id = ?
          RETURNING *`,
       )
       .bind(
-        input.visibility,
-        input.refType,
-        input.refId,
         input.dataJson,
         input.updatedAt,
         input.etag,
@@ -445,9 +464,6 @@ export class SdkCloudRepository {
       collection: asString(row.collection),
       id: asString(row.id),
       ownerId: asString(row.owner_id),
-      visibility: asString(row.visibility),
-      refType: row.ref_type === null ? null : asString(row.ref_type),
-      refId: row.ref_id === null ? null : asString(row.ref_id),
       dataJson: asString(row.data_json),
       createdAt: asNumber(row.created_at),
       updatedAt: asNumber(row.updated_at),
@@ -462,9 +478,6 @@ export class SdkCloudRepository {
       collection: string;
       id: string;
       ownerId: string;
-      visibility: CloudVisibility;
-      refType: string | null;
-      refId: string | null;
       dataJson: string;
       createdAt: number;
       updatedAt: number;
@@ -479,9 +492,6 @@ export class SdkCloudRepository {
           data_json, created_at, updated_at, etag
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(app_id, collection, id) DO UPDATE SET
-          visibility = excluded.visibility,
-          ref_type = excluded.ref_type,
-          ref_id = excluded.ref_id,
           data_json = excluded.data_json,
           updated_at = excluded.updated_at,
           etag = excluded.etag
@@ -492,9 +502,9 @@ export class SdkCloudRepository {
         input.collection,
         input.id,
         input.ownerId,
-        input.visibility,
-        input.refType,
-        input.refId,
+        '',
+        null,
+        null,
         input.dataJson,
         input.createdAt,
         input.updatedAt,
@@ -508,9 +518,6 @@ export class SdkCloudRepository {
       collection: asString(row.collection),
       id: asString(row.id),
       ownerId: asString(row.owner_id),
-      visibility: asString(row.visibility),
-      refType: row.ref_type === null ? null : asString(row.ref_type),
-      refId: row.ref_id === null ? null : asString(row.ref_id),
       dataJson: asString(row.data_json),
       createdAt: asNumber(row.created_at),
       updatedAt: asNumber(row.updated_at),
@@ -643,9 +650,6 @@ export class SdkCloudRepository {
     if (f === '_openid' || f === 'ownerId') return { expr: 'owner_id', kind: 'column' };
     if (f === 'createdAt') return { expr: 'created_at', kind: 'column' };
     if (f === 'updatedAt') return { expr: 'updated_at', kind: 'column' };
-    if (f === 'visibility') return { expr: 'visibility', kind: 'column' };
-    if (f === 'refType') return { expr: 'ref_type', kind: 'column' };
-    if (f === 'refId') return { expr: 'ref_id', kind: 'column' };
     const path = this.buildJsonPath(f);
     return { expr: `json_extract(data_json, '${path}')`, kind: 'data' };
   }
@@ -753,9 +757,6 @@ export class SdkCloudRepository {
         collection: asString(row.collection),
         id: asString(row.id),
         ownerId: asString(row.owner_id),
-        visibility: asString(row.visibility),
-        refType: row.ref_type === null ? null : asString(row.ref_type),
-        refId: row.ref_id === null ? null : asString(row.ref_id),
         dataJson: asString(row.data_json),
         createdAt: asNumber(row.created_at),
         updatedAt: asNumber(row.updated_at),
@@ -844,9 +845,6 @@ export class SdkCloudRepository {
       collection: asString(row.collection),
       id: asString(row.id),
       ownerId: asString(row.owner_id),
-      visibility: asString(row.visibility),
-      refType: row.ref_type === null ? null : asString(row.ref_type),
-      refId: row.ref_id === null ? null : asString(row.ref_id),
       dataJson: asString(row.data_json),
       createdAt: asNumber(row.created_at),
       updatedAt: asNumber(row.updated_at),
@@ -884,9 +882,6 @@ export class SdkCloudRepository {
       collection: asString(row.collection),
       id: asString(row.id),
       ownerId: asString(row.owner_id),
-      visibility: asString(row.visibility),
-      refType: row.ref_type === null ? null : asString(row.ref_type),
-      refId: row.ref_id === null ? null : asString(row.ref_id),
       dataJson: asString(row.data_json),
       createdAt: asNumber(row.created_at),
       updatedAt: asNumber(row.updated_at),

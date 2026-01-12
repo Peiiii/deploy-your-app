@@ -118,7 +118,7 @@
 #### `CloudDbCollection.add(data, options?)`
 - **参数**:
   - `data: any`
-  - `options?: { id?: string; visibility?: 'private'|'public'; refType?: string; refId?: string }`
+  - `options?: { id?: string }`
 - **返回**: `Promise<CloudDbDoc>`
 
 #### `CloudDbCollection.doc(id)`
@@ -131,7 +131,7 @@
 - **说明**: Upsert（不存在则创建，存在则覆盖数据）。适合“用户资料/profile”这类固定 id 的文档。
 - **参数**:
   - `data: any`
-  - `options?: { ifMatch?: string; visibility?: 'private'|'public'; refType?: string; refId?: string }`
+  - `options?: { ifMatch?: string }`
 - **返回**: `Promise<CloudDbDoc>`
 
 #### `CloudDbDocumentRef.update(patch, options?)`

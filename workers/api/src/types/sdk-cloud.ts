@@ -21,9 +21,6 @@ export interface CloudDbQueryInput {
 export interface CloudDbDocResponse {
   id: string;
   ownerId: string;
-  visibility: CloudVisibility;
-  refType: string | null;
-  refId: string | null;
   data: unknown;
   createdAt: number;
   updatedAt: number;
@@ -32,24 +29,15 @@ export interface CloudDbDocResponse {
 
 export interface CloudDbCreateDocInput {
   id?: unknown;
-  visibility?: unknown;
-  refType?: unknown;
-  refId?: unknown;
   data?: unknown;
 }
 
 export interface CloudDbUpdateDocInput {
-  visibility?: unknown;
-  refType?: unknown;
-  refId?: unknown;
   patch?: unknown;
   ifMatch?: unknown;
 }
 
 export interface CloudDbSetDocInput {
-  visibility?: unknown;
-  refType?: unknown;
-  refId?: unknown;
   data?: unknown;
   ifMatch?: unknown;
 }

@@ -99,7 +99,7 @@ const theme = await gemigo.cloud.kv.get('settings/theme');
 
 ```js
 const posts = gemigo.cloud.db.collection('posts');
-await posts.add({ title: 'Hello', body: 'First post' }, { visibility: 'public' });
+await posts.add({ title: 'Hello', body: 'First post', visibility: 'public' });
 const feed = await posts.query().where('visibility', '==', 'public').orderBy('createdAt', 'desc').limit(20).get();
 ```
 

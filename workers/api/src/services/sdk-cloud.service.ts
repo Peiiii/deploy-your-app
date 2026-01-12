@@ -120,15 +120,16 @@ function stripWxSystemFields(
   if (depth > 50) return null;
   if (!value || typeof value !== 'object') return value;
   if (Array.isArray(value)) return value.map((v) => stripWxSystemFields(v, mode, depth + 1));
+  if (isWxCommandExpr(value) || isWxServerDateSentinel(value)) return value;
 
   const obj = value as Record<string, unknown>;
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(obj)) {
-    if (k === '_openid') {
-      if (mode === 'strict') throw new ValidationError('cannot_write_system_field:_openid');
+    if (k.startsWith('_')) {
+      if (k === '_id') continue;
+      if (mode === 'strict') throw new ValidationError(`cannot_write_system_field:${k}`);
       continue;
     }
-    if (k === '_id') continue;
     out[k] = stripWxSystemFields(v, mode, depth + 1);
   }
   return out;
@@ -174,7 +175,11 @@ function normalizeOptionalString(raw: unknown, field: string, maxLen: number): s
 
 function requireDocId(raw: unknown): string {
   if (raw === undefined || raw === null) return crypto.randomUUID();
-  if (typeof raw !== 'string') throw new ValidationError('id must be a string');
+  if (typeof raw === 'number') {
+    if (!Number.isFinite(raw) || !Number.isInteger(raw)) throw new ValidationError('id must be a string or integer');
+    raw = String(raw);
+  }
+  if (typeof raw !== 'string') throw new ValidationError('id must be a string or integer');
   const id = raw.trim();
   if (!id) throw new ValidationError('id cannot be empty');
   if (id.length > 64) throw new ValidationError('id is too long');
@@ -852,11 +857,11 @@ export class SdkCloudService {
     requireScope(ctx.scopes, 'db:rw');
 
     const collection = requireCollection(collectionRaw);
-    const id = requireDocId(input.id);
-    const visibility = normalizeVisibility(input.visibility);
-    const refType = normalizeOptionalString(input.refType, 'refType', 64);
-    const refId = normalizeOptionalString(input.refId, 'refId', 128);
-    const sanitized = stripWxSystemFields(materializeWxSentinels(input.data ?? {}), 'strict');
+    const rawData = input.data ?? {};
+    const idFromData =
+      rawData && typeof rawData === 'object' && !Array.isArray(rawData) ? (rawData as Record<string, unknown>)['_id'] : undefined;
+    const id = requireDocId(input.id ?? idFromData);
+    const sanitized = stripWxSystemFields(materializeWxSentinels(rawData), 'strict');
     const dataJson = JSON.stringify(sanitized ?? {});
 
     const bytes = new TextEncoder().encode(dataJson).byteLength;
@@ -869,9 +874,6 @@ export class SdkCloudService {
           ...asObject(sanitized),
           _id: id,
           _openid: ctx.appUserId,
-          visibility,
-          refType,
-          refId,
         };
         if (!evalRulesForDoc(rules, 'write', docForRules, { appUserId: ctx.appUserId })) {
           throw new UnauthorizedError('forbidden');
@@ -888,9 +890,6 @@ export class SdkCloudService {
         collection,
         id,
         ownerId: ctx.appUserId,
-        visibility,
-        refType,
-        refId,
         dataJson,
         createdAt: now,
         updatedAt: now,
@@ -900,9 +899,6 @@ export class SdkCloudService {
       const result = {
         id: row.id,
         ownerId: row.ownerId,
-        visibility: row.visibility,
-        refType: row.refType,
-        refId: row.refId,
         data: parseJson(row.dataJson),
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
@@ -915,9 +911,6 @@ export class SdkCloudService {
         appUserId: ctx.appUserId,
         collection,
         id,
-        visibility,
-        refType,
-        refId,
         bytes,
         ms: Date.now() - startedAt,
       });
@@ -959,9 +952,6 @@ export class SdkCloudService {
           ...asObject(parseJson(row.dataJson)),
           _id: row.id,
           _openid: row.ownerId,
-          visibility: row.visibility,
-          refType: row.refType,
-          refId: row.refId,
         };
         if (!evalRulesForDoc(rules, 'read', docForRules, { appUserId: ctx.appUserId })) {
           throw new UnauthorizedError('forbidden');
@@ -977,9 +967,6 @@ export class SdkCloudService {
       const result = {
         id: row.id,
         ownerId: row.ownerId,
-        visibility: row.visibility,
-        refType: row.refType,
-        refId: row.refId,
         data: parseJson(row.dataJson),
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
@@ -1032,9 +1019,6 @@ export class SdkCloudService {
           ...asObject(parseJson(existing.dataJson)),
           _id: existing.id,
           _openid: existing.ownerId,
-          visibility: existing.visibility,
-          refType: existing.refType,
-          refId: existing.refId,
         };
         if (!evalRulesForDoc(rules, 'write', docForRules, { appUserId: ctx.appUserId })) {
           throw new UnauthorizedError('forbidden');
@@ -1047,17 +1031,6 @@ export class SdkCloudService {
 
       const ifMatch = normalizeOptionalString(input.ifMatch, 'ifMatch', 128);
       if (ifMatch && existing.etag !== ifMatch) throw new ValidationError('etag_mismatch');
-
-      const visibility =
-        input.visibility === undefined ? existing.visibility : normalizeVisibility(input.visibility);
-      const refType =
-        input.refType === undefined
-          ? existing.refType
-          : normalizeOptionalString(input.refType, 'refType', 64);
-      const refId =
-        input.refId === undefined
-          ? existing.refId
-          : normalizeOptionalString(input.refId, 'refId', 128);
 
       const currentData = parseJson(existing.dataJson);
       const patch = input.patch ?? {};
@@ -1078,9 +1051,6 @@ export class SdkCloudService {
         appId: ctx.appId,
         collection,
         id,
-        visibility,
-        refType,
-        refId,
         dataJson,
         updatedAt,
         etag,
@@ -1090,9 +1060,6 @@ export class SdkCloudService {
       const result = {
         id: updated.id,
         ownerId: updated.ownerId,
-        visibility: updated.visibility,
-        refType: updated.refType,
-        refId: updated.refId,
         data: parseJson(updated.dataJson),
         createdAt: updated.createdAt,
         updatedAt: updated.updatedAt,
@@ -1153,9 +1120,6 @@ export class SdkCloudService {
               ...asObject(parseJson(existing.dataJson)),
               _id: existing.id,
               _openid: existing.ownerId,
-              visibility: existing.visibility,
-              refType: existing.refType,
-              refId: existing.refId,
             }
           : null;
         if (existingDocForRules) {
@@ -1174,19 +1138,6 @@ export class SdkCloudService {
       const ifMatch = normalizeOptionalString(input.ifMatch, 'ifMatch', 128);
       if (existing && ifMatch && existing.etag !== ifMatch) throw new ValidationError('etag_mismatch');
 
-      const visibility =
-        input.visibility === undefined
-          ? existing?.visibility ?? 'private'
-          : normalizeVisibility(input.visibility);
-      const refType =
-        input.refType === undefined
-          ? existing?.refType ?? null
-          : normalizeOptionalString(input.refType, 'refType', 64);
-      const refId =
-        input.refId === undefined
-          ? existing?.refId ?? null
-          : normalizeOptionalString(input.refId, 'refId', 128);
-
       const sanitized = stripWxSystemFields(materializeWxSentinels(input.data ?? {}), 'strict');
       const dataJson = JSON.stringify(sanitized ?? {});
       const bytes = new TextEncoder().encode(dataJson).byteLength;
@@ -1197,9 +1148,6 @@ export class SdkCloudService {
           ...asObject(sanitized),
           _id: docId,
           _openid: existing?.ownerId ?? ctx.appUserId,
-          visibility,
-          refType,
-          refId,
         };
         if (!evalRulesForDoc(rules, 'write', docForRules, { appUserId: ctx.appUserId })) {
           throw new UnauthorizedError('forbidden');
@@ -1213,9 +1161,6 @@ export class SdkCloudService {
         collection,
         id: docId,
         ownerId: existing?.ownerId ?? ctx.appUserId,
-        visibility,
-        refType,
-        refId,
         dataJson,
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
@@ -1225,9 +1170,6 @@ export class SdkCloudService {
       const result = {
         id: row.id,
         ownerId: row.ownerId,
-        visibility: row.visibility,
-        refType: row.refType,
-        refId: row.refId,
         data: parseJson(row.dataJson),
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
@@ -1280,9 +1222,6 @@ export class SdkCloudService {
           ...asObject(parseJson(existing.dataJson)),
           _id: existing.id,
           _openid: existing.ownerId,
-          visibility: existing.visibility,
-          refType: existing.refType,
-          refId: existing.refId,
         };
         if (!evalRulesForDoc(rules, 'write', docForRules, { appUserId: ctx.appUserId })) {
           throw new UnauthorizedError('forbidden');
@@ -1376,9 +1315,6 @@ export class SdkCloudService {
         items: items.map((row) => ({
           id: row.id,
           ownerId: row.ownerId,
-          visibility: row.visibility,
-          refType: row.refType,
-          refId: row.refId,
           data: parseJson(row.dataJson),
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
@@ -1502,19 +1438,16 @@ export class SdkCloudService {
           conditions,
           limit: 1000,
         });
-        for (const doc of docs) {
-          const docForRules = {
-            ...asObject(parseJson(doc.dataJson)),
-            _id: doc.id,
-            _openid: doc.ownerId,
-            visibility: doc.visibility,
-            refType: doc.refType,
-            refId: doc.refId,
-          };
-          if (!evalRulesForDoc(rules, 'write', docForRules, { appUserId: ctx.appUserId })) continue;
-          await sdkCloudRepository.deleteDbDoc(db, { appId: ctx.appId, collection, id: doc.id });
-          removed += 1;
-        }
+	        for (const doc of docs) {
+	          const docForRules = {
+	            ...asObject(parseJson(doc.dataJson)),
+	            _id: doc.id,
+	            _openid: doc.ownerId,
+	          };
+	          if (!evalRulesForDoc(rules, 'write', docForRules, { appUserId: ctx.appUserId })) continue;
+	          await sdkCloudRepository.deleteDbDoc(db, { appId: ctx.appId, collection, id: doc.id });
+	          removed += 1;
+	        }
       } else {
         const permissionMode = await resolveDbPermissionMode(db, { appId: ctx.appId, collection });
         requireWriteAllowed(permissionMode);
@@ -1594,20 +1527,17 @@ export class SdkCloudService {
         });
       }
 
-      const updates = docs.flatMap((row) => {
-        if (rules) {
-          const docForRules = {
-            ...asObject(parseJson(row.dataJson)),
-            _id: row.id,
-            _openid: row.ownerId,
-            visibility: row.visibility,
-            refType: row.refType,
-            refId: row.refId,
-          };
-          if (!evalRulesForDoc(rules, 'write', docForRules, { appUserId: ctx.appUserId })) {
-            return [];
-          }
-        }
+	      const updates = docs.flatMap((row) => {
+	        if (rules) {
+	          const docForRules = {
+	            ...asObject(parseJson(row.dataJson)),
+	            _id: row.id,
+	            _openid: row.ownerId,
+	          };
+	          if (!evalRulesForDoc(rules, 'write', docForRules, { appUserId: ctx.appUserId })) {
+	            return [];
+	          }
+	        }
 
         const currentData = parseJson(row.dataJson);
         const sanitizedCurrent = stripWxSystemFields(currentData, 'lenient');
@@ -1621,18 +1551,15 @@ export class SdkCloudService {
       let updated = 0;
       for (const item of updates) {
         const now = Date.now();
-        const etag = crypto.randomUUID();
-        const res = await sdkCloudRepository.updateDbDoc(db, {
-          appId: ctx.appId,
-          collection,
-          id: item.row.id,
-          visibility: item.row.visibility,
-          refType: item.row.refType,
-          refId: item.row.refId,
-          dataJson: item.dataJson,
-          updatedAt: now,
-          etag,
-        });
+	        const etag = crypto.randomUUID();
+	        const res = await sdkCloudRepository.updateDbDoc(db, {
+	          appId: ctx.appId,
+	          collection,
+	          id: item.row.id,
+	          dataJson: item.dataJson,
+	          updatedAt: now,
+	          etag,
+	        });
         if (res) updated += 1;
       }
 
