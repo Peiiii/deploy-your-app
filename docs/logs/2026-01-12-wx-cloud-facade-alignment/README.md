@@ -105,12 +105,20 @@ python3 -m http.server 3001 -d .
 4) 打开 demo：
 
 - `http://localhost:3001/prototypes/sdk-auth-demo/`
+- `http://localhost:3001/prototypes/sdk-community-demo/`
 
 依次点击：
 
 - `Login via gemigo.auth.login()`
 - `Cloud DB roundtrip`
   - 观察输出：既有 `gemigo.cloud.db.collection(...).query()`（旧写法）也有 `gemigo.cloud.database()`（wx 风格）。
+
+（推荐）在社区 demo 里验证应用层场景：
+
+- Create：创建 `public/private` 帖子（`visibility` 作为业务字段写进 `data`）
+- Feed：`where({ visibility: _.eq('public') })` 公共广场 + cursor 翻页
+- Negative：在 rules 模式下，点击 `Negative: query without where` 应返回 `PERMISSION_DENIED`（证明子集约束生效，不会静默过滤）
+- Negative：点击 `Negative: write _openid` 应失败（证明系统字段不可伪造）
 
 5)（可选，验证 Security Rules / 子集约束）
 
@@ -120,6 +128,23 @@ python3 -m http.server 3001 -d .
 
 - `PUT /api/v1/admin/cloud/db/apps/demo-app/collections/posts/security-rules`（body: `{ rules }`）
 - 预期：`where({ visibility: _.eq('public') }).get()` 可以读到 public 文档；且当 where 不包含任何规则分支所需的等值条件时，服务端返回 `PERMISSION_DENIED`（不会静默过滤）。
+
+示例 rules（JSON DSL v0）：
+
+```json
+{
+  "version": 0,
+  "read": {
+    "anyOf": [
+      { "allOf": [ { "field": "visibility", "op": "==", "value": "public" } ] },
+      { "allOf": [ { "field": "_openid", "op": "==", "value": { "var": "auth.openid" } } ] }
+    ]
+  },
+  "write": {
+    "allOf": [ { "field": "_openid", "op": "==", "value": { "var": "auth.openid" } } ]
+  }
+}
+```
 
 工程质量检查（必须）：
 

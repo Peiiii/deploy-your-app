@@ -1,0 +1,1371 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GemiGo Community — 社区广场</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base: #0a0f1a;
+      --bg-elevated: #111827;
+      --bg-card: linear-gradient(145deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.8));
+      --bg-input: rgba(15, 23, 42, 0.6);
+      --border-subtle: rgba(148, 163, 184, 0.12);
+      --border-default: rgba(148, 163, 184, 0.2);
+      --border-accent: rgba(99, 102, 241, 0.4);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-primary: #6366f1;
+      --accent-secondary: #8b5cf6;
+      --accent-success: #10b981;
+      --accent-danger: #f43f5e;
+      --accent-warning: #f59e0b;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background:
+        radial-gradient(ellipse 100% 80% at 20% 0%, rgba(99, 102, 241, 0.15), transparent),
+        radial-gradient(ellipse 80% 60% at 80% 20%, rgba(139, 92, 246, 0.12), transparent),
+        radial-gradient(ellipse 60% 40% at 40% 100%, rgba(16, 185, 129, 0.08), transparent),
+        var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* Layout */
+    .app-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* Header */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .app-header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-header h1::before {
+      content: '✦';
+      font-size: 20px;
+      -webkit-text-fill-color: var(--accent-primary);
+    }
+
+    .app-description {
+      color: var(--text-muted);
+      font-size: 13px;
+      max-width: 600px;
+      line-height: 1.5;
+    }
+
+    /* Auth Status Bar */
+    .auth-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      margin-bottom: 24px;
+      backdrop-filter: blur(12px);
+    }
+
+    .auth-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: var(--transition-fast);
+    }
+
+    .status-indicator.connected {
+      background: var(--accent-success);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+    }
+
+    .auth-info {
+      display: flex;
+      gap: 16px;
+      flex: 1;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .auth-info span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .auth-info code {
+      font-family: 'SF Mono', Consolas, monospace;
+      font-size: 11px;
+      padding: 2px 6px;
+      background: rgba(99, 102, 241, 0.1);
+      border-radius: 4px;
+      color: var(--accent-primary);
+    }
+
+    .auth-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Main Grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      backdrop-filter: blur(12px);
+      transition: var(--transition-normal);
+    }
+
+    .card:hover {
+      border-color: var(--border-default);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title .icon {
+      font-size: 16px;
+    }
+
+    .card-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--accent-primary);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-primary);
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      transition: var(--transition-fast);
+      outline: none;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6,9 12,15 18,9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      color: white;
+      border: none;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(148, 163, 184, 0.1);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--text-primary);
+    }
+
+    .btn-danger {
+      background: rgba(244, 63, 94, 0.1);
+      color: var(--accent-danger);
+      border: 1px solid rgba(244, 63, 94, 0.2);
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: rgba(244, 63, 94, 0.15);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      padding: 6px 10px;
+    }
+
+    .btn-ghost:hover:not(:disabled) {
+      background: rgba(148, 163, 184, 0.1);
+      color: var(--text-primary);
+    }
+
+    .btn-icon {
+      padding: 8px;
+      min-width: 32px;
+    }
+
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 11px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Feed Area */
+    .feed-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .feed-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .feed-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      background: rgba(30, 41, 59, 0.5);
+      border-radius: var(--radius-md);
+    }
+
+    .feed-tab {
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+
+    .feed-tab:hover {
+      color: var(--text-primary);
+    }
+
+    .feed-tab.active {
+      background: var(--accent-primary);
+      color: white;
+    }
+
+    .feed-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Post Cards */
+    .post-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .post-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      backdrop-filter: blur(12px);
+      transition: var(--transition-normal);
+    }
+
+    .post-card:hover {
+      border-color: var(--border-default);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .post-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .post-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .post-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .post-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .post-info code {
+      font-family: 'SF Mono', Consolas, monospace;
+      font-size: 10px;
+      padding: 1px 4px;
+      background: rgba(99, 102, 241, 0.1);
+      border-radius: 3px;
+      color: var(--accent-primary);
+    }
+
+    .visibility-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .visibility-badge.public {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-success);
+    }
+
+    .visibility-badge.private {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-warning);
+    }
+
+    .post-body {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 12px;
+      white-space: pre-wrap;
+    }
+
+    .post-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .post-stats {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .post-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .like-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      font-size: 12px;
+      background: rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(244, 63, 94, 0.15);
+      border-radius: var(--radius-sm);
+      color: var(--accent-danger);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+
+    .like-btn:hover {
+      background: rgba(244, 63, 94, 0.15);
+      transform: scale(1.02);
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .empty-state .icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+
+    /* Console/Output */
+    .console-card {
+      margin-top: 24px;
+    }
+
+    .console-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: var(--radius-md) var(--radius-md) 0 0;
+      border: 1px solid var(--border-subtle);
+      border-bottom: none;
+    }
+
+    .console-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .console-content {
+      background: rgba(2, 6, 23, 0.9);
+      border: 1px solid var(--border-subtle);
+      border-top: none;
+      border-radius: 0 0 var(--radius-md) var(--radius-md);
+      padding: 16px;
+      max-height: 300px;
+      overflow: auto;
+    }
+
+    .console-content pre {
+      font-family: 'SF Mono', Consolas, 'Liberation Mono', monospace;
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+
+    .console-content .log-entry {
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .console-content .log-entry:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .console-content .log-title {
+      color: var(--accent-primary);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    /* Config Panel */
+    .config-toggle {
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .config-toggle:hover {
+      color: var(--text-secondary);
+    }
+
+    .config-panel {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .config-panel.show {
+      display: block;
+    }
+
+    .config-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .config-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      box-shadow: var(--shadow-lg);
+      animation: slideIn 0.3s ease;
+    }
+
+    .toast.success {
+      border-color: var(--accent-success);
+    }
+
+    .toast.error {
+      border-color: var(--accent-danger);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* Utility */
+    .text-muted {
+      color: var(--text-muted);
+    }
+
+    .text-small {
+      font-size: 12px;
+    }
+
+    .mt-2 {
+      margin-top: 8px;
+    }
+
+    .mt-3 {
+      margin-top: 12px;
+    }
+
+    /* Loading */
+    .loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .loading::before {
+      content: '';
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--border-default);
+      border-top-color: var(--accent-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div>
+        <h1>GemiGo Community</h1>
+        <p class="app-description">
+          一个基于 GemiGo App SDK 构建的社区应用原型，验证 wx.cloud 风格的数据库 API、权限规则和分页功能。
+        </p>
+      </div>
+    </header>
+
+    <!-- Auth Bar -->
+    <div class="auth-bar">
+      <div class="auth-status">
+        <span id="authIndicator" class="status-indicator"></span>
+        <span id="authText">未登录</span>
+      </div>
+      <div class="auth-info">
+        <span>App ID: <code id="currentAppId">-</code></span>
+        <span>User ID: <code id="appUserId">-</code></span>
+      </div>
+      <div class="auth-actions">
+        <button id="loginBtn" class="btn btn-primary btn-sm">登录</button>
+        <button id="logoutBtn" class="btn btn-secondary btn-sm">退出</button>
+        <button id="tokenBtn" class="btn btn-ghost btn-sm">🔑</button>
+      </div>
+      <div class="config-toggle" onclick="toggleConfig()">
+        ⚙️ 配置
+      </div>
+    </div>
+
+    <!-- Config Panel -->
+    <div id="configPanel" class="card config-panel">
+      <div class="config-row">
+        <div class="form-group">
+          <label>API Base URL</label>
+          <input id="apiBaseUrl" type="text" />
+        </div>
+        <div class="form-group">
+          <label>Platform Origin</label>
+          <input id="platformOrigin" type="text" />
+        </div>
+        <div class="form-group">
+          <label>App ID</label>
+          <input id="appId" type="text" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-grid">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <!-- Create Post Card -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title"><span class="icon">✍️</span> 发布帖子</span>
+          </div>
+          <div class="form-group">
+            <label>标题</label>
+            <input id="postTitle" type="text" placeholder="输入帖子标题..." />
+          </div>
+          <div class="form-group">
+            <label>内容</label>
+            <textarea id="postBody" placeholder="分享你的想法..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>可见性</label>
+            <select id="postVisibility">
+              <option value="public">🌐 公开 - 所有人可见</option>
+              <option value="private">🔒 私密 - 仅自己可见</option>
+            </select>
+          </div>
+          <div class="btn-row mt-3">
+            <button id="createBtn" class="btn btn-primary">发布</button>
+            <button id="testSystemFieldBtn" class="btn btn-danger btn-sm" title="测试写入系统字段（应失败）">
+              ⚠️ 测试
+            </button>
+          </div>
+        </div>
+
+        <!-- Pagination Settings -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title"><span class="icon">📄</span> 分页设置</span>
+          </div>
+          <div class="form-group">
+            <label>每页数量</label>
+            <input id="feedLimit" type="number" value="10" min="1" max="50" />
+          </div>
+          <div class="form-group">
+            <label>跳过数量 (skip)</label>
+            <input id="feedSkip" type="number" value="0" min="0" />
+          </div>
+          <p class="text-muted text-small mt-2">
+            💡 推荐使用 cursor 分页而非大 skip 值
+          </p>
+        </div>
+
+        <!-- Negative Tests -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title"><span class="icon">🧪</span> 负面测试</span>
+            <span class="card-badge">Debug</span>
+          </div>
+          <p class="text-muted text-small" style="margin-bottom: 12px;">
+            测试规则验证是否正常工作
+          </p>
+          <div class="btn-row">
+            <button id="testNoWhereBtn" class="btn btn-danger btn-sm">
+              无 where 查询
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Feed Area -->
+      <main class="feed-container">
+        <div class="feed-header">
+          <div class="feed-tabs">
+            <button id="tabPublic" class="feed-tab active" data-tab="public">
+              🌐 公开广场
+            </button>
+            <button id="tabMine" class="feed-tab" data-tab="mine">
+              👤 我的帖子
+            </button>
+            <button id="tabPrivate" class="feed-tab" data-tab="private">
+              🔒 私密
+            </button>
+          </div>
+          <div class="feed-actions">
+            <button id="refreshBtn" class="btn btn-secondary btn-sm">
+              🔄 刷新
+            </button>
+            <button id="loadMoreBtn" class="btn btn-ghost btn-sm" disabled>
+              加载更多
+            </button>
+          </div>
+        </div>
+
+        <div id="feedList" class="post-list">
+          <div class="empty-state">
+            <div class="icon">📭</div>
+            <p>暂无内容，登录后查看或发布帖子</p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Console -->
+    <div class="console-card">
+      <div class="console-header">
+        <span class="console-title">
+          <span>📟</span> 控制台输出
+        </span>
+        <button id="clearConsoleBtn" class="btn btn-ghost btn-sm">清空</button>
+      </div>
+      <div class="console-content">
+        <pre id="consoleOutput">(等待操作...)</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="/packages/app-sdk/dist/gemigo-app-sdk.umd.js"></script>
+  <script>
+    // ============================================
+    // State Management
+    // ============================================
+    const state = {
+      token: null,
+      currentTab: 'public',
+      feedCursor: null,
+    };
+
+    // ============================================
+    // DOM Elements
+    // ============================================
+    const $ = (id) => document.getElementById(id);
+
+    const elements = {
+      // Auth
+      authIndicator: $('authIndicator'),
+      authText: $('authText'),
+      currentAppId: $('currentAppId'),
+      appUserId: $('appUserId'),
+      loginBtn: $('loginBtn'),
+      logoutBtn: $('logoutBtn'),
+      tokenBtn: $('tokenBtn'),
+
+      // Config
+      configPanel: $('configPanel'),
+      apiBaseUrl: $('apiBaseUrl'),
+      platformOrigin: $('platformOrigin'),
+      appId: $('appId'),
+
+      // Post form
+      postTitle: $('postTitle'),
+      postBody: $('postBody'),
+      postVisibility: $('postVisibility'),
+      createBtn: $('createBtn'),
+      testSystemFieldBtn: $('testSystemFieldBtn'),
+
+      // Feed
+      feedList: $('feedList'),
+      refreshBtn: $('refreshBtn'),
+      loadMoreBtn: $('loadMoreBtn'),
+      feedLimit: $('feedLimit'),
+      feedSkip: $('feedSkip'),
+
+      // Tabs
+      tabPublic: $('tabPublic'),
+      tabMine: $('tabMine'),
+      tabPrivate: $('tabPrivate'),
+
+      // Tests
+      testNoWhereBtn: $('testNoWhereBtn'),
+
+      // Console
+      consoleOutput: $('consoleOutput'),
+      clearConsoleBtn: $('clearConsoleBtn'),
+
+      // Toast
+      toastContainer: $('toastContainer'),
+    };
+
+    // ============================================
+    // Utilities
+    // ============================================
+    function log(title, payload) {
+      const timestamp = new Date().toLocaleTimeString();
+      const content = typeof payload === 'string'
+        ? payload
+        : JSON.stringify(payload, null, 2);
+
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `
+          <div class="log-title">[${timestamp}] ${title}</div>
+          <div>${content}</div>
+        `;
+
+      if (elements.consoleOutput.textContent === '(等待操作...)') {
+        elements.consoleOutput.innerHTML = '';
+      }
+      elements.consoleOutput.appendChild(entry);
+      elements.consoleOutput.parentElement.scrollTop = elements.consoleOutput.parentElement.scrollHeight;
+    }
+
+    function toast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      elements.toastContainer.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function getConfig() {
+      return {
+        apiBaseUrl: elements.apiBaseUrl.value.trim(),
+        platformOrigin: elements.platformOrigin.value.trim(),
+        appId: elements.appId.value.trim(),
+      };
+    }
+
+    function requireCloud() {
+      if (!window.gemigo?.cloud) {
+        throw new Error('gemigo.cloud 不可用，请确认 SDK 已正确加载');
+      }
+      return window.gemigo.cloud;
+    }
+
+    function requireDb() {
+      const cloud = requireCloud();
+      if (typeof cloud.database !== 'function') {
+        throw new Error('gemigo.cloud.database() 不可用');
+      }
+      return cloud.database();
+    }
+
+    function toggleConfig() {
+      elements.configPanel.classList.toggle('show');
+    }
+
+    // ============================================
+    // Auth
+    // ============================================
+    function updateAuthUI() {
+      const isAuthed = Boolean(state.token?.accessToken);
+
+      elements.authIndicator.className = `status-indicator ${isAuthed ? 'connected' : ''}`;
+      elements.authText.textContent = isAuthed ? '已连接' : '未登录';
+      elements.currentAppId.textContent = elements.appId.value || '-';
+      elements.appUserId.textContent = state.token?.appUserId || '-';
+
+      elements.loginBtn.disabled = isAuthed;
+      elements.logoutBtn.disabled = !isAuthed;
+    }
+
+    async function handleLogin() {
+      try {
+        const config = getConfig();
+        const token = await window.gemigo.auth.login({
+          platformOrigin: config.platformOrigin,
+          apiBaseUrl: config.apiBaseUrl,
+          appId: config.appId,
+          scopes: ['identity:basic', 'db:rw'],
+        });
+
+        state.token = token;
+        updateAuthUI();
+        log('登录成功', token);
+        toast('登录成功', 'success');
+
+        // Load feed after login
+        loadFeed();
+      } catch (err) {
+        log('登录失败', err.message || String(err));
+        toast('登录失败: ' + (err.message || err), 'error');
+      }
+    }
+
+    function handleLogout() {
+      try {
+        window.gemigo.auth.logout();
+      } catch { }
+
+      state.token = null;
+      state.feedCursor = null;
+      elements.loadMoreBtn.disabled = true;
+      updateAuthUI();
+      log('已退出登录', 'ok');
+      toast('已退出登录');
+      renderEmptyFeed();
+    }
+
+    function handleShowToken() {
+      log('当前 Token', state.token || '(无)');
+    }
+
+    // ============================================
+    // Post Creation
+    // ============================================
+    async function handleCreatePost() {
+      try {
+        const db = requireDb();
+        const result = await db.collection('posts').add({
+          data: {
+            title: elements.postTitle.value.trim() || '无标题',
+            body: elements.postBody.value,
+            visibility: elements.postVisibility.value,
+            refType: 'demo',
+            refId: 'sdk-community-demo',
+            likeCount: 0,
+            createdAt: db.serverDate(),
+          },
+        });
+
+        log('帖子创建成功', result);
+        toast('发布成功！', 'success');
+
+        // Clear form
+        elements.postTitle.value = '';
+        elements.postBody.value = '';
+
+        // Refresh feed
+        loadFeed();
+      } catch (err) {
+        log('创建失败', err.message || String(err));
+        toast('发布失败: ' + (err.message || err), 'error');
+      }
+    }
+
+    async function handleTestSystemField() {
+      try {
+        const db = requireDb();
+        await db.collection('posts').add({
+          data: {
+            title: '测试帖子',
+            body: '尝试写入 _openid 系统字段',
+            _openid: 'spoofed-id',
+            createdAt: db.serverDate(),
+          },
+        });
+        log('❌ 意外成功', '系统字段写入应该被阻止！');
+        toast('意外：系统字段写入成功了！', 'error');
+      } catch (err) {
+        log('✅ 预期失败', err.message || String(err));
+        toast('符合预期：系统字段写入被拒绝', 'success');
+      }
+    }
+
+    // ============================================
+    // Feed Loading
+    // ============================================
+    function renderEmptyFeed() {
+      elements.feedList.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">📭</div>
+            <p>暂无内容</p>
+          </div>
+        `;
+    }
+
+    function renderPosts(posts) {
+      if (!posts || posts.length === 0) {
+        renderEmptyFeed();
+        return;
+      }
+
+      elements.feedList.innerHTML = posts.map(post => `
+          <div class="post-card" data-id="${post._id}">
+            <div class="post-header">
+              <div class="post-meta">
+                <h3 class="post-title">${escapeHtml(post.title || '(无标题)')}</h3>
+                <div class="post-info">
+                  <code>${post._id?.slice(0, 8) || '-'}...</code>
+                  <span class="visibility-badge ${post.visibility || 'public'}">
+                    ${post.visibility === 'private' ? '🔒 私密' : '🌐 公开'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="post-body">${escapeHtml(post.body || '')}</div>
+            <div class="post-footer">
+              <div class="post-stats">
+                <span class="stat-item">❤️ ${post.likeCount ?? 0}</span>
+                <span class="stat-item">🕐 ${formatDate(post.createdAt)}</span>
+              </div>
+              <div class="post-actions">
+                <button class="like-btn" onclick="handleLike('${post._id}')">
+                  ❤️ 点赞
+                </button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatDate(date) {
+      if (!date) return '-';
+      try {
+        return new Date(date).toLocaleDateString('zh-CN', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      } catch {
+        return String(date);
+      }
+    }
+
+    async function loadFeed(useMore = false) {
+      try {
+        const db = requireDb();
+        const _ = db.command;
+        const limit = Math.max(1, Math.min(50, parseInt(elements.feedLimit.value) || 10));
+        const skip = Math.max(0, parseInt(elements.feedSkip.value) || 0);
+
+        let query = db.collection('posts');
+
+        // Build query based on current tab
+        switch (state.currentTab) {
+          case 'public':
+            query = query.where({ visibility: _.eq('public') });
+            break;
+          case 'mine':
+            if (!state.token?.appUserId) {
+              toast('请先登录', 'error');
+              return;
+            }
+            query = query.where({ _openid: _.eq(state.token.appUserId) });
+            break;
+          case 'private':
+            query = query.where({ visibility: _.eq('private') });
+            break;
+        }
+
+        query = query.orderBy('createdAt', 'desc').limit(limit);
+
+        if (useMore && state.feedCursor) {
+          query = query.startAfter(state.feedCursor);
+        } else {
+          query = query.skip(skip);
+        }
+
+        const result = await query.get();
+
+        log(`加载 Feed [${state.currentTab}]`, {
+          count: result.data?.length || 0,
+          hasMore: Boolean(result._meta?.nextCursor),
+        });
+
+        renderPosts(result.data);
+
+        state.feedCursor = result._meta?.nextCursor || null;
+        elements.loadMoreBtn.disabled = !state.feedCursor;
+
+      } catch (err) {
+        log('加载失败', err.message || String(err));
+        toast('加载失败: ' + (err.message || err), 'error');
+      }
+    }
+
+    async function handleLike(postId) {
+      try {
+        const db = requireDb();
+        const _ = db.command;
+        await db.collection('posts').doc(postId).update({
+          data: { likeCount: _.inc(1) },
+        });
+        log('点赞成功', { _id: postId });
+        toast('❤️ 已点赞', 'success');
+        loadFeed();
+      } catch (err) {
+        log('点赞失败', err.message || String(err));
+        toast('点赞失败', 'error');
+      }
+    }
+
+    async function handleTestNoWhere() {
+      try {
+        const db = requireDb();
+        const result = await db.collection('posts')
+          .orderBy('createdAt', 'desc')
+          .limit(5)
+          .get();
+        log('❌ 无 where 查询成功（规则模式下应失败）', result);
+        toast('查询成功，但在规则模式下应该失败', 'error');
+      } catch (err) {
+        log('✅ 预期失败（规则拒绝无 where 查询）', err.message || String(err));
+        toast('符合预期：规则拒绝了无条件查询', 'success');
+      }
+    }
+
+    // ============================================
+    // Tab Switching
+    // ============================================
+    function switchTab(tab) {
+      state.currentTab = tab;
+      state.feedCursor = null;
+      elements.loadMoreBtn.disabled = true;
+
+      // Update tab UI
+      [elements.tabPublic, elements.tabMine, elements.tabPrivate].forEach(el => {
+        el.classList.remove('active');
+      });
+
+      if (tab === 'public') elements.tabPublic.classList.add('active');
+      else if (tab === 'mine') elements.tabMine.classList.add('active');
+      else if (tab === 'private') elements.tabPrivate.classList.add('active');
+
+      loadFeed();
+    }
+
+    // ============================================
+    // Event Bindings
+    // ============================================
+    function bindEvents() {
+      // Auth
+      elements.loginBtn.addEventListener('click', handleLogin);
+      elements.logoutBtn.addEventListener('click', handleLogout);
+      elements.tokenBtn.addEventListener('click', handleShowToken);
+
+      // Post
+      elements.createBtn.addEventListener('click', handleCreatePost);
+      elements.testSystemFieldBtn.addEventListener('click', handleTestSystemField);
+
+      // Feed
+      elements.refreshBtn.addEventListener('click', () => {
+        state.feedCursor = null;
+        loadFeed();
+      });
+      elements.loadMoreBtn.addEventListener('click', () => loadFeed(true));
+
+      // Tabs
+      elements.tabPublic.addEventListener('click', () => switchTab('public'));
+      elements.tabMine.addEventListener('click', () => switchTab('mine'));
+      elements.tabPrivate.addEventListener('click', () => switchTab('private'));
+
+      // Tests
+      elements.testNoWhereBtn.addEventListener('click', handleTestNoWhere);
+
+      // Console
+      elements.clearConsoleBtn.addEventListener('click', () => {
+        elements.consoleOutput.innerHTML = '<span class="text-muted">(已清空)</span>';
+      });
+    }
+
+    // ============================================
+    // Initialization
+    // ============================================
+    function init() {
+      // Set default config values
+      elements.apiBaseUrl.value = 'http://127.0.0.1:8787/api/v1';
+      elements.platformOrigin.value = 'http://localhost:5173';
+      elements.appId.value = 'demo-app';
+      elements.postTitle.value = `Hello ${new Date().toLocaleTimeString()}`;
+      elements.postBody.value = '这是一条测试帖子。';
+
+      updateAuthUI();
+      bindEvents();
+
+      log('应用初始化完成', {
+        sdk: Boolean(window.gemigo),
+        cloud: Boolean(window.gemigo?.cloud),
+      });
+    }
+
+    // Start
+    init();
+  </script>
+</body>
+
+</html>
