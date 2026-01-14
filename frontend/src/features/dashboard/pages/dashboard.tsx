@@ -8,6 +8,7 @@ import { useAnalyticsStore } from '@/stores/analytics.store';
 import { useReactionStore } from '@/stores/reaction.store';
 import { useDashboardStore } from '@/features/dashboard/stores/dashboard.store';
 import { usePresenter } from '@/contexts/presenter-context';
+import { useLayoutMode } from '@/hooks/use-layout-mode';
 import { useCopyToClipboardWithKey } from '@/hooks/use-copy-to-clipboard-with-key';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { StatCard } from '@/features/dashboard/components/stat-card';
@@ -34,6 +35,7 @@ export const Dashboard: React.FC = () => {
   const sortDirection = useDashboardStore((s) => s.sortDirection);
 
   const { copyToClipboard, isCopied } = useCopyToClipboardWithKey();
+  const { isCompact } = useLayoutMode();
 
   // Pagination state
   const sentinelRef = React.useRef<HTMLDivElement>(null);
@@ -184,7 +186,7 @@ export const Dashboard: React.FC = () => {
       <DashboardFilters />
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className={`grid gap-6 ${isCompact ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
         <StatCard
           icon={Zap}
           label={t('dashboard.activeProjects')}
@@ -199,13 +201,15 @@ export const Dashboard: React.FC = () => {
           sublabel={t('dashboard.last7Days')}
           iconColor="text-purple-600 dark:text-purple-400"
         />
-        <StatCard
-          icon={FileText}
-          label={t('dashboard.systemStatus')}
-          value="100%"
-          sublabel={t('dashboard.systemsOperational')}
-          iconColor="text-orange-600 dark:text-orange-400"
-        />
+        <div className={isCompact ? 'sm:col-span-2 md:col-span-1' : ''}>
+          <StatCard
+            icon={FileText}
+            label={t('dashboard.systemStatus')}
+            value="100%"
+            sublabel={t('dashboard.systemsOperational')}
+            iconColor="text-orange-600 dark:text-orange-400"
+          />
+        </div>
       </div>
 
       {/* Projects Grid */}
@@ -224,7 +228,8 @@ export const Dashboard: React.FC = () => {
         {filteredAndSortedProjects.length === 0 ? (
           <DashboardEmptyState />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className={`grid gap-6 ${isCompact ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+            }`}>
             {filteredAndSortedProjects.map((project) => (
               <ProjectCard
                 key={project.id}

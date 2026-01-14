@@ -11,6 +11,13 @@ interface UseAppPreviewPanelOptions {
    * @default true
    */
   collapseSidebar?: boolean;
+  /**
+   * If true, the right panel will automatically close when the component that
+   * opened it unmounts (e.g. route change). For app preview, we default to
+   * keeping it open until the user manually closes it.
+   * @default false
+   */
+  closeOnUnmount?: boolean;
 }
 
 export const useAppPreviewPanel = (options?: UseAppPreviewPanelOptions) => {
@@ -39,7 +46,7 @@ export const useAppPreviewPanel = (options?: UseAppPreviewPanelOptions) => {
           onClose={closeRightPanel}
           onOpenInNewTab={openInNewTab}
         />,
-        { closeOnUnmount: true },
+        { closeOnUnmount: options?.closeOnUnmount ?? false },
       );
 
       const shouldCollapse = options?.collapseSidebar ?? true;
@@ -53,6 +60,7 @@ export const useAppPreviewPanel = (options?: UseAppPreviewPanelOptions) => {
       openInNewTab,
       openRightPanel,
       options?.collapseSidebar,
+      options?.closeOnUnmount,
       setSidebarCollapsed,
       sidebarCollapsed,
     ],
@@ -64,4 +72,3 @@ export const useAppPreviewPanel = (options?: UseAppPreviewPanelOptions) => {
     isPanelOpen,
   };
 };
-

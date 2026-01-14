@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ExploreAppCardView } from '@/components/explore-app-card';
 import { PageLayout } from '@/components/page-layout';
 import { useExploreStore, CATEGORIES, type CategoryFilter } from '@/features/explore/stores/explore.store';
-import { useUIStore } from '@/stores/ui.store';
+import { useLayoutMode } from '@/hooks/use-layout-mode';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useAppPreviewPanel } from '@/hooks/use-app-preview-panel';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
@@ -134,9 +134,7 @@ export const ExploreApps: React.FC = () => {
 
   const isFeedView = viewMode === 'feed';
   // Detect right panel state to adjust header compactness
-  const hasRightPanel = useUIStore((s) => s.rightPanelContent !== null);
-  const rightPanelLayout = useUIStore((s) => s.rightPanelLayout);
-  const isCompact = hasRightPanel && rightPanelLayout === 'half';
+  const { isCompact } = useLayoutMode();
 
   useInfiniteScroll({
     targetRef: loadMoreRef,
@@ -160,7 +158,7 @@ export const ExploreApps: React.FC = () => {
   return (
     <PageLayout
       title={
-        <div className={`flex items-center gap-3 whitespace-nowrap overflow-hidden shrink-0 ${isCompact ? 'text-xl md:text-2xl' : ''}`}>
+        <div className={`flex items-center gap-3 whitespace-nowrap overflow-hidden shrink-0`}>
           {t('explore.exploreApps')}
           <span className="bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-xs px-2 py-1 rounded-full border border-brand-200 dark:border-brand-500/20 font-normal shrink-0">
             {t('explore.beta')}
