@@ -68,7 +68,7 @@ console.log('scopes', token.scopes);
 ```js
 const accessToken = gemigo.auth.getAccessToken();
 if (!accessToken) {
-  // 未登录（或页面刷新后内存态丢失），需要重新 login()
+  // 未登录（可能是 token 过期/被清理/新开了 tab），需要重新 login()
 }
 ```
 

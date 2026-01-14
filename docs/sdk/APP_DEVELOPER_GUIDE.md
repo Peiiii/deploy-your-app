@@ -104,9 +104,10 @@ console.log('appUserId', token.appUserId);
 
 ```js
 const ensureCloudAuthed = async () => {
-  // V0：token 存在内存里，刷新页面会丢；所以发现没有 token 就重新 login()
+  // SDK 默认把 accessToken 持久化到 localStorage（刷新/重启不丢）。
+  // 但 token 可能过期/被清理，所以发现没有 token 就重新 login()。
   if (gemigo.auth.getAccessToken()) return;
-  await gemigo.auth.login({ scopes: ['identity:basic', 'db:rw'] });
+  await gemigo.auth.login({ scopes: ['identity:basic', 'db:rw'], persist: 'local' });
 };
 
 // 用 DB 前先确保登录

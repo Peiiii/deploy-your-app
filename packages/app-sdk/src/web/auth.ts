@@ -1,8 +1,104 @@
-import type { AuthAPI, AuthLoginOptions, AuthTokenResponse, AuthScope } from '../types/auth';
+import type {
+  AuthAPI,
+  AuthLoginOptions,
+  AuthPersistMode,
+  AuthTokenResponse,
+  AuthScope,
+} from '../types/auth';
 import { SDKError } from '../types/common';
 
 let currentToken: AuthTokenResponse | null = null;
 let currentApiBaseUrl: string | null = null;
+let currentPersistMode: AuthPersistMode = 'local';
+
+type PersistedTokenV1 = AuthTokenResponse & { expiresAt: number; apiBaseUrl: string; persistedAt: number };
+
+const TOKEN_STORAGE_KEY = 'gemigo:sdk-auth:v1';
+
+function getStorage(mode: AuthPersistMode): Storage | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    if (mode === 'session') return window.sessionStorage;
+    if (mode === 'local') return window.localStorage;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function loadPersistedToken(mode: AuthPersistMode): PersistedTokenV1 | null {
+  const storage = getStorage(mode);
+  if (!storage) return null;
+  try {
+    const raw = storage.getItem(TOKEN_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<PersistedTokenV1> | null;
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (typeof parsed.accessToken !== 'string' || !parsed.accessToken) return null;
+    if (typeof parsed.apiBaseUrl !== 'string' || !parsed.apiBaseUrl) return null;
+    if (typeof parsed.appId !== 'string' || !parsed.appId) return null;
+    if (typeof parsed.appUserId !== 'string' || !parsed.appUserId) return null;
+    if (!Array.isArray(parsed.scopes)) return null;
+    if (typeof parsed.expiresAt !== 'number' || !Number.isFinite(parsed.expiresAt)) return null;
+    if (Date.now() >= parsed.expiresAt) return null;
+
+    return parsed as PersistedTokenV1;
+  } catch {
+    return null;
+  }
+}
+
+function savePersistedToken(mode: AuthPersistMode, token: AuthTokenResponse, apiBaseUrl: string): void {
+  const storage = getStorage(mode);
+  if (!storage) return;
+  try {
+    const expiresAt = Date.now() + Math.max(0, token.expiresIn) * 1000;
+    const payload: PersistedTokenV1 = {
+      ...token,
+      expiresAt,
+      apiBaseUrl,
+      persistedAt: Date.now(),
+    };
+    storage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // ignore
+  }
+}
+
+function clearPersistedToken(mode: AuthPersistMode): void {
+  const storage = getStorage(mode);
+  if (!storage) return;
+  try {
+    storage.removeItem(TOKEN_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+function hydrateFromStorageIfNeeded(): void {
+  if (typeof window === 'undefined') return;
+  if (currentToken && currentApiBaseUrl) return;
+
+  const session = loadPersistedToken('session');
+  const local = loadPersistedToken('local');
+  const persisted =
+    session && local
+      ? session.persistedAt >= local.persistedAt
+        ? session
+        : local
+      : session ?? local;
+  if (!persisted) return;
+
+  currentToken = {
+    accessToken: persisted.accessToken,
+    expiresIn: Math.max(0, Math.floor((persisted.expiresAt - Date.now()) / 1000)),
+    appId: persisted.appId,
+    appUserId: persisted.appUserId,
+    scopes: persisted.scopes,
+  };
+  currentApiBaseUrl = persisted.apiBaseUrl;
+  currentPersistMode = session && persisted === session ? 'session' : 'local';
+}
 
 function base64UrlEncode(bytes: Uint8Array): string {
   let binary = '';
@@ -76,6 +172,7 @@ async function exchangeCode(
 }
 
 export function getWebApiBaseUrl(): string {
+  hydrateFromStorageIfNeeded();
   return currentApiBaseUrl || 'https://gemigo.io/api/v1';
 }
 
@@ -90,6 +187,8 @@ export const webAuth: AuthAPI = {
     const appId = options.appId?.trim() || deriveDefaultAppId();
     const scopes = normalizeScopes(options.scopes);
     const timeoutMs = typeof options.timeoutMs === 'number' ? options.timeoutMs : 2 * 60 * 1000;
+    const persist = options.persist ?? 'local';
+    currentPersistMode = persist;
 
     const state = randomString(16);
     const codeVerifier = randomString(48); // => ~64 chars base64url-ish, PKCE valid
@@ -180,14 +279,25 @@ export const webAuth: AuthAPI = {
     const token = await exchangeCode(apiBaseUrl, result.code, codeVerifier);
     currentToken = token;
     currentApiBaseUrl = apiBaseUrl;
+    if (persist !== 'memory') {
+      savePersistedToken(persist, token, apiBaseUrl);
+      clearPersistedToken(persist === 'local' ? 'session' : 'local');
+    } else {
+      clearPersistedToken('session');
+      clearPersistedToken('local');
+    }
     return token;
   },
 
   getAccessToken(): string | null {
+    hydrateFromStorageIfNeeded();
     return currentToken?.accessToken ?? null;
   },
 
   logout(): void {
     currentToken = null;
+    currentApiBaseUrl = null;
+    clearPersistedToken('session');
+    clearPersistedToken('local');
   },
 };

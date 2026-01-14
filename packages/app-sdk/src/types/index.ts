@@ -20,7 +20,7 @@ export { SDKError } from './common';
 export type { StorageAPI } from './storage';
 
 // Auth API (App identity)
-export type { AuthAPI, AuthLoginOptions, AuthScope, AuthTokenResponse } from './auth';
+export type { AuthAPI, AuthLoginOptions, AuthPersistMode, AuthScope, AuthTokenResponse } from './auth';
 
 // Gemigo Cloud (hosted backend)
 export type {

@@ -1,5 +1,7 @@
 export type AuthScope = 'identity:basic' | 'storage:rw' | string;
 
+export type AuthPersistMode = 'memory' | 'session' | 'local';
+
 export interface AuthLoginOptions {
   /**
    * App identifier used for consent + app-scoped identity.
@@ -21,6 +23,15 @@ export interface AuthLoginOptions {
    * Popup wait timeout.
    */
   timeoutMs?: number;
+
+  /**
+   * Where to persist the SDK access token.
+   *
+   * - `local` (default): survives refresh and browser restarts (higher risk if your app has XSS).
+   * - `session`: survives refresh in the same tab, cleared when the tab closes.
+   * - `memory`: never persisted (refresh loses token).
+   */
+  persist?: AuthPersistMode;
 }
 
 export interface AuthTokenResponse {
@@ -36,4 +47,3 @@ export interface AuthAPI {
   getAccessToken(): string | null;
   logout(): void;
 }
-
