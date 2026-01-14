@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type {
   CloudDbCollectionSummary,
+  CloudDbCollectionFieldSummary,
   CloudDbPermissionMode,
   SecurityRulesV0,
 } from '@/services/http/cloud-db-settings-api';
@@ -20,8 +21,14 @@ interface CloudDbSettingsState {
   rulesUpdatedAt: number | null;
   hasRules: boolean;
 
+  fields: CloudDbCollectionFieldSummary[];
+  fieldsInferredAt: number | null;
+  fieldsTotalDocs: number;
+  fieldsSampledDocs: number;
+
   isLoadingCollections: boolean;
   isLoadingCollection: boolean;
+  isLoadingFields: boolean;
   isSavingPermission: boolean;
   isSavingRules: boolean;
   isDeletingRules: boolean;
@@ -47,8 +54,16 @@ interface CloudDbSettingsState {
     setRulesDraft: (text: string) => void;
     setRulesState: (input: { rules: SecurityRulesV0 | null; updatedAt: number | null }) => void;
 
+    setFieldsState: (input: {
+      fields: CloudDbCollectionFieldSummary[];
+      inferredAt: number | null;
+      totalDocs: number;
+      sampledDocs: number;
+    }) => void;
+
     setIsLoadingCollections: (value: boolean) => void;
     setIsLoadingCollection: (value: boolean) => void;
+    setIsLoadingFields: (value: boolean) => void;
     setIsSavingPermission: (value: boolean) => void;
     setIsSavingRules: (value: boolean) => void;
     setIsDeletingRules: (value: boolean) => void;
@@ -73,8 +88,14 @@ const initialState = {
   rulesUpdatedAt: null as number | null,
   hasRules: false,
 
+  fields: [] as CloudDbCollectionFieldSummary[],
+  fieldsInferredAt: null as number | null,
+  fieldsTotalDocs: 0,
+  fieldsSampledDocs: 0,
+
   isLoadingCollections: false,
   isLoadingCollection: false,
+  isLoadingFields: false,
   isSavingPermission: false,
   isSavingRules: false,
   isDeletingRules: false,
@@ -112,6 +133,10 @@ export const useCloudDbSettingsStore = create<CloudDbSettingsState>((set) => ({
         rulesDraft: '',
         rulesUpdatedAt: null,
         hasRules: false,
+        fields: [],
+        fieldsInferredAt: null,
+        fieldsTotalDocs: 0,
+        fieldsSampledDocs: 0,
         error: null,
       }),
 
@@ -131,8 +156,17 @@ export const useCloudDbSettingsStore = create<CloudDbSettingsState>((set) => ({
         rulesUpdatedAt: input.updatedAt,
       }),
 
+    setFieldsState: (input) =>
+      set({
+        fields: input.fields,
+        fieldsInferredAt: input.inferredAt,
+        fieldsTotalDocs: input.totalDocs,
+        fieldsSampledDocs: input.sampledDocs,
+      }),
+
     setIsLoadingCollections: (value) => set({ isLoadingCollections: value }),
     setIsLoadingCollection: (value) => set({ isLoadingCollection: value }),
+    setIsLoadingFields: (value) => set({ isLoadingFields: value }),
     setIsSavingPermission: (value) => set({ isSavingPermission: value }),
     setIsSavingRules: (value) => set({ isSavingRules: value }),
     setIsDeletingRules: (value) => set({ isDeletingRules: value }),
@@ -141,4 +175,3 @@ export const useCloudDbSettingsStore = create<CloudDbSettingsState>((set) => ({
     setError: (error) => set({ error }),
   },
 }));
-

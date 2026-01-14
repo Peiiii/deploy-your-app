@@ -93,7 +93,7 @@ class CloudDbSettingsController {
     if (!projectId) throw new ValidationError('projectId is required');
     const { appId } = await this.requireProjectOwner(request, env, db, projectId);
 
-    const items = await sdkCloudRepository.listDbConfiguredCollections(db, { appId });
+    const items = await sdkCloudRepository.listDbCollections(db, { appId });
 
     return jsonResponse({
       projectId,
@@ -110,6 +110,58 @@ class CloudDbSettingsController {
     });
   };
 
+  ensureCollection = async (
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    projectIdRaw: string,
+    collectionRaw: string,
+  ): Promise<Response> => {
+    const projectId = String(projectIdRaw ?? '').trim();
+    if (!projectId) throw new ValidationError('projectId is required');
+    const collection = normalizeCollection(collectionRaw);
+    const { appId } = await this.requireProjectOwner(request, env, db, projectId);
+
+    const row = await sdkCloudRepository.ensureDbCollection(db, { appId, collection, now: Date.now() });
+
+    return jsonResponse({
+      projectId,
+      appId: row.appId,
+      collection: row.collection,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    });
+  };
+
+  getCollectionFields = async (
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    projectIdRaw: string,
+    collectionRaw: string,
+  ): Promise<Response> => {
+    const projectId = String(projectIdRaw ?? '').trim();
+    if (!projectId) throw new ValidationError('projectId is required');
+    const collection = normalizeCollection(collectionRaw);
+    const { appId } = await this.requireProjectOwner(request, env, db, projectId);
+
+    const url = new URL(request.url);
+    const sampleRaw = url.searchParams.get('sample');
+    const sampleLimit = sampleRaw ? Number(sampleRaw) : undefined;
+
+    const res = await sdkCloudRepository.listDbCollectionFields(db, { appId, collection, sampleLimit });
+
+    return jsonResponse({
+      projectId,
+      appId,
+      collection,
+      totalDocs: res.totalDocs,
+      sampledDocs: res.sampledDocs,
+      fields: res.fields,
+      inferredAt: Date.now(),
+    });
+  };
+
   setCollectionPermission = async (
     request: Request,
     env: ApiWorkerEnv,
@@ -121,6 +173,8 @@ class CloudDbSettingsController {
     if (!projectId) throw new ValidationError('projectId is required');
     const collection = normalizeCollection(collectionRaw);
     const { appId } = await this.requireProjectOwner(request, env, db, projectId);
+
+    await sdkCloudRepository.ensureDbCollection(db, { appId, collection, now: Date.now() });
 
     const body = (await readJson(request)) as { mode?: unknown };
     const mode = normalizeDbPermissionMode(body?.mode);
@@ -188,6 +242,8 @@ class CloudDbSettingsController {
     if (!projectId) throw new ValidationError('projectId is required');
     const collection = normalizeCollection(collectionRaw);
     const { appId } = await this.requireProjectOwner(request, env, db, projectId);
+
+    await sdkCloudRepository.ensureDbCollection(db, { appId, collection, now: Date.now() });
 
     const body = (await readJson(request)) as { rules?: unknown };
     const rules = parseSecurityRulesV0(body?.rules);

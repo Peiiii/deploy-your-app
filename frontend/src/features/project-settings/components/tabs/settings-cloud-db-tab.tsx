@@ -36,8 +36,13 @@ export const SettingsCloudDbTab: React.FC<{ project: Project }> = ({ project }) 
     rulesDraft,
     rulesUpdatedAt,
     hasRules,
+    fields,
+    fieldsInferredAt,
+    fieldsTotalDocs,
+    fieldsSampledDocs,
     isLoadingCollections,
     isLoadingCollection,
+    isLoadingFields,
     isSavingPermission,
     isResettingPermission,
     isSavingRules,
@@ -67,6 +72,7 @@ export const SettingsCloudDbTab: React.FC<{ project: Project }> = ({ project }) 
   const isBusy =
     isLoadingCollections ||
     isLoadingCollection ||
+    isLoadingFields ||
     isSavingPermission ||
     isSavingRules ||
     isDeletingRules ||
@@ -336,6 +342,90 @@ export const SettingsCloudDbTab: React.FC<{ project: Project }> = ({ project }) 
                 <div className="bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                   <div className="p-5 border-b border-slate-100 dark:border-slate-800">
                     <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                      {t('project.cloudDbSettings.fieldsTitle', 'Fields (Read-only)')}
+                    </h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                      {t(
+                        'project.cloudDbSettings.fieldsDescription',
+                        'Inferred from the most recently updated documents. For reference only.',
+                      )}
+                    </p>
+                  </div>
+                  <div className="p-5 space-y-3">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                      <div>
+                        {t('project.cloudDbSettings.fieldsDocsTotal', 'Total docs')}: {fieldsTotalDocs}
+                      </div>
+                      <div>
+                        {t('project.cloudDbSettings.fieldsDocsSampled', 'Sampled')}: {fieldsSampledDocs}
+                      </div>
+                      <div>
+                        {t('project.cloudDbSettings.fieldsInferredAt', 'Inferred at')}:{' '}
+                        {fieldsInferredAt ? new Date(fieldsInferredAt).toLocaleString() : '-'}
+                      </div>
+                    </div>
+
+                    {isLoadingFields ? (
+                      <div className="text-sm text-slate-500 dark:text-slate-400">
+                        {t('project.cloudDbSettings.loadingFields', 'Loading fields…')}
+                      </div>
+                    ) : fields.length === 0 ? (
+                      <div className="text-sm text-slate-500 dark:text-slate-400">
+                        {t('project.cloudDbSettings.fieldsEmpty', 'No fields yet (no documents).')}
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full text-sm">
+                          <thead>
+                            <tr className="text-left text-xs text-slate-500 dark:text-slate-400">
+                              <th className="py-2 pr-4 font-medium">
+                                {t('project.cloudDbSettings.fieldsColumnField', 'Field')}
+                              </th>
+                              <th className="py-2 pr-4 font-medium">
+                                {t('project.cloudDbSettings.fieldsColumnType', 'Type')}
+                              </th>
+                              <th className="py-2 pr-4 font-medium">
+                                {t('project.cloudDbSettings.fieldsColumnPresence', 'Presence')}
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                            {fields.map((f) => {
+                              const denom = Math.max(fieldsSampledDocs, 1);
+                              const pct = Math.round((f.presentCount / denom) * 100);
+                              return (
+                                <tr key={`${f.isSystem ? 'sys' : 'data'}:${f.field}`}>
+                                  <td className="py-2 pr-4 align-top">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-mono text-slate-900 dark:text-white">{f.field}</span>
+                                      {f.isSystem && (
+                                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+                                          {t('project.cloudDbSettings.fieldsSystemBadge', 'System')}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td className="py-2 pr-4 align-top text-slate-700 dark:text-slate-200">
+                                    {f.types.join(' | ')}
+                                  </td>
+                                  <td className="py-2 pr-4 align-top text-slate-700 dark:text-slate-200">
+                                    {fieldsSampledDocs > 0
+                                      ? `${f.presentCount}/${fieldsSampledDocs} (${pct}%)`
+                                      : '-'}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                  <div className="p-5 border-b border-slate-100 dark:border-slate-800">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
                       {t('project.cloudDbSettings.legacyTitle', 'Legacy Permission Mode')}
                     </h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -507,4 +597,3 @@ export const SettingsCloudDbTab: React.FC<{ project: Project }> = ({ project }) 
     </div>
   );
 };
-

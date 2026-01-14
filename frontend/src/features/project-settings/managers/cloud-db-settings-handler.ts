@@ -3,6 +3,8 @@ import { useCloudDbSettingsStore } from '@/features/project-settings/stores/clou
 import i18n from '@/i18n/config';
 import {
   deleteProjectCloudDbCollectionSecurityRules,
+  ensureProjectCloudDbCollection,
+  getProjectCloudDbCollectionFields,
   getProjectCloudDbCollectionPermission,
   getProjectCloudDbCollectionSecurityRules,
   listProjectCloudDbCollections,
@@ -91,6 +93,19 @@ export class CloudDbSettingsHandler {
     actions.setError(null);
     actions.upsertLocalCollection(collection);
     actions.setSelectedCollection(collection);
+    try {
+      const state = useCloudDbSettingsStore.getState();
+      if (!state.projectId) {
+        actions.setError(t('project.cloudDbSettings.errors.missingProjectId', 'Missing project id.'));
+        return;
+      }
+      await ensureProjectCloudDbCollection({ projectId: state.projectId, collection });
+    } catch (err) {
+      actions.setError(err instanceof Error ? err.message : 'Failed to create Cloud DB collection');
+      return;
+    }
+
+    await this.loadCollections();
     await this.loadSelectedCollection();
   };
 
@@ -132,11 +147,13 @@ export class CloudDbSettingsHandler {
 
     actions.setError(null);
     actions.setIsLoadingCollection(true);
+    actions.setIsLoadingFields(true);
     try {
       const collection = state.selectedCollection;
-      const [permission, rules] = await Promise.all([
+      const [permission, rules, fieldsRes] = await Promise.all([
         getProjectCloudDbCollectionPermission({ projectId: state.projectId, collection }),
         getProjectCloudDbCollectionSecurityRules({ projectId: state.projectId, collection }),
+        getProjectCloudDbCollectionFields({ projectId: state.projectId, collection, sample: 50 }),
       ]);
 
       actions.setProjectContext({ projectId: permission.projectId, appId: permission.appId });
@@ -146,6 +163,12 @@ export class CloudDbSettingsHandler {
         isOverridden: permission.updatedAt !== null,
       });
       actions.setRulesState({ rules: rules.rules, updatedAt: rules.updatedAt });
+      actions.setFieldsState({
+        fields: fieldsRes.fields,
+        inferredAt: fieldsRes.inferredAt,
+        totalDocs: fieldsRes.totalDocs,
+        sampledDocs: fieldsRes.sampledDocs,
+      });
 
       const nextSummary: CloudDbCollectionSummary = {
         collection,
@@ -170,6 +193,7 @@ export class CloudDbSettingsHandler {
       );
     } finally {
       actions.setIsLoadingCollection(false);
+      actions.setIsLoadingFields(false);
     }
   };
 
@@ -432,4 +456,3 @@ export class CloudDbSettingsHandler {
     }
   };
 }
-

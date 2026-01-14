@@ -209,11 +209,26 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   });
 
   router.add({
+    path: '/api/v1/projects/:id/cloud/db/collections/:collection',
+    method: 'PUT',
+    handler: (req, params) =>
+      cloudDbSettingsController.ensureCollection(req, env, requireDb(), params.id, params.collection),
+  });
+
+  router.add({
     path: '/api/v1/projects/:id/cloud/db/collections/:collection/permission',
     method: 'GET',
     handler: (req, params) =>
       cloudDbSettingsController.getCollectionPermission(req, env, requireDb(), params.id, params.collection),
   });
+
+  router.add({
+    path: '/api/v1/projects/:id/cloud/db/collections/:collection/fields',
+    method: 'GET',
+    handler: (req, params) =>
+      cloudDbSettingsController.getCollectionFields(req, env, requireDb(), params.id, params.collection),
+  });
+
   router.add({
     path: '/api/v1/projects/:id/cloud/db/collections/:collection/permission',
     method: 'PUT',

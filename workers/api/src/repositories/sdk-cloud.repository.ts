@@ -53,10 +53,25 @@ export interface CloudDbCollectionSecurityRulesRow {
   updatedAt: number;
 }
 
+export interface CloudDbCollectionRegistryRow {
+  appId: string;
+  collection: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
 export interface CloudDbCollectionConfigSummary {
   collection: string;
+  registryUpdatedAt: number | null;
   permission: { mode: CloudDbPermissionMode; updatedAt: number } | null;
   rules: { updatedAt: number } | null;
+}
+
+export interface CloudDbCollectionFieldSummary {
+  field: string;
+  types: Array<'string' | 'number' | 'boolean' | 'null' | 'object' | 'array'>;
+  presentCount: number;
+  isSystem: boolean;
 }
 
 export type CloudDbWhereOp = '==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'nin';
@@ -154,6 +169,25 @@ export class SdkCloudRepository {
           updated_at INTEGER NOT NULL,
           PRIMARY KEY (app_id, collection)
         )`,
+      )
+      .run();
+
+    await db
+      .prepare(
+        `CREATE TABLE IF NOT EXISTS sdk_db_collections (
+          app_id TEXT NOT NULL,
+          collection TEXT NOT NULL,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          PRIMARY KEY (app_id, collection)
+        )`,
+      )
+      .run();
+
+    await db
+      .prepare(
+        `CREATE INDEX IF NOT EXISTS idx_sdk_db_collections_updated
+         ON sdk_db_collections(app_id, updated_at)`,
       )
       .run();
 
@@ -667,11 +701,45 @@ export class SdkCloudRepository {
       .run();
   }
 
-  async listDbConfiguredCollections(
+  async ensureDbCollection(
+    db: D1Database,
+    input: { appId: string; collection: string; now?: number },
+  ): Promise<CloudDbCollectionRegistryRow> {
+    await this.ensureSchema(db);
+    const now = Math.floor(input.now ?? Date.now());
+    const row = await db
+      .prepare(
+        `INSERT INTO sdk_db_collections (app_id, collection, created_at, updated_at)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(app_id, collection) DO UPDATE SET
+           updated_at = excluded.updated_at
+         RETURNING *`,
+      )
+      .bind(input.appId, input.collection, now, now)
+      .first<AnyRow>();
+    if (!row) throw new Error('Failed to persist collection registry.');
+    return {
+      appId: asString(row.app_id),
+      collection: asString(row.collection),
+      createdAt: asNumber(row.created_at),
+      updatedAt: asNumber(row.updated_at),
+    };
+  }
+
+  async listDbCollections(
     db: D1Database,
     input: { appId: string },
   ): Promise<CloudDbCollectionConfigSummary[]> {
     await this.ensureSchema(db);
+
+    const registry = await db
+      .prepare(
+        `SELECT collection, updated_at
+         FROM sdk_db_collections
+         WHERE app_id = ?`,
+      )
+      .bind(input.appId)
+      .all<AnyRow>();
 
     const permissions = await db
       .prepare(
@@ -693,10 +761,22 @@ export class SdkCloudRepository {
 
     const byCollection = new Map<string, CloudDbCollectionConfigSummary>();
 
+    (registry.results ?? []).forEach((row) => {
+      const collection = asString(row.collection);
+      if (!collection) return;
+      byCollection.set(collection, {
+        collection,
+        registryUpdatedAt: asNumber(row.updated_at),
+        permission: null,
+        rules: null,
+      });
+    });
+
     (permissions.results ?? []).forEach((row) => {
       const collection = asString(row.collection);
       byCollection.set(collection, {
         collection,
+        registryUpdatedAt: byCollection.get(collection)?.registryUpdatedAt ?? null,
         permission: {
           mode: asString(row.mode) as CloudDbPermissionMode,
           updatedAt: asNumber(row.updated_at),
@@ -710,6 +790,7 @@ export class SdkCloudRepository {
       const existing = byCollection.get(collection);
       const next: CloudDbCollectionConfigSummary = existing ?? {
         collection,
+        registryUpdatedAt: null,
         permission: null,
         rules: null,
       };
@@ -719,12 +800,119 @@ export class SdkCloudRepository {
 
     const list = Array.from(byCollection.values());
     list.sort((a, b) => {
-      const aUpdated = Math.max(a.permission?.updatedAt ?? 0, a.rules?.updatedAt ?? 0);
-      const bUpdated = Math.max(b.permission?.updatedAt ?? 0, b.rules?.updatedAt ?? 0);
+      const aUpdated = Math.max(
+        a.permission?.updatedAt ?? 0,
+        a.rules?.updatedAt ?? 0,
+        a.registryUpdatedAt ?? 0,
+      );
+      const bUpdated = Math.max(
+        b.permission?.updatedAt ?? 0,
+        b.rules?.updatedAt ?? 0,
+        b.registryUpdatedAt ?? 0,
+      );
       if (bUpdated !== aUpdated) return bUpdated - aUpdated;
       return a.collection.localeCompare(b.collection);
     });
     return list;
+  }
+
+  async listDbCollectionFields(
+    db: D1Database,
+    input: { appId: string; collection: string; sampleLimit?: number },
+  ): Promise<{ totalDocs: number; sampledDocs: number; fields: CloudDbCollectionFieldSummary[] }> {
+    await this.ensureSchema(db);
+
+    const sampleLimit = Math.min(Math.max(Math.floor(input.sampleLimit ?? 50), 1), 200);
+
+    const totalRow = await db
+      .prepare(
+        `SELECT COUNT(*) AS total
+         FROM sdk_db_docs
+         WHERE app_id = ? AND collection = ?`,
+      )
+      .bind(input.appId, input.collection)
+      .first<AnyRow>();
+    const totalDocs = asNumber(totalRow?.total);
+
+    const sampledRow = await db
+      .prepare(
+        `SELECT COUNT(*) AS sampled
+         FROM (
+           SELECT 1
+           FROM sdk_db_docs
+           WHERE app_id = ? AND collection = ?
+           ORDER BY updated_at DESC
+           LIMIT ?
+         ) t`,
+      )
+      .bind(input.appId, input.collection, sampleLimit)
+      .first<AnyRow>();
+    const sampledDocs = asNumber(sampledRow?.sampled);
+
+    const rows = await db
+      .prepare(
+        `WITH recent AS (
+           SELECT data_json
+           FROM sdk_db_docs
+           WHERE app_id = ? AND collection = ?
+           ORDER BY updated_at DESC
+           LIMIT ?
+         )
+         SELECT je.key AS field, je.type AS json_type, COUNT(*) AS present_count
+         FROM recent, json_each(recent.data_json) AS je
+         GROUP BY je.key, je.type
+         ORDER BY je.key`,
+      )
+      .bind(input.appId, input.collection, sampleLimit)
+      .all<AnyRow>();
+
+    const normalizeJsonType = (
+      raw: string,
+    ): CloudDbCollectionFieldSummary['types'][number] | null => {
+      if (raw === 'text') return 'string';
+      if (raw === 'integer' || raw === 'real') return 'number';
+      if (raw === 'true' || raw === 'false') return 'boolean';
+      if (raw === 'null') return 'null';
+      if (raw === 'object') return 'object';
+      if (raw === 'array') return 'array';
+      return null;
+    };
+
+    const byField = new Map<string, { types: Set<CloudDbCollectionFieldSummary['types'][number]>; presentCount: number }>();
+    (rows.results ?? []).forEach((row) => {
+      const field = asString(row.field);
+      const jsonType = asString(row.json_type);
+      const presentCount = asNumber(row.present_count);
+      if (!field) return;
+      const normalized = normalizeJsonType(jsonType);
+      if (!normalized) return;
+
+      const existing = byField.get(field) ?? { types: new Set(), presentCount: 0 };
+      existing.types.add(normalized);
+      existing.presentCount += presentCount;
+      byField.set(field, existing);
+    });
+
+    const systemFields: CloudDbCollectionFieldSummary[] = [
+      { field: '_id', types: ['string'], presentCount: sampledDocs, isSystem: true },
+      { field: '_openid', types: ['string'], presentCount: sampledDocs, isSystem: true },
+      { field: 'createdAt', types: ['number'], presentCount: sampledDocs, isSystem: true },
+      { field: 'updatedAt', types: ['number'], presentCount: sampledDocs, isSystem: true },
+    ];
+
+    const dataFields: CloudDbCollectionFieldSummary[] = Array.from(byField.entries()).map(([field, meta]) => ({
+      field,
+      types: Array.from(meta.types).sort(),
+      presentCount: meta.presentCount,
+      isSystem: false,
+    }));
+    dataFields.sort((a, b) => a.field.localeCompare(b.field));
+
+    return {
+      totalDocs,
+      sampledDocs,
+      fields: [...systemFields, ...dataFields],
+    };
   }
 
   private buildJsonPath(field: string): string {

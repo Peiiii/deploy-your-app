@@ -35,6 +35,13 @@ export type CloudDbCollectionSummary = {
   rules: { hasRules: boolean; updatedAt: number | null };
 };
 
+export type CloudDbCollectionFieldSummary = {
+  field: string;
+  types: Array<'string' | 'number' | 'boolean' | 'null' | 'object' | 'array'>;
+  presentCount: number;
+  isSystem: boolean;
+};
+
 export async function listProjectCloudDbCollections(input: {
   projectId: string;
 }): Promise<{ projectId: string; appId: string; items: CloudDbCollectionSummary[] }> {
@@ -47,6 +54,63 @@ export async function listProjectCloudDbCollections(input: {
     throw new Error(data.error || 'Failed to load Cloud DB collections');
   }
   return (await res.json()) as { projectId: string; appId: string; items: CloudDbCollectionSummary[] };
+}
+
+export async function getProjectCloudDbCollectionFields(input: {
+  projectId: string;
+  collection: string;
+  sample?: number;
+}): Promise<{
+  projectId: string;
+  appId: string;
+  collection: string;
+  totalDocs: number;
+  sampledDocs: number;
+  inferredAt: number;
+  fields: CloudDbCollectionFieldSummary[];
+}> {
+  const params = new URLSearchParams();
+  if (typeof input.sample === 'number') params.set('sample', String(input.sample));
+  const qs = params.toString();
+
+  const res = await fetch(
+    `${API_BASE}/projects/${encodeURIComponent(input.projectId)}/cloud/db/collections/${encodeURIComponent(input.collection)}/fields${qs ? `?${qs}` : ''}`,
+    { method: 'GET', credentials: 'include' },
+  );
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(data.error || 'Failed to load Cloud DB fields');
+  }
+  return (await res.json()) as {
+    projectId: string;
+    appId: string;
+    collection: string;
+    totalDocs: number;
+    sampledDocs: number;
+    inferredAt: number;
+    fields: CloudDbCollectionFieldSummary[];
+  };
+}
+
+export async function ensureProjectCloudDbCollection(input: {
+  projectId: string;
+  collection: string;
+}): Promise<{ projectId: string; appId: string; collection: string; createdAt: number; updatedAt: number }> {
+  const res = await fetch(
+    `${API_BASE}/projects/${encodeURIComponent(input.projectId)}/cloud/db/collections/${encodeURIComponent(input.collection)}`,
+    { method: 'PUT', credentials: 'include' },
+  );
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(data.error || 'Failed to create Cloud DB collection');
+  }
+  return (await res.json()) as {
+    projectId: string;
+    appId: string;
+    collection: string;
+    createdAt: number;
+    updatedAt: number;
+  };
 }
 
 export async function setProjectCloudDbCollectionPermission(input: {
