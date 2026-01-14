@@ -202,6 +202,13 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   // Project Cloud DB settings (owner-managed)
   // -----------------
   router.add({
+    path: '/api/v1/projects/:id/cloud/db/collections',
+    method: 'GET',
+    handler: (req, params) =>
+      cloudDbSettingsController.listCollections(req, env, requireDb(), params.id),
+  });
+
+  router.add({
     path: '/api/v1/projects/:id/cloud/db/collections/:collection/permission',
     method: 'GET',
     handler: (req, params) =>

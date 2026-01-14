@@ -53,6 +53,12 @@ export interface CloudDbCollectionSecurityRulesRow {
   updatedAt: number;
 }
 
+export interface CloudDbCollectionConfigSummary {
+  collection: string;
+  permission: { mode: CloudDbPermissionMode; updatedAt: number } | null;
+  rules: { updatedAt: number } | null;
+}
+
 export type CloudDbWhereOp = '==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'nin';
 
 export interface CloudDbCondition {
@@ -659,6 +665,66 @@ export class SdkCloudRepository {
       )
       .bind(input.appId, input.collection)
       .run();
+  }
+
+  async listDbConfiguredCollections(
+    db: D1Database,
+    input: { appId: string },
+  ): Promise<CloudDbCollectionConfigSummary[]> {
+    await this.ensureSchema(db);
+
+    const permissions = await db
+      .prepare(
+        `SELECT collection, mode, updated_at
+         FROM sdk_db_collection_permissions
+         WHERE app_id = ?`,
+      )
+      .bind(input.appId)
+      .all<AnyRow>();
+
+    const rules = await db
+      .prepare(
+        `SELECT collection, updated_at
+         FROM sdk_db_collection_security_rules
+         WHERE app_id = ?`,
+      )
+      .bind(input.appId)
+      .all<AnyRow>();
+
+    const byCollection = new Map<string, CloudDbCollectionConfigSummary>();
+
+    (permissions.results ?? []).forEach((row) => {
+      const collection = asString(row.collection);
+      byCollection.set(collection, {
+        collection,
+        permission: {
+          mode: asString(row.mode) as CloudDbPermissionMode,
+          updatedAt: asNumber(row.updated_at),
+        },
+        rules: null,
+      });
+    });
+
+    (rules.results ?? []).forEach((row) => {
+      const collection = asString(row.collection);
+      const existing = byCollection.get(collection);
+      const next: CloudDbCollectionConfigSummary = existing ?? {
+        collection,
+        permission: null,
+        rules: null,
+      };
+      next.rules = { updatedAt: asNumber(row.updated_at) };
+      byCollection.set(collection, next);
+    });
+
+    const list = Array.from(byCollection.values());
+    list.sort((a, b) => {
+      const aUpdated = Math.max(a.permission?.updatedAt ?? 0, a.rules?.updatedAt ?? 0);
+      const bUpdated = Math.max(b.permission?.updatedAt ?? 0, b.rules?.updatedAt ?? 0);
+      if (bUpdated !== aUpdated) return bUpdated - aUpdated;
+      return a.collection.localeCompare(b.collection);
+    });
+    return list;
   }
 
   private buildJsonPath(field: string): string {

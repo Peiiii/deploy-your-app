@@ -83,6 +83,33 @@ class CloudDbSettingsController {
     });
   };
 
+  listCollections = async (
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    projectIdRaw: string,
+  ): Promise<Response> => {
+    const projectId = String(projectIdRaw ?? '').trim();
+    if (!projectId) throw new ValidationError('projectId is required');
+    const { appId } = await this.requireProjectOwner(request, env, db, projectId);
+
+    const items = await sdkCloudRepository.listDbConfiguredCollections(db, { appId });
+
+    return jsonResponse({
+      projectId,
+      appId,
+      items: items.map((entry) => ({
+        collection: entry.collection,
+        permission: entry.permission
+          ? { mode: entry.permission.mode, updatedAt: entry.permission.updatedAt, isOverridden: true }
+          : { mode: 'creator_read_write', updatedAt: null, isOverridden: false },
+        rules: entry.rules
+          ? { hasRules: true, updatedAt: entry.rules.updatedAt }
+          : { hasRules: false, updatedAt: null },
+      })),
+    });
+  };
+
   setCollectionPermission = async (
     request: Request,
     env: ApiWorkerEnv,
@@ -200,4 +227,3 @@ class CloudDbSettingsController {
 }
 
 export const cloudDbSettingsController = new CloudDbSettingsController();
-

@@ -1,21 +1,27 @@
 import { create } from 'zustand';
-import type { CloudDbPermissionMode } from '@/services/http/cloud-db-settings-api';
-import type { SecurityRulesV0 } from '@/services/http/cloud-db-settings-api';
+import type {
+  CloudDbCollectionSummary,
+  CloudDbPermissionMode,
+  SecurityRulesV0,
+} from '@/services/http/cloud-db-settings-api';
 
 interface CloudDbSettingsState {
   projectId: string | null;
   appId: string | null;
 
-  collection: string;
+  collections: CloudDbCollectionSummary[];
+  selectedCollection: string | null;
 
   permissionMode: CloudDbPermissionMode;
   permissionUpdatedAt: number | null;
+  permissionIsOverridden: boolean;
 
   rulesDraft: string;
   rulesUpdatedAt: number | null;
   hasRules: boolean;
 
-  isLoading: boolean;
+  isLoadingCollections: boolean;
+  isLoadingCollection: boolean;
   isSavingPermission: boolean;
   isSavingRules: boolean;
   isDeletingRules: boolean;
@@ -24,50 +30,99 @@ interface CloudDbSettingsState {
   error: string | null;
 
   actions: {
+    resetAll: () => void;
     setProjectContext: (input: { projectId: string; appId: string }) => void;
-    setCollection: (collection: string) => void;
+
+    setCollections: (collections: CloudDbCollectionSummary[]) => void;
+    upsertLocalCollection: (collection: string) => void;
+    setSelectedCollection: (collection: string | null) => void;
 
     setPermissionMode: (mode: CloudDbPermissionMode) => void;
-    setPermissionState: (input: { mode: CloudDbPermissionMode; updatedAt: number | null }) => void;
+    setPermissionState: (input: {
+      mode: CloudDbPermissionMode;
+      updatedAt: number | null;
+      isOverridden: boolean;
+    }) => void;
 
     setRulesDraft: (text: string) => void;
     setRulesState: (input: { rules: SecurityRulesV0 | null; updatedAt: number | null }) => void;
 
-    setIsLoading: (value: boolean) => void;
+    setIsLoadingCollections: (value: boolean) => void;
+    setIsLoadingCollection: (value: boolean) => void;
     setIsSavingPermission: (value: boolean) => void;
     setIsSavingRules: (value: boolean) => void;
     setIsDeletingRules: (value: boolean) => void;
     setIsResettingPermission: (value: boolean) => void;
 
     setError: (error: string | null) => void;
-    reset: () => void;
   };
 }
 
 const initialState = {
   projectId: null as string | null,
   appId: null as string | null,
-  collection: 'posts',
+
+  collections: [] as CloudDbCollectionSummary[],
+  selectedCollection: null as string | null,
+
   permissionMode: 'creator_read_write' as CloudDbPermissionMode,
   permissionUpdatedAt: null as number | null,
+  permissionIsOverridden: false,
+
   rulesDraft: '',
   rulesUpdatedAt: null as number | null,
   hasRules: false,
-  isLoading: false,
+
+  isLoadingCollections: false,
+  isLoadingCollection: false,
   isSavingPermission: false,
   isSavingRules: false,
   isDeletingRules: false,
   isResettingPermission: false,
+
   error: null as string | null,
 };
 
 export const useCloudDbSettingsStore = create<CloudDbSettingsState>((set) => ({
   ...initialState,
   actions: {
+    resetAll: () => set(initialState),
     setProjectContext: (input) => set({ projectId: input.projectId, appId: input.appId }),
-    setCollection: (collection) => set({ collection }),
+
+    setCollections: (collections) => set({ collections }),
+    upsertLocalCollection: (collection) =>
+      set((state) => {
+        const normalized = collection.trim();
+        if (!normalized) return state;
+        const exists = state.collections.some((c) => c.collection === normalized);
+        if (exists) return state;
+        const next: CloudDbCollectionSummary = {
+          collection: normalized,
+          permission: { mode: 'creator_read_write', updatedAt: null, isOverridden: false },
+          rules: { hasRules: false, updatedAt: null },
+        };
+        return { collections: [next, ...state.collections] };
+      }),
+    setSelectedCollection: (collection) =>
+      set({
+        selectedCollection: collection,
+        permissionMode: 'creator_read_write',
+        permissionUpdatedAt: null,
+        permissionIsOverridden: false,
+        rulesDraft: '',
+        rulesUpdatedAt: null,
+        hasRules: false,
+        error: null,
+      }),
+
     setPermissionMode: (mode) => set({ permissionMode: mode }),
-    setPermissionState: (input) => set({ permissionMode: input.mode, permissionUpdatedAt: input.updatedAt }),
+    setPermissionState: (input) =>
+      set({
+        permissionMode: input.mode,
+        permissionUpdatedAt: input.updatedAt,
+        permissionIsOverridden: input.isOverridden,
+      }),
+
     setRulesDraft: (text) => set({ rulesDraft: text }),
     setRulesState: (input) =>
       set({
@@ -75,13 +130,15 @@ export const useCloudDbSettingsStore = create<CloudDbSettingsState>((set) => ({
         hasRules: Boolean(input.rules),
         rulesUpdatedAt: input.updatedAt,
       }),
-    setIsLoading: (value) => set({ isLoading: value }),
+
+    setIsLoadingCollections: (value) => set({ isLoadingCollections: value }),
+    setIsLoadingCollection: (value) => set({ isLoadingCollection: value }),
     setIsSavingPermission: (value) => set({ isSavingPermission: value }),
     setIsSavingRules: (value) => set({ isSavingRules: value }),
     setIsDeletingRules: (value) => set({ isDeletingRules: value }),
     setIsResettingPermission: (value) => set({ isResettingPermission: value }),
+
     setError: (error) => set({ error }),
-    reset: () => set(initialState),
   },
 }));
 

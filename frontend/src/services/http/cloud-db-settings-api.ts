@@ -29,6 +29,26 @@ export async function getProjectCloudDbCollectionPermission(input: {
   };
 }
 
+export type CloudDbCollectionSummary = {
+  collection: string;
+  permission: { mode: CloudDbPermissionMode; updatedAt: number | null; isOverridden: boolean };
+  rules: { hasRules: boolean; updatedAt: number | null };
+};
+
+export async function listProjectCloudDbCollections(input: {
+  projectId: string;
+}): Promise<{ projectId: string; appId: string; items: CloudDbCollectionSummary[] }> {
+  const res = await fetch(
+    `${API_BASE}/projects/${encodeURIComponent(input.projectId)}/cloud/db/collections`,
+    { method: 'GET', credentials: 'include' },
+  );
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(data.error || 'Failed to load Cloud DB collections');
+  }
+  return (await res.json()) as { projectId: string; appId: string; items: CloudDbCollectionSummary[] };
+}
+
 export async function setProjectCloudDbCollectionPermission(input: {
   projectId: string;
   collection: string;
@@ -137,4 +157,3 @@ export async function deleteProjectCloudDbCollectionSecurityRules(input: {
     throw new Error(data.error || 'Failed to delete Cloud DB security rules');
   }
 }
-

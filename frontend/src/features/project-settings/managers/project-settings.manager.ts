@@ -99,8 +99,10 @@ export class ProjectSettingsManager {
 
   cloudDbSetProjectContext = (input: { projectId: string; appId: string }) =>
     this.cloudDbSettingsHandler.setProjectContext(input);
-  cloudDbSetCollection = (collection: string) => this.cloudDbSettingsHandler.setCollection(collection);
-  cloudDbLoad = () => this.cloudDbSettingsHandler.load();
+  cloudDbLoadCollections = () => this.cloudDbSettingsHandler.loadCollections();
+  cloudDbAddCollection = (collection: string) => this.cloudDbSettingsHandler.addCollection(collection);
+  cloudDbSelectCollection = (collection: string) => this.cloudDbSettingsHandler.selectCollection(collection);
+  cloudDbLoadSelectedCollection = () => this.cloudDbSettingsHandler.loadSelectedCollection();
   cloudDbSetPermissionMode = (mode: 'creator_read_write' | 'all_read_creator_write' | 'all_read_readonly' | 'none') =>
     this.cloudDbSettingsHandler.setPermissionMode(mode);
   cloudDbSavePermission = () => this.cloudDbSettingsHandler.savePermission();
