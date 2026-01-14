@@ -12,6 +12,9 @@ import { fetchFollowSummary, followUser, unfollowUser } from '@/services/http/fo
 
 interface ExploreFeedProps {
     apps: ExploreAppCard[];
+    hasMore: boolean;
+    isLoading: boolean;
+    onLoadMore: () => void;
     onToggleView: () => void;
 }
 
@@ -41,7 +44,13 @@ const formatRelativeTime = (iso: string): string => {
     return new Date(ts).toLocaleDateString();
 };
 
-export const ExploreFeed: React.FC<ExploreFeedProps> = ({ apps, onToggleView }) => {
+export const ExploreFeed: React.FC<ExploreFeedProps> = ({
+    apps,
+    hasMore,
+    isLoading,
+    onLoadMore,
+    onToggleView,
+}) => {
     const { t } = useTranslation();
     const [activeIndex, setActiveIndex] = useState(0);
     const [isAnyAppEntered, setIsAnyAppEntered] = useState(false);
@@ -51,6 +60,16 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({ apps, onToggleView }) 
 
     // Header visibility logic: Show at top OR when scrolling up
     const showHeader = (activeIndex === 0 || isScrollingUp) && !isAnyAppEntered;
+
+    // Auto-load when the user reaches the end of the feed. This is more reliable
+    // than an intersection sentinel because the feed uses snap scrolling.
+    useEffect(() => {
+        if (!hasMore || isLoading) return;
+        if (apps.length === 0) return;
+        if (activeIndex >= Math.max(0, apps.length - 2)) {
+            onLoadMore();
+        }
+    }, [activeIndex, apps.length, hasMore, isLoading, onLoadMore]);
 
     useEffect(() => {
         const observer = new IntersectionObserver(

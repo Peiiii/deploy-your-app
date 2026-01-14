@@ -62,13 +62,22 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
 
     // Pass dragging state down to block iframe events
     return (
-        <div className="relative w-full h-full bg-white dark:bg-slate-900 shadow-2xl">
+        <div
+            className={`relative w-full h-full ${isFullscreen
+                ? 'bg-transparent shadow-none'
+                : 'bg-white dark:bg-slate-900 shadow-2xl'
+                }`}
+        >
 
             {/* Content Wrapper (Clipped) */}
             <div className="absolute inset-0 overflow-hidden">
                 {/* Glass Edge Effect */}
-                <div className="absolute inset-y-0 left-0 w-[1px] z-50 pointer-events-none bg-gradient-to-b from-white/0 via-white/80 to-white/0 dark:from-white/0 dark:via-white/20 dark:to-white/0 opacity-50"></div>
-                <div className="absolute inset-y-0 left-0 w-6 z-40 pointer-events-none bg-gradient-to-r from-slate-900/5 to-transparent dark:from-black/40 dark:to-transparent mix-blend-overlay"></div>
+                {!isFullscreen && (
+                    <>
+                        <div className="absolute inset-y-0 left-0 w-[1px] z-50 pointer-events-none bg-gradient-to-b from-white/0 via-white/80 to-white/0 dark:from-white/0 dark:via-white/20 dark:to-white/0 opacity-50"></div>
+                        <div className="absolute inset-y-0 left-0 w-6 z-40 pointer-events-none bg-gradient-to-r from-slate-900/5 to-transparent dark:from-black/40 dark:to-transparent mix-blend-overlay"></div>
+                    </>
+                )}
 
                 {/* Iframe Content */}
                 <div className={`absolute inset-0 z-0 bg-slate-100 dark:bg-slate-950 ${isDragging ? 'pointer-events-none' : ''}`}>

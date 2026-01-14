@@ -93,7 +93,7 @@ const RightPanel: React.FC = () => {
 
   if (rightPanelLayout === 'fullscreen') {
     return (
-      <aside className="fixed inset-0 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-50">
+      <aside className="fixed inset-0 bg-white dark:bg-black z-50">
         {rightPanelContent}
       </aside>
     );

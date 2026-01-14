@@ -8,6 +8,7 @@ import { useExploreStore, CATEGORIES, type CategoryFilter } from '@/features/exp
 import { useUIStore } from '@/stores/ui.store';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useAppPreviewPanel } from '@/hooks/use-app-preview-panel';
+import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { ExploreFeed } from '../components/explore-feed';
 
 
@@ -99,6 +100,7 @@ export const ExploreApps: React.FC = () => {
   const actions = useExploreStore((s) => s.actions);
 
   const [viewMode, setViewMode] = useState<'grid' | 'feed'>('feed');
+  const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
 
   // Load on mount
   React.useEffect(() => {
@@ -136,8 +138,23 @@ export const ExploreApps: React.FC = () => {
   const rightPanelLayout = useUIStore((s) => s.rightPanelLayout);
   const isCompact = hasRightPanel && rightPanelLayout === 'half';
 
+  useInfiniteScroll({
+    targetRef: loadMoreRef,
+    onLoadMore: presenter.explore.loadMore,
+    enabled: !isFeedView && hasMore && !isLoading,
+    rootMargin: '400px',
+  });
+
   if (isFeedView) {
-    return <ExploreFeed apps={apps} onToggleView={() => setViewMode('grid')} />;
+    return (
+      <ExploreFeed
+        apps={apps}
+        hasMore={hasMore}
+        isLoading={isLoading}
+        onLoadMore={presenter.explore.loadMore}
+        onToggleView={() => setViewMode('grid')}
+      />
+    );
   }
 
   return (
@@ -233,16 +250,23 @@ export const ExploreApps: React.FC = () => {
                 />
               ))}
             </div>
-            {hasMore && (
+            <div ref={loadMoreRef} className="h-1" />
+
+            {(hasMore || (isLoading && apps.length > 0)) && (
               <div className="flex justify-center mt-8">
-                <button
-                  type="button"
-                  onClick={presenter.explore.loadMore}
-                  disabled={isLoading}
-                  className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
-                >
-                  {isLoading ? t('common.loading') : t('explore.loadMore')}
-                </button>
+                {isLoading ? (
+                  <div className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-500 dark:text-slate-400">
+                    {t('common.loading')}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={presenter.explore.loadMore}
+                    className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  >
+                    {t('explore.loadMore')}
+                  </button>
+                )}
               </div>
             )}
           </>
