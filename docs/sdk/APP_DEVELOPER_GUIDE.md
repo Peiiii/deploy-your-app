@@ -84,10 +84,34 @@ if (gemigo.capabilities.fileWrite) {
 1) 触发登录（必须在用户点击事件里调用，避免弹窗被拦截）：
 
 ```js
-await gemigo.auth.login({
+const token = await gemigo.auth.login({
   // 按需申请 scopes（最小权限）。如果你的应用用不到 blob/functions，可以不申请。
   scopes: ['identity:basic', 'storage:rw', 'db:rw', 'blob:rw', 'functions:invoke'],
 });
+
+// 当前登录用户身份（app-scoped，类似 wx 的 openid）
+console.log('appUserId', token.appUserId);
+```
+
+### Cloud DB 是否要求登录？如何检测登录态？
+
+结论：**要求登录**。
+
+- SDK 在调用 `gemigo.cloud.*`（包含 `gemigo.cloud.database()` / DB）时，会自动带上 `Authorization: Bearer <accessToken>`。
+- 如果没有 token / token 过期 / scope 不够（例如没申请 `db:rw`），服务端会返回 401/403，SDK 会抛出 `PERMISSION_DENIED`。
+
+前端检测（我建议这么写）：
+
+```js
+const ensureCloudAuthed = async () => {
+  // V0：token 存在内存里，刷新页面会丢；所以发现没有 token 就重新 login()
+  if (gemigo.auth.getAccessToken()) return;
+  await gemigo.auth.login({ scopes: ['identity:basic', 'db:rw'] });
+};
+
+// 用 DB 前先确保登录
+await ensureCloudAuthed();
+const db = gemigo.cloud.database();
 ```
 
 2) 用户私有数据（KV）：

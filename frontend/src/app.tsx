@@ -58,14 +58,17 @@ const useAppInitialize = () => {
 const MainContent: React.FC = () => {
   const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
   const hasRightPanel = useUIStore((s) => s.rightPanelContent !== null);
+  const rightPanelLayout = useUIStore((s) => s.rightPanelLayout);
 
   const sidebarOffset = sidebarCollapsed ? 'md:ml-16' : 'md:ml-64';
   // When right panel is open, reserve right half of remaining space
-  const rightPanelOffset = hasRightPanel ? 'lg:mr-[50%]' : '';
+  const rightPanelOffset =
+    hasRightPanel && rightPanelLayout === 'half' ? 'lg:mr-[50%]' : '';
+  const isFullscreenPanel = hasRightPanel && rightPanelLayout === 'fullscreen';
 
   return (
     <main
-      className={`h-full overflow-y-auto overflow-x-hidden flex flex-col transition-all duration-300 ${sidebarOffset} ${rightPanelOffset}`}
+      className={`h-full overflow-y-auto overflow-x-hidden flex flex-col transition-all duration-300 ${sidebarOffset} ${rightPanelOffset} ${isFullscreenPanel ? 'pointer-events-none select-none' : ''}`}
     >
       <Header />
       <div className="flex-1">
@@ -81,11 +84,20 @@ const MainContent: React.FC = () => {
 const RightPanel: React.FC = () => {
   const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
   const rightPanelContent = useUIStore((s) => s.rightPanelContent);
+  const rightPanelLayout = useUIStore((s) => s.rightPanelLayout);
 
   if (!rightPanelContent) return null;
 
   // Width = 50% of (viewport - sidebar width)
   const sidebarWidth = sidebarCollapsed ? '4rem' : '16rem';
+
+  if (rightPanelLayout === 'fullscreen') {
+    return (
+      <aside className="fixed inset-0 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-50">
+        {rightPanelContent}
+      </aside>
+    );
+  }
 
   return (
     <aside

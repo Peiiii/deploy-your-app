@@ -586,6 +586,20 @@ export class SdkCloudRepository {
     };
   }
 
+  async deleteDbCollectionPermission(
+    db: D1Database,
+    input: { appId: string; collection: string },
+  ): Promise<void> {
+    await this.ensureSchema(db);
+    await db
+      .prepare(
+        `DELETE FROM sdk_db_collection_permissions
+         WHERE app_id = ? AND collection = ?`,
+      )
+      .bind(input.appId, input.collection)
+      .run();
+  }
+
   async getDbCollectionSecurityRules(
     db: D1Database,
     input: { appId: string; collection: string },
@@ -631,6 +645,20 @@ export class SdkCloudRepository {
       rulesJson: asString(row.rules_json),
       updatedAt: asNumber(row.updated_at),
     };
+  }
+
+  async deleteDbCollectionSecurityRules(
+    db: D1Database,
+    input: { appId: string; collection: string },
+  ): Promise<void> {
+    await this.ensureSchema(db);
+    await db
+      .prepare(
+        `DELETE FROM sdk_db_collection_security_rules
+         WHERE app_id = ? AND collection = ?`,
+      )
+      .bind(input.appId, input.collection)
+      .run();
   }
 
   private buildJsonPath(field: string): string {

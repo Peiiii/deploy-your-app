@@ -9,6 +9,7 @@ import { MetadataHandler } from './metadata-handler';
 import { ThumbnailHandler } from './thumbnail-handler';
 import { DeploymentHandler } from './deployment-handler';
 import { ProjectActions } from './project-actions';
+import { CloudDbSettingsHandler } from './cloud-db-settings-handler';
 
 /**
  * Facade manager for project settings page.
@@ -22,6 +23,7 @@ export class ProjectSettingsManager {
   private thumbnailHandler: ThumbnailHandler;
   private deploymentHandler: DeploymentHandler;
   private projectActions: ProjectActions;
+  private cloudDbSettingsHandler: CloudDbSettingsHandler;
 
   constructor(
     projectManager: ProjectManager,
@@ -41,6 +43,7 @@ export class ProjectSettingsManager {
       reactionManager,
       analyticsManager,
     );
+    this.cloudDbSettingsHandler = new CloudDbSettingsHandler(uiManager);
   }
 
   // ============================================================
@@ -89,4 +92,23 @@ export class ProjectSettingsManager {
   toggleLike = () => this.projectActions.toggleLike();
   toggleFavorite = () => this.projectActions.toggleFavorite();
   resetForm = () => this.projectActions.resetForm();
+
+  // ============================================================
+  // Public API - Cloud DB Settings (product feature)
+  // ============================================================
+
+  cloudDbSetProjectContext = (input: { projectId: string; appId: string }) =>
+    this.cloudDbSettingsHandler.setProjectContext(input);
+  cloudDbSetCollection = (collection: string) => this.cloudDbSettingsHandler.setCollection(collection);
+  cloudDbLoad = () => this.cloudDbSettingsHandler.load();
+  cloudDbSetPermissionMode = (mode: 'creator_read_write' | 'all_read_creator_write' | 'all_read_readonly' | 'none') =>
+    this.cloudDbSettingsHandler.setPermissionMode(mode);
+  cloudDbSavePermission = () => this.cloudDbSettingsHandler.savePermission();
+  cloudDbResetPermission = () => this.cloudDbSettingsHandler.resetPermission();
+  cloudDbSetRulesDraft = (text: string) => this.cloudDbSettingsHandler.setRulesDraft(text);
+  cloudDbApplyRulesTemplate = (template: 'public_feed_or_owner' | 'owner_only') =>
+    this.cloudDbSettingsHandler.applyRulesTemplate(template);
+  cloudDbFormatRulesDraft = () => this.cloudDbSettingsHandler.formatRulesDraft();
+  cloudDbSaveRules = () => this.cloudDbSettingsHandler.saveRules();
+  cloudDbDeleteRules = () => this.cloudDbSettingsHandler.deleteRules();
 }

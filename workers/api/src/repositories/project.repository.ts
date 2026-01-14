@@ -310,6 +310,11 @@ class ProjectRepository {
 
     if (options.onlyPublic) {
       where.push('is_public = 1');
+      // "Public" in product terms means the app is actually accessible.
+      // Projects that have never successfully deployed (no live URL) must not
+      // appear in public feeds like Explore.
+      where.push("status = 'Live'");
+      where.push("url IS NOT NULL AND TRIM(url) != ''");
     }
 
     if (typeof options.isExtensionSupported === 'boolean') {

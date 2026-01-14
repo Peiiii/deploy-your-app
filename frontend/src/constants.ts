@@ -24,6 +24,8 @@ export const API_ROUTES = {
   PROJECT_FAVORITE: (id: string) =>
     `/projects/${encodeURIComponent(id)}/favorite`,
   MY_FAVORITES: '/me/favorites',
+  USER_FOLLOW: (identifier: string) =>
+    `/users/${encodeURIComponent(identifier)}/follow`,
   ADMIN_PROJECTS: '/admin/projects',
 };
 

@@ -15,8 +15,8 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
         <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-900">
             {/* Header */}
             <header className="h-20 px-4 md:px-8 flex items-center justify-between sticky top-0 bg-[#f8fafc]/80 dark:bg-slate-900/80 backdrop-blur z-20 border-b border-slate-100 dark:border-slate-800/50">
-                <div className="flex items-center gap-4">
-                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+                <div className="flex items-center gap-4 min-w-0">
+                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight truncate">
                         {title}
                     </h1>
                 </div>

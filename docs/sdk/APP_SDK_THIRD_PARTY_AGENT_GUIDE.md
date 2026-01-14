@@ -40,6 +40,57 @@ SDK 发请求的 API base：
 - 当应用运行在 `https://<slug>.gemigo.app`：SDK 会从域名推导 `appId=<slug>`
 - 当应用运行在 `localhost`：请在 `auth.login()` 显式传入一个**稳定唯一**的 `appId`（不要用默认推导的 `localhost`）
 
+### 1.4 登录后如何获取“当前用户信息”（`appUserId`）
+
+在 App SDK V0 里，“用户身份”对齐 wx 的 `openid` 心智：**每个 app 一个稳定 id**，我们称为 `appUserId`。
+
+你能拿到的用户信息（V0）是最小集：
+
+- `appUserId`：当前登录用户在当前 app 下的 id（推荐用于 UI 展示/业务关联）
+- `accessToken`：用于调用 Cloud API 的 Bearer token（SDK 会在内部使用）
+- `scopes`：授权范围
+
+获取方式：
+
+1) **最推荐：从 `login()` 的返回值获取**
+
+```js
+const token = await gemigo.auth.login({
+  scopes: ['identity:basic', 'db:rw'],
+});
+
+console.log('appUserId', token.appUserId);
+console.log('scopes', token.scopes);
+```
+
+2) **如果你只是想在当前页面里确认“是否还在登录态”**
+
+```js
+const accessToken = gemigo.auth.getAccessToken();
+if (!accessToken) {
+  // 未登录（或页面刷新后内存态丢失），需要重新 login()
+}
+```
+
+3) **（可选）直接调用 `GET /api/v1/sdk/me` 获取身份信息**
+
+> 说明：SDK V0 暂未封装 `gemigo.auth.me()`，但你可以用 `getAccessToken()` 自己 fetch。
+
+```js
+const apiBaseUrl = 'https://gemigo.io/api/v1';
+const accessToken = gemigo.auth.getAccessToken();
+const me = await fetch(`${apiBaseUrl}/sdk/me`, {
+  headers: { Authorization: `Bearer ${accessToken}` },
+}).then((r) => r.json());
+
+console.log(me); // { appId, appUserId, scopes }
+```
+
+安全提醒（我会这么要求第三方开发者）：
+
+- `appUserId` 适合做“业务上的 userId”，但**不要把它当成安全边界**（客户端可伪造任意业务字段）。
+- 真正的写权限/创建者身份由平台系统字段 `_openid`（内部映射到 `appUserId`）与 Security Rules 强制执行。
+
 ---
 
 ## 2) 最快路径：拷贝即用的单文件示例（Public Wall）
@@ -316,6 +367,17 @@ SDK 发请求的 API base：
 - 你写的 `where({ visibility: _.eq('public') })` 在默认模式下，服务端仍会隐式加上 `_openid == auth.openid`，所以你只会看到你自己的文档。
 
 如果你的第三方应用要做“公开广场/社区”，必须启用 Security Rules 并配置“public 可读 + 自己可写”等规则模板。
+
+### 在 GemiGo 平台哪里配置？
+
+当你的应用已经部署到 `https://<slug>.gemigo.app` 后：
+
+1) 打开 `gemigo.io` → 进入你的项目详情/设置页
+2) 选择 Tab：`Cloud DB`
+3) 填写 collection（例如 `posts`）
+4) 选择：
+   - `Legacy Permission Mode`（简单模式），或
+   - `Security Rules`（推荐，支持“public 可读 + 自己可写”等模板）
 
 参考：
 

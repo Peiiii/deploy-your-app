@@ -15,6 +15,8 @@ export interface ConfirmDialogState {
   secondaryLabel: string;
 }
 
+export type RightPanelLayout = 'half' | 'fullscreen';
+
 interface UIState {
   theme: 'dark' | 'light';
   sidebarOpen: boolean;
@@ -25,6 +27,7 @@ interface UIState {
   // Right Panel Service
   rightPanelContent: ReactNode | null;
   rightPanelId: string | null;
+  rightPanelLayout: RightPanelLayout;
   actions: {
     toggleTheme: () => void;
     toggleSidebar: () => void;
@@ -39,6 +42,8 @@ interface UIState {
     // Right Panel Service
     openRightPanel: (content: ReactNode, id: string) => void;
     closeRightPanel: (id?: string) => void;
+    setRightPanelLayout: (layout: RightPanelLayout) => void;
+    toggleRightPanelLayout: () => void;
   };
 }
 
@@ -59,6 +64,7 @@ export const useUIStore = create<UIState>((set) => ({
   confirmDialog: null,
   rightPanelContent: null,
   rightPanelId: null,
+  rightPanelLayout: 'half',
   actions: {
     toggleTheme: () =>
       set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
@@ -78,14 +84,20 @@ export const useUIStore = create<UIState>((set) => ({
     },
     openConfirmDialog: (dialog) => set({ confirmDialog: dialog }),
     closeConfirmDialog: () => set({ confirmDialog: null }),
-    openRightPanel: (content, id) => set({ rightPanelContent: content, rightPanelId: id }),
+    openRightPanel: (content, id) =>
+      set({ rightPanelContent: content, rightPanelId: id, rightPanelLayout: 'half' }),
     closeRightPanel: (id) =>
       set((state) => {
         // If no id provided, force close. If id provided, only close if it matches.
         if (!id || state.rightPanelId === id) {
-          return { rightPanelContent: null, rightPanelId: null };
+          return { rightPanelContent: null, rightPanelId: null, rightPanelLayout: 'half' };
         }
         return state;
       }),
+    setRightPanelLayout: (layout) => set({ rightPanelLayout: layout }),
+    toggleRightPanelLayout: () =>
+      set((state) => ({
+        rightPanelLayout: state.rightPanelLayout === 'fullscreen' ? 'half' : 'fullscreen',
+      })),
   },
 }));

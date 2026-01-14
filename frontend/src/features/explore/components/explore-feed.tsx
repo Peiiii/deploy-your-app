@@ -4,9 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { Heart, MessageCircle, Star, Share2, Play, X, ChevronLeft } from 'lucide-react';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 import { usePresenter } from '@/contexts/presenter-context';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { useReactionStore } from '@/stores/reaction.store';
 import type { ProjectComment } from '@/types';
 import { createProjectComment, deleteComment, fetchProjectComments } from '@/services/http/comments-api';
+import { fetchFollowSummary, followUser, unfollowUser } from '@/services/http/follow-api';
 
 interface ExploreFeedProps {
     apps: ExploreAppCard[];
@@ -161,6 +163,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
     const { t } = useTranslation();
     const navigate = useNavigate();
     const presenter = usePresenter();
+    const currentUser = useAuthStore((s) => s.user);
     const reactionEntry = useReactionStore((s) => s.byProjectId[app.id]);
     const [isEntered, setIsEntered] = useState(false);
     const [isCommentsOpen, setIsCommentsOpen] = useState(false);
@@ -176,10 +179,68 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
     const [thumbError, setThumbError] = useState(false);
     const showThumbnail = app.thumbnailUrl && !thumbError;
 
+    const followIdentifier = app.authorProfileIdentifier;
+    const [followersCount, setFollowersCount] = useState<number | null>(null);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [isFollowLoading, setIsFollowLoading] = useState(false);
+
     const likesCount = reactionEntry?.likesCount ?? 0;
     const isLiked = reactionEntry?.likedByCurrentUser ?? false;
     const favoritesCount = reactionEntry?.favoritesCount ?? 0;
     const isFavorited = reactionEntry?.favoritedByCurrentUser ?? false;
+
+    const isSelfFollowTarget =
+        !!followIdentifier &&
+        ((!!currentUser?.handle && followIdentifier === currentUser.handle) ||
+            (!!currentUser?.id && followIdentifier === currentUser.id));
+
+    useEffect(() => {
+        if (!isEntered) return;
+        if (!followIdentifier) return;
+
+        setIsFollowLoading(true);
+        fetchFollowSummary(followIdentifier)
+            .then((summary) => {
+                setFollowersCount(summary.followersCount);
+                setIsFollowing(summary.isFollowing);
+            })
+            .catch(() => {
+                setFollowersCount(null);
+                setIsFollowing(false);
+            })
+            .finally(() => {
+                setIsFollowLoading(false);
+            });
+    }, [currentUser?.id, followIdentifier, isEntered]);
+
+    const handleToggleFollow = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!followIdentifier) return;
+
+        const user = presenter.auth.getCurrentUser();
+        if (!user) {
+            presenter.auth.openAuthModal('login');
+            presenter.ui.showToast(t('deployment.signInRequired'), 'info');
+            return;
+        }
+
+        setIsFollowLoading(true);
+        try {
+            const summary = isFollowing
+                ? await unfollowUser(followIdentifier)
+                : await followUser(followIdentifier);
+            setFollowersCount(summary.followersCount);
+            setIsFollowing(summary.isFollowing);
+        } catch (err) {
+            if (err instanceof Error && err.message === 'unauthorized') {
+                presenter.auth.openAuthModal('login');
+                return;
+            }
+            presenter.ui.showToast(t('common.error') || 'Error', 'error');
+        } finally {
+            setIsFollowLoading(false);
+        }
+    };
 
     const openComments = () => {
         setIsCommentsOpen(true);
@@ -291,11 +352,24 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                         </div>
                         <div className="flex flex-col max-w-[100px]">
                             <span className="text-white text-xs font-bold truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">@{app.author}</span>
-                            <span className="text-white/60 text-[10px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">1.2k {t('explore.feed.followers')}</span>
+                            {typeof followersCount === 'number' && (
+                                <span className="text-white/60 text-[10px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                    {followersCount.toLocaleString()} {t('explore.feed.followers')}
+                                </span>
+                            )}
                         </div>
-                        <button className="ml-1 px-3 py-1 bg-[#ff0050] text-white text-[10px] font-bold rounded-full hover:brightness-110 active:scale-95 transition-all shadow-md">
-                            {t('explore.feed.follow')}
-                        </button>
+                        {followIdentifier && !isSelfFollowTarget && (
+                            <button
+                                className={`ml-1 px-3 py-1 text-white text-[10px] font-bold rounded-full active:scale-95 transition-all shadow-md ${isFollowing
+                                    ? 'bg-white/10 hover:bg-white/15'
+                                    : 'bg-[#ff0050] hover:brightness-110'
+                                    } ${isFollowLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                onClick={handleToggleFollow}
+                                disabled={isFollowLoading}
+                            >
+                                {isFollowing ? t('explore.feed.following') : t('explore.feed.follow')}
+                            </button>
+                        )}
                     </div>
 
                     {/* Right: Exit Button */}

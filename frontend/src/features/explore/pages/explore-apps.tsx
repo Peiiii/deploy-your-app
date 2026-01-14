@@ -5,7 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { ExploreAppCardView } from '@/components/explore-app-card';
 import { PageLayout } from '@/components/page-layout';
 import { useExploreStore, CATEGORIES, type CategoryFilter } from '@/features/explore/stores/explore.store';
+import { useUIStore } from '@/stores/ui.store';
 import { usePresenter } from '@/contexts/presenter-context';
+import { useAppPreviewPanel } from '@/hooks/use-app-preview-panel';
 import { ExploreFeed } from '../components/explore-feed';
 
 
@@ -84,6 +86,7 @@ const CategoryFilterBar: React.FC<CategoryFilterProps> = ({
 export const ExploreApps: React.FC = () => {
   const { t } = useTranslation();
   const presenter = usePresenter();
+  const { openAppPreview } = useAppPreviewPanel();
 
 
   // Subscribe to store
@@ -128,6 +131,10 @@ export const ExploreApps: React.FC = () => {
   );
 
   const isFeedView = viewMode === 'feed';
+  // Detect right panel state to adjust header compactness
+  const hasRightPanel = useUIStore((s) => s.rightPanelContent !== null);
+  const rightPanelLayout = useUIStore((s) => s.rightPanelLayout);
+  const isCompact = hasRightPanel && rightPanelLayout === 'half';
 
   if (isFeedView) {
     return <ExploreFeed apps={apps} onToggleView={() => setViewMode('grid')} />;
@@ -136,38 +143,40 @@ export const ExploreApps: React.FC = () => {
   return (
     <PageLayout
       title={
-        <div className="flex items-center gap-3">
+        <div className={`flex items-center gap-3 whitespace-nowrap overflow-hidden shrink-0 ${isCompact ? 'text-xl md:text-2xl' : ''}`}>
           {t('explore.exploreApps')}
-          <span className="bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-xs px-2 py-1 rounded-full border border-brand-200 dark:border-brand-500/20 font-normal">
+          <span className="bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-xs px-2 py-1 rounded-full border border-brand-200 dark:border-brand-500/20 font-normal shrink-0">
             {t('explore.beta')}
           </span>
         </div>
       }
       actions={
-        <div className="flex items-center gap-3">
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
-              <button
-                onClick={() => setViewMode('feed')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isFeedView
-                  ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0">
+            <button
+              onClick={() => setViewMode('feed')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${isFeedView
+                ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                 }`}
-              >
-              <Smartphone className="w-3.5 h-3.5" />
-              {t('explore.feedView')}
+              title={t('explore.feedView')}
+            >
+              <Smartphone className="w-3.5 h-3.5 shrink-0" />
+              {!isCompact && t('explore.feedView')}
             </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${!isFeedView
-                  ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${!isFeedView
+                ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                 }`}
-              >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              {t('explore.gridView')}
+              title={t('explore.gridView')}
+            >
+              <LayoutGrid className="w-3.5 h-3.5 shrink-0" />
+              {!isCompact && t('explore.gridView')}
             </button>
           </div>
-          <div className="hidden md:block">
+          <div className={`${isCompact ? 'hidden' : 'hidden md:block'}`}>
             <SearchBar value={searchQuery} onChange={actions.setSearchQuery} />
           </div>
         </div>
@@ -220,6 +229,7 @@ export const ExploreApps: React.FC = () => {
                   app={app}
                   activeTag={activeTag}
                   setActiveTag={handleSetActiveTag}
+                  onCardClick={() => openAppPreview(app)}
                 />
               ))}
             </div>

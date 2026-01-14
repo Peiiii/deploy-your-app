@@ -7,10 +7,12 @@ import { projectsController } from './controllers/projects.controller';
 import { analyticsController } from './controllers/analytics.controller';
 import { engagementController } from './controllers/engagement.controller';
 import { profileController } from './controllers/profile.controller';
+import { followController } from './controllers/follow.controller';
 import { adminController } from './controllers/admin.controller';
 import { commentsController } from './controllers/comments.controller';
 import { sdkAuthController } from './controllers/sdk-auth.controller';
 import { sdkCloudController } from './controllers/sdk-cloud.controller';
+import { cloudDbSettingsController } from './controllers/cloud-db-settings.controller';
 
 /**
  * Build the API router for a given request/environment.
@@ -194,6 +196,47 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     method: 'POST',
     handler: (req, params) =>
       projectsController.uploadThumbnail(req, env, requireDb(), params.id),
+  });
+
+  // -----------------
+  // Project Cloud DB settings (owner-managed)
+  // -----------------
+  router.add({
+    path: '/api/v1/projects/:id/cloud/db/collections/:collection/permission',
+    method: 'GET',
+    handler: (req, params) =>
+      cloudDbSettingsController.getCollectionPermission(req, env, requireDb(), params.id, params.collection),
+  });
+  router.add({
+    path: '/api/v1/projects/:id/cloud/db/collections/:collection/permission',
+    method: 'PUT',
+    handler: (req, params) =>
+      cloudDbSettingsController.setCollectionPermission(req, env, requireDb(), params.id, params.collection),
+  });
+  router.add({
+    path: '/api/v1/projects/:id/cloud/db/collections/:collection/permission',
+    method: 'DELETE',
+    handler: (req, params) =>
+      cloudDbSettingsController.deleteCollectionPermission(req, env, requireDb(), params.id, params.collection),
+  });
+
+  router.add({
+    path: '/api/v1/projects/:id/cloud/db/collections/:collection/security-rules',
+    method: 'GET',
+    handler: (req, params) =>
+      cloudDbSettingsController.getCollectionSecurityRules(req, env, requireDb(), params.id, params.collection),
+  });
+  router.add({
+    path: '/api/v1/projects/:id/cloud/db/collections/:collection/security-rules',
+    method: 'PUT',
+    handler: (req, params) =>
+      cloudDbSettingsController.setCollectionSecurityRules(req, env, requireDb(), params.id, params.collection),
+  });
+  router.add({
+    path: '/api/v1/projects/:id/cloud/db/collections/:collection/security-rules',
+    method: 'DELETE',
+    handler: (req, params) =>
+      cloudDbSettingsController.deleteCollectionSecurityRules(req, env, requireDb(), params.id, params.collection),
   });
 
   // -----------------
@@ -513,6 +556,31 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     method: 'GET',
     handler: (_req, params) =>
       profileController.getPublicProfile(requireDb(), params.id),
+  });
+
+  // -----------------
+  // Follow routes (community social graph)
+  // -----------------
+
+  router.add({
+    path: '/api/v1/users/:id/follow',
+    method: 'GET',
+    handler: (req, params) =>
+      followController.getFollowSummary(req, requireDb(), params.id),
+  });
+
+  router.add({
+    path: '/api/v1/users/:id/follow',
+    method: 'POST',
+    handler: (req, params) =>
+      followController.follow(req, requireDb(), params.id),
+  });
+
+  router.add({
+    path: '/api/v1/users/:id/follow',
+    method: 'DELETE',
+    handler: (req, params) =>
+      followController.unfollow(req, requireDb(), params.id),
   });
 
   return router;

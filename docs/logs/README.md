@@ -8,4 +8,5 @@
 
 最近更新：
 
+- `2026-01-13-cloud-db-settings-product`：Cloud DB 配置产品化（Project Owner 自助配置）
 - `2026-01-12-wx-cloud-facade-alignment`：wx.cloud 风格全家桶对齐（App SDK + Cloud DB 语义修正）

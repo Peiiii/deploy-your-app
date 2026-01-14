@@ -4,23 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
-import { useUIStore } from '@/stores/ui.store';
-import { useBreakpoint } from '@/hooks/use-breakpoint';
-import { useRightPanel } from '@/hooks/use-right-panel';
+import { useAppPreviewPanel } from '@/hooks/use-app-preview-panel';
 import { SourceType } from '@/types';
 import { HomeDeploySection } from '@/features/home/components/home-deploy-section';
 import { HomeExploreSection } from '@/features/home/components/home-explore-section';
-import { AppPreviewPanel } from '@/features/home/components/app-preview-panel';
 
 export const Home: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const presenter = usePresenter();
   const user = useAuthStore((s) => s.user);
-  const setSidebarCollapsed = useUIStore((state) => state.actions.setSidebarCollapsed);
-  const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
-  const { isDesktop } = useBreakpoint();
-  const { openRightPanel, closeRightPanel, isOpen: isPanelOpen } = useRightPanel();
+  const { openAppPreview, isPanelOpen } = useAppPreviewPanel();
 
   const requireAuthAnd = (action: () => void) => {
     if (!user) {
@@ -37,30 +31,8 @@ export const Home: React.FC = () => {
     });
   };
 
-  const handleOpenInNewTab = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
   const handleCardClick = (app: ExploreAppCard) => {
-    if (app.url) {
-      if (!isDesktop) {
-        window.open(app.url, '_blank', 'noopener,noreferrer');
-      } else {
-        // Open the preview panel using the global service
-        openRightPanel(
-          <AppPreviewPanel
-            app={app}
-            onClose={closeRightPanel}
-            onOpenInNewTab={handleOpenInNewTab}
-          />,
-          { closeOnUnmount: true }
-        );
-        // Collapse sidebar for more space
-        if (!sidebarCollapsed) {
-          setSidebarCollapsed(true);
-        }
-      }
-    }
+    openAppPreview(app);
   };
 
   return (

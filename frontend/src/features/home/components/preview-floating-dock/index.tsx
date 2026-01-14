@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, X } from 'lucide-react';
+import { ExternalLink, Maximize2, Minimize2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 import { useFloatingDock } from './use-floating-dock';
@@ -17,6 +17,8 @@ interface PreviewFloatingDockProps {
     onOpenInNewTab: (url: string) => void;
     onDragStart: () => void;
     onDragEnd: () => void;
+    isFullscreen: boolean;
+    onToggleFullscreen: () => void;
 }
 
 export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
@@ -24,7 +26,9 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
     onClose,
     onOpenInNewTab,
     onDragStart,
-    onDragEnd
+    onDragEnd,
+    isFullscreen,
+    onToggleFullscreen,
 }) => {
     const { t } = useTranslation();
 
@@ -32,6 +36,9 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
         onDragStart,
         onDragEnd
     });
+
+    const actionCount = (app.url ? 1 : 0) + 1 + 1;
+    const shouldAutoExpand = actionCount <= 5;
 
     return (
         <div
@@ -64,7 +71,7 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
                 <div className={`
                     flex flex-col items-center gap-2 w-full
                     transition-all duration-300 ease-in-out origin-top px-1
-                    ${isDragging
+                    ${isDragging || shouldAutoExpand
                         ? 'max-h-[100px] pb-2 opacity-100'
                         : 'max-h-0 opacity-0 pb-0 group-hover/dock:max-h-[100px] group-hover/dock:pb-2 group-hover/dock:opacity-100'}
                 `}>
@@ -83,6 +90,22 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
                             <ExternalLink className="w-3.5 h-3.5" />
                         </button>
                     )}
+                    <button
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={onToggleFullscreen}
+                        className="p-1 rounded-md hover:bg-slate-100 hover:text-slate-800 text-slate-500 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+                        title={
+                            isFullscreen
+                                ? t('common.exitFullscreen')
+                                : t('common.fullscreen')
+                        }
+                    >
+                        {isFullscreen ? (
+                            <Minimize2 className="w-3.5 h-3.5" />
+                        ) : (
+                            <Maximize2 className="w-3.5 h-3.5" />
+                        )}
+                    </button>
                     <button
                         onMouseDown={(e) => e.stopPropagation()}
                         onClick={onClose}
