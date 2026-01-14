@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import type { Project } from '@/types';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useCloudDbSettingsStore } from '@/features/project-settings/stores/cloud-db-settings.store';
+import { useLayoutMode } from '@/hooks/use-layout-mode';
 import type { CloudDbPermissionMode } from '@/services/http/cloud-db-settings-api';
 
 function deriveAppIdFromSlug(slugRaw: string | undefined): string | null {
@@ -23,6 +24,7 @@ export const SettingsCloudDbTab: React.FC<{ project: Project }> = ({ project }) 
   const { t } = useTranslation();
   const [, setSearchParams] = useSearchParams();
   const presenter = usePresenter();
+  const { isCompact } = useLayoutMode();
 
   const [newCollectionDraft, setNewCollectionDraft] = useState('');
 
@@ -156,7 +158,7 @@ export const SettingsCloudDbTab: React.FC<{ project: Project }> = ({ project }) 
         </div>
 
         <div className="p-6 space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className={`grid gap-4 ${isCompact ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'}`}>
             <div>
               <div className="text-xs font-medium text-slate-500 dark:text-slate-400">
                 {t('project.cloudDbSettings.projectLabel', 'Project')}
@@ -214,8 +216,8 @@ export const SettingsCloudDbTab: React.FC<{ project: Project }> = ({ project }) 
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
-          <div className="lg:col-span-4 border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-slate-800 p-6 space-y-4">
+        <div className={`grid gap-0 ${isCompact ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-12'}`}>
+          <div className={`${isCompact ? '' : 'lg:col-span-4'} border-b ${isCompact ? '' : 'lg:border-b-0 lg:border-r'} border-slate-100 dark:border-slate-800 p-6 space-y-4`}>
             <div className="space-y-2">
               <div className="text-xs font-medium text-slate-500 dark:text-slate-400">
                 {t('project.cloudDbSettings.addCollection', 'Add collection')}
@@ -297,7 +299,7 @@ export const SettingsCloudDbTab: React.FC<{ project: Project }> = ({ project }) 
             </div>
           </div>
 
-          <div className="lg:col-span-8 p-6 space-y-6">
+          <div className={`${isCompact ? '' : 'lg:col-span-8'} p-6 space-y-6`}>
             {!selectedCollection ? (
               <div className="space-y-2">
                 <div className="text-sm font-semibold text-slate-900 dark:text-white">

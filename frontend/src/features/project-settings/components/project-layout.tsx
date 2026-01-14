@@ -2,6 +2,7 @@ import React, { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ExternalLink } from 'lucide-react';
 import { getProjectLiveUrl } from '@/utils/project';
+import { useLayoutMode } from '@/hooks/use-layout-mode';
 import type { Project } from '@/types';
 
 export interface ProjectLayoutTab {
@@ -32,6 +33,7 @@ export const ProjectLayout: React.FC<ProjectLayoutProps> = ({
     actions,
 }) => {
     const { t } = useTranslation();
+    const { isCompact } = useLayoutMode();
 
     // Generate project URL - prefer canonical URL with provider fallback
     const projectUrl = getProjectLiveUrl(project);
@@ -46,19 +48,19 @@ export const ProjectLayout: React.FC<ProjectLayoutProps> = ({
     return (
         <div className="flex flex-col min-h-0">
             {/* Header Section */}
-            <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-8 pb-0 px-6 md:px-8 sticky top-0 z-20">
+            <div className={`bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 ${isCompact ? 'pt-4 pb-0 px-4' : 'pt-8 pb-0 px-6 md:px-8'} sticky top-0 z-20`}>
                 <div className="max-w-6xl mx-auto">
                     {/* Project Identity Row */}
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
+                    <div className={`flex ${isCompact ? 'flex-col' : 'flex-col md:flex-row md:items-start md:justify-between'} gap-4 ${isCompact ? 'mb-4' : 'mb-8'}`}>
                         <div className="flex items-center gap-4">
                             {/* Project Icon */}
-                            <div className="w-14 h-14 bg-gradient-to-br from-brand-500 to-purple-600 rounded-xl shadow-lg shadow-brand-500/20 flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+                            <div className={`${isCompact ? 'w-10 h-10 text-base' : 'w-14 h-14 text-xl'} bg-gradient-to-br from-brand-500 to-purple-600 rounded-xl shadow-lg shadow-brand-500/20 flex items-center justify-center text-white font-bold flex-shrink-0`}>
                                 {initials || 'P'}
                             </div>
 
                             {/* Project Info */}
                             <div className="min-w-0">
-                                <h1 className="text-2xl font-bold text-slate-900 dark:text-white truncate">
+                                <h1 className={`${isCompact ? 'text-lg' : 'text-2xl'} font-bold text-slate-900 dark:text-white truncate`}>
                                     {project.name}
                                 </h1>
                                 {projectUrl ? (
@@ -68,7 +70,7 @@ export const ProjectLayout: React.FC<ProjectLayoutProps> = ({
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors group"
                                     >
-                                        <span className="truncate max-w-[200px] md:max-w-[300px]">
+                                        <span className={`truncate ${isCompact ? 'max-w-[150px]' : 'max-w-[200px] md:max-w-[300px]'}`}>
                                             {projectUrl.replace(/^https?:\/\//, '')}
                                         </span>
                                         <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -111,7 +113,7 @@ export const ProjectLayout: React.FC<ProjectLayoutProps> = ({
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 bg-slate-50 dark:bg-slate-950 py-8 px-6 md:px-8">
+            <div className={`flex-1 bg-slate-50 dark:bg-slate-950 ${isCompact ? 'py-4 px-4' : 'py-8 px-6 md:px-8'}`}>
                 <div className="max-w-6xl mx-auto">
                     {children}
                 </div>
@@ -119,3 +121,4 @@ export const ProjectLayout: React.FC<ProjectLayoutProps> = ({
         </div>
     );
 };
+
