@@ -96,7 +96,7 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({ apps, onToggleView }) 
         <div className="fixed inset-0 z-[100] bg-black overflow-hidden flex flex-col">
             {/* Custom Auto-Hiding Header */}
             <div
-                className={`fixed top-0 left-0 right-0 z-[110] px-6 h-20 flex items-center justify-between transition-all duration-500 ease-in-out bg-gradient-to-b from-black/30 to-transparent ${showHeader ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'
+                className={`fixed top-0 left-0 right-0 z-[110] px-4 md:px-6 h-16 md:h-20 flex items-center justify-between transition-all duration-500 ease-in-out bg-gradient-to-b from-black/30 to-transparent ${showHeader ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'
                     }`}
             >
                 {/* Left Side - Back Button */}
@@ -381,9 +381,9 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                         <button
                             className="w-10 h-10 flex items-center justify-center text-white/80 hover:text-white transition-all active:scale-90 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
                             onClick={handleExit}
-                            title="Exit Interaction"
+                            title={t('common.exit')}
                         >
-                            <X className="w-8 h-8" />
+                            <X className="w-8 h-8 md:w-7 md:h-7" />
                         </button>
                     </div>
                 </div>
@@ -404,13 +404,13 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                             <img
                                 src={app.thumbnailUrl}
                                 alt={app.name}
-                                className="w-full h-full object-cover transition-transform duration-500 rounded-xl opacity-100"
+                                className="w-full h-full object-cover transition-transform duration-500 md:rounded-xl opacity-100"
                                 onError={() => setThumbError(true)}
                             />
                         ) : (
-                            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${app.color} rounded-xl relative overflow-hidden`}>
+                            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${app.color} md:rounded-xl relative overflow-hidden`}>
                                 <div className="absolute inset-0 bg-black/5" />
-                                <span className="text-[20rem] font-black text-white mix-blend-overlay opacity-50 select-none transform -rotate-12 scale-150">
+                                <span className="text-[10rem] md:text-[20rem] font-black text-white mix-blend-overlay opacity-50 select-none transform -rotate-12 scale-150">
                                     {app.name.charAt(0).toUpperCase()}
                                 </span>
                             </div>
@@ -438,10 +438,10 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                 )}
 
                 {/* TikTok-style UI Overlay (Info remains visible or fades partially) */}
-                <div className={`absolute bottom-0 left-0 right-0 h-[40%] pointer-events-none z-10 flex flex-col justify-end p-6 bg-gradient-to-t from-black/30 to-transparent transition-all duration-500 ${isEntered ? 'opacity-40 -translate-y-4' : 'opacity-100 translate-y-0'
+                <div className={`absolute bottom-0 left-0 right-0 h-[40%] pointer-events-none z-10 flex flex-col justify-end p-4 md:p-6 bg-gradient-to-t from-black/60 md:from-black/30 to-transparent transition-all duration-500 ${isEntered ? 'opacity-40 -translate-y-4' : 'opacity-100 translate-y-0'
                     }`}>
                     {/* Bottom Info */}
-                    <div className="max-w-[80%] text-white mb-4">
+                    <div className="max-w-[85%] md:max-w-[80%] text-white mb-4">
                         <h3
                             className="text-xl font-bold mb-2 flex items-center gap-2 cursor-pointer pointer-events-auto hover:text-brand-400 transition-colors drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                             onClick={() => navigate(`/u/${app.authorProfileIdentifier || app.author}`)}
