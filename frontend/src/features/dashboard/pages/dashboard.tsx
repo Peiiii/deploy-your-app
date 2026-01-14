@@ -242,12 +242,12 @@ export const Dashboard: React.FC = () => {
             {/* Add New Project Card */}
             <button
               onClick={() => navigate('/deploy')}
-              className="rounded-xl border border-dashed border-slate-300 dark:border-gray-800 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-brand-500/50 transition-all group flex flex-col items-center justify-center p-6 gap-3 text-slate-500 dark:text-gray-500 hover:text-brand-600 dark:hover:text-brand-400 min-h-[280px]"
+              className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-white/5 hover:bg-gradient-to-br hover:from-brand-500/5 hover:to-purple-500/5 hover:border-brand-500/50 dark:hover:border-brand-500/50 transition-all group flex flex-col items-center justify-center p-6 gap-3 text-slate-500 dark:text-gray-500 hover:text-brand-600 dark:hover:text-brand-400 min-h-[280px]"
             >
-              <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-gray-900 group-hover:bg-brand-100 dark:group-hover:bg-brand-900/30 flex items-center justify-center transition-colors">
-                <Plus className="w-6 h-6" />
+              <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 group-hover:bg-brand-100 dark:group-hover:bg-brand-900/30 flex items-center justify-center transition-all shadow-sm group-hover:scale-110">
+                <Plus className="w-7 h-7" />
               </div>
-              <span className="font-medium">{t('dashboard.deployApp')}</span>
+              <span className="font-bold text-sm">{t('dashboard.deployApp')}</span>
             </button>
           </div>
         )}
