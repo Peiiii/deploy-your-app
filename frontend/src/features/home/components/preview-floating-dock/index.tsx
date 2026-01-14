@@ -2,7 +2,7 @@ import React from 'react';
 import { ExternalLink, Maximize2, Minimize2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ExploreAppCard } from '@/components/explore-app-card';
-import { useFloatingDock } from './use-floating-dock';
+import { useFloatingDock, type UseFloatingDockOptions } from './use-floating-dock';
 import { BrandLogo } from './brand-logo';
 
 // ============================================================================
@@ -19,6 +19,7 @@ interface PreviewFloatingDockProps {
     onDragEnd: () => void;
     isFullscreen: boolean;
     onToggleFullscreen: () => void;
+    dockOptions?: Omit<UseFloatingDockOptions, 'onDragStart' | 'onDragEnd'>;
 }
 
 export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
@@ -29,12 +30,14 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
     onDragEnd,
     isFullscreen,
     onToggleFullscreen,
+    dockOptions,
 }) => {
     const { t } = useTranslation();
 
     const { nodeRef, style, onMouseDown, isDragging, dockSide } = useFloatingDock({
         onDragStart,
-        onDragEnd
+        onDragEnd,
+        ...dockOptions,
     });
 
     const actionCount = (app.url ? 1 : 0) + 1 + 1;
