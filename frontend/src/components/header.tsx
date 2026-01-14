@@ -1,17 +1,34 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useUIStore } from '@/stores/ui.store';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { usePresenter } from '@/contexts/presenter-context';
 import { LanguageSwitcher } from '@/components/language-switcher';
-import { Bell, HelpCircle, Sun, Moon, Menu } from 'lucide-react';
+import { Bell, HelpCircle, Sun, Moon, Menu, User, LogOut, ChevronDown } from 'lucide-react';
 import { Crisp } from 'crisp-sdk-web';
 
 export const Header: React.FC = () => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const theme = useUIStore((state) => state.theme);
     const presenter = usePresenter();
     const user = useAuthStore((state) => state.user);
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const userMenuRef = useRef<HTMLDivElement>(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+                setIsUserMenuOpen(false);
+            }
+        };
+        if (isUserMenuOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isUserMenuOpen]);
 
     const handleOpenChat = () => {
         const websiteId = import.meta.env.VITE_CRISP_WEBSITE_ID;
@@ -25,6 +42,16 @@ export const Header: React.FC = () => {
         } catch (error) {
             console.error('Failed to open Crisp chat:', error);
         }
+    };
+
+    const handleNavigateToProfile = () => {
+        setIsUserMenuOpen(false);
+        navigate('/me');
+    };
+
+    const handleLogout = () => {
+        setIsUserMenuOpen(false);
+        presenter.auth.logout();
     };
 
     return (
@@ -64,9 +91,10 @@ export const Header: React.FC = () => {
                     <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 dark:bg-red-400 rounded-full border-2 border-app-bg dark:border-slate-900" />
                 </button>
                 {user ? (
-                    <div className="flex items-center gap-2">
-                        <div
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                    <div className="relative" ref={userMenuRef}>
+                        <button
+                            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
                             title={user.email || user.displayName || t('ui.account')}
                         >
                             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-500 to-purple-600 border border-slate-200 dark:border-white/10 flex items-center justify-center text-xs font-semibold text-white">
@@ -75,13 +103,35 @@ export const Header: React.FC = () => {
                             <span className="hidden md:inline text-xs text-slate-700 dark:text-slate-200 max-w-[140px] truncate">
                                 {user.displayName || user.email || t('ui.account')}
                             </span>
-                        </div>
-                        <button
-                            onClick={() => presenter.auth.logout()}
-                            className="hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-all"
-                        >
-                            <span>{t('common.signOut')}</span>
+                            <ChevronDown className={`w-4 h-4 text-slate-400 dark:text-slate-500 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                         </button>
+
+                        {isUserMenuOpen && (
+                            <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-50 overflow-hidden py-1">
+                                <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
+                                    <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                                        {user.displayName || t('ui.account')}
+                                    </p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                        {user.email}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={handleNavigateToProfile}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                >
+                                    <User className="w-4 h-4" />
+                                    {t('navigation.profile')}
+                                </button>
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                    {t('common.signOut')}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <button
@@ -95,3 +145,4 @@ export const Header: React.FC = () => {
         </header>
     );
 };
+
