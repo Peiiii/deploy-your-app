@@ -105,6 +105,7 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
                 isFullscreen={isFullscreen}
                 onToggleFullscreen={toggleRightPanelLayout}
                 dockOptions={isFullscreen ? dockOptionsFullscreen : dockOptionsHalf}
+                expandPolicy={isFullscreen ? 'hover' : 'auto'}
             />
         </div>
     );

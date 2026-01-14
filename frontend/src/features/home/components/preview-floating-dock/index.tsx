@@ -20,6 +20,19 @@ interface PreviewFloatingDockProps {
     isFullscreen: boolean;
     onToggleFullscreen: () => void;
     dockOptions?: Omit<UseFloatingDockOptions, 'onDragStart' | 'onDragEnd'>;
+    /**
+     * Controls whether the dock action area is expanded by default.
+     * - 'always': always expanded (unless dragging state overrides visuals)
+     * - 'hover': collapsed by default, expands on hover
+     * - 'auto': expands by default only when actionCount <= autoExpandMaxActions
+     * @default 'auto'
+     */
+    expandPolicy?: 'always' | 'hover' | 'auto';
+    /**
+     * Threshold for expandPolicy='auto'.
+     * @default 5
+     */
+    autoExpandMaxActions?: number;
 }
 
 export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
@@ -31,6 +44,8 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
     isFullscreen,
     onToggleFullscreen,
     dockOptions,
+    expandPolicy = 'auto',
+    autoExpandMaxActions = 5,
 }) => {
     const { t } = useTranslation();
 
@@ -41,7 +56,12 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
     });
 
     const actionCount = (app.url ? 1 : 0) + 1 + 1;
-    const shouldAutoExpand = actionCount <= 5;
+    const shouldAutoExpand =
+        expandPolicy === 'always'
+            ? true
+            : expandPolicy === 'auto'
+                ? actionCount <= autoExpandMaxActions
+                : false;
 
     return (
         <div
