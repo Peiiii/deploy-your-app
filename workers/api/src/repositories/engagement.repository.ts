@@ -232,54 +232,54 @@ class EngagementRepository {
       return {};
     }
 
-    const placeholders = projectIds.map(() => '?').join(', ');
+    // SQLite/D1 can have a low variable limit (often 999). Keep headroom.
+    const MAX_IDS_PER_QUERY = 900;
 
-    const likesResult = await db
-      .prepare(
-        `SELECT project_id, COUNT(*) as cnt
-         FROM project_likes
-         WHERE project_id IN (${placeholders})
-         GROUP BY project_id`,
-      )
-      .bind(...projectIds)
-      .all<CountRow>();
-    const likeRows = likesResult.results ?? [];
-
-    const favoritesResult = await db
-      .prepare(
-        `SELECT project_id, COUNT(*) as cnt
-         FROM project_favorites
-         WHERE project_id IN (${placeholders})
-         GROUP BY project_id`,
-      )
-      .bind(...projectIds)
-      .all<CountRow>();
-    const favoriteRows = favoritesResult.results ?? [];
-
-    const map: Record<
-      string,
-      { likesCount: number; favoritesCount: number }
-    > = {};
-
+    const map: Record<string, { likesCount: number; favoritesCount: number }> = {};
     for (const id of projectIds) {
       map[id] = { likesCount: 0, favoritesCount: 0 };
     }
 
-    likeRows.forEach((row) => {
-      const id = String(row.project_id);
-      if (!map[id]) {
-        map[id] = { likesCount: 0, favoritesCount: 0 };
-      }
-      map[id].likesCount = Number(row.cnt ?? 0);
-    });
+    for (let i = 0; i < projectIds.length; i += MAX_IDS_PER_QUERY) {
+      const batch = projectIds.slice(i, i + MAX_IDS_PER_QUERY);
+      const placeholders = batch.map(() => '?').join(', ');
 
-    favoriteRows.forEach((row) => {
-      const id = String(row.project_id);
-      if (!map[id]) {
-        map[id] = { likesCount: 0, favoritesCount: 0 };
-      }
-      map[id].favoritesCount = Number(row.cnt ?? 0);
-    });
+      const [likesResult, favoritesResult] = await Promise.all([
+        db
+          .prepare(
+            `SELECT project_id, COUNT(*) as cnt
+             FROM project_likes
+             WHERE project_id IN (${placeholders})
+             GROUP BY project_id`,
+          )
+          .bind(...batch)
+          .all<CountRow>(),
+        db
+          .prepare(
+            `SELECT project_id, COUNT(*) as cnt
+             FROM project_favorites
+             WHERE project_id IN (${placeholders})
+             GROUP BY project_id`,
+          )
+          .bind(...batch)
+          .all<CountRow>(),
+      ]);
+
+      const likeRows = likesResult.results ?? [];
+      const favoriteRows = favoritesResult.results ?? [];
+
+      likeRows.forEach((row) => {
+        const id = String(row.project_id);
+        if (!map[id]) map[id] = { likesCount: 0, favoritesCount: 0 };
+        map[id].likesCount = Number(row.cnt ?? 0);
+      });
+
+      favoriteRows.forEach((row) => {
+        const id = String(row.project_id);
+        if (!map[id]) map[id] = { likesCount: 0, favoritesCount: 0 };
+        map[id].favoritesCount = Number(row.cnt ?? 0);
+      });
+    }
 
     return map;
   }

@@ -106,14 +106,11 @@ class ProfileService {
 
     const publicUser: PublicUser = toPublicUser(user);
 
-    // Load profile (returns an in-memory default if none exists; no writes on GET).
-    const profile = await this.getOrCreateProfile(db, user.id);
-
-    // Fetch this user's public projects.
-    const projects = await projectRepository.queryProjects(db, {
-      ownerId: user.id,
-      onlyPublic: true,
-    });
+    // Load profile + public projects in parallel to reduce waterfall latency.
+    const [profile, projects] = await Promise.all([
+      this.getOrCreateProfile(db, user.id),
+      projectRepository.queryProjects(db, { ownerId: user.id, onlyPublic: true }),
+    ]);
 
     // Reorder projects so that pinned apps appear first, in the exact order
     // specified by pinnedProjectIds. The remaining projects keep their

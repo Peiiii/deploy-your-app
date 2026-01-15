@@ -68,6 +68,27 @@ class ProjectRepository {
       )
       .run();
 
+    await db
+      .prepare(
+        `CREATE INDEX IF NOT EXISTS idx_projects_owner_id ON projects(owner_id)`,
+      )
+      .run();
+
+    // Optimize common public feed + profile queries.
+    await db
+      .prepare(
+        `CREATE INDEX IF NOT EXISTS idx_projects_public_sort
+         ON projects(is_deleted, is_public, status, last_deployed)`,
+      )
+      .run();
+
+    await db
+      .prepare(
+        `CREATE INDEX IF NOT EXISTS idx_projects_owner_public_sort
+         ON projects(owner_id, is_deleted, is_public, status, last_deployed)`,
+      )
+      .run();
+
     // Backfill owner_id column if the table was created before this field existed.
     try {
       await db
@@ -362,7 +383,8 @@ class ProjectRepository {
       sql += ' ORDER BY LOWER(name) ASC';
     } else {
       // Default sort: most recently deployed first.
-      sql += ' ORDER BY datetime(last_deployed) DESC';
+      // `last_deployed` is ISO-8601, so lexical order matches time order and can use indexes.
+      sql += ' ORDER BY last_deployed DESC';
     }
 
     if (typeof options.limit === 'number') {
