@@ -5,6 +5,12 @@ import { SourceType } from '../types';
 const DEFAULT_AUTHOR = 'Indie Hacker';
 const DEFAULT_CATEGORY = 'Other';
 
+function normalizeOptionalLabel(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 export function formatRepoLabel(project: Project): string | null {
   const { repoUrl, sourceType } = project;
   if (!repoUrl) return null;
@@ -68,6 +74,34 @@ export function buildProjectAuthor(project: Project): string {
     if (owner) return owner;
   }
   return DEFAULT_AUTHOR;
+}
+
+/**
+ * Project "author" label used in app cards.
+ *
+ * Decision (product + maintainability):
+ * - Prefer platform username/handle when available.
+ * - Otherwise fall back to displayName.
+ * - Otherwise fall back to GitHub repo owner (when source is GitHub).
+ * - Otherwise use a neutral default label.
+ */
+export function getProjectAuthorLabel(project: Project): string {
+  const handle = normalizeOptionalLabel(project.ownerHandle);
+  if (handle) return handle;
+  const displayName = normalizeOptionalLabel(project.ownerDisplayName);
+  if (displayName) return displayName;
+  return buildProjectAuthor(project);
+}
+
+/**
+ * Identifier used for linking to the author's public profile (/u/:identifier).
+ * Prefer handle (stable + user-facing), fall back to internal ownerId.
+ */
+export function getProjectAuthorProfileIdentifier(project: Project): string | undefined {
+  const handle = normalizeOptionalLabel(project.ownerHandle);
+  if (handle) return handle;
+  const ownerId = normalizeOptionalLabel(project.ownerId);
+  return ownerId ?? undefined;
 }
 
 export function getProjectCategory(project: Project): string {

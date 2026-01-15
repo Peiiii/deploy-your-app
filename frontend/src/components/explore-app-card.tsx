@@ -5,9 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { usePresenter } from '../contexts/presenter-context';
 import { useReactionStore } from '../stores/reaction.store';
 import {
-  buildProjectAuthor,
   getProjectCategory,
   getProjectDescription,
+  getProjectAuthorLabel,
+  getProjectAuthorProfileIdentifier,
   getProjectThumbnailUrl,
 } from '../utils/project';
 import type { Project } from '../types';
@@ -51,30 +52,20 @@ export function mapProjectsToApps(projects: Project[]): ExploreAppCard[] {
     const category = getProjectCategory(project);
     const description = getProjectDescription(project);
     const thumbnailUrl = project.url ? getProjectThumbnailUrl(project.url) ?? undefined : undefined;
-    const githubAuthor = buildProjectAuthor(project);
-    const handle =
-      typeof project.ownerHandle === 'string' &&
-        project.ownerHandle.trim().length > 0
-        ? project.ownerHandle.trim()
-        : null;
-    const authorLabel = handle ?? githubAuthor;
-    const authorIdentifier = handle ?? project.ownerId;
+    const authorLabel = getProjectAuthorLabel(project);
+    const authorIdentifier = getProjectAuthorProfileIdentifier(project);
     const color = getProjectColor(project.id);
 
     return {
       id: project.id,
       name: project.name,
       description,
-      // Prefer platform username (handle) when available, otherwise fall back
-      // to the GitHub owner / default label.
       author: authorLabel,
       category,
       color,
       url: project.url,
       tags: project.tags,
       thumbnailUrl,
-      // Fall back to ownerId so that /u/:ownerId links still work when
-      // handle is missing.
       authorProfileIdentifier: authorIdentifier,
     };
   });
