@@ -13,7 +13,19 @@ import type {
 } from '../types/sdk-auth';
 
 const AUTH_CODE_TTL_SECONDS = 60;
-const ACCESS_TOKEN_TTL_SECONDS = 60 * 60; // 1 hour (V0)
+const DEFAULT_ACCESS_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 180; // 180 days
+
+function resolveAccessTokenTtlSeconds(env: ApiWorkerEnv): number {
+  const fromSeconds = Number(env.SDK_ACCESS_TOKEN_TTL_SECONDS);
+  if (Number.isFinite(fromSeconds) && fromSeconds > 0) {
+    return Math.floor(fromSeconds);
+  }
+  const fromDays = Number(env.SDK_ACCESS_TOKEN_TTL_DAYS);
+  if (Number.isFinite(fromDays) && fromDays > 0) {
+    return Math.floor(fromDays * 24 * 60 * 60);
+  }
+  return DEFAULT_ACCESS_TOKEN_TTL_SECONDS;
+}
 
 function base64UrlEncode(bytes: Uint8Array): string {
   let binary = '';
@@ -190,7 +202,8 @@ class SdkAuthService {
     });
 
     const accessToken = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + ACCESS_TOKEN_TTL_SECONDS * 1000).toISOString();
+    const ttlSeconds = resolveAccessTokenTtlSeconds(env);
+    const expiresAt = new Date(Date.now() + ttlSeconds * 1000).toISOString();
     await sdkAuthRepository.insertAccessToken(db, {
       token: accessToken,
       appId: record.appId,
@@ -199,11 +212,9 @@ class SdkAuthService {
       expiresAt,
     });
 
-    void env;
-
     return {
       accessToken,
-      expiresIn: ACCESS_TOKEN_TTL_SECONDS,
+      expiresIn: ttlSeconds,
       appId: record.appId,
       appUserId: appUser.appUserId,
       scopes: record.scopes,

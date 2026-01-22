@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GemiGo Tiny BBS</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f2ec;
+        --bg-soft: #efe8de;
+        --ink: #1f1b17;
+        --ink-soft: #4f463f;
+        --accent: #dd5f3b;
+        --accent-dark: #ad3f1e;
+        --sea: #1a5f6f;
+        --card: #fffdf9;
+        --line: rgba(31, 27, 23, 0.12);
+        --shadow: 0 20px 45px rgba(31, 27, 23, 0.12);
+        --radius-xl: 24px;
+        --radius-lg: 18px;
+        --radius-md: 12px;
+        --radius-sm: 8px;
+        --transition: 180ms ease;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        background: radial-gradient(circle at 10% 20%, #fef6ed 0%, transparent 45%),
+          radial-gradient(circle at 80% 0%, #f5e4d5 0%, transparent 45%),
+          linear-gradient(135deg, #f8f1e6, #f1e7da);
+        color: var(--ink);
+        min-height: 100vh;
+        padding: 32px 20px 60px;
+      }
+
+      .app {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        gap: 24px;
+      }
+
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px 20px;
+        border-radius: var(--radius-xl);
+        background: linear-gradient(135deg, #fffdf8 0%, #fbeedb 100%);
+        box-shadow: var(--shadow);
+      }
+
+      header h1 {
+        font-family: "Newsreader", "Times New Roman", serif;
+        font-size: clamp(28px, 4vw, 40px);
+        letter-spacing: 0.5px;
+      }
+
+      header p {
+        color: var(--ink-soft);
+        font-size: 14px;
+        max-width: 720px;
+      }
+
+      .meta-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .pill {
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .pill strong {
+        font-weight: 600;
+      }
+
+      .pill.ok {
+        border-color: rgba(26, 95, 111, 0.3);
+        background: rgba(26, 95, 111, 0.08);
+        color: var(--sea);
+      }
+
+      .pill.warn {
+        border-color: rgba(221, 95, 59, 0.3);
+        background: rgba(221, 95, 59, 0.08);
+        color: var(--accent-dark);
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        border: none;
+        border-radius: 999px;
+        padding: 10px 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform var(--transition), box-shadow var(--transition);
+      }
+
+      button.primary {
+        background: var(--accent);
+        color: #fff;
+        box-shadow: 0 12px 20px rgba(221, 95, 59, 0.25);
+      }
+
+      button.ghost {
+        background: transparent;
+        border: 1px solid var(--line);
+        color: var(--ink);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        box-shadow: none;
+      }
+
+      button:not(:disabled):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 16px 24px rgba(31, 27, 23, 0.18);
+      }
+
+      .grid {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: minmax(280px, 1fr) minmax(0, 2fr);
+      }
+
+      @media (max-width: 920px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .panel {
+        background: var(--card);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+        animation: rise 450ms ease forwards;
+      }
+
+      .panel h2 {
+        font-size: 18px;
+        margin-bottom: 12px;
+      }
+
+      .panel p {
+        font-size: 13px;
+        color: var(--ink-soft);
+      }
+
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--line);
+        font-family: inherit;
+        font-size: 14px;
+        background: #fffdfb;
+      }
+
+      textarea {
+        min-height: 140px;
+        resize: vertical;
+      }
+
+      .field {
+        margin-bottom: 14px;
+      }
+
+      .helper {
+        font-size: 11px;
+        color: var(--ink-soft);
+        margin-top: 6px;
+      }
+
+      .feed-controls {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .feed-controls input {
+        max-width: 220px;
+      }
+
+      .feed {
+        display: grid;
+        gap: 16px;
+      }
+
+      .post {
+        padding: 16px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        background: linear-gradient(135deg, #fff 0%, #fbf6ee 100%);
+        box-shadow: 0 10px 20px rgba(31, 27, 23, 0.08);
+        animation: fadeUp 360ms ease;
+      }
+
+      .post-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: baseline;
+        margin-bottom: 10px;
+      }
+
+      .post-title {
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .post-tag {
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(26, 95, 111, 0.3);
+        color: var(--sea);
+        background: rgba(26, 95, 111, 0.08);
+      }
+
+      .post-meta {
+        font-size: 11px;
+        color: var(--ink-soft);
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .post-body {
+        font-size: 14px;
+        color: #2c241f;
+        margin: 12px 0;
+        white-space: pre-wrap;
+      }
+
+      .empty {
+        text-align: center;
+        color: var(--ink-soft);
+        font-size: 14px;
+        padding: 24px;
+        border: 1px dashed var(--line);
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.6);
+      }
+
+      .footer-note {
+        font-size: 11px;
+        color: var(--ink-soft);
+        padding: 8px 12px;
+        border-radius: var(--radius-sm);
+        background: rgba(31, 27, 23, 0.05);
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>Tiny BBS</h1>
+        <p>
+          A minimal forum-style page to validate `gemigo.auth.login()` + `gemigo.cloud.db`.
+          Run on http://localhost or https://*.gemigo.app to pass the broker origin check.
+        </p>
+        <div class="meta-bar">
+          <span class="pill" id="sdkStatus">SDK: waiting</span>
+          <span class="pill" id="authStatus">Auth: guest</span>
+          <span class="pill" id="scopeStatus">Scopes: -</span>
+          <span class="pill" id="persistStatus">Persist: -</span>
+        </div>
+        <div class="actions">
+          <button class="primary" id="loginBtn">Login + Request db:rw</button>
+          <button class="ghost" id="logoutBtn">Logout</button>
+        </div>
+      </header>
+
+      <div class="grid">
+        <section class="panel">
+          <h2>Create a Thread</h2>
+          <p>Posts are saved to Cloud DB collection: <strong>tieba_posts</strong>.</p>
+          <form id="postForm">
+            <div class="field">
+              <label for="body">Content</label>
+              <textarea id="body" name="body" placeholder="Say something..." maxlength="1400" required></textarea>
+            </div>
+            <button class="primary" type="submit" id="postBtn">Post</button>
+            <div class="helper" id="postHint">Login required to post.</div>
+          </form>
+        </section>
+
+        <section class="panel">
+          <div class="feed-controls">
+            <h2>Threads</h2>
+            <input id="filterBoard" placeholder="Filter by board" maxlength="32" />
+            <button class="ghost" id="refreshBtn" type="button">Refresh</button>
+          </div>
+          <div class="feed" id="feed">
+            <div class="empty" id="emptyState">Login to load posts.</div>
+          </div>
+        </section>
+      </div>
+
+      <div class="footer-note" id="statusNote">Ready.</div>
+    </div>
+
+    <script src="https://unpkg.com/@gemigo/app-sdk@0.2.9/dist/gemigo-app-sdk.umd.js"></script>
+    <script>
+      const API_BASE =
+        new URLSearchParams(window.location.search).get("api") || "https://gemigo.io/api/v1";
+      const APP_ID = "tieba-demo";
+      const COLLECTION = "tieba_posts";
+      const STORAGE_KEY = "gemigo:sdk-auth:v1";
+
+      const elements = {
+        sdkStatus: document.getElementById("sdkStatus"),
+        authStatus: document.getElementById("authStatus"),
+        scopeStatus: document.getElementById("scopeStatus"),
+        persistStatus: document.getElementById("persistStatus"),
+        loginBtn: document.getElementById("loginBtn"),
+        logoutBtn: document.getElementById("logoutBtn"),
+        postForm: document.getElementById("postForm"),
+        postHint: document.getElementById("postHint"),
+        feed: document.getElementById("feed"),
+        emptyState: document.getElementById("emptyState"),
+        refreshBtn: document.getElementById("refreshBtn"),
+        filterBoard: document.getElementById("filterBoard"),
+        statusNote: document.getElementById("statusNote"),
+      };
+
+      let me = null;
+      let busy = false;
+      let persistMode = "local";
+
+      const setNote = (text, tone) => {
+        elements.statusNote.textContent = text;
+        elements.statusNote.style.color = tone === "warn" ? "#ad3f1e" : "";
+      };
+
+      const setPill = (el, text, tone) => {
+        el.textContent = text;
+        el.classList.remove("ok", "warn");
+        if (tone) el.classList.add(tone);
+      };
+
+      const canUseStorage = (type) => {
+        try {
+          const store = window[type];
+          if (!store) return false;
+          const key = "__gemigo_storage_test__";
+          store.setItem(key, "1");
+          store.removeItem(key);
+          return true;
+        } catch {
+          return false;
+        }
+      };
+
+      const resolvePersistMode = () => {
+        if (canUseStorage("localStorage")) return "local";
+        if (canUseStorage("sessionStorage")) return "session";
+        return "memory";
+      };
+
+      const updatePersistStatus = () => {
+        const label = `Persist: ${persistMode}`;
+        if (persistMode === "local") {
+          setPill(elements.persistStatus, label, "ok");
+          return;
+        }
+        setPill(elements.persistStatus, label, "warn");
+      };
+
+      const setBusy = (value) => {
+        busy = value;
+        elements.loginBtn.disabled = value;
+        elements.logoutBtn.disabled = value;
+        elements.refreshBtn.disabled = value;
+        elements.postForm.querySelector("button").disabled = value;
+      };
+
+      const isLoggedIn = () => Boolean(window.gemigo?.auth?.getAccessToken());
+
+      const renderAuth = () => {
+        if (isLoggedIn()) {
+          setPill(elements.authStatus, "Auth: ready", "ok");
+          elements.postHint.textContent = "You can post now.";
+        } else {
+          setPill(elements.authStatus, "Auth: guest", "warn");
+          elements.postHint.textContent = "Login required to post.";
+        }
+
+        if (me?.scopes?.length) {
+          setPill(elements.scopeStatus, `Scopes: ${me.scopes.join(", ")}`, "ok");
+        } else {
+          setPill(elements.scopeStatus, "Scopes: -", "warn");
+        }
+      };
+
+      const formatTime = (ts) => {
+        if (!ts) return "unknown";
+        return new Date(ts).toLocaleString();
+      };
+
+      const renderPosts = (items) => {
+        elements.feed.innerHTML = "";
+        if (!items.length) {
+          elements.feed.appendChild(elements.emptyState);
+          elements.emptyState.textContent = isLoggedIn()
+            ? "No posts yet. Start the first thread."
+            : "Login to load posts.";
+          return;
+        }
+
+        items.forEach((doc) => {
+          const data = doc.data || {};
+          const card = document.createElement("article");
+          card.className = "post";
+          card.innerHTML = `
+            <div class="post-header">
+              <div class="post-title">${data.title || "Untitled"}</div>
+              <div class="post-tag">${data.board || "general"}</div>
+            </div>
+            <div class="post-meta">
+              <span>id: ${doc.id.slice(0, 8)}</span>
+              <span>owner: ${doc.ownerId.slice(0, 8)}</span>
+              <span>${formatTime(doc.createdAt)}</span>
+            </div>
+            <div class="post-body">${data.body || ""}</div>
+          `;
+          elements.feed.appendChild(card);
+        });
+      };
+
+      const fetchMe = async () => {
+        const token = window.gemigo?.auth?.getAccessToken();
+        if (!token) return null;
+        const res = await fetch(`${API_BASE}/sdk/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          throw new Error(`me failed: ${res.status}`);
+        }
+        return res.json();
+      };
+
+      const loadPosts = async () => {
+        if (!isLoggedIn()) {
+          renderPosts([]);
+          return;
+        }
+        const board = elements.filterBoard.value.trim();
+        let query = window.gemigo.cloud.db.collection(COLLECTION).query().orderBy("createdAt", "desc").limit(40);
+        if (board) {
+          query = query.where("board", "==", board);
+        }
+        const result = await query.get();
+        renderPosts(result.items || []);
+      };
+
+      const login = async () => {
+        if (!window.gemigo?.auth?.login) {
+          setNote("SDK not ready. Did the script load?", "warn");
+          return;
+        }
+        persistMode = resolvePersistMode();
+        updatePersistStatus();
+        setBusy(true);
+        setNote("Opening broker login...", "warn");
+        try {
+          await window.gemigo.auth.login({
+            appId: APP_ID,
+            scopes: ["identity:basic", "db:rw"],
+            persist: persistMode,
+            apiBaseUrl: API_BASE,
+          });
+          me = await fetchMe();
+          setNote("Login success.", "ok");
+          renderAuth();
+          await loadPosts();
+        } catch (err) {
+          setNote(err instanceof Error ? err.message : "Login failed.", "warn");
+        } finally {
+          setBusy(false);
+        }
+      };
+
+      const logout = () => {
+        window.gemigo?.auth?.logout?.();
+        me = null;
+        renderAuth();
+        renderPosts([]);
+        setNote("Logged out.", "warn");
+      };
+
+      const createPost = async (event) => {
+        event.preventDefault();
+        if (!isLoggedIn()) {
+          setNote("Login required before posting.", "warn");
+          return;
+        }
+        const form = new FormData(elements.postForm);
+        const body = String(form.get("body") || "").trim();
+        if (!body) {
+          setNote("Content is required.", "warn");
+          return;
+        }
+        const preview = body.replace(/\s+/g, " ").slice(0, 48);
+        const payload = {
+          title: preview || "Untitled",
+          body,
+          board: "general",
+          createdAtClient: Date.now(),
+        };
+
+        setBusy(true);
+        setNote("Posting...", "warn");
+        try {
+          await window.gemigo.cloud.db.collection(COLLECTION).add(payload);
+          elements.postForm.reset();
+          await loadPosts();
+          setNote("Posted.", "ok");
+        } catch (err) {
+          setNote(err instanceof Error ? err.message : "Post failed.", "warn");
+        } finally {
+          setBusy(false);
+        }
+      };
+
+      const init = async () => {
+        if (!window.gemigo) {
+          setPill(elements.sdkStatus, "SDK: missing", "warn");
+          setNote("Load @gemigo/app-sdk first.", "warn");
+          return;
+        }
+        persistMode = resolvePersistMode();
+        updatePersistStatus();
+        setPill(elements.sdkStatus, "SDK: ready", "ok");
+        renderAuth();
+        if (!isLoggedIn() && persistMode === "local") {
+          try {
+            const raw = window.localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+              setNote("Local token found but unreadable. Try logging in again.", "warn");
+            }
+          } catch {}
+        }
+        if (isLoggedIn()) {
+          try {
+            me = await fetchMe();
+          } catch (err) {
+            setNote("Token found, but /sdk/me failed. Try login again.", "warn");
+          }
+          renderAuth();
+          await loadPosts();
+        }
+      };
+
+      elements.loginBtn.addEventListener("click", login);
+      elements.logoutBtn.addEventListener("click", logout);
+      elements.refreshBtn.addEventListener("click", loadPosts);
+      elements.postForm.addEventListener("submit", createPost);
+
+      init();
+    </script>
+  </body>
+</html>

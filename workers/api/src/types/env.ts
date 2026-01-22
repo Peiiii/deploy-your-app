@@ -39,4 +39,11 @@ export interface ApiWorkerEnv {
    * Set via `wrangler secret put SDK_CLOUD_BLOB_SIGNING_SECRET`.
    */
   SDK_CLOUD_BLOB_SIGNING_SECRET?: string;
+
+  /**
+   * SDK access token TTL overrides.
+   * Prefer seconds for precision, otherwise days.
+   */
+  SDK_ACCESS_TOKEN_TTL_SECONDS?: string;
+  SDK_ACCESS_TOKEN_TTL_DAYS?: string;
 }
