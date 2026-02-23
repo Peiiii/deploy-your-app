@@ -367,7 +367,7 @@ class DeployService {
                 for (const payloadStr of events) {
                     try {
                         const payload: DeploymentStatusPayload = JSON.parse(payloadStr);
-                        if (await this.handleStatusPayload(db, projectId, payload)) {
+                        if (await this.handleStatusPayload(env, db, projectId, payload)) {
                             deployProxyService.injectLog(deploymentId, 'Deployment status updated successfully', 'success');
                             return;
                         }
@@ -384,6 +384,7 @@ class DeployService {
     }
 
     private async handleStatusPayload(
+        env: ApiWorkerEnv,
         db: D1Database,
         projectId: string,
         payload: DeploymentStatusPayload,
@@ -397,7 +398,17 @@ class DeployService {
             const meta = payload.projectMetadata ?? {};
             const patch = this.buildMetadataPatch(current, meta);
             if (Object.keys(patch).length > 0) {
-                await projectService.updateProject(db, projectId, patch);
+                try {
+                    await projectService.updateProject(db, projectId, patch);
+                } catch (err) {
+                    console.error('[DeployService] Failed to persist metadata patch:', err);
+
+                    // Best-effort fallback: if slug is still missing, force-assign
+                    // a unique slug so Cloud DB / SDK surfaces keep working.
+                    if (!current.slug?.trim()) {
+                        await projectService.ensureSlugForProject(env, db, current);
+                    }
+                }
             }
             await projectService.updateProjectDeployment(db, projectId, {
                 status: 'Live',

@@ -154,11 +154,13 @@ export class DeploymentService {
           workDir,
         });
         project.name = metadataForClient.name;
-        project.slug = metadataForClient.slug;
+        // Preserve caller-provided slug once it exists; metadata generation is
+        // primarily used to fill missing descriptive fields.
+        project.slug = slug || metadataForClient.slug;
         project.description = metadataForClient.description;
         project.category = metadataForClient.category;
         project.tags = metadataForClient.tags;
-        slug = metadataForClient.slug;
+        slug = project.slug;
 
         if (
           metadataForClient.name !== previousName &&
@@ -327,13 +329,18 @@ export class DeploymentService {
         'success',
       );
 
-      const successMetadata = metadataForClient ?? {
-        name: project.name,
-        slug,
-        description: project.description,
-        category: project.category ?? 'Other',
-        tags: project.tags ?? [],
-      };
+      const successMetadata = metadataForClient
+        ? {
+            ...metadataForClient,
+            slug,
+          }
+        : {
+            name: project.name,
+            slug,
+            description: project.description,
+            category: project.category ?? 'Other',
+            tags: project.tags ?? [],
+          };
 
       updateStatus(id, 'SUCCESS', {
         projectMetadata: {

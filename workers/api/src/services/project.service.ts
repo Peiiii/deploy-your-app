@@ -10,7 +10,6 @@ import { metadataService } from './metadata.service';
 import { configService } from './config.service';
 import { engagementService } from './engagement.service';
 import { analyticsService } from './analytics.service';
-import { ValidationError } from '../utils/error-handler';
 
 interface CreateProjectInput {
   name: string;
@@ -132,6 +131,8 @@ class ProjectService {
       input?.name && input.name.trim().length > 0
         ? input.name.trim()
         : `new-app-${id.slice(0, 6)}`;
+    const baseSlug = slugify(seedName);
+    const uniqueSlug = await this.ensureUniqueSlug(db, baseSlug);
 
     const deployTarget = configService.getDeployTarget(env);
 
@@ -142,7 +143,7 @@ class ProjectService {
       name: seedName,
       repoUrl: `draft:${id}`,
       sourceType: undefined,
-      slug: undefined,
+      slug: uniqueSlug,
       lastDeployed: now,
       status: 'Offline',
       url: undefined,
@@ -212,10 +213,9 @@ class ProjectService {
         normalizedSlug,
         id,
       );
-      if (taken) {
-        throw new ValidationError('Slug is already in use.');
-      }
-      patch.slug = normalizedSlug;
+      patch.slug = taken
+        ? await this.ensureUniqueSlug(db, normalizedSlug, id)
+        : normalizedSlug;
     }
 
     return projectRepository.updateProjectRecord(db, id, patch);
@@ -290,40 +290,33 @@ class ProjectService {
 
 
   /**
-   * Generate a unique slug using hybrid strategy:
-   * 1. Try base slug
-   * 2. Try numeric suffixes: my-app-2, my-app-3, my-app-4
-   * 3. If still conflicts, use random suffix: my-app-7k9x
+   * Generate a unique slug with deterministic numeric suffixes:
+   * my-app -> my-app-1 -> my-app-2 -> ...
    */
   private async ensureUniqueSlug(
     db: D1Database,
     baseSlug: string,
+    excludeProjectId?: string,
   ): Promise<string> {
     const normalized = slugify(baseSlug);
 
     // Try base slug first
-    if (!(await projectRepository.slugExists(db, normalized))) {
+    if (!(await projectRepository.slugExists(db, normalized, excludeProjectId))) {
       return normalized;
     }
 
-    // Try numeric suffixes (2-4)
-    for (let suffix = 2; suffix <= 4; suffix++) {
+    // Deterministic suffix strategy: foo -> foo-1 -> foo-2 -> ...
+    // Keep incrementing until we find an available slug.
+    for (let suffix = 1; suffix <= 10000; suffix++) {
       const candidate = `${normalized}-${suffix}`;
-      if (!(await projectRepository.slugExists(db, candidate))) {
+      if (!(await projectRepository.slugExists(db, candidate, excludeProjectId))) {
         return candidate;
       }
     }
 
-    // Generate random suffix (4 chars: 36^4 = 1.6M combinations)
-    const randomSuffix = Math.random().toString(36).substring(2, 6);
-    const randomCandidate = `${normalized}-${randomSuffix}`;
-
-    // Final fallback: if random still conflicts, add timestamp
-    if (await projectRepository.slugExists(db, randomCandidate)) {
-      return `${normalized}-${Date.now().toString(36)}`;
-    }
-
-    return randomCandidate;
+    throw new Error(
+      `Failed to allocate unique slug for seed "${normalized}" after 10000 attempts.`,
+    );
   }
 }
 

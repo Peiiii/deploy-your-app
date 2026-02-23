@@ -20,6 +20,9 @@ export class MetadataHandler {
     };
 
     isSlugEditable = (project: Project): boolean => {
+        if (!project.slug || project.slug.trim().length === 0) {
+            return true;
+        }
         return project.status !== 'Live' && project.status !== 'Building';
     };
 
