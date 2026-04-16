@@ -1,8 +1,13 @@
 import {
   type CreateProjectRecordInput,
+  type ProjectLocalization,
   type Project,
   type SourceType,
 } from '../types/project';
+import {
+  normalizeProjectLocalization,
+  deriveFlatMetadataFromLocalization,
+} from '../utils/project-localization';
 
 type ProjectRow = Record<string, unknown>;
 
@@ -13,6 +18,15 @@ function parseJsonArray<T>(value: unknown, fallback: T): T {
     return Array.isArray(parsed) ? (parsed as T) : fallback;
   } catch {
     return fallback;
+  }
+}
+
+function parseJsonObject<T>(value: unknown): T | undefined {
+  if (typeof value !== 'string') return undefined;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return undefined;
   }
 }
 
@@ -47,6 +61,8 @@ class ProjectRepository {
           status TEXT NOT NULL,
           url TEXT,
           description TEXT,
+          default_locale TEXT,
+          localized_metadata TEXT,
           framework TEXT,
           category TEXT,
           tags TEXT,
@@ -135,6 +151,22 @@ class ProjectRepository {
       )
       .run();
 
+    try {
+      await db
+        .prepare(`ALTER TABLE projects ADD COLUMN default_locale TEXT`)
+        .run();
+    } catch {
+      // Ignore error if column already exists.
+    }
+
+    try {
+      await db
+        .prepare(`ALTER TABLE projects ADD COLUMN localized_metadata TEXT`)
+        .run();
+    } catch {
+      // Ignore error if column already exists.
+    }
+
     // Tombstone table to remember which slugs have ever been used, so that
     // future projects cannot reuse them even after hard deletion.
     await db
@@ -150,6 +182,9 @@ class ProjectRepository {
 
   private mapRowToProject(row: ProjectRow): Project {
     const tags = parseJsonArray<string[]>(row.tags, []);
+    const localization = normalizeProjectLocalization(
+      parseJsonObject<ProjectLocalization>(row.localized_metadata),
+    );
     const sourceTypeValue =
       typeof row.source_type === 'string'
         ? (row.source_type as string)
@@ -206,6 +241,9 @@ class ProjectRepository {
       url: typeof row.url === 'string' ? row.url : undefined,
       description:
         typeof row.description === 'string' ? row.description : undefined,
+      defaultLocale:
+        typeof row.default_locale === 'string' ? row.default_locale : undefined,
+      ...(localization ? { localization } : {}),
       framework:
         (typeof row.framework === 'string'
           ? (row.framework as Project['framework'])
@@ -235,13 +273,14 @@ class ProjectRepository {
     input: CreateProjectRecordInput,
   ): Promise<Project> {
     await this.ensureSchema(db);
+    const localizedMetadata = normalizeProjectLocalization(input.localization);
     const row = await db
       .prepare(
         `INSERT INTO projects (
           id, name, repo_url, source_type, slug, analysis_id, last_deployed, status,
-          url, description, framework, category, tags, deploy_target, provider_url,
+          url, description, default_locale, localized_metadata, framework, category, tags, deploy_target, provider_url,
           cloudflare_project_name, html_content, owner_id, is_public, is_deleted, is_extension_supported
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
         RETURNING *`,
       )
       .bind(
@@ -255,6 +294,8 @@ class ProjectRepository {
         input.status,
         input.url ?? null,
         input.description ?? null,
+        input.defaultLocale ?? localizedMetadata?.defaultLocale ?? null,
+        localizedMetadata ? JSON.stringify(localizedMetadata) : null,
         input.framework,
         input.category ?? null,
         JSON.stringify(input.tags ?? []),
@@ -464,6 +505,7 @@ class ProjectRepository {
       description?: string;
       category?: string;
       tags?: string[];
+      localization?: ProjectLocalization;
       isPublic?: boolean;
       isExtensionSupported?: boolean;
     },
@@ -487,6 +529,25 @@ class ProjectRepository {
     if (patch.description !== undefined) {
       statements.push('description = ?');
       params.push(patch.description);
+    }
+    if (patch.localization !== undefined) {
+      const localization = normalizeProjectLocalization(patch.localization);
+      const localizedFlat = deriveFlatMetadataFromLocalization(localization);
+      statements.push('default_locale = ?');
+      params.push(localization?.defaultLocale ?? null);
+      statements.push('localized_metadata = ?');
+      params.push(localization ? JSON.stringify(localization) : null);
+      if (localizedFlat.name !== undefined && patch.name === undefined) {
+        statements.push('name = ?');
+        params.push(localizedFlat.name);
+      }
+      if (
+        localizedFlat.description !== undefined &&
+        patch.description === undefined
+      ) {
+        statements.push('description = ?');
+        params.push(localizedFlat.description);
+      }
     }
     if (patch.category !== undefined) {
       statements.push('category = ?');

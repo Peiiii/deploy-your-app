@@ -4,6 +4,8 @@
     { "path": "./frontend/tsconfig.app.json" },
     { "path": "./frontend/tsconfig.node.json" },
     { "path": "./server/tsconfig.json" },
-    { "path": "./desktop/tsconfig.json" }
+    { "path": "./desktop/tsconfig.json" },
+    { "path": "./workers/api/tsconfig.json" },
+    { "path": "./packages/gemigo-cli/tsconfig.json" }
   ]
 }

@@ -1,10 +1,16 @@
 import type { ApiWorkerEnv } from '../types/env';
 import {
   SourceType,
+  type ProjectLocalization,
   type Project,
   type ProjectMetadataOverrides,
 } from '../types/project';
 import { slugify } from '../utils/strings';
+import {
+  deriveFlatMetadataFromLocalization,
+  mergeDefaultLocaleIntoLocalization,
+  normalizeProjectLocalization,
+} from '../utils/project-localization';
 import { projectRepository } from '../repositories/project.repository';
 import { metadataService } from './metadata.service';
 import { configService } from './config.service';
@@ -112,6 +118,8 @@ class ProjectService {
       status: 'Offline',
       url,
       description: metadata.description,
+      defaultLocale: metadata.defaultLocale,
+      localization: metadata.localization,
       framework: 'Unknown',
       category: metadata.category,
       tags: metadata.tags,
@@ -197,16 +205,17 @@ class ProjectService {
       description?: string;
       category?: string;
       tags?: string[];
+      localization?: ProjectLocalization;
       isPublic?: boolean;
       isExtensionSupported?: boolean;
     },
   ): Promise<Project | null> {
-    if (patch.slug !== undefined) {
-      const existing = await projectRepository.getProjectById(db, id);
-      if (!existing) {
-        return null;
-      }
+    const existing = await projectRepository.getProjectById(db, id);
+    if (!existing) {
+      return null;
+    }
 
+    if (patch.slug !== undefined) {
       const normalizedSlug = slugify(patch.slug);
       const taken = await projectRepository.slugExists(
         db,
@@ -216,6 +225,40 @@ class ProjectService {
       patch.slug = taken
         ? await this.ensureUniqueSlug(db, normalizedSlug, id)
         : normalizedSlug;
+    }
+
+    let normalizedLocalization =
+      patch.localization !== undefined
+        ? normalizeProjectLocalization(patch.localization)
+        : undefined;
+
+    if (
+      normalizedLocalization === undefined &&
+      patch.localization !== undefined
+    ) {
+      normalizedLocalization = existing.localization;
+    }
+
+    if (normalizedLocalization) {
+      const localizedFlat =
+        deriveFlatMetadataFromLocalization(normalizedLocalization);
+      patch.name = localizedFlat.name ?? patch.name;
+      patch.description = localizedFlat.description ?? patch.description;
+    } else if (
+      existing.localization &&
+      (patch.name !== undefined || patch.description !== undefined)
+    ) {
+      normalizedLocalization = mergeDefaultLocaleIntoLocalization(
+        existing.localization,
+        {
+          name: patch.name,
+          description: patch.description,
+        },
+      );
+    }
+
+    if (normalizedLocalization) {
+      patch.localization = normalizedLocalization;
     }
 
     return projectRepository.updateProjectRecord(db, id, patch);

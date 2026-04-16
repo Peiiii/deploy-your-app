@@ -2,6 +2,7 @@ import type {
   Project,
   BuildLog,
   DeploymentMetadata,
+  ProjectLocalization,
   ProjectStats,
   ProjectReactions,
   PaginatedResponse,
@@ -33,6 +34,7 @@ export interface IProjectProvider {
       description?: string;
       category?: string;
       tags?: string[];
+      localization?: ProjectLocalization;
       isPublic?: boolean;
       isExtensionSupported?: boolean;
     },

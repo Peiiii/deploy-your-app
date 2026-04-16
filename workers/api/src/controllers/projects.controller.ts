@@ -1,5 +1,9 @@
 import type { ApiWorkerEnv } from '../types/env';
-import { SourceType, type ProjectMetadataOverrides } from '../types/project';
+import {
+  SourceType,
+  type ProjectLocalization,
+  type ProjectMetadataOverrides,
+} from '../types/project';
 import { jsonResponse, readJson } from '../utils/http';
 import {
   ConfigurationError,
@@ -17,6 +21,7 @@ import { exploreService } from '../services/explore.service';
 import { getSessionIdFromRequest } from '../utils/auth';
 import { authRepository } from '../repositories/auth.repository';
 import { configService } from '../services/config.service';
+import { normalizeProjectLocalization } from '../utils/project-localization';
 
 /**
  * ProjectsController - Handles HTTP requests for project CRUD operations.
@@ -70,7 +75,22 @@ class ProjectsController {
     if (Array.isArray(input.tags)) {
       metadata.tags = input.tags.filter((t): t is string => typeof t === 'string');
     }
+    const localization = this.parseProjectLocalization(input.localization);
+    if (localization) {
+      metadata.localization = localization;
+    }
     return metadata;
+  }
+
+  private parseProjectLocalization(value: unknown): ProjectLocalization | undefined {
+    if (value === undefined || value === null) return undefined;
+    const localization = normalizeProjectLocalization(value);
+    if (!localization) {
+      throw new ValidationError(
+        'localization must include defaultLocale and a matching locales entry with a non-empty name.',
+      );
+    }
+    return localization;
   }
 
   private toSourceType(value: unknown): SourceType | undefined {
@@ -137,6 +157,9 @@ class ProjectsController {
   async createProject(request: Request, env: ApiWorkerEnv, db: D1Database): Promise<Response> {
     const user = await this.requireAuth(request, db, 'create a project');
     const body = await readJson(request);
+    if (body.isPublic !== undefined && typeof body.isPublic !== 'boolean') {
+      throw new ValidationError('isPublic must be a boolean');
+    }
     const project = await projectService.createProject(env, db, {
       name: validateRequiredString(body.name, 'name'),
       identifier: validateRequiredString(body.identifier, 'identifier'),
@@ -144,6 +167,7 @@ class ProjectsController {
       htmlContent: validateOptionalString(body.htmlContent),
       metadata: this.parseMetadataOverrides(body.metadata),
       ownerId: user.id,
+      isPublic: body.isPublic as boolean | undefined,
     });
     return jsonResponse(project);
   }
@@ -166,9 +190,19 @@ class ProjectsController {
     await this.requireProjectOwner(db, id, user.id, 'update it');
 
     const body = await readJson(request);
-    const { name, slug, repoUrl, description, category, tags, isPublic, isExtensionSupported } = body;
+    const {
+      name,
+      slug,
+      repoUrl,
+      description,
+      category,
+      tags,
+      localization,
+      isPublic,
+      isExtensionSupported,
+    } = body;
 
-    if ([name, slug, repoUrl, description, category, tags, isPublic, isExtensionSupported].every((v) => v === undefined)) {
+    if ([name, slug, repoUrl, description, category, tags, localization, isPublic, isExtensionSupported].every((v) => v === undefined)) {
       throw new ValidationError('At least one field must be provided');
     }
     if (isPublic !== undefined && typeof isPublic !== 'boolean') {
@@ -185,8 +219,9 @@ class ProjectsController {
       ...(description !== undefined && { description: validateOptionalString(description) }),
       ...(category !== undefined && { category: validateOptionalString(category) }),
       ...(tags !== undefined && { tags: validateOptionalArray(tags, String) }),
-      ...(isPublic !== undefined && { isPublic }),
-      ...(isExtensionSupported !== undefined && { isExtensionSupported }),
+      ...(localization !== undefined && { localization: this.parseProjectLocalization(localization) }),
+      ...(isPublic !== undefined && { isPublic: isPublic as boolean }),
+      ...(isExtensionSupported !== undefined && { isExtensionSupported: isExtensionSupported as boolean }),
     });
 
     if (!project) throw new NotFoundError('Project not found');

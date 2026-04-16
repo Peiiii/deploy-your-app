@@ -13,6 +13,16 @@ export enum SourceType {
   HTML = 'html',
 }
 
+export interface ProjectLocalizedFields {
+  name: string;
+  description?: string;
+}
+
+export interface ProjectLocalization {
+  defaultLocale: string;
+  locales: Record<string, ProjectLocalizedFields>;
+}
+
 export interface Project {
   id: string;
   // Owner user ID for this project (undefined for legacy/public records).
@@ -45,6 +55,8 @@ export interface Project {
   url?: string;
   // Short marketing-style summary used by Explore Apps and dashboards.
   description?: string;
+  defaultLocale?: string;
+  localization?: ProjectLocalization;
   framework: 'React' | 'Vue' | 'Next.js' | 'Unknown';
   // High-level category used by Explore Apps (e.g. "Development", "Image Gen").
   category?: string;
@@ -70,6 +82,8 @@ export interface DeploymentMetadata {
   name: string;
   slug: string;
   description?: string;
+  defaultLocale?: string;
+  localization?: ProjectLocalization;
   category: string;
   tags: string[];
   url?: string;

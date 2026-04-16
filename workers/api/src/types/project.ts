@@ -4,6 +4,16 @@ export enum SourceType {
   Html = 'html',
 }
 
+export interface ProjectLocalizedFields {
+  name: string;
+  description?: string;
+}
+
+export interface ProjectLocalization {
+  defaultLocale: string;
+  locales: Record<string, ProjectLocalizedFields>;
+}
+
 export type DeploymentStatus = 'Live' | 'Building' | 'Failed' | 'Offline';
 
 export interface Project {
@@ -28,6 +38,8 @@ export interface Project {
   status: DeploymentStatus;
   url?: string;
   description?: string;
+  defaultLocale?: string;
+  localization?: ProjectLocalization;
   framework: 'React' | 'Vue' | 'Next.js' | 'Unknown';
   category?: string;
   tags?: string[];
@@ -43,12 +55,15 @@ export interface ProjectMetadataOverrides {
   description?: string;
   category?: string;
   tags?: string[];
+  localization?: ProjectLocalization;
 }
 
 export interface ResolvedProjectMetadata {
   name: string;
   slug: string;
   description?: string;
+  defaultLocale?: string;
+  localization?: ProjectLocalization;
   category: string;
   tags: string[];
 }
@@ -67,6 +82,8 @@ export interface CreateProjectRecordInput {
   status: DeploymentStatus;
   url?: string;
   description?: string;
+  defaultLocale?: string;
+  localization?: ProjectLocalization;
   framework: 'React' | 'Vue' | 'Next.js' | 'Unknown';
   category?: string;
   tags?: string[];

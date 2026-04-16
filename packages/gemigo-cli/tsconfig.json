@@ -2,17 +2,17 @@
   "compilerOptions": {
     "composite": true,
     "target": "ES2022",
-    "module": "ESNext",
-    "lib": ["ES2022", "WebWorker", "DOM.Iterable"],
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "lib": ["ES2022"],
+    "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": false,
+    "strict": true,
     "skipLibCheck": true,
     "noEmitOnError": true,
     "rootDir": "./src",
     "outDir": "./dist",
-    "types": ["@cloudflare/workers-types"]
+    "types": ["node"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"]

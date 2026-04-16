@@ -1,0 +1,32 @@
+{
+  "name": "gemigo",
+  "private": false,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "GemiGo CLI for publishing static apps",
+  "bin": {
+    "gemigo": "dist/bin.js"
+  },
+  "files": [
+    "dist",
+    "schema"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "lint": "eslint src --max-warnings 0",
+    "test": "pnpm run build && node --test ./test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

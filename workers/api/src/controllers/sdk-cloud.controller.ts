@@ -32,14 +32,21 @@ class SdkCloudController {
 
   async kvSet(request: Request, _env: ApiWorkerEnv, db: D1Database): Promise<Response> {
     const env = _env;
-    const body = (await readJson(request)) as { key?: unknown; value?: unknown; ifMatch?: unknown };
+    const body = (await readJson(request)) as {
+      key: unknown;
+      value?: unknown;
+      ifMatch?: unknown;
+    };
     const result = await sdkCloudService.kvSet(request, env, db, body);
     return jsonResponse(result);
   }
 
   async kvDelete(request: Request, _env: ApiWorkerEnv, db: D1Database): Promise<Response> {
     const env = _env;
-    const body = (await readJson(request)) as { key?: unknown; ifMatch?: unknown };
+    const body = (await readJson(request)) as {
+      key: unknown;
+      ifMatch?: unknown;
+    };
     await sdkCloudService.kvDelete(request, env, db, body);
     return jsonResponse({ ok: true });
   }

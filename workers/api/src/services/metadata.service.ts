@@ -5,6 +5,11 @@ import {
   type ResolvedProjectMetadata,
 } from '../types/project';
 import { slugify, trimWhitespace } from '../utils/strings';
+import {
+  deriveFlatMetadataFromLocalization,
+  getDefaultLocalizedFields,
+  normalizeProjectLocalization,
+} from '../utils/project-localization';
 import { aiService } from './ai.service';
 
 const DEFAULT_CATEGORY = 'Other';
@@ -94,8 +99,16 @@ class MetadataService {
     slugSeed: string,
     overrides?: ProjectMetadataOverrides,
   ): ResolvedProjectMetadata {
-    const name = normalizeName(seedName, overrides?.name);
-    const description = normalizeDescription(overrides?.description);
+    const localization = normalizeProjectLocalization(overrides?.localization);
+    const defaultLocalizedFields = getDefaultLocalizedFields(localization);
+    const localizedFlat = deriveFlatMetadataFromLocalization(localization);
+    const name = normalizeName(
+      seedName,
+      defaultLocalizedFields?.name ?? overrides?.name,
+    );
+    const description = normalizeDescription(
+      defaultLocalizedFields?.description ?? overrides?.description,
+    );
     const category = normalizeCategory(overrides?.category);
     const tags = normalizeTags(overrides?.tags);
     const slugCandidate = deriveSlugSeed(overrides, name, slugSeed);
@@ -103,6 +116,10 @@ class MetadataService {
     return {
       name,
       description,
+      ...(localizedFlat.defaultLocale
+        ? { defaultLocale: localizedFlat.defaultLocale }
+        : {}),
+      ...(localization ? { localization } : {}),
       category,
       tags,
       slug: slugify(slugCandidate),

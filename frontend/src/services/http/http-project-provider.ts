@@ -1,5 +1,11 @@
 import type { IProjectProvider } from '../interfaces';
-import type { Project, DeploymentMetadata, SourceType, PaginatedResponse } from '../../types';
+import type {
+  Project,
+  DeploymentMetadata,
+  ProjectLocalization,
+  SourceType,
+  PaginatedResponse,
+} from '../../types';
 import { APP_CONFIG, API_ROUTES } from '../../constants';
 
 export class HttpProjectProvider implements IProjectProvider {
@@ -73,6 +79,7 @@ export class HttpProjectProvider implements IProjectProvider {
       description?: string;
       category?: string;
       tags?: string[];
+      localization?: ProjectLocalization;
       isPublic?: boolean;
       isExtensionSupported?: boolean;
     },

@@ -36,7 +36,7 @@ function isAllowedOpenerOrigin(origin: string): boolean {
   }
 }
 
-export function SdkAuthBrokerPage(): JSX.Element {
+export function SdkAuthBrokerPage() {
   const presenter = usePresenter();
   const [params] = useSearchParams();
   const user = useAuthStore((s) => s.user);
