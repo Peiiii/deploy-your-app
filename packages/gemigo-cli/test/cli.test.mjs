@@ -100,6 +100,24 @@ test('GemigoApiClient.exchangeDeviceToken captures the session cookie', async ()
   }
 });
 
+test('buildCliLoginUrl points the browser at the platform CLI login page', async () => {
+  const { buildCliLoginUrl } = await import('../dist/login.js');
+
+  const url = buildCliLoginUrl({
+    origin: 'https://gemigo.io',
+    callbackUrl: 'http://127.0.0.1:4567/callback',
+    preferredProvider: 'github',
+  });
+
+  assert.equal(url.origin, 'https://gemigo.io');
+  assert.equal(url.pathname, '/cli/login');
+  assert.equal(
+    url.searchParams.get('redirect'),
+    'http://127.0.0.1:4567/callback',
+  );
+  assert.equal(url.searchParams.get('provider'), 'github');
+});
+
 test('deployStaticApp creates a project and completes a ZIP deployment', async () => {
   await withTempHome(async () => {
     const { saveSession } = await import('../dist/session-store.js');

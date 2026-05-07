@@ -30,7 +30,7 @@ node packages/gemigo-cli/dist/bin.js --help
 ## Command Summary
 
 ```bash
-gemigo login [--provider github|google] [--origin https://gemigo.io] [--no-browser]
+gemigo login [--origin https://gemigo.io] [--no-browser]
 gemigo whoami [--origin https://gemigo.io]
 gemigo logout
 gemigo deploy <dir> [--config ./gemigo.app.json] [--origin https://gemigo.io]
@@ -111,13 +111,6 @@ Login opens a browser by default:
 
 ```bash
 gemigo login
-```
-
-Choose an auth provider explicitly when needed:
-
-```bash
-gemigo login --provider github
-gemigo login --provider google
 ```
 
 If you are on a remote machine or do not want the CLI to open the browser automatically:

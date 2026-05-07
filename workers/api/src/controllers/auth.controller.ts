@@ -22,6 +22,19 @@ import { configService } from '../services/config.service';
 import { desktopLoginTokenRepository } from '../repositories/desktop-login-token.repository';
 
 class AuthController {
+  private isAllowedDeviceRedirect = (target: string): boolean => {
+    try {
+      const parsed = new URL(target);
+      return (
+        parsed.protocol === 'gemigo-desktop:' ||
+        (parsed.protocol === 'http:' &&
+          (parsed.hostname === '127.0.0.1' || parsed.hostname === 'localhost'))
+      );
+    } catch {
+      return false;
+    }
+  };
+
   // GET /api/v1/me
   async handleMe(
     request: Request,
@@ -230,6 +243,48 @@ class AuthController {
     });
     return withSetCookie(response, buildSessionCookie(session.id));
   }
+
+  // GET /api/v1/auth/desktop/authorize?redirect=...
+  handleDesktopAuthorize = async (
+    request: Request,
+    db: D1Database,
+  ): Promise<Response> => {
+    const url = new URL(request.url);
+    const redirectTo = url.searchParams.get('redirect')?.trim();
+    if (!redirectTo) {
+      throw new ValidationError('redirect is required.');
+    }
+    if (!this.isAllowedDeviceRedirect(redirectTo)) {
+      throw new ValidationError('redirect must be a local callback URL.');
+    }
+
+    const sessionId = getSessionIdFromRequest(request);
+    if (!sessionId) {
+      throw new UnauthorizedError('Login required to authorize the CLI.');
+    }
+
+    const sessionWithUser = await authRepository.getSessionWithUser(
+      db,
+      sessionId,
+    );
+    if (!sessionWithUser) {
+      throw new UnauthorizedError('Login required to authorize the CLI.');
+    }
+
+    const token = await desktopLoginTokenRepository.createToken(
+      db,
+      sessionWithUser.user.id,
+    );
+    const callbackUrl = new URL(redirectTo);
+    callbackUrl.searchParams.set('token', token.id);
+
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: callbackUrl.toString(),
+      },
+    });
+  };
 }
 
 export const authController = new AuthController();

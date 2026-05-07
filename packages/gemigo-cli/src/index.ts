@@ -59,7 +59,7 @@ function renderHelp(): string {
   return `GemiGo CLI
 
 Usage:
-  gemigo login [--provider github|google] [--origin https://gemigo.io] [--no-browser]
+  gemigo login [--origin https://gemigo.io] [--no-browser]
   gemigo whoami [--origin https://gemigo.io]
   gemigo logout
   gemigo deploy <dir> [--config ./gemigo.app.json] [--origin https://gemigo.io]

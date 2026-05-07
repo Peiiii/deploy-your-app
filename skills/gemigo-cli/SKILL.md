@@ -32,7 +32,7 @@ Treat this skill as the canonical entry point for the CLI. As the CLI grows, ext
 ## Command Reference
 
 ```bash
-gemigo login [--provider github|google] [--origin https://gemigo.io] [--no-browser]
+gemigo login [--origin https://gemigo.io] [--no-browser]
 gemigo whoami [--origin https://gemigo.io]
 gemigo logout
 gemigo deploy <dir> [--config ./gemigo.app.json] [--origin https://gemigo.io]

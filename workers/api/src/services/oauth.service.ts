@@ -17,18 +17,6 @@ import { GoogleOAuthProvider } from './oauth/providers/google-provider';
 import { GitHubOAuthProvider } from './oauth/providers/github-provider';
 
 class OAuthService {
-  private isLoopbackRedirectTarget(target: string): boolean {
-    try {
-      const parsed = new URL(target);
-      return (
-        parsed.protocol === 'http:' &&
-        (parsed.hostname === '127.0.0.1' || parsed.hostname === 'localhost')
-      );
-    } catch {
-      return false;
-    }
-  }
-
   private getProviderConfig(
     env: ApiWorkerEnv,
     provider: OAuthProvider,
@@ -190,9 +178,7 @@ class OAuthService {
     });
 
     const redirectTarget = stateCookie.redirectTo || redirectBase;
-    const isDeviceRedirect =
-      redirectTarget.startsWith('gemigo-desktop://') ||
-      this.isLoopbackRedirectTarget(redirectTarget);
+    const isDeviceRedirect = redirectTarget.startsWith('gemigo-desktop://');
 
     const headers = new Headers();
 

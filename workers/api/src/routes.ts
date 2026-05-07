@@ -128,6 +128,13 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
       authController.handleDesktopLogin(req, env, requireDb()),
   });
 
+  router.add({
+    path: '/api/v1/auth/desktop/authorize',
+    method: 'GET',
+    handler: (req) =>
+      authController.handleDesktopAuthorize(req, requireDb()),
+  });
+
   // -----------------
   // Projects routes
   // -----------------

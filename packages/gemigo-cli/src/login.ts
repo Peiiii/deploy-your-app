@@ -6,6 +6,20 @@ import { saveSession } from './session-store.js';
 
 export type LoginProvider = 'github' | 'google';
 
+export function buildCliLoginUrl(input: {
+  origin: string;
+  callbackUrl: string;
+  preferredProvider?: LoginProvider;
+}): URL {
+  const { origin, callbackUrl, preferredProvider } = input;
+  const authUrl = new URL('/cli/login', origin);
+  authUrl.searchParams.set('redirect', callbackUrl);
+  if (preferredProvider) {
+    authUrl.searchParams.set('provider', preferredProvider);
+  }
+  return authUrl;
+}
+
 function renderLoginResultHtml(message: string): string {
   return `<!doctype html>
 <html lang="en">
@@ -131,8 +145,11 @@ export async function loginWithBrowser(options: {
   const listener = await createLoopbackListener();
 
   try {
-    const authUrl = new URL(`/api/v1/auth/${provider}/start`, origin);
-    authUrl.searchParams.set('redirect', listener.callbackUrl);
+    const authUrl = buildCliLoginUrl({
+      origin,
+      callbackUrl: listener.callbackUrl,
+      preferredProvider: provider,
+    });
 
     if (openBrowser) {
       await openUrlInBrowser(authUrl.toString());
