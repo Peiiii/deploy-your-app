@@ -20,6 +20,10 @@ export function buildCliLoginUrl(input: {
   return authUrl;
 }
 
+export function buildCliLoginSuccessUrl(origin: string): URL {
+  return new URL('/cli/login/success', origin);
+}
+
 function renderLoginResultHtml(message: string): string {
   return `<!doctype html>
 <html lang="en">
@@ -64,11 +68,14 @@ function openUrlInBrowser(url: string): Promise<void> {
   });
 }
 
-async function createLoopbackListener(): Promise<{
+async function createLoopbackListener(options: {
+  successUrl: string;
+}): Promise<{
   callbackUrl: string;
   waitForToken: () => Promise<string>;
   close: () => Promise<void>;
 }> {
+  const { successUrl } = options;
   let resolveToken: ((token: string) => void) | null = null;
   let rejectToken: ((error: Error) => void) | null = null;
   const tokenPromise = new Promise<string>((resolve, reject) => {
@@ -96,10 +103,8 @@ async function createLoopbackListener(): Promise<{
       return;
     }
 
-    response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    response.end(
-      renderLoginResultHtml('Login succeeded and GemiGo CLI received the callback.'),
-    );
+    response.writeHead(302, { Location: successUrl });
+    response.end();
     resolveToken?.(token);
   });
 
@@ -142,7 +147,9 @@ export async function loginWithBrowser(options: {
   openBrowser: boolean;
 }): Promise<StoredSession> {
   const { origin, provider, openBrowser } = options;
-  const listener = await createLoopbackListener();
+  const listener = await createLoopbackListener({
+    successUrl: buildCliLoginSuccessUrl(origin).toString(),
+  });
 
   try {
     const authUrl = buildCliLoginUrl({

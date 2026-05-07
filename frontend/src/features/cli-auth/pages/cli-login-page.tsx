@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { Github, Loader2, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, Github, Loader2, ShieldCheck } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
@@ -126,6 +126,24 @@ export function CliLoginPage() {
             正在授权 CLI
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+export function CliLoginSuccessPage() {
+  return (
+    <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6">
+      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-black/40 p-6 space-y-5 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-400 text-slate-950">
+          <CheckCircle2 className="h-6 w-6" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-xl font-bold">CLI 已登录</h1>
+          <p className="text-sm leading-6 text-white/70">
+            可以回到命令行继续使用 GemiGo。
+          </p>
+        </div>
       </div>
     </div>
   );

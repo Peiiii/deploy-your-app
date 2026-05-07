@@ -113,6 +113,9 @@ Login opens a browser by default:
 gemigo login
 ```
 
+After authorization, the temporary local callback redirects back to a GemiGo
+success page so the browser does not stay on a `127.0.0.1` URL.
+
 If you are on a remote machine or do not want the CLI to open the browser automatically:
 
 ```bash

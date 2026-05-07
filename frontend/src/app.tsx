@@ -12,7 +12,10 @@ import { Toast } from '@/components/toast';
 import { CrispChat } from '@/components/crisp-chat';
 import { PrivacyPolicyPage } from '@/features/legal/pages/privacy-policy';
 import { SdkAuthBrokerPage } from '@/features/sdk-auth/pages/sdk-auth-broker';
-import { CliLoginPage } from '@/features/cli-auth/pages/cli-login-page';
+import {
+  CliLoginPage,
+  CliLoginSuccessPage,
+} from '@/features/cli-auth/pages/cli-login-page';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hooks
@@ -144,6 +147,7 @@ export default function App() {
     pathname === '/privacy-policy' || pathname === '/privacy';
   const isSdkAuthBroker = pathname === '/sdk/broker';
   const isCliLogin = pathname === '/cli/login';
+  const isCliLoginSuccess = pathname === '/cli/login/success';
 
   if (isPrivacyPolicy) {
     return <PrivacyPolicyPage />;
@@ -173,6 +177,10 @@ export default function App() {
         </div>
       </PresenterProvider>
     );
+  }
+
+  if (isCliLoginSuccess) {
+    return <CliLoginSuccessPage />;
   }
 
   return (
