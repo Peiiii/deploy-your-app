@@ -1,4 +1,5 @@
-import { deployStaticApp } from './deploy.js';
+import { deployStaticApp, validateStaticAppInput } from './deploy.js';
+import { writeManifestTemplate } from './config.js';
 import { loginWithBrowser, type LoginProvider } from './login.js';
 import { clearSession, loadSession } from './session-store.js';
 
@@ -55,10 +56,38 @@ function getOrigin(flags: Record<string, string | boolean>): string {
   return raw.replace(/\/+$/, '');
 }
 
+function getStringFlag(
+  flags: Record<string, string | boolean>,
+  name: string,
+): string | undefined {
+  return typeof flags[name] === 'string' ? flags[name] : undefined;
+}
+
+function getVisibilityFlag(
+  flags: Record<string, string | boolean>,
+): 'public' | 'private' | undefined {
+  const visibility = getStringFlag(flags, 'visibility');
+  if (!visibility) return undefined;
+  if (visibility === 'public' || visibility === 'private') return visibility;
+  throw new Error('init --visibility must be "public" or "private".');
+}
+
+function getTagsFlag(flags: Record<string, string | boolean>): string[] | undefined {
+  const raw = getStringFlag(flags, 'tags');
+  if (!raw) return undefined;
+  const tags = raw
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter((tag) => tag.length > 0);
+  return tags.length > 0 ? tags : undefined;
+}
+
 function renderHelp(): string {
   return `GemiGo CLI
 
 Usage:
+  gemigo init [dir] [--config ./gemigo.app.json] [--name "My App"] [--description "..."] [--force]
+  gemigo validate [dir] [--config ./gemigo.app.json]
   gemigo login [--origin https://gemigo.io] [--no-browser]
   gemigo whoami [--origin https://gemigo.io]
   gemigo logout
@@ -77,6 +106,43 @@ export async function runCli(argv: string[]): Promise<void> {
 
   const parsed = parseArgs(rest);
   const origin = getOrigin(parsed.flags);
+
+  if (command === 'init') {
+    const dir = parsed.positionals.length > 0 ? parsed.positionals[0] : '.';
+    const result = await writeManifestTemplate({
+      cwd: process.cwd(),
+      dir,
+      configPath: getStringFlag(parsed.flags, 'config'),
+      force: parsed.flags.force === true,
+      name: getStringFlag(parsed.flags, 'name'),
+      description: getStringFlag(parsed.flags, 'description'),
+      slug: getStringFlag(parsed.flags, 'slug'),
+      visibility: getVisibilityFlag(parsed.flags),
+      category: getStringFlag(parsed.flags, 'category'),
+      tags: getTagsFlag(parsed.flags),
+      defaultLocale: getStringFlag(parsed.flags, 'locale'),
+    });
+    process.stdout.write(`Created manifest: ${result.manifestPath}\n`);
+    process.stdout.write(
+      `Validate it with: gemigo validate --config ${result.manifestPath}\n`,
+    );
+    return;
+  }
+
+  if (command === 'validate') {
+    const dir =
+      parsed.positionals.length > 0 ? parsed.positionals[0] : undefined;
+    const result = await validateStaticAppInput({
+      cwd: process.cwd(),
+      dir,
+      configPath: getStringFlag(parsed.flags, 'config'),
+    });
+    process.stdout.write(`Manifest OK: ${result.manifestPath}\n`);
+    process.stdout.write(
+      `Static directory OK: ${result.dir} (${result.fileCount} files)\n`,
+    );
+    return;
+  }
 
   if (command === 'login') {
     const provider =

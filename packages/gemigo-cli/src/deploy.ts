@@ -65,28 +65,20 @@ export async function deployStaticApp(options: {
     throw new Error('Saved session is no longer valid. Run "gemigo login" again.');
   }
 
-  const resolvedManifestPath = await resolveManifestPath(process.cwd(), configPath);
-  const manifest = await loadManifest(resolvedManifestPath);
-  const manifestDir = path.dirname(resolvedManifestPath);
-  const sourceDir = dir
-    ? path.resolve(process.cwd(), dir)
-    : manifest.sourceDir
-      ? path.resolve(manifestDir, manifest.sourceDir)
-      : undefined;
+  const deploymentInput = await validateStaticAppInput({
+    cwd: process.cwd(),
+    dir,
+    configPath,
+  });
 
-  if (!sourceDir) {
-    throw new Error(
-      'No static directory provided. Pass a directory argument or set sourceDir in gemigo.app.json.',
-    );
-  }
-
-  const validation = await validateStaticDirectory(sourceDir);
   onOutput?.(
-    `Validated static directory: ${validation.dir} (${validation.fileCount} files)`,
+    `Validated static directory: ${deploymentInput.dir} (${deploymentInput.fileCount} files)`,
   );
 
-  const zipData = await zipDirectoryToBase64(validation.dir);
-  const project = await client.createProject(buildCreateProjectPayload(manifest));
+  const zipData = await zipDirectoryToBase64(deploymentInput.dir);
+  const project = await client.createProject(
+    buildCreateProjectPayload(deploymentInput.manifest),
+  );
   onOutput?.(`Created project: ${project.name} (${project.id})`);
 
   const deployment = await client.startDeployment({
@@ -116,5 +108,42 @@ export async function deployStaticApp(options: {
     deploymentId: deployment.deploymentId,
     slug: finalStatus.projectMetadata?.slug ?? project.slug,
     url: finalStatus.projectMetadata?.url ?? project.url,
+  };
+}
+
+export async function validateStaticAppInput(options: {
+  cwd: string;
+  dir?: string;
+  configPath?: string;
+}): Promise<{
+  manifestPath: string;
+  manifest: GemigoManifest;
+  dir: string;
+  fileCount: number;
+}> {
+  const resolvedManifestPath = await resolveManifestPath(
+    options.cwd,
+    options.configPath,
+  );
+  const manifest = await loadManifest(resolvedManifestPath);
+  const manifestDir = path.dirname(resolvedManifestPath);
+  const sourceDir = options.dir
+    ? path.resolve(options.cwd, options.dir)
+    : manifest.sourceDir
+      ? path.resolve(manifestDir, manifest.sourceDir)
+      : undefined;
+
+  if (!sourceDir) {
+    throw new Error(
+      'No static directory provided. Pass a directory argument or set sourceDir in gemigo.app.json.',
+    );
+  }
+
+  const validation = await validateStaticDirectory(sourceDir);
+  return {
+    manifestPath: resolvedManifestPath,
+    manifest,
+    dir: validation.dir,
+    fileCount: validation.fileCount,
   };
 }

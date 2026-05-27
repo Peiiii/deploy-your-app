@@ -47,7 +47,7 @@
       "minProperties": 1,
       "additionalProperties": {
         "type": "object",
-        "required": ["name"],
+        "required": ["name", "description"],
         "additionalProperties": false,
         "properties": {
           "name": {

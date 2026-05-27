@@ -30,6 +30,8 @@ node packages/gemigo-cli/dist/bin.js --help
 ## Command Summary
 
 ```bash
+gemigo init [dir] [--config ./gemigo.app.json] [--name "My App"] [--description "..."] [--force]
+gemigo validate [dir] [--config ./gemigo.app.json]
 gemigo login [--origin https://gemigo.io] [--no-browser]
 gemigo whoami [--origin https://gemigo.io]
 gemigo logout
@@ -58,7 +60,21 @@ The final directory you deploy must:
 
 Typical output folders are `dist`, `build`, or another static export directory.
 
-### 2. Create `gemigo.app.json`
+### 2. Create or validate `gemigo.app.json`
+
+Generate a complete manifest template:
+
+```bash
+gemigo init ./dist --config ./gemigo.app.json --name "My Static App" --description "A static app published to GemiGo."
+```
+
+Then preflight both the manifest and static directory before any remote deploy:
+
+```bash
+gemigo validate --config ./gemigo.app.json
+```
+
+`validate` is offline and does not require login.
 
 Put the manifest in your project root and point `sourceDir` to the built output:
 
@@ -129,6 +145,16 @@ The CLI will print the login URL and wait for the callback on a local loopback p
 ```bash
 gemigo whoami
 ```
+
+## Validate Before Deploy
+
+```bash
+gemigo validate ./dist --config ./gemigo.app.json
+```
+
+The command checks all manifest requirements and the static directory shape in
+one local step. Use it before `deploy` so missing metadata is reported together
+instead of being discovered during a remote deployment attempt.
 
 ## Deploy
 

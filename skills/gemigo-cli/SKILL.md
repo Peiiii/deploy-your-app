@@ -11,6 +11,8 @@ Use this skill when the task involves the `gemigo` CLI.
 
 Current product scope:
 
+- generate a complete static-app manifest with `gemigo init`
+- preflight the manifest and static output directory with `gemigo validate`
 - log in with `gemigo login`
 - inspect login state with `gemigo whoami`
 - clear login state with `gemigo logout`
@@ -25,13 +27,16 @@ Treat this skill as the canonical entry point for the CLI. As the CLI grows, ext
 1. Confirm the target is a static output directory, not the source repository root.
 2. Ensure the directory contains `index.html` at its root.
 3. Ensure the directory does not contain a top-level `package.json`.
-4. Create or validate `gemigo.app.json`.
-5. Log in with `gemigo login`.
-6. Deploy with `gemigo deploy` or `gemigo publish`.
+4. Create `gemigo.app.json` with `gemigo init` unless a complete manifest already exists.
+5. Run `gemigo validate` before any remote deploy attempt.
+6. Log in with `gemigo login` if `gemigo whoami` is not healthy.
+7. Deploy with `gemigo deploy` or `gemigo publish`.
 
 ## Command Reference
 
 ```bash
+gemigo init [dir] [--config ./gemigo.app.json] [--name "My App"] [--description "..."] [--force]
+gemigo validate [dir] [--config ./gemigo.app.json]
 gemigo login [--origin https://gemigo.io] [--no-browser]
 gemigo whoami [--origin https://gemigo.io]
 gemigo logout
@@ -68,6 +73,16 @@ node packages/gemigo-cli/dist/bin.js --help
 ## Manifest Rules
 
 Create `gemigo.app.json` in the project root or pass a custom path with `--config`.
+
+Preferred path:
+
+```bash
+gemigo init <static-dir> --config ./gemigo.app.json --name "My App" --description "A short app description."
+gemigo validate --config ./gemigo.app.json
+```
+
+Do not hand-write the manifest from memory when `gemigo init` is available. The
+CLI-owned template is the canonical way to avoid missing schema fields.
 
 Required fields:
 
@@ -114,16 +129,18 @@ If the user gives you source code only:
 1. Detect the framework and build command.
 2. Run the project build first.
 3. Find the generated static directory, usually `dist` or `build`.
-4. Create or fix `gemigo.app.json`.
-5. Run `gemigo login` if there is no valid session.
-6. Run `gemigo deploy <dir> --config <path>`.
+4. Run `gemigo init <dir> --config <path>` or fix the existing manifest.
+5. Run `gemigo validate <dir> --config <path>`.
+6. Run `gemigo login` if there is no valid session.
+7. Run `gemigo deploy <dir> --config <path>`.
 
 If the user already gives you a built directory:
 
 1. Validate the directory shape.
-2. Create or fix `gemigo.app.json`.
-3. Run `gemigo whoami` if login status is unclear.
-4. Run `gemigo deploy`.
+2. Run `gemigo init <dir> --config <path>` or fix the existing manifest.
+3. Run `gemigo validate <dir> --config <path>`.
+4. Run `gemigo whoami` if login status is unclear.
+5. Run `gemigo deploy`.
 
 ## Common Failure Modes
 
@@ -147,6 +164,12 @@ If the user already gives you a built directory:
 
 - The source repository root was passed instead of the built output directory.
 
+`Invalid gemigo.app.json:`
+
+- The manifest failed local preflight.
+- Fix every bullet in the error output, then rerun `gemigo validate`.
+- Do not keep retrying `gemigo deploy` until `validate` passes.
+
 ## Current Limits
 
 Do not claim that `gemigo` can do any of the following unless the CLI is extended in code first:
@@ -155,7 +178,7 @@ Do not claim that `gemigo` can do any of the following unless the CLI is extende
 - build React, Vue, or Next.js projects automatically
 - create projects from a git repository URL
 - deploy server-side code
-- infer missing manifest metadata
+- infer rich app metadata beyond the explicit `gemigo init` defaults and provided flags
 
 Stay inside the current command surface and make the build step explicit.
 

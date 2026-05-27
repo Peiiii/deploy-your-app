@@ -46,6 +46,67 @@ test('parseManifest accepts a multi-locale manifest', async () => {
   assert.equal(manifest.locales['zh-CN'].name, '静态应用');
 });
 
+test('parseManifest reports missing manifest fields together', async () => {
+  const { parseManifest } = await import('../dist/config.js');
+
+  assert.throws(
+    () => parseManifest({}),
+    (error) => {
+      assert.match(error.message, /Invalid gemigo\.app\.json/);
+      assert.match(error.message, /visibility/);
+      assert.match(error.message, /category/);
+      assert.match(error.message, /tags/);
+      assert.match(error.message, /defaultLocale/);
+      assert.match(error.message, /locales/);
+      return true;
+    },
+  );
+});
+
+test('init creates a complete manifest and validate accepts it', async () => {
+  const { runCli } = await import('../dist/index.js');
+  const { parseManifest } = await import('../dist/config.js');
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'gemigo-cli-init-'));
+
+  try {
+    const staticDir = path.join(tempDir, 'site');
+    await fs.mkdir(staticDir, { recursive: true });
+    await fs.writeFile(
+      path.join(staticDir, 'index.html'),
+      '<!doctype html><html><body>Hello</body></html>',
+      'utf8',
+    );
+
+    const manifestPath = path.join(tempDir, 'gemigo.app.json');
+    await runCli([
+      'init',
+      staticDir,
+      '--config',
+      manifestPath,
+      '--name',
+      'Hello Static',
+      '--description',
+      'A hello world static app.',
+      '--slug',
+      'hello-static',
+      '--tags',
+      'static,hello',
+    ]);
+
+    const manifest = parseManifest(
+      JSON.parse(await fs.readFile(manifestPath, 'utf8')),
+    );
+    assert.equal(manifest.sourceDir, './site');
+    assert.equal(manifest.visibility, 'public');
+    assert.equal(manifest.locales.en.name, 'Hello Static');
+    assert.equal(manifest.locales.en.description, 'A hello world static app.');
+
+    await runCli(['validate', '--config', manifestPath]);
+  } finally {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('validateStaticDirectory rejects a directory with a top-level package.json', async () => {
   const { validateStaticDirectory } = await import('../dist/static-site.js');
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'gemigo-cli-site-'));

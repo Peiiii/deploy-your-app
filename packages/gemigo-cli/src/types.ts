@@ -13,6 +13,10 @@ export interface GemigoManifest {
   locales: Record<string, ManifestLocaleEntry>;
 }
 
+export type GemigoManifestFile = GemigoManifest & {
+  $schema: string;
+};
+
 export interface CliUser {
   id: string;
   email: string | null;
