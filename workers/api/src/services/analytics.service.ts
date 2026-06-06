@@ -79,6 +79,20 @@ class AnalyticsService {
     return this.getProjectStatsForSlug(db, slug, rangeDays);
   }
 
+  async getViewsByProjectSlug(
+    db: D1Database,
+    projects: Project[],
+    rangeDays: number,
+  ): Promise<Record<string, number>> {
+    const today = new Date();
+    const from = new Date(today);
+    from.setDate(today.getDate() - rangeDays + 1);
+    const fromDateStr = from.toISOString().slice(0, 10);
+    const slugs = projects.map((project) => this.resolveSlugForProject(project));
+
+    return analyticsRepository.getViewsBySlugSince(db, slugs, fromDateStr);
+  }
+
   async deleteStatsForSlug(
     db: D1Database,
     slug: string,

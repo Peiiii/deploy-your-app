@@ -11,6 +11,7 @@
     "check:desktop": "pnpm exec eslint desktop/src --max-warnings 0 && pnpm --filter gemigo-desktop run typecheck",
     "test:auth:local": "tsx scripts/test-auth-local.ts",
     "dev:frontend": "pnpm --filter deploy-your-app-frontend dev",
+    "dev:frontend:online": "DEV_API_PROXY_TARGET=https://gemigo.io pnpm --filter deploy-your-app-frontend dev",
     "dev:server": "pnpm --filter deploy-your-app-server dev",
     "dev:desktop": "pnpm --filter gemigo-desktop dev",
     "dev:extension": "pnpm --filter @gemigo/browser-extension dev",

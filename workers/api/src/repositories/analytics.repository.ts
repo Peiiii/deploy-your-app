@@ -5,6 +5,11 @@ type StatsRow = {
   last_view_at?: string;
 };
 
+type ViewsBySlugRow = {
+  slug: string;
+  views: number;
+};
+
 let statsSchemaEnsured = false;
 
 class AnalyticsRepository {
@@ -66,6 +71,33 @@ class AnalyticsRepository {
       .bind(slug, fromDateInclusive)
       .all<StatsRow>();
     return result.results ?? [];
+  }
+
+  async getViewsBySlugSince(
+    db: D1Database,
+    slugs: string[],
+    fromDateInclusive: string,
+  ): Promise<Record<string, number>> {
+    await this.ensureSchema(db);
+    const uniqueSlugs = Array.from(new Set(slugs.filter((slug) => slug.trim())));
+    if (uniqueSlugs.length === 0) return {};
+
+    const placeholders = uniqueSlugs.map(() => '?').join(', ');
+    const result = await db
+      .prepare(
+        `SELECT slug, SUM(views) AS views
+         FROM project_daily_stats
+         WHERE date >= ? AND slug IN (${placeholders})
+         GROUP BY slug`,
+      )
+      .bind(fromDateInclusive, ...uniqueSlugs)
+      .all<ViewsBySlugRow>();
+
+    const viewsBySlug: Record<string, number> = {};
+    (result.results ?? []).forEach((row) => {
+      viewsBySlug[row.slug] = row.views;
+    });
+    return viewsBySlug;
   }
 
   async deleteStatsForSlug(db: D1Database, slug: string): Promise<void> {

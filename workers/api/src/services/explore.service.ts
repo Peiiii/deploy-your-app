@@ -2,6 +2,7 @@ import type { D1Database } from '@cloudflare/workers-types';
 import type { Project } from '../types/project';
 import { projectRepository } from '../repositories/project.repository';
 import { engagementService } from './engagement.service';
+import { analyticsService } from './analytics.service';
 import { authRepository } from '../repositories/auth.repository';
 
 /**
@@ -51,6 +52,11 @@ export class ExploreService {
 
         let sorted: Project[];
         if (options.sort === 'popularity') {
+            const viewsBySlug = await analyticsService.getViewsByProjectSlug(
+                db,
+                allPublic,
+                7,
+            );
             sorted = [...allPublic].sort((a, b) => {
                 const aCounts = counts[a.id] ?? {
                     likesCount: 0,
@@ -60,10 +66,13 @@ export class ExploreService {
                     likesCount: 0,
                     favoritesCount: 0,
                 };
-                const aScore = aCounts.likesCount + aCounts.favoritesCount * 1.5;
-                const bScore = bCounts.likesCount + bCounts.favoritesCount * 1.5;
-                if (bScore !== aScore) {
-                    return bScore - aScore;
+                const aViews7d = viewsBySlug[a.slug ?? a.id] ?? 0;
+                const bViews7d = viewsBySlug[b.slug ?? b.id] ?? 0;
+                if (bViews7d !== aViews7d) {
+                    return bViews7d - aViews7d;
+                }
+                if (bCounts.favoritesCount !== aCounts.favoritesCount) {
+                    return bCounts.favoritesCount - aCounts.favoritesCount;
                 }
                 if (bCounts.likesCount !== aCounts.likesCount) {
                     return bCounts.likesCount - aCounts.likesCount;
