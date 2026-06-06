@@ -13,7 +13,7 @@ export const useHomeExploreFeed = () => {
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All Apps');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('popularity');
+  const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [isLoadingExplore, setIsLoadingExplore] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
