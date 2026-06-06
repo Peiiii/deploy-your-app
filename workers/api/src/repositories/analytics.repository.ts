@@ -82,21 +82,27 @@ class AnalyticsRepository {
     const uniqueSlugs = Array.from(new Set(slugs.filter((slug) => slug.trim())));
     if (uniqueSlugs.length === 0) return {};
 
-    const placeholders = uniqueSlugs.map(() => '?').join(', ');
-    const result = await db
-      .prepare(
-        `SELECT slug, SUM(views) AS views
-         FROM project_daily_stats
-         WHERE date >= ? AND slug IN (${placeholders})
-         GROUP BY slug`,
-      )
-      .bind(fromDateInclusive, ...uniqueSlugs)
-      .all<ViewsBySlugRow>();
-
     const viewsBySlug: Record<string, number> = {};
-    (result.results ?? []).forEach((row) => {
-      viewsBySlug[row.slug] = row.views;
-    });
+    const MAX_SLUGS_PER_QUERY = 90;
+
+    for (let i = 0; i < uniqueSlugs.length; i += MAX_SLUGS_PER_QUERY) {
+      const batch = uniqueSlugs.slice(i, i + MAX_SLUGS_PER_QUERY);
+      const placeholders = batch.map(() => '?').join(', ');
+      const result = await db
+        .prepare(
+          `SELECT slug, SUM(views) AS views
+           FROM project_daily_stats
+           WHERE date >= ? AND slug IN (${placeholders})
+           GROUP BY slug`,
+        )
+        .bind(fromDateInclusive, ...batch)
+        .all<ViewsBySlugRow>();
+
+      (result.results ?? []).forEach((row) => {
+        viewsBySlug[row.slug] = row.views;
+      });
+    }
+
     return viewsBySlug;
   }
 

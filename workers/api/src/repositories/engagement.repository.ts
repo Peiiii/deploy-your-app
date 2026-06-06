@@ -232,8 +232,9 @@ class EngagementRepository {
       return {};
     }
 
-    // SQLite/D1 can have a low variable limit (often 999). Keep headroom.
-    const MAX_IDS_PER_QUERY = 900;
+    // D1 variable limits vary by runtime. Keep batches small enough for
+    // production while still avoiding one query per project.
+    const MAX_IDS_PER_QUERY = 90;
 
     const map: Record<string, { likesCount: number; favoritesCount: number }> = {};
     for (const id of projectIds) {
