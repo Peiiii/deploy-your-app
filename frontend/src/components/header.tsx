@@ -5,8 +5,9 @@ import { useUIStore } from '@/stores/ui.store';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { usePresenter } from '@/contexts/presenter-context';
 import { LanguageSwitcher } from '@/components/language-switcher';
-import { Bell, HelpCircle, Sun, Moon, Menu, User, LogOut, ChevronDown } from 'lucide-react';
+import { Bell, Github, HelpCircle, Sun, Moon, Menu, User, LogOut, ChevronDown } from 'lucide-react';
 import { Crisp } from 'crisp-sdk-web';
+import { URLS } from '@/constants';
 
 export const Header: React.FC = () => {
     const { t } = useTranslation();
@@ -76,6 +77,16 @@ export const Header: React.FC = () => {
                 </button>
                 <LanguageSwitcher />
                 <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden md:block" />
+                <a
+                    href={URLS.GITHUB_REPOSITORY}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all"
+                    title={t('ui.openSourceOnGitHub')}
+                    aria-label={t('ui.openSourceOnGitHub')}
+                >
+                    <Github className="w-5 h-5" />
+                </a>
                 <button
                     onClick={handleOpenChat}
                     className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all hidden md:block"
@@ -145,4 +156,3 @@ export const Header: React.FC = () => {
         </header>
     );
 };
-

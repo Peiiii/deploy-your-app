@@ -36,4 +36,5 @@ export const SECURITY_CONSTANTS = {
 
 export const URLS = {
   GITHUB_BASE: 'https://github.com/',
+  GITHUB_REPOSITORY: 'https://github.com/Peiiii/deploy-your-app',
 };
