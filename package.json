@@ -10,6 +10,7 @@
     "check": "pnpm lint && pnpm typecheck && pnpm check:domains",
     "check:desktop": "pnpm exec eslint desktop/src --max-warnings 0 && pnpm --filter gemigo-desktop run typecheck",
     "test:auth:local": "tsx scripts/test-auth-local.ts",
+    "test:aistudio-format": "cd server && STORAGE_TYPE=file DEPLOY_TARGET=local ./node_modules/.bin/tsx ../scripts/test-ai-studio-app-format.ts",
     "dev:frontend": "pnpm --filter deploy-your-app-frontend dev",
     "dev:frontend:online": "DEV_API_PROXY_TARGET=https://gemigo.io pnpm --filter deploy-your-app-frontend dev",
     "dev:server": "pnpm --filter deploy-your-app-server dev",

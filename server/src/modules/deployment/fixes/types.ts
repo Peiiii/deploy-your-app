@@ -8,6 +8,7 @@ export interface RepoFixContext {
 export interface RepoFix {
   id: string;
   description: string;
+  fatalOnError?: boolean;
   detect(ctx: RepoFixContext): Promise<boolean>;
   apply(ctx: RepoFixContext): Promise<void>;
 }

@@ -31,13 +31,16 @@ export async function applyFixesForDeployment(
       );
       executed.add(fix.id);
     } catch (err) {
+      const errorMessage =
+        err && (err as Error).message ? (err as Error).message : String(err);
       appendLog(
         deploymentId,
-        `Fix "${fix.id}" failed: ${
-          err && (err as Error).message ? (err as Error).message : String(err)
-        }`,
-        'warning',
+        `Fix "${fix.id}" failed: ${errorMessage}`,
+        fix.fatalOnError ? 'error' : 'warning',
       );
+      if (fix.fatalOnError) {
+        throw err;
+      }
       // Continue with other fixes; a failed fix should not abort deployment.
     }
   }
