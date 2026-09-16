@@ -1,6 +1,6 @@
 # GemiGo 产品分析与独立管理站：执行与验收合同
 
-Contract: gemigo-analytics-20260917-v2；flow: standard；风险: L4；状态: implemented / verified / delivery。
+Contract: gemigo-analytics-20260917-v2；flow: standard；风险: L4；状态: complete。
 父目标：自主完成统一产品埋点、低成本分析系统和独立管理站，修正公开作者身份，完成检查、线上验收、commit、push、部署并交付链接。用户已授权所有必要代码提交和部署。
 
 ## 当前架构决定（取代 v1 的 /admin 与复用账号方案）
@@ -47,10 +47,14 @@ Contract: gemigo-analytics-20260917-v2；flow: standard；风险: L4；状态: i
 - 隐私说明已更新；Cloudflare 域名注册表已登记 admin.gemigo.io。
 
 ## 正式验收（2026-09-17）
-- API Worker 58eef972-ab3c-45c6-ac45-7e94a4f72d2e；独立管理 Worker d2c351a2-d88e-4dc9-91fc-43dc0549432d，admin.gemigo.io custom domain 已绑定。
+- API Worker 9ca3f1c5-ad81-48ba-94fd-51fc76ec1976；独立管理 Worker d2c351a2-d88e-4dc9-91fc-43dc0549432d，admin.gemigo.io custom domain 已绑定。
 - 正式账号登录、统计查询、配置查询、退出撤销通过；正式主站匿名浏览器真实操作已有 3 个事件/1 个访客/1 个会话进入报表。
 - Worker 日志确认事件放在 /me 与 /projects/explore 的现有请求头中，无独立上报请求。
 - Chrome 50 次主题切换未采集：其 DNT=1，符合隐私策略；另外 collector 的 50 次操作、批量捎带、6 次/日及跨域隔离测试通过。未修改用户的 DNT 设置。
 - 正式主站公开昵称编辑入口可见；公共资料接口隐藏邮箱；中英文身份与无资料占位测试通过。补齐 feed 作者头像与卡片一致，以及 @handle 不重复前缀。
 - pnpm check、test:analytics、真实 D1 测试、admin HTTP 测试、两站 build 通过。构建仅有既有 Tailwind CDN/@tailwind 与主站大 chunk 提示，无新增 lint/typecheck 错误。
 - 主实现提交 65732c3 已 push master，主站已通过 gh-pages 正式发布。验收记录及 feed 一致性修正随后补充提交并发布。凭据仅本地保存，不进入仓库。
+
+最终交付：069b3bf 已 push master；主站最终 bundle 为 index-BDEca-Oe.js，独立管理站 bundle 为 index-BYKk9fDO.js。补充真实 D1 测试确认 draft 与直接创建两个入口均记录服务器确认事件。验收项 A01–A08 通过，无未关闭实现 finding。
+
+免费额度边界补测：全站事件额度耗尽后，新访客不会再创建限额记录，避免统计数据停止后仍不断产生限额行写入。此修正已提交、push 并部署 API。主站线上确认加载最终 index-BDEca-Oe.js。
