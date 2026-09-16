@@ -35,8 +35,9 @@ export const collect = async (
   const day = dayKey();
   // A browser cannot consume the whole site's allowance. IDs are anonymous and resettable,
   // so the atomic site budget is the authoritative upper bound, not this abuse deterrent.
-  if (!(await reserve(db, `visitor:${day}:${batch.visitorId}`, batch.events.length, 200))) return;
+  // Reserve the site budget first: once exhausted, new visitors cannot create limit rows.
   if (!(await reserve(db, `events:${day}`, batch.events.length, settings.dailyEvents))) return;
+  if (!(await reserve(db, `visitor:${day}:${batch.visitorId}`, batch.events.length, 200))) return;
   await insertEvents(db, batch, actor);
   await reserve(db, `${mode}:${day}`, 1, settings.dailyEvents);
 };
