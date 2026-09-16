@@ -69,6 +69,11 @@ export function convertGoogleToOpenAI(
     stream,
   };
 
+  // Gemini conversation history does not carry Qwen reasoning_content.
+  if (openaiRequest.model === 'qwen3.8-flash') {
+    openaiRequest.enable_thinking = false;
+  }
+
   const config = googleReq.generationConfig;
   if (config) {
     if (config.temperature !== undefined) openaiRequest.temperature = config.temperature;

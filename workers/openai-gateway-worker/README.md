@@ -22,7 +22,7 @@ pnpm --filter deploy-your-app-openai-gateway-worker deploy
 默认已在 `workers/openai-gateway-worker/wrangler.toml` 配置为：
 
 - `TARGET_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1`
-- `DEFAULT_MODEL=qwen3-max`
+- `DEFAULT_MODEL=qwen3.8-flash`
 
 只需要把 `UPSTREAM_API_KEY` 设置为你的 DashScope Key 即可。
 

@@ -205,6 +205,8 @@ export class AIService {
 
     const body = {
       model: this.model,
+      // Qwen structured output requires non-thinking mode.
+      ...(this.model === 'qwen3.8-flash' ? { enable_thinking: false } : {}),
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -310,6 +312,8 @@ export class AIService {
 
     const body = {
       model: this.model,
+      // Qwen structured output requires non-thinking mode.
+      ...(this.model === 'qwen3.8-flash' ? { enable_thinking: false } : {}),
       messages: [
         { role: 'system', content: METADATA_SYSTEM_PROMPT },
         {
@@ -430,6 +434,8 @@ export class AIService {
 
     const body = {
       model: this.model,
+      // Qwen structured output requires non-thinking mode.
+      ...(this.model === 'qwen3.8-flash' ? { enable_thinking: false } : {}),
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },

@@ -15,7 +15,7 @@ compatibility_date = "2025-01-15"
 PROVIDER = "openai_compatible"
 # DashScope OpenAI-compatible endpoint includes `/v1` in its base path.
 TARGET_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-DEFAULT_MODEL = "qwen3-max"
+DEFAULT_MODEL = "qwen3.8-flash"
 
 # Secrets (recommended):
 # wrangler secret put UPSTREAM_API_KEY

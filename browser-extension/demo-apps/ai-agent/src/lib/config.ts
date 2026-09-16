@@ -7,7 +7,7 @@
 export const OPENAI_BASE_URL = 'https://openai-api.gemigo.io/v1';
 
 /** Model identifier used for chat completions */
-export const MODEL = 'qwen3-max';
+export const MODEL = 'qwen3.8-flash';
 
 /** System prompt for the Agent Alchemist */
 export const SYSTEM_PROMPT =

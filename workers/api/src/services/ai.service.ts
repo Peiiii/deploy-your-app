@@ -155,11 +155,13 @@ class AIService {
     const baseUrl =
       env.PLATFORM_AI_BASE_URL ??
       'https://dashscope.aliyuncs.com/compatible-mode/v1';
-    const model = env.PLATFORM_AI_MODEL ?? 'qwen3-max';
+    const model = env.PLATFORM_AI_MODEL ?? 'qwen3.8-flash';
     const apiKey = env.DASHSCOPE_API_KEY ?? '';
 
     const body = {
       model,
+      // Qwen structured output requires non-thinking mode.
+      ...(model === 'qwen3.8-flash' ? { enable_thinking: false } : {}),
       messages: [
         { role: 'system', content: METADATA_SYSTEM_PROMPT },
         {

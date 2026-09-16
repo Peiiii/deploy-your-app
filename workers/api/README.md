@@ -62,7 +62,7 @@ account_id = "..."
 APPS_ROOT_DOMAIN = "gemigo.app"
 DEPLOY_TARGET = "r2"
 PLATFORM_AI_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-PLATFORM_AI_MODEL = "qwen3-max"
+PLATFORM_AI_MODEL = "qwen3.8-flash"
 AUTH_REDIRECT_BASE = "https://gemigo.io"
 DEPLOY_SERVICE_BASE_URL = "https://<your-node-backend>/api/v1"
 

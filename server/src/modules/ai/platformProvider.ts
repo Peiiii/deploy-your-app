@@ -70,6 +70,8 @@ class DashScopePlatformProvider implements PlatformAIProvider {
 
     const body = {
       model: this.model,
+      // Qwen structured output requires non-thinking mode.
+      ...(this.model === 'qwen3.8-flash' ? { enable_thinking: false } : {}),
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },

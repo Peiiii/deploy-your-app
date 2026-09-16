@@ -50,7 +50,7 @@ function parseDeployTarget(raw: string | undefined): DeployTarget {
 function parsePlatformAIConfig(): PlatformAIConfig {
   return {
     provider: getEnvOrDefault('PLATFORM_AI_PROVIDER', 'dashscope'),
-    model: getEnvOrDefault('PLATFORM_AI_MODEL', 'qwen3-max'),
+    model: getEnvOrDefault('PLATFORM_AI_MODEL', 'qwen3.8-flash'),
     // 我们平台自己的 DashScope Key，用于平台 AI 能力（不是用户自己的 key）
     apiKey:
       getEnv('DASHSCOPE_API_KEY') ??
