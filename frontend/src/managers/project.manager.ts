@@ -69,6 +69,7 @@ export class ProjectManager {
     options?: { htmlContent?: string; metadata?: DeploymentMetadata },
   ): Promise<Project | undefined> => {
     try {
+      track('project_create_click');
       const newProject = await this.provider.createProject(
         name,
         sourceType,

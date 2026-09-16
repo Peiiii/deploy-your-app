@@ -123,6 +123,7 @@ export const installAnalytics = () => {
       method.toUpperCase() === 'POST' &&
       [
         '/api/v1/projects/draft',
+        '/api/v1/projects',
         '/api/v1/deploy',
         '/api/v1/auth/email/login',
         '/api/v1/auth/email/signup',

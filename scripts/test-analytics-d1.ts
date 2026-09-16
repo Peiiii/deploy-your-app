@@ -1,3 +1,4 @@
+import { storeTelemetry } from '../workers/api/src/analytics';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
@@ -18,6 +19,11 @@ try {
   await collect(db, batch, { signedIn: false, admin: false }, 'piggyback');
   await collect(db, batch, { signedIn: false, admin: false }, 'piggyback');
   assert.equal((await db.prepare('SELECT COUNT(*) count FROM product_events').first()).count, 1, 'retry deduplication');
+  for (const path of ['/api/v1/projects', '/api/v1/projects/draft']) {
+    await storeTelemetry(new Request('https://gemigo.io' + path, { method: 'POST' }), new Response(null, { status: 201 }), { PROJECTS_DB: db, ANALYTICS_DB: db }, { ...batch, events: [] });
+  }
+  assert.equal((await db.prepare("SELECT COUNT(*) count FROM product_events WHERE name='project_created' AND source='server'").first()).count, 2, 'both creation routes emit server-confirmed outcomes');
+  await db.prepare("DELETE FROM product_events WHERE name='project_created'").run();
   await db.prepare("INSERT INTO analytics_settings VALUES ('collection', ?)").bind(JSON.stringify({ enabled: false, dailyEvents: 100 })).run();
   await collect(db, { ...batch, events: [{ ...batch.events[0], id: crypto.randomUUID() }] }, { signedIn: false, admin: false }, 'standalone');
   assert.equal((await db.prepare('SELECT COUNT(*) count FROM product_events').first()).count, 1, 'disable switch');

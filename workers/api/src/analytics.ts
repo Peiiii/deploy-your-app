@@ -23,7 +23,7 @@ export const storeTelemetry = async (request: Request, response: Response, env: 
   const success = response.status >= 200 && response.status < 300;
   let event: EventName | undefined;
   if (request.method === 'POST') {
-    if (path === '/api/v1/projects/draft' && success) event = 'project_created';
+    if (['/api/v1/projects/draft', '/api/v1/projects'].includes(path) && success) event = 'project_created';
     if (path === '/api/v1/deploy') event = success ? 'deployment_accepted' : 'deployment_rejected';
     if (path === '/api/v1/auth/email/login' && success) event = 'login_success';
     if (path === '/api/v1/auth/email/signup' && success) event = 'signup_success';
