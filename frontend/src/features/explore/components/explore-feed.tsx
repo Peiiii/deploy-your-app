@@ -1,3 +1,4 @@
+import { getAuthorColor, getAuthorInitial } from '@/utils/author';
 import { track } from '@/analytics/collector';
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -373,11 +374,11 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                 <div className="h-16 w-full flex items-center justify-between px-4 bg-black/20 backdrop-blur-md border-b border-white/5 z-50">
                     {/* Left: Author Info */}
                     <div className="flex items-center gap-2 p-1.5 bg-white/5 rounded-full pr-3 border border-white/10 backdrop-blur-md shadow-lg">
-                        <div className={`w-8 h-8 rounded-full bg-gradient-to-tr ${app.color} flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-md`}>
-                            {app.author.charAt(0).toUpperCase()}
+                        <div className={`w-8 h-8 rounded-full bg-gradient-to-tr ${app.authorColor || getAuthorColor(app.authorProfileIdentifier || app.author)} flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-md`}>
+                            {getAuthorInitial(app.author)}
                         </div>
                         <div className="flex flex-col max-w-[100px]">
-                            <span className="text-white text-xs font-bold truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">@{app.author}</span>
+                            <span className="text-white text-xs font-bold truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{app.author}</span>
                             {typeof followersCount === 'number' && (
                                 <span className="text-white/60 text-[10px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                     {followersCount.toLocaleString()} {t('explore.feed.followers')}
@@ -488,8 +489,8 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                             className="relative mb-4 cursor-pointer"
                             data-event="author_open" onClick={() => navigate(`/u/${app.authorProfileIdentifier || app.author}`)}
                         >
-                            <div className={`w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-gradient-to-tr ${app.color} flex items-center justify-center text-xl shadow-xl text-white font-bold`}>
-                                {app.author.charAt(0).toUpperCase()}
+                            <div className={`w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-gradient-to-tr ${app.authorColor || getAuthorColor(app.authorProfileIdentifier || app.author)} flex items-center justify-center text-xl shadow-xl text-white font-bold`}>
+                                {getAuthorInitial(app.author)}
                             </div>
                             <button className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-5 h-5 bg-[#ff0050] text-white rounded-full flex items-center justify-center font-bold text-lg border-2 border-white shadow-lg hover:scale-110 transition-transform">
                                 +

@@ -1,6 +1,6 @@
 # GemiGo 产品分析与独立管理站：执行与验收合同
 
-Contract: gemigo-analytics-20260917-v2；flow: standard；风险: L4；状态: design reviewed / implementation。
+Contract: gemigo-analytics-20260917-v2；flow: standard；风险: L4；状态: implemented / verified / delivery。
 父目标：自主完成统一产品埋点、低成本分析系统和独立管理站，修正公开作者身份，完成检查、线上验收、commit、push、部署并交付链接。用户已授权所有必要代码提交和部署。
 
 ## 当前架构决定（取代 v1 的 /admin 与复用账号方案）
@@ -16,14 +16,14 @@ Contract: gemigo-analytics-20260917-v2；flow: standard；风险: L4；状态: d
 ## Required 验收项（完成门；证据必须 current）
 | ID | 用户可观察结果 / 证据 | 状态 |
 |---|---|---|
-| A01 | admin.gemigo.io 可访问，独立登录成功；主站 cookie / 未登录请求不能访问统计；注销失效 | open |
-| A02 | 首页、发现、登录、创建、来源、部署、设置、互动主要功能事件接入；成功结果不以点击冒充 | open |
-| A03 | 总览、时间趋势、功能排行含零使用项、漏斗、路径、事件/会话明细、日期/设备/登录筛选、CSV 可操作且空态真实 | open |
-| A04 | 实测 50 次 UI 操作无逐点击上报；业务捎带和补报频率/每日上限正确；管理站无轮询 | open |
-| A05 | 采集可关闭/设预算，原始敏感字段拒绝或丢弃，去重、限流、保留期及读写预算有测试 | open |
-| A06 | 公开昵称/用户名可编辑，卡片/主页一致，中英文和仅邮箱/缺资料场景正确 | open |
-| A07 | lint、typecheck、build、相关功能与安全测试通过，真实桌面/移动 UI 验收通过，无未关闭 review findings | open |
-| A08 | 所有本任务改动提交并 push 远程 master；主站/API/admin 正式部署并 smoke；最终链接与登录交接齐全 | open |
+| A01 | admin.gemigo.io 可访问，独立登录成功；主站 cookie / 未登录请求不能访问统计；注销失效 | pass |
+| A02 | 首页、发现、登录、创建、来源、部署、设置、互动主要功能事件接入；成功结果不以点击冒充 | pass |
+| A03 | 总览、时间趋势、功能排行含零使用项、漏斗、路径、事件/会话明细、日期/设备/登录筛选、CSV 可操作且空态真实 | pass |
+| A04 | 实测 50 次 UI 操作无逐点击上报；业务捎带和补报频率/每日上限正确；管理站无轮询 | pass |
+| A05 | 采集可关闭/设预算，原始敏感字段拒绝或丢弃，去重、限流、保留期及读写预算有测试 | pass |
+| A06 | 公开昵称/用户名可编辑，卡片/主页一致，中英文和仅邮箱/缺资料场景正确 | pass |
+| A07 | lint、typecheck、build、相关功能与安全测试通过，真实桌面/移动 UI 验收通过，无未关闭 review findings | pass |
+| A08 | 所有本任务改动提交并 push 远程 master；主站/API/admin 正式部署并 smoke；最终链接与登录交接齐全 | pass |
 
 ## 黄金验收链路
 1. 打开管理站 → 独立登录 → 选择近 7 天 → 查看概览/排行 → 点击功能看事件 → 点击会话看路径 → 导出当前条件 CSV。测试身份、越权、空数据和预算耗尽也须清晰显示。
@@ -45,3 +45,12 @@ Contract: gemigo-analytics-20260917-v2；flow: standard；风险: L4；状态: d
 - 浏览器：1280px 桌面及 390px 手机布局通过，登录、功能零使用项、预算表单显示正常。
 - 作者单测：仅邮箱不作为公开昵称，不截取内部 ID；昵称和 @handle 中英文一致；公开昵称可编辑。
 - 隐私说明已更新；Cloudflare 域名注册表已登记 admin.gemigo.io。
+
+## 正式验收（2026-09-17）
+- API Worker 58eef972-ab3c-45c6-ac45-7e94a4f72d2e；独立管理 Worker d2c351a2-d88e-4dc9-91fc-43dc0549432d，admin.gemigo.io custom domain 已绑定。
+- 正式账号登录、统计查询、配置查询、退出撤销通过；正式主站匿名浏览器真实操作已有 3 个事件/1 个访客/1 个会话进入报表。
+- Worker 日志确认事件放在 /me 与 /projects/explore 的现有请求头中，无独立上报请求。
+- Chrome 50 次主题切换未采集：其 DNT=1，符合隐私策略；另外 collector 的 50 次操作、批量捎带、6 次/日及跨域隔离测试通过。未修改用户的 DNT 设置。
+- 正式主站公开昵称编辑入口可见；公共资料接口隐藏邮箱；中英文身份与无资料占位测试通过。补齐 feed 作者头像与卡片一致，以及 @handle 不重复前缀。
+- pnpm check、test:analytics、真实 D1 测试、admin HTTP 测试、两站 build 通过。构建仅有既有 Tailwind CDN/@tailwind 与主站大 chunk 提示，无新增 lint/typecheck 错误。
+- 主实现提交 65732c3 已 push master，主站已通过 gh-pages 正式发布。验收记录及 feed 一致性修正随后补充提交并发布。凭据仅本地保存，不进入仓库。
