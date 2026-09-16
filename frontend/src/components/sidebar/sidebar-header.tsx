@@ -31,6 +31,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
       <div className={`transition-all duration-300 flex items-center gap-3 relative ${collapsed ? 'p-0 w-full justify-center py-6' : 'p-6 pb-6'}`}>
         <button
           onClick={() => setSidebarOpen(false)}
+          aria-label={t('ui.collapseSidebar')}
           className="md:hidden absolute top-4 right-4 p-1 text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white"
         >
           <X className="w-5 h-5" />
@@ -68,13 +69,6 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
         )}
       </button>
 
-      {!collapsed && (
-        <div className="px-6 mb-2">
-          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.1em] mb-2">
-            {t('navigation.myProjects').toUpperCase()}
-          </p>
-        </div>
-      )}
     </>
   );
 };

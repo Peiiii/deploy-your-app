@@ -36,7 +36,7 @@ export const Sidebar: React.FC = () => {
           onToggleCollapsed={toggleSidebarCollapsed}
         />
 
-        <nav className={`flex-1 flex flex-col min-h-0 overflow-y-auto scrollbar-hide py-2 ${sidebarCollapsed ? 'px-2 gap-4' : 'px-4 gap-6'}`}>
+        <nav className={`flex-1 flex flex-col min-h-0 overflow-y-auto scrollbar-hide py-2 ${sidebarCollapsed ? 'px-2 gap-4' : 'px-3 gap-2'}`}>
           <SidebarNavigation collapsed={sidebarCollapsed} />
 
           {!sidebarCollapsed && (

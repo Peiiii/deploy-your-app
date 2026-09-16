@@ -30,10 +30,11 @@ export const SidebarUserProfile: React.FC<SidebarUserProfileProps> = ({ collapse
   };
 
   return (
-    <div className={`p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 ${collapsed ? 'flex justify-center' : ''}`}>
+    <div className={`p-3 border-t border-slate-200 dark:border-slate-800 ${collapsed ? 'flex justify-center' : ''}`}>
       <button
         type="button"
         onClick={handleClick}
+        aria-label={authUser ? t('navigation.profile') : t('common.signIn')}
         className={`flex items-center gap-3 w-full bg-transparent p-2 rounded-xl transition-all duration-300 hover:bg-slate-200/50 dark:hover:bg-white/5 active:scale-95 group ${collapsed ? 'justify-center' : ''}`}
       >
         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 ring-2 ring-white dark:ring-slate-800 group-hover:ring-purple-500/50 dark:group-hover:ring-purple-400/50 transition-all shrink-0 flex items-center justify-center text-xs font-semibold text-white">
@@ -42,12 +43,12 @@ export const SidebarUserProfile: React.FC<SidebarUserProfileProps> = ({ collapse
             .charAt(0)}
         </div>
         {!collapsed && (
-          <div className="text-left">
-            <p className="text-sm font-medium text-slate-900 dark:text-white">
+          <div className="text-left min-w-0">
+            <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
               {authUser?.displayName || authUser?.email || t('ui.indieHacker')}
             </p>
             <p className="text-xs text-slate-500 dark:text-gray-400">
-              {t('profile.publicProfile')}
+              {authUser ? t('profile.publicProfile') : t('common.signIn')}
             </p>
           </div>
         )}

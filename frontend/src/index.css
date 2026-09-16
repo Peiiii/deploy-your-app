@@ -5,12 +5,11 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  color-scheme: light;
 
   /* Bento Palette - Light (Default) */
   --bg-app: #f8fafc;
   /* Slate-50 */
-  --bg-surface: #ffffff;
   --border-subtle: #e2e8f0;
   /* Slate-200 */
   --text-primary: #0f172a;
@@ -32,27 +31,25 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Dark Mode Overrides */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-app: #0f172a;
-    /* Slate-900 */
-    --bg-surface: #1e293b;
-    /* Slate-800 */
-    --border-subtle: #334155;
-    /* Slate-700 */
-    --text-primary: #f8fafc;
-    /* Slate-50 */
-    --text-secondary: #94a3b8;
-    /* Slate-400 */
-    --color-brand: #60a5fa;
-    /* Blue-400 */
-    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-    --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+/* Match the application theme toggle; never override it with the OS theme.
+   The shared --bg-surface token is defined with the app palette in index.html. */
+:root.dark {
+  color-scheme: dark;
+  --bg-app: #0f172a;
+  /* Slate-900 */
+  --border-subtle: #334155;
+  /* Slate-700 */
+  --text-primary: #f8fafc;
+  /* Slate-50 */
+  --text-secondary: #94a3b8;
+  /* Slate-400 */
+  --color-brand: #60a5fa;
+  /* Blue-400 */
+  --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
 
-    color: var(--text-primary);
-    background-color: var(--bg-app);
-  }
+  color: var(--text-primary);
+  background-color: var(--bg-app);
 }
 
 a {
@@ -136,11 +133,9 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-@media (prefers-color-scheme: dark) {
-  .glass-panel {
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-  }
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* Scrollbar hiding */
