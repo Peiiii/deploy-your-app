@@ -1,11 +1,32 @@
 {
   "files": [],
   "references": [
-    { "path": "./frontend/tsconfig.app.json" },
-    { "path": "./frontend/tsconfig.node.json" },
-    { "path": "./server/tsconfig.json" },
-    { "path": "./desktop/tsconfig.json" },
-    { "path": "./workers/api/tsconfig.json" },
-    { "path": "./packages/gemigo-cli/tsconfig.json" }
+    {
+      "path": "./packages/product-analytics"
+    },
+    {
+      "path": "./frontend/tsconfig.app.json"
+    },
+    {
+      "path": "./frontend/tsconfig.node.json"
+    },
+    {
+      "path": "./server/tsconfig.json"
+    },
+    {
+      "path": "./desktop/tsconfig.json"
+    },
+    {
+      "path": "./workers/api/tsconfig.json"
+    },
+    {
+      "path": "./packages/gemigo-cli/tsconfig.json"
+    },
+    {
+      "path": "./workers/admin"
+    },
+    {
+      "path": "./admin"
+    }
   ]
 }

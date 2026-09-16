@@ -1,0 +1,1 @@
+{"name":"@gemigo/admin","private":true,"type":"module","scripts":{"build":"tsc --noEmit && vite build","dev":"vite --host 0.0.0.0 --port 5174"},"dependencies":{"react":"^19.2.0","react-dom":"^19.2.0","@gemigo/product-analytics":"workspace:*"},"devDependencies":{"@types/react":"^19.2.2","@types/react-dom":"^19.2.2","vite":"npm:rolldown-vite@7.2.5","typescript":"~5.9.3"}}

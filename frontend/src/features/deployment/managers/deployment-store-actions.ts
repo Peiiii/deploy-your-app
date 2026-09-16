@@ -1,3 +1,4 @@
+import { track } from '@/analytics/collector';
 import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
 import { SourceType } from '@/types';
 
@@ -11,6 +12,7 @@ export class DeploymentStoreActions {
   };
 
   handleSourceChange = (type: SourceType) => {
+    track('source_select', { dimension: type.toLowerCase() });
     useDeploymentStore.getState().actions.setSourceType(type);
   };
 

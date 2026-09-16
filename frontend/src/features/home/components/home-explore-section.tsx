@@ -108,7 +108,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
         return (
           <button
             key={cat}
-            onClick={() => handleCategoryClick(cat)}
+            data-event="filter_change" onClick={() => handleCategoryClick(cat)}
             style={{ animationDelay: `${index * 30}ms` }}
             className={`rounded-full font-medium whitespace-nowrap transition-all duration-200 ${isCompact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'} ${isActive
               ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30 scale-105'
@@ -220,14 +220,14 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
               style={{ transform: sortBy === 'recent' ? 'translateX(calc(100% + 4px))' : 'translateX(0)' }}
             />
             <button
-              onClick={() => setSortBy('popularity')}
+              data-event="sort_change" data-dimension="popular" onClick={() => setSortBy('popularity')}
               className={`relative z-10 inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-colors duration-200 ${compact ? 'px-2 py-1.5 text-[10px]' : 'px-3 py-2 text-xs'} ${sortBy === 'popularity' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
             >
               <TrendingUp className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
               <span className="whitespace-nowrap">{t('explore.sortByPopularity')}</span>
             </button>
             <button
-              onClick={() => setSortBy('recent')}
+              data-event="sort_change" data-dimension="recent" onClick={() => setSortBy('recent')}
               className={`relative z-10 inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-colors duration-200 ${compact ? 'px-2 py-1.5 text-[10px]' : 'px-3 py-2 text-xs'} ${sortBy === 'recent' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
             >
               <Clock className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
@@ -264,7 +264,7 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
               ) : (
                 <button
                   type="button"
-                  onClick={handleLoadMoreExplore}
+                  data-event="load_more" onClick={handleLoadMoreExplore}
                   className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
                 >
                   {t('explore.loadMore')}

@@ -1,3 +1,4 @@
+import { track } from '@/analytics/collector';
 import { useProjectStore } from '../stores/project.store';
 import type { IProjectProvider } from '../services/interfaces';
 import { SourceType, type DeploymentMetadata, type Project } from '../types';
@@ -86,6 +87,7 @@ export class ProjectManager {
     name?: string,
   ): Promise<Project | undefined> => {
     try {
+      track('project_create_click');
       const project = await this.provider.createDraftProject(name);
       useProjectStore.getState().actions.addProject(project);
       return project;

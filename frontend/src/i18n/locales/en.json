@@ -476,6 +476,7 @@
     "profileLinkCopied": "Profile link copied.",
     "signInRequiredTitle": "Sign in to create your profile",
     "signInRequiredDescription": "Your profile lets you showcase your apps, share a public page and join the community.",
+    "creator": "Creator",
     "creatorProfile": "Creator profile",
     "appsByCreator": "Apps by this creator",
     "creatorNoPublicApps": "This creator hasn't published any public apps yet.",
@@ -485,6 +486,9 @@
     "moveLinkDown": "Move down",
     "dragToReorderPinned": "Drag to reorder pinned apps",
     "allApps": "All apps",
-    "clickToPin": "Click on an app card to pin it"
+    "clickToPin": "Click on an app card to pin it",
+    "displayNameLabel": "Public display name",
+    "displayNamePlaceholder": "The name you want others to see",
+    "displayNameHint": "Shown on your apps and profile in every language. Your email stays private."
   }
 }

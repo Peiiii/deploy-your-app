@@ -472,6 +472,7 @@
     "profileLinkCopied": "主页链接已复制。",
     "signInRequiredTitle": "登录后即可创建你的主页",
     "signInRequiredDescription": "创建个人主页，展示你的应用，与社区互相发现。",
+    "creator": "创作者",
     "creatorProfile": "创作者主页",
     "appsByCreator": "这个创作者的应用",
     "creatorNoPublicApps": "该创作者还没有公开的应用。",
@@ -481,6 +482,9 @@
     "moveLinkDown": "下移",
     "dragToReorderPinned": "拖动置顶卡片可以调整顺序",
     "allApps": "所有应用",
-    "clickToPin": "点击应用卡片可以将其置顶"
+    "clickToPin": "点击应用卡片可以将其置顶",
+    "displayNameLabel": "公开昵称",
+    "displayNamePlaceholder": "填写你希望大家看到的名字",
+    "displayNameHint": "应用和主页统一显示此昵称，不随界面语言改变；邮箱不会公开展示。"
   }
 }

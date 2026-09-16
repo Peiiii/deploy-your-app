@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Home } from '@/features/home/pages/home-page';
 import { Dashboard } from '@/features/dashboard/pages/dashboard';
@@ -10,6 +11,11 @@ import { AdminProjectsPage } from '@/features/admin/pages/admin-projects';
 import { BrandingDesignPage } from '@/features/design/pages/branding-design-page';
 import { PrivacyPolicyPage } from '@/features/legal/pages/privacy-policy';
 
+const AdminRedirect = () => {
+  useEffect(() => { window.location.replace('https://admin.gemigo.io'); }, []);
+  return <a href="https://admin.gemigo.io">GemiGo Admin ↗</a>;
+};
+
 export const AppRoutes = () => (
     <Routes>
         <Route path="/" element={<Home />} />
@@ -17,7 +23,7 @@ export const AppRoutes = () => (
         <Route path="/deploy" element={<NewDeployment />} />
         <Route path="/explore" element={<ExploreApps />} />
         <Route path="/projects/:id" element={<ProjectSettings />} />
-        <Route path="/admin" element={<Navigate to="/admin/projects" replace />} />
+        <Route path="/admin" element={<AdminRedirect />} />
         <Route path="/admin/projects" element={<AdminProjectsPage />} />
         <Route path="/design/branding" element={<BrandingDesignPage />} />
         <Route path="/me" element={<MyProfile />} />

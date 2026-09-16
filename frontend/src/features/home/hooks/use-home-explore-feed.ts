@@ -1,3 +1,4 @@
+import { track } from '@/analytics/collector';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 import { mapProjectsToApps } from '@/components/explore-app-card';
@@ -50,6 +51,7 @@ export const useHomeExploreFeed = () => {
       }
 
       try {
+      if (pageToLoad === 1 && searchQuery.trim()) track('search_submit');
         const result = await fetchExploreProjects({
           search: searchQuery.trim() || undefined,
           category: activeCategory !== 'All Apps' ? activeCategory : undefined,

@@ -106,7 +106,7 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
                     {app.url && (
                         <button
                             onMouseDown={(e) => e.stopPropagation()}
-                            onClick={() => onOpenInNewTab(app.url!)}
+                            data-event="app_visit" onClick={() => onOpenInNewTab(app.url!)}
                             className="p-1 rounded-md hover:bg-brand-50 hover:text-brand-600 text-slate-500 dark:text-slate-400 transition-colors"
                             title={t('common.openInNewTab')}
                         >

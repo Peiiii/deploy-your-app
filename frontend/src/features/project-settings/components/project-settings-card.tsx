@@ -1,3 +1,4 @@
+import { track } from '@/analytics/collector';
 import { AlertTriangle } from 'lucide-react';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -46,6 +47,7 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
 
   const handleTabChange = (id: string) => {
     const newTab = id as TabId;
+    track('settings_tab', { dimension: newTab });
     setActiveTabState(newTab);
     setSearchParams((prev) => {
       const newParams = new URLSearchParams(prev);

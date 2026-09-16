@@ -38,7 +38,11 @@
     "release:desktop": "node scripts/release-desktop.js",
     "lint": "eslint .",
     "test:genai-rewrite": "cd server && pnpm exec tsx ../scripts/test-genai-rewrite.ts",
-    "preview": "pnpm --filter deploy-your-app-frontend preview"
+    "preview": "pnpm --filter deploy-your-app-frontend preview",
+    "build:admin": "pnpm --filter @gemigo/product-analytics build && pnpm --filter @gemigo/admin build",
+    "deploy:admin": "pnpm build:admin && pnpm --filter @gemigo/admin-worker deploy",
+    "admin:password": "python3 scripts/configure-admin.py",
+    "test:analytics": "node scripts/test-analytics-collector.mjs && ./server/node_modules/.bin/tsx scripts/test-product-analytics.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

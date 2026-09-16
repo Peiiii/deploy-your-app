@@ -2,7 +2,7 @@ import { URLS } from '../constants';
 import type { Project } from '../types';
 import { SourceType } from '../types';
 
-const DEFAULT_AUTHOR = 'Indie Hacker';
+import { getAuthorName } from './author';
 const DEFAULT_CATEGORY = 'Other';
 
 function normalizeOptionalLabel(value: unknown): string | null {
@@ -73,23 +73,18 @@ export function buildProjectAuthor(project: Project): string {
     const owner = rest.split('/')[0];
     if (owner) return owner;
   }
-  return DEFAULT_AUTHOR;
+  return getAuthorName({});
 }
 
-/**
- * Project "author" label used in app cards.
- *
- * Decision (product + maintainability):
- * - Prefer platform username/handle when available.
- * - Otherwise fall back to displayName.
- * - Otherwise fall back to GitHub repo owner (when source is GitHub).
- * - Otherwise use a neutral default label.
- */
+/** Public author identity must match the creator profile, independent of source type. */
 export function getProjectAuthorLabel(project: Project): string {
-  const handle = normalizeOptionalLabel(project.ownerHandle);
-  if (handle) return handle;
-  const displayName = normalizeOptionalLabel(project.ownerDisplayName);
-  if (displayName) return displayName;
+  if (project.ownerId || project.ownerHandle || project.ownerDisplayName) {
+    return getAuthorName({
+      id: project.ownerId,
+      handle: project.ownerHandle,
+      displayName: project.ownerDisplayName,
+    });
+  }
   return buildProjectAuthor(project);
 }
 

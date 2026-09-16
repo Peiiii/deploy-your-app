@@ -44,6 +44,7 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
             aria-current={isActive ? 'page' : undefined}
             aria-label={item.label}
             title={collapsed ? item.label : undefined}
+            data-event="navigation_click"
             onClick={() => {
               navigate(item.path);
               if (isMobile) {

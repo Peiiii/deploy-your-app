@@ -1,4 +1,5 @@
 import React from 'react';
+import { getAuthorName, getAuthorColor, getAuthorInitial } from '@/utils/author';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '@/contexts/presenter-context';
@@ -81,6 +82,9 @@ export const PublicProfile: React.FC = () => {
       </div>
     );
   }
+
+  const authorName = getAuthorName(data.user);
+  const authorColor = getAuthorColor(data.user.id);
 
   const pinnedIds = data.profile.pinnedProjectIds ?? [];
   const pinnedSet = new Set(pinnedIds);
@@ -174,17 +178,16 @@ export const PublicProfile: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-brand-500 to-purple-600 flex items-center justify-center text-lg font-semibold text-white">
-            {(data.user.displayName || data.user.email || 'U')
-              .toUpperCase()
-              .charAt(0)}
+          <div className={`w-14 h-14 shrink-0 rounded-full bg-gradient-to-tr ${authorColor} flex items-center justify-center text-lg font-semibold text-white`}>
+            {getAuthorInitial(authorName)}
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-              {data.user.displayName ||
-                data.user.email ||
-                t('profile.creatorProfile')}
+          <div className="min-w-0">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight break-words">
+              {authorName}
             </h2>
+            {data.user.handle && authorName !== `@${data.user.handle}` && (
+              <p className="text-sm text-brand-600 dark:text-brand-400 break-all">@{data.user.handle}</p>
+            )}
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {t('profile.creatorProfile')}
             </p>

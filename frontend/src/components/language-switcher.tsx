@@ -1,3 +1,4 @@
+import { track } from '@/analytics/collector';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Languages } from 'lucide-react';
@@ -16,6 +17,7 @@ export const LanguageSwitcher: React.FC = () => {
 
   const handleLanguageChange = (langCode: string) => {
     void i18n.changeLanguage(langCode);
+    track('language_change', { dimension: langCode.startsWith('zh') ? 'zh' : 'en' });
     setLanguage(langCode);
     setIsOpen(false);
   };

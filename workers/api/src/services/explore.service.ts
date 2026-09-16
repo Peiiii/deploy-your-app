@@ -110,7 +110,7 @@ export class ExploreService {
             (acc, user) => {
                 acc[user.id] = {
                     handle: user.handle ?? null,
-                    displayName: user.displayName ?? null,
+                    displayName: user.displayName?.includes('@') ? null : user.displayName ?? null,
                 };
                 return acc;
             },

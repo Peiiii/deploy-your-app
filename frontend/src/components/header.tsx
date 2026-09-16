@@ -88,7 +88,7 @@ export const Header: React.FC = () => {
                     <Github className="w-5 h-5" />
                 </a>
                 <button
-                    onClick={handleOpenChat}
+                    data-event="help_open" onClick={handleOpenChat}
                     className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all hidden md:block"
                     title={t('ui.help')}
                 >

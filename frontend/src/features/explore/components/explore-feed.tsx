@@ -1,3 +1,4 @@
+import { track } from '@/analytics/collector';
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -337,6 +338,12 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
         }
     };
 
+    useEffect(() => {
+        if (!isActive || !isRendered) return;
+        const timer = window.setTimeout(() => track('app_preview'), 300);
+        return () => window.clearTimeout(timer);
+    }, [isActive, isRendered, app.id]);
+
     // Reset enter state when moving away
     useEffect(() => {
         if (!isActive && isEntered) {
@@ -441,7 +448,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                 {!isEntered && (
                     <div
                         className="absolute inset-0 z-10 cursor-pointer bg-transparent flex flex-col items-center justify-center group transition-all duration-300"
-                        onClick={handleEnter}
+                        data-event="app_visit" onClick={handleEnter}
                     >
                         {isRendered && (
                             <>
@@ -463,7 +470,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                     <div className="max-w-[85%] md:max-w-[80%] text-white mb-4">
                         <h3
                             className="text-xl font-bold mb-2 flex items-center gap-2 cursor-pointer pointer-events-auto hover:text-brand-400 transition-colors drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
-                            onClick={() => navigate(`/u/${app.authorProfileIdentifier || app.author}`)}
+                            data-event="author_open" onClick={() => navigate(`/u/${app.authorProfileIdentifier || app.author}`)}
                         >
                             <span className="opacity-80">@</span>
                             {app.author.replace(/\s+/g, '_').toLowerCase()}
@@ -479,7 +486,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                     {!isEntered && (
                         <div
                             className="relative mb-4 cursor-pointer"
-                            onClick={() => navigate(`/u/${app.authorProfileIdentifier || app.author}`)}
+                            data-event="author_open" onClick={() => navigate(`/u/${app.authorProfileIdentifier || app.author}`)}
                         >
                             <div className={`w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-gradient-to-tr ${app.color} flex items-center justify-center text-xl shadow-xl text-white font-bold`}>
                                 {app.author.charAt(0).toUpperCase()}
@@ -622,7 +629,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                         </div>
 
                         {/* Footer Input */}
-                        <form
+                        <form data-submit-event="comment_submit"
                             onSubmit={handleAddComment}
                             className="p-4 border-t border-white/10 flex items-center gap-3 bg-[#1e1e1e]"
                         >

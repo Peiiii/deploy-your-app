@@ -1,3 +1,4 @@
+import { track } from '@/analytics/collector';
 import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
 import { DeploymentStatus, SourceType } from '@/types';
 import type { Project } from '@/types';
@@ -136,6 +137,10 @@ export class DeploymentExecutor {
     project: Project,
     zipFile: File | null,
   ): Promise<DeploymentResult | undefined> => {
+    const flowId = crypto.randomUUID();
+    const startedAt = Date.now();
+    let deploymentCompleted = false;
+    track('deployment_start', { flowId, dimension: project.sourceType?.toLowerCase() });
     // Initialize UI state
     this.initializeDeploymentStore(project, zipFile);
 
@@ -157,9 +162,12 @@ export class DeploymentExecutor {
       );
 
       // Update project status to Live
+      deploymentCompleted = true;
+      track('deployment_success', { flowId, durationMs: Date.now() - startedAt });
       await this.updateProjectStatus(project.id, 'Live', result?.metadata?.url);
       return result;
     } catch (e) {
+      if (!deploymentCompleted) track('deployment_failure', { flowId, durationMs: Date.now() - startedAt });
       console.error('Deployment failed', e);
       const actions = useDeploymentStore.getState().actions;
       actions.setDeploymentStatus(DeploymentStatus.FAILED);

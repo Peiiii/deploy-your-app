@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+const base = process.env.ADMIN_TEST_ORIGIN || 'http://localhost:8790';
+const request = async (path, options = {}) => fetch(base + path, options);
+let response = await request('/api/report'); assert.equal(response.status, 401);
+response = await request('/api/report', { headers: { Cookie: 'session_id=fake-main-site-session' } }); assert.equal(response.status, 401);
+response = await request('/api/login', { method: 'POST', headers: { Origin: 'https://evil.example' }, body: '{}' }); assert.equal(response.status, 403);
+response = await request('/api/login', { method: 'POST', headers: { Origin: base }, body: JSON.stringify({ username: 'admin', password: 'local-test-password-only' }) }); assert.equal(response.status, 200);
+const cookie = response.headers.get('set-cookie'); assert.ok(cookie.includes('HttpOnly') && cookie.includes('Secure') && cookie.includes('SameSite=Strict') && !cookie.includes('Domain='));
+const headers = { Cookie: cookie.split(';')[0], Origin: base };
+response = await request('/api/report', { headers }); const report = await response.json(); assert.equal(response.status, 200, JSON.stringify(report)); assert.equal(report.features.length, 32); assert.ok(report.funnels.creation.every(s => s.sessions >= 0));
+response = await request('/api/events', { headers }); assert.equal(response.status, 200); assert.ok(Array.isArray((await response.json()).items));
+response = await request('/api/settings', { method: 'POST', headers, body: JSON.stringify({ enabled: false, dailyEvents: 2000 }) }); assert.equal(response.status, 200); assert.equal((await response.json()).settings.enabled, false);
+response = await request('/api/settings', { method: 'POST', headers, body: JSON.stringify({ enabled: true, dailyEvents: 2000 }) }); assert.equal(response.status, 200);
+response = await request('/api/settings', { method: 'POST', headers, body: JSON.stringify({ enabled: true, dailyEvents: 2001 }) }); assert.equal(response.status, 400);
+response = await request('/api/logout', { method: 'POST', headers }); assert.equal(response.status, 200);
+response = await request('/api/session', { headers }); assert.equal(response.status, 401);
+console.log('PASS isolated login, main-site cookie denied, CSRF origin, host-only secure session, SQL report, details, settings validation and logout revocation');

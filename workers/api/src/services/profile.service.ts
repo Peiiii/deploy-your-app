@@ -104,7 +104,7 @@ class ProfileService {
       return null;
     }
 
-    const publicUser: PublicUser = toPublicUser(user);
+    const publicUser: PublicUser = { ...toPublicUser(user), email: null, displayName: user.displayName?.includes('@') ? null : user.displayName, providers: { email: false, google: false, github: false } };
 
     // Load profile + public projects in parallel to reduce waterfall latency.
     const [profile, projects] = await Promise.all([

@@ -1,3 +1,4 @@
+import { track } from '@/analytics/collector';
 import { APP_CONFIG } from '@/constants';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import type { User } from '@/types';
@@ -70,9 +71,9 @@ export class AuthManager {
     return useAuthStore.getState().user;
   };
 
-  updateHandle = async (handle: string): Promise<void> => {
+  updateHandle = async (handle: string, displayName?: string): Promise<void> => {
     const trimmed = handle.trim();
-    if (!trimmed) {
+    if (!trimmed && displayName === undefined) {
       return;
     }
     try {
@@ -80,7 +81,7 @@ export class AuthManager {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ handle: trimmed }),
+        body: JSON.stringify({ ...(trimmed ? { handle: trimmed } : {}), ...(displayName !== undefined ? { displayName } : {}) }),
       });
 
       const data = (await res.json().catch(() => ({}))) as
@@ -126,6 +127,7 @@ export class AuthManager {
   // -------------------
 
   loginWithGoogle = (): void => {
+    track('oauth_start', { dimension: 'google' });
     const redirect = getRedirectTarget();
     const url = `${API_BASE}/auth/google/start?redirect=${encodeURIComponent(
       redirect,
@@ -135,6 +137,7 @@ export class AuthManager {
   };
 
   loginWithGithub = (): void => {
+    track('oauth_start', { dimension: 'github' });
     const redirect = getRedirectTarget();
     const url = `${API_BASE}/auth/github/start?redirect=${encodeURIComponent(
       redirect,
@@ -148,6 +151,7 @@ export class AuthManager {
   // -------------------
 
   openAuthModal = (mode: 'login' | 'signup'): void => {
+    track('auth_open', { dimension: mode });
     const state = useAuthStore.getState();
     useAuthStore.setState({
       modalOpen: true,
@@ -229,6 +233,7 @@ export class AuthManager {
   };
 
   submitEmailLogin = async (): Promise<void> => {
+    track('auth_submit', { dimension: 'login' });
     if (!this.validateEmailAndPassword().ok) return;
 
     const { email, password } = useAuthStore.getState();
@@ -271,6 +276,7 @@ export class AuthManager {
   };
 
   submitEmailSignup = async (): Promise<void> => {
+    track('auth_submit', { dimension: 'signup' });
     if (!this.validateEmailAndPassword().ok) return;
 
     const { email, password } = useAuthStore.getState();

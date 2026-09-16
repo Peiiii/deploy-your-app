@@ -1,4 +1,5 @@
 export interface ApiWorkerEnv {
+  ANALYTICS_DB?: D1Database;
   PROJECTS_DB: D1Database;
   APPS_ROOT_DOMAIN?: string;
   DEPLOY_TARGET?: string;

@@ -1,3 +1,4 @@
+import { track } from '@/analytics/collector';
 import {
   useUIStore,
   type ToastVariant,
@@ -11,6 +12,7 @@ export class UIManager {
   toggleTheme = (): void => {
     const { actions } = useUIStore.getState();
     actions.toggleTheme();
+    track('theme_change', { dimension: useUIStore.getState().theme });
   };
 
   toggleSidebar = (): void => {

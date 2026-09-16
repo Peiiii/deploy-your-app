@@ -1,3 +1,4 @@
+import { track } from '@/analytics/collector';
 import React from 'react';
 import { SourceType } from '@/types';
 import { DeploymentCard } from '@/features/home/components/deployment-card';
@@ -30,7 +31,7 @@ export const HomeDeploySection: React.FC<HomeDeploySectionProps> = ({
               key={option.id}
               option={option}
               compact={compact}
-              onClick={() => onQuickDeploy(option.id)}
+              onClick={() => { track('quick_deploy_click', { dimension: option.id.toLowerCase() }); onQuickDeploy(option.id); }}
             />
           ))}
         </div>

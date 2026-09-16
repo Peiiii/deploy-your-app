@@ -11,5 +11,8 @@
     "@cloudflare/workers-types": "^4.20250109.0",
     "typescript": "^5.4.0",
     "wrangler": "^4.53.0"
+  },
+  "dependencies": {
+    "@gemigo/product-analytics": "workspace:*"
   }
 }

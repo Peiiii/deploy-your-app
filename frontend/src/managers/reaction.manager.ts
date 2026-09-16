@@ -1,3 +1,4 @@
+import { track } from '@/analytics/collector';
 import { useReactionStore } from '../stores/reaction.store';
 import type { IReactionProvider } from '../services/interfaces';
 import type { Project } from '../types';
@@ -87,6 +88,7 @@ export class ReactionManager {
   };
 
   toggleLike = async (projectId: string): Promise<void> => {
+    track('reaction_click', { dimension: 'like' });
     const { byProjectId, actions } = useReactionStore.getState();
     const entry = byProjectId[projectId];
     const currentlyLiked = entry?.likedByCurrentUser ?? false;
@@ -110,6 +112,7 @@ export class ReactionManager {
   };
 
   toggleFavorite = async (projectId: string): Promise<void> => {
+    track('reaction_click', { dimension: 'favorite' });
     const { byProjectId, actions } = useReactionStore.getState();
     const entry = byProjectId[projectId];
     const currentlyFavorited = entry?.favoritedByCurrentUser ?? false;

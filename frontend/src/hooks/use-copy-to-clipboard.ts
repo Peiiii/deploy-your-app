@@ -1,3 +1,4 @@
+import { track } from '@/analytics/collector';
 import { useState, useCallback } from 'react';
 import { copyToClipboard as copyToClipboardUtil } from '../utils/clipboard';
 
@@ -17,6 +18,7 @@ export function useCopyToClipboard(options: UseCopyToClipboardOptions = {}) {
 
       try {
         await copyToClipboardUtil(text);
+        track('share_click');
         setCopied(true);
         onSuccess?.();
 

@@ -6,3 +6,4 @@ packages:
   - "browser-extension"
   - "browser-extension/demo-apps/*"
   - "packages/*"
+  - "admin"

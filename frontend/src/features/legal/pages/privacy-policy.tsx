@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 
 export const PrivacyPolicyPage: React.FC = () => {
-  const lastUpdated = '2025-12-30';
+  const lastUpdated = '2026-09-17';
 
   const defaultLang = useMemo<'zh' | 'en'>(() => {
     try {
@@ -20,7 +20,7 @@ export const PrivacyPolicyPage: React.FC = () => {
         <header className="space-y-2">
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-3xl font-bold tracking-tight">
-              {isZh ? '隐私政策（GemiGo 浏览器扩展）' : 'Privacy Policy (GemiGo Browser Extension)'}
+              {isZh ? '隐私政策（GemiGo 网站与浏览器扩展）' : 'Privacy Policy (GemiGo Website and Browser Extension)'}
             </h1>
             <div className="flex items-center gap-2 shrink-0">
               <button
@@ -49,6 +49,10 @@ export const PrivacyPolicyPage: React.FC = () => {
         </header>
 
         <main className="mt-10 space-y-8 leading-7 text-slate-700">
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold text-slate-900">{isZh ? '网站使用分析' : 'Website usage analytics'}</h2>
+            <p>{isZh ? '我们以匿名浏览器标识记录页面类别、功能操作、设备类别、来源类别和部署结果，用于改进产品。数据批量发送，保留 30 天，仅独立管理站的授权管理员可查看。不会记录邮箱、表单内容、搜索词、代码、密钥或带参数的原始网址。浏览器启用 Do Not Track 时停止采集。' : 'We use anonymous browser identifiers to measure page categories, feature usage, device and referral categories, and deployment outcomes. Events are sent in batches, retained for 30 days, and accessible only to authorized administrators. We do not record email addresses, form contents, search terms, code, secrets, or raw URLs with parameters. Collection stops when your browser enables Do Not Track.'}</p>
+          </section>
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-slate-900">
               {isZh ? '1. 我们收集哪些信息' : '1. What information we collect'}

@@ -74,18 +74,22 @@ class AuthController {
     }
 
     const body = await readJson(request);
-    const rawHandle = (body as { handle?: unknown }).handle;
-    if (typeof rawHandle !== 'string') {
+    const rawHandle = (body as { handle?: unknown }).handle ?? sessionWithUser.user.handle;
+    const rawName = (body as { displayName?: unknown }).displayName;
+    if (rawName !== undefined && (typeof rawName !== 'string' || rawName.trim().length > 50 || (rawName.includes('@') || Array.from(rawName).some(char => char.charCodeAt(0) < 32)))) {
+      throw new ValidationError('Display name must be at most 50 characters and cannot contain an email address.');
+    }
+    if (rawHandle != null && typeof rawHandle !== 'string') {
       throw new ValidationError('handle is required and must be a string.');
     }
 
-    const trimmed = rawHandle.trim().toLowerCase();
-    if (trimmed.length < 3 || trimmed.length > 24) {
+    const trimmed = typeof rawHandle === 'string' ? rawHandle.trim().toLowerCase() : '';
+    if (trimmed && (trimmed.length < 3 || trimmed.length > 24)) {
       throw new ValidationError(
         'Handle must be between 3 and 24 characters long.',
       );
     }
-    if (!/^[a-z0-9-]+$/.test(trimmed)) {
+    if (trimmed && !/^[a-z0-9-]+$/.test(trimmed)) {
       throw new ValidationError(
         'Handle can only contain lowercase letters, numbers and dashes.',
       );
@@ -97,7 +101,8 @@ class AuthController {
     }
 
     const updated = await authRepository.updateUser(db, sessionWithUser.user.id, {
-      handle: trimmed,
+      ...(trimmed ? { handle: trimmed } : {}),
+      ...(typeof rawName === 'string' ? { displayName: rawName.trim() || null } : {}),
     });
     const publicUser: PublicUser = toPublicUser(updated, {
       isAdmin: configService.isAdminUser(updated, env),

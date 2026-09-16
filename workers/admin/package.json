@@ -1,0 +1,16 @@
+{
+  "name": "@gemigo/admin-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@gemigo/product-analytics": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250109.0",
+    "typescript": "~5.9.3",
+    "wrangler": "^4.53.0"
+  }
+}

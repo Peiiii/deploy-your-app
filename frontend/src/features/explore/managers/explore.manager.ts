@@ -1,3 +1,4 @@
+import { track } from '@/analytics/collector';
 import { useExploreStore } from '@/features/explore/stores/explore.store';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { mapProjectsToApps } from '@/components/explore-app-card';
@@ -39,6 +40,7 @@ export class ExploreManager {
     actions.setIsLoading(true);
 
     try {
+      if (pageToLoad === 1 && state.searchQuery.trim()) track('search_submit');
       const result = await fetchExploreProjects({
         search: state.searchQuery.trim() || undefined,
         category: state.activeCategory !== 'All Apps' ? state.activeCategory : undefined,
@@ -91,6 +93,7 @@ export class ExploreManager {
   loadMore = () => {
     const state = useExploreStore.getState();
     if (!state.hasMore || state.isLoading) return;
+    track('load_more');
     void this.loadPage(state.page + 1, true);
   };
 

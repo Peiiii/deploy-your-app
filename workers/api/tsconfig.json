@@ -3,7 +3,11 @@
     "composite": true,
     "target": "ES2022",
     "module": "ESNext",
-    "lib": ["ES2022", "WebWorker", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "WebWorker",
+      "DOM.Iterable"
+    ],
     "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -12,8 +16,20 @@
     "noEmitOnError": true,
     "rootDir": "./src",
     "outDir": "./dist",
-    "types": ["@cloudflare/workers-types"]
+    "types": [
+      "@cloudflare/workers-types"
+    ]
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["dist", "node_modules"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ],
+  "references": [
+    {
+      "path": "../../packages/product-analytics"
+    }
+  ]
 }

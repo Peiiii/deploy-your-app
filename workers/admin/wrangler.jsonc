@@ -1,0 +1,36 @@
+{
+  "name": "gemigo-admin",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-11-20",
+  "account_id": "adb27b39051202962038992eeaf8f6bb",
+  "workers_dev": false,
+  "routes": [
+    {
+      "pattern": "admin.gemigo.io",
+      "custom_domain": true
+    }
+  ],
+  "vars": {
+    "ADMIN_USERNAME": "admin"
+  },
+  "assets": {
+    "directory": "../../admin/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api/*"
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "ANALYTICS_DB",
+      "database_name": "gemigo-projects",
+      "database_id": "e1e28d75-d0a0-4f8e-9b5d-714454686a4f"
+    }
+  ],
+  "triggers": {
+    "crons": [
+      "17 3 * * *"
+    ]
+  }
+}

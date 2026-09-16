@@ -13,6 +13,7 @@ export const ProfileAboutStats: React.FC = () => {
     const profileData = useMyProfileStore((s) => s.profileData);
     const bio = useMyProfileStore((s) => s.bio);
     const links = useMyProfileStore((s) => s.links);
+    const displayNameInput = useMyProfileStore((s) => s.displayNameInput);
     const handleInput = useMyProfileStore((s) => s.handleInput);
     const handleError = useMyProfileStore((s) => s.handleError);
     const isLoading = useMyProfileStore((s) => s.isLoading);
@@ -24,6 +25,11 @@ export const ProfileAboutStats: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* About Section */}
             <div className="md:col-span-2 glass-card rounded-xl p-5 border border-slate-200 dark:border-slate-800">
+                <div className="mb-4">
+                    <label htmlFor="public-display-name" className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('profile.displayNameLabel')}</label>
+                    <input id="public-display-name" value={displayNameInput} onChange={e => actions.setDisplayNameInput(e.target.value)} maxLength={50} placeholder={t('profile.displayNamePlaceholder')} className="w-full text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 px-3 py-2 text-slate-900 dark:text-slate-100" />
+                    <p className="mt-1 text-[11px] text-slate-500">{t('profile.displayNameHint')}</p>
+                </div>
                 <div className="mb-4">
                     <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                         {t('profile.handleLabel', 'Profile handle')}

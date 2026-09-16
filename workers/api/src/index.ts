@@ -1,3 +1,5 @@
+import { getSettings } from '@gemigo/product-analytics';
+import { readTelemetry, storeTelemetry } from './analytics';
 import type { ApiWorkerEnv } from './types/env';
 import { jsonResponse, emptyResponse, normalizePath } from './utils/http';
 import { handleError } from './utils/error-handler';
@@ -30,9 +32,23 @@ async function handleRequest(
 }
 
 const worker: ExportedHandler<ApiWorkerEnv> = {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     try {
-      return await handleRequest(request, env);
+      const telemetryRequest = new URL(request.url).pathname === '/api/v1/telemetry';
+      const batch = await readTelemetry(request as Request);
+      let response = telemetryRequest
+        ? new Response(null, { status: request.method === 'POST' && batch ? 204 : 400 })
+        : await handleRequest(request, env);
+      if (batch && env.ANALYTICS_DB) {
+        // A telemetry/config failure never fails the underlying business request.
+        const settings = await getSettings(env.ANALYTICS_DB).catch(() => null);
+        if (settings) {
+          response = new Response(response.body, response);
+          response.headers.set('x-gemigo-collection', settings.enabled ? '1' : '0');
+          if (settings.enabled) ctx.waitUntil(storeTelemetry(request, response, env, batch).catch(() => console.warn('Telemetry write skipped')));
+        }
+      }
+      return response;
     } catch (err) {
       return handleError(err);
     }

@@ -58,6 +58,7 @@
 | Host | 用途 | 归属/实现 | 备注 |
 |---|---|---|---|
 | `gemigo.io` | 平台 Web（含 broker UI） | Pages/静态站点 | broker 建议固定在 `https://gemigo.io/sdk/broker` |
+| `admin.gemigo.io` | 独立产品分析管理站 | `workers/admin` + `admin` 静态构建 | 独立账号及 host-only 会话，不接受主站登录；无自动轮询 |
 | `api.gemigo.io` | 平台 API（含 App SDK Auth） | `workers/api`（Cloudflare Worker） | **规划 canonical API（尚未启用）**：`https://api.gemigo.io/api/v1`（现阶段请用 `https://gemigo.io/api/v1`，见 4.3） |
 | `backend.gemigo.io` | Node 部署服务（内部/半内部） | `server`（Aliyun Docker） | Worker 通过 `DEPLOY_SERVICE_BASE_URL` 回源 |
 | `openai-api.gemigo.io` | OpenAI-compatible 网关 | `workers/openai-gateway-worker` | 仅暴露允许的 `/v1/*` |

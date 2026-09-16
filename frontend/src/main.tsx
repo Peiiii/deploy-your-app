@@ -1,3 +1,4 @@
+import { installAnalytics } from './analytics/collector';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -6,6 +7,7 @@ import './i18n/config';
 import App from './app';
 import { cleanupDevServiceWorker } from './utils/dev-sw-cleanup';
 
+installAnalytics();
 void cleanupDevServiceWorker();
 if (import.meta.env.DEV) {
   console.info('[deploy-your-app-frontend] dev build loaded');

@@ -9,6 +9,7 @@ interface MyProfileState {
   bio: string;
   links: ProfileLink[];
   handleInput: string;
+  displayNameInput: string;
   pinnedIds: string[];
 
   // UI state
@@ -21,6 +22,7 @@ interface MyProfileState {
     setProfileData: (data: PublicUserProfile | null) => void;
     setBio: (bio: string) => void;
     setLinks: (links: ProfileLink[]) => void;
+    setDisplayNameInput: (value: string) => void;
     setHandleInput: (value: string) => void;
     setPinnedIds: (ids: string[]) => void;
     setHandleError: (error: string | null) => void;
@@ -43,6 +45,7 @@ const initialState = {
   bio: '',
   links: [] as ProfileLink[],
   handleInput: '',
+  displayNameInput: '',
   pinnedIds: [] as string[],
   handleError: null as string | null,
   draggingPinnedId: null as string | null,
@@ -57,6 +60,7 @@ export const useMyProfileStore = create<MyProfileState>((set) => ({
     setProfileData: (data) => set({ profileData: data }),
     setBio: (bio) => set({ bio }),
     setLinks: (links) => set({ links }),
+    setDisplayNameInput: (value) => set({ displayNameInput: value }),
     setHandleInput: (value) => set({ handleInput: value }),
     setPinnedIds: (ids) => set({ pinnedIds: ids }),
     setHandleError: (error) => set({ handleError: error }),
@@ -123,6 +127,7 @@ export const useMyProfileStore = create<MyProfileState>((set) => ({
         ),
         pinnedIds: data.profile.pinnedProjectIds ?? [],
         handleInput: userHandle ?? '',
+        displayNameInput: data.user.displayName?.includes('@') ? '' : data.user.displayName ?? '',
         handleError: null,
       }),
 

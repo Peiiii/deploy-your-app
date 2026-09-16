@@ -1,3 +1,4 @@
+import { trackPage } from '@/analytics/collector';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
@@ -25,6 +26,8 @@ import {
  * Handles app-level initialization: theme, language, auth, and initial data loading.
  */
 const useAppInitialize = () => {
+  const analyticsLocation = useLocation();
+  useEffect(() => { trackPage(); }, [analyticsLocation.pathname]);
   const { i18n } = useTranslation();
   const theme = useUIStore((s) => s.theme);
   const language = useUIStore((s) => s.language);

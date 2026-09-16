@@ -1,4 +1,6 @@
+import { track } from '@/analytics/collector';
 /* eslint-disable react-refresh/only-export-components */
+import { getAuthorColor, getAuthorInitial } from '../utils/author';
 import { Heart, Play } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +20,7 @@ export interface ExploreAppCard {
   name: string;
   description: string;
   author: string;
+  authorColor?: string;
   category: string;
   color: string;
   url?: string;
@@ -61,6 +64,7 @@ export function mapProjectsToApps(projects: Project[]): ExploreAppCard[] {
       name: project.name,
       description,
       author: authorLabel,
+      authorColor: getAuthorColor(project.ownerId || authorIdentifier || authorLabel),
       category,
       color,
       url: project.url,
@@ -91,6 +95,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   const showThumbnail = app.thumbnailUrl && !thumbError;
 
   const handleRootClick = () => {
+    track('app_preview');
     onCardClick?.();
   };
 
@@ -148,24 +153,27 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
         </div>
 
         <div className="flex items-center justify-between mt-1">
-          <div
-            className="flex items-center gap-2 min-w-0 group/author"
+          <button
+            type="button"
+            disabled={!app.authorProfileIdentifier}
+            title={app.author}
+            className="flex items-center gap-2 min-w-0 group/author rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:cursor-default"
             onClick={(e) => {
               e.stopPropagation();
               if (app.authorProfileIdentifier) {
-                navigate(`/u/${app.authorProfileIdentifier}`);
-              } else {
-                navigate(`/u/${app.author}`);
+                track('author_open');
+                navigate(`/u/${encodeURIComponent(app.authorProfileIdentifier)}`);
+
               }
             }}
           >
-            <div className={`shrink-0 w-6 h-6 rounded-full bg-gradient-to-tr ${app.color} flex items-center justify-center text-[10px] text-white font-bold shadow-sm ring-2 ring-white dark:ring-slate-800 transition-transform group-hover/author:scale-110`}>
-              {app.author.charAt(0).toUpperCase()}
+            <div className={`shrink-0 w-6 h-6 rounded-full bg-gradient-to-tr ${app.authorColor || getAuthorColor(app.authorProfileIdentifier || app.author)} flex items-center justify-center text-[10px] text-white font-bold shadow-sm ring-2 ring-white dark:ring-slate-800 transition-transform group-hover/author:scale-110`}>
+              {getAuthorInitial(app.author)}
             </div>
             <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300 truncate group-hover/author:text-brand-600 dark:group-hover/author:text-brand-400 transition-colors">
               {app.author}
             </span>
-          </div>
+          </button>
 
           <button
             onClick={(e) => {

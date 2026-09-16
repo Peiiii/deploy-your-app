@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
+const transpile = path => ts.transpileModule(fs.readFileSync(path, 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText;
+const contract = { exports: {} };
+vm.runInNewContext(transpile('packages/product-analytics/src/contract.ts'), { exports: contract.exports });
+const requests = [];
+let now = Date.now();
+const listeners = new Map();
+const local = new Map();
+const localStorage = { getItem: key => local.get(key) || null, setItem: (key, value) => local.set(key, value) };
+const context = { exports: {}, require: () => contract.exports, crypto, URL, Request, Headers, innerWidth: 1400, location: { origin: 'https://gemigo.io', href: 'https://gemigo.io/', hostname: 'gemigo.io', pathname: '/' }, localStorage, sessionStorage: localStorage, navigator: { locks: { request: async (_name, send) => send() } }, document: { referrer: '', visibilityState: 'hidden', addEventListener: (name, fn) => listeners.set(name, fn) }, Date: class extends Date { static now() { return now; } }, window: { fetch: async (input, init) => { requests.push({ input, init }); return new Response(null, { status: 204 }); }, addEventListener: () => {}, setInterval: (fn, ms) => { assert.equal(ms, 120000); listeners.set('interval', fn); } } };
+vm.runInNewContext(transpile('frontend/src/analytics/collector.ts'), context);
+const { track, installAnalytics } = context.exports;
+installAnalytics();
+for (let i = 0; i < 50; i++) track('navigation_click');
+assert.equal(requests.length, 0, '50 actions must not emit 50 requests');
+await context.window.fetch('/api/v1/projects');
+assert.equal(requests.length, 1);
+assert.equal(JSON.parse(requests[0].init.headers.get('x-gemigo-events')).events.length, 20);
+await context.window.fetch('https://external.example/api/v1/projects');
+assert.equal(requests[1].init, undefined, 'never leak telemetry cross-origin');
+for (let i = 0; i < 10; i++) {
+  track('theme_change');
+  listeners.get('visibilitychange')();
+  await new Promise(resolve => setImmediate(resolve));
+  listeners.get('visibilitychange')();
+  await new Promise(resolve => setImmediate(resolve));
+  now += 120001;
+}
+assert.equal(requests.filter(r => r.input === '/api/v1/telemetry').length, 6, 'daily six-request ceiling including repeated unload events');
+assert.equal(JSON.parse(local.get('gemigo.analytics.budget')).count, 6);
+console.log('PASS 50 actions = 0 analytics requests; piggyback batches <=20; no cross-origin headers; 120s cooldown; 6 daily fallback requests across repeated visibility events');

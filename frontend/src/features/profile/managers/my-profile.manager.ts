@@ -1,3 +1,4 @@
+import { track } from '@/analytics/collector';
 import { useMyProfileStore } from '@/features/profile/stores/my-profile.store';
 import { useProjectStore } from '@/stores/project.store';
 import { fetchPublicProfile, updateMyProfile } from '@/services/http/profile-api';
@@ -75,6 +76,7 @@ export class MyProfileManager {
    * Save the profile (handle, bio, links, pinned projects).
    */
   saveProfile = async () => {
+    track('profile_save');
     const user = this.authManager.getCurrentUser();
     if (!user) return;
 
@@ -92,8 +94,8 @@ export class MyProfileManager {
     try {
       // Update handle if changed
       const trimmedHandle = state.handleInput.trim();
-      if (trimmedHandle && trimmedHandle !== (user.handle ?? '')) {
-        await this.authManager.updateHandle(trimmedHandle);
+      if (trimmedHandle !== (user.handle ?? '') || state.displayNameInput.trim() !== (user.displayName ?? '')) {
+        await this.authManager.updateHandle(trimmedHandle, state.displayNameInput.trim());
       }
 
       // Prepare valid links
