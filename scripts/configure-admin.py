@@ -11,9 +11,14 @@ import sys
 
 root = Path(__file__).resolve().parents[1]
 generate = '--generate' in sys.argv
-password = secrets.token_urlsafe(24) if generate else getpass.getpass('New GemiGo admin password (minimum 16 characters): ')
-if len(password) < 16:
-    raise SystemExit('Password must be at least 16 characters.')
+minimum_password_length = 8
+password = secrets.token_urlsafe(24) if generate else getpass.getpass(
+    f'New GemiGo admin password (minimum {minimum_password_length} characters): '
+)
+if len(password) < minimum_password_length:
+    raise SystemExit(
+        f'Password must be at least {minimum_password_length} characters.'
+    )
 if not generate and password != getpass.getpass('Confirm password: '):
     raise SystemExit('Passwords do not match.')
 salt = secrets.token_hex(16)
