@@ -1,24 +1,15 @@
-import i18next from 'i18next';
+import type { PublicAuthorIdentity } from '@gemigo/public-author';
+import type { TFunction } from 'i18next';
 
-interface PublicAuthorIdentity {
-  id?: string | null;
-  displayName?: string | null;
-  handle?: string | null;
-}
-
-const publicLabel = (value?: string | null): string | undefined => {
-  const label = value?.trim();
-  // Some identity providers use the email address as the display name.
-  return label && !label.includes('@') ? label : undefined;
-};
-
-export const getAuthorName = ({ displayName, handle }: PublicAuthorIdentity): string => {
-  const name = publicLabel(displayName);
-  if (name) return name;
-  const username = publicLabel(handle);
-  if (username) return `@${username}`;
-  return i18next.t('profile.creator', { defaultValue: 'Creator' });
-};
+export const getAuthorName = (
+  identity: PublicAuthorIdentity,
+  t: TFunction,
+): string =>
+  identity.label ??
+  t('profile.anonymousCreator', {
+    code: identity.anonymousCode ?? identity.identityKey,
+    defaultValue: `Creator ${identity.anonymousCode ?? identity.identityKey}`,
+  });
 
 const AUTHOR_COLORS = [
   'from-violet-500 to-purple-600',
@@ -35,5 +26,5 @@ export const getAuthorColor = (identity: string): string => {
   return AUTHOR_COLORS[(hash >>> 0) % AUTHOR_COLORS.length];
 };
 
-export const getAuthorInitial = (name: string): string =>
-  Array.from(name.replace(/^@/, ''))[0]?.toUpperCase() || 'U';
+export const getAuthorInitial = (name: string, anonymousCode?: string | null): string =>
+  Array.from(anonymousCode || name.replace(/^@/, ''))[0]?.toUpperCase() || 'U';

@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@gemigo/public-author": "workspace:*",
     "@google/genai": "^1.30.0",
     "ahooks": "^3.9.6",
     "crisp-sdk-web": "^1.0.26",

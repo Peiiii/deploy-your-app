@@ -1,0 +1,19 @@
+{
+  "name": "@gemigo/public-author",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  },
+  "types": "./dist/index.d.ts"
+}

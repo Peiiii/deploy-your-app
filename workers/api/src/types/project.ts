@@ -1,3 +1,5 @@
+import type { PublicAuthorIdentity } from '@gemigo/public-author';
+
 export enum SourceType {
   GitHub = 'github',
   Zip = 'zip',
@@ -19,7 +21,11 @@ export type DeploymentStatus = 'Live' | 'Building' | 'Failed' | 'Offline';
 export interface Project {
   id: string;
   ownerId?: string;
+  /** Privacy-safe identity used by public surfaces. */
+  publicAuthor?: PublicAuthorIdentity;
+  /** @deprecated Read publicAuthor instead. Kept during the API transition. */
   ownerHandle?: string | null;
+  /** @deprecated Read publicAuthor instead. Kept during the API transition. */
   ownerDisplayName?: string | null;
   // Whether this project should appear in public feeds (Explore, recommendations).
   // For legacy rows without this field, the system treats them as public.

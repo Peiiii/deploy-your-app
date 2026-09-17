@@ -6,6 +6,8 @@ import { toPublicUser } from '../utils/auth';
 import type { PublicUser } from '../types/user';
 import type { Project } from '../types/project';
 import type { ProfileLinkRecord } from '../repositories/profile.repository';
+import type { PublicAuthorIdentity } from '@gemigo/public-author';
+import { publicAuthorService } from './public-author.service';
 
 export interface UserProfile {
   bio: string | null;
@@ -15,6 +17,7 @@ export interface UserProfile {
 
 export interface PublicUserProfile {
   user: PublicUser;
+  publicAuthor: PublicAuthorIdentity;
   profile: UserProfile;
   stats: {
     publicProjectsCount: number;
@@ -104,7 +107,17 @@ class ProfileService {
       return null;
     }
 
-    const publicUser: PublicUser = { ...toPublicUser(user), email: null, displayName: user.displayName?.includes('@') ? null : user.displayName, providers: { email: false, google: false, github: false } };
+    const publicAuthor = publicAuthorService.resolveForUser(user);
+    const publicUser: PublicUser = {
+      ...toPublicUser(user),
+      email: null,
+      displayName:
+        publicAuthor.kind === 'profile' &&
+        publicAuthor.label !== (publicAuthor.handle ? `@${publicAuthor.handle}` : null)
+          ? publicAuthor.label
+          : null,
+      providers: { email: false, google: false, github: false },
+    };
 
     // Load profile + public projects in parallel to reduce waterfall latency.
     const [profile, projects] = await Promise.all([
@@ -166,6 +179,7 @@ class ProfileService {
 
     return {
       user: publicUser,
+      publicAuthor,
       profile,
       stats,
       projects: projectsWithStats,

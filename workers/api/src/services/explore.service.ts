@@ -3,7 +3,7 @@ import type { Project } from '../types/project';
 import { projectRepository } from '../repositories/project.repository';
 import { engagementService } from './engagement.service';
 import { analyticsService } from './analytics.service';
-import { authRepository } from '../repositories/auth.repository';
+import { publicAuthorService } from './public-author.service';
 
 /**
  * Service for handling public explore/discovery features.
@@ -96,37 +96,7 @@ export class ExploreService {
         const end = start + pageSize;
         const items = sorted.slice(start, end);
 
-        // Load owner handles/display names in bulk so the frontend doesn't have to
-        // call profile APIs to build author badges on explore cards.
-        const ownerIds = Array.from(
-            new Set(
-                items
-                    .map((p) => p.ownerId)
-                    .filter((id): id is string => typeof id === 'string' && id.length > 0),
-            ),
-        );
-        const owners = await authRepository.findUsersByIds(db, ownerIds);
-        const ownersById = owners.reduce(
-            (acc, user) => {
-                acc[user.id] = {
-                    handle: user.handle ?? null,
-                    displayName: user.displayName?.includes('@') ? null : user.displayName ?? null,
-                };
-                return acc;
-            },
-            {} as Record<string, { handle: string | null; displayName: string | null }>,
-        );
-        const enrichedItems = items.map((project) => ({
-            ...project,
-            ownerHandle:
-                project.ownerId && ownersById[project.ownerId]
-                    ? ownersById[project.ownerId].handle
-                    : null,
-            ownerDisplayName:
-                project.ownerId && ownersById[project.ownerId]
-                    ? ownersById[project.ownerId].displayName
-                    : null,
-        }));
+        const enrichedItems = await publicAuthorService.enrichProjects(db, items);
 
         const engagement: Record<
             string,

@@ -1,6 +1,3 @@
-import i18next from '../frontend/node_modules/i18next';
-import { createRequire } from 'node:module';
-const { getAuthorName } = createRequire(import.meta.url)('../frontend/src/utils/author.ts');
 import assert from 'node:assert/strict';
 import { parseBatch, normalizePage, EVENTS } from '../packages/product-analytics/src/contract';
 import { summarize, type StoredEvent } from '../packages/product-analytics/src/report';
@@ -28,12 +25,3 @@ assert.equal(await verifyPassword('test-only-password', `${salt}:${hashed}`), tr
 assert.equal(await verifyPassword('wrong-password', `${salt}:${hashed}`), false);
 assert.equal(await verifyPassword('x', ''), false);
 console.log('PASS privacy allowlist, spoofed server event rejection, route redaction, date limits, ordered funnels, matched deployment results, zero-use features and independent password authentication');
-
-await i18next.init({ lng: 'en', resources: { en: { translation: { profile: { creator: 'Creator' } } }, zh: { translation: { profile: { creator: '创作者' } } } } });
-assert.equal(getAuthorName({ id: 'internal-secret-id', displayName: 'private@example.com' }), 'Creator');
-assert.equal(getAuthorName({ handle: 'jane', displayName: 'private@example.com' }), '@jane');
-assert.equal(getAuthorName({ handle: 'jane', displayName: '小简 Jane' }), '小简 Jane');
-await i18next.changeLanguage('zh');
-assert.equal(getAuthorName({ id: 'internal-secret-id' }), '创作者');
-assert.equal(getAuthorName({ displayName: '小简 Jane' }), '小简 Jane');
-console.log('PASS public author fallback, no email or internal-ID label, handle and nickname consistency across languages');

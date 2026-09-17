@@ -480,6 +480,7 @@
     "signInRequiredTitle": "Sign in to create your profile",
     "signInRequiredDescription": "Your profile lets you showcase your apps, share a public page and join the community.",
     "creator": "Creator",
+    "anonymousCreator": "Creator {{code}}",
     "creatorProfile": "Creator profile",
     "appsByCreator": "Apps by this creator",
     "creatorNoPublicApps": "This creator hasn't published any public apps yet.",

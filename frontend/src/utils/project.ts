@@ -1,15 +1,11 @@
 import { URLS } from '../constants';
 import type { Project } from '../types';
 import { SourceType } from '../types';
-
-import { getAuthorName } from './author';
+import {
+  resolvePublicAuthorIdentity,
+  type PublicAuthorIdentity,
+} from '@gemigo/public-author';
 const DEFAULT_CATEGORY = 'Other';
-
-function normalizeOptionalLabel(value: unknown): string | null {
-  if (typeof value !== 'string') return null;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
 
 export function formatRepoLabel(project: Project): string | null {
   const { repoUrl, sourceType } = project;
@@ -64,28 +60,19 @@ export function getProjectLiveUrl(project: Project): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
-export function buildProjectAuthor(project: Project): string {
-  if (
-    project.sourceType === SourceType.GITHUB &&
-    project.repoUrl.startsWith(URLS.GITHUB_BASE)
-  ) {
-    const rest = project.repoUrl.replace(URLS.GITHUB_BASE, '');
-    const owner = rest.split('/')[0];
-    if (owner) return owner;
-  }
-  return getAuthorName({});
-}
-
-/** Public author identity must match the creator profile, independent of source type. */
-export function getProjectAuthorLabel(project: Project): string {
-  if (project.ownerId || project.ownerHandle || project.ownerDisplayName) {
-    return getAuthorName({
-      id: project.ownerId,
-      handle: project.ownerHandle,
-      displayName: project.ownerDisplayName,
-    });
-  }
-  return buildProjectAuthor(project);
+/**
+ * Prefer the API's semantic identity. The local resolver keeps mixed-version
+ * deployments working while the API and frontend roll out independently.
+ */
+export function getProjectPublicAuthor(project: Project): PublicAuthorIdentity {
+  return project.publicAuthor ?? resolvePublicAuthorIdentity({
+    ownerId: project.ownerId,
+    handle: project.ownerHandle,
+    displayName: project.ownerDisplayName,
+    projectId: project.id,
+    sourceType: project.sourceType,
+    repoUrl: project.repoUrl,
+  });
 }
 
 /**
@@ -93,10 +80,7 @@ export function getProjectAuthorLabel(project: Project): string {
  * Prefer handle (stable + user-facing), fall back to internal ownerId.
  */
 export function getProjectAuthorProfileIdentifier(project: Project): string | undefined {
-  const handle = normalizeOptionalLabel(project.ownerHandle);
-  if (handle) return handle;
-  const ownerId = normalizeOptionalLabel(project.ownerId);
-  return ownerId ?? undefined;
+  return getProjectPublicAuthor(project).profileIdentifier ?? undefined;
 }
 
 export function getProjectCategory(project: Project): string {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { getAuthorName, getAuthorColor, getAuthorInitial } from '@/utils/author';
+import { resolvePublicAuthorIdentity } from '@gemigo/public-author';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '@/contexts/presenter-context';
@@ -83,8 +84,13 @@ export const PublicProfile: React.FC = () => {
     );
   }
 
-  const authorName = getAuthorName(data.user);
-  const authorColor = getAuthorColor(data.user.id);
+  const publicAuthor = data.publicAuthor ?? resolvePublicAuthorIdentity({
+    ownerId: data.user.id,
+    handle: data.user.handle,
+    displayName: data.user.displayName,
+  });
+  const authorName = getAuthorName(publicAuthor, t);
+  const authorColor = getAuthorColor(publicAuthor.identityKey);
 
   const pinnedIds = data.profile.pinnedProjectIds ?? [];
   const pinnedSet = new Set(pinnedIds);
@@ -179,7 +185,7 @@ export const PublicProfile: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className={`w-14 h-14 shrink-0 rounded-full bg-gradient-to-tr ${authorColor} flex items-center justify-center text-lg font-semibold text-white`}>
-            {getAuthorInitial(authorName)}
+            {getAuthorInitial(authorName, publicAuthor.anonymousCode)}
           </div>
           <div className="min-w-0">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight break-words">

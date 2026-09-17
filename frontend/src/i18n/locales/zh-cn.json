@@ -476,6 +476,7 @@
     "signInRequiredTitle": "登录后即可创建你的主页",
     "signInRequiredDescription": "创建个人主页，展示你的应用，与社区互相发现。",
     "creator": "创作者",
+    "anonymousCreator": "创作者 {{code}}",
     "creatorProfile": "创作者主页",
     "appsByCreator": "这个创作者的应用",
     "creatorNoPublicApps": "该创作者还没有公开的应用。",

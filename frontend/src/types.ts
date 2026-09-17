@@ -1,3 +1,5 @@
+import type { PublicAuthorIdentity } from '@gemigo/public-author';
+
 export enum DeploymentStatus {
   IDLE = 'IDLE',
   ANALYZING = 'ANALYZING',
@@ -25,6 +27,8 @@ export interface ProjectLocalization {
 
 export interface Project {
   id: string;
+  /** Privacy-safe identity supplied by public API endpoints. */
+  publicAuthor?: PublicAuthorIdentity;
   // Owner user ID for this project (undefined for legacy/public records).
   ownerId?: string;
   // Optional owner handle / display name, provided directly by the API to avoid
@@ -206,6 +210,7 @@ export interface UserProfile {
 
 export interface PublicUserProfile {
   user: User;
+  publicAuthor?: PublicAuthorIdentity;
   profile: UserProfile;
   stats: {
     publicProjectsCount: number;

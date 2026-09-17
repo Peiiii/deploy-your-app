@@ -1,25 +1,27 @@
 import { track } from '@/analytics/collector';
 /* eslint-disable react-refresh/only-export-components */
-import { getAuthorColor, getAuthorInitial } from '../utils/author';
+import { getAuthorColor, getAuthorInitial, getAuthorName } from '../utils/author';
 import { Heart, Play } from 'lucide-react';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { usePresenter } from '../contexts/presenter-context';
 import { useReactionStore } from '../stores/reaction.store';
 import {
   getProjectCategory,
   getProjectDescription,
-  getProjectAuthorLabel,
+  getProjectPublicAuthor,
   getProjectAuthorProfileIdentifier,
   getProjectThumbnailUrl,
 } from '../utils/project';
 import type { Project } from '../types';
+import type { PublicAuthorIdentity } from '@gemigo/public-author';
 
 export interface ExploreAppCard {
   id: string;
   name: string;
   description: string;
-  author: string;
+  author: PublicAuthorIdentity;
   authorColor?: string;
   category: string;
   color: string;
@@ -55,7 +57,7 @@ export function mapProjectsToApps(projects: Project[]): ExploreAppCard[] {
     const category = getProjectCategory(project);
     const description = getProjectDescription(project);
     const thumbnailUrl = project.url ? getProjectThumbnailUrl(project.url) ?? undefined : undefined;
-    const authorLabel = getProjectAuthorLabel(project);
+    const author = getProjectPublicAuthor(project);
     const authorIdentifier = getProjectAuthorProfileIdentifier(project);
     const color = getProjectColor(project.id);
 
@@ -63,8 +65,8 @@ export function mapProjectsToApps(projects: Project[]): ExploreAppCard[] {
       id: project.id,
       name: project.name,
       description,
-      author: authorLabel,
-      authorColor: getAuthorColor(project.ownerId || authorIdentifier || authorLabel),
+      author,
+      authorColor: getAuthorColor(author.identityKey),
       category,
       color,
       url: project.url,
@@ -87,12 +89,14 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   onCardClick,
 }) => {
   const presenter = usePresenter();
+  const { t } = useTranslation();
   const reactionEntry = useReactionStore((s) => s.byProjectId[app.id]);
   const navigate = useNavigate();
   const [thumbLoaded, setThumbLoaded] = useState(false);
   const [thumbError, setThumbError] = useState(false);
 
   const showThumbnail = app.thumbnailUrl && !thumbError;
+  const authorName = getAuthorName(app.author, t);
 
   const handleRootClick = () => {
     track('app_preview');
@@ -156,7 +160,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
           <button
             type="button"
             disabled={!app.authorProfileIdentifier}
-            title={app.author}
+            title={authorName}
             className="flex items-center gap-2 min-w-0 group/author rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:cursor-default"
             onClick={(e) => {
               e.stopPropagation();
@@ -167,11 +171,11 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
               }
             }}
           >
-            <div className={`shrink-0 w-6 h-6 rounded-full bg-gradient-to-tr ${app.authorColor || getAuthorColor(app.authorProfileIdentifier || app.author)} flex items-center justify-center text-[10px] text-white font-bold shadow-sm ring-2 ring-white dark:ring-slate-800 transition-transform group-hover/author:scale-110`}>
-              {getAuthorInitial(app.author)}
+            <div className={`shrink-0 w-6 h-6 rounded-full bg-gradient-to-tr ${app.authorColor || getAuthorColor(app.author.identityKey)} flex items-center justify-center text-[10px] text-white font-bold shadow-sm ring-2 ring-white dark:ring-slate-800 transition-transform group-hover/author:scale-110`}>
+              {getAuthorInitial(authorName, app.author.anonymousCode)}
             </div>
             <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300 truncate group-hover/author:text-brand-600 dark:group-hover/author:text-brand-400 transition-colors">
-              {app.author}
+              {authorName}
             </span>
           </button>
 
