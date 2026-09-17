@@ -110,6 +110,15 @@ class ProjectsController {
     const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
     const pageSize = Math.min(100, Math.max(1, parseInt(url.searchParams.get('pageSize') || '50', 10)));
 
+    if (url.searchParams.get('scope') === 'mine') {
+      const user = await this.requireAuth(request, db, 'list your projects');
+      const result = await projectService.getProjectsForOwner(db, user.id, {
+        page,
+        pageSize,
+      });
+      return jsonResponse(result);
+    }
+
     const result = await projectService.getProjects(db, { page, pageSize });
     return jsonResponse(result);
   }

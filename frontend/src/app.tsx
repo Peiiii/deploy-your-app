@@ -7,6 +7,8 @@ import { Header } from '@/components/header';
 import { AppRoutes } from '@/routes';
 import { PresenterProvider, usePresenter } from '@/contexts/presenter-context';
 import { useUIStore } from '@/stores/ui.store';
+import { useProjectStore } from '@/stores/project.store';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { AuthModal } from '@/features/auth/components/auth-modal';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Toast } from '@/components/toast';
@@ -31,6 +33,8 @@ const useAppInitialize = () => {
   const { i18n } = useTranslation();
   const theme = useUIStore((s) => s.theme);
   const language = useUIStore((s) => s.language);
+  const authUserId = useAuthStore((s) => s.user?.id);
+  const authLoading = useAuthStore((s) => s.isLoading);
   const presenter = usePresenter();
 
   // Sync i18n language
@@ -43,10 +47,16 @@ const useAppInitialize = () => {
     presenter.auth.loadCurrentUser();
   }, [presenter.auth]);
 
-  // Load projects
+  // Load the signed-in user's projects only after session restoration. This
+  // avoids both an unauthorized request and a global-project pagination race.
   useEffect(() => {
-    presenter.project.loadProjects();
-  }, [presenter.project]);
+    if (authLoading) return;
+    if (!authUserId) {
+      useProjectStore.getState().actions.reset();
+      return;
+    }
+    void presenter.project.loadProjects();
+  }, [authLoading, authUserId, presenter.project]);
 
   // Apply theme to document
   useEffect(() => {

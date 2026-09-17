@@ -72,6 +72,28 @@ class ProjectService {
     };
   }
 
+  async getProjectsForOwner(
+    db: D1Database,
+    ownerId: string,
+    options?: { page?: number; pageSize?: number },
+  ): Promise<{ items: Project[]; page: number; pageSize: number; total: number }> {
+    const page = options?.page ?? 1;
+    const pageSize = options?.pageSize ?? 100;
+    const result = await projectRepository.queryProjectsWithCount(db, {
+      ownerId,
+      includeDeleted: false,
+      page,
+      pageSize,
+    });
+
+    return {
+      items: result.items,
+      page,
+      pageSize,
+      total: result.total,
+    };
+  }
+
   async createProject(
     env: ApiWorkerEnv,
     db: D1Database,

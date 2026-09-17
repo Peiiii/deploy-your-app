@@ -11,9 +11,9 @@ import { APP_CONFIG, API_ROUTES } from '../../constants';
 export class HttpProjectProvider implements IProjectProvider {
   private baseUrl = APP_CONFIG.API_BASE_URL;
 
-  async getProjects(page = 1, pageSize = 50): Promise<PaginatedResponse<Project>> {
-    const url = `${this.baseUrl}${API_ROUTES.PROJECTS}?page=${page}&pageSize=${pageSize}`;
-    const response = await fetch(url);
+  async getProjects(page = 1, pageSize = 100): Promise<PaginatedResponse<Project>> {
+    const url = `${this.baseUrl}${API_ROUTES.PROJECTS}?scope=mine&page=${page}&pageSize=${pageSize}`;
+    const response = await fetch(url, { credentials: 'include' });
     if (!response.ok) throw new Error("Failed to fetch projects");
     return response.json();
   }

@@ -448,6 +448,7 @@ class ProjectRepository {
     options: {
       search?: string;
       includeDeleted?: boolean;
+      ownerId?: string;
       page?: number;
       pageSize?: number;
     },
@@ -459,6 +460,11 @@ class ProjectRepository {
 
     if (!options.includeDeleted) {
       where.push('(is_deleted = 0 OR is_deleted IS NULL)');
+    }
+
+    if (options.ownerId) {
+      where.push('owner_id = ?');
+      params.push(options.ownerId);
     }
 
     if (options.search) {

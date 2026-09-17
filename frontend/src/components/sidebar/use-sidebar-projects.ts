@@ -118,9 +118,12 @@ export const useSidebarProjects = () => {
   );
   const isLoading =
     authLoading ||
-    isLoadingProfile ||
-    (!projectsLoaded && !projectsLoadError) ||
-    projectsLoading;
+    Boolean(
+      authUser &&
+        (isLoadingProfile ||
+          (!projectsLoaded && !projectsLoadError) ||
+          projectsLoading),
+    );
 
   const retryProjects = () => {
     void presenter.project.loadProjects();
