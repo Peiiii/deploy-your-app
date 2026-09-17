@@ -10,6 +10,8 @@ interface SidebarProjectListProps {
   pinnedProjectIds: string[];
   onTogglePin: (e: React.MouseEvent, projectId: string) => void;
   isLoading?: boolean;
+  hasLoadError?: boolean;
+  onRetry?: () => void;
 }
 
 export const SidebarProjectList: React.FC<SidebarProjectListProps> = ({
@@ -17,6 +19,8 @@ export const SidebarProjectList: React.FC<SidebarProjectListProps> = ({
   pinnedProjectIds,
   onTogglePin,
   isLoading = false,
+  hasLoadError = false,
+  onRetry,
 }) => {
   const { t } = useTranslation();
   const location = useLocation();
@@ -31,9 +35,22 @@ export const SidebarProjectList: React.FC<SidebarProjectListProps> = ({
       <div className="overflow-y-auto flex-1 min-h-0">
         {isLoading ? (
           <SidebarProjectListSkeleton />
+        ) : hasLoadError ? (
+          <div className="px-3 py-1 text-[11px] text-slate-400 dark:text-gray-500">
+            <p>{t('navigation.projectsLoadError')}</p>
+            {onRetry && (
+              <button
+                type="button"
+                className="mt-2 font-semibold text-brand-600 transition-colors hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+                onClick={onRetry}
+              >
+                {t('common.retry')}
+              </button>
+            )}
+          </div>
         ) : projects.length === 0 ? (
           <p className="px-3 py-1 text-[11px] text-slate-400 dark:text-gray-500">
-            {t('navigation.noPinnedProjects')}
+            {t('navigation.noProjects')}
           </p>
         ) : (
           <div className="space-y-1">

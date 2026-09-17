@@ -13,12 +13,25 @@ const parseLastDeployed = (value: Project['lastDeployed']) => {
 
 export const useSidebarProjects = () => {
   const authUser = useAuthStore((s) => s.user);
+  const authLoading = useAuthStore((s) => s.isLoading);
   const allProjects = useProjectStore((s) => s.projects);
   const projectsLoading = useProjectStore((s) => s.isLoading);
+  const projectsLoaded = useProjectStore((s) => s.hasLoaded);
+  const projectsLoadError = useProjectStore((s) => s.loadError);
   const presenter = usePresenter();
   
-  const [pinnedProjectIds, setPinnedProjectIds] = useState<string[]>([]);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [profileProjects, setProfileProjects] = useState<{
+    userId: string;
+    pinnedProjectIds: string[];
+  } | null>(null);
+
+  const pinnedProjectIds = useMemo(
+    () =>
+      authUser && profileProjects?.userId === authUser.id
+        ? profileProjects.pinnedProjectIds
+        : [],
+    [authUser, profileProjects],
+  );
 
   const userProjects = useMemo(() => {
     if (!authUser) return [];
@@ -56,33 +69,24 @@ export const useSidebarProjects = () => {
   }, [pinnedProjects, recentProjects, pinnedProjectIds]);
 
   useEffect(() => {
-    if (!authUser) {
-      queueMicrotask(() => {
-        setPinnedProjectIds([]);
-        setIsLoadingProfile(false);
-      });
-      return;
-    }
-    
-    queueMicrotask(() => setIsLoadingProfile(true));
+    if (!authUser) return;
+
+    let active = true;
     void fetchMyProfile()
       .then((profile) => {
+        if (!active) return;
         const ids = profile.pinnedProjectIds || [];
-        setPinnedProjectIds(ids);
+        setProfileProjects({ userId: authUser.id, pinnedProjectIds: ids });
       })
       .catch(() => {
-        setPinnedProjectIds([]);
-      })
-      .finally(() => {
-        setIsLoadingProfile(false);
+        if (!active) return;
+        setProfileProjects({ userId: authUser.id, pinnedProjectIds: [] });
       });
-  }, [authUser]);
 
-  useEffect(() => {
-    if (authUser && allProjects.length === 0) {
-      presenter.project.loadProjects();
-    }
-  }, [authUser, allProjects.length, presenter.project]);
+    return () => {
+      active = false;
+    };
+  }, [authUser]);
 
   const handleTogglePin = async (e: React.MouseEvent, projectId: string) => {
     e.stopPropagation();
@@ -93,17 +97,34 @@ export const useSidebarProjects = () => {
       ? pinnedProjectIds.filter((id) => id !== projectId)
       : [...pinnedProjectIds, projectId];
     
-    setPinnedProjectIds(newPinnedIds);
+    setProfileProjects({
+      userId: authUser.id,
+      pinnedProjectIds: newPinnedIds,
+    });
 
     try {
       await updateMyProfile({ pinnedProjectIds: newPinnedIds });
     } catch (error) {
       console.error('Failed to update pinned projects', error);
-      setPinnedProjectIds(pinnedProjectIds);
+      setProfileProjects({
+        userId: authUser.id,
+        pinnedProjectIds,
+      });
     }
   };
 
-  const isLoading = isLoadingProfile || (authUser && projectsLoading && allProjects.length === 0);
+  const isLoadingProfile = Boolean(
+    authUser && profileProjects?.userId !== authUser.id,
+  );
+  const isLoading =
+    authLoading ||
+    isLoadingProfile ||
+    (!projectsLoaded && !projectsLoadError) ||
+    projectsLoading;
+
+  const retryProjects = () => {
+    void presenter.project.loadProjects();
+  };
 
   return {
     userProjects,
@@ -113,5 +134,7 @@ export const useSidebarProjects = () => {
     pinnedProjectIds,
     handleTogglePin,
     isLoading,
+    hasLoadError: Boolean(projectsLoadError && allProjects.length === 0),
+    retryProjects,
   };
 };

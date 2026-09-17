@@ -18,6 +18,7 @@ export class ProjectManager {
       actions.setProjects(response, false);
     } catch (error) {
       console.error("Failed to load projects", error);
+      actions.setLoadError('failed_to_load_projects');
     } finally {
       actions.setIsLoading(false);
     }
@@ -40,6 +41,7 @@ export class ProjectManager {
       actions.setProjects(response, true); // append=true
     } catch (error) {
       console.error("Failed to load more projects", error);
+      actions.setLoadError('failed_to_load_projects');
     } finally {
       actions.setIsLoading(false);
     }

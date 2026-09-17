@@ -11,6 +11,7 @@
     "edit": "编辑",
     "close": "关闭",
     "loading": "加载中...",
+    "retry": "重试",
     "pleaseWait": "请稍候...",
     "error": "错误",
     "success": "成功",
@@ -55,8 +56,10 @@
     "projects": "项目",
     "pinnedProjects": "置顶项目",
     "recentProjects": "最近项目",
+    "noProjects": "暂无项目",
     "noPinnedProjects": "暂无置顶项目",
     "noRecentProjects": "暂无最近项目",
+    "projectsLoadError": "项目加载失败",
     "pinProject": "置顶项目",
     "unpinProject": "取消置顶"
   },

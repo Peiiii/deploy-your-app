@@ -10,10 +10,13 @@ interface ProjectState {
     hasMore: boolean;
   };
   isLoading: boolean;
+  hasLoaded: boolean;
+  loadError: string | null;
   actions: {
     addProject: (project: Project) => void;
     setProjects: (response: PaginatedResponse<Project>, append?: boolean) => void;
     setIsLoading: (loading: boolean) => void;
+    setLoadError: (error: string | null) => void;
     reset: () => void;
   };
 }
@@ -27,6 +30,8 @@ export const useProjectStore = create<ProjectState>((set) => ({
     hasMore: false,
   },
   isLoading: false,
+  hasLoaded: false,
+  loadError: null,
   actions: {
     addProject: (project) => set((state) => ({
       projects: [project, ...state.projects],
@@ -37,6 +42,8 @@ export const useProjectStore = create<ProjectState>((set) => ({
     })),
     setProjects: (response, append = false) => set((state) => ({
       projects: append ? [...state.projects, ...response.items] : response.items,
+      hasLoaded: true,
+      loadError: null,
       pagination: {
         page: response.page,
         pageSize: response.pageSize,
@@ -44,10 +51,17 @@ export const useProjectStore = create<ProjectState>((set) => ({
         hasMore: response.page * response.pageSize < response.total,
       },
     })),
-    setIsLoading: (isLoading) => set({ isLoading }),
+    setIsLoading: (isLoading) => set({
+      isLoading,
+      ...(isLoading ? { loadError: null } : {}),
+    }),
+    setLoadError: (loadError) => set({ loadError }),
     reset: () => set({
       projects: [],
       pagination: { page: 0, pageSize: 50, total: 0, hasMore: false },
+      isLoading: false,
+      hasLoaded: false,
+      loadError: null,
     }),
   },
 }));

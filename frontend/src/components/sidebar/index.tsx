@@ -16,6 +16,8 @@ export const Sidebar: React.FC = () => {
     pinnedProjectIds,
     handleTogglePin,
     isLoading,
+    hasLoadError,
+    retryProjects,
   } = useSidebarProjects();
 
   return (
@@ -45,6 +47,8 @@ export const Sidebar: React.FC = () => {
               pinnedProjectIds={pinnedProjectIds}
               onTogglePin={handleTogglePin}
               isLoading={isLoading ?? false}
+              hasLoadError={hasLoadError}
+              onRetry={retryProjects}
             />
           )}
         </nav>

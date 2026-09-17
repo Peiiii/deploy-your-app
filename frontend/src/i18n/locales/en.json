@@ -11,6 +11,7 @@
     "edit": "Edit",
     "close": "Close",
     "loading": "Loading...",
+    "retry": "Retry",
     "pleaseWait": "Please wait…",
     "error": "Error",
     "success": "Success",
@@ -59,8 +60,10 @@
     "projects": "Projects",
     "pinnedProjects": "Pinned Projects",
     "recentProjects": "Recent Projects",
+    "noProjects": "No projects yet",
     "noPinnedProjects": "No pinned projects",
     "noRecentProjects": "No recent projects",
+    "projectsLoadError": "Failed to load projects",
     "pinProject": "Pin project",
     "unpinProject": "Unpin project"
   },

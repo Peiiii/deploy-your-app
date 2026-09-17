@@ -19,7 +19,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>(() => ({
   user: null,
-  isLoading: false,
+  isLoading: true,
   error: null,
   modalOpen: false,
   mode: 'login',
