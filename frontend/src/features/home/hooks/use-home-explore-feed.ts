@@ -7,6 +7,7 @@ import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { fetchExploreProjects } from '@/services/http/explore-api';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { type CategoryFilter, type SortOption } from '@/features/home/components/home-explore';
+import { PERFORMANCE_CONFIG } from '@/constants';
 
 export const useHomeExploreFeed = () => {
   const presenter = usePresenter();
@@ -126,7 +127,7 @@ export const useHomeExploreFeed = () => {
     targetRef: loadMoreRef,
     onLoadMore: handleLoadMoreExplore,
     enabled: hasMore && !isLoadingExplore && !isLoadingMore,
-    rootMargin: '400px',
+    rootMargin: PERFORMANCE_CONFIG.EXPLORE_PRELOAD_ROOT_MARGIN,
   });
 
   return {

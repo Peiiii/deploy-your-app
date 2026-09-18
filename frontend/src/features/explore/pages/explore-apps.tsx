@@ -9,6 +9,7 @@ import { useLayoutMode } from '@/hooks/use-layout-mode';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useAppPreviewPanel } from '@/hooks/use-app-preview-panel';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
+import { PERFORMANCE_CONFIG } from '@/constants';
 import { ExploreFeed } from '../components/explore-feed';
 
 
@@ -140,7 +141,7 @@ export const ExploreApps: React.FC = () => {
     targetRef: loadMoreRef,
     onLoadMore: presenter.explore.loadMore,
     enabled: !isFeedView && hasMore && !isLoading,
-    rootMargin: '400px',
+    rootMargin: PERFORMANCE_CONFIG.EXPLORE_PRELOAD_ROOT_MARGIN,
   });
 
   if (isFeedView) {
