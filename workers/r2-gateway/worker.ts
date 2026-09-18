@@ -1,5 +1,8 @@
 type R2ObjectLike = {
   body: ReadableStream | null;
+  httpMetadata?: {
+    contentType?: string;
+  };
   writeHttpMetadata?: (headers: Headers) => void;
   httpEtag?: string;
   // Actual R2 objects expose a `size` field; we include it here so we can
@@ -152,6 +155,26 @@ const serveCentralThumbnail = async (
   }
 
   const legacy = await env.ASSETS.get(`apps/${slug}/thumbnail.png`);
+  if (
+    legacy?.body
+    && legacy.httpMetadata?.contentType === 'image/webp'
+    && typeof legacy.size === 'number'
+    && legacy.size > 80
+    && legacy.size <= MAX_OPTIMIZED_THUMBNAIL_BYTES
+  ) {
+    await env.ASSETS.put(`apps/${slug}/thumbnail.webp`, legacy.body, {
+      httpMetadata: {
+        cacheControl: OPTIMIZED_THUMBNAIL_CACHE_CONTROL,
+        contentType: 'image/webp',
+      },
+    });
+    const promoted = await env.ASSETS.get(`apps/${slug}/thumbnail.webp`);
+    if (promoted) {
+      const response = createThumbnailResponse(promoted);
+      ctx.waitUntil(cache.put(cacheKey, response.clone()));
+      return response;
+    }
+  }
   ctx.waitUntil(
     generateOptimizedThumbnail(env, slug, rootDomain, Boolean(legacy)).catch((error) => {
       console.error(JSON.stringify({

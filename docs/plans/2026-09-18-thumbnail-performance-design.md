@@ -38,6 +38,9 @@ image into the standard 16:9 frame. Otherwise it captures the deployed app. It
 encodes WebP at decreasing quality until the result is at most 100 KB. Generation
 runs after the response; the first miss receives a lightweight branded SVG with a
 200 response instead of a broken image or a blocking 20-second screenshot job.
+Already-optimized WebP uploads are promoted directly in R2 without consuming a
+Browser Rendering session, so manual covers remain reliable during screenshot
+service rate limiting.
 
 The frontend eagerly loads only the first three cards, marks them high priority,
 and lazy-loads the rest. Every image has intrinsic dimensions and async decoding.

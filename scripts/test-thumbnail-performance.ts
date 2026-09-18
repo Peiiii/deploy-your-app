@@ -73,6 +73,42 @@ assert.match(placeholderResponse.headers.get('content-type') ?? '', /image\/svg\
 assert.equal(placeholderResponse.headers.get('x-gemigo-thumbnail'), 'generating');
 await Promise.all(waitUntilPromises.splice(0));
 
+let promoted = false;
+const uploadBytes = new Uint8Array(72 * 1024);
+const promotableEnv = {
+  APPS_ROOT_DOMAIN: 'gemigo.app',
+  ASSETS: {
+    get: async (key: string) => {
+      if (key.endsWith('thumbnail.webp') && !promoted) return null;
+      if (key.endsWith('thumbnail.webp') || key.endsWith('thumbnail.png')) {
+        return {
+          body: new Response(uploadBytes).body,
+          httpEtag: '"uploaded-webp"',
+          httpMetadata: { contentType: 'image/webp' },
+          size: uploadBytes.byteLength,
+          writeHttpMetadata: (headers: Headers) => headers.set('content-type', 'image/webp'),
+        };
+      }
+      return null;
+    },
+    put: async (key: string) => {
+      assert.equal(key, 'apps/uploaded-cover/thumbnail.webp');
+      promoted = true;
+      return null;
+    },
+  },
+};
+const promotedResponse = await gatewayHandler.fetch(
+  new Request('https://assets.gemigo.app/thumbnails/uploaded-cover.webp'),
+  promotableEnv as never,
+  executionContext as never,
+);
+assert.equal(promoted, true);
+assert.equal(promotedResponse.status, 200);
+assert.equal(promotedResponse.headers.get('content-type'), 'image/webp');
+assert.equal(promotedResponse.headers.get('content-length'), String(72 * 1024));
+await Promise.all(waitUntilPromises.splice(0));
+
 assert.equal(
   getProjectThumbnailUrl('https://demo-app.gemigo.app/'),
   'https://assets.gemigo.app/thumbnails/demo-app.webp',
