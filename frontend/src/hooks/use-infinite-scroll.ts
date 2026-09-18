@@ -1,6 +1,7 @@
 import { useMemoizedFn } from 'ahooks';
 import { useEffect } from 'react';
 import type { RefObject } from 'react';
+import { getScrollParent } from '@/utils/scroll';
 
 export interface UseInfiniteScrollOptions {
   targetRef: RefObject<Element | null>;
@@ -25,6 +26,7 @@ export function useInfiniteScroll({
 
     const target = targetRef.current;
     if (!target) return;
+    const observerRoot = root === undefined ? getScrollParent(target) : root;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -34,7 +36,7 @@ export function useInfiniteScroll({
           memoizedOnLoadMore();
         }
       },
-      { root: root ?? null, rootMargin, threshold },
+      { root: observerRoot, rootMargin, threshold },
     );
 
     observer.observe(target);

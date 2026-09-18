@@ -2,6 +2,7 @@ import { track } from '@/analytics/collector';
 /* eslint-disable react-refresh/only-export-components */
 import { getAuthorColor, getAuthorInitial, getAuthorName } from '../utils/author';
 import { PERFORMANCE_CONFIG } from '../constants';
+import { getScrollParent } from '../utils/scroll';
 import { Heart, Play } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -112,6 +113,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
     if (imagePriority || !app.thumbnailUrl || isNearViewport) return;
     const thumbnailArea = thumbnailAreaRef.current;
     if (!thumbnailArea || typeof IntersectionObserver === 'undefined') return;
+    const scrollRoot = getScrollParent(thumbnailArea);
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -120,6 +122,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
         observer.disconnect();
       },
       {
+        root: scrollRoot,
         rootMargin: PERFORMANCE_CONFIG.EXPLORE_PRELOAD_ROOT_MARGIN,
         threshold: 0,
       },

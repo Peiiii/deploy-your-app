@@ -190,6 +190,9 @@ const explorePageSource = await import('node:fs/promises').then((fs) =>
     'utf8',
   ),
 );
+const infiniteScrollSource = await import('node:fs/promises').then((fs) =>
+  fs.readFile(new URL('../frontend/src/hooks/use-infinite-scroll.ts', import.meta.url), 'utf8'),
+);
 const screenshotSource = await import('node:fs/promises').then((fs) =>
   fs.readFile(new URL('../workers/screenshot-service/worker.ts', import.meta.url), 'utf8'),
 );
@@ -202,6 +205,7 @@ assert.match(cardSource, /height=\{540\}/);
 assert.match(cardSource, /IntersectionObserver/);
 assert.match(cardSource, /shouldLoadThumbnail/);
 assert.match(cardSource, /PERFORMANCE_CONFIG\.EXPLORE_PRELOAD_ROOT_MARGIN/);
+assert.match(cardSource, /root: scrollRoot/);
 assert.match(
   homeExploreSource,
   /rootMargin: PERFORMANCE_CONFIG\.EXPLORE_PRELOAD_ROOT_MARGIN/,
@@ -210,6 +214,8 @@ assert.match(
   explorePageSource,
   /rootMargin: PERFORMANCE_CONFIG\.EXPLORE_PRELOAD_ROOT_MARGIN/,
 );
+assert.match(infiniteScrollSource, /getScrollParent\(target\)/);
+assert.match(infiniteScrollSource, /root: observerRoot/);
 assert.match(screenshotSource, /WEBP_QUALITY_STEPS/);
 
 console.log('thumbnail performance tests passed');
