@@ -1,6 +1,6 @@
 name = "gemigo-screenshot-service"
 main = "worker.ts"
-compatibility_date = "2025-01-01"
+compatibility_date = "2026-09-18"
 compatibility_flags = ["nodejs_compat"]
 
 # Cloudflare Browser Rendering binding.

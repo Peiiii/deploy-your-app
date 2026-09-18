@@ -5,6 +5,7 @@ import {
   resolvePublicAuthorIdentity,
   type PublicAuthorIdentity,
 } from '@gemigo/public-author';
+export { getProjectThumbnailUrl } from './thumbnail-url';
 const DEFAULT_CATEGORY = 'Other';
 
 export function formatRepoLabel(project: Project): string | null {
@@ -42,15 +43,6 @@ export function getDisplayRepoUrl(repoUrl: string): string {
     return repoUrl.replace(URLS.GITHUB_BASE, '');
   }
   return repoUrl;
-}
-
-export function getProjectThumbnailUrl(projectUrl: string | undefined): string | null {
-  if (!projectUrl) return null;
-  try {
-    return new URL('__thumbnail.png', projectUrl).toString();
-  } catch {
-    return null;
-  }
 }
 
 export function getProjectLiveUrl(project: Project): string | null {

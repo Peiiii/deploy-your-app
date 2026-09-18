@@ -3,6 +3,7 @@ import { useProjectStore } from '@/stores/project.store';
 import type { Project } from '@/types';
 import type { ProjectManager } from '@/managers/project.manager';
 import type { UIManager } from '@/managers/ui.manager';
+import { prepareThumbnailUpload } from '@/utils/thumbnail';
 
 /**
  * Handles thumbnail upload operations for project settings.
@@ -31,7 +32,8 @@ export class ThumbnailHandler {
         actions.setIsUploadingThumbnail(true);
 
         try {
-            await this.projectManager.uploadThumbnail(project.id, file);
+            const optimizedFile = await prepareThumbnailUpload(file);
+            await this.projectManager.uploadThumbnail(project.id, optimizedFile);
             actions.bumpThumbnailVersion();
             this.uiManager.showSuccessToast('Thumbnail uploaded successfully.');
         } catch (err) {

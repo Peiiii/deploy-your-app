@@ -238,12 +238,13 @@ export const ExploreApps: React.FC = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {apps.map((app) => (
+              {apps.map((app, index) => (
                 <ExploreAppCardView
                   key={app.id}
                   app={app}
                   activeTag={activeTag}
                   setActiveTag={handleSetActiveTag}
+                  imagePriority={index < 3}
                   onCardClick={() => openAppPreview(app)}
                 />
               ))}

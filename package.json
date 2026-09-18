@@ -47,6 +47,7 @@
     "test:public-author": "./server/node_modules/.bin/tsx scripts/test-public-author.ts",
     "test:deployment-metadata": "./server/node_modules/.bin/tsx scripts/test-deployment-metadata-policy.ts",
     "test:deployment-metadata:http": "./server/node_modules/.bin/tsx scripts/test-deployment-metadata-http.ts",
+    "test:thumbnail-performance": "./server/node_modules/.bin/tsx scripts/test-thumbnail-performance.ts",
     "backfill:project-metadata": "./server/node_modules/.bin/tsx scripts/backfill-project-metadata.ts"
   },
   "devDependencies": {

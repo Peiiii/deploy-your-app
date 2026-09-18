@@ -81,11 +81,13 @@ interface ExploreAppCardViewProps {
   app: ExploreAppCard;
   activeTag: string | null;
   setActiveTag: React.Dispatch<React.SetStateAction<string | null>>;
+  imagePriority?: boolean;
   onCardClick?: () => void;
 }
 
 export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   app,
+  imagePriority = false,
   onCardClick,
 }) => {
   const presenter = usePresenter();
@@ -116,6 +118,11 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
           <img
             src={app.thumbnailUrl}
             alt={app.name}
+            width={960}
+            height={540}
+            loading={imagePriority ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchPriority={imagePriority ? 'high' : 'low'}
             className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${thumbLoaded ? 'opacity-100' : 'opacity-0'
               }`}
             onLoad={() => setThumbLoaded(true)}

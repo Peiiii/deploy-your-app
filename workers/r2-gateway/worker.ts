@@ -9,6 +9,7 @@ type R2ObjectLike = {
 
 type R2PutOptionsLike = {
   httpMetadata?: {
+    cacheControl?: string;
     contentType?: string;
   };
 };
@@ -37,6 +38,129 @@ type Env = {
   ANALYTICS_INGEST_SECRET?: string;
 };
 
+const OPTIMIZED_THUMBNAIL_CACHE_CONTROL =
+  'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800';
+const THUMBNAIL_PLACEHOLDER_CACHE_CONTROL = 'public, max-age=5, s-maxage=5';
+const MAX_OPTIMIZED_THUMBNAIL_BYTES = 100 * 1024;
+const CENTRAL_THUMBNAIL_HOST = 'assets';
+const CENTRAL_THUMBNAIL_PATH = /^\/thumbnails\/([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)\.webp$/;
+
+const createThumbnailResponse = (thumb: R2ObjectLike): Response => {
+  const headers = new Headers();
+  if (typeof thumb.writeHttpMetadata === 'function') {
+    thumb.writeHttpMetadata(headers);
+  }
+  if (thumb.httpEtag) {
+    headers.set('etag', thumb.httpEtag);
+  }
+  headers.set('cache-control', OPTIMIZED_THUMBNAIL_CACHE_CONTROL);
+  headers.set('content-type', 'image/webp');
+  headers.set('x-content-type-options', 'nosniff');
+  headers.set('x-gemigo-gateway', 'r2');
+  headers.set('access-control-allow-origin', '*');
+  if (typeof thumb.size === 'number') {
+    headers.set('content-length', String(thumb.size));
+  }
+  return new Response(thumb.body, { headers });
+};
+
+const createThumbnailPlaceholder = (slug: string): Response => {
+  const initial = slug.charAt(0).toUpperCase();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="${slug} preview"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2563eb"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs><rect width="960" height="540" rx="28" fill="url(#g)"/><circle cx="480" cy="270" r="112" fill="#fff" opacity=".12"/><text x="480" y="306" text-anchor="middle" font-family="system-ui,sans-serif" font-size="144" font-weight="700" fill="#fff" opacity=".9">${initial}</text></svg>`;
+  return new Response(svg, {
+    status: 200,
+    headers: {
+      'access-control-allow-origin': '*',
+      'cache-control': THUMBNAIL_PLACEHOLDER_CACHE_CONTROL,
+      'content-type': 'image/svg+xml; charset=utf-8',
+      'x-content-type-options': 'nosniff',
+      'x-gemigo-thumbnail': 'generating',
+    },
+  });
+};
+
+const generateOptimizedThumbnail = async (
+  env: Env,
+  slug: string,
+  rootDomain: string,
+  hasLegacyThumbnail: boolean,
+): Promise<void> => {
+  if (!env.SCREENSHOT_SERVICE_URL) return;
+
+  const targetUrl = `https://${slug}.${rootDomain}/`;
+  const screenshotResp = await fetch(env.SCREENSHOT_SERVICE_URL, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      ...(env.SCREENSHOT_SERVICE_TOKEN
+        ? { authorization: `Bearer ${env.SCREENSHOT_SERVICE_TOKEN}` }
+        : {}),
+    },
+    body: JSON.stringify({
+      url: targetUrl,
+      ...(hasLegacyThumbnail
+        ? { imageUrl: `https://${slug}.${rootDomain}/__thumbnail.png` }
+        : {}),
+      format: 'webp',
+      maxBytes: MAX_OPTIMIZED_THUMBNAIL_BYTES,
+    }),
+  });
+
+  if (!screenshotResp.ok) {
+    throw new Error(`Optimized thumbnail generation failed with ${screenshotResp.status}`);
+  }
+
+  const declaredLength = Number(screenshotResp.headers.get('content-length') || 0);
+  if (declaredLength > MAX_OPTIMIZED_THUMBNAIL_BYTES) {
+    throw new Error(`Optimized thumbnail is too large: ${declaredLength} bytes`);
+  }
+
+  const buffer = await screenshotResp.arrayBuffer();
+  if (buffer.byteLength <= 80 || buffer.byteLength > MAX_OPTIMIZED_THUMBNAIL_BYTES) {
+    throw new Error(`Invalid optimized thumbnail size: ${buffer.byteLength} bytes`);
+  }
+
+  await env.ASSETS.put(`apps/${slug}/thumbnail.webp`, buffer, {
+    httpMetadata: {
+      cacheControl: OPTIMIZED_THUMBNAIL_CACHE_CONTROL,
+      contentType: 'image/webp',
+    },
+  });
+};
+
+const serveCentralThumbnail = async (
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+  slug: string,
+  rootDomain: string,
+): Promise<Response> => {
+  const cache = caches.default;
+  const cacheKey = new Request(request.url, { method: 'GET' });
+  const cached = await cache.match(cacheKey);
+  if (cached) return cached;
+
+  const optimized = await env.ASSETS.get(`apps/${slug}/thumbnail.webp`);
+  if (optimized) {
+    const response = createThumbnailResponse(optimized);
+    ctx.waitUntil(cache.put(cacheKey, response.clone()));
+    return response;
+  }
+
+  const legacy = await env.ASSETS.get(`apps/${slug}/thumbnail.png`);
+  ctx.waitUntil(
+    generateOptimizedThumbnail(env, slug, rootDomain, Boolean(legacy)).catch((error) => {
+      console.error(JSON.stringify({
+        message: 'Failed to generate optimized thumbnail',
+        slug,
+        error: error instanceof Error ? error.message : String(error),
+      }));
+    }),
+  );
+
+  return createThumbnailPlaceholder(slug);
+};
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -62,6 +186,13 @@ export default {
       return new Response('R2 bucket binding "ASSETS" is not configured', {
         status: 500,
       });
+    }
+
+    if (subdomain === CENTRAL_THUMBNAIL_HOST && request.method === 'GET') {
+      const match = CENTRAL_THUMBNAIL_PATH.exec(url.pathname);
+      if (match) {
+        return serveCentralThumbnail(request, env, ctx, match[1], rootDomain);
+      }
     }
 
     // Thumbnail endpoint: /__thumbnail.png on the app subdomain.

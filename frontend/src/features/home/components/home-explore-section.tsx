@@ -242,12 +242,13 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
       ) : apps.length > 0 ? (
         <div>
           <div className={`grid ${compact ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-6`}>
-            {apps.map((app) => (
+            {apps.map((app, index) => (
               <ExploreAppCardView
                 key={app.id}
                 app={app}
                 activeTag={activeTag}
                 setActiveTag={setActiveTag}
+                imagePriority={index < 3}
                 onCardClick={() => onCardClick(app)}
               />
             ))}
