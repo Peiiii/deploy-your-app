@@ -72,7 +72,9 @@ const METADATA_SYSTEM_PROMPT =
   MARKETPLACE_CATEGORIES.map((c) => `- ${c}`).join('\n') +
   '\n' +
   '"tags" must be an array of 1-5 short, lowercase keywords (no spaces).\n' +
-  '"description" should explain the app in <= 160 characters and avoid fluff.\n' +
+  '"description" should accurately explain the app in <= 160 characters and avoid fluff.\n' +
+  'Base the description on the supplied source context. Do not invent features or expand ambiguous name tokens when the source does not support them.\n' +
+  'Write the description in the primary language used by the app content.\n' +
   '"slug" must contain only lowercase letters, numbers, or hyphens and be 3-64 characters. If a slug seed is provided, adapt it.';
 
 function buildMetadataUserPrompt(
@@ -160,6 +162,7 @@ class AIService {
 
     const body = {
       model,
+      temperature: 0,
       // Qwen structured output requires non-thinking mode.
       ...(model === 'qwen3.8-flash' ? { enable_thinking: false } : {}),
       messages: [

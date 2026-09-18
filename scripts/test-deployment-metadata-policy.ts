@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { DeploymentMetadataPolicy } from '../workers/api/src/services/deployment-metadata-policy.ts';
 import { SourceType, type Project } from '../workers/api/src/types/project.ts';
+import { buildInlineHtmlContext } from '../workers/api/src/services/metadata.service.ts';
 import * as frontendProjectUtils from '../frontend/src/utils/project.ts';
 import type { Project as FrontendProject } from '../frontend/src/types.ts';
 
@@ -113,6 +114,15 @@ const htmlFallbackPatch = policy.buildPatch(
 assert.equal(
   htmlFallbackPatch.description,
   'Garden Planner — Plan crop rotations and harvest schedules.',
+);
+
+const aiHtmlContext = buildInlineHtmlContext(
+  '<html><head><title>Garden Planner</title><style>.fake{content:"Clash"}</style></head><body><main>Plan crop rotations and harvest schedules.</main><script>inventFeature("casino")</script></body></html>',
+);
+assert.equal(
+  aiHtmlContext,
+  'Garden Planner\nPlan crop rotations and harvest schedules.',
+  'AI context must prioritize visible app content and exclude scripts/styles',
 );
 
 const legacyFallback = projectUtils.buildProjectDescription({

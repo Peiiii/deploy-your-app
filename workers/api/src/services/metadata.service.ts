@@ -59,10 +59,42 @@ function deriveSlugSeed(
   return fallback;
 }
 
-function buildInlineHtmlContext(htmlContent?: string): string | undefined {
+export function buildInlineHtmlContext(
+  htmlContent?: string,
+): string | undefined {
   if (!htmlContent) return undefined;
-  const normalized = trimWhitespace(htmlContent);
-  return normalized.length > 0 ? normalized.slice(0, 2000) : undefined;
+
+  const title = htmlContent
+    .match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1]
+    ?.replace(/<[^>]+>/g, ' ');
+  const metaDescription = (htmlContent.match(/<meta\b[^>]*>/gi) ?? [])
+    .map((tag) => {
+      const name = tag
+        .match(/\b(?:name|property)=["']([^"']+)["']/i)?.[1]
+        ?.toLowerCase();
+      if (name !== 'description' && name !== 'og:description') return '';
+      return tag.match(/\bcontent=["']([^"']+)["']/i)?.[1] ?? '';
+    })
+    .find(Boolean);
+  const bodyHtml =
+    htmlContent.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i)?.[1] ??
+    htmlContent.replace(/<head\b[^>]*>[\s\S]*?<\/head>/gi, ' ');
+  const visibleBody = bodyHtml
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<svg\b[^>]*>[\s\S]*?<\/svg>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
+  const normalized = [title, metaDescription, visibleBody]
+    .map((value) => trimWhitespace(value ?? ''))
+    .filter(Boolean)
+    .join('\n');
+  return normalized.length > 0 ? normalized.slice(0, 4000) : undefined;
 }
 
 interface MetadataRequestInput {
