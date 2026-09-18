@@ -24,6 +24,8 @@
     <link rel="canonical" href="https://gemigo.io" />
     <link rel="dns-prefetch" href="//assets.gemigo.app" />
     <link rel="preconnect" href="https://assets.gemigo.app" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     
     <!-- Multilingual Support (English as default) -->
     <link rel="alternate" hreflang="en" href="https://gemigo.io" />
@@ -96,72 +98,10 @@
     }
     </script>
 
-    <!-- Tailwind for rapid UI styling (CDN for MVP) -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              mono: ['JetBrains Mono', 'monospace'],
-            },
-            colors: {
-              brand: {
-                50: '#f5f3ff',
-                100: '#ede9fe',
-                200: '#ddd6fe',
-                300: '#c4b5fd',
-                400: '#a78bfa',
-                500: '#8b5cf6',
-                600: '#7c3aed',
-                700: '#6d28d9',
-                800: '#5b21b6',
-                900: '#4c1d95',
-                950: '#2e1065',
-              },
-              app: {
-                bg: 'var(--bg-main)',
-                surface: 'var(--bg-surface)',
-                surfaceHighlight: 'var(--bg-highlight)',
-                border: 'var(--border-main)',
-                borderHighlight: 'var(--border-highlight)',
-                text: 'var(--text-main)',
-                muted: 'var(--text-muted)',
-              },
-              accent: {
-                glow: '#8b5cf6',
-              },
-            },
-            animation: {
-              'fade-in': 'fadeIn 0.5s ease-out forwards',
-              'slide-up': 'slideUp 0.5s ease-out forwards',
-              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              scan: 'scan 2s linear infinite',
-            },
-            keyframes: {
-              fadeIn: {
-                '0%': { opacity: '0' },
-                '100%': { opacity: '1' },
-              },
-              slideUp: {
-                '0%': { opacity: '0', transform: 'translateY(10px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              },
-              scan: {
-                '0%': { top: '0%' },
-                '100%': { top: '100%' },
-              },
-            },
-          },
-        },
-      };
-    </script>
     <style>
       :root {
         --bg-main: #f8fafc;
