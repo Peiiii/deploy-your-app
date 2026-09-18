@@ -151,7 +151,14 @@ export default {
       });
 
     } catch (error: unknown) {
-      return new Response(`截图失败: ${getErrorMessage(error)}`, { status: 500 });
+      const message = getErrorMessage(error);
+      console.error(JSON.stringify({
+        message: 'Screenshot generation failed',
+        error: message,
+        format,
+        hasImageSource: Boolean(imageUrl),
+      }));
+      return new Response(`截图失败: ${message}`, { status: 500 });
     } finally {
       if (browser) {
         await browser.close();
