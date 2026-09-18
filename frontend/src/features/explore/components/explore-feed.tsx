@@ -483,9 +483,11 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                         >
                             {authorHeadline}
                         </h3>
-                        <p className="text-sm text-gray-200 line-clamp-2 mb-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                            {app.description}
-                        </p>
+                        {app.description && (
+                            <p className="text-sm text-gray-200 line-clamp-2 mb-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                                {app.description}
+                            </p>
+                        )}
                     </div>
                 </div>
 

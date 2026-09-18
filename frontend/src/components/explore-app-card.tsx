@@ -151,9 +151,11 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
           <h3 className="text-sm font-semibold text-slate-900 dark:text-white line-clamp-1 leading-snug group-hover:text-brand-600 transition-colors">
             {app.name}
           </h3>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
-            {app.description}
-          </p>
+          {app.description && (
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
+              {app.description}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center justify-between mt-1">

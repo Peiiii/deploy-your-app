@@ -37,11 +37,23 @@
 **Files:**
 - Modify: `frontend/src/utils/project.ts`
 
-1. Replace the universal fallback sentence with a project-specific description.
-2. Prefer category and tags where present and always include the project name.
-3. Keep the fallback presentation-only so a later redeploy can still persist an AI description.
+1. Remove synthetic descriptions; an empty stored description must render no copy.
+2. Hide the description element when no genuine description exists.
+3. Keep source-derived fallback only in the deployment persistence path.
 
-### Task 4: Verify and release
+### Task 4: Make the Worker the AI source of truth
+
+**Files:**
+- Create: `workers/api/src/controllers/analysis.controller.ts`
+- Modify: `workers/api/src/routes.ts`
+- Create: `scripts/backfill-project-metadata.ts`
+
+1. Route `/api/v1/analyze` through the Worker's metadata service and Cloudflare Secret.
+2. Validate production AI with a non-mutating request that requires a description, category, and tags.
+3. Add a dry-run-first maintenance script that reads only missing live projects.
+4. Preserve all existing user-authored fields during explicit `--apply` backfills.
+
+### Task 5: Verify and release
 
 **Files:**
 - Modify: `package.json`

@@ -45,7 +45,8 @@
     "test:analytics": "node scripts/test-analytics-collector.mjs && ./server/node_modules/.bin/tsx scripts/test-product-analytics.ts",
     "test:public-author": "./server/node_modules/.bin/tsx scripts/test-public-author.ts",
     "test:deployment-metadata": "./server/node_modules/.bin/tsx scripts/test-deployment-metadata-policy.ts",
-    "test:deployment-metadata:http": "./server/node_modules/.bin/tsx scripts/test-deployment-metadata-http.ts"
+    "test:deployment-metadata:http": "./server/node_modules/.bin/tsx scripts/test-deployment-metadata-http.ts",
+    "backfill:project-metadata": "./server/node_modules/.bin/tsx scripts/backfill-project-metadata.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

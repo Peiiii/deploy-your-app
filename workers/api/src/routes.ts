@@ -14,6 +14,7 @@ import { sdkAuthController } from './controllers/sdk-auth.controller';
 import { sdkCloudController } from './controllers/sdk-cloud.controller';
 import { cloudDbSettingsController } from './controllers/cloud-db-settings.controller';
 import { communityController } from './controllers/community.controller';
+import { analysisController } from './controllers/analysis.controller';
 
 /**
  * Build the API router for a given request/environment.
@@ -47,7 +48,7 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   router.add({
     path: '/api/v1/analyze',
     method: 'POST',
-    handler: (req) => deployController.analyzeSource(req, env),
+    handler: (req) => analysisController.analyzeSource(req, env),
   });
 
   router.add({

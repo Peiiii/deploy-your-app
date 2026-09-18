@@ -121,16 +121,17 @@ const legacyFallback = projectUtils.buildProjectDescription({
 } as unknown as FrontendProject);
 assert.equal(
   legacyFallback,
-  'Garden Planner is a web app, deployed with GemiGo.',
+  '',
+  'missing descriptions must stay empty instead of displaying invented copy',
 );
-assert.notEqual(
+assert.equal(
   projectUtils.buildProjectDescription({
     ...incompleteWithSlug,
     name: 'Budget Helper',
     sourceType: undefined,
   } as unknown as FrontendProject),
   legacyFallback,
-  'legacy cards without stored descriptions must still be project-specific',
+  'changing the project name must not turn a template into a description',
 );
 
 console.log('OK: deployment metadata enrichment policy regression checks passed.');
