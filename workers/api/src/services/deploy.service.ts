@@ -6,6 +6,7 @@ import { aiService } from './ai.service';
 import { deploymentMetadataPolicy } from './deployment-metadata-policy';
 import { extractSseEvents } from '../utils/sse-parser';
 import { slugify } from '../utils/strings';
+import { deploymentRepository } from '../repositories/deployment.repository';
 import {
     SourceType,
     type Project,
@@ -18,6 +19,9 @@ export interface DeployInput {
     zipData?: string;
     htmlContent?: string;
     analysisId?: string;
+    flowId?: string;
+    clientChannel: 'web' | 'desktop' | 'extension' | 'cli' | 'api';
+    sourceFilename?: string;
 }
 
 /**
@@ -38,8 +42,26 @@ class DeployService {
             zipData: typeof raw.zipData === 'string' ? raw.zipData : undefined,
             htmlContent: typeof raw.htmlContent === 'string' ? raw.htmlContent : undefined,
             analysisId: typeof raw.analysisId === 'string' ? raw.analysisId : undefined,
+            flowId:
+                typeof raw.deploymentFlowId === 'string' &&
+                /^[a-f0-9-]{36}$/i.test(raw.deploymentFlowId)
+                    ? raw.deploymentFlowId
+                    : undefined,
+            clientChannel: this.parseClientChannel(raw.clientChannel),
+            sourceFilename:
+                typeof raw.sourceFilename === 'string'
+                    ? raw.sourceFilename.slice(0, 255)
+                    : undefined,
         };
     }
+
+    private parseClientChannel = (
+        value: unknown,
+    ): DeployInput['clientChannel'] => {
+        return ['web', 'desktop', 'extension', 'cli', 'api'].includes(String(value))
+            ? (value as DeployInput['clientChannel'])
+            : 'web';
+    };
 
     private parseSourceType(value: unknown): SourceType | undefined {
         if (typeof value !== 'string') return undefined;
@@ -322,6 +344,8 @@ class DeployService {
         db: D1Database,
         deploymentId: string,
         projectId: string,
+        attemptId: string,
+        startedAtMs: number,
     ): Promise<void> {
         try {
             deployProxyService.injectLog(deploymentId, 'Worker monitoring deployment status...', 'info');
@@ -344,7 +368,7 @@ class DeployService {
                 for (const payloadStr of events) {
                     try {
                         const payload: DeploymentStatusPayload = JSON.parse(payloadStr);
-                        if (await this.handleStatusPayload(env, db, projectId, payload)) {
+                        if (await this.handleStatusPayload(env, db, projectId, attemptId, startedAtMs, payload)) {
                             deployProxyService.injectLog(deploymentId, 'Deployment status updated successfully', 'success');
                             return;
                         }
@@ -357,6 +381,17 @@ class DeployService {
             const errorMessage = err instanceof Error ? err.message : String(err);
             console.error('[DeployService] Monitor failed:', err);
             deployProxyService.injectLog(deploymentId, `Worker monitoring error: ${errorMessage}`, 'error');
+            await deploymentRepository.finishAttempt(
+                db,
+                attemptId,
+                'failed',
+                new Date().toISOString(),
+                Date.now() - startedAtMs,
+                'monitor_error',
+            );
+            await projectService.updateProjectDeployment(db, projectId, {
+                status: 'Failed',
+            });
         }
     }
 
@@ -364,6 +399,8 @@ class DeployService {
         env: ApiWorkerEnv,
         db: D1Database,
         projectId: string,
+        attemptId: string,
+        startedAtMs: number,
         payload: DeploymentStatusPayload,
     ): Promise<boolean> {
         if (payload.type !== 'status') return false;
@@ -392,14 +429,28 @@ class DeployService {
                 lastDeployed: new Date().toISOString(),
                 ...(meta.url && { url: meta.url }),
             });
+            await deploymentRepository.finishAttempt(
+                db,
+                attemptId,
+                'succeeded',
+                new Date().toISOString(),
+                Date.now() - startedAtMs,
+            );
             return true;
         }
 
         if (payload.status === 'FAILED') {
             await projectService.updateProjectDeployment(db, projectId, {
                 status: 'Failed',
-                lastDeployed: new Date().toISOString(),
             });
+            await deploymentRepository.finishAttempt(
+                db,
+                attemptId,
+                'failed',
+                new Date().toISOString(),
+                Date.now() - startedAtMs,
+                'builder_failed',
+            );
             return true;
         }
 

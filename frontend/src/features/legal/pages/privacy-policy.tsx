@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 
 export const PrivacyPolicyPage: React.FC = () => {
-  const lastUpdated = '2026-09-17';
+  const lastUpdated = '2026-09-18';
 
   const defaultLang = useMemo<'zh' | 'en'>(() => {
     try {
@@ -51,7 +51,7 @@ export const PrivacyPolicyPage: React.FC = () => {
         <main className="mt-10 space-y-8 leading-7 text-slate-700">
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-slate-900">{isZh ? '网站使用分析' : 'Website usage analytics'}</h2>
-            <p>{isZh ? '我们以匿名浏览器标识记录页面类别、功能操作、设备类别、来源类别和部署结果，用于改进产品。数据批量发送，保留 30 天，仅独立管理站的授权管理员可查看。不会记录邮箱、表单内容、搜索词、代码、密钥或带参数的原始网址。浏览器启用 Do Not Track 时停止采集。' : 'We use anonymous browser identifiers to measure page categories, feature usage, device and referral categories, and deployment outcomes. Events are sent in batches, retained for 30 days, and accessible only to authorized administrators. We do not record email addresses, form contents, search terms, code, secrets, or raw URLs with parameters. Collection stops when your browser enables Do Not Track.'}</p>
+            <p>{isZh ? '我们以匿名浏览器标识记录页面类别、功能操作、设备类别、来源类别、UTM 渠道和部署结果，用于改进产品。产品事件明细保留 30 天，日级聚合最多保留 90 天，仅独立管理站的授权管理员可查看。应用访问诊断只保存每日轮换的不可逆匿名哈希、粗粒度浏览器类别、来源域名和机器人分类，不保存原始 IP、完整 User-Agent 或完整来源网址。不会记录邮箱、表单内容、搜索词、代码、密钥或带参数的原始网址。浏览器启用 Do Not Track 时停止主站产品事件采集。' : 'We use anonymous browser identifiers to measure page categories, feature usage, device and referral categories, UTM channels, and deployment outcomes. Raw product events are retained for 30 days and daily aggregates for up to 90 days, accessible only to authorized administrators. App-traffic diagnostics store only daily rotating irreversible hashes, coarse browser categories, referral hostnames, and bot classifications; they do not store raw IP addresses, full User-Agent strings, or full referral URLs. We do not record email addresses, form contents, search terms, code, secrets, or raw URLs with parameters. Main-site product event collection stops when your browser enables Do Not Track.'}</p>
           </section>
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-slate-900">

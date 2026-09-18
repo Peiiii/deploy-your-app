@@ -1,5 +1,7 @@
 export interface ApiWorkerEnv {
   ANALYTICS_DB?: D1Database;
+  /** Shared Worker secret authenticating privacy-safe app traffic pings. */
+  ANALYTICS_INGEST_SECRET?: string;
   PROJECTS_DB: D1Database;
   APPS_ROOT_DOMAIN?: string;
   DEPLOY_TARGET?: string;

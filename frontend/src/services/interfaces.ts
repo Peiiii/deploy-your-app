@@ -48,6 +48,7 @@ export interface IProjectProvider {
       deployTarget?: Project['deployTarget'];
       providerUrl?: string;
       cloudflareProjectName?: string;
+      deploymentFlowId?: string;
     },
   ): Promise<Project>;
   uploadThumbnail(id: string, file: File): Promise<void>;
@@ -59,6 +60,7 @@ export interface IDeploymentProvider {
     project: Project,
     onLog: (log: BuildLog) => void,
     onStatusChange: (status: DeploymentStatus) => void,
+    context: { flowId: string; clientChannel: NonNullable<Project['clientChannel']>; sourceFilename?: string },
   ): Promise<DeploymentResult | undefined>;
 }
 

@@ -28,6 +28,19 @@ export const storeTelemetry = async (request: Request, response: Response, env: 
     if (path === '/api/v1/auth/email/login' && success) event = 'login_success';
     if (path === '/api/v1/auth/email/signup' && success) event = 'signup_success';
   }
-  if (event) batch.events.push(makeServerEvent(event, batch.events[batch.events.length - 1]?.page || (path.includes('auth') ? 'other' : 'project')));
+  if (event) {
+    const flowId =
+      [...batch.events].reverse().find((item) => item.name === 'deployment_start')?.flowId ??
+      request.headers.get('x-gemigo-flow-id') ??
+      undefined;
+    batch.events.push(
+      makeServerEvent(
+        event,
+        batch.events[batch.events.length - 1]?.page ||
+          (path.includes('auth') ? 'other' : 'project'),
+        flowId,
+      ),
+    );
+  }
   await collect(env.ANALYTICS_DB, batch, { signedIn: Boolean(session) || event === 'login_success' || event === 'signup_success', admin: Boolean(session && configService.isAdminUser(session.user, env)) }, path === '/api/v1/telemetry' ? 'standalone' : 'piggyback');
 };

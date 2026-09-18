@@ -10,7 +10,12 @@ export class HttpDeploymentProvider implements IDeploymentProvider {
   async startDeployment(
     project: Project,
     onLog: (log: BuildLog) => void,
-    onStatusChange: (status: DeploymentStatus) => void
+    onStatusChange: (status: DeploymentStatus) => void,
+    context: {
+      flowId: string;
+      clientChannel: NonNullable<Project['clientChannel']>;
+      sourceFilename?: string;
+    },
   ): Promise<DeploymentResult | undefined> {
     
     // Step 1: Trigger the build job
@@ -19,8 +24,16 @@ export class HttpDeploymentProvider implements IDeploymentProvider {
     try {
       const startResponse = await fetch(`${this.baseUrl}${API_ROUTES.DEPLOY}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(project)
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Gemigo-Flow-Id': context.flowId,
+        },
+        body: JSON.stringify({
+          ...project,
+          deploymentFlowId: context.flowId,
+          clientChannel: context.clientChannel,
+          ...(context.sourceFilename ? { sourceFilename: context.sourceFilename } : {}),
+        })
       });
 
       if (!startResponse.ok) throw new Error("Failed to start deployment job");

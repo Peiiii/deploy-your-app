@@ -59,13 +59,14 @@ export class DeploymentExecutor {
     projectId: string,
     status: 'Building' | 'Live' | 'Failed',
     url?: string,
+    deploymentFlowId?: string,
   ): Promise<void> => {
     if (projectId === 'temp') return;
 
     await this.projectManager.updateProjectDeployment(projectId, {
       status,
-      lastDeployed: new Date().toISOString(),
       ...(url ? { url } : {}),
+      ...(deploymentFlowId ? { deploymentFlowId } : {}),
     });
   };
 
@@ -145,7 +146,7 @@ export class DeploymentExecutor {
     this.initializeDeploymentStore(project, zipFile);
 
     // Update project status to Building
-    await this.updateProjectStatus(project.id, 'Building');
+    await this.updateProjectStatus(project.id, 'Building', undefined, flowId);
 
     try {
       // Validate and prepare data
@@ -159,19 +160,24 @@ export class DeploymentExecutor {
         payload,
         (log) => actions.addLog(log),
         (status) => actions.setDeploymentStatus(status),
+        {
+          flowId,
+          clientChannel: 'web',
+          ...(zipFile?.name ? { sourceFilename: zipFile.name } : {}),
+        },
       );
 
       // Update project status to Live
       deploymentCompleted = true;
       track('deployment_success', { flowId, durationMs: Date.now() - startedAt });
-      await this.updateProjectStatus(project.id, 'Live', result?.metadata?.url);
+      await this.updateProjectStatus(project.id, 'Live', result?.metadata?.url, flowId);
       return result;
     } catch (e) {
       if (!deploymentCompleted) track('deployment_failure', { flowId, durationMs: Date.now() - startedAt });
       console.error('Deployment failed', e);
       const actions = useDeploymentStore.getState().actions;
       actions.setDeploymentStatus(DeploymentStatus.FAILED);
-      await this.updateProjectStatus(project.id, 'Failed');
+      await this.updateProjectStatus(project.id, 'Failed', undefined, flowId);
       throw e;
     }
   };

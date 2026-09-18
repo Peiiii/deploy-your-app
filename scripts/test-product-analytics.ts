@@ -5,7 +5,7 @@ import { parseFilter } from '../packages/product-analytics/src/repository';
 import { verifyPassword, passwordHash } from '../workers/admin/src/auth';
 const now = Date.now();
 const event = { id: crypto.randomUUID(), name: 'page_view', at: now, page: 'home' };
-const batch = { visitorId: crypto.randomUUID(), sessionId: crypto.randomUUID(), device: 'desktop', referrer: 'direct', events: [event] };
+const batch = { visitorId: crypto.randomUUID(), sessionId: crypto.randomUUID(), device: 'desktop', referrer: 'direct', channel: 'web', events: [event] } as const;
 assert.deepEqual(parseBatch({ ...batch, email: 'private@example.com', events: [{ ...event, code: 'secret', email: 'private@example.com' }] }), batch);
 for (const invalid of [{ ...batch, events: [{ ...event, name: 'login_success' }] }, { ...batch, events: [{ ...event, dimension: 'private@example.com' }] }, { ...batch, events: Array(21).fill(event) }, { ...batch, events: [{ ...event, page: '/u/private@example.com' }] }, { ...batch, events: [{ ...event, at: now - 2 * 86400000 }] }]) assert.throws(() => parseBatch(invalid));
 assert.equal(normalizePage('/u/private@example.com?secret=abc'), 'creator');

@@ -51,9 +51,18 @@ export interface Project {
   // prepared work directory between the metadata analysis step and the
   // actual deployment step.
   analysisId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  lastSuccessAt?: string;
   // Optional base64-encoded ZIP content for one-off deployments when sourceType === 'zip'.
   // This is only used for the deployment job and is not persisted in the project list.
   zipData?: string;
+  /** Correlates browser, API and deployment history events. */
+  deploymentFlowId?: string;
+  /** Coarse client surface; never contains a user identifier. */
+  clientChannel?: 'web' | 'desktop' | 'extension' | 'cli' | 'api';
+  /** File name is reduced to its extension by the API before persistence. */
+  sourceFilename?: string;
   lastDeployed: string;
   status: 'Live' | 'Building' | 'Failed' | 'Offline';
   url?: string;

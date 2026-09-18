@@ -137,6 +137,8 @@ class ProjectService {
       // timestamp (used for sorting) but mark the project as Offline until a
       // deployment run reports success.
       lastDeployed: now,
+      createdAt: now,
+      updatedAt: now,
       status: 'Offline',
       url,
       description: metadata.description,
@@ -175,6 +177,8 @@ class ProjectService {
       sourceType: undefined,
       slug: uniqueSlug,
       lastDeployed: now,
+      createdAt: now,
+      updatedAt: now,
       status: 'Offline',
       url: undefined,
       description: undefined,
@@ -230,6 +234,7 @@ class ProjectService {
       localization?: ProjectLocalization;
       isPublic?: boolean;
       isExtensionSupported?: boolean;
+      sourceType?: SourceType;
     },
   ): Promise<Project | null> {
     const existing = await projectRepository.getProjectById(db, id);
@@ -296,6 +301,7 @@ class ProjectService {
       deployTarget?: Project['deployTarget'];
       providerUrl?: string;
       cloudflareProjectName?: string;
+      sourceType?: SourceType;
     },
   ): Promise<Project | null> {
     return projectRepository.updateProjectDeploymentRecord(db, id, patch);

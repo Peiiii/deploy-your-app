@@ -57,6 +57,9 @@ class ProjectRepository {
           source_type TEXT,
           slug TEXT,
           analysis_id TEXT,
+          created_at TEXT,
+          updated_at TEXT,
+          last_success_at TEXT,
           last_deployed TEXT NOT NULL,
           status TEXT NOT NULL,
           url TEXT,
@@ -167,6 +170,32 @@ class ProjectRepository {
       // Ignore error if column already exists.
     }
 
+    for (const column of [
+      'created_at TEXT',
+      'updated_at TEXT',
+      'last_success_at TEXT',
+    ]) {
+      try {
+        await db.prepare(`ALTER TABLE projects ADD COLUMN ${column}`).run();
+      } catch {
+        // Ignore error if column already exists.
+      }
+    }
+
+    await db
+      .prepare(
+        `UPDATE projects
+         SET created_at = COALESCE(created_at, last_deployed),
+             updated_at = COALESCE(updated_at, last_deployed),
+             last_success_at = CASE
+               WHEN last_success_at IS NULL AND status = 'Live' THEN last_deployed
+               ELSE last_success_at
+             END
+         WHERE created_at IS NULL OR updated_at IS NULL
+            OR (last_success_at IS NULL AND status = 'Live')`,
+      )
+      .run();
+
     // Tombstone table to remember which slugs have ever been used, so that
     // future projects cannot reuse them even after hard deletion.
     await db
@@ -236,6 +265,14 @@ class ProjectRepository {
       slug: typeof row.slug === 'string' ? row.slug : undefined,
       analysisId:
         typeof row.analysis_id === 'string' ? row.analysis_id : undefined,
+      createdAt:
+        typeof row.created_at === 'string' ? row.created_at : undefined,
+      updatedAt:
+        typeof row.updated_at === 'string' ? row.updated_at : undefined,
+      lastSuccessAt:
+        typeof row.last_success_at === 'string'
+          ? row.last_success_at
+          : undefined,
       lastDeployed: String(row.last_deployed),
       status: (row.status as Project['status']) ?? 'Live',
       url: typeof row.url === 'string' ? row.url : undefined,
@@ -277,10 +314,11 @@ class ProjectRepository {
     const row = await db
       .prepare(
         `INSERT INTO projects (
-          id, name, repo_url, source_type, slug, analysis_id, last_deployed, status,
+          id, name, repo_url, source_type, slug, analysis_id, created_at, updated_at,
+          last_success_at, last_deployed, status,
           url, description, default_locale, localized_metadata, framework, category, tags, deploy_target, provider_url,
           cloudflare_project_name, html_content, owner_id, is_public, is_deleted, is_extension_supported
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
         RETURNING *`,
       )
       .bind(
@@ -290,6 +328,9 @@ class ProjectRepository {
         input.sourceType ?? null,
         input.slug ?? null,
         input.analysisId ?? null,
+        input.createdAt ?? input.lastDeployed,
+        input.updatedAt ?? input.createdAt ?? input.lastDeployed,
+        input.lastSuccessAt ?? null,
         input.lastDeployed,
         input.status,
         input.url ?? null,
@@ -514,6 +555,7 @@ class ProjectRepository {
       localization?: ProjectLocalization;
       isPublic?: boolean;
       isExtensionSupported?: boolean;
+      sourceType?: SourceType;
     },
   ): Promise<Project | null> {
     await this.ensureSchema(db);
@@ -571,6 +613,15 @@ class ProjectRepository {
       statements.push('is_extension_supported = ?');
       params.push(patch.isExtensionSupported ? 1 : 0);
     }
+    if (patch.sourceType !== undefined) {
+      statements.push('source_type = ?');
+      params.push(patch.sourceType);
+    }
+
+    if (statements.length > 0) {
+      statements.push('updated_at = ?');
+      params.push(new Date().toISOString());
+    }
 
     if (statements.length === 0) {
       const row = await db
@@ -600,6 +651,7 @@ class ProjectRepository {
       deployTarget?: Project['deployTarget'];
       providerUrl?: string;
       cloudflareProjectName?: string;
+      sourceType?: SourceType;
     },
   ): Promise<Project | null> {
     await this.ensureSchema(db);
@@ -629,6 +681,25 @@ class ProjectRepository {
     if (patch.cloudflareProjectName !== undefined) {
       statements.push('cloudflare_project_name = ?');
       params.push(patch.cloudflareProjectName);
+    }
+    if (patch.sourceType !== undefined) {
+      statements.push('source_type = ?');
+      params.push(patch.sourceType);
+    }
+
+    if (statements.length > 0) {
+      const now = new Date().toISOString();
+      statements.push('updated_at = ?');
+      params.push(now);
+      if (patch.status === 'Live') {
+        const successAt = patch.lastDeployed ?? now;
+        statements.push('last_success_at = ?');
+        params.push(successAt);
+        if (patch.lastDeployed === undefined) {
+          statements.push('last_deployed = ?');
+          params.push(successAt);
+        }
+      }
     }
 
     if (statements.length === 0) {

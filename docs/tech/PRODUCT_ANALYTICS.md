@@ -19,7 +19,7 @@
 3. 主站现有 Pages 转发层意味着一次补报最多涉及 Pages 与 API 两次 Worker 调用；六次浏览器补报不宣称等于六次 Cloudflare 调用。捎带没有新增 HTTP 请求。
 4. 每天最多预留 2000 个事件，每浏览器最多 200。超限整批丢弃；去重和写入失败不会返还预留预算。实际 D1 写入还包括索引、额度行等写放大。
 5. SQLite 完成报表聚合，避免把大量数据放入免费 Worker 的 JavaScript 内存/CPU。报表缓存 15 分钟；无自动轮询；读取前保守预留额度，每日最高 100 万行，额度不足时要求缩小日期或等下一天。
-6. 每日定时删除 30 天以前事件及过期会话/限额行。本系统预算不是 Cloudflare 全账户剩余额度。
+6. 每日先把即将删除的事件写入日级聚合，再删除 30 天以前明细；日级聚合保留 90 天。同步清理过期会话、限额、访问去重键，并把超过 24 小时仍在 Building 的项目/部署标记失败。本系统预算不是 Cloudflare 全账户剩余额度。
 7. 关闭采集后数据库停止接收事件；浏览器在下次已有请求收到策略后清空队列并停止补报，可通过后续业务请求恢复配置，无额外轮询。
 
 Cloudflare 免费账户的 D1 数据库名额已满，因此使用 `gemigo-projects` 物理实例中的独立分析表。管理 Worker 查询只面向分析及独立会话表，不调用主站身份服务，不使用主站 cookie。后续可迁移到独立 D1，只需迁移这些表并更换两个 Worker 的 ANALYTICS_DB 绑定。
@@ -37,10 +37,13 @@ pnpm admin:password
 
 `admin:password` 隐藏输入新密码并撤销所有旧管理会话，不影响主站用户。首次部署使用 `python3 scripts/configure-admin.py --generate` 自动生成高强度密码并保存本地凭据。不要把 `.dev.vars` 或凭据文件加入 Git。
 
-数据库首次迁移：
+数据库迁移按文件名顺序执行：
 
 ```sh
 pnpm exec wrangler d1 execute gemigo-projects --remote -c workers/admin/wrangler.jsonc --file packages/product-analytics/migrations/0001.sql
+pnpm exec wrangler d1 execute gemigo-projects --remote -c workers/admin/wrangler.jsonc --file packages/product-analytics/migrations/0002_attribution_and_rollups.sql
+pnpm exec wrangler d1 execute gemigo-projects --remote -c workers/api/wrangler.toml --file workers/api/migrations/0001_customer_analytics_foundation.sql
+pnpm exec wrangler d1 execute gemigo-projects --remote -c workers/api/wrangler.toml --file workers/api/migrations/0002_privacy_safe_app_traffic.sql
 ```
 
 事件合同与查询公共接口由 `packages/product-analytics` 唯一维护。新增功能时添加语义事件/允许的维度、在具体交互或确认结果处接入，再补充对应测试。禁止直接采集 DOM 文本、搜索词、邮箱、代码、密钥或原始 URL。

@@ -22,6 +22,7 @@ import { getSessionIdFromRequest } from '../utils/auth';
 import { authRepository } from '../repositories/auth.repository';
 import { configService } from '../services/config.service';
 import { normalizeProjectLocalization } from '../utils/project-localization';
+import { deploymentRepository } from '../repositories/deployment.repository';
 
 /**
  * ProjectsController - Handles HTTP requests for project CRUD operations.
@@ -245,12 +246,21 @@ class ProjectsController {
     const body = await readJson(request);
     const status = validateOptionalString(body.status);
     const deployTarget = validateOptionalString(body.deployTarget);
+    const deploymentFlowId = validateOptionalString(body.deploymentFlowId);
 
     if (status && !['Live', 'Building', 'Failed', 'Offline'].includes(status)) {
       throw new ValidationError('status must be one of: Live, Building, Failed, Offline');
     }
     if (deployTarget && !['local', 'cloudflare', 'r2'].includes(deployTarget)) {
       throw new ValidationError('deployTarget must be one of: local, cloudflare, r2');
+    }
+    if (
+      deploymentFlowId &&
+      !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(
+        deploymentFlowId,
+      )
+    ) {
+      throw new ValidationError('deploymentFlowId must be a UUID');
     }
 
     const patch = {
@@ -268,6 +278,16 @@ class ProjectsController {
 
     const updated = await projectService.updateProjectDeployment(db, id, patch);
     if (!updated) throw new NotFoundError('Project not found');
+    if (deploymentFlowId && (status === 'Live' || status === 'Failed')) {
+      await deploymentRepository.finishAttemptByFlow(
+        db,
+        id,
+        deploymentFlowId,
+        status === 'Live' ? 'succeeded' : 'failed',
+        new Date().toISOString(),
+        status === 'Failed' ? 'client_observed_failure' : undefined,
+      );
+    }
     return jsonResponse(updated);
   }
 

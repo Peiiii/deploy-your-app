@@ -8,6 +8,7 @@ import {
   reserve,
 } from '@gemigo/product-analytics';
 import { authenticated, createSession, hash, logout, verifyPassword, type AdminEnv } from './auth';
+import { maintenanceService } from './maintenance';
 
 const json = (value: unknown, status = 200, extra: HeadersInit = {}) =>
   new Response(JSON.stringify(value), {
@@ -114,6 +115,7 @@ export default {
   },
   scheduled: async (_controller: ScheduledController, env: AdminEnv) => {
     await cleanupAnalytics(env.ANALYTICS_DB);
+    await maintenanceService.runDaily(env.ANALYTICS_DB);
     await env.ANALYTICS_DB.prepare('DELETE FROM admin_sessions WHERE expires_at < ?')
       .bind(Date.now())
       .run();

@@ -105,6 +105,7 @@ export class HttpProjectProvider implements IProjectProvider {
       deployTarget?: Project['deployTarget'];
       providerUrl?: string;
       cloudflareProjectName?: string;
+      deploymentFlowId?: string;
     },
   ): Promise<Project> {
     const response = await fetch(

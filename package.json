@@ -43,6 +43,7 @@
     "deploy:admin": "pnpm build:admin && pnpm --filter @gemigo/admin-worker deploy",
     "admin:password": "python3 scripts/configure-admin.py",
     "test:analytics": "node scripts/test-analytics-collector.mjs && ./server/node_modules/.bin/tsx scripts/test-product-analytics.ts",
+    "test:customer-analytics": "./server/node_modules/.bin/tsx scripts/test-customer-analytics-foundation.ts",
     "test:public-author": "./server/node_modules/.bin/tsx scripts/test-public-author.ts",
     "test:deployment-metadata": "./server/node_modules/.bin/tsx scripts/test-deployment-metadata-policy.ts",
     "test:deployment-metadata:http": "./server/node_modules/.bin/tsx scripts/test-deployment-metadata-http.ts",

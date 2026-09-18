@@ -437,9 +437,9 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
 
   router.add({
     path: '/api/v1/analytics/ping/:slug',
-    method: 'GET',
-    handler: (_req, params) =>
-      analyticsController.pingPageView(requireDb(), params.slug),
+    method: 'POST',
+    handler: (req, params) =>
+      analyticsController.pingPageView(req, env, requireDb(), params.slug),
   });
 
   router.add({

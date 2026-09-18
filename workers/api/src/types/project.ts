@@ -40,6 +40,9 @@ export interface Project {
   sourceType?: SourceType;
   slug?: string;
   analysisId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  lastSuccessAt?: string;
   lastDeployed: string;
   status: DeploymentStatus;
   url?: string;
@@ -84,6 +87,9 @@ export interface CreateProjectRecordInput {
   sourceType?: SourceType;
   slug?: string;
   analysisId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  lastSuccessAt?: string;
   lastDeployed: string;
   status: DeploymentStatus;
   url?: string;

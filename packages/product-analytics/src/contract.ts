@@ -35,6 +35,7 @@ export const EVENTS = {
 } as const;
 export type EventName = keyof typeof EVENTS;
 export type Device = 'desktop' | 'mobile' | 'tablet';
+export type ClientChannel = 'web' | 'desktop' | 'extension' | 'cli' | 'api';
 export const PAGES = [
   'home',
   'explore',
@@ -98,8 +99,17 @@ export interface EventBatch {
   sessionId: string;
   device: Device;
   referrer: 'direct' | 'search' | 'social' | 'github' | 'other';
+  channel: ClientChannel;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
   events: ProductEvent[];
 }
+const parseAttribution = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined;
+  const normalized = value.trim().toLowerCase();
+  return /^[a-z0-9._+-]{1,80}$/.test(normalized) ? normalized : undefined;
+};
 export const normalizePage = (path: string): PageName => {
   const clean = path.split('?')[0].replace(/\/+$/, '') || '/';
   if (clean === '/') return 'home';
@@ -123,6 +133,9 @@ export const parseBatch = (value: unknown, now = Date.now()): EventBatch => {
     throw new Error('Invalid device');
   if (!['direct', 'search', 'social', 'github', 'other'].includes(String(b.referrer)))
     throw new Error('Invalid referrer');
+  const channel = b.channel === undefined ? 'web' : String(b.channel);
+  if (!['web', 'desktop', 'extension', 'cli', 'api'].includes(channel))
+    throw new Error('Invalid channel');
   if (!Array.isArray(b.events) || b.events.length > 20) throw new Error('Expected 0–20 events');
   const events = b.events.map((raw): ProductEvent => {
     if (!raw || typeof raw !== 'object') throw new Error('Invalid event');
@@ -168,6 +181,12 @@ export const parseBatch = (value: unknown, now = Date.now()): EventBatch => {
     sessionId: b.sessionId,
     device: b.device as Device,
     referrer: b.referrer as EventBatch['referrer'],
+    channel: channel as ClientChannel,
+    ...(parseAttribution(b.utmSource) ? { utmSource: parseAttribution(b.utmSource) } : {}),
+    ...(parseAttribution(b.utmMedium) ? { utmMedium: parseAttribution(b.utmMedium) } : {}),
+    ...(parseAttribution(b.utmCampaign)
+      ? { utmCampaign: parseAttribution(b.utmCampaign) }
+      : {}),
     events,
   };
 };

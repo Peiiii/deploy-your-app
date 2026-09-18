@@ -9,7 +9,7 @@ export const insertEvents = async (db: D1Database, batch: EventBatch, actor: Act
     batch.events.map((e) =>
       db
         .prepare(
-          `INSERT OR IGNORE INTO product_events (id,name,at,received_at,visitor_id,session_id,page,dimension,duration_ms,flow_id,device,referrer,signed_in,is_admin,source) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+          `INSERT OR IGNORE INTO product_events (id,name,at,received_at,visitor_id,session_id,page,dimension,duration_ms,flow_id,device,referrer,client_channel,utm_source,utm_medium,utm_campaign,signed_in,is_admin,source) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
         )
         .bind(
           e.id,
@@ -24,6 +24,10 @@ export const insertEvents = async (db: D1Database, batch: EventBatch, actor: Act
           e.flowId ?? null,
           batch.device,
           batch.referrer,
+          batch.channel,
+          batch.utmSource ?? null,
+          batch.utmMedium ?? null,
+          batch.utmCampaign ?? null,
           Number(actor.signedIn),
           Number(actor.admin),
           EVENTS[e.name][2]
@@ -32,9 +36,32 @@ export const insertEvents = async (db: D1Database, batch: EventBatch, actor: Act
   );
 };
 export const cleanupAnalytics = async (db: D1Database) => {
+  const now = Date.now();
+  const rawCutoff = now - 30 * 86400000;
+  const aggregateCutoff = now - 90 * 86400000;
   await db.batch([
-    db.prepare('DELETE FROM product_events WHERE at < ?').bind(Date.now() - 30 * 86400000),
-    db.prepare('DELETE FROM product_event_limits WHERE expires_at < ?').bind(Date.now()),
+    db
+      .prepare(
+        `INSERT INTO product_event_daily (
+          day, name, dimension, device, referrer, client_channel,
+          utm_source, utm_medium, utm_campaign, events, visitors, sessions
+        )
+        SELECT strftime('%Y-%m-%d', at / 1000, 'unixepoch'), name,
+          COALESCE(dimension, ''), device, referrer, client_channel,
+          COALESCE(utm_source, ''), COALESCE(utm_medium, ''), COALESCE(utm_campaign, ''),
+          COUNT(*), COUNT(DISTINCT visitor_id), COUNT(DISTINCT session_id)
+        FROM product_events
+        WHERE at < ? AND at >= ?
+        GROUP BY 1,2,3,4,5,6,7,8,9
+        ON CONFLICT(day,name,dimension,device,referrer,client_channel,utm_source,utm_medium,utm_campaign)
+        DO UPDATE SET events=excluded.events, visitors=excluded.visitors, sessions=excluded.sessions`,
+      )
+      .bind(rawCutoff, aggregateCutoff),
+    db.prepare('DELETE FROM product_events WHERE at < ?').bind(rawCutoff),
+    db.prepare('DELETE FROM product_event_daily WHERE day < ?').bind(
+      new Date(aggregateCutoff).toISOString().slice(0, 10),
+    ),
+    db.prepare('DELETE FROM product_event_limits WHERE expires_at < ?').bind(now),
   ]);
 };
 export interface AnalyticsFilter {
@@ -109,7 +136,10 @@ export const queryEventDetails = async (db: D1Database, filter: AnalyticsFilter,
     db.prepare(`SELECT COUNT(*) total FROM product_events WHERE ${condition}`).bind(...values),
     db
       .prepare(
-        `SELECT id,name,at,page,dimension,duration_ms durationMs,flow_id flowId,source,session_id sessionId,device,signed_in signedIn FROM product_events WHERE ${condition} ORDER BY at DESC,id DESC LIMIT ? OFFSET ?`
+        `SELECT id,name,at,page,dimension,duration_ms durationMs,flow_id flowId,source,
+          session_id sessionId,device,client_channel clientChannel,utm_source utmSource,
+          utm_medium utmMedium,utm_campaign utmCampaign,signed_in signedIn
+         FROM product_events WHERE ${condition} ORDER BY at DESC,id DESC LIMIT ? OFFSET ?`
       )
       .bind(...values, limit, (page - 1) * limit),
   ]);
@@ -122,5 +152,12 @@ export const queryEventDetails = async (db: D1Database, filter: AnalyticsFilter,
 };
 export const makeServerEvent = (
   name: ProductEvent['name'],
-  page: ProductEvent['page']
-): ProductEvent => ({ id: crypto.randomUUID(), name, page, at: Date.now() });
+  page: ProductEvent['page'],
+  flowId?: string,
+): ProductEvent => ({
+  id: crypto.randomUUID(),
+  name,
+  page,
+  at: Date.now(),
+  ...(flowId ? { flowId } : {}),
+});

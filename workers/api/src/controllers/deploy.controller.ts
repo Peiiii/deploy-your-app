@@ -7,6 +7,7 @@ import { authRepository } from '../repositories/auth.repository';
 import { projectService } from '../services/project.service';
 import { deployService } from '../services/deploy.service';
 import { deployProxyService } from '../services/deploy-proxy.service';
+import { deploymentRepository } from '../repositories/deployment.repository';
 
 /**
  * DeployController - Handles HTTP requests for deployment operations.
@@ -75,12 +76,58 @@ class DeployController {
       deployTarget,
     );
 
+    const attemptId = crypto.randomUUID();
+    const startedAtMs = Date.now();
+    const startedAt = new Date(startedAtMs).toISOString();
+    await deploymentRepository.createAttempt(db, {
+      id: attemptId,
+      projectId: project.id,
+      ownerId: user.id,
+      flowId: input.flowId,
+      sourceType,
+      clientChannel: input.clientChannel,
+      fileExtension: this.getFileExtension(input.sourceFilename),
+      payloadBytes: input.zipData
+        ? Math.floor((input.zipData.length * 3) / 4)
+        : htmlContent
+          ? new TextEncoder().encode(htmlContent).byteLength
+          : undefined,
+      startedAt,
+    });
+    await projectService.updateProject(db, project.id, { sourceType });
+    await projectService.updateProjectDeployment(db, project.id, {
+      status: 'Building',
+      sourceType,
+    });
+
     const forwardBody = input.zipData ? { ...payload, zipData: input.zipData } : payload;
-    const response = await deployProxyService.proxyJson(env, request, '/deploy', forwardBody);
+    let response: Response;
+    try {
+      response = await deployProxyService.proxyJson(env, request, '/deploy', forwardBody);
+    } catch (error) {
+      await deploymentRepository.finishAttempt(
+        db,
+        attemptId,
+        'rejected',
+        new Date().toISOString(),
+        Date.now() - startedAtMs,
+        'upstream_unreachable',
+      );
+      await projectService.updateProjectDeployment(db, project.id, {
+        status: 'Failed',
+      });
+      throw error;
+    }
 
     // 8. Start background monitoring and inject enrichment logs
     const deploymentId = await deployProxyService.parseDeploymentId(response);
     if (deploymentId) {
+      await deploymentRepository.markAccepted(
+        db,
+        attemptId,
+        deploymentId,
+        new Date().toISOString(),
+      );
       // Inject enrichment debug logs (will be queued if stream not yet created)
       if (enrichResult.debugLogs.length > 0) {
         const logHeader = '═══ Project Enrichment Debug ═══';
@@ -93,11 +140,36 @@ class DeployController {
         deployProxyService.injectLog(deploymentId, '═══════════════════════════════', 'info');
       }
 
-      void deployService.monitorDeployment(env, db, deploymentId, project.id);
+      void deployService.monitorDeployment(
+        env,
+        db,
+        deploymentId,
+        project.id,
+        attemptId,
+        startedAtMs,
+      );
+    } else {
+      await deploymentRepository.finishAttempt(
+        db,
+        attemptId,
+        'rejected',
+        new Date().toISOString(),
+        Date.now() - startedAtMs,
+        `upstream_${response.status}`,
+      );
+      await projectService.updateProjectDeployment(db, project.id, {
+        status: 'Failed',
+      });
     }
 
     return response;
   }
+
+  private getFileExtension = (filename?: string): string | undefined => {
+    if (!filename) return undefined;
+    const match = filename.toLowerCase().match(/\.([a-z0-9]{1,10})$/);
+    return match?.[1];
+  };
 
   /**
    * POST /api/v1/analyze

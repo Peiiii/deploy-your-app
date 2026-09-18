@@ -1,4 +1,7 @@
-import { analyticsRepository } from '../repositories/analytics.repository';
+import {
+  analyticsRepository,
+  type PageViewSignal,
+} from '../repositories/analytics.repository';
 import type { Project } from '../types/project';
 
 export interface ProjectDailyStatsPoint {
@@ -19,14 +22,9 @@ class AnalyticsService {
     db: D1Database,
     slug: string,
     timestamp: Date,
-  ): Promise<void> {
-    const date = timestamp.toISOString().slice(0, 10); // YYYY-MM-DD
-    await analyticsRepository.incrementPageView(
-      db,
-      slug,
-      date,
-      timestamp.toISOString(),
-    );
+    signal: PageViewSignal,
+  ): Promise<boolean> {
+    return analyticsRepository.recordPageView(db, slug, timestamp, signal);
   }
 
   async getProjectStatsForSlug(

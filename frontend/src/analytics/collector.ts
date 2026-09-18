@@ -21,6 +21,13 @@ const storage = (key: string, fallback: string, session = false) => {
 };
 const visitorId = storage('visitor', crypto.randomUUID());
 const sessionId = storage('session', crypto.randomUUID(), true);
+const attributionValue = (name: string) => {
+  const value = new URL(location.href).searchParams.get(name)?.trim().toLowerCase();
+  return value && /^[a-z0-9._+-]{1,80}$/.test(value) ? value : undefined;
+};
+const utmSource = storage('utm_source', attributionValue('utm_source') || '', true) || undefined;
+const utmMedium = storage('utm_medium', attributionValue('utm_medium') || '', true) || undefined;
+const utmCampaign = storage('utm_campaign', attributionValue('utm_campaign') || '', true) || undefined;
 const queue: ProductEvent[] = [];
 let installed = false;
 let collectionEnabled = true;
@@ -49,6 +56,10 @@ const envelope = (events: ProductEvent[]): EventBatch => ({
   sessionId,
   device: innerWidth < 768 ? 'mobile' : innerWidth < 1024 ? 'tablet' : 'desktop',
   referrer: referrer(),
+  channel: 'web',
+  ...(utmSource ? { utmSource } : {}),
+  ...(utmMedium ? { utmMedium } : {}),
+  ...(utmCampaign ? { utmCampaign } : {}),
   events,
 });
 export const track = (
