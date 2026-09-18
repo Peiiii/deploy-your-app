@@ -9,6 +9,7 @@ import { MyProfileManager } from '@/features/profile/managers/my-profile.manager
 import { DashboardManager } from '@/features/dashboard/managers/dashboard.manager';
 import { PublicProfileManager } from '@/features/profile/managers/public-profile.manager';
 import { ExploreManager } from '@/features/explore/managers/explore.manager';
+import { CommunityManager } from '@/features/community/managers/community.manager';
 import { ServiceFactory } from './services/service-factory';
 
 // The Presenter now uses the Factory to get dependencies.
@@ -26,6 +27,7 @@ export class Presenter {
   dashboard: DashboardManager;
   publicProfile: PublicProfileManager;
   explore: ExploreManager;
+  community: CommunityManager;
 
   constructor() {
     // 1. Get Providers via Factory (Configuration driven)
@@ -56,6 +58,7 @@ export class Presenter {
     this.dashboard = new DashboardManager(this.ui, this.auth);
     this.publicProfile = new PublicProfileManager(this.auth, this.reaction);
     this.explore = new ExploreManager(this.auth, this.ui, this.reaction);
+    this.community = new CommunityManager(this.auth, this.ui);
   }
 }
 

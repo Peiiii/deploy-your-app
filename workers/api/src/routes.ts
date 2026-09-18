@@ -13,6 +13,7 @@ import { commentsController } from './controllers/comments.controller';
 import { sdkAuthController } from './controllers/sdk-auth.controller';
 import { sdkCloudController } from './controllers/sdk-cloud.controller';
 import { cloudDbSettingsController } from './controllers/cloud-db-settings.controller';
+import { communityController } from './controllers/community.controller';
 
 /**
  * Build the API router for a given request/environment.
@@ -530,6 +531,57 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     method: 'DELETE',
     handler: (req, params) =>
       commentsController.deleteComment(req, env, requireDb(), params.id),
+  });
+
+  // -----------------
+  // Feedback community routes
+  // -----------------
+
+  router.add({
+    path: '/api/v1/community/feedback',
+    method: 'GET',
+    handler: (req) => communityController.listPosts(req, env, requireDb()),
+  });
+
+  router.add({
+    path: '/api/v1/community/feedback',
+    method: 'POST',
+    handler: (req) => communityController.createPost(req, env, requireDb()),
+  });
+
+  router.add({
+    path: '/api/v1/community/feedback/:id/status',
+    method: 'PATCH',
+    handler: (req, params) =>
+      communityController.updateStatus(req, env, requireDb(), params.id),
+  });
+
+  router.add({
+    path: '/api/v1/community/feedback/:id',
+    method: 'DELETE',
+    handler: (req, params) =>
+      communityController.deletePost(req, env, requireDb(), params.id),
+  });
+
+  router.add({
+    path: '/api/v1/community/feedback/:id/comments',
+    method: 'GET',
+    handler: (req, params) =>
+      communityController.listComments(req, env, requireDb(), params.id),
+  });
+
+  router.add({
+    path: '/api/v1/community/feedback/:id/comments',
+    method: 'POST',
+    handler: (req, params) =>
+      communityController.createComment(req, env, requireDb(), params.id),
+  });
+
+  router.add({
+    path: '/api/v1/community/comments/:id',
+    method: 'DELETE',
+    handler: (req, params) =>
+      communityController.deleteComment(req, env, requireDb(), params.id),
   });
 
   // -----------------

@@ -47,6 +47,7 @@
   "navigation": {
     "home": "首页",
     "exploreApps": "探索应用",
+    "community": "反馈",
     "deployApp": "部署应用",
     "dashboard": "仪表板",
     "profile": "我的主页",
@@ -62,6 +63,109 @@
     "projectsLoadError": "项目加载失败",
     "pinProject": "置顶项目",
     "unpinProject": "取消置顶"
+  },
+  "community": {
+    "title": "反馈",
+    "hubEyebrow": "GemiGo 用户共创计划",
+    "hubTitle": "无论你在哪里，都能参与我们下一步的创造",
+    "hubDescription": "加入适合你的 GemiGo 社群，与开发者和其他创作者直接交流。中文用户可以在微信里讨论，海外用户可以在 Discord 相遇；需要持续跟进的问题，可以提交为私密反馈帖。",
+    "benefits": {
+      "direct": "与团队直接交流",
+      "earlyAccess": "提前体验新功能",
+      "shapeProduct": "参与产品决策"
+    },
+    "chooseChannel": "选择适合你的社群",
+    "chooseChannelDescription": "两个社群服务不同地区的用户，你可以根据日常使用习惯选择。",
+    "channels": {
+      "recommended": "为你推荐",
+      "unavailable": "入口即将开放",
+      "wechat": {
+        "region": "中国大陆",
+        "title": "加入微信群",
+        "description": "适合国内用户的即时交流空间，分享作品、反馈问题，也可以直接聊聊你正在做什么。",
+        "action": "使用微信扫码加入",
+        "qrAlt": "GemiGo 微信群二维码",
+        "unavailableHint": "群二维码配置后将在这里显示"
+      },
+      "discord": {
+        "region": "Global Community",
+        "title": "Join Discord",
+        "description": "面向全球创作者的英文社区，交流部署经验、展示作品并参与功能讨论。",
+        "value": "Meet makers from around the world, share what you build, and help shape GemiGo.",
+        "action": "打开 Discord"
+      }
+    },
+    "sharedFeedbackTitle": "一个统一的产品反馈入口",
+    "sharedFeedbackDescription": "把建议、问题或使用疑问提交为一个反馈帖。你可以在帖子下继续回复补充，团队也会在同一条时间线里回应并更新处理状态。",
+    "privateNotice": "仅你和 GemiGo 团队可见",
+    "signedOut": {
+      "title": "把反馈发成一篇私密帖子",
+      "description": "登录后写下标题和正文即可提交。你可以随时回来查看状态，并在帖子下继续回复。",
+      "action": "登录并提交"
+    },
+    "myFeedback": {
+      "title": "我的反馈",
+      "description": "查看自己提交的反馈帖、处理状态和后续回复。",
+      "empty": "你还没有提交反馈。遇到问题或有新想法时，可以从上方创建一条私密反馈帖。"
+    },
+    "adminInbox": {
+      "title": "反馈收件箱",
+      "description": "管理员视图 · 查看全部私密反馈，点击回复数量即可展开对话。普通用户只能看到自己的反馈。",
+      "empty": "暂时没有符合条件的反馈。"
+    },
+    "heroEyebrow": "与 GemiGo 一起共建",
+    "heroTitle": "你的声音，决定我们下一步做什么",
+    "heroDescription": "提出建议、报告问题，或询问使用方法。每一条反馈都只对你和 GemiGo 团队可见。",
+    "feedbackCount": "条反馈帖",
+    "newFeedback": "提交反馈",
+    "signInPrompt": "登录后即可提交并查看自己的反馈。",
+    "feedbackPublished": "反馈帖已提交，你可以在“我的反馈”中继续回复。",
+    "statusUpdated": "反馈状态已更新。",
+    "anonymous": "社区用户",
+    "you": "你",
+    "filterStatus": "按处理状态筛选",
+    "allStatuses": "全部状态",
+    "categories": {
+      "general": "未分类",
+      "idea": "功能建议",
+      "bug": "问题反馈",
+      "question": "使用疑问"
+    },
+    "statuses": {
+      "open": "待评估",
+      "planned": "已规划",
+      "in_progress": "进行中",
+      "completed": "已完成"
+    },
+    "composer": {
+      "title": "提交反馈帖",
+      "description": "写下标题和正文即可，之后还可以继续回复补充。",
+      "privacy": "仅你和 GemiGo 团队可见",
+      "titleLabel": "标题",
+      "titlePlaceholder": "例如：希望部署完成后可以收到通知",
+      "categoryLabel": "类型（可选）",
+      "categoryNone": "不选择",
+      "contentLabel": "正文",
+      "contentPlaceholder": "你遇到了什么？为什么这件事对你很重要？理想结果是什么？",
+      "contentHint": "请勿提交密码、密钥等敏感信息",
+      "publish": "提交反馈帖",
+      "publishing": "提交中..."
+    },
+    "noReplies": "还没有回复。你可以继续补充复现步骤、截图说明或期望结果。",
+    "repliesCount": "{{count}} 条回复",
+    "replyPlaceholder": "补充信息或回复团队...",
+    "replyShortcut": "支持多行输入，按 ⌘/Ctrl + Enter 发送",
+    "sendReply": "发送回复",
+    "updateStatus": "更新反馈状态",
+    "deleteFeedback": "删除反馈",
+    "deleteFeedbackConfirm": "确定删除这条反馈帖吗？正文和所有回复都将不可见。",
+    "emptyTitle": "这里还很安静",
+    "emptyDescription": "成为第一个分享想法的人，帮助我们把 GemiGo 做得更好。",
+    "errors": {
+      "required": "请填写标题和详细说明。",
+      "rateLimited": "操作太快了，请稍后再试。",
+      "generic": "社区服务暂时不可用，请稍后重试。"
+    }
   },
   "adminProjects": {
     "title": "后台 · 项目",

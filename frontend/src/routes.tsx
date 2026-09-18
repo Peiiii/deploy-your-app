@@ -10,6 +10,7 @@ import { PublicProfile } from '@/features/profile/pages/public-profile';
 import { AdminProjectsPage } from '@/features/admin/pages/admin-projects';
 import { BrandingDesignPage } from '@/features/design/pages/branding-design-page';
 import { PrivacyPolicyPage } from '@/features/legal/pages/privacy-policy';
+import { CommunityPage } from '@/features/community/pages/community-page';
 
 const AdminRedirect = () => {
   useEffect(() => { window.location.replace('https://admin.gemigo.io'); }, []);
@@ -22,6 +23,7 @@ export const AppRoutes = () => (
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/deploy" element={<NewDeployment />} />
         <Route path="/explore" element={<ExploreApps />} />
+        <Route path="/community" element={<CommunityPage />} />
         <Route path="/projects/:id" element={<ProjectSettings />} />
         <Route path="/admin" element={<AdminRedirect />} />
         <Route path="/admin/projects" element={<AdminProjectsPage />} />

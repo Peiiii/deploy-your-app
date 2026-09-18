@@ -20,6 +20,15 @@ export const API_ROUTES = {
   PROJECT_COMMENTS: (id: string) =>
     `/projects/${encodeURIComponent(id)}/comments`,
   COMMENT_BY_ID: (id: string) => `/comments/${encodeURIComponent(id)}`,
+  COMMUNITY_FEEDBACK: '/community/feedback',
+  COMMUNITY_FEEDBACK_BY_ID: (id: string) =>
+    `/community/feedback/${encodeURIComponent(id)}`,
+  COMMUNITY_FEEDBACK_STATUS: (id: string) =>
+    `/community/feedback/${encodeURIComponent(id)}/status`,
+  COMMUNITY_FEEDBACK_COMMENTS: (id: string) =>
+    `/community/feedback/${encodeURIComponent(id)}/comments`,
+  COMMUNITY_COMMENT_BY_ID: (id: string) =>
+    `/community/comments/${encodeURIComponent(id)}`,
   PROJECT_LIKE: (id: string) => `/projects/${encodeURIComponent(id)}/like`,
   PROJECT_FAVORITE: (id: string) =>
     `/projects/${encodeURIComponent(id)}/favorite`,

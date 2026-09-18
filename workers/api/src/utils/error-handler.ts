@@ -32,6 +32,13 @@ export class UnauthorizedError extends AppError {
   }
 }
 
+export class ForbiddenError extends AppError {
+  constructor(message = 'Forbidden') {
+    super(message, 403, 'FORBIDDEN');
+    this.name = 'ForbiddenError';
+  }
+}
+
 export class ConfigurationError extends AppError {
   constructor(message: string) {
     super(message, 500, 'CONFIGURATION_ERROR');

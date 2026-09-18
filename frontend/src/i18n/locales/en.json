@@ -51,6 +51,7 @@
   "navigation": {
     "home": "Home",
     "exploreApps": "Explore Apps",
+    "community": "Feedback",
     "deployApp": "Deploy App",
     "dashboard": "Dashboard",
     "profile": "My Profile",
@@ -66,6 +67,109 @@
     "projectsLoadError": "Failed to load projects",
     "pinProject": "Pin project",
     "unpinProject": "Unpin project"
+  },
+  "community": {
+    "title": "Feedback",
+    "hubEyebrow": "The GemiGo co-creation community",
+    "hubTitle": "Wherever you are, help shape what we build next",
+    "hubDescription": "Join the GemiGo community that works best for you. Chinese-speaking users can connect on WeChat, global makers can meet on Discord, and anything that needs follow-up can become a private feedback thread.",
+    "benefits": {
+      "direct": "Talk directly with the team",
+      "earlyAccess": "Try new features early",
+      "shapeProduct": "Shape product decisions"
+    },
+    "chooseChannel": "Choose your community",
+    "chooseChannelDescription": "Both communities are part of GemiGo. Pick the one that fits how you already communicate.",
+    "channels": {
+      "recommended": "Recommended for you",
+      "unavailable": "Opening soon",
+      "wechat": {
+        "region": "Mainland China",
+        "title": "Join our WeChat group",
+        "description": "A convenient space for Chinese-speaking users to share projects, report issues, and talk directly with other makers.",
+        "action": "Scan with WeChat to join",
+        "qrAlt": "GemiGo WeChat group QR code",
+        "unavailableHint": "The group QR code will appear here once configured"
+      },
+      "discord": {
+        "region": "Global Community",
+        "title": "Join Discord",
+        "description": "Our English-speaking home for global makers to share projects, trade deployment tips, and discuss what comes next.",
+        "value": "Meet makers from around the world, share what you build, and help shape GemiGo.",
+        "action": "Open Discord"
+      }
+    },
+    "sharedFeedbackTitle": "One shared product feedback inbox",
+    "sharedFeedbackDescription": "Turn an idea, problem, or question into a feedback thread. You can keep adding replies, and the team can respond and update its status on the same timeline.",
+    "privateNotice": "Visible only to you and the GemiGo team",
+    "signedOut": {
+      "title": "Post feedback as a private thread",
+      "description": "Sign in, add a title and body, and submit. Return anytime to check its status or continue the conversation.",
+      "action": "Sign in and submit"
+    },
+    "myFeedback": {
+      "title": "My feedback",
+      "description": "Review your feedback threads, processing status, and follow-up replies.",
+      "empty": "You have not submitted any feedback yet. Create a private feedback thread above whenever you find a problem or have an idea."
+    },
+    "adminInbox": {
+      "title": "Feedback inbox",
+      "description": "Administrator view · Review all private feedback and select the reply count to open a conversation. Regular users only see their own feedback.",
+      "empty": "No feedback matches the current filters."
+    },
+    "heroEyebrow": "Build GemiGo with us",
+    "heroTitle": "Your voice shapes what we build next",
+    "heroDescription": "Share an idea, report a problem, or ask a question. Every feedback thread is visible only to you and the GemiGo team.",
+    "feedbackCount": "feedback threads",
+    "newFeedback": "Submit feedback",
+    "signInPrompt": "Sign in to submit and review your feedback.",
+    "feedbackPublished": "Feedback submitted. You can keep replying from My feedback.",
+    "statusUpdated": "Feedback status updated.",
+    "anonymous": "Community member",
+    "you": "You",
+    "filterStatus": "Filter by status",
+    "allStatuses": "All statuses",
+    "categories": {
+      "general": "Uncategorized",
+      "idea": "Feature idea",
+      "bug": "Problem",
+      "question": "Question"
+    },
+    "statuses": {
+      "open": "Under review",
+      "planned": "Planned",
+      "in_progress": "In progress",
+      "completed": "Completed"
+    },
+    "composer": {
+      "title": "Submit a feedback thread",
+      "description": "Just add a title and body. You can keep replying with more context later.",
+      "privacy": "Visible only to you and the GemiGo team",
+      "titleLabel": "Title",
+      "titlePlaceholder": "For example: Notify me when a deployment finishes",
+      "categoryLabel": "Type (optional)",
+      "categoryNone": "No type",
+      "contentLabel": "Body",
+      "contentPlaceholder": "What happened? Why does it matter to you? What would the ideal outcome be?",
+      "contentHint": "Do not include passwords, keys, or other sensitive data",
+      "publish": "Submit thread",
+      "publishing": "Submitting..."
+    },
+    "noReplies": "No replies yet. You can add reproduction steps, screenshot details, or the outcome you expect.",
+    "repliesCount": "{{count}} replies",
+    "replyPlaceholder": "Add context or reply to the team...",
+    "replyShortcut": "Multiline supported. Press ⌘/Ctrl + Enter to send",
+    "sendReply": "Send reply",
+    "updateStatus": "Update feedback status",
+    "deleteFeedback": "Delete feedback",
+    "deleteFeedbackConfirm": "Delete this feedback thread? Its post and all replies will become unavailable.",
+    "emptyTitle": "It is quiet here",
+    "emptyDescription": "Be the first to share an idea and help us make GemiGo better.",
+    "errors": {
+      "required": "Add a title and details before publishing.",
+      "rateLimited": "You are moving fast. Please try again shortly.",
+      "generic": "The community is temporarily unavailable. Please try again."
+    }
   },
   "adminProjects": {
     "title": "Admin · Projects",

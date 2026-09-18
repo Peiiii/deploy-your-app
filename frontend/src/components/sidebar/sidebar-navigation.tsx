@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, Sparkles, Package, Home, User } from 'lucide-react';
+import { LayoutDashboard, Sparkles, Package, Home, User, MessagesSquare } from 'lucide-react';
 import { useUIStore } from '../../stores/ui.store';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { useBreakpoint } from '../../hooks/use-breakpoint';
@@ -23,6 +23,7 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
   const navItems: NavItem[] = [
     { path: '/', label: t('navigation.home'), icon: Home },
     { path: '/explore', label: t('navigation.exploreApps'), icon: Sparkles },
+    { path: '/community', label: t('navigation.community'), icon: MessagesSquare },
     { path: '/deploy', label: t('navigation.deployApp'), icon: Package },
     ...(authUser
       ? [
