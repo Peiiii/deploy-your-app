@@ -21,7 +21,11 @@ export const ProjectSettingsThumbnailSection: React.FC<
   const thumbnailVersion = useProjectSettingsStore((s) => s.thumbnailVersion);
 
   // Derived state
-  const thumbnailUrl = getProjectThumbnailUrl(project.url);
+  const thumbnailUrl = getProjectThumbnailUrl(project.url, {
+    name: project.name,
+    seed: project.id,
+    version: thumbnailVersion,
+  });
 
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -96,11 +100,7 @@ export const ProjectSettingsThumbnailSection: React.FC<
           {thumbnailUrl ? (
             <>
               <img
-                src={
-                  thumbnailVersion
-                    ? `${thumbnailUrl}?v=${thumbnailVersion}`
-                    : thumbnailUrl
-                }
+                src={thumbnailUrl}
                 alt={project.name}
                 className="w-full h-full object-cover"
               />

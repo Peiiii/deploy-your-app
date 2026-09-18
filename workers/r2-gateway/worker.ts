@@ -48,6 +48,14 @@ const THUMBNAIL_PLACEHOLDER_CACHE_CONTROL = 'public, max-age=5, s-maxage=5';
 const MAX_OPTIMIZED_THUMBNAIL_BYTES = 100 * 1024;
 const CENTRAL_THUMBNAIL_HOST = 'assets';
 const CENTRAL_THUMBNAIL_PATH = /^\/thumbnails\/([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)\.webp$/;
+const PLACEHOLDER_PALETTES = [
+  ['#60a5fa', '#6366f1'],
+  ['#34d399', '#06b6d4'],
+  ['#fb923c', '#ec4899'],
+  ['#c084fc', '#6366f1'],
+  ['#f87171', '#f43f5e'],
+  ['#22d3ee', '#3b82f6'],
+] as const;
 
 const createThumbnailResponse = (thumb: R2ObjectLike): Response => {
   const headers = new Headers();
@@ -68,9 +76,35 @@ const createThumbnailResponse = (thumb: R2ObjectLike): Response => {
   return new Response(thumb.body, { headers });
 };
 
-const createThumbnailPlaceholder = (slug: string): Response => {
-  const initial = slug.charAt(0).toUpperCase();
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="${slug} preview"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2563eb"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs><rect width="960" height="540" rx="28" fill="url(#g)"/><circle cx="480" cy="270" r="112" fill="#fff" opacity=".12"/><text x="480" y="306" text-anchor="middle" font-family="system-ui,sans-serif" font-size="144" font-weight="700" fill="#fff" opacity=".9">${initial}</text></svg>`;
+const escapeSvgText = (value: string): string => value
+  .replaceAll('&', '&amp;')
+  .replaceAll('<', '&lt;')
+  .replaceAll('>', '&gt;')
+  .replaceAll('"', '&quot;')
+  .replaceAll("'", '&apos;');
+
+const hashPlaceholderSeed = (value: string): number => {
+  let hash = 0;
+  for (const character of value) {
+    hash = character.codePointAt(0)! + ((hash << 5) - hash);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+};
+
+const getPlaceholderInitial = (name: string, slug: string): string => {
+  const candidate = name.trim() || slug;
+  const initial = Array.from(candidate.normalize('NFC'))[0] ?? '•';
+  return initial.toLocaleUpperCase();
+};
+
+const createThumbnailPlaceholder = (slug: string, name: string, seed: string): Response => {
+  const label = name.trim() || slug;
+  const initial = getPlaceholderInitial(label, slug);
+  const [startColor, endColor] = PLACEHOLDER_PALETTES[
+    hashPlaceholderSeed(seed.trim() || label) % PLACEHOLDER_PALETTES.length
+  ];
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="${escapeSvgText(label)} preview"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${startColor}"/><stop offset="1" stop-color="${endColor}"/></linearGradient></defs><rect width="960" height="540" rx="28" fill="url(#g)"/><circle cx="780" cy="72" r="250" fill="#fff" opacity=".08"/><circle cx="125" cy="500" r="210" fill="#000" opacity=".05"/><text x="480" y="340" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Noto Sans Thai',sans-serif" font-size="220" font-weight="900" fill="#fff" opacity=".52" transform="rotate(-12 480 270)">${escapeSvgText(initial)}</text></svg>`;
   return new Response(svg, {
     status: 200,
     headers: {
@@ -185,7 +219,11 @@ const serveCentralThumbnail = async (
     }),
   );
 
-  return createThumbnailPlaceholder(slug);
+  return createThumbnailPlaceholder(
+    slug,
+    new URL(request.url).searchParams.get('name') ?? '',
+    new URL(request.url).searchParams.get('seed') ?? slug,
+  );
 };
 
 export default {

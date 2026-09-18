@@ -64,13 +64,32 @@ const missingEnv = {
   },
 };
 const placeholderResponse = await gatewayHandler.fetch(
-  new Request('https://assets.gemigo.app/thumbnails/missing-app.webp'),
+  new Request(
+    'https://assets.gemigo.app/thumbnails/missing-app.webp?name=%E0%B8%97%E0%B8%94%E0%B8%AA%E0%B8%AD%E0%B8%9A&seed=thai-project',
+  ),
   missingEnv as never,
   executionContext as never,
 );
 assert.equal(placeholderResponse.status, 200);
 assert.match(placeholderResponse.headers.get('content-type') ?? '', /image\/svg\+xml/);
 assert.equal(placeholderResponse.headers.get('x-gemigo-thumbnail'), 'generating');
+const placeholderSvg = await placeholderResponse.text();
+assert.match(placeholderSvg, />ท<\/text>/);
+assert.match(placeholderSvg, /rotate\(-12 480 270\)/);
+assert.doesNotMatch(placeholderSvg, /#2563eb/);
+const latinPlaceholderResponse = await gatewayHandler.fetch(
+  new Request(
+    'https://assets.gemigo.app/thumbnails/journal-app.webp?name=Journal&seed=project-j',
+  ),
+  missingEnv as never,
+  executionContext as never,
+);
+const latinPlaceholderSvg = await latinPlaceholderResponse.text();
+assert.match(latinPlaceholderSvg, />J<\/text>/);
+assert.notEqual(
+  latinPlaceholderSvg.match(/<stop stop-color="([^"]+)"/)?.[1],
+  placeholderSvg.match(/<stop stop-color="([^"]+)"/)?.[1],
+);
 await Promise.all(waitUntilPromises.splice(0));
 
 let promoted = false;
@@ -110,8 +129,11 @@ assert.equal(promotedResponse.headers.get('content-length'), String(72 * 1024));
 await Promise.all(waitUntilPromises.splice(0));
 
 assert.equal(
-  getProjectThumbnailUrl('https://demo-app.gemigo.app/'),
-  'https://assets.gemigo.app/thumbnails/demo-app.webp',
+  getProjectThumbnailUrl('https://demo-app.gemigo.app/', {
+    name: 'ทดสอบ',
+    seed: 'project-42',
+  }),
+  'https://assets.gemigo.app/thumbnails/demo-app.webp?name=%E0%B8%97%E0%B8%94%E0%B8%AA%E0%B8%AD%E0%B8%9A&seed=project-42',
 );
 assert.equal(
   getProjectThumbnailUrl('https://example.com/app/'),

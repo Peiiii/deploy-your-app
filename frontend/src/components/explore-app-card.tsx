@@ -56,7 +56,9 @@ export function mapProjectsToApps(projects: Project[]): ExploreAppCard[] {
   return projects.map((project) => {
     const category = getProjectCategory(project);
     const description = getProjectDescription(project);
-    const thumbnailUrl = project.url ? getProjectThumbnailUrl(project.url) ?? undefined : undefined;
+    const thumbnailUrl = project.url
+      ? getProjectThumbnailUrl(project.url, { name: project.name, seed: project.id }) ?? undefined
+      : undefined;
     const author = getProjectPublicAuthor(project);
     const authorIdentifier = getProjectAuthorProfileIdentifier(project);
     const color = getProjectColor(project.id);
