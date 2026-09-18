@@ -29,8 +29,9 @@ high-latency networks. A production cold load must satisfy:
 The public URL becomes
 `https://assets.gemigo.app/thumbnails/<slug>.webp`. The existing wildcard R2
 gateway serves this central hostname, reads `apps/<slug>/thumbnail.webp`, and
-stores successful responses in the edge Cache API. Browser and edge cache policy
-is one day with stale-while-revalidate resilience.
+stores successful responses in the edge Cache API. It invokes Browser Rendering
+through a zero-network-overhead Worker service binding. Browser and edge cache
+policy is one day with stale-while-revalidate resilience.
 
 If only a legacy custom `thumbnail.png` exists, the screenshot Worker renders that
 image into the standard 16:9 frame. Otherwise it captures the deployed app. It

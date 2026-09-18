@@ -24,3 +24,7 @@ ANALYTICS_API_BASE_URL = "https://gemigo-api.15353764479037.workers.dev/api/v1"
 [[r2_buckets]]
 binding = "ASSETS"
 bucket_name = "gemigo-apps"
+
+[[services]]
+binding = "SCREENSHOT_SERVICE"
+service = "gemigo-screenshot-service"

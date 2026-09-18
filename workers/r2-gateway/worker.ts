@@ -31,6 +31,7 @@ type Env = {
   // body { url: string } and return a PNG image.
   SCREENSHOT_SERVICE_URL?: string;
   SCREENSHOT_SERVICE_TOKEN?: string;
+  SCREENSHOT_SERVICE?: Fetcher;
   // Optional analytics API endpoint (e.g. https://gemigo-api.../api/v1).
   // When configured, the gateway will POST page view events for each app.
   ANALYTICS_API_BASE_URL?: string;
@@ -88,7 +89,7 @@ const generateOptimizedThumbnail = async (
   if (!env.SCREENSHOT_SERVICE_URL) return;
 
   const targetUrl = `https://${slug}.${rootDomain}/`;
-  const screenshotResp = await fetch(env.SCREENSHOT_SERVICE_URL, {
+  const screenshotRequest = new Request(env.SCREENSHOT_SERVICE_URL, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -105,6 +106,9 @@ const generateOptimizedThumbnail = async (
       maxBytes: MAX_OPTIMIZED_THUMBNAIL_BYTES,
     }),
   });
+  const screenshotResp = env.SCREENSHOT_SERVICE
+    ? await env.SCREENSHOT_SERVICE.fetch(screenshotRequest)
+    : await fetch(screenshotRequest);
 
   if (!screenshotResp.ok) {
     throw new Error(`Optimized thumbnail generation failed with ${screenshotResp.status}`);
