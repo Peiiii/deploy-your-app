@@ -46,8 +46,8 @@ class DeployController {
     const htmlContent = input.htmlContent || project.htmlContent;
     deployService.validateSourceInputs(sourceType, project, { ...input, htmlContent });
 
-    // 5. Ensure project has slug (via AI analysis if needed)
-    const enrichResult = await deployService.ensureProjectHasSlug(
+    // 5. Fill missing discovery metadata via source analysis and AI.
+    const enrichResult = await deployService.enrichProjectMetadata(
       env,
       db,
       request,

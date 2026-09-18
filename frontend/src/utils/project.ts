@@ -90,17 +90,35 @@ export function getProjectCategory(project: Project): string {
 }
 
 export function buildProjectDescription(project: Project): string {
+  const projectName = project.name.trim() || 'This app';
+  const category = getProjectCategory(project);
+  const tags = (project.tags ?? [])
+    .map((tag) => tag.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+
+  if (category !== DEFAULT_CATEGORY) {
+    const tagPart = tags.length > 0 ? ` for ${tags.join(', ')}` : '';
+    return `${projectName} is a ${category.toLowerCase()} app${tagPart}.`;
+  }
+
+  if (tags.length > 0) {
+    return `${projectName} helps with ${tags.join(', ')}.`;
+  }
+
   const frameworkPart =
-    project.framework === 'Unknown' ? 'AI app' : `${project.framework} app`;
+    project.framework === 'Unknown' ? null : `${project.framework} app`;
   const sourcePart =
     project.sourceType === SourceType.ZIP
-      ? 'uploaded as a ZIP archive'
+      ? 'uploaded from a ZIP archive'
       : project.sourceType === SourceType.GITHUB
-        ? 'connected from GitHub'
+        ? 'connected to GitHub'
         : project.sourceType === SourceType.HTML
-          ? 'built from inline HTML'
-          : 'deployed with GemiGo';
-  return `Deployed ${frameworkPart} ${sourcePart}.`;
+          ? 'built from HTML'
+          : null;
+  const appPart = frameworkPart ?? 'web app';
+  const sourceSuffix = sourcePart ? ` ${sourcePart}` : '';
+  return `${projectName} is a ${appPart}${sourceSuffix}, deployed with GemiGo.`;
 }
 
 export function getProjectDescription(project: Project): string {

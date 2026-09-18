@@ -183,6 +183,11 @@ class AIService {
       });
 
       if (!response.ok) {
+        console.error(
+          '[AIService] Metadata generation request failed:',
+          response.status,
+          response.statusText,
+        );
         return emptySuggestion();
       }
 
@@ -232,7 +237,11 @@ class AIService {
         description: descriptionResult,
         slug: slugResult ?? fallbackSlug,
       };
-    } catch {
+    } catch (error) {
+      console.error(
+        '[AIService] Metadata generation request threw:',
+        error instanceof Error ? error.message : String(error),
+      );
       return emptySuggestion();
     }
   }

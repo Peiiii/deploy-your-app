@@ -3,12 +3,12 @@ import { ValidationError } from '../utils/error-handler';
 import { projectService } from './project.service';
 import { deployProxyService, type ProjectContext } from './deploy-proxy.service';
 import { aiService } from './ai.service';
+import { deploymentMetadataPolicy } from './deployment-metadata-policy';
 import { extractSseEvents } from '../utils/sse-parser';
 import { slugify } from '../utils/strings';
 import {
     SourceType,
     type Project,
-    type ProjectMetadataOverrides,
     type DeploymentStatusPayload,
 } from '../types/project';
 
@@ -105,27 +105,29 @@ class DeployService {
     }
 
     /**
-     * Ensure project has a slug, using Context API + AI if needed.
-     * The slug is required for deployment as it determines the app's URL.
+     * Fill any missing discovery metadata from source context and AI.
+     * Existing user-authored fields remain authoritative.
      */
-    async ensureProjectHasSlug(
+    enrichProjectMetadata = async (
         env: ApiWorkerEnv,
         db: D1Database,
         _request: Request,
         project: Project,
         sourceType: SourceType,
         input: DeployInput,
-    ): Promise<{ project: Project; analysisId?: string; debugLogs: string[] }> {
+    ): Promise<{ project: Project; analysisId?: string; debugLogs: string[] }> => {
         const debugLogs: string[] = [];
+        const missingFields = deploymentMetadataPolicy.getMissingFields(project);
+
+        if (missingFields.length === 0) {
+            debugLogs.push('✓ Project metadata is already complete');
+            return { project, analysisId: input.analysisId, debugLogs };
+        }
+
+        debugLogs.push(`ℹ Missing metadata: ${missingFields.join(', ')}`);
 
         // Treat literal "null" as missing
         const existingSlug = project.slug?.trim();
-        const hasSlug =
-            !!existingSlug && existingSlug.toLowerCase() !== 'null';
-        if (hasSlug) {
-            debugLogs.push(`✓ Project already has slug: ${existingSlug}`);
-            return { project, analysisId: input.analysisId, debugLogs };
-        }
         if (existingSlug?.toLowerCase() === 'null') {
             project = { ...project, slug: undefined };
             debugLogs.push('⚠ Cleared invalid "null" slug');
@@ -139,8 +141,8 @@ class DeployService {
             debugLogs.push(`   Source: ${sourceType}`);
             debugLogs.push(`   Repo: ${project.repoUrl}`);
 
-            console.log('[ensureProjectHasSlug] Starting context extraction for:', project.name);
-            console.log('[ensureProjectHasSlug] Source type:', sourceType);
+            console.log('[enrichProjectMetadata] Starting context extraction for:', project.name);
+            console.log('[enrichProjectMetadata] Source type:', sourceType);
 
             const contextResult = await deployProxyService.getContext(env, {
                 repoUrl: project.repoUrl,
@@ -150,9 +152,9 @@ class DeployService {
             });
 
             contextId = contextResult.contextId;
-            console.log('[ensureProjectHasSlug] Context extracted successfully. ID:', contextId);
-            console.log('[ensureProjectHasSlug] Framework detected:', contextResult.context.framework);
-            console.log('[ensureProjectHasSlug] Files found:', contextResult.context.directoryTree.length);
+            console.log('[enrichProjectMetadata] Context extracted successfully. ID:', contextId);
+            console.log('[enrichProjectMetadata] Framework detected:', contextResult.context.framework);
+            console.log('[enrichProjectMetadata] Files found:', contextResult.context.directoryTree.length);
 
             debugLogs.push(`✓ Context extracted (ID: ${contextId})`);
             debugLogs.push(`   Framework: ${contextResult.context.framework || 'Unknown'}`);
@@ -163,12 +165,12 @@ class DeployService {
 
             // 2. Build context string for AI
             const contextStr = this.buildContextString(contextResult.context);
-            console.log('[ensureProjectHasSlug] Context string length:', contextStr.length);
+            console.log('[enrichProjectMetadata] Context string length:', contextStr.length);
             debugLogs.push(`   Context size: ${contextStr.length} chars`);
 
             // 3. Call AI to generate metadata
             debugLogs.push('🤖 Calling AI to generate metadata...');
-            console.log('[ensureProjectHasSlug] Calling AI to generate metadata...');
+            console.log('[enrichProjectMetadata] Calling AI to generate metadata...');
 
             const aiResult = await aiService.generateProjectMetadata(
                 env,
@@ -177,110 +179,95 @@ class DeployService {
                 contextStr,
             );
 
-            console.log('[ensureProjectHasSlug] AI metadata generated:', {
+            console.log('[enrichProjectMetadata] AI metadata generated:', {
                 name: aiResult?.name,
                 slug: aiResult?.slug,
                 category: aiResult?.category,
                 tagsCount: aiResult?.tags?.length || 0,
             });
 
-            if (!aiResult) {
-                debugLogs.push('⚠ AI returned no metadata');
-            } else {
-                debugLogs.push('✓ AI metadata generated:');
-                debugLogs.push(`   Name: ${aiResult.name || '(unchanged)'}`);
-                debugLogs.push(`   Slug: ${aiResult.slug || '(none)'}`);
-                debugLogs.push(`   Description: ${aiResult.description?.substring(0, 50) || '(none)'}${aiResult.description && aiResult.description.length > 50 ? '...' : ''}`);
-                debugLogs.push(`   Category: ${aiResult.category || '(none)'}`);
-                debugLogs.push(`   Tags: ${aiResult.tags?.join(', ') || '(none)'}`);
-            }
+            debugLogs.push('✓ AI metadata request completed:');
+            debugLogs.push(`   Description: ${aiResult.description?.substring(0, 50) || '(none)'}${aiResult.description && aiResult.description.length > 50 ? '...' : ''}`);
+            debugLogs.push(`   Category: ${aiResult.category || '(none)'}`);
+            debugLogs.push(`   Tags: ${aiResult.tags?.join(', ') || '(none)'}`);
 
-            // 4. Apply AI-generated metadata to project
-            if (aiResult) {
-                const fallbackSlug = slugify(
+            // 4. Fill only the fields the user has not supplied.
+            const patch = deploymentMetadataPolicy.buildPatch(
+                project,
+                aiResult,
+                contextResult.context,
+            );
+            if (!project.slug?.trim() && !patch.slug) {
+                patch.slug = slugify(
                     aiResult.slug ??
                     aiResult.name ??
                     project.name ??
                     project.repoUrl ??
                     project.id,
                 );
-                const meta: ProjectMetadataOverrides = {
-                    name: aiResult.name ?? undefined,
-                    slug: aiResult.slug ?? fallbackSlug,
-                    description: aiResult.description ?? undefined,
-                    category: aiResult.category ?? undefined,
-                    tags: aiResult.tags.length > 0 ? aiResult.tags : undefined,
-                };
-                project = {
-                    ...project,
-                    ...this.buildMetadataPatch(project, meta),
-                };
-                if (!project.slug?.trim()) {
-                    project.slug = fallbackSlug;
-                    console.log('[ensureProjectHasSlug] Using fallback slug:', fallbackSlug);
-                    debugLogs.push(`   Using fallback slug: ${fallbackSlug}`);
-                }
+                debugLogs.push(`   Using fallback slug: ${patch.slug}`);
+            }
 
-                // Persist slug/metadata so frontend can immediately read it.
-                const patch: ProjectMetadataOverrides & { slug?: string } = {};
-                if (meta.slug) patch.slug = meta.slug;
-                if (meta.name) patch.name = meta.name;
-                if (meta.description) patch.description = meta.description;
-                if (meta.category) patch.category = meta.category;
-                if (meta.tags) patch.tags = meta.tags;
+            if (Object.keys(patch).length > 0) {
+                console.log('[enrichProjectMetadata] Updating database with metadata:', patch);
+                debugLogs.push('💾 Updating missing metadata in database...');
 
-                console.log('[ensureProjectHasSlug] Updating database with metadata:', patch);
-                debugLogs.push('💾 Updating database...');
-                debugLogs.push(`   Patch: ${JSON.stringify(patch, null, 2)}`);
-
-                if (Object.keys(patch).length > 0) {
-                    try {
-                        const updated = await projectService.updateProject(
-                            db,
-                            project.id,
-                            patch,
-                        );
-                        if (updated) {
-                            project = updated;
-                            console.log('[ensureProjectHasSlug] Database updated successfully');
-                            debugLogs.push('✓ Database updated successfully');
-                            debugLogs.push(`   Final project name: ${updated.name}`);
-                            debugLogs.push(`   Final slug: ${updated.slug}`);
-                            debugLogs.push(`   Final category: ${updated.category || 'N/A'}`);
-                            debugLogs.push(`   Final tags: ${updated.tags?.join(', ') || 'N/A'}`);
-                        } else {
-                            console.warn('[ensureProjectHasSlug] Database update returned null');
-                            debugLogs.push('⚠ Database update returned null');
-                        }
-                    } catch (err) {
-                        // If slug conflict, try to find a unique one
-                        if (err instanceof Error && err.message.includes('Slug is already in use')) {
-                            debugLogs.push('⚠ Slug conflict detected, finding alternative...');
-                            const uniqueSlug = await projectService.ensureSlugForProject(
-                                env,
+                try {
+                    const updated = await projectService.updateProject(
+                        db,
+                        project.id,
+                        patch,
+                    );
+                    if (updated) {
+                        project = updated;
+                        console.log('[enrichProjectMetadata] Database updated successfully');
+                        debugLogs.push('✓ Database updated successfully');
+                        debugLogs.push(`   Final slug: ${updated.slug}`);
+                        debugLogs.push(`   Description: ${updated.description || 'N/A'}`);
+                        debugLogs.push(`   Category: ${updated.category || 'N/A'}`);
+                        debugLogs.push(`   Tags: ${updated.tags?.join(', ') || 'N/A'}`);
+                    }
+                } catch (err) {
+                    if (err instanceof Error && err.message.includes('Slug is already in use')) {
+                        debugLogs.push('⚠ Slug conflict detected, finding alternative...');
+                        const patchWithoutSlug = { ...patch };
+                        delete patchWithoutSlug.slug;
+                        if (Object.keys(patchWithoutSlug).length > 0) {
+                            const updatedWithoutSlug = await projectService.updateProject(
                                 db,
-                                project,
+                                project.id,
+                                patchWithoutSlug,
                             );
-                            project = uniqueSlug;
-                            debugLogs.push(`✓ Assigned unique slug: ${project.slug}`);
-                        } else {
-                            throw err;
+                            if (updatedWithoutSlug) project = updatedWithoutSlug;
                         }
+                        project = await projectService.ensureSlugForProject(
+                            env,
+                            db,
+                            { ...project, slug: undefined },
+                        );
+                        debugLogs.push(`✓ Assigned unique slug: ${project.slug}`);
+                    } else {
+                        throw err;
                     }
                 }
             }
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
-            console.error('[ensureProjectHasSlug] Context/AI enrichment failed:', errorMsg);
-            console.error('[ensureProjectHasSlug] Stack:', err instanceof Error ? err.stack : 'N/A');
+            console.error('[enrichProjectMetadata] Context/AI enrichment failed:', errorMsg);
+            console.error('[enrichProjectMetadata] Stack:', err instanceof Error ? err.stack : 'N/A');
             debugLogs.push(`❌ Enrichment failed: ${errorMsg}`);
             if (err instanceof Error && err.stack) {
                 debugLogs.push(`   Stack: ${err.stack.split('\n').slice(0, 3).join('\n   ')}`);
             }
         }
 
+        if (!project.slug?.trim()) {
+            project = await projectService.ensureSlugForProject(env, db, project);
+            debugLogs.push(`✓ Assigned fallback slug: ${project.slug}`);
+        }
+
         return { project, analysisId: contextId, debugLogs };
-    }
+    };
 
     /**
      * Build a context string from ProjectContext for AI consumption.
@@ -327,16 +314,6 @@ class DeployService {
         }
 
         return parts.join('\n\n');
-    }
-
-    private buildMetadataPatch(current: Project, meta: ProjectMetadataOverrides): Partial<Project> {
-        const patch: Partial<Project> = {};
-        if (!current.slug && meta.slug) patch.slug = meta.slug;
-        if (!current.name && meta.name) patch.name = meta.name;
-        if (!current.description && meta.description) patch.description = meta.description;
-        if (!current.category && meta.category) patch.category = meta.category;
-        if ((!current.tags || current.tags.length === 0) && meta.tags) patch.tags = meta.tags;
-        return patch;
     }
 
     /** Monitor deployment status via SSE and update project when complete */
@@ -396,7 +373,7 @@ class DeployService {
 
         if (payload.status === 'SUCCESS') {
             const meta = payload.projectMetadata ?? {};
-            const patch = this.buildMetadataPatch(current, meta);
+            const patch = deploymentMetadataPolicy.buildPatch(current, meta, {});
             if (Object.keys(patch).length > 0) {
                 try {
                     await projectService.updateProject(db, projectId, patch);
