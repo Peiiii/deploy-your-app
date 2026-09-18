@@ -44,6 +44,8 @@ type Env = {
 
 const OPTIMIZED_THUMBNAIL_CACHE_CONTROL =
   'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800';
+const LEGACY_THUMBNAIL_CACHE_CONTROL =
+  'public, max-age=60, s-maxage=60, stale-while-revalidate=300';
 const THUMBNAIL_PLACEHOLDER_CACHE_CONTROL = 'public, max-age=5, s-maxage=5';
 const MAX_OPTIMIZED_THUMBNAIL_BYTES = 100 * 1024;
 const CENTRAL_THUMBNAIL_HOST = 'assets';
@@ -69,6 +71,26 @@ const createThumbnailResponse = (thumb: R2ObjectLike): Response => {
   headers.set('content-type', 'image/webp');
   headers.set('x-content-type-options', 'nosniff');
   headers.set('x-gemigo-gateway', 'r2');
+  headers.set('access-control-allow-origin', '*');
+  if (typeof thumb.size === 'number') {
+    headers.set('content-length', String(thumb.size));
+  }
+  return new Response(thumb.body, { headers });
+};
+
+const createLegacyThumbnailResponse = (thumb: R2ObjectLike): Response => {
+  const headers = new Headers();
+  if (typeof thumb.writeHttpMetadata === 'function') {
+    thumb.writeHttpMetadata(headers);
+  }
+  if (thumb.httpEtag) {
+    headers.set('etag', thumb.httpEtag);
+  }
+  headers.set('cache-control', LEGACY_THUMBNAIL_CACHE_CONTROL);
+  headers.set('content-type', thumb.httpMetadata?.contentType ?? 'image/png');
+  headers.set('x-content-type-options', 'nosniff');
+  headers.set('x-gemigo-gateway', 'r2');
+  headers.set('x-gemigo-thumbnail', 'legacy');
   headers.set('access-control-allow-origin', '*');
   if (typeof thumb.size === 'number') {
     headers.set('content-length', String(thumb.size));
@@ -189,6 +211,11 @@ const serveCentralThumbnail = async (
   }
 
   const legacy = await env.ASSETS.get(`apps/${slug}/thumbnail.png`);
+  const hasUsableLegacyThumbnail = Boolean(
+    legacy?.body
+    && typeof legacy.size === 'number'
+    && legacy.size > 80,
+  );
   if (
     legacy?.body
     && legacy.httpMetadata?.contentType === 'image/webp'
@@ -209,6 +236,7 @@ const serveCentralThumbnail = async (
       return response;
     }
   }
+
   ctx.waitUntil(
     generateOptimizedThumbnail(env, slug, rootDomain, Boolean(legacy)).catch((error) => {
       console.error(JSON.stringify({
@@ -218,6 +246,10 @@ const serveCentralThumbnail = async (
       }));
     }),
   );
+
+  if (legacy && hasUsableLegacyThumbnail) {
+    return createLegacyThumbnailResponse(legacy);
+  }
 
   return createThumbnailPlaceholder(
     slug,

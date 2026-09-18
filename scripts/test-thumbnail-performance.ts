@@ -92,6 +92,38 @@ assert.notEqual(
 );
 await Promise.all(waitUntilPromises.splice(0));
 
+const legacyPngBytes = new Uint8Array(48 * 1024);
+const legacyPngEnv = {
+  APPS_ROOT_DOMAIN: 'gemigo.app',
+  SCREENSHOT_SERVICE_URL: 'https://screenshot.example.test',
+  SCREENSHOT_SERVICE: {
+    fetch: async () => new Response('rate limited', { status: 429 }),
+  },
+  ASSETS: {
+    get: async (key: string) => key.endsWith('thumbnail.png')
+      ? {
+          body: new Response(legacyPngBytes).body,
+          httpEtag: '"legacy-png"',
+          httpMetadata: { contentType: 'image/png' },
+          size: legacyPngBytes.byteLength,
+          writeHttpMetadata: (headers: Headers) => headers.set('content-type', 'image/png'),
+        }
+      : null,
+    put: async () => null,
+  },
+};
+const legacyPngResponse = await gatewayHandler.fetch(
+  new Request('https://assets.gemigo.app/thumbnails/legacy-app.webp?name=Legacy'),
+  legacyPngEnv as never,
+  executionContext as never,
+);
+assert.equal(legacyPngResponse.status, 200);
+assert.equal(legacyPngResponse.headers.get('content-type'), 'image/png');
+assert.equal(legacyPngResponse.headers.get('content-length'), String(legacyPngBytes.byteLength));
+assert.equal(legacyPngResponse.headers.get('x-gemigo-thumbnail'), 'legacy');
+assert.equal((await legacyPngResponse.arrayBuffer()).byteLength, legacyPngBytes.byteLength);
+await Promise.all(waitUntilPromises.splice(0));
+
 let promoted = false;
 const uploadBytes = new Uint8Array(72 * 1024);
 const promotableEnv = {
