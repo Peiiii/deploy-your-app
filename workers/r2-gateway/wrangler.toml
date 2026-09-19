@@ -17,6 +17,8 @@ SCREENSHOT_SERVICE_URL = "https://gemigo-screenshot-service.15353764479037.worke
 ## Optional: base URL of the API Worker for analytics.
 # For example: "https://gemigo-api.<account>.workers.dev/api/v1"
 ANALYTICS_API_BASE_URL = "https://gemigo-api.15353764479037.workers.dev/api/v1"
+# Keep ingestion off while page-view classification is hardened against scanners.
+ANALYTICS_ENABLED = "false"
 
 ## Optional: shared secret for securing calls to the screenshot service.
 # SCREENSHOT_SERVICE_TOKEN = "change-me"

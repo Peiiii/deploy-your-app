@@ -38,6 +38,8 @@ type Env = {
   // Optional analytics API endpoint (e.g. https://gemigo-api.../api/v1).
   // When configured, the gateway will POST page view events for each app.
   ANALYTICS_API_BASE_URL?: string;
+  /** Emergency kill switch for page-view ingestion. Disabled unless explicitly true. */
+  ANALYTICS_ENABLED?: string;
   /** Shared secret used for HMAC anonymization and API authentication. */
   ANALYTICS_INGEST_SECRET?: string;
 };
@@ -510,6 +512,7 @@ async function recordPageView(
   requestUrl: URL,
   slug: string,
 ): Promise<void> {
+  if (env.ANALYTICS_ENABLED !== 'true') return;
   const base = env.ANALYTICS_API_BASE_URL;
   const secret = env.ANALYTICS_INGEST_SECRET;
   if (!base || !secret) return;
