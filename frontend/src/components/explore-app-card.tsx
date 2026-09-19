@@ -1,8 +1,10 @@
 import { track } from '@/analytics/collector';
 /* eslint-disable react-refresh/only-export-components */
 import { getAuthorColor, getAuthorInitial, getAuthorName } from '../utils/author';
+import { PERFORMANCE_CONFIG } from '../constants';
+import { getScrollParent } from '../utils/scroll';
 import { Heart, Play } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { usePresenter } from '../contexts/presenter-context';
@@ -98,9 +100,36 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   const navigate = useNavigate();
   const [thumbLoaded, setThumbLoaded] = useState(false);
   const [thumbError, setThumbError] = useState(false);
+  const [isNearViewport, setIsNearViewport] = useState(
+    () => typeof IntersectionObserver === 'undefined',
+  );
+  const thumbnailAreaRef = useRef<HTMLDivElement>(null);
 
   const showThumbnail = app.thumbnailUrl && !thumbError;
+  const shouldLoadThumbnail = imagePriority || isNearViewport;
   const authorName = getAuthorName(app.author, t);
+
+  useEffect(() => {
+    if (imagePriority || !app.thumbnailUrl || isNearViewport) return;
+    const thumbnailArea = thumbnailAreaRef.current;
+    if (!thumbnailArea || typeof IntersectionObserver === 'undefined') return;
+    const scrollRoot = getScrollParent(thumbnailArea);
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setIsNearViewport(true);
+        observer.disconnect();
+      },
+      {
+        root: scrollRoot,
+        rootMargin: PERFORMANCE_CONFIG.EXPLORE_PRELOAD_ROOT_MARGIN,
+        threshold: 0,
+      },
+    );
+    observer.observe(thumbnailArea);
+    return () => observer.disconnect();
+  }, [app.thumbnailUrl, imagePriority, isNearViewport]);
 
   const handleRootClick = () => {
     track('app_preview');
@@ -114,29 +143,33 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
     >
       {/* Image Area */}
       <div
-        className={`relative aspect-video overflow-hidden ${!showThumbnail ? `bg-gradient-to-br ${app.color}` : ''}`}
+        ref={thumbnailAreaRef}
+        className={`relative aspect-video overflow-hidden bg-gradient-to-br ${app.color}`}
       >
-        {showThumbnail ? (
+        <div
+          aria-hidden="true"
+          className={`absolute inset-0 flex items-center justify-center overflow-hidden transition-opacity duration-300 ${thumbLoaded ? 'opacity-0' : 'opacity-100'}`}
+        >
+          <div className="absolute inset-0 bg-black/5" />
+          <span className="text-8xl font-black text-white mix-blend-overlay opacity-50 select-none transform -rotate-12 scale-150">
+            {app.name.charAt(0).toUpperCase()}
+          </span>
+        </div>
+
+        {showThumbnail && shouldLoadThumbnail && (
           <img
             src={app.thumbnailUrl}
             alt={app.name}
             width={960}
             height={540}
-            loading={imagePriority ? 'eager' : 'lazy'}
+            loading="eager"
             decoding="async"
-            fetchPriority={imagePriority ? 'high' : 'low'}
-            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${thumbLoaded ? 'opacity-100' : 'opacity-0'
+            fetchPriority={imagePriority ? 'high' : 'auto'}
+            className={`absolute inset-0 w-full h-full object-cover transition-[opacity,transform] duration-500 group-hover:scale-105 ${thumbLoaded ? 'opacity-100' : 'opacity-0'
               }`}
             onLoad={() => setThumbLoaded(true)}
             onError={() => setThumbError(true)}
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-black/5" />
-            <span className="text-8xl font-black text-white mix-blend-overlay opacity-50 select-none transform -rotate-12 scale-150">
-              {app.name.charAt(0).toUpperCase()}
-            </span>
-          </div>
         )}
 
         {/* Hover Overlay */}

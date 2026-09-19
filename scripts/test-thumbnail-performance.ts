@@ -178,15 +178,44 @@ const gatewaySource = await import('node:fs/promises').then((fs) =>
 const cardSource = await import('node:fs/promises').then((fs) =>
   fs.readFile(new URL('../frontend/src/components/explore-app-card.tsx', import.meta.url), 'utf8'),
 );
+const homeExploreSource = await import('node:fs/promises').then((fs) =>
+  fs.readFile(
+    new URL('../frontend/src/features/home/hooks/use-home-explore-feed.ts', import.meta.url),
+    'utf8',
+  ),
+);
+const explorePageSource = await import('node:fs/promises').then((fs) =>
+  fs.readFile(
+    new URL('../frontend/src/features/explore/pages/explore-apps.tsx', import.meta.url),
+    'utf8',
+  ),
+);
+const infiniteScrollSource = await import('node:fs/promises').then((fs) =>
+  fs.readFile(new URL('../frontend/src/hooks/use-infinite-scroll.ts', import.meta.url), 'utf8'),
+);
 const screenshotSource = await import('node:fs/promises').then((fs) =>
   fs.readFile(new URL('../workers/screenshot-service/worker.ts', import.meta.url), 'utf8'),
 );
 
 assert.match(gatewaySource, /MAX_OPTIMIZED_THUMBNAIL_BYTES = 100 \* 1024/);
-assert.match(cardSource, /loading=\{imagePriority \? 'eager' : 'lazy'\}/);
-assert.match(cardSource, /fetchPriority=\{imagePriority \? 'high' : 'low'\}/);
+assert.match(cardSource, /loading="eager"/);
+assert.match(cardSource, /fetchPriority=\{imagePriority \? 'high' : 'auto'\}/);
 assert.match(cardSource, /width=\{960\}/);
 assert.match(cardSource, /height=\{540\}/);
+assert.match(cardSource, /IntersectionObserver/);
+assert.match(cardSource, /shouldLoadThumbnail/);
+assert.match(cardSource, /PERFORMANCE_CONFIG\.EXPLORE_PRELOAD_ROOT_MARGIN/);
+assert.match(cardSource, /root: scrollRoot/);
+assert.match(
+  homeExploreSource,
+  /rootMargin: PERFORMANCE_CONFIG\.EXPLORE_PRELOAD_ROOT_MARGIN/,
+);
+assert.match(
+  explorePageSource,
+  /rootMargin: PERFORMANCE_CONFIG\.EXPLORE_PRELOAD_ROOT_MARGIN/,
+);
+assert.match(infiniteScrollSource, /getScrollParent\(target\)/);
+assert.match(infiniteScrollSource, /root: observerRoot/);
 assert.match(screenshotSource, /WEBP_QUALITY_STEPS/);
 
 console.log('thumbnail performance tests passed');

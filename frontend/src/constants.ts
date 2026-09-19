@@ -6,6 +6,11 @@ export const APP_CONFIG = {
   API_BASE_URL: '/api/v1',
 };
 
+export const PERFORMANCE_CONFIG = {
+  // Begin fetching the next page and its images before the user reaches it.
+  EXPLORE_PRELOAD_ROOT_MARGIN: '1200px 0px',
+} as const;
+
 export const API_ROUTES = {
   PROJECTS: '/projects',
   PROJECT_BY_REPO: '/projects/by-repo',
