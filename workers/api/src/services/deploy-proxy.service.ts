@@ -1,3 +1,4 @@
+import type { DeploymentStatusPayload } from '../types/project';
 import type { ApiWorkerEnv } from '../types/env';
 import type { Project, ProjectMetadataOverrides, SourceType } from '../types/project';
 import { CORS_HEADERS } from '../utils/http';
@@ -198,13 +199,14 @@ class DeployProxyService {
     createMergedStream = async (
         env: ApiWorkerEnv,
         deploymentId: string,
+        beforeEvent?: (event: DeploymentStatusPayload) => Promise<void>,
     ): Promise<{ response: Response; merger: LogStreamMerger }> => {
         const nodeStream = await this.connectStream(env, deploymentId);
         if (!nodeStream) {
             throw new Error('Failed to connect to deployment stream');
         }
 
-        const merger = new LogStreamMerger(nodeStream);
+        const merger = new LogStreamMerger(nodeStream, beforeEvent);
         const outputStream = merger.getOutputStream();
 
         // Store merger for potential log injection
@@ -360,13 +362,15 @@ class DeployProxyService {
     connectStream = async (
         env: ApiWorkerEnv,
         deploymentId: string,
+        signal?: AbortSignal,
     ): Promise<ReadableStream<Uint8Array> | null> => {
         const targetUrl = this.buildTargetUrl(
             env,
             `/deployments/${encodeURIComponent(deploymentId)}/stream`,
         );
 
-        const upstream = await fetch(targetUrl, { method: 'GET' });
+        const upstream = await fetch(targetUrl, { method: 'GET', signal });
+        if (!upstream.ok) throw new Error(`Deployment stream returned ${upstream.status}`);
         return upstream.body;
     };
 }

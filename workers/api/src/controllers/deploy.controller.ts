@@ -140,14 +140,6 @@ class DeployController {
         deployProxyService.injectLog(deploymentId, '═══════════════════════════════', 'info');
       }
 
-      void deployService.monitorDeployment(
-        env,
-        db,
-        deploymentId,
-        project.id,
-        attemptId,
-        startedAtMs,
-      );
     } else {
       await deploymentRepository.finishAttempt(
         db,
@@ -187,10 +179,12 @@ class DeployController {
     request: Request,
     env: ApiWorkerEnv,
     id: string,
+    db: D1Database,
   ): Promise<Response> {
     // Use merged stream instead of simple proxy
     // This allows Worker to inject its own logs
-    const { response } = await deployProxyService.createMergedStream(env, id);
+    const handle = await deployService.statusHandler(env, db, id);
+    const { response } = await deployProxyService.createMergedStream(env, id, handle);
     return response;
   }
 
