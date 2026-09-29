@@ -1,3 +1,5 @@
+import { extractSseEvents } from './sse-parser';
+import type { DeploymentStatusPayload } from '../types/project';
 /**
  * Utility for merging SSE streams from Node deployment server
  * with Worker-side log events.
@@ -23,7 +25,7 @@ export type SSEEvent = SSELogEvent | SSEStatusEvent;
 
 /**
  * Merges SSE streams from Node server with Worker-injected log events.
- * 
+ *
  * Strategy:
  * 1. Read chunks from Node's SSE stream
  * 2. Before forwarding each chunk, flush any pending Worker logs
@@ -38,7 +40,9 @@ export class LogStreamMerger {
     private outputController: ReadableStreamDefaultController<Uint8Array> | null = null;
     private closed = false;
 
-    constructor(nodeStream: ReadableStream<Uint8Array>) {
+    private buffer = '';
+
+    constructor(nodeStream: ReadableStream<Uint8Array>, private beforeEvent?: (event: DeploymentStatusPayload) => Promise<void>) {
         this.nodeReader = nodeStream.getReader();
     }
 
@@ -73,21 +77,37 @@ export class LogStreamMerger {
                     // First, flush any pending Worker logs
                     this.flushQueueToController(controller);
 
-                    // Then read from Node stream
-                    const { done, value } = await this.nodeReader.read();
+                    // A split SSE frame may need multiple reads to satisfy this pull.
+                    while (true) {
+                        const { done, value } = await this.nodeReader.read();
 
-                    if (done) {
-                        // Flush any remaining Worker logs before closing
-                        this.flushQueueToController(controller);
-                        controller.close();
-                        this.closed = true;
-                        return;
+                        if (done) {
+                            // Flush any remaining Worker logs before closing
+                            this.flushQueueToController(controller);
+                            controller.close();
+                            this.closed = true;
+                            return;
+                        }
+
+                        // Forward Node chunk to output
+                        this.buffer += this.decoder.decode(value, { stream: true });
+                        const { events, rest } = extractSseEvents(this.buffer);
+                        this.buffer = rest;
+                        let forwarded = false;
+                        for (const data of events) {
+                            let payload: DeploymentStatusPayload;
+                            try { payload = JSON.parse(data); } catch { continue; }
+                            await this.beforeEvent?.(payload);
+                            controller.enqueue(this.encoder.encode(`data: ${data}\n\n`));
+                            forwarded = true;
+                        }
+                        // Keep idle connections alive after upstream heartbeat chunks.
+                        if (!forwarded && (events.length || !rest.trim())) controller.enqueue(this.encoder.encode(':\n\n'));
+                        if (events.length || !rest.trim()) return;
                     }
-
-                    // Forward Node chunk to output
-                    controller.enqueue(value);
                 } catch (err) {
                     console.error('[LogStreamMerger] Stream error:', err);
+                    await this.nodeReader.cancel().catch(() => {});
                     controller.error(err);
                     this.closed = true;
                 }

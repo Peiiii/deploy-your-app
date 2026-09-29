@@ -21,7 +21,41 @@ export interface CreateDeploymentAttemptInput {
 
 let deploymentSchemaEnsured = false;
 
+export interface AcceptedDeployment {
+  id: string;
+  project_id: string;
+  provider_deployment_id: string;
+  started_at: string;
+  status: DeploymentAttemptStatus;
+}
+
 class DeploymentRepository {
+  findByProviderId = async (db: D1Database, providerId: string): Promise<AcceptedDeployment | null> => {
+    await this.ensureSchema(db);
+    return db.prepare(`SELECT id, project_id, provider_deployment_id, started_at, status
+      FROM deployment_attempts WHERE provider_deployment_id = ? ORDER BY started_at DESC LIMIT 1`)
+      .bind(providerId).first<AcceptedDeployment>();
+  };
+
+  isLatest = async (db: D1Database, attempt: AcceptedDeployment): Promise<boolean> => {
+    const row = await db.prepare(`SELECT id FROM deployment_attempts
+      WHERE project_id = ? ORDER BY started_at DESC, rowid DESC LIMIT 1`)
+      .bind(attempt.project_id).first<{ id: string }>();
+    return row?.id === attempt.id;
+  };
+
+  listPending = async (db: D1Database): Promise<AcceptedDeployment[]> => {
+    await this.ensureSchema(db);
+    const rows = await db.prepare(`SELECT a.id, a.project_id, a.provider_deployment_id, a.started_at, a.status
+      FROM deployment_attempts a WHERE a.status = 'accepted' AND a.provider_deployment_id IS NOT NULL
+      AND julianday(a.started_at) > julianday('now', '-1 day')
+      AND a.id = (SELECT b.id FROM deployment_attempts b WHERE b.project_id = a.project_id
+        ORDER BY b.started_at DESC, b.rowid DESC LIMIT 1)
+      ORDER BY a.started_at DESC LIMIT 20`)
+      .all<AcceptedDeployment>();
+    return rows.results;
+  };
+
   private ensureSchema = async (db: D1Database): Promise<void> => {
     if (deploymentSchemaEnsured) return;
     await db

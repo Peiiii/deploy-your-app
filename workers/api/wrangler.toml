@@ -37,3 +37,7 @@ bucket_name = "gemigo-apps"
 binding = "ANALYTICS_DB"
 database_name = "gemigo-projects"
 database_id = "e1e28d75-d0a0-4f8e-9b5d-714454686a4f"
+
+# Reconcile accepted deployments after disconnected clients.
+[triggers]
+crons = ["*/2 * * * *"]

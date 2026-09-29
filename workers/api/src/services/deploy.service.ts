@@ -5,6 +5,7 @@ import { deployProxyService, type ProjectContext } from './deploy-proxy.service'
 import { aiService } from './ai.service';
 import { deploymentMetadataPolicy } from './deployment-metadata-policy';
 import { extractSseEvents } from '../utils/sse-parser';
+import { configService } from './config.service';
 import { slugify } from '../utils/strings';
 import { deploymentRepository } from '../repositories/deployment.repository';
 import {
@@ -338,62 +339,57 @@ class DeployService {
         return parts.join('\n\n');
     }
 
-    /** Monitor deployment status via SSE and update project when complete */
-    async monitorDeployment(
-        env: ApiWorkerEnv,
-        db: D1Database,
-        deploymentId: string,
-        projectId: string,
-        attemptId: string,
-        startedAtMs: number,
-    ): Promise<void> {
-        try {
-            deployProxyService.injectLog(deploymentId, 'Worker monitoring deployment status...', 'info');
+    /** Persist terminal status inside the active SSE request before exposing it. */
+    statusHandler = async (env: ApiWorkerEnv, db: D1Database, deploymentId: string) => {
+        const attempt = await deploymentRepository.findByProviderId(db, deploymentId);
+        let settled = false;
+        return async (payload: DeploymentStatusPayload): Promise<void> => {
+            if (settled || !attempt || attempt.status !== 'accepted' || payload.type !== 'status' || !['SUCCESS', 'FAILED'].includes(payload.status ?? '')) return;
+            if (!await deploymentRepository.isLatest(db, attempt)) return;
+            await this.handleStatusPayload(env, db, attempt.project_id, attempt.id,
+                Date.parse(attempt.started_at), payload);
+            settled = true;
+        };
+    };
 
-            const stream = await deployProxyService.connectStream(env, deploymentId);
-            if (!stream) return;
-
-            const reader = stream.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                buffer += decoder.decode(value);
-                const { events, rest } = extractSseEvents(buffer);
-                buffer = rest;
-
-                for (const payloadStr of events) {
-                    try {
-                        const payload: DeploymentStatusPayload = JSON.parse(payloadStr);
-                        if (await this.handleStatusPayload(env, db, projectId, attemptId, startedAtMs, payload)) {
-                            deployProxyService.injectLog(deploymentId, 'Deployment status updated successfully', 'success');
-                            return;
+    /** Recover deployments even if the user closed the SSE connection. */
+    reconcilePending = async (env: ApiWorkerEnv, db: D1Database): Promise<void> => {
+        for (const attempt of await deploymentRepository.listPending(db)) {
+            const abort = new AbortController();
+            const timeout = setTimeout(() => abort.abort(), 5000);
+            let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+            try {
+                const stream = await deployProxyService.connectStream(env, attempt.provider_deployment_id, abort.signal);
+                if (!stream) continue;
+                reader = stream.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let receivedStatus = false;
+                const handle = await this.statusHandler(env, db, attempt.provider_deployment_id);
+                while (!receivedStatus) {
+                    const {done, value} = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, {stream: true});
+                    const parsed = extractSseEvents(buffer);
+                    buffer = parsed.rest;
+                    for (const event of parsed.events) {
+                        let payload: DeploymentStatusPayload;
+                        try { payload = JSON.parse(event); } catch { continue; }
+                        if (payload.type === 'status') {
+                            await handle(payload);
+                            receivedStatus = true;
+                            break;
                         }
-                    } catch {
-                        // Skip malformed events
                     }
                 }
+            } catch (error) {
+                console.error('[DeployService] Reconciliation will retry', attempt.id, error);
+            } finally {
+                clearTimeout(timeout);
+                await reader?.cancel().catch(() => {});
             }
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : String(err);
-            console.error('[DeployService] Monitor failed:', err);
-            deployProxyService.injectLog(deploymentId, `Worker monitoring error: ${errorMessage}`, 'error');
-            await deploymentRepository.finishAttempt(
-                db,
-                attemptId,
-                'failed',
-                new Date().toISOString(),
-                Date.now() - startedAtMs,
-                'monitor_error',
-            );
-            await projectService.updateProjectDeployment(db, projectId, {
-                status: 'Failed',
-            });
         }
-    }
+    };
 
     private async handleStatusPayload(
         env: ApiWorkerEnv,
@@ -409,7 +405,15 @@ class DeployService {
         if (!current) return false;
 
         if (payload.status === 'SUCCESS') {
-            const meta = payload.projectMetadata ?? {};
+            const meta = { ...payload.projectMetadata };
+            // Older builders replay SUCCESS without metadata. Only recover a URL
+            // from the configured R2 namespace after confirming the asset exists.
+            if (!meta.url && current.slug && env.ASSETS &&
+                configService.getDeployTarget(env) === 'r2' &&
+                await env.ASSETS.head(`apps/${current.slug}/current/index.html`)) {
+                meta.url = `https://${current.slug}.${configService.getAppsRootDomain(env)}/`;
+            }
+            if (!meta.url) throw new Error('Successful deployment has no verified URL');
             const patch = deploymentMetadataPolicy.buildPatch(current, meta, {});
             if (Object.keys(patch).length > 0) {
                 try {

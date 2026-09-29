@@ -1,0 +1,66 @@
+import assert from 'node:assert/strict';
+import { LogStreamMerger } from '../workers/api/src/utils/log-stream-merger.ts';
+import { deployService } from '../workers/api/src/services/deploy.service.ts';
+import { deploymentRepository } from '../workers/api/src/repositories/deployment.repository.ts';
+import { deployProxyService } from '../workers/api/src/services/deploy-proxy.service.ts';
+import { projectService } from '../workers/api/src/services/project.service.ts';
+import type { ApiWorkerEnv } from '../workers/api/src/types/env.ts';
+
+const encode = new TextEncoder();
+const stream = (...chunks: string[]) => new ReadableStream<Uint8Array>({start(c) { for (const chunk of chunks) c.enqueue(encode.encode(chunk)); c.close(); }});
+let saved = false;
+let release!: () => void;
+const gate = new Promise<void>(resolve => { release = resolve; });
+const merger = new LogStreamMerger(stream('data: {"type":"status","sta', 'tus":"SUCCESS"}\n\n'), async () => { await gate; saved = true; });
+const reader = merger.getOutputStream().getReader();
+let delivered = false;
+const result = reader.read().then(value => { assert.equal(saved, true); delivered = true; return value; });
+await new Promise(resolve => setTimeout(resolve, 10));
+assert.equal(delivered, false, 'SUCCESS must wait for persistence');
+release();
+assert.match(new TextDecoder().decode((await result).value), /SUCCESS/);
+const failed = new LogStreamMerger(stream('data: {"type":"status","status":"SUCCESS"}\n\n'), async () => { throw new Error('D1 unavailable'); });
+await assert.rejects(new Response(failed.getOutputStream()).text(), /D1 unavailable/);
+
+const attempt = {status:'accepted' as const,id:'attempt',project_id:'project',provider_deployment_id:'provider',started_at:new Date().toISOString()};
+const original = {pending:deploymentRepository.listPending, connect:deployProxyService.connectStream, find:deploymentRepository.findByProviderId, latest:deploymentRepository.isLatest, finish:deploymentRepository.finishAttempt, get:projectService.getProjectById, update:projectService.updateProjectDeployment};
+const project = {id:'project',name:'Test',slug:'test',status:'Building',repoUrl:'local:test',lastDeployed:'',framework:'Unknown',description:'Complete metadata',category:'Games',tags:['test']} as const;
+let patch: Record<string, unknown> | undefined;
+let finished = false;
+try {
+ deploymentRepository.findByProviderId = async () => attempt;
+ deploymentRepository.isLatest = async () => true;
+ deploymentRepository.finishAttempt = async () => {finished = true;};
+ projectService.getProjectById = async () => ({...project,tags:[...project.tags]});
+ projectService.updateProjectDeployment = async (_db,_id,value) => {patch=value;return {...project,tags:[...project.tags]};};
+ const db = {} as D1Database;
+ const env = {DEPLOY_TARGET:'r2', APPS_ROOT_DOMAIN:'gemigo.app',ASSETS:{head:async () => ({key:'apps/test/current/index.html'})}} as unknown as ApiWorkerEnv;
+ const handle = await deployService.statusHandler(env,db,'provider');
+ await handle({type:'status',status:'SUCCESS'});
+ assert.equal(patch?.url,'https://test.gemigo.app/');
+ assert.equal(patch?.status,'Live');
+ assert.equal(finished,true);
+ patch=undefined;finished=false;
+ deploymentRepository.isLatest=async()=>false;
+ const staleHandler = await deployService.statusHandler(env,db,'provider');
+ await staleHandler({type:'status',status:'FAILED'});
+ assert.equal(patch,undefined,'old deployment cannot overwrite new deployment');
+ deploymentRepository.isLatest=async()=>true;
+ const noAssets = await deployService.statusHandler({...env,ASSETS:undefined},db,'provider');
+ await assert.rejects(noAssets({type:'status',status:'SUCCESS'}),/no verified URL/);
+ assert.equal(finished,false);
+ const failHandler = await deployService.statusHandler(env,db,'provider');
+ await failHandler({type:'status',status:'FAILED'});
+ assert.equal((patch as Record<string,unknown> | undefined)?.status,'Failed');
+ patch=undefined;finished=false;
+ deploymentRepository.listPending=async()=>[attempt];
+ deployProxyService.connectStream=async()=>stream('data: {"type":"status","status":"SUCCESS"}\n\n');
+ await deployService.reconcilePending(env,db);
+ assert.equal((patch as Record<string,unknown> | undefined)?.url,'https://test.gemigo.app/');
+ assert.equal(finished,true,'scheduled recovery persists disconnected deployment');
+} finally {
+ deploymentRepository.listPending=original.pending;deployProxyService.connectStream=original.connect;
+ deploymentRepository.findByProviderId=original.find;deploymentRepository.isLatest=original.latest;deploymentRepository.finishAttempt=original.finish;
+ projectService.getProjectById=original.get;projectService.updateProjectDeployment=original.update;
+}
+console.log('PASS: delayed persistence, database failure, split SSE, replay recovery, missing URL, stale attempt, builder failure');

@@ -1,3 +1,4 @@
+import { deployService } from './services/deploy.service';
 import { getSettings } from '@gemigo/product-analytics';
 import { readTelemetry, storeTelemetry } from './analytics';
 import type { ApiWorkerEnv } from './types/env';
@@ -32,6 +33,9 @@ async function handleRequest(
 }
 
 const worker: ExportedHandler<ApiWorkerEnv> = {
+  async scheduled(_event, env) {
+    if (env.PROJECTS_DB) await deployService.reconcilePending(env, env.PROJECTS_DB);
+  },
   async fetch(request, env, ctx) {
     try {
       const telemetryRequest = new URL(request.url).pathname === '/api/v1/telemetry';

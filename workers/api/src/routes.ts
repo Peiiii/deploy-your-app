@@ -55,7 +55,7 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     path: '/api/v1/deployments/:id/stream',
     method: 'GET',
     handler: (req, params) =>
-      deployController.streamDeployment(req, env, params.id),
+      deployController.streamDeployment(req, env, params.id, requireDb()),
   });
 
   // --------------
