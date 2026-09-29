@@ -14,8 +14,13 @@ interface Env {
 
 const OPTIMIZED_WIDTH = 960;
 const OPTIMIZED_HEIGHT = 540;
-const DEFAULT_MAX_BYTES = 100 * 1024;
-const WEBP_QUALITY_STEPS = [78, 68, 58, 48, 38, 30] as const;
+const DEFAULT_MAX_BYTES = 300 * 1024;
+const WEBP_CAPTURE_STEPS = [
+  { width: 960, quality: 72 },
+  { width: 800, quality: 58 },
+  { width: 640, quality: 44 },
+  { width: 480, quality: 30 },
+] as const;
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -83,9 +88,10 @@ export default {
       );
 
       await page.goto(imageUrl || targetUrl, {
-        waitUntil: 'networkidle0',
-        timeout: 20000,
+        waitUntil: 'domcontentloaded',
+        timeout: 12000,
       });
+      await new Promise((resolve) => setTimeout(resolve, 1200));
 
       if (imageUrl) {
         await page.evaluate(() => {
@@ -112,7 +118,13 @@ export default {
       let imgBuffer: Uint8Array;
       if (format === 'webp') {
         let optimized: Uint8Array | null = null;
-        for (const quality of WEBP_QUALITY_STEPS) {
+        for (const { width, quality } of WEBP_CAPTURE_STEPS) {
+          if (width !== OPTIMIZED_WIDTH) {
+            await page.setViewport({
+              width,
+              height: Math.round(width * OPTIMIZED_HEIGHT / OPTIMIZED_WIDTH),
+            });
+          }
           const candidate = await page.screenshot({
             type: 'webp',
             quality,

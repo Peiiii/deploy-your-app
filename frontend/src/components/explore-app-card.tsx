@@ -3,6 +3,7 @@ import { track } from '@/analytics/collector';
 import { getAuthorColor, getAuthorInitial, getAuthorName } from '../utils/author';
 import { PERFORMANCE_CONFIG } from '../constants';
 import { getScrollParent } from '../utils/scroll';
+import { useProjectThumbnail } from '../hooks/use-project-thumbnail';
 import { Heart, Play } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -98,14 +99,13 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   const { t } = useTranslation();
   const reactionEntry = useReactionStore((s) => s.byProjectId[app.id]);
   const navigate = useNavigate();
-  const [thumbLoaded, setThumbLoaded] = useState(false);
-  const [thumbError, setThumbError] = useState(false);
   const [isNearViewport, setIsNearViewport] = useState(
     () => typeof IntersectionObserver === 'undefined',
   );
+  const thumbnail = useProjectThumbnail(app.thumbnailUrl, imagePriority || isNearViewport);
   const thumbnailAreaRef = useRef<HTMLDivElement>(null);
 
-  const showThumbnail = app.thumbnailUrl && !thumbError;
+  const showThumbnail = app.thumbnailUrl && !thumbnail.error;
   const shouldLoadThumbnail = imagePriority || isNearViewport;
   const authorName = getAuthorName(app.author, t);
 
@@ -148,7 +148,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
       >
         <div
           aria-hidden="true"
-          className={`absolute inset-0 flex items-center justify-center overflow-hidden transition-opacity duration-300 ${thumbLoaded ? 'opacity-0' : 'opacity-100'}`}
+          className={`absolute inset-0 flex items-center justify-center overflow-hidden transition-opacity duration-300 ${thumbnail.loaded ? 'opacity-0' : 'opacity-100'}`}
         >
           <div className="absolute inset-0 bg-black/5" />
           <span className="text-8xl font-black text-white mix-blend-overlay opacity-50 select-none transform -rotate-12 scale-150">
@@ -158,17 +158,17 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
 
         {showThumbnail && shouldLoadThumbnail && (
           <img
-            src={app.thumbnailUrl}
+            src={thumbnail.src}
             alt={app.name}
             width={960}
             height={540}
             loading="eager"
             decoding="async"
             fetchPriority={imagePriority ? 'high' : 'auto'}
-            className={`absolute inset-0 w-full h-full object-cover transition-[opacity,transform] duration-500 group-hover:scale-105 ${thumbLoaded ? 'opacity-100' : 'opacity-0'
+            className={`absolute inset-0 w-full h-full object-cover transition-[opacity,transform] duration-500 group-hover:scale-105 ${thumbnail.loaded ? 'opacity-100' : 'opacity-0'
               }`}
-            onLoad={() => setThumbLoaded(true)}
-            onError={() => setThumbError(true)}
+            onLoad={thumbnail.onLoad}
+            onError={thumbnail.onError}
           />
         )}
 

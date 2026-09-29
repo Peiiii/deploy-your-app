@@ -53,6 +53,13 @@ assert.equal(optimizedResponse.status, 200);
 assert.equal(optimizedResponse.headers.get('content-type'), 'image/webp');
 assert.equal(optimizedResponse.headers.get('content-length'), String(90 * 1024));
 assert.match(optimizedResponse.headers.get('cache-control') ?? '', /max-age=86400/);
+const optimizedHeadResponse = await gatewayHandler.fetch(
+  new Request('https://assets.gemigo.app/thumbnails/demo-app.webp', { method: 'HEAD' }),
+  optimizedEnv as never,
+  executionContext as never,
+);
+assert.equal(optimizedHeadResponse.status, 200);
+assert.equal(optimizedHeadResponse.headers.get('content-type'), 'image/webp');
 await Promise.all(waitUntilPromises.splice(0));
 assert.deepEqual(cacheWrites, ['https://assets.gemigo.app/thumbnails/demo-app.webp']);
 
@@ -77,6 +84,14 @@ const placeholderSvg = await placeholderResponse.text();
 assert.match(placeholderSvg, />ท<\/text>/);
 assert.match(placeholderSvg, /rotate\(-12 480 270\)/);
 assert.doesNotMatch(placeholderSvg, /#2563eb/);
+const pendingHeadResponse = await gatewayHandler.fetch(
+  new Request('https://assets.gemigo.app/thumbnails/missing-app.webp', { method: 'HEAD' }),
+  missingEnv as never,
+  executionContext as never,
+);
+assert.equal(pendingHeadResponse.status, 202);
+assert.equal(pendingHeadResponse.headers.get('access-control-allow-origin'), '*');
+assert.equal(pendingHeadResponse.headers.get('x-gemigo-thumbnail'), 'generating');
 const latinPlaceholderResponse = await gatewayHandler.fetch(
   new Request(
     'https://assets.gemigo.app/thumbnails/journal-app.webp?name=Journal&seed=project-j',
@@ -122,6 +137,13 @@ assert.equal(legacyPngResponse.headers.get('content-type'), 'image/png');
 assert.equal(legacyPngResponse.headers.get('content-length'), String(legacyPngBytes.byteLength));
 assert.equal(legacyPngResponse.headers.get('x-gemigo-thumbnail'), 'legacy');
 assert.equal((await legacyPngResponse.arrayBuffer()).byteLength, legacyPngBytes.byteLength);
+const legacyHeadResponse = await gatewayHandler.fetch(
+  new Request('https://assets.gemigo.app/thumbnails/legacy-app.webp', { method: 'HEAD' }),
+  legacyPngEnv as never,
+  executionContext as never,
+);
+assert.equal(legacyHeadResponse.status, 200);
+assert.equal(legacyHeadResponse.headers.get('content-type'), 'image/png');
 await Promise.all(waitUntilPromises.splice(0));
 
 let promoted = false;
@@ -197,7 +219,7 @@ const screenshotSource = await import('node:fs/promises').then((fs) =>
   fs.readFile(new URL('../workers/screenshot-service/worker.ts', import.meta.url), 'utf8'),
 );
 
-assert.match(gatewaySource, /MAX_OPTIMIZED_THUMBNAIL_BYTES = 100 \* 1024/);
+assert.match(gatewaySource, /MAX_OPTIMIZED_THUMBNAIL_BYTES = 300 \* 1024/);
 assert.match(cardSource, /loading="eager"/);
 assert.match(cardSource, /fetchPriority=\{imagePriority \? 'high' : 'auto'\}/);
 assert.match(cardSource, /width=\{960\}/);
@@ -216,6 +238,7 @@ assert.match(
 );
 assert.match(infiniteScrollSource, /getScrollParent\(target\)/);
 assert.match(infiniteScrollSource, /root: observerRoot/);
-assert.match(screenshotSource, /WEBP_QUALITY_STEPS/);
+assert.match(screenshotSource, /waitUntil: 'domcontentloaded'/);
+assert.match(screenshotSource, /WEBP_CAPTURE_STEPS/);
 
 console.log('thumbnail performance tests passed');

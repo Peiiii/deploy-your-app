@@ -49,7 +49,7 @@ const OPTIMIZED_THUMBNAIL_CACHE_CONTROL =
 const LEGACY_THUMBNAIL_CACHE_CONTROL =
   'public, max-age=60, s-maxage=60, stale-while-revalidate=300';
 const THUMBNAIL_PLACEHOLDER_CACHE_CONTROL = 'public, max-age=5, s-maxage=5';
-const MAX_OPTIMIZED_THUMBNAIL_BYTES = 100 * 1024;
+const MAX_OPTIMIZED_THUMBNAIL_BYTES = 300 * 1024;
 const CENTRAL_THUMBNAIL_HOST = 'assets';
 const CENTRAL_THUMBNAIL_PATH = /^\/thumbnails\/([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)\.webp$/;
 const PLACEHOLDER_PALETTES = [
@@ -260,6 +260,25 @@ const serveCentralThumbnail = async (
   );
 };
 
+const checkCentralThumbnail = async (env: Env, slug: string): Promise<Response> => {
+  const optimized = await env.ASSETS.get(`apps/${slug}/thumbnail.webp`);
+  const legacy = optimized ? null : await env.ASSETS.get(`apps/${slug}/thumbnail.png`);
+  const usableLegacy = legacy && typeof legacy.size === 'number' && legacy.size > 80;
+  const ready = Boolean(optimized || usableLegacy);
+
+  return new Response(null, {
+    status: ready ? 200 : 202,
+    headers: {
+      'access-control-allow-origin': '*',
+      'cache-control': 'no-store',
+      'content-type': optimized
+        ? 'image/webp'
+        : usableLegacy ? (legacy.httpMetadata?.contentType ?? 'image/png') : 'image/svg+xml',
+      'x-gemigo-thumbnail': optimized ? 'ready' : usableLegacy ? 'legacy' : 'generating',
+    },
+  });
+};
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -287,9 +306,12 @@ export default {
       });
     }
 
-    if (subdomain === CENTRAL_THUMBNAIL_HOST && request.method === 'GET') {
+    if (subdomain === CENTRAL_THUMBNAIL_HOST && (request.method === 'GET' || request.method === 'HEAD')) {
       const match = CENTRAL_THUMBNAIL_PATH.exec(url.pathname);
       if (match) {
+        if (request.method === 'HEAD') {
+          return checkCentralThumbnail(env, match[1]);
+        }
         return serveCentralThumbnail(request, env, ctx, match[1], rootDomain);
       }
     }

@@ -8,6 +8,7 @@ import type { ExploreAppCard } from '@/components/explore-app-card';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { useReactionStore } from '@/stores/reaction.store';
+import { useProjectThumbnail } from '@/hooks/use-project-thumbnail';
 import type { ProjectComment } from '@/types';
 import { createProjectComment, deleteComment, fetchProjectComments } from '@/services/http/comments-api';
 import { fetchFollowSummary, followUser, unfollowUser } from '@/services/http/follow-api';
@@ -197,8 +198,8 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
-    const [thumbError, setThumbError] = useState(false);
-    const showThumbnail = app.thumbnailUrl && !thumbError;
+    const thumbnail = useProjectThumbnail(app.thumbnailUrl, isRendered && !isEntered);
+    const showThumbnail = app.thumbnailUrl && !thumbnail.error;
 
     const followIdentifier = app.authorProfileIdentifier;
     const [followersCount, setFollowersCount] = useState<number | null>(null);
@@ -437,10 +438,11 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                     <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
                         {showThumbnail ? (
                             <img
-                                src={app.thumbnailUrl}
+                                src={thumbnail.src}
                                 alt={app.name}
                                 className="w-full h-full object-cover transition-transform duration-500 md:rounded-xl opacity-100"
-                                onError={() => setThumbError(true)}
+                                onLoad={thumbnail.onLoad}
+                                onError={thumbnail.onError}
                             />
                         ) : (
                             <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${app.color} md:rounded-xl relative overflow-hidden`}>
