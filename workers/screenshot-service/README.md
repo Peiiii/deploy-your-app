@@ -1,10 +1,10 @@
 # Screenshot Service Worker (`gemigo-screenshot-service`)
 
-This Worker uses Cloudflare Browser Rendering (Puppeteer) to capture PNG screenshots for a given URL. It is usually called by the R2 gateway Worker to generate app thumbnails.
+This Worker uses Cloudflare Browser Run (Puppeteer) to generate app thumbnails. It consumes `gemigo-thumbnail-jobs` one job at a time, writes WebP to R2, and retries failed jobs. Its HTTP screenshot endpoint remains available for legacy callers.
 
 - Entry: `worker.ts`
 - Deployed name (per `wrangler.toml`): `gemigo-screenshot-service`
-- Typical caller: `workers/r2-gateway` via `SCREENSHOT_SERVICE_URL`
+- Primary caller: `workers/r2-gateway` via the `THUMBNAIL_QUEUE` binding
 
 ---
 
@@ -36,6 +36,15 @@ compatibility_flags = ["nodejs_compat"]
 
 [browser]
 binding = "BROWSER"
+
+[[r2_buckets]]
+binding = "ASSETS"
+bucket_name = "gemigo-apps"
+
+[[queues.consumers]]
+queue = "gemigo-thumbnail-jobs"
+max_batch_size = 1
+max_concurrency = 1
 ```
 
 ### Steps in Cloudflare Dashboard
@@ -73,5 +82,4 @@ It returns:
 - `400` with usage hint when `url` is missing.
 - `500` with a simple error message if screenshot capturing fails.
 
-The R2 gateway uses this service to generate `apps/<slug>/thumbnail.png` objects in R2 on-demand.
-
+The queue consumer stores optimized screenshots at `apps/<slug>/thumbnail.webp` and clears the app's pending marker. Keep the queue available before deploying either Worker.

@@ -107,13 +107,44 @@ assert.notEqual(
 );
 await Promise.all(waitUntilPromises.splice(0));
 
+const pendingObjects = new Map<string, Blob>();
+const queuedJobs: Array<{ slug: string; hasLegacyThumbnail: boolean }> = [];
+const queuedEnv = {
+  APPS_ROOT_DOMAIN: 'gemigo.app',
+  THUMBNAIL_QUEUE: {
+    send: async (job: { slug: string; hasLegacyThumbnail: boolean }) => {
+      queuedJobs.push(job);
+    },
+  },
+  ASSETS: {
+    get: async (key: string) => {
+      const object = pendingObjects.get(key);
+      return object ? { body: object.stream(), size: object.size } : null;
+    },
+    put: async (key: string, value: Blob) => {
+      pendingObjects.set(key, value);
+      return null;
+    },
+    delete: async (key: string) => {
+      pendingObjects.delete(key);
+    },
+  },
+};
+for (let attempt = 0; attempt < 2; attempt += 1) {
+  const response = await gatewayHandler.fetch(
+    new Request(`https://assets.gemigo.app/thumbnails/queued-app.webp?attempt=${attempt}`),
+    queuedEnv as never,
+    executionContext as never,
+  );
+  assert.equal(response.headers.get('x-gemigo-thumbnail'), 'generating');
+  await Promise.all(waitUntilPromises.splice(0));
+}
+assert.deepEqual(queuedJobs, [{ slug: 'queued-app', hasLegacyThumbnail: false }]);
+assert.equal(pendingObjects.has('apps/queued-app/thumbnail-queued'), true);
+
 const legacyPngBytes = new Uint8Array(48 * 1024);
 const legacyPngEnv = {
   APPS_ROOT_DOMAIN: 'gemigo.app',
-  SCREENSHOT_SERVICE_URL: 'https://screenshot.example.test',
-  SCREENSHOT_SERVICE: {
-    fetch: async () => new Response('rate limited', { status: 429 }),
-  },
   ASSETS: {
     get: async (key: string) => key.endsWith('thumbnail.png')
       ? {

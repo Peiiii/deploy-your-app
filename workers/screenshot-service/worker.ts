@@ -10,6 +10,25 @@ interface ScreenshotRequestBody {
 
 interface Env {
   BROWSER: BrowserWorker;
+  ASSETS: {
+    get(key: string): Promise<unknown | null>;
+    put(key: string, value: ArrayBuffer, options: {
+      httpMetadata: { cacheControl: string; contentType: string };
+    }): Promise<unknown>;
+    delete(key: string): Promise<void>;
+  };
+  APPS_ROOT_DOMAIN?: string;
+}
+
+interface ThumbnailJob {
+  slug: string;
+  hasLegacyThumbnail: boolean;
+}
+
+interface ThumbnailQueueMessage {
+  body: ThumbnailJob;
+  attempts: number;
+  retry(options: { delaySeconds: number }): void;
 }
 
 const OPTIMIZED_WIDTH = 960;
@@ -32,8 +51,7 @@ function getErrorMessage(error: unknown): string {
   return '未知错误';
 }
 
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+const handleScreenshotRequest = async (request: Request, env: Env): Promise<Response> => {
     const { searchParams } = new URL(request.url);
 
     let targetUrl = searchParams.get("url");
@@ -176,5 +194,74 @@ export default {
         await browser.close();
       }
     }
+};
+
+const processThumbnailJob = async (job: ThumbnailJob, env: Env): Promise<void> => {
+  if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(job.slug)) {
+    throw new Error('Invalid thumbnail slug');
   }
-}
+
+  const thumbnailKey = `apps/${job.slug}/thumbnail.webp`;
+  const markerKey = `apps/${job.slug}/thumbnail-queued`;
+  if (await env.ASSETS.get(thumbnailKey)) {
+    await env.ASSETS.delete(markerKey);
+    return;
+  }
+
+  const targetUrl = `https://${job.slug}.${env.APPS_ROOT_DOMAIN || 'gemigo.app'}/`;
+  const response = await handleScreenshotRequest(new Request('https://internal/screenshot', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      url: targetUrl,
+      ...(job.hasLegacyThumbnail ? { imageUrl: `${targetUrl}__thumbnail.png` } : {}),
+      format: 'webp',
+      maxBytes: DEFAULT_MAX_BYTES,
+    }),
+  }), env);
+  if (!response.ok) {
+    throw new Error(`Screenshot service returned ${response.status}: ${(await response.text()).slice(0, 500)}`);
+  }
+
+  const image = await response.arrayBuffer();
+  if (image.byteLength <= 80 || image.byteLength > DEFAULT_MAX_BYTES) {
+    throw new Error(`Invalid screenshot size: ${image.byteLength}`);
+  }
+  await env.ASSETS.put(thumbnailKey, image, {
+    httpMetadata: {
+      cacheControl: 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
+      contentType: 'image/webp',
+    },
+  });
+  await env.ASSETS.delete(markerKey);
+};
+
+export default {
+  fetch: handleScreenshotRequest,
+  async queue(batch: { messages: ThumbnailQueueMessage[] }, env: Env): Promise<void> {
+    for (const message of batch.messages) {
+      const startedAt = Date.now();
+      let timeout: ReturnType<typeof setTimeout> | undefined;
+      try {
+        await Promise.race([
+          processThumbnailJob(message.body, env),
+          new Promise<never>((_resolve, reject) => {
+            timeout = setTimeout(() => reject(new Error('Screenshot job timed out')), 60_000);
+          }),
+        ]);
+      } catch (error) {
+        console.error(JSON.stringify({
+          message: 'Queued thumbnail generation failed',
+          slug: message.body.slug,
+          attempt: message.attempts,
+          error: getErrorMessage(error),
+        }));
+        message.retry({ delaySeconds: Math.min(3600, 60 * message.attempts) });
+      } finally {
+        if (timeout) clearTimeout(timeout);
+        const remaining = 20_000 - (Date.now() - startedAt);
+        if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining));
+      }
+    }
+  },
+};

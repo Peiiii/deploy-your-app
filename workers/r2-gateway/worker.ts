@@ -24,6 +24,11 @@ type R2BucketBinding = {
     value: ArrayBuffer | ReadableStream | Blob,
     options?: R2PutOptionsLike,
   ): Promise<R2ObjectLike | null>;
+  delete(key: string): Promise<void>;
+};
+
+type ThumbnailQueueBinding = {
+  send(message: { slug: string; hasLegacyThumbnail: boolean }): Promise<void>;
 };
 
 type Env = {
@@ -34,7 +39,7 @@ type Env = {
   // body { url: string } and return a PNG image.
   SCREENSHOT_SERVICE_URL?: string;
   SCREENSHOT_SERVICE_TOKEN?: string;
-  SCREENSHOT_SERVICE?: Fetcher;
+  THUMBNAIL_QUEUE?: ThumbnailQueueBinding;
   // Optional analytics API endpoint (e.g. https://gemigo-api.../api/v1).
   // When configured, the gateway will POST page view events for each app.
   ANALYTICS_API_BASE_URL?: string;
@@ -141,57 +146,27 @@ const createThumbnailPlaceholder = (slug: string, name: string, seed: string): R
   });
 };
 
-const generateOptimizedThumbnail = async (
+const enqueueOptimizedThumbnail = async (
   env: Env,
   slug: string,
-  rootDomain: string,
   hasLegacyThumbnail: boolean,
 ): Promise<void> => {
-  if (!env.SCREENSHOT_SERVICE_URL) return;
+  if (!env.THUMBNAIL_QUEUE) throw new Error('Thumbnail queue binding is missing');
 
-  const targetUrl = `https://${slug}.${rootDomain}/`;
-  const screenshotRequest = new Request(env.SCREENSHOT_SERVICE_URL, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      ...(env.SCREENSHOT_SERVICE_TOKEN
-        ? { authorization: `Bearer ${env.SCREENSHOT_SERVICE_TOKEN}` }
-        : {}),
-    },
-    body: JSON.stringify({
-      url: targetUrl,
-      ...(hasLegacyThumbnail
-        ? { imageUrl: `https://${slug}.${rootDomain}/__thumbnail.png` }
-        : {}),
-      format: 'webp',
-      maxBytes: MAX_OPTIMIZED_THUMBNAIL_BYTES,
-    }),
-  });
-  const screenshotResp = env.SCREENSHOT_SERVICE
-    ? await env.SCREENSHOT_SERVICE.fetch(screenshotRequest)
-    : await fetch(screenshotRequest);
-
-  if (!screenshotResp.ok) {
-    const details = (await screenshotResp.text()).slice(0, 500);
-    throw new Error(`Optimized thumbnail generation failed with ${screenshotResp.status}: ${details}`);
+  const markerKey = `apps/${slug}/thumbnail-queued`;
+  const marker = await env.ASSETS.get(markerKey);
+  if (marker?.body) {
+    const queuedAt = Number(await new Response(marker.body).text());
+    if (Number.isFinite(queuedAt) && Date.now() - queuedAt < 15 * 60_000) return;
   }
 
-  const declaredLength = Number(screenshotResp.headers.get('content-length') || 0);
-  if (declaredLength > MAX_OPTIMIZED_THUMBNAIL_BYTES) {
-    throw new Error(`Optimized thumbnail is too large: ${declaredLength} bytes`);
+  await env.ASSETS.put(markerKey, new Blob([String(Date.now())]));
+  try {
+    await env.THUMBNAIL_QUEUE.send({ slug, hasLegacyThumbnail });
+  } catch (error) {
+    await env.ASSETS.delete(markerKey);
+    throw error;
   }
-
-  const buffer = await screenshotResp.arrayBuffer();
-  if (buffer.byteLength <= 80 || buffer.byteLength > MAX_OPTIMIZED_THUMBNAIL_BYTES) {
-    throw new Error(`Invalid optimized thumbnail size: ${buffer.byteLength} bytes`);
-  }
-
-  await env.ASSETS.put(`apps/${slug}/thumbnail.webp`, buffer, {
-    httpMetadata: {
-      cacheControl: OPTIMIZED_THUMBNAIL_CACHE_CONTROL,
-      contentType: 'image/webp',
-    },
-  });
 };
 
 const serveCentralThumbnail = async (
@@ -199,7 +174,6 @@ const serveCentralThumbnail = async (
   env: Env,
   ctx: ExecutionContext,
   slug: string,
-  rootDomain: string,
 ): Promise<Response> => {
   const cache = caches.default;
   const cacheKey = new Request(request.url, { method: 'GET' });
@@ -241,14 +215,9 @@ const serveCentralThumbnail = async (
   }
 
   ctx.waitUntil(
-    generateOptimizedThumbnail(env, slug, rootDomain, Boolean(legacy)).catch(async (error) => {
-      if (slug === '123') {
-        await env.ASSETS.put('diagnostics/thumbnail-123-error.json', new Blob([
-          JSON.stringify({ time: new Date().toISOString(), error: String(error) }),
-        ], { type: 'application/json' }));
-      }
+    enqueueOptimizedThumbnail(env, slug, hasUsableLegacyThumbnail).catch((error) => {
       console.error(JSON.stringify({
-        message: 'Failed to generate optimized thumbnail',
+        message: 'Failed to queue optimized thumbnail',
         slug,
         error: error instanceof Error ? error.message : String(error),
       }));
@@ -312,25 +281,13 @@ export default {
       });
     }
 
-    if (subdomain === CENTRAL_THUMBNAIL_HOST && url.pathname === '/__diagnose-thumbnail-7f9c4b2a') {
-      const markerKey = 'diagnostics/thumbnail-sync-ran';
-      if (await bucket.get(markerKey)) return new Response('Already used', { status: 410 });
-      await bucket.put(markerKey, new Blob([new Date().toISOString()]));
-      try {
-        await generateOptimizedThumbnail(env, '123', rootDomain, false);
-        return new Response('Screenshot generated', { status: 200 });
-      } catch (error) {
-        return new Response(String(error), { status: 500 });
-      }
-    }
-
     if (subdomain === CENTRAL_THUMBNAIL_HOST && (request.method === 'GET' || request.method === 'HEAD')) {
       const match = CENTRAL_THUMBNAIL_PATH.exec(url.pathname);
       if (match) {
         if (request.method === 'HEAD') {
           return checkCentralThumbnail(env, match[1]);
         }
-        return serveCentralThumbnail(request, env, ctx, match[1], rootDomain);
+        return serveCentralThumbnail(request, env, ctx, match[1]);
       }
     }
 

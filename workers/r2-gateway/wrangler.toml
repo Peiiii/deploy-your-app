@@ -27,6 +27,6 @@ ANALYTICS_ENABLED = "false"
 binding = "ASSETS"
 bucket_name = "gemigo-apps"
 
-[[services]]
-binding = "SCREENSHOT_SERVICE"
-service = "gemigo-screenshot-service"
+[[queues.producers]]
+binding = "THUMBNAIL_QUEUE"
+queue = "gemigo-thumbnail-jobs"

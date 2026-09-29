@@ -4,7 +4,7 @@
 
 **Goal:** Ensure newly deployed apps acquire real screenshot covers and visible cards replace temporary placeholders after generation.
 
-**Architecture:** Keep the central R2 thumbnail endpoint and Browser Run service binding. Bound screenshot navigation and encoding well within the gateway background execution window, permit bounded resolution reduction, and expose a read-only thumbnail readiness check for visible cards. Preserve legacy and uploaded covers.
+**Architecture:** Keep the central R2 thumbnail endpoint and use a Cloudflare Queue for screenshot jobs. The gateway records a short-lived per-app enqueue marker, the screenshot Worker consumes jobs one at a time and writes WebP into R2, and visible cards check readiness before refreshing. Preserve legacy and uploaded covers.
 
 **Tech Stack:** Cloudflare Workers, Browser Run Puppeteer, R2, React, TypeScript.
 
@@ -19,15 +19,16 @@
 3. Implement a HEAD readiness response with CORS and no generation side effect.
 4. Run the thumbnail test.
 
-### Task 2: Make screenshot generation bounded
+### Task 2: Move generation to a durable queue
 
-**Files:** `workers/screenshot-service/worker.ts`, `scripts/test-thumbnail-performance.ts`
+**Files:** `workers/screenshot-service/worker.ts`, `workers/screenshot-service/wrangler.toml`, `workers/r2-gateway/worker.ts`, `workers/r2-gateway/wrangler.toml`, `scripts/test-thumbnail-performance.ts`
 
 1. Add source assertions or direct behavior tests for bounded navigation and resizing.
 2. Replace network-idle navigation with DOM-ready navigation and a short settle period.
 3. Encode at decreasing quality and viewport widths until the image is within the configured byte limit.
-4. Ensure browser cleanup and useful failure logs.
-5. Run the thumbnail test.
+4. Enqueue each missing app once while its marker is fresh; consume jobs outside the gateway's 30-second background window.
+5. Limit consumer concurrency, retry failures, write completed WebP to R2, and clear the marker.
+6. Run the thumbnail test and Worker dry-runs.
 
 ### Task 3: Refresh visible cards after generation
 
