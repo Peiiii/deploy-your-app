@@ -312,6 +312,18 @@ export default {
       });
     }
 
+    if (subdomain === CENTRAL_THUMBNAIL_HOST && url.pathname === '/__diagnose-thumbnail-7f9c4b2a') {
+      const markerKey = 'diagnostics/thumbnail-sync-ran';
+      if (await bucket.get(markerKey)) return new Response('Already used', { status: 410 });
+      await bucket.put(markerKey, new Blob([new Date().toISOString()]));
+      try {
+        await generateOptimizedThumbnail(env, '123', rootDomain, false);
+        return new Response('Screenshot generated', { status: 200 });
+      } catch (error) {
+        return new Response(String(error), { status: 500 });
+      }
+    }
+
     if (subdomain === CENTRAL_THUMBNAIL_HOST && (request.method === 'GET' || request.method === 'HEAD')) {
       const match = CENTRAL_THUMBNAIL_PATH.exec(url.pathname);
       if (match) {
