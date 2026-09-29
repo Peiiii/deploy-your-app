@@ -172,7 +172,8 @@ const generateOptimizedThumbnail = async (
     : await fetch(screenshotRequest);
 
   if (!screenshotResp.ok) {
-    throw new Error(`Optimized thumbnail generation failed with ${screenshotResp.status}`);
+    const details = (await screenshotResp.text()).slice(0, 500);
+    throw new Error(`Optimized thumbnail generation failed with ${screenshotResp.status}: ${details}`);
   }
 
   const declaredLength = Number(screenshotResp.headers.get('content-length') || 0);
@@ -240,7 +241,12 @@ const serveCentralThumbnail = async (
   }
 
   ctx.waitUntil(
-    generateOptimizedThumbnail(env, slug, rootDomain, Boolean(legacy)).catch((error) => {
+    generateOptimizedThumbnail(env, slug, rootDomain, Boolean(legacy)).catch(async (error) => {
+      if (slug === '123') {
+        await env.ASSETS.put('diagnostics/thumbnail-123-error.json', new Blob([
+          JSON.stringify({ time: new Date().toISOString(), error: String(error) }),
+        ], { type: 'application/json' }));
+      }
       console.error(JSON.stringify({
         message: 'Failed to generate optimized thumbnail',
         slug,
