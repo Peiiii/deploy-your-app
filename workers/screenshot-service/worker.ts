@@ -12,7 +12,7 @@ interface Env {
   BROWSER: BrowserWorker;
   ASSETS: {
     get(key: string): Promise<unknown | null>;
-    put(key: string, value: ArrayBuffer, options: {
+    put(key: string, value: ArrayBuffer | Blob, options?: {
       httpMetadata: { cacheControl: string; contentType: string };
     }): Promise<unknown>;
     delete(key: string): Promise<void>;
@@ -234,6 +234,7 @@ const processThumbnailJob = async (job: ThumbnailJob, env: Env): Promise<void> =
     },
   });
   await env.ASSETS.delete(markerKey);
+  await env.ASSETS.delete(`apps/${job.slug}/thumbnail-error.json`);
 };
 
 export default {
@@ -250,12 +251,24 @@ export default {
           }),
         ]);
       } catch (error) {
+        const errorMessage = getErrorMessage(error);
         console.error(JSON.stringify({
           message: 'Queued thumbnail generation failed',
           slug: message.body.slug,
           attempt: message.attempts,
-          error: getErrorMessage(error),
+          error: errorMessage,
         }));
+        try {
+          await env.ASSETS.put(`apps/${message.body.slug}/thumbnail-error.json`, new Blob([
+            JSON.stringify({
+              time: new Date().toISOString(),
+              attempt: message.attempts,
+              error: errorMessage,
+            }),
+          ], { type: 'application/json' }));
+        } catch (writeError) {
+          console.error('Failed to persist thumbnail error', writeError);
+        }
         message.retry({ delaySeconds: Math.min(3600, 60 * message.attempts) });
       } finally {
         if (timeout) clearTimeout(timeout);
