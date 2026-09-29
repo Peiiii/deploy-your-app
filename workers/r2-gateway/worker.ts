@@ -27,19 +27,9 @@ type R2BucketBinding = {
   delete(key: string): Promise<void>;
 };
 
-type ThumbnailQueueBinding = {
-  send(message: { slug: string; hasLegacyThumbnail: boolean }): Promise<void>;
-};
-
 type Env = {
   APPS_ROOT_DOMAIN?: string;
   ASSETS: R2BucketBinding;
-  // Optional external screenshot service the worker can call to generate
-  // thumbnails on first request. The service is expected to accept a JSON
-  // body { url: string } and return a PNG image.
-  SCREENSHOT_SERVICE_URL?: string;
-  SCREENSHOT_SERVICE_TOKEN?: string;
-  THUMBNAIL_QUEUE?: ThumbnailQueueBinding;
   // Optional analytics API endpoint (e.g. https://gemigo-api.../api/v1).
   // When configured, the gateway will POST page view events for each app.
   ANALYTICS_API_BASE_URL?: string;
@@ -146,29 +136,6 @@ const createThumbnailPlaceholder = (slug: string, name: string, seed: string): R
   });
 };
 
-const enqueueOptimizedThumbnail = async (
-  env: Env,
-  slug: string,
-  hasLegacyThumbnail: boolean,
-): Promise<void> => {
-  if (!env.THUMBNAIL_QUEUE) throw new Error('Thumbnail queue binding is missing');
-
-  const markerKey = `apps/${slug}/thumbnail-queued`;
-  const marker = await env.ASSETS.get(markerKey);
-  if (marker?.body) {
-    const queuedAt = Number(await new Response(marker.body).text());
-    if (Number.isFinite(queuedAt) && Date.now() - queuedAt < 15 * 60_000) return;
-  }
-
-  await env.ASSETS.put(markerKey, new Blob([String(Date.now())]));
-  try {
-    await env.THUMBNAIL_QUEUE.send({ slug, hasLegacyThumbnail });
-  } catch (error) {
-    await env.ASSETS.delete(markerKey);
-    throw error;
-  }
-};
-
 const serveCentralThumbnail = async (
   request: Request,
   env: Env,
@@ -213,16 +180,6 @@ const serveCentralThumbnail = async (
       return response;
     }
   }
-
-  ctx.waitUntil(
-    enqueueOptimizedThumbnail(env, slug, hasUsableLegacyThumbnail).catch((error) => {
-      console.error(JSON.stringify({
-        message: 'Failed to queue optimized thumbnail',
-        slug,
-        error: error instanceof Error ? error.message : String(error),
-      }));
-    }),
-  );
 
   if (legacy && hasUsableLegacyThumbnail) {
     return createLegacyThumbnailResponse(legacy);
@@ -307,35 +264,8 @@ export default {
         thumb = null;
       }
 
-      // If thumbnail does not exist yet, try to generate it via an external
-      // screenshot service (if configured). This keeps the worker generic:
-      // you can plug in Cloudflare Browser Rendering or any third-party API.
-      if (!thumb && env.SCREENSHOT_SERVICE_URL) {
-        try {
-          const targetUrl = `https://${subdomain}.${rootDomain}/`;
-          const screenshotResp = await fetch(env.SCREENSHOT_SERVICE_URL, {
-            method: 'POST',
-            headers: {
-              'content-type': 'application/json',
-              ...(env.SCREENSHOT_SERVICE_TOKEN
-                ? { authorization: `Bearer ${env.SCREENSHOT_SERVICE_TOKEN}` }
-                : {}),
-            },
-            body: JSON.stringify({ url: targetUrl }),
-          });
-
-          if (screenshotResp.ok) {
-            const buffer = await screenshotResp.arrayBuffer();
-            await bucket.put(thumbKey, buffer, {
-              httpMetadata: { contentType: 'image/png' },
-            });
-            thumb = await bucket.get(thumbKey);
-          }
-        } catch (err) {
-          // If screenshot generation fails, we simply fall back to 404 so
-          // the frontend can use a graceful placeholder.
-          console.error('Failed to generate thumbnail', err);
-        }
+      if (!thumb) {
+        thumb = await bucket.get(`apps/${subdomain}/thumbnail.webp`);
       }
 
       if (!thumb) {
@@ -353,7 +283,7 @@ export default {
       // actually flowing through this R2 gateway worker.
       headers.set('x-gemigo-gateway', 'r2');
       if (!headers.has('content-type')) {
-        headers.set('content-type', 'image/png');
+        headers.set('content-type', thumb.httpMetadata?.contentType ?? 'image/png');
       }
 
       return new Response(thumb.body, { headers });

@@ -1,6 +1,7 @@
 """Capture recent public apps that do not yet have a thumbnail in R2."""
 
 import base64
+from concurrent.futures import ThreadPoolExecutor
 import io
 import json
 import os
@@ -91,7 +92,10 @@ def main():
         raise RuntimeError(f"Missing D1 configuration: {', '.join(missing)}")
 
     slugs = recent_public_slugs()
-    pending = [slug for slug in slugs if SLUG.fullmatch(slug) and not thumbnail_ready(slug)]
+    valid_slugs = [slug for slug in slugs if SLUG.fullmatch(slug)]
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        ready = list(pool.map(thumbnail_ready, valid_slugs))
+    pending = [slug for slug, is_ready in zip(valid_slugs, ready) if not is_ready]
     print(f"scanned={len(slugs)} pending={len(pending)}", flush=True)
     if "--check-only" in sys.argv:
         if os.environ.get("GITHUB_OUTPUT"):

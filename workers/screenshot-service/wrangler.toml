@@ -11,14 +11,3 @@ binding = "BROWSER"
 
 [vars]
 APPS_ROOT_DOMAIN = "gemigo.app"
-
-[[r2_buckets]]
-binding = "ASSETS"
-bucket_name = "gemigo-apps"
-
-[[queues.consumers]]
-queue = "gemigo-thumbnail-jobs"
-max_batch_size = 1
-max_batch_timeout = 1
-max_retries = 8
-max_concurrency = 1

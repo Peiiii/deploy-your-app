@@ -10,25 +10,6 @@ interface ScreenshotRequestBody {
 
 interface Env {
   BROWSER: BrowserWorker;
-  ASSETS: {
-    get(key: string): Promise<unknown | null>;
-    put(key: string, value: ArrayBuffer | Blob, options?: {
-      httpMetadata: { cacheControl: string; contentType: string };
-    }): Promise<unknown>;
-    delete(key: string): Promise<void>;
-  };
-  APPS_ROOT_DOMAIN?: string;
-}
-
-interface ThumbnailJob {
-  slug: string;
-  hasLegacyThumbnail: boolean;
-}
-
-interface ThumbnailQueueMessage {
-  body: ThumbnailJob;
-  attempts: number;
-  retry(options: { delaySeconds: number }): void;
 }
 
 const OPTIMIZED_WIDTH = 960;
@@ -51,11 +32,8 @@ function getErrorMessage(error: unknown): string {
   return '未知错误';
 }
 
-const handleScreenshotRequest = async (
-  request: Request,
-  env: Env,
-  onStage: (stage: string) => void = () => {},
-): Promise<Response> => {
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const { searchParams } = new URL(request.url);
 
     let targetUrl = searchParams.get("url");
@@ -100,9 +78,7 @@ const handleScreenshotRequest = async (
 
     let browser: Browser | null = null;
     try {
-      onStage('browser launch');
       browser = await puppeteer.launch(env.BROWSER);
-      onStage('new page');
       const page = await browser.newPage();
 
       await page.setViewport(
@@ -111,12 +87,10 @@ const handleScreenshotRequest = async (
           : { width: 1280, height: 720 },
       );
 
-      onStage('navigation');
       await page.goto(imageUrl || targetUrl, {
         waitUntil: 'domcontentloaded',
         timeout: 12000,
       });
-      onStage('render wait');
       await new Promise((resolve) => setTimeout(resolve, 1200));
 
       if (imageUrl) {
@@ -142,7 +116,6 @@ const handleScreenshotRequest = async (
       }
 
       let imgBuffer: Uint8Array;
-      onStage('screenshot');
       if (format === 'webp') {
         let optimized: Uint8Array | null = null;
         for (const { width, quality } of WEBP_CAPTURE_STEPS) {
@@ -172,7 +145,6 @@ const handleScreenshotRequest = async (
         imgBuffer = await page.screenshot({ type: 'png' });
       }
 
-      onStage('browser close');
       await browser.close();
       browser = null;
 
@@ -204,93 +176,5 @@ const handleScreenshotRequest = async (
         await browser.close();
       }
     }
-};
-
-const processThumbnailJob = async (
-  job: ThumbnailJob,
-  env: Env,
-  onStage: (stage: string) => void,
-): Promise<void> => {
-  if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(job.slug)) {
-    throw new Error('Invalid thumbnail slug');
   }
-
-  const thumbnailKey = `apps/${job.slug}/thumbnail.webp`;
-  const markerKey = `apps/${job.slug}/thumbnail-queued`;
-  if (await env.ASSETS.get(thumbnailKey)) {
-    await env.ASSETS.delete(markerKey);
-    return;
-  }
-
-  const targetUrl = `https://${job.slug}.${env.APPS_ROOT_DOMAIN || 'gemigo.app'}/`;
-  const response = await handleScreenshotRequest(new Request('https://internal/screenshot', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      url: targetUrl,
-      ...(job.hasLegacyThumbnail ? { imageUrl: `${targetUrl}__thumbnail.png` } : {}),
-      format: 'webp',
-      maxBytes: DEFAULT_MAX_BYTES,
-    }),
-  }), env, onStage);
-  if (!response.ok) {
-    throw new Error(`Screenshot service returned ${response.status}: ${(await response.text()).slice(0, 500)}`);
-  }
-
-  const image = await response.arrayBuffer();
-  if (image.byteLength <= 80 || image.byteLength > DEFAULT_MAX_BYTES) {
-    throw new Error(`Invalid screenshot size: ${image.byteLength}`);
-  }
-  onStage('R2 write');
-  await env.ASSETS.put(thumbnailKey, image, {
-    httpMetadata: {
-      cacheControl: 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
-      contentType: 'image/webp',
-    },
-  });
-  await env.ASSETS.delete(markerKey);
-  await env.ASSETS.delete(`apps/${job.slug}/thumbnail-error.json`);
-};
-
-export default {
-  fetch: handleScreenshotRequest,
-  async queue(batch: { messages: ThumbnailQueueMessage[] }, env: Env): Promise<void> {
-    for (const message of batch.messages) {
-      const startedAt = Date.now();
-      let stage = 'R2 read';
-      let timeout: ReturnType<typeof setTimeout> | undefined;
-      try {
-        await Promise.race([
-          processThumbnailJob(message.body, env, (nextStage) => { stage = nextStage; }),
-          new Promise<never>((_resolve, reject) => {
-            timeout = setTimeout(() => reject(new Error(`Screenshot job timed out at ${stage}`)), 60_000);
-          }),
-        ]);
-      } catch (error) {
-        const errorMessage = getErrorMessage(error);
-        console.error(JSON.stringify({
-          message: 'Queued thumbnail generation failed',
-          slug: message.body.slug,
-          attempt: message.attempts,
-          error: errorMessage,
-        }));
-        try {
-          await env.ASSETS.put(`apps/${message.body.slug}/thumbnail-error.json`, new Blob([
-            JSON.stringify({
-              time: new Date().toISOString(),
-              attempt: message.attempts,
-              error: errorMessage,
-            }),
-          ], { type: 'application/json' }));
-        } catch (writeError) {
-          console.error('Failed to persist thumbnail error', writeError);
-        }
-        message.retry({ delaySeconds: Math.min(3600, 60 * message.attempts) });
-      } finally {
-        if (timeout) clearTimeout(timeout);
-        const remaining = 20_000 - (Date.now() - startedAt);
-        if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining));
-      }
-    }
-  },
-};
+}

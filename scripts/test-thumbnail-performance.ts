@@ -60,6 +60,13 @@ const optimizedHeadResponse = await gatewayHandler.fetch(
 );
 assert.equal(optimizedHeadResponse.status, 200);
 assert.equal(optimizedHeadResponse.headers.get('content-type'), 'image/webp');
+const optimizedLegacyResponse = await gatewayHandler.fetch(
+  new Request('https://demo-app.gemigo.app/__thumbnail.png'),
+  optimizedEnv as never,
+  executionContext as never,
+);
+assert.equal(optimizedLegacyResponse.status, 200);
+assert.equal(optimizedLegacyResponse.headers.get('content-type'), 'image/webp');
 await Promise.all(waitUntilPromises.splice(0));
 assert.deepEqual(cacheWrites, ['https://assets.gemigo.app/thumbnails/demo-app.webp']);
 
@@ -106,41 +113,6 @@ assert.notEqual(
   placeholderSvg.match(/<stop stop-color="([^"]+)"/)?.[1],
 );
 await Promise.all(waitUntilPromises.splice(0));
-
-const pendingObjects = new Map<string, Blob>();
-const queuedJobs: Array<{ slug: string; hasLegacyThumbnail: boolean }> = [];
-const queuedEnv = {
-  APPS_ROOT_DOMAIN: 'gemigo.app',
-  THUMBNAIL_QUEUE: {
-    send: async (job: { slug: string; hasLegacyThumbnail: boolean }) => {
-      queuedJobs.push(job);
-    },
-  },
-  ASSETS: {
-    get: async (key: string) => {
-      const object = pendingObjects.get(key);
-      return object ? { body: object.stream(), size: object.size } : null;
-    },
-    put: async (key: string, value: Blob) => {
-      pendingObjects.set(key, value);
-      return null;
-    },
-    delete: async (key: string) => {
-      pendingObjects.delete(key);
-    },
-  },
-};
-for (let attempt = 0; attempt < 2; attempt += 1) {
-  const response = await gatewayHandler.fetch(
-    new Request(`https://assets.gemigo.app/thumbnails/queued-app.webp?attempt=${attempt}`),
-    queuedEnv as never,
-    executionContext as never,
-  );
-  assert.equal(response.headers.get('x-gemigo-thumbnail'), 'generating');
-  await Promise.all(waitUntilPromises.splice(0));
-}
-assert.deepEqual(queuedJobs, [{ slug: 'queued-app', hasLegacyThumbnail: false }]);
-assert.equal(pendingObjects.has('apps/queued-app/thumbnail-queued'), true);
 
 const legacyPngBytes = new Uint8Array(48 * 1024);
 const legacyPngEnv = {

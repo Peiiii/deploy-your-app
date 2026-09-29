@@ -10,23 +10,12 @@ routes = [
 [vars]
 # Must match APPS_ROOT_DOMAIN used by the backend.
 APPS_ROOT_DOMAIN = "gemigo.app"
-## Optional: URL of the screenshot-service Worker used to generate thumbnails.
-## After you deploy workers/screenshot-service, replace the value below with
-## the deployed URL (e.g. "https://gemigo-screenshot-service.<account>.workers.dev").
-SCREENSHOT_SERVICE_URL = "https://gemigo-screenshot-service.15353764479037.workers.dev"
 ## Optional: base URL of the API Worker for analytics.
 # For example: "https://gemigo-api.<account>.workers.dev/api/v1"
 ANALYTICS_API_BASE_URL = "https://gemigo-api.15353764479037.workers.dev/api/v1"
 # Keep ingestion off while page-view classification is hardened against scanners.
 ANALYTICS_ENABLED = "false"
 
-## Optional: shared secret for securing calls to the screenshot service.
-# SCREENSHOT_SERVICE_TOKEN = "change-me"
-
 [[r2_buckets]]
 binding = "ASSETS"
 bucket_name = "gemigo-apps"
-
-[[queues.producers]]
-binding = "THUMBNAIL_QUEUE"
-queue = "gemigo-thumbnail-jobs"

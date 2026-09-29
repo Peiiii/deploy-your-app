@@ -4,8 +4,8 @@ This Worker serves deployed apps from a Cloudflare R2 bucket behind a wildcard d
 
 - Origin for `https://<slug>.gemigo.app/*`
 - Reads static assets from an R2 bucket (binding `ASSETS`)
-- Enqueues optimized screenshots for missing app covers and serves a temporary SVG until R2 contains a real image
-- Optionally calls the screenshot-service Worker to generate `__thumbnail.png` on first request
+- Serves optimized screenshots from R2 and a temporary SVG until the scheduled capture workflow writes a real image
+- Serves legacy `__thumbnail.png` from R2, falling back to the optimized WebP object
 
 It is used together with the Node backend (`server`) and API Worker (`workers/api`) when `DEPLOY_TARGET = r2`.
 
@@ -42,16 +42,11 @@ routes = [
 
 [vars]
 APPS_ROOT_DOMAIN = "gemigo.app"
-SCREENSHOT_SERVICE_URL = "https://gemigo-screenshot-service.<account>.workers.dev"
-# SCREENSHOT_SERVICE_TOKEN = "change-me"
 
 [[r2_buckets]]
 binding = "ASSETS"
 bucket_name = "gemigo-apps"
 
-[[queues.producers]]
-binding = "THUMBNAIL_QUEUE"
-queue = "gemigo-thumbnail-jobs"
 ```
 
 ### Required pieces
@@ -69,16 +64,15 @@ queue = "gemigo-thumbnail-jobs"
    - `APPS_ROOT_DOMAIN` must match the root domain in DNS, e.g. `gemigo.app`.
    - The API Worker and backend use the same `APPS_ROOT_DOMAIN` to generate project URLs.
 
-3. **Screenshot queue**
+3. **Screenshot capture**
 
-Create `gemigo-thumbnail-jobs`, then deploy `workers/screenshot-service` before this gateway. On a central thumbnail miss, the gateway adds one job while its R2 marker is fresh. The consumer captures the deployed app and writes `apps/<slug>/thumbnail.webp`. `HEAD /thumbnails/<slug>.webp` reports `202` while pending and `200` when a cover is available.
+The scheduled `.github/workflows/capture-thumbnails.yml` workflow reads recent public apps from D1, checks which thumbnails are missing, captures real pages in Chromium, and writes `apps/<slug>/thumbnail.webp` to R2. The gateway reports `202` on a pending HEAD request and `200` once a cover exists.
 
 The legacy PNG route still works independently:
 
 - On `https://<slug>.gemigo.app/__thumbnail.png`:
   - Check R2 for `apps/<slug>/thumbnail.png`.
-  - If missing, POST `{ "url": "https://<slug>.gemigo.app/" }` to `SCREENSHOT_SERVICE_URL`.
-  - Save the returned PNG into R2 and serve it.
+  - If missing, serve `apps/<slug>/thumbnail.webp` when available.
 
 ---
 
@@ -94,4 +88,4 @@ pnpm exec wrangler deploy
 After deploy:
 
 - Visiting `https://<some-existing-slug>.gemigo.app/` should serve the app.
-- `https://<slug>.gemigo.app/__thumbnail.png` should return a PNG (or 404 if screenshot service is not configured or fails).
+- `https://<slug>.gemigo.app/__thumbnail.png` should return a PNG or WebP when a cover is available.

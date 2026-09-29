@@ -55,3 +55,12 @@ legacy `__thumbnail.png` endpoint remains available during migration. Tests cove
 URL routing, image attributes, byte limits, cache headers, placeholder behavior,
 and Worker dry-runs. Production verification uses Chrome performance traces and
 network request inspection after pre-warming the current Explore cards.
+
+## Production outcome (2026-09-30)
+
+Cloudflare Browser Run repeatedly timed out during browser launch, so the
+gateway no longer invokes it for app covers. The scheduled GitHub Actions
+workflow reads recent public apps from D1, uses Chromium to capture missing
+screenshots, and uploads WebP to R2. The gateway keeps the same central URL and
+readiness response; the frontend polls readiness while a page stays open. The
+first production workflow run saved 11 real covers with no failures.
