@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const POLL_DELAYS_MS = [2500, 4000, 6000, 8000, 10000] as const;
+const POLL_DELAYS_MS = [2500, 5000, 10000, 20000, ...Array(10).fill(60000)] as const;
 const CENTRAL_THUMBNAIL_PREFIX = 'https://assets.gemigo.app/thumbnails/';
 
 export const useProjectThumbnail = (url: string | undefined, active = true) => {
