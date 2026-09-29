@@ -19,17 +19,17 @@ export interface DeploymentOption {
 
 export const DEPLOYMENT_OPTIONS: DeploymentOption[] = [
   {
-    id: SourceType.GITHUB,
-    titleKey: 'deployment.githubRepository',
-    descriptionKey: 'deployment.connectGitHubRepo',
-    icon: Github,
-    colorFrom: 'from-gray-100',
-    colorTo: 'to-gray-200',
-    bgFrom: 'dark:from-gray-800',
-    bgTo: 'dark:to-gray-700',
-    hoverColor: 'gray', // Neutral hover
-    iconColor: 'text-gray-900 dark:text-gray-100',
-    shadowColor: 'shadow-gray-500/10',
+    id: SourceType.HTML,
+    titleKey: 'deployment.inlineHTML',
+    descriptionKey: 'deployment.pasteHTML',
+    icon: FileCode,
+    colorFrom: 'from-gray-800',
+    colorTo: 'to-gray-900',
+    bgFrom: 'dark:from-black',
+    bgTo: 'dark:to-gray-950',
+    hoverColor: 'gray',
+    iconColor: 'text-white',
+    shadowColor: 'shadow-black/20',
     variant: 'default',
   },
   {
@@ -47,17 +47,17 @@ export const DEPLOYMENT_OPTIONS: DeploymentOption[] = [
     variant: 'default',
   },
   {
-    id: SourceType.HTML,
-    titleKey: 'deployment.inlineHTML',
-    descriptionKey: 'deployment.pasteHTML', // Matches 'Create Blank' visual weight
-    icon: FileCode,
-    colorFrom: 'from-gray-800',
-    colorTo: 'to-gray-900',
-    bgFrom: 'dark:from-black',
-    bgTo: 'dark:to-gray-950',
+    id: SourceType.GITHUB,
+    titleKey: 'deployment.githubRepository',
+    descriptionKey: 'deployment.connectGitHubRepo',
+    icon: Github,
+    colorFrom: 'from-gray-100',
+    colorTo: 'to-gray-200',
+    bgFrom: 'dark:from-gray-800',
+    bgTo: 'dark:to-gray-700',
     hoverColor: 'gray',
-    iconColor: 'text-white',
-    shadowColor: 'shadow-black/20',
-    variant: 'default', // Changed from 'dark' to match other cards
+    iconColor: 'text-gray-900 dark:text-gray-100',
+    shadowColor: 'shadow-gray-500/10',
+    variant: 'default',
   },
 ];

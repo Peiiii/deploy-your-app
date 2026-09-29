@@ -3,6 +3,7 @@ import React from 'react';
 import { SourceType } from '@/types';
 import { DeploymentCard } from '@/features/home/components/deployment-card';
 import { DEPLOYMENT_OPTIONS } from '@/features/home/components/deployment-options';
+import { AiPublishCard } from '@/features/home/components/ai-publish-card';
 
 interface HomeDeploySectionProps {
   compact: boolean;
@@ -35,8 +36,10 @@ export const HomeDeploySection: React.FC<HomeDeploySectionProps> = ({
             />
           ))}
         </div>
+        <div className="mt-4 md:mt-5">
+          <AiPublishCard />
+        </div>
       </div>
     </section>
   );
 };
-

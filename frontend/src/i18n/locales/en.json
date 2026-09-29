@@ -541,7 +541,14 @@
     "expandSidebar": "Expand sidebar"
   },
   "home": {
-    "quickDeploy": "Quick Deploy"
+    "quickDeploy": "Quick Deploy",
+    "aiPublishTitle": "Publish with your AI",
+    "aiPublishDescription": "Copy a prompt into an AI that can access your local project and terminal. It will read the publishing skill and use GemiGo CLI to build, validate, and publish.",
+    "aiPublishViewSkill": "View publishing skill",
+    "aiPublishCopy": "Copy prompt for AI",
+    "aiPublishCopied": "Copied — paste into your AI",
+    "aiPublishCopyFailed": "Copy failed. Check your browser clipboard permission.",
+    "aiPublishPrompt": "Help me publish the current project to GemiGo. Fetch the complete SKILL.md from {{skillUrl}}, install it locally according to your AI tool's skill directory convention, and read it. If you cannot install a skill in this environment, read the URL directly and follow its instructions. Inspect the project, build static output if needed, then install and use GemiGo CLI to run init, validate, login, and publish. Ask me to complete login when needed. After publishing, give me the live URL and check that the page is accessible. The CLI supports static sites only; explain the limitation first if this project requires a server."
   },
   "profile": {
     "title": "My profile",

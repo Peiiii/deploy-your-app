@@ -537,7 +537,14 @@
     "expandSidebar": "展开侧边栏"
   },
   "home": {
-    "quickDeploy": "快速部署"
+    "quickDeploy": "快速部署",
+    "aiPublishTitle": "让 AI 帮你发布",
+    "aiPublishDescription": "复制提示词，发给能访问本地项目和终端的 AI。它会读取发布 Skill，并用 GemiGo CLI 完成构建、校验和发布。",
+    "aiPublishViewSkill": "查看发布 Skill",
+    "aiPublishCopy": "复制给 AI",
+    "aiPublishCopied": "已复制，粘贴给 AI",
+    "aiPublishCopyFailed": "复制失败，请检查浏览器剪贴板权限。",
+    "aiPublishPrompt": "请帮我把当前项目发布到 GemiGo。先从 {{skillUrl}} 获取完整的 SKILL.md，按你所用 AI 工具的 Skill 目录规范安装到本地并读取它；如果当前环境无法安装 Skill，就直接读取该 URL 的内容并按其中步骤执行。检查项目，必要时先构建静态产物，然后安装并使用 GemiGo CLI 完成 init、validate、login、publish。需要我登录时请提示我。发布成功后给我线上 URL，并检查页面能否访问。CLI 只支持静态站点；如果项目需要服务端运行，请先说明限制。"
   },
   "profile": {
     "title": "我的主页",
