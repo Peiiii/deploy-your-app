@@ -51,7 +51,11 @@ function getErrorMessage(error: unknown): string {
   return '未知错误';
 }
 
-const handleScreenshotRequest = async (request: Request, env: Env): Promise<Response> => {
+const handleScreenshotRequest = async (
+  request: Request,
+  env: Env,
+  onStage: (stage: string) => void = () => {},
+): Promise<Response> => {
     const { searchParams } = new URL(request.url);
 
     let targetUrl = searchParams.get("url");
@@ -96,7 +100,9 @@ const handleScreenshotRequest = async (request: Request, env: Env): Promise<Resp
 
     let browser: Browser | null = null;
     try {
+      onStage('browser launch');
       browser = await puppeteer.launch(env.BROWSER);
+      onStage('new page');
       const page = await browser.newPage();
 
       await page.setViewport(
@@ -105,10 +111,12 @@ const handleScreenshotRequest = async (request: Request, env: Env): Promise<Resp
           : { width: 1280, height: 720 },
       );
 
+      onStage('navigation');
       await page.goto(imageUrl || targetUrl, {
         waitUntil: 'domcontentloaded',
         timeout: 12000,
       });
+      onStage('render wait');
       await new Promise((resolve) => setTimeout(resolve, 1200));
 
       if (imageUrl) {
@@ -134,6 +142,7 @@ const handleScreenshotRequest = async (request: Request, env: Env): Promise<Resp
       }
 
       let imgBuffer: Uint8Array;
+      onStage('screenshot');
       if (format === 'webp') {
         let optimized: Uint8Array | null = null;
         for (const { width, quality } of WEBP_CAPTURE_STEPS) {
@@ -163,6 +172,7 @@ const handleScreenshotRequest = async (request: Request, env: Env): Promise<Resp
         imgBuffer = await page.screenshot({ type: 'png' });
       }
 
+      onStage('browser close');
       await browser.close();
       browser = null;
 
@@ -196,7 +206,11 @@ const handleScreenshotRequest = async (request: Request, env: Env): Promise<Resp
     }
 };
 
-const processThumbnailJob = async (job: ThumbnailJob, env: Env): Promise<void> => {
+const processThumbnailJob = async (
+  job: ThumbnailJob,
+  env: Env,
+  onStage: (stage: string) => void,
+): Promise<void> => {
   if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(job.slug)) {
     throw new Error('Invalid thumbnail slug');
   }
@@ -218,7 +232,7 @@ const processThumbnailJob = async (job: ThumbnailJob, env: Env): Promise<void> =
       format: 'webp',
       maxBytes: DEFAULT_MAX_BYTES,
     }),
-  }), env);
+  }), env, onStage);
   if (!response.ok) {
     throw new Error(`Screenshot service returned ${response.status}: ${(await response.text()).slice(0, 500)}`);
   }
@@ -227,6 +241,7 @@ const processThumbnailJob = async (job: ThumbnailJob, env: Env): Promise<void> =
   if (image.byteLength <= 80 || image.byteLength > DEFAULT_MAX_BYTES) {
     throw new Error(`Invalid screenshot size: ${image.byteLength}`);
   }
+  onStage('R2 write');
   await env.ASSETS.put(thumbnailKey, image, {
     httpMetadata: {
       cacheControl: 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
@@ -242,12 +257,13 @@ export default {
   async queue(batch: { messages: ThumbnailQueueMessage[] }, env: Env): Promise<void> {
     for (const message of batch.messages) {
       const startedAt = Date.now();
+      let stage = 'R2 read';
       let timeout: ReturnType<typeof setTimeout> | undefined;
       try {
         await Promise.race([
-          processThumbnailJob(message.body, env),
+          processThumbnailJob(message.body, env, (nextStage) => { stage = nextStage; }),
           new Promise<never>((_resolve, reject) => {
-            timeout = setTimeout(() => reject(new Error('Screenshot job timed out')), 60_000);
+            timeout = setTimeout(() => reject(new Error(`Screenshot job timed out at ${stage}`)), 60_000);
           }),
         ]);
       } catch (error) {
