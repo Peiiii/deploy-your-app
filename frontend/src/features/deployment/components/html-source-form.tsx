@@ -36,7 +36,7 @@ export const HtmlSourceForm: React.FC<HtmlSourceFormProps> = ({
   };
 
   return (
-    <div className={compact ? 'overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900' : 'space-y-4'}>
+    <div className={compact ? 'overflow-hidden rounded-xl border border-slate-200 bg-slate-50/50 dark:border-slate-700 dark:bg-slate-800/30' : 'space-y-4'}>
       <label htmlFor="publication-html" className={compact ? 'sr-only' : 'block text-sm font-medium text-slate-900 dark:text-white'}>
         HTML {t('common.content') || 'Content'}
       </label>
