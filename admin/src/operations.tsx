@@ -341,7 +341,11 @@ export default function Operations({ section }: { section: string }) {
               {section !== 'users' && (
                 <label>
                   状态
-                  <select value={status} onChange={(e) => setStatus(e.target.value)}>
+                  <select
+                    aria-label="状态"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                  >
                     <option value="">全部状态</option>
                     {(section === 'projects'
                       ? ['Live', 'Building', 'Failed']
