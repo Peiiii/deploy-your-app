@@ -29,3 +29,11 @@ design-document: required（改变刷新恢复生命周期）；plan: not-requir
 - 当前源码完整产品 `http://localhost:5195/`，经实际收起按钮 → reload → 仍显示展开按钮；实际展开按钮 → reload → 仍显示收起按钮，passed。
 - 项目无 diff-only maintainability 自动入口；手工 findings-first 检查该 diff 与 Sidebar/app layout/preview 消费者，白名单读写保持单 owner、actions 不被恢复数据覆盖、同步恢复无额外 effect、存储失败不会中断 action。implementation-review: passed，no findings。
 - retrospective_decision: no-increment。现有开发与存储边界方法足够，本次修正不新增通用规则或平行知识条目。
+
+## 线上交付
+
+- 源码提交 `8a93860` 已普通推送 master，主工作区直接在 master 完成；原有 analytics 脚本与三份未跟踪文件/包均保留，未纳入任务提交。
+- `pnpm test:profile-name` 通过，覆盖既有 Node 环境消费 UI store 的回归。
+- 既有 `pnpm deploy:pages` 成功；Pages commit `d6e270eefb0faa83b7d9fb87418597d87c4211ea` 状态 built，线上及浏览器实际脚本为 `index-DkN3dCBb.js`，与本次生产构建一致。旧 Pages `bb0c76351a15eee5a5f9633d83d05723effef7a3` 可作回退依据。
+- https://gemigo.io/ 实际侧栏收起 → reload → 保持窄栏/展开按钮；展开 → reload → 保持宽栏/收起按钮，passed；保存收起刷新后的真实截图 `/tmp/gemigo-sidebar-persistence.png`。状态恢复在登录信息返回前已完成。
+- 已交付待用户体验验收，无开放功能/Review finding；仅同源浏览器本地偏好，不提供跨设备同步。收尾复盘 no-increment，未新增流程/规则。
