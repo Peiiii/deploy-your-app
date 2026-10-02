@@ -15,6 +15,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Toast } from '@/components/toast';
 import { CrispChat } from '@/components/crisp-chat';
 import { PrivacyPolicyPage } from '@/features/legal/pages/privacy-policy';
+import { AcceptableUsePage } from '@/features/legal/pages/acceptable-use';
 import { SdkAuthBrokerPage } from '@/features/sdk-auth/pages/sdk-auth-broker';
 import {
   CliLoginPage,
@@ -166,6 +167,10 @@ export default function App() {
 
   if (isPrivacyPolicy) {
     return <PrivacyPolicyPage />;
+  }
+
+  if (pathname === '/acceptable-use') {
+    return <AcceptableUsePage />;
   }
 
   if (isSdkAuthBroker) {

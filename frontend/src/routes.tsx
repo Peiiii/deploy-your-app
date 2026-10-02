@@ -10,6 +10,7 @@ import { PublicProfile } from '@/features/profile/pages/public-profile';
 import { AdminProjectsPage } from '@/features/admin/pages/admin-projects';
 import { BrandingDesignPage } from '@/features/design/pages/branding-design-page';
 import { PrivacyPolicyPage } from '@/features/legal/pages/privacy-policy';
+import { AcceptableUsePage } from '@/features/legal/pages/acceptable-use';
 import { CommunityPage } from '@/features/community/pages/community-page';
 
 const AdminRedirect = () => {
@@ -32,6 +33,7 @@ export const AppRoutes = () => (
         <Route path="/u/:id" element={<PublicProfile />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/acceptable-use" element={<AcceptableUsePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
 );

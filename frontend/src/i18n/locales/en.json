@@ -671,5 +671,34 @@
     "nameError": "Enter a name of 1–50 characters without an email address or control characters.",
     "nameSaved": "Your public name is saved.",
     "nameSessionChanged": "Your sign-in session changed. Please set your name again."
+  },
+  "legal": {
+    "language": "Language",
+    "notice": "Do not use GemiGo for illegal content, fraud, phishing or infringement. Violating content may be removed and services restricted.",
+    "readPolicy": "Read acceptable use policy ↗",
+    "policyTitle": "Acceptable Use Policy",
+    "privacy": "Privacy Policy",
+    "report": "Report abuse",
+    "backHome": "Back to GemiGo",
+    "updated": "Last updated:",
+    "intro": "GemiGo is for publishing and sharing lawful apps and creations. Follow applicable laws and this policy whenever you use the platform, including through the website, CLI, API or other entry points.",
+    "prohibitedTitle": "Prohibited content and activities",
+    "prohibited": {
+      "fraud": "Fraud, phishing, impersonation, or deceptive attempts to obtain accounts, passwords, payment information or money.",
+      "malware": "Distributing malware, stealing data, accessing systems without authorization, launching cyberattacks or helping others do so.",
+      "illegalTrade": "Publishing, promoting or facilitating illegal trade, illegal gambling or other unlawful activities.",
+      "exploitation": "Publishing or distributing unlawful sexual content, child sexual exploitation or abuse material, or nonconsensual intimate imagery.",
+      "rights": "Infringing copyright, trademarks or other legal rights, or exposing, collecting or selling personal information without authorization.",
+      "harm": "Threats, harassment, incitement to hatred, violence or terrorism, or other content or conduct that causes serious harm.",
+      "abuse": "Sending spam, maliciously consuming platform resources, or bypassing access controls, quotas or security restrictions."
+    },
+    "responsibilityTitle": "Your responsibility as a publisher",
+    "responsibility": "You are responsible for your app’s code, content, data practices and use, and for obtaining necessary permissions. Review AI-generated content too. A successful deployment does not mean GemiGo has reviewed the content or confirmed that it is lawful.",
+    "enforcementTitle": "How violations are handled",
+    "enforcement": "Based on reports, investigation results and applicable legal requirements, GemiGo may require remediation, remove violating content, or restrict, suspend or terminate related services. Serious violations or urgent security risks may require immediate action. To dispute an action, provide an explanation and relevant evidence through private feedback below.",
+    "reportInstructions": "To report an app that may be illegal or abusive, use private feedback: sign in, click “Submit feedback”, include “Abuse report” in the title and describe the issue.",
+    "reportEvidence": "Include the full app URL, the suspected violation, when you observed it and necessary evidence. You do not need to download or redistribute illegal material. Do not submit passwords, secrets or unrelated personal information.",
+    "reportPrivacy": "Only you and the GemiGo team can read your feedback. View replies or add details in “My feedback”.",
+    "reportAction": "Open private feedback (sign-in required)"
   }
 }
