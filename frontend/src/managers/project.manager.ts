@@ -1,6 +1,7 @@
 import { track } from '@/analytics/collector';
 import { useProjectStore } from '../stores/project.store';
 import type { IProjectProvider } from '../services/interfaces';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { SourceType, type DeploymentMetadata, type Project } from '../types';
 
 export class ProjectManager {
@@ -9,6 +10,22 @@ export class ProjectManager {
   constructor(provider: IProjectProvider) {
     this.provider = provider;
   }
+
+  ensureProjectLoaded = async (projectId: string, ownerId: string): Promise<void> => {
+    if (useProjectStore.getState().projects.some(project => project.id === projectId && project.ownerId === ownerId)) return;
+    for (let page = 1; ; page++) {
+      const response = await this.provider.getProjects(page, 100);
+      if (useAuthStore.getState().user?.id !== ownerId) throw new Error('Session changed');
+      const project = response.items.find(item => item.id === projectId && item.ownerId === ownerId);
+      if (project) {
+        useProjectStore.setState(state => ({
+          projects: [project, ...state.projects.filter(item => item.id !== projectId)],
+        }));
+        return;
+      }
+      if (response.page * response.pageSize >= response.total) throw new Error('Project not found');
+    }
+  };
 
   getLatestDeployment = (id: string) => this.provider.getLatestDeployment(id);
 

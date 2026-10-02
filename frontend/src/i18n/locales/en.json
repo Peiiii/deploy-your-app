@@ -1,4 +1,16 @@
 {
+  "previewActions": {
+    "actions": "App actions",
+    "like": "Like",
+    "favorite": "Favorite",
+    "comments": "Comments",
+    "settings": "App settings",
+    "noComments": "No comments yet. Start the conversation.",
+    "commentError": "Comments could not be updated. Please try again.",
+    "reply": "Reply",
+    "replyingTo": "Replying to {{name}}",
+    "commentAuthor": "User"
+  },
   "common": {
     "signIn": "Sign in",
     "signOut": "Sign out",

@@ -25,6 +25,7 @@ import type { PublicAuthorIdentity } from '@gemigo/public-author';
 
 export interface ExploreAppCard {
   id: string;
+  ownerId?: string;
   name: string;
   description: string;
   localization?: Project['localization'];
@@ -73,6 +74,7 @@ export function mapProjectsToApps(projects: Project[]): ExploreAppCard[] {
 
     return {
       id: project.id,
+      ownerId: project.ownerId,
       name: project.name,
       appLanguages: project.appLanguage?.languages,
       description,

@@ -1,9 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 import { PreviewFloatingDock } from './preview-floating-dock';
 import { useUIStore } from '@/stores/ui.store';
+import { useNavigate } from 'react-router-dom';
+import { usePresenter } from '@/contexts/presenter-context';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
+import { PreviewCommentsPanel } from './preview-comments-panel';
 
 interface AppPreviewPanelProps {
     app: ExploreAppCard;
@@ -17,11 +21,27 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
     onOpenInNewTab,
 }) => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
+    const presenter = usePresenter();
+    const userId = useAuthStore(s => s.user?.id);
+    const activeAppId = useRef<string | null>(app.id);
+    const [pendingSettingsAppId, setPendingSettingsAppId] = useState<string | null>(null);
+    const settingsPending = pendingSettingsAppId === app.id;
+    useEffect(() => {
+        activeAppId.current = app.id;
+        return () => { activeAppId.current = null; };
+    }, [app.id]);
+    const [commentsAppId, setCommentsAppId] = useState<string | null>(null);
+    const commentsOpen = commentsAppId === app.id;
     const [isDragging, setIsDragging] = useState(false);
     const rightPanelLayout = useUIStore((s) => s.rightPanelLayout);
     const toggleRightPanelLayout = useUIStore((s) => s.actions.toggleRightPanelLayout);
     const setRightPanelLayout = useUIStore((s) => s.actions.setRightPanelLayout);
     const isFullscreen = rightPanelLayout === 'fullscreen';
+
+    useEffect(() => {
+        void presenter.reaction.loadReactionsForProject(app.id);
+    }, [app.id, userId, presenter.reaction]);
 
     useEffect(() => {
         queueMicrotask(() => setIsDragging(false));
@@ -50,7 +70,7 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
     }, [dockStateKeyBase]);
 
     useEffect(() => {
-        if (!isFullscreen) return;
+        if (!isFullscreen || commentsOpen) return;
         const onKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
                 setRightPanelLayout('half');
@@ -58,7 +78,7 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
         };
         window.addEventListener('keydown', onKeyDown);
         return () => window.removeEventListener('keydown', onKeyDown);
-    }, [isFullscreen, setRightPanelLayout]);
+    }, [isFullscreen, commentsOpen, setRightPanelLayout]);
 
     // Pass dragging state down to block iframe events
     return (
@@ -114,8 +134,27 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
                 isFullscreen={isFullscreen}
                 onToggleFullscreen={toggleRightPanelLayout}
                 dockOptions={isFullscreen ? dockOptionsFullscreen : dockOptionsHalf}
-                expandPolicy={isFullscreen ? 'hover' : 'auto'}
+                expandPolicy={isFullscreen ? 'hover' : 'always'}
+                onOpenComments={() => setCommentsAppId(app.id)}
+                settingsPending={settingsPending}
+                onOpenSettings={async () => {
+                    if (settingsPending) return;
+                    const userId = presenter.auth.getCurrentUser()?.id;
+                    if (!userId || userId !== app.ownerId) return;
+                    setPendingSettingsAppId(app.id);
+                    try {
+                        await presenter.project.ensureProjectLoaded(app.id, userId);
+                        if (presenter.auth.getCurrentUser()?.id !== userId || activeAppId.current !== app.id) return;
+                        onClose();
+                        navigate(`/projects/${encodeURIComponent(app.id)}`);
+                    } catch {
+                        if (activeAppId.current === app.id) presenter.ui.showToast(t('common.error'), 'error');
+                    } finally {
+                        if (activeAppId.current === app.id) setPendingSettingsAppId(null);
+                    }
+                }}
             />
+            {commentsOpen && <PreviewCommentsPanel key={app.id} projectId={app.id} appName={app.name} onClose={() => setCommentsAppId(null)} />}
         </div>
     );
 };

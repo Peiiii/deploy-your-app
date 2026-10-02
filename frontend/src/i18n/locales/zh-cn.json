@@ -1,4 +1,16 @@
 {
+  "previewActions": {
+    "actions": "应用操作",
+    "like": "点赞",
+    "favorite": "收藏",
+    "comments": "评论",
+    "settings": "应用设置",
+    "noComments": "还没有评论，来说两句吧。",
+    "commentError": "评论操作失败，请重试。",
+    "reply": "回复",
+    "replyingTo": "回复 {{name}}",
+    "commentAuthor": "用户"
+  },
   "common": {
     "signIn": "登录",
     "signOut": "退出",
