@@ -57,3 +57,15 @@ Canonical owner 继续是 community_feedback_posts/comments，四个状态 open/
 Design review(mode=design)：从原要求核对 PV与UV每日曲线、每日表、等周期、获客/激活、真实线上入口。关闭 finding：RUM visits误称UV、主站与应用流量混合、30日前聚合UV不可相加、不同人群数冒充转化。固定上述口径后 passed。抽象审计：单一增长查询服务和页面，两个已有数据源，无新采集器/独立账号/BI框架。验证：固定时钟真实D1+固定真实GraphQL响应测试窗口边界、去重、跨天、零分母、partial/stale/缺失、同新客cohort；线上核对 GraphQL 与后台趋势、桌面/手机图表、日表导出，保护主站已有数据。plan not-required（沿既有交付分批延伸），复盘仍pending。
 
 查询成本复核：生产旧分析已预留约81万日查询额度，按理论日上限给7/30各预留会让新增大盘不必要地被挡。沿既有 sql-report 的“先计数后预留”方法：先预留1万供规模计数，再按实际事件及业务表行数保守倍数预留；同时沿用原百万日额度与5分钟报表缓存，不清零用户预算、不另设平行额度。新增预算耗尽测试。
+
+## 2026-10-03 补充：CLI 使用与应用渠道
+
+原始输入：用户希望知道每个应用是否通过 CLI 上传、CLI 的使用率，借此观察 Skill 上传使用；随后明确“skill 和cli 基本是同一个”“不区分也可以”“就是按照cli 统计基本就行”。ADM-10 Required；不拆 Skill 或猜测 AI 内容生成来源。standard/L4，plan not-required，沿已有增长查询与管理列表单批扩展。
+
+管理员登录→增长大盘→选择7/30个完整UTC日→看到 CLI 部署尝试、占全部尝试比例、去重使用用户、成功部署与成功率；渠道表同时展示网页/CLI/桌面/扩展/API/未知的尝试、成功/失败/进行中、去重应用/用户；每日 CLI 曲线与日表/CSV用于观察增长。切到应用管理→按最近部署渠道筛选→每个应用看到首次与最近部署渠道；切到部署记录→按渠道筛选查看不可变尝试，确认具体哪次使用CLI。刷新、空数据、错误重试、分页与移动端沿原页面。
+
+producer 已确认：CLI createProject/startDeployment发送 clientChannel='cli'；部署服务校验允许渠道并写 deployment_attempts.client_channel；重试同flow复用尝试，不重复计数。canonical owner保持此不可变历史；projects.source_type只代表内容类型，不作为上传渠道，不添平行表/新埋点。应用首次/最近按 started_at,rowid排序取真实尝试；无记录显示未记录。应用筛选取最近尝试，与列表同一口径；部署筛选匹配历史行。旧未知值聚合为unknown，不回填猜测；旧服务缺标记默认为web，界面披露历史精度。客户端自报渠道不是AI身份验证。
+
+增长仍以started_at落日/最终status计算；distinct owner/project按整个期间每渠道去重，不相加日去重或跨渠道去重冒充总人数。CLI占比=CLI尝试/全部尝试；成功率=成功/(成功+失败+拒绝)，进行中不当失败。当前与上一等长期间都有CLI总尝试；每日统计与CSV同源。渠道白名单过滤未知请求400，空CLI为0且零分母为—。新查询沿原预算保守预留；更新增长cache namespace使旧schema不误读；生产验证记录基线与精确任务reservation后清理。
+
+设计 Review(mode=design)：按原输入和最终澄清核对应用级来源与使用率真实入口。关闭反例：ZIP并非CLI、最近内容类型并非部署渠道、日用户相加重复、pending降低成功率、CLI证明AI生成。采用上述已有历史投影，无协议/迁移/CLI升级，原命令与登录不变。抽象审计保留growth/operations两个窄owner和已有UI，拒绝新BI/采集框架；no findings，design-review passed。验收：实际Worker+D1包含跨日重复用户/应用、跨渠道、失败/进行中/未知/无尝试/同时间顺序、7/30与前期、筛选组合与分页，CSV及真实生产桌面手机链路；不操作客户应用。

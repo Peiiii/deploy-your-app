@@ -9,6 +9,10 @@ export class AdminInputError extends Error {
   }
 }
 const active = '(p.is_deleted=0 OR p.is_deleted IS NULL)';
+const channelSql = (field: string) =>
+  `CASE WHEN ${field} IN ('web','cli','desktop','extension','api') THEN ${field} ELSE 'unknown' END`;
+const projectChannel = (order: 'ASC' | 'DESC') =>
+  `(SELECT ${channelSql('a.client_channel')} FROM deployment_attempts a WHERE a.project_id=p.id ORDER BY a.started_at ${order},a.rowid ${order} LIMIT 1)`;
 const audit = (env: AdminEnv, action: string, target: string, detail: string, condition = '') =>
   env.ANALYTICS_DB.prepare(`INSERT INTO admin_audit SELECT ?,?,?,?,?,? ${condition}`).bind(
     crypto.randomUUID(),
@@ -88,6 +92,14 @@ export const listOperations = async (db: D1Database, kind: string, url: URL) => 
   const page = Number(url.searchParams.get('page') || 1);
   const search = (url.searchParams.get('q') || '').trim();
   const status = url.searchParams.get('status') || '';
+  const channel = url.searchParams.get('channel') || '';
+  if (
+    channel &&
+    (!['projects', 'deployments'].includes(kind) ||
+      !['web', 'cli', 'desktop', 'extension', 'api', 'unknown', 'unrecorded'].includes(channel) ||
+      (kind === 'deployments' && channel === 'unrecorded'))
+  )
+    throw new AdminInputError('部署渠道无效');
   if (!Number.isInteger(page) || page < 1 || page > 10000 || search.length > 100)
     throw new AdminInputError('搜索或分页参数无效');
   const limit = 20;
@@ -109,7 +121,8 @@ export const listOperations = async (db: D1Database, kind: string, url: URL) => 
     where = active;
     order = 'COALESCE(p.created_at,p.last_deployed) DESC,p.id';
     fields = `p.id,p.name,p.slug,p.status,p.url,p.is_public,p.owner_id,u.email AS owner_email,
-      u.display_name AS owner_name,p.source_type,p.created_at,p.last_deployed`;
+      u.display_name AS owner_name,p.source_type,p.created_at,p.last_deployed,
+      ${projectChannel('ASC')} AS first_channel,${projectChannel('DESC')} AS latest_channel`;
     if (search) {
       where += ' AND (p.name LIKE ? OR p.slug LIKE ? OR u.email LIKE ? OR p.owner_id=?)';
       params.push(`%${search}%`, `%${search}%`, `%${search}%`, search);
@@ -120,12 +133,15 @@ export const listOperations = async (db: D1Database, kind: string, url: URL) => 
       where += ' AND p.status=?';
       params.push(status);
     }
+    if (channel) {
+      where += ` AND COALESCE(${projectChannel('DESC')},'unrecorded')=?`;
+      params.push(channel);
+    }
   } else if (kind === 'deployments') {
     from = 'deployment_attempts a LEFT JOIN projects p ON p.id=a.project_id';
     where = '1=1';
     order = 'a.started_at DESC,a.id';
-    fields =
-      'a.id,a.project_id,p.name,a.source_type,a.client_channel,a.status,a.error_code,a.started_at,a.finished_at,a.duration_ms';
+    fields = `a.id,a.project_id,p.name,a.source_type,${channelSql('a.client_channel')} AS client_channel,a.status,a.error_code,a.started_at,a.finished_at,a.duration_ms`;
     if (search) {
       where += ' AND (p.name LIKE ? OR a.project_id=? OR a.id=?)';
       params.push(`%${search}%`, search, search);
@@ -135,6 +151,10 @@ export const listOperations = async (db: D1Database, kind: string, url: URL) => 
         throw new AdminInputError('部署状态无效');
       where += ' AND a.status=?';
       params.push(status);
+    }
+    if (channel) {
+      where += ` AND ${channelSql('a.client_channel')}=?`;
+      params.push(channel);
     }
   } else if (kind === 'audit') {
     from = 'admin_audit';

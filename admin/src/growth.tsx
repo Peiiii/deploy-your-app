@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from './api';
+import { deploymentChannelLabel } from './deployment-channels';
 
 type Daily = {
   day: string;
@@ -11,6 +12,16 @@ type Daily = {
   projects: number;
   attempts: number;
   succeeded: number;
+  cliAttempts: number;
+  webAttempts: number;
+};
+type ChannelMetrics = {
+  attempts: number;
+  succeeded: number;
+  failed: number;
+  pending: number;
+  projects: number;
+  users: number;
 };
 type Report = {
   period: {
@@ -29,6 +40,7 @@ type Report = {
   observedUv: number;
   uvPartial: boolean;
   cohort: { registered: number; activated: number; deployed: number };
+  channels: { channel: string; current: ChannelMetrics; previous: ChannelMetrics }[];
   referrers: { count: number; sum: { visits: number }; dimensions: { refererHost: string } }[];
   devices: { count: number; sum: { visits: number }; dimensions: { deviceType: string } }[];
   web: {
@@ -60,7 +72,7 @@ function Chart({
   hint,
 }: {
   daily: Daily[];
-  metric: 'pv' | 'uv' | 'registrations';
+  metric: 'pv' | 'uv' | 'registrations' | 'cliAttempts';
   title: string;
   color: string;
   hint: string;
@@ -180,6 +192,8 @@ export default function Growth() {
         '部署尝试',
         '成功部署',
         '应用真人PV',
+        'CLI部署尝试',
+        '网页部署尝试',
       ],
       ...report.daily.map((row) => [
         row.day,
@@ -191,6 +205,8 @@ export default function Growth() {
         row.attempts,
         row.succeeded,
         row.appsPv,
+        row.cliAttempts,
+        row.webAttempts,
       ]),
     ]
       .map((row) => row.map((v) => (v == null ? '' : String(v))).join(','))
@@ -202,6 +218,7 @@ export default function Growth() {
     link.click();
     URL.revokeObjectURL(url);
   };
+  const cli = report?.channels.find((row) => row.channel === 'cli');
   return (
     <div className="growth-console">
       <div className="spread growth-toolbar">
@@ -297,6 +314,9 @@ export default function Growth() {
             <span>
               成功部署 <strong>{number(report.today.succeeded)}</strong>
             </span>
+            <span>
+              CLI 尝试 <strong>{number(report.today.cliAttempts)}</strong>
+            </span>
             <small>未完成日不参与上方环比</small>
           </div>
           <div className="growth-grid">
@@ -320,6 +340,13 @@ export default function Growth() {
               title="每日新增注册"
               color="#557bc5"
               hint="所有登录方式的新账号，按 users.created_at；不混入重复登录。手机可左右滑动图表查看日期。"
+            />
+            <Chart
+              daily={report.daily}
+              metric="cliAttempts"
+              title="CLI 每日部署趋势"
+              color="#c1843d"
+              hint="CLI 与 Skill 统一统计；同一部署请求重试只记一次。成功、失败、进行中的已记录尝试均计入。"
             />
             <article className="panel growth-cohort">
               <h3>新用户激活</h3>
@@ -388,6 +415,88 @@ export default function Growth() {
               </p>
             </article>
           </div>
+          <article className="panel growth-channels">
+            <h3>部署渠道与 CLI 使用</h3>
+            <p className="muted">
+              CLI / Skill 统一口径 · 所选完整 UTC 日 · 使用人数与应用数按期间、每个渠道分别去重。
+            </p>
+            <div className="metrics growth-metrics">
+              <article className="metric">
+                <span>CLI 部署尝试</span>
+                <strong>{number(cli?.current.attempts)}</strong>
+                <p>{change(cli?.current.attempts ?? 0, cli?.previous.attempts ?? 0)}</p>
+                <small>
+                  占全部尝试 {percent(cli?.current.attempts ?? 0, report.current.attempts ?? 0)}
+                </small>
+              </article>
+              <article className="metric">
+                <span>CLI 使用用户</span>
+                <strong>{number(cli?.current.users)}</strong>
+                <p>{number(cli?.current.projects)} 个应用</p>
+                <small>尝试部署的登录账号去重</small>
+              </article>
+              <article className="metric">
+                <span>CLI 成功部署</span>
+                <strong>{number(cli?.current.succeeded)}</strong>
+                <p>{number(cli?.current.failed)} 次失败 / 拒绝</p>
+                <small>{number(cli?.current.pending)} 次进行中</small>
+              </article>
+              <article className="metric">
+                <span>CLI 成功率</span>
+                <strong>
+                  {percent(
+                    cli?.current.succeeded ?? 0,
+                    (cli?.current.succeeded ?? 0) + (cli?.current.failed ?? 0)
+                  )}
+                </strong>
+                <p>成功 ÷ 已结束尝试</p>
+                <small>进行中不计为失败；无结束记录显示 —</small>
+              </article>
+            </div>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    {[
+                      '渠道',
+                      '部署尝试',
+                      '尝试占比',
+                      '成功',
+                      '失败 / 拒绝',
+                      '进行中',
+                      '使用用户',
+                      '应用',
+                    ].map((label) => (
+                      <th key={label}>{label}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {report.channels.map(({ channel, current }) => (
+                    <tr key={channel}>
+                      <td>{deploymentChannelLabel(channel)}</td>
+                      <td>{number(current.attempts)}</td>
+                      <td>{percent(current.attempts, report.current.attempts ?? 0)}</td>
+                      {[
+                        current.succeeded,
+                        current.failed,
+                        current.pending,
+                        current.users,
+                        current.projects,
+                      ].map((value, i) => (
+                        <td key={i}>{number(value)}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="footnote">
+              渠道来自部署客户端标记。旧版本未带标记时默认为网页，历史缺失无法补推；CLI
+              表示上传入口，不能证明内容由 AI
+              生成。应用管理可查每个应用首次与最近渠道，部署记录可按渠道筛选。跨渠道用户与应用可能重复，不能相加作为总数。
+            </p>
+          </article>
           <article className="panel">
             <div className="spread">
               <h3>每日数据</h3>
@@ -410,6 +519,8 @@ export default function Growth() {
                       '部署尝试',
                       '成功部署',
                       '应用 PV',
+                      'CLI 尝试',
+                      '网页尝试',
                     ].map((label) => (
                       <th key={label}>{label}</th>
                     ))}
@@ -428,6 +539,8 @@ export default function Growth() {
                         row.attempts,
                         row.succeeded,
                         row.appsPv,
+                        row.cliAttempts,
+                        row.webAttempts,
                       ].map((value, i) => (
                         <td key={i}>{number(value)}</td>
                       ))}

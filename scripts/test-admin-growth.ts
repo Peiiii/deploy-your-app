@@ -167,6 +167,64 @@ try {
   const again = await get();
   assert.equal(calls, 1, 'CF cache avoids repeated upstream reads');
   assert.equal(again.web.stale, false);
+  // Repeated owners/apps across days and channels must not inflate channel reach.
+  for (const [id, ago, channel, status] of [
+    ['cli-success', 1, 'cli', 'succeeded'],
+    ['cli-failure', 2, 'cli', 'failed'],
+    ['cli-pending', 1, 'cli', 'accepted'],
+    ['cli-prior', 8, 'cli', 'succeeded'],
+    ['cli-today', 0, 'cli', 'started'],
+    ['api-success', 1, 'api', 'succeeded'],
+    ['unknown-success', 1, 'legacy-client', 'succeeded'],
+  ] as const) {
+    await db
+      .prepare(
+        `INSERT INTO deployment_attempts (id,project_id,owner_id,source_type,client_channel,status,started_at)
+      VALUES (?,'new-app','new-user','zip',?,?,?)`
+      )
+      .bind(id, channel, status, timestamp(ago))
+      .run();
+  }
+  const usage = await get();
+  assert.equal(usage.current.attempts, 6);
+  assert.equal(usage.current.cliAttempts, 3);
+  assert.equal(usage.previous.cliAttempts, 1);
+  assert.equal(usage.today.cliAttempts, 1, 'today remains outside the full-period CLI usage');
+  assert.equal(usage.daily.at(-1).cliAttempts, 2);
+  assert.equal(usage.daily.at(-2).cliAttempts, 1);
+  const cli = usage.channels.find((row: { channel: string }) => row.channel === 'cli');
+  assert.deepEqual(cli.current, {
+    attempts: 3,
+    succeeded: 1,
+    failed: 1,
+    pending: 1,
+    projects: 1,
+    users: 1,
+  });
+  assert.deepEqual(cli.previous, {
+    attempts: 1,
+    succeeded: 1,
+    failed: 0,
+    pending: 0,
+    projects: 1,
+    users: 1,
+  });
+  assert.equal(
+    usage.channels.find((row: { channel: string }) => row.channel === 'unknown').current.attempts,
+    1
+  );
+  assert.equal(
+    usage.channels.reduce(
+      (n: number, row: { current: { attempts: number } }) => n + row.current.attempts,
+      0
+    ),
+    usage.current.attempts
+  );
+  assert.equal(
+    usage.channels.find((row: { channel: string }) => row.channel === 'desktop').current.attempts,
+    0
+  );
+  assert.ok(!JSON.stringify(usage).includes('new-user'), 'channel reach is aggregate only');
   const month = await get(30);
   assert.equal(month.daily.length, 30);
   assert.equal(month.daily[0].uv, null, 'partially retained date must not look like measured zero');

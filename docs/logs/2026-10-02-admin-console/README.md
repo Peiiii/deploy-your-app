@@ -75,3 +75,13 @@ Review(mode=implementation)：findings-first沿用户新增要求→原私密线
 最终实现 Review findings 清零；构建、类型、ESLint、diff、Worker+D1、恢复/分析回归与受影响生产完整链路有效。场景没有被降为只读统计或原型。交付入口与路径：后台左侧经营总览/用户/应用/部署；反馈管理阅读及处理；增长大盘7/30曲线、获客、同新客激活、每日CSV；账号安全自行改密。用户审美反馈仍开放，不当作已确认。
 
 retrospective_decision：在原事实 owner PRODUCT_ANALYTICS 更新独立账号、canonical私密反馈、CF真人PV与观测UV、同cohort/留存/缓存、生产验收预算足迹；维护测试保护长讨论与UV/来源口径。未有需要引入全局Skill或AGENTS的新增方法，不扩充通用BI/CRUD体系。retrospective_state=completed，parent_status=ready-for-completion-check；本记录提交后由生命周期核对 Required全通过、清理与主线实际SHA同步。
+
+### 2026-10-03 CLI 使用追加（scope revision 4）
+
+原始输入：用户要知道每个应用是否通过 CLI 上传及 CLI 使用率，并认为这可以观察 Skill 使用；最终明确“skill 和cli 基本是同一个”“不区分也可以”“就是按照cli 统计基本就行”。对应 ADM-10，设计与设计Review见原设计追加段。复用 CLI 已产生的不可变 client_channel，不新增协议、采集器、迁移或 CLI 发布。
+
+实现：增长已有服务按渠道聚合期间尝试/成功/失败/进行中及 distinct 用户/应用，CLI 日曲线、占比与前期、成功率排除未结束；每日表和CSV新增CLI/网页尝试。应用列表首次/最近尝试渠道，筛选采用最近渠道；部署列表按历史渠道筛选、组合状态/搜索与分页。无历史显示未记录；客户端渠道不当作AI生成证明。
+
+验证：pnpm test:admin、build:admin、API/admin tsc、定向eslint与diff检查通过。真实Miniflare+D1覆盖跨日/跨渠道去重、前期/今日、未知/零渠道、相同时间rowid、应用最近渠道与未记录、CLI+失败筛选及22条分页。Chrome本地实际Worker界面7/30、CLI指标/趋势、CSV11列、应用首次网页/最近CLI、渠道筛选、分页及390px内部滚动，无JS错误。
+
+实现 Review(mode=implementation)：项目无diff-only维护脚本，采用 findings-first 手工审查；数据仍由部署历史持有，未用ZIP推断CLI；聚合与日总数同窗口、按期间去重、pending成功率分母、预算与cache v3、白名单/参数绑定、无个人增长数据、应用选择rowid顺序及分页均核对。两个页面共用窄渠道标签，未创建通用框架；原账号/反馈/命令无行为变化。no findings；允许授权内部署并完成真实环境验收，当前Required ADM-10尚待线上证据。

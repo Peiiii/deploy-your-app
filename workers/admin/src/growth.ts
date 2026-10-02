@@ -3,6 +3,9 @@ import type { AdminEnv } from './auth';
 import { AdminInputError } from './operations';
 
 type Row = Record<string, string | number | null>;
+const channels = ['web', 'cli', 'desktop', 'extension', 'api', 'unknown'] as const;
+const channelSql =
+  "CASE WHEN client_channel IN ('web','cli','desktop','extension','api') THEN client_channel ELSE 'unknown' END";
 type WebDay = {
   count: number;
   sum: { visits: number };
@@ -169,7 +172,9 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
         .bind(period.previousFrom, end),
       db
         .prepare(
-          "SELECT substr(started_at,1,10) AS day,COUNT(*) AS attempts,SUM(status='succeeded') AS succeeded FROM deployment_attempts WHERE started_at>=? AND started_at<? GROUP BY day"
+          `SELECT substr(started_at,1,10) AS day,COUNT(*) AS attempts,SUM(status='succeeded') AS succeeded,
+          SUM(client_channel='cli') AS cliAttempts,SUM(client_channel='web') AS webAttempts
+          FROM deployment_attempts WHERE started_at>=? AND started_at<? GROUP BY day`
         )
         .bind(period.previousFrom, end),
       db
@@ -196,6 +201,15 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
           Math.max(Date.parse(period.from), Date.parse(period.rawFrom)),
           Date.parse(period.today)
         ),
+      db
+        .prepare(
+          `SELECT CASE WHEN started_at>=? THEN 'current' ELSE 'previous' END AS period,
+        ${channelSql} AS channel,COUNT(*) AS attempts,SUM(status='succeeded') AS succeeded,
+        SUM(status IN ('failed','rejected')) AS failed,SUM(status IN ('started','accepted')) AS pending,
+        COUNT(DISTINCT project_id) AS projects,COUNT(DISTINCT owner_id) AS users
+        FROM deployment_attempts WHERE started_at>=? AND started_at<? GROUP BY period,channel`
+        )
+        .bind(period.from, period.previousFrom, period.today),
     ]),
   ]);
   const maps = results
@@ -217,6 +231,8 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
       projects: Number(maps[1].get(date)?.projects || 0),
       attempts: Number(maps[2].get(date)?.attempts || 0),
       succeeded: Number(maps[2].get(date)?.succeeded || 0),
+      cliAttempts: Number(maps[2].get(date)?.cliAttempts || 0),
+      webAttempts: Number(maps[2].get(date)?.webAttempts || 0),
     };
   });
   const daily = all.filter((row) => row.day >= period.from && row.day <= period.to);
@@ -225,14 +241,22 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
   );
   const totals = (rows: typeof daily) =>
     Object.fromEntries(
-      ['pv', 'visits', 'appsPv', 'registrations', 'projects', 'attempts', 'succeeded'].map(
-        (key) => [
-          key,
-          rows.some((row) => row[key as keyof typeof row] === null)
-            ? null
-            : rows.reduce((sum, row) => sum + Number(row[key as keyof typeof row]), 0),
-        ]
-      )
+      [
+        'pv',
+        'visits',
+        'appsPv',
+        'registrations',
+        'projects',
+        'attempts',
+        'succeeded',
+        'cliAttempts',
+        'webAttempts',
+      ].map((key) => [
+        key,
+        rows.some((row) => row[key as keyof typeof row] === null)
+          ? null
+          : rows.reduce((sum, row) => sum + Number(row[key as keyof typeof row]), 0),
+      ])
     );
   const sources = new Map<string, Breakdown>();
   for (const row of web.data?.referrers || []) {
@@ -260,6 +284,18 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
         Number(results[4].results[0][key] || 0),
       ])
     ),
+    channels: channels.map((channel) => {
+      const metrics = (window: string) => {
+        const row = results[6].results.find((r) => r.channel === channel && r.period === window);
+        return Object.fromEntries(
+          ['attempts', 'succeeded', 'failed', 'pending', 'projects', 'users'].map((key) => [
+            key,
+            Number(row?.[key] || 0),
+          ])
+        );
+      };
+      return { channel, current: metrics('current'), previous: metrics('previous') };
+    }),
     referrers: [...sources.values()].sort((a, b) => b.sum.visits - a.sum.visits),
     devices: web.data?.devices || [],
     web: { fetchedAt: web.fetchedAt, stale: web.stale, error: web.error, adaptiveSampling: true },

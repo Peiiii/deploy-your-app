@@ -195,6 +195,65 @@ try {
     'test_failure'
   );
   assert.equal((await request('projects?status=invalid', cookie)).status, 400);
+  for (let i = 0; i < 21; i++) {
+    await db
+      .prepare(
+        `INSERT INTO deployment_attempts
+      (id,project_id,owner_id,source_type,client_channel,status,started_at)
+      VALUES (?,'app-test','user-test','zip','cli',?,?)`
+      )
+      .bind(`cli-${i}`, i < 20 ? 'succeeded' : 'failed', now)
+      .run();
+  }
+  await db
+    .prepare(
+      `INSERT INTO projects (id,name,repo_url,owner_id,status,is_deleted,last_deployed,created_at)
+    VALUES ('app-cli','CLI test app','','user-test','Live',0,?,?),
+    ('app-empty','No attempts','','user-test','Live',0,?,?)`
+    )
+    .bind(now, now, now, now)
+    .run();
+  await db
+    .prepare(
+      `INSERT INTO deployment_attempts
+    (id,project_id,owner_id,source_type,client_channel,status,started_at)
+    VALUES ('cli-yesterday','app-cli','user-test','zip','cli','succeeded',?)`
+    )
+    .bind(new Date(Date.now() - 86400000).toISOString())
+    .run();
+  const channels = await (await request('projects?q=Console&channel=cli', cookie)).json();
+  assert.equal(channels.total, 1);
+  assert.equal(channels.items[0].first_channel, 'web');
+  assert.equal(
+    channels.items[0].latest_channel,
+    'cli',
+    'same timestamp follows immutable attempt insertion order'
+  );
+  assert.equal(
+    (await (await request('projects?channel=web', cookie)).json()).total,
+    0,
+    'project filter uses latest attempt, not any past use'
+  );
+  assert.equal(
+    (await (await request('projects?channel=unrecorded', cookie)).json()).items[0].id,
+    'app-empty'
+  );
+  const cliPage2 = await (await request('deployments?channel=cli&page=2', cookie)).json();
+  assert.equal(cliPage2.total, 22);
+  assert.equal(cliPage2.items.length, 2);
+  assert.ok(
+    cliPage2.items.every((row: { client_channel: string }) => row.client_channel === 'cli')
+  );
+  assert.equal(
+    (await (await request('deployments?channel=cli&status=failed', cookie)).json()).total,
+    1
+  );
+  for (const path of [
+    'projects?channel=bad',
+    'deployments?channel=bad',
+    'deployments?channel=unrecorded',
+  ])
+    assert.equal((await request(path, cookie)).status, 400);
   assert.equal(
     (
       await request(

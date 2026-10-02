@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { api } from './api';
+import { deploymentChannels, deploymentChannelLabel } from './deployment-channels';
 
 type Row = Record<string, string | number | null>;
 type List = { items: Row[]; total: number; page: number; limit: number };
@@ -75,6 +76,7 @@ export default function Operations({ section }: { section: string }) {
   const [days, setDays] = useState(7);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
+  const [channel, setChannel] = useState('');
   const [query, setQuery] = useState('page=1');
   const [revision, setRevision] = useState(0);
   const [data, setData] = useState<List | Overview | null>(null);
@@ -119,7 +121,7 @@ export default function Operations({ section }: { section: string }) {
     setBusy(true);
     setError('');
     setPending(null);
-    setQuery(new URLSearchParams({ q: search, status, page: '1' }).toString());
+    setQuery(new URLSearchParams({ q: search, status, channel, page: '1' }).toString());
     setRevision((value) => value + 1);
   };
   const manage = async () => {
@@ -371,6 +373,24 @@ export default function Operations({ section }: { section: string }) {
                   </select>
                 </label>
               )}
+              {['projects', 'deployments'].includes(section) && (
+                <label>
+                  {section === 'projects' ? '最近部署渠道' : '部署渠道'}
+                  <select
+                    aria-label="部署渠道"
+                    value={channel}
+                    onChange={(e) => setChannel(e.target.value)}
+                  >
+                    <option value="">全部渠道</option>
+                    {Object.entries(deploymentChannels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                    {section === 'projects' && <option value="unrecorded">未记录</option>}
+                  </select>
+                </label>
+              )}
               <button className="primary" disabled={busy}>
                 搜索
               </button>
@@ -409,7 +429,15 @@ export default function Operations({ section }: { section: string }) {
                       {(section === 'users'
                         ? ['用户', '邮箱 / handle', '注册时间', '应用 / 有效会话', '操作']
                         : section === 'projects'
-                          ? ['应用', '所属用户', '状态', '公开展示', '最近部署', '操作']
+                          ? [
+                              '应用',
+                              '所属用户',
+                              '状态',
+                              '首次 / 最近部署渠道',
+                              '公开展示',
+                              '最近部署',
+                              '操作',
+                            ]
                           : section === 'deployments'
                             ? ['应用 / 部署', '来源 / 渠道', '状态', '开始时间', '耗时', '错误代码']
                             : ['时间', '管理员', '操作', '资源', '说明']
@@ -454,6 +482,12 @@ export default function Operations({ section }: { section: string }) {
                               <small className="cell-sub">{row.owner_email}</small>
                             </td>
                             <td>{statusTag(row.status)}</td>
+                            <td className="nowrap">
+                              {deploymentChannelLabel(row.first_channel)}
+                              <small className="cell-sub">
+                                最近：{deploymentChannelLabel(row.latest_channel)}
+                              </small>
+                            </td>
                             <td>{(row.is_public ?? 1) ? '公开' : '非公开'}</td>
                             <td className="nowrap">{date(row.last_deployed)}</td>
                             <td className="table-actions">
@@ -480,7 +514,9 @@ export default function Operations({ section }: { section: string }) {
                             </td>
                             <td>
                               {row.source_type}
-                              <small className="cell-sub">{row.client_channel}</small>
+                              <small className="cell-sub">
+                                {deploymentChannelLabel(row.client_channel)}
+                              </small>
                             </td>
                             <td>{statusTag(row.status)}</td>
                             <td className="nowrap">{date(row.started_at)}</td>
