@@ -40,7 +40,7 @@
     "test:genai-rewrite": "cd server && pnpm exec tsx ../scripts/test-genai-rewrite.ts",
     "preview": "pnpm --filter deploy-your-app-frontend preview",
     "build:admin": "pnpm --filter @gemigo/product-analytics build && pnpm --filter @gemigo/admin build",
-    "deploy:admin": "pnpm build:admin && pnpm --filter @gemigo/admin-worker deploy",
+    "deploy:admin": "pnpm build:admin && pnpm --filter @gemigo/admin-worker run deploy",
     "admin:password": "python3 scripts/configure-admin.py",
     "test:admin": "./server/node_modules/.bin/tsx scripts/test-admin-console.ts && python3 scripts/test-admin-recovery.py",
     "test:analytics": "node scripts/test-analytics-collector.mjs && ./server/node_modules/.bin/tsx scripts/test-product-analytics.ts",
