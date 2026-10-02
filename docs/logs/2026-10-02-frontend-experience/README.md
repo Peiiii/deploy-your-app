@@ -65,3 +65,11 @@
 回退验收：与e569388的frontend差异只剩Header sticky；frontend tsc/lint/build、diff检查；真实首页发布区/原主题与原右侧预览全宽，滚动时Header停留顶部。回退发布后核对gemigo.io实际asset和产品画面，不以Git操作代替恢复。
 
 本地回退验收通过：1280×900真实页面中iframe与其父容器均607px，滚动main到900px后Header的top仍0且position=sticky。发布前定向fetch发现origin/master已推进至fb4a228；保留其后台发布修正、托管缓存、语言扫描及语言badge新逻辑，冲突仅复合回原卡片配色/原语言控件与最新语言功能，不覆盖用户最新功能。
+
+## 回退线上验收与停止
+
+恢复实现6217543，合并最新master的92ef17e/cb9db1c后frontend tsc、ESLint、生产构建与diff检查通过。合并新增语言badge条件与控件短标题后复核无开放finding；除Header sticky及原格式清理外，基线差异均为保留其它任务最新语言功能。普通推送master成功，pnpm deploy:pages发布成功；gh-pages eacccc4bf157289f6909ac58c22eb5057f3aaaed，Cloudflare production e7f02e06-5566-4b62-b103-1966ca724a39 Active。
+
+真实gemigo.io首页已加载本次/assets/index-CF6b3Ur3.js，紫色主题、导航选中态、原账户Header与HTML/ZIP发布区恢复。通过同一实际应用“李睿博的网站”复现并验收：1440×900下iframe/父容器均687px，原Dock恢复，右侧不再空白；main滚动1425px时Header top=0/position=sticky。没有写入任何用户业务数据。原缓存曾短暂读取旧资产，临时关闭验证tab缓存后确认新版本，结束时恢复浏览器设置。
+
+真实截图：gemigo-restored-home.jpg及gemigo-restored-preview.jpg，位于/Users/peiwang/.codex/visualizations/2026/10/02/01a0fd0c-6575-7831-a513-01159b83eb9f/。整体改版未达到用户要求，用户明确要求停止；仅恢复交付完成，原goal按暂停处理，第二批隔离草稿不再执行。
