@@ -3,7 +3,7 @@
 - contract-id: admin-console-2026-10-02
 - parent-goal: 独立后台管理网站、大盘与实际业务管理、初始管理员账号及网页改密；追加私密反馈管理、日度增长运营大盘与CLI渠道使用。
 - scope-revision: 4；原始要求、修订与授权见 [设计](../../designs/2026-10-02-admin-console.design.md)、[交付记录](../../logs/2026-10-02-admin-console/README.md) 与项目 AGENTS.md。
-- flow: standard；delivery-mode: major；retrospective_state: pending。
+- flow: standard；delivery-mode: major；retrospective_state: completed。
 
 | ID | Required | 合同 | Status | 当前证据 |
 | --- | --- | --- | --- | --- |
@@ -17,12 +17,12 @@
 | ADM-08 | true | 反馈筛选/分页、完整讨论、状态/团队回复/删除，作者同步且私密 | passed | D1 106条讨论/并发去重；真实主站作者创建→后台处理→作者API读取，跨用户403/匿名401→确认删除/审计→专用数据清理 |
 | ADM-09 | true | PV/观测UV曲线、7/30等周期日表、注册激活部署及来源，缺失/错误明确 | passed | `scripts/test-admin-growth.ts`、真实CF+业务7/30日、UV去重/留存、CSV、来源合并、手机日期及日表滚动、缓存刷新均通过 |
 
-| ADM-10 | true | CLI统一含Skill，7/30使用量/占比/用户/成功率与日曲线，应用首次/最近渠道及部署渠道筛选 | in-progress | 实际Worker+D1渠道去重、窗口、状态与列表筛选分页已通过；线上与手机验证待完成 |
+| ADM-10 | true | CLI统一含Skill，7/30使用量/占比/用户/成功率与日曲线，应用首次/最近渠道及部署渠道筛选 | passed | 实际Worker+D1跨日去重/边界/分页；生产7/30与canonical渠道一致、CSV11列、应用与部署CLI筛选、桌面/手机及QA清理通过；c87f4da / Worker 6270fc65 |
 
-当前阶段：CLI追加范围实现/静态/D1验证通过，进入真实页面验证与实现Review；open-required: ADM-10；其余未变化证据继续有效。最终收尾须在本记录提交推送后重新 fetch，并核对本地 master、origin/master 与远程实际 SHA 一致。本文件状态以实际工具交付证据为准，不以写文档代替推送。
+当前阶段：CLI追加范围验证/Review/生产Delivery与复盘完成，进入整体完成核对；open-required: 无；其余未变化证据继续有效。最终收尾须在本记录提交推送后重新 fetch，并核对本地 master、origin/master 与远程实际 SHA 一致。本文件状态以实际工具交付证据为准，不以写文档代替推送。
 
 入口：https://admin.gemigo.io。初始账号 admin 和临时密码已在聊天中直接交付，并实际网页登录验证；用户随后通过账号安全自行改密，旧临时密码失效。当前密码保留，不再自动重置；本机初始凭据文件不会因网页改密自动更新。
 
-黄金链路：登录→经营总览及业务管理；反馈管理→查找/阅读→状态/团队回复→作者看到同一结果；增长大盘→7/30完整UTC日→PV/UV曲线与获客/激活→每日CSV；账号安全→改密退出→新密码登录。没有缩减或移出 Required。采样、观测UV覆盖/留存、查询预算与用户主观体验边界已披露；未回复不视为用户主观验收通过。
+黄金链路：登录→经营总览及业务管理；反馈管理→查找/阅读→状态/团队回复→作者看到同一结果；增长大盘→7/30完整UTC日→PV/UV曲线与获客/激活→每日CSV；账号安全→改密退出→新密码登录。CLI使用→7/30占比/用户/成功率及趋势→应用首次/最近渠道→部署CLI筛选。没有缩减或移出 Required。采样、观测UV覆盖/留存、查询预算与用户主观体验边界已披露；未回复不视为用户主观验收通过。
 
 retrospective_decision：原事实 owner `docs/tech/PRODUCT_ANALYTICS.md` 已更新账号、反馈、增长数据源/缓存与预算合同；最小增量保留在既有文档与测试，无新的全局规则或框架资产。用户凭据纠偏按最终明确请求执行；保护当前改密结果。整体是否完成由 lifecycle 在 Git 与清理证据核对后判定。

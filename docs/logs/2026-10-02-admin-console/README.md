@@ -85,3 +85,9 @@ retrospective_decision：在原事实 owner PRODUCT_ANALYTICS 更新独立账号
 验证：pnpm test:admin、build:admin、API/admin tsc、定向eslint与diff检查通过。真实Miniflare+D1覆盖跨日/跨渠道去重、前期/今日、未知/零渠道、相同时间rowid、应用最近渠道与未记录、CLI+失败筛选及22条分页。Chrome本地实际Worker界面7/30、CLI指标/趋势、CSV11列、应用首次网页/最近CLI、渠道筛选、分页及390px内部滚动，无JS错误。
 
 实现 Review(mode=implementation)：项目无diff-only维护脚本，采用 findings-first 手工审查；数据仍由部署历史持有，未用ZIP推断CLI；聚合与日总数同窗口、按期间去重、pending成功率分母、预算与cache v3、白名单/参数绑定、无个人增长数据、应用选择rowid顺序及分页均核对。两个页面共用窄渠道标签，未创建通用框架；原账号/反馈/命令无行为变化。no findings；允许授权内部署并完成真实环境验收，当前Required ADM-10尚待线上证据。
+
+CLI 生产交付完成：功能提交 c87f4da；admin Worker `6270fc65-43a0-42b5-85ec-0d5de790e2e4`，资产 `index-conGg0XW.js`。真实 Chrome 独立管理账号版本绑定短期 QA 会话（未改密码）验证官网7/30与D1渠道聚合一致、CLI日总数/渠道尝试总数一致、CSV11列、应用首次/最近与CLI筛选、部署CLI筛选、桌面/390px卡片与内部横滚，零JS错误。验收时30日CLI2成功尝试/1用户/1应用（占555全部尝试约0.4%），7日CLI0；全历史CLI4尝试，最近CLI应用1。零使用显示0，成功率无结束记录显示—。
+
+本次QA记录共享日预算基线，30日报告 witnessed noncached `reservedReads=55502` 退回；7日刷新命中缓存不重复归账。第一次7日脚本在读取响应前使用了Playwright Response不支持的clone，修正验收脚本后通过；其已占用额度未有保存的非缓存响应证明，因此保守保留55254，不清零或冒认其它用量。专用15分钟QA session已删除，生产session401复验；不产生或删除客户资源，不更改现有管理员密码。当前CLI线上真实入口和Required ADM-10通过。
+
+复盘完成：原事实owner PRODUCT_ANALYTICS增加CLI统计口径、应用历史投影及查询筛选；用户澄清不拆Skill，复用既有部署记录实现闭环，没有新协议、事件状态或CLI升级。一次验收脚本API误用仅修正当次脚本，不升级全局规则。retrospective_state=completed；retrospective_decision=原owner事实更新且有D1/生产证据，无额外体系资产。最后重新fetch核对主工作区master、origin/master及远端实际SHA和任务提交祖先，保护其它任务工作区。
