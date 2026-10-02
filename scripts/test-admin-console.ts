@@ -14,6 +14,8 @@ import { authRepository } from '../workers/api/src/repositories/auth.repository'
 import { projectRepository } from '../workers/api/src/repositories/project.repository';
 import { deploymentRepository } from '../workers/api/src/repositories/deployment.repository';
 import { analyticsRepository } from '../workers/api/src/repositories/analytics.repository';
+import { communityRepository } from '../workers/api/src/repositories/community.repository';
+import { communityService } from '../workers/api/src/services/community.service';
 
 const require = createRequire(import.meta.url);
 const runtime = createRequire(require.resolve('wrangler/package.json'));
@@ -33,7 +35,52 @@ const mf = new Miniflare({
   modules: true,
   script: bundle.outputFiles[0].text,
   d1Databases: { ANALYTICS_DB: 'admin-console-test' },
-  bindings: { ADMIN_USERNAME: 'admin', ADMIN_PASSWORD_HASH: stored },
+  bindings: {
+    ADMIN_USERNAME: 'admin',
+    ADMIN_PASSWORD_HASH: stored,
+    ANALYTICS_CF_TOKEN: 'fixture-token',
+    CLOUDFLARE_ACCOUNT_ID: 'fixture-account',
+    GROWTH_PLATFORM_SITE_TAG: 'platform-fixture',
+    GROWTH_APPS_SITE_TAG: 'apps-fixture',
+  },
+  outboundService: async (request: Request) => {
+    assert.equal(new URL(request.url).host, 'api.cloudflare.com');
+    const payload = (await request.json()) as { variables: { start: string; end: string } };
+    const rows = Array.from(
+      {
+        length:
+          Math.round(
+            (Date.parse(payload.variables.end) - Date.parse(payload.variables.start)) / 86400000
+          ) + 1,
+      },
+      (_, i) => ({
+        count: i * 3 + 10,
+        sum: { visits: i + 3 },
+        avg: { sampleInterval: 1 },
+        dimensions: {
+          date: new Date(Date.parse(payload.variables.start) + i * 86400000)
+            .toISOString()
+            .slice(0, 10),
+        },
+      })
+    );
+    return Response.json({
+      data: {
+        viewer: {
+          accounts: [
+            {
+              platform: rows,
+              apps: [],
+              referrers: [
+                { count: 30, sum: { visits: 20 }, dimensions: { refererHost: 'example.invalid' } },
+              ],
+              devices: [{ count: 30, sum: { visits: 20 }, dimensions: { deviceType: 'desktop' } }],
+            },
+          ],
+        },
+      },
+    });
+  },
   serviceBindings: { ASSETS: () => new Response('admin assets') },
   compatibilityDate: '2026-09-18',
 });
@@ -49,6 +96,13 @@ try {
         .split(';')
         .filter((sql) => sql.trim()))
         await db.prepare(sql).run();
+  await communityRepository.listPosts(db, {
+    ownerId: null,
+    category: null,
+    status: null,
+    offset: 0,
+    limit: 20,
+  });
   const now = new Date().toISOString();
   await db
     .prepare(
@@ -90,15 +144,18 @@ try {
   };
   for (const route of [
     'overview',
+    'growth',
     'users',
     'projects',
     'deployments',
     'audit',
+    'feedback',
+    'feedback/missing',
     'report',
     'budget',
   ]) {
     assert.equal((await request(route)).status, 401);
-    assert.equal((await request(route, 'gemigo_session=main-site-session')).status, 401);
+    assert.equal((await request(route, 'session_id=main-site-session')).status, 401);
   }
   assert.equal(
     (await request('login', '', { username: 'admin', password: initial }, 'https://evil.test'))
@@ -227,8 +284,175 @@ try {
       .n,
     2
   );
+  const owner = { userId: 'user-test', isAdmin: false };
+  const other = { userId: 'other-user', isAdmin: false };
+  const feedback = await communityService.createPost(db, {
+    viewer: owner,
+    title: 'Admin feedback fixture',
+    content: 'Private problem details\nSecond line',
+    category: 'bug',
+  });
+  for (let i = 0; i < 21; i++)
+    await communityRepository.createPost(db, {
+      id: `feedback-list-${i}`,
+      userId: 'user-test',
+      title: `Pagination ${i}`,
+      content: 'Testing list',
+      category: 'question',
+    });
+  const inbox = await (await request('feedback?category=bug&q=Private', activeCookie)).json();
+  assert.equal(inbox.total, 1);
+  assert.equal(inbox.items[0].id, feedback.id);
+  assert.ok(!JSON.stringify(inbox).includes('NEVER_EXPOSE'));
+  const feedbackPage2 = await (
+    await request('feedback?category=question&page=2', activeCookie)
+  ).json();
+  assert.equal(feedbackPage2.total, 21);
+  assert.equal(feedbackPage2.items.length, 1);
+  assert.equal((await request('feedback?status=invalid', activeCookie)).status, 400);
+  assert.equal((await request('feedback/missing', activeCookie)).status, 404);
+  assert.equal(
+    (
+      await request(
+        'feedback/manage',
+        activeCookie,
+        { id: feedback.id, action: 'status', expected: 'open', status: 'planned' },
+        'https://evil.test'
+      )
+    ).status,
+    403
+  );
+  assert.equal(
+    (
+      await request('feedback/manage', activeCookie, {
+        id: feedback.id,
+        action: 'status',
+        expected: 'open',
+        status: 'in_progress',
+      })
+    ).status,
+    200
+  );
+  assert.equal(
+    (
+      await request('feedback/manage', activeCookie, {
+        id: feedback.id,
+        action: 'status',
+        expected: 'open',
+        status: 'planned',
+      })
+    ).status,
+    409
+  );
+  assert.equal(
+    (
+      await communityService.listPosts(db, {
+        viewer: owner,
+        category: 'bug',
+        status: 'in_progress',
+        page: 1,
+        pageSize: 20,
+      })
+    ).items[0].id,
+    feedback.id
+  );
+  const reply = {
+    action: 'reply',
+    id: feedback.id,
+    replyId: crypto.randomUUID(),
+    content: 'Confirmed by team\nWe are investigating.',
+  };
+  assert.equal(
+    (await request('feedback/manage', activeCookie, { ...reply, content: 'x'.repeat(801) })).status,
+    400
+  );
+  assert.equal(
+    (await request('feedback/manage', activeCookie, { ...reply, replyId: 'bad' })).status,
+    400
+  );
+  const concurrent = await Promise.all([
+    request('feedback/manage', activeCookie, reply),
+    request('feedback/manage', activeCookie, reply),
+  ]);
+  assert.ok(concurrent.every((r) => r.status === 200));
+  assert.equal((await request('feedback/manage', activeCookie, reply)).status, 200);
+  assert.equal(
+    (await request('feedback/manage', activeCookie, { ...reply, content: 'different' })).status,
+    409
+  );
+  const visible = await communityService.listComments(db, feedback.id, owner);
+  assert.equal(visible.items.length, 1);
+  assert.equal(visible.items[0].author.displayName, 'GemiGo 团队');
+  assert.equal(visible.items[0].content, reply.content);
+  assert.equal(visible.items[0].canDelete, false);
+  await assert.rejects(communityService.listComments(db, feedback.id, other), /access/);
+  assert.equal(
+    (
+      await communityService.listPosts(db, {
+        viewer: other,
+        category: null,
+        status: null,
+        page: 1,
+        pageSize: 20,
+      })
+    ).total,
+    0
+  );
+  await assert.rejects(communityService.deleteComment(db, reply.replyId, owner), /permission/);
+  assert.equal(
+    (
+      await db
+        .prepare("SELECT COUNT(*) AS n FROM admin_audit WHERE action='feedback_reply'")
+        .first()
+    ).n,
+    1
+  );
+  for (let i = 0; i < 105; i++)
+    await communityRepository.createComment(db, {
+      id: `page-comment-${i}`,
+      postId: feedback.id,
+      userId: 'user-test',
+      content: `Reply ${i}`,
+    });
+  const discussion = await (await request(`feedback/${feedback.id}?page=2`, activeCookie)).json();
+  const completeDiscussion = await communityService.listComments(db, feedback.id, owner);
+  assert.equal(
+    completeDiscussion.items.length,
+    106,
+    'main author discussion must not silently truncate team replies after 100 comments'
+  );
+  assert.equal(discussion.total, 106);
+  assert.equal(discussion.comments.length, 6);
+  assert.equal(
+    (await request('feedback/manage', activeCookie, { id: feedback.id, action: 'delete' })).status,
+    200
+  );
+  assert.equal((await request(`feedback/${feedback.id}`, activeCookie)).status, 404);
+  assert.equal(
+    (await request('feedback/manage', activeCookie, { ...reply, replyId: crypto.randomUUID() }))
+      .status,
+    404
+  );
+  await assert.rejects(communityService.listComments(db, feedback.id, owner), /not found/i);
+  assert.equal(
+    (
+      await db
+        .prepare(
+          "SELECT COUNT(*) AS n FROM admin_audit WHERE action IN ('feedback_status','feedback_reply','feedback_delete')"
+        )
+        .first()
+    ).n,
+    3
+  );
+  await communityRepository.createPost(db, {
+    id: 'feedback-ui',
+    userId: 'user-test',
+    title: 'Feedback UI fixture',
+    content: 'Please investigate this private bug.\nSecond line.',
+    category: 'bug',
+  });
   console.log(
-    'PASS assembled Worker + real D1: independent auth, bootstrap, dashboard, search, pagination, field isolation, origin, CAS mutations + audit, session revocation, password validation/persistence/rotation/race, retained analytics.'
+    'PASS assembled Worker + real D1: independent auth, bootstrap, dashboard, search, pagination, field isolation, origin, CAS mutations + audit, session revocation, password validation/persistence/rotation/race, retained analytics; canonical feedback filters/pagination/status CAS/idempotent concurrent reply/team projection/privacy/soft deletion.'
   );
   if (process.argv.includes('--serve')) {
     await changePassword(env, await credential(env), initial);

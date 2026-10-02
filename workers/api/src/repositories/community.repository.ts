@@ -1,4 +1,5 @@
 import { authRepository } from './auth.repository';
+import { FEEDBACK_TEAM_ID } from '../types/community';
 import type {
   CommunityAuthor,
   FeedbackCategory,
@@ -129,7 +130,7 @@ class CommunityRepository {
   }): CommunityAuthor => ({
     id: String(row.user_id),
     handle: row.user_handle ?? null,
-    displayName: row.user_display_name ?? null,
+    displayName: row.user_id === FEEDBACK_TEAM_ID ? 'GemiGo 团队' : (row.user_display_name ?? null),
     avatarUrl: row.user_avatar_url ?? null,
   });
 
@@ -336,8 +337,7 @@ class CommunityRepository {
        FROM community_feedback_comments c
        LEFT JOIN users u ON u.id = c.user_id
        WHERE c.post_id = ? AND c.deleted_at IS NULL
-       ORDER BY c.created_at ASC
-       LIMIT 100`
+       ORDER BY c.created_at ASC, c.id ASC`
       )
       .bind(postId)
       .all<FeedbackCommentRow>();

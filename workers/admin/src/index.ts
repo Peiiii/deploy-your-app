@@ -20,6 +20,8 @@ import {
 } from './auth';
 import { maintenanceService } from './maintenance';
 import { AdminInputError, listOperations, manageOperation, overview } from './operations';
+import { listFeedback, feedbackDetail, manageFeedback } from './feedback';
+import { queryGrowth } from './growth';
 
 const json = (value: unknown, status = 200, extra: HeadersInit = {}) =>
   new Response(JSON.stringify(value), {
@@ -101,8 +103,37 @@ const handle = async (
       return json({ error: '密码已被更改，请重新登录' }, 409);
     return json({ ok: true }, 200, { 'Set-Cookie': await logout(request, env) });
   }
+  if (url.pathname === '/api/growth' && request.method === 'GET') {
+    const days = Number(url.searchParams.get('days') || 7);
+    if (![7, 30].includes(days)) throw new AdminInputError('请选择近 7 天或 30 天');
+    const cache = await caches.open('gemigo-growth-v1');
+    const key = new Request(`${url.origin}/__growth-cache/${dayKey()}/${days}`);
+    const cached = await cache.match(key);
+    if (cached) return json({ ...((await cached.json()) as object), cached: true });
+    const report = await queryGrowth(env, url);
+    if (!report.web.error)
+      ctx.waitUntil(
+        cache.put(
+          key,
+          new Response(JSON.stringify(report), { headers: { 'Cache-Control': 'max-age=300' } })
+        )
+      );
+    return json({ ...report, cached: false });
+  }
   if (url.pathname === '/api/overview' && request.method === 'GET')
     return json(await overview(env.ANALYTICS_DB, url));
+  if (url.pathname === '/api/feedback' && request.method === 'GET')
+    return json(await listFeedback(env.ANALYTICS_DB, url));
+  if (url.pathname === '/api/feedback/manage' && request.method === 'POST')
+    return json(await manageFeedback(env, await body(request)));
+  if (url.pathname.startsWith('/api/feedback/') && request.method === 'GET')
+    return json(
+      await feedbackDetail(
+        env.ANALYTICS_DB,
+        url,
+        decodeURIComponent(url.pathname.slice('/api/feedback/'.length))
+      )
+    );
   const kind = url.pathname.slice('/api/'.length);
   if (['users', 'projects', 'deployments', 'audit'].includes(kind) && request.method === 'GET')
     return json(await listOperations(env.ANALYTICS_DB, kind, url));
