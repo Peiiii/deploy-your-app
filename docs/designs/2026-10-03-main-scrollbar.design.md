@@ -26,3 +26,11 @@
 当前源码完整首页localhost:5195，生产API真实数据：1280×720收起时main=608px/aside=608px，main.right=aside.left=672px；展开时512px/512px，gap均0。实际滚动scrollTop从265.5增至985.5；真实鼠标悬停滚动条后，computed宽度与实际gutter仍为6px。明暗主题真实截图可读；全屏aside占满1280×720，退出后分栏gap0，关闭后main.right=viewport=1280。390×844主内容left0/right390、clientWidth=scrollWidth=384，额外6px为稳定滚动条槽，无横向溢出。
 
 frontend tsc、app.tsx定向ESLint、production build、git diff --check passed；只有既有Browserslist陈旧与大bundle提示。项目无diff-only maintainability自动入口，手工审查app/css差异、原锚点hook、Sidebar fixed/移动遮罩、全屏/隐藏aside、全局反馈portal/fixed。保留同一滚动节点；grid minmax/min-width避免内容撑开，响应式单列不留下隐藏列；不存在平行计算/新store/监听。implementation-review: passed，no findings。
+
+## 发布与收尾
+
+源码feaeea5按授权已进入master。pnpm deploy:pages成功，Pages b1def1ee3e403db285e6170e3f1600de804af7ea built；默认https://gemigo.io/和真实浏览器均消费index-DVqj96NA.js/index-Cf7I40Mk.css，与最终生产构建一致，包含已集成的并发前端提交。旧Pages d6e270eefb0faa83b7d9fb87418597d87c4211ea可作回退依据。
+
+线上1440×900实际打开Geeglo：收起侧栏左右各688px，展开各592px，gap均0。原32px空隙消除；真实滚动及鼠标悬停在滑块上，颜色alpha由35%变为60%，width/gutter保持6px。截图/tmp/gemigo-scrollbar-layout.png。Firefox分支仅通过CSS规则审核，未声明实机验证。
+
+仅提交app.tsx/index.css/本设计，保留并发admin、analytics及未跟踪文档/包。入口已具备用户体验验收条件；不冒称用户验收通过。retrospective_decision=no-increment：复用现有布局与主题owner解决当前问题，未形成需要新增通用规则的经验；retrospective_state=completed。
