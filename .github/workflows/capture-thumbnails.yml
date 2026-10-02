@@ -1,8 +1,8 @@
 name: Capture missing app thumbnails
 
 on:
-  schedule:
-    - cron: '*/5 * * * *'
+  # Recovery tool only. Automatic capture runs on the production server;
+  # GitHub schedule events can be delayed or dropped for hours.
   workflow_dispatch:
 
 concurrency:

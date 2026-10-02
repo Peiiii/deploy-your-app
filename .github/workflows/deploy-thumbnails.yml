@@ -1,0 +1,62 @@
+name: Deploy thumbnail capture worker
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - scripts/capture-missing-thumbnails.py
+      - scripts/deploy-thumbnails.sh
+      - workers/thumbnail-capture/**
+      - .github/workflows/deploy-thumbnails.yml
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-thumbnail-capture
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test capture worker
+        run: python3 -m unittest discover -s scripts -p 'test_capture_missing_thumbnails.py'
+      - name: Build worker image
+        run: |
+          docker build -f workers/thumbnail-capture/Dockerfile -t gemigo-thumbnail-capture:latest .
+          docker save gemigo-thumbnail-capture:latest | gzip > thumbnail-image.tar.gz
+      - name: Upload worker deployment
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.ALIYUN_HOST }}
+          username: ${{ secrets.ALIYUN_USER }}
+          key: ${{ secrets.ALIYUN_SSH_KEY }}
+          port: ${{ secrets.ALIYUN_PORT || 22 }}
+          source: thumbnail-image.tar.gz,scripts/deploy-thumbnails.sh
+          target: /tmp/gemigo-thumbnails
+      - name: Start and verify worker
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+          CLOUDFLARE_D1_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+        with:
+          host: ${{ secrets.ALIYUN_HOST }}
+          username: ${{ secrets.ALIYUN_USER }}
+          key: ${{ secrets.ALIYUN_SSH_KEY }}
+          port: ${{ secrets.ALIYUN_PORT || 22 }}
+          command_timeout: 15m
+          envs: CLOUDFLARE_ACCOUNT_ID,CLOUDFLARE_D1_DATABASE_ID,CLOUDFLARE_D1_API_TOKEN,R2_ACCOUNT_ID,R2_ACCESS_KEY_ID,R2_SECRET_ACCESS_KEY,R2_BUCKET_NAME
+          script: |
+            set -e
+            bash /tmp/gemigo-thumbnails/scripts/deploy-thumbnails.sh /tmp/gemigo-thumbnails/thumbnail-image.tar.gz
+            rm -f /tmp/gemigo-thumbnails/thumbnail-image.tar.gz
+            sleep 65
+            docker inspect --format 'running={{.State.Running}} health={{.State.Health.Status}} restart={{.HostConfig.RestartPolicy.Name}}' gemigo-thumbnail-capture
+            docker logs --tail 35 gemigo-thumbnail-capture
+            test "$(docker inspect --format '{{.State.Health.Status}}' gemigo-thumbnail-capture)" = healthy

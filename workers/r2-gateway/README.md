@@ -4,7 +4,7 @@ This Worker serves deployed apps from a Cloudflare R2 bucket behind a wildcard d
 
 - Origin for `https://<slug>.gemigo.app/*`
 - Reads static assets from an R2 bucket (binding `ASSETS`)
-- Serves optimized screenshots from R2 and a temporary SVG until the scheduled capture workflow writes a real image
+- Serves optimized screenshots from R2 and a temporary SVG until the production capture worker writes a real image
 - Serves legacy `__thumbnail.png` from R2, falling back to the optimized WebP object
 
 It is used together with the Node backend (`server`) and API Worker (`workers/api`) when `DEPLOY_TARGET = r2`.
@@ -66,7 +66,7 @@ bucket_name = "gemigo-apps"
 
 3. **Screenshot capture**
 
-The scheduled `.github/workflows/capture-thumbnails.yml` workflow reads recent public apps from D1, checks which thumbnails are missing, captures real pages in Chromium, and writes `apps/<slug>/thumbnail.webp` to R2. The gateway reports `202` on a pending HEAD request and `200` once a cover exists.
+The [production capture worker](../thumbnail-capture/README.md) reads recent public apps from D1 every minute, checks which thumbnails are missing, captures real pages in Chromium, and writes `apps/<slug>/thumbnail.webp` to R2. `.github/workflows/capture-thumbnails.yml` is a manual recovery tool. The gateway reports `202` on a pending HEAD request and `200` once a cover exists.
 
 The legacy PNG route still works independently:
 
