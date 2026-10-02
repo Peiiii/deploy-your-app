@@ -1,5 +1,6 @@
 export type CategoryFilter =
   | 'All Apps'
+  | 'Education'
   | 'Development'
   | 'Image Gen'
   | 'Productivity'
@@ -12,6 +13,7 @@ export type SortOption = 'popularity' | 'recent';
 
 export const CATEGORIES: readonly CategoryFilter[] = [
   'All Apps',
+  'Education',
   'Development',
   'Image Gen',
   'Productivity',

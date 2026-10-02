@@ -18,6 +18,7 @@ export class ExploreManager {
   private authManager: AuthManager;
   private uiManager: UIManager;
   private reactionManager: ReactionManager;
+  private requestId = 0;
 
   constructor(
     authManager: AuthManager,
@@ -36,6 +37,14 @@ export class ExploreManager {
     const state = useExploreStore.getState();
     const actions = state.actions;
     const currentUser = useAuthStore.getState().user;
+    const requestId = ++this.requestId;
+    const isCurrentRequest = () => {
+      const current = useExploreStore.getState();
+      return requestId === this.requestId &&
+        current.activeCategory === state.activeCategory &&
+        current.activeTag === state.activeTag &&
+        current.searchQuery === state.searchQuery;
+    };
 
     actions.setIsLoading(true);
 
@@ -49,6 +58,8 @@ export class ExploreManager {
         page: pageToLoad,
         pageSize: PAGE_SIZE,
       });
+
+      if (!isCurrentRequest()) return;
 
       const projects = result.items;
       const pageApps = mapProjectsToApps(projects);
@@ -81,9 +92,10 @@ export class ExploreManager {
         this.reactionManager.seedCountsFromProjects(projectsWithCounts);
       }
     } catch (error) {
+      if (!isCurrentRequest()) return;
       console.error('Failed to load explore apps', error);
     } finally {
-      actions.setIsLoading(false);
+      if (isCurrentRequest()) actions.setIsLoading(false);
     }
   };
 

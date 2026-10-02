@@ -14,6 +14,7 @@ interface AIResponse {
 }
 
 export type ProjectCategory =
+  | 'Education'
   | 'Development'
   | 'Image Gen'
   | 'Productivity'
@@ -22,6 +23,7 @@ export type ProjectCategory =
   | 'Fun';
 
 const MARKETPLACE_CATEGORIES: ProjectCategory[] = [
+  'Education',
   'Development',
   'Image Gen',
   'Productivity',
@@ -124,6 +126,7 @@ const METADATA_SYSTEM_PROMPT =
   '"name" must be <= 40 characters. "category" must be one of:\n' +
   MARKETPLACE_CATEGORIES.map((c) => `- ${c}`).join('\n') +
   '\n' +
+  'Choose Education for learning tools, teaching resources, course exercises, quizzes, language practice, and educational games. When a game has a clear learning or teaching purpose, prefer Education over Fun; use Fun for general entertainment.\n' +
   '"tags" must be an array of 1-5 short, lowercase keywords (no spaces).\n' +
   '"description" should explain the app in <= 120 characters.\n' +
   '"slug" must contain only lowercase letters, numbers, or hyphens.';
@@ -196,7 +199,8 @@ export class AIService {
       'You are a product manager helping categorize AI and web apps into marketplace categories.\n' +
       'You MUST respond with JSON only, with a single field "category".\n' +
       'The value MUST be exactly one of the following strings:\n' +
-      MARKETPLACE_CATEGORIES.map((c) => `- ${c}`).join('\n');
+      MARKETPLACE_CATEGORIES.map((c) => `- ${c}`).join('\n') +
+      '\nChoose Education for learning tools, teaching resources, course exercises, quizzes, language practice, and educational games. When a game has a clear learning or teaching purpose, prefer Education over Fun; use Fun for general entertainment.';
 
     const userPrompt =
       `App name: ${name}\n` +
@@ -220,8 +224,7 @@ export class AIService {
             properties: {
               category: {
                 type: 'string',
-                description:
-                  'One of: Development, Image Gen, Productivity, Marketing, Legal, Fun',
+                description: `One of: ${MARKETPLACE_CATEGORIES.join(', ')}`,
               },
             },
             required: ['category'],

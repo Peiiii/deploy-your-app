@@ -18,6 +18,7 @@ export interface ProjectMetadataSuggestion {
 }
 
 const MARKETPLACE_CATEGORIES = [
+  'Education',
   'Development',
   'Image Gen',
   'Productivity',
@@ -71,6 +72,7 @@ const METADATA_SYSTEM_PROMPT =
   '"name" must be <= 40 characters. "category" must be one of:\n' +
   MARKETPLACE_CATEGORIES.map((c) => `- ${c}`).join('\n') +
   '\n' +
+  'Choose Education for learning tools, teaching resources, course exercises, quizzes, language practice, and educational games. When a game has a clear learning or teaching purpose, prefer Education over Fun; use Fun for general entertainment.\n' +
   '"tags" must be an array of 1-5 short, lowercase keywords (no spaces).\n' +
   '"description" should accurately explain the app in <= 160 characters and avoid fluff.\n' +
   'Base the description on the supplied source context. Do not invent features or expand ambiguous name tokens when the source does not support them.\n' +

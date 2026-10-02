@@ -88,6 +88,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   const getCategoryLabel = (cat: CategoryFilter): string => {
     const categoryMap: Record<CategoryFilter, string> = {
       'All Apps': t('explore.allApps'),
+      'Education': t('explore.education'),
       'Development': t('explore.development'),
       'Image Gen': t('explore.imageGen'),
       'Productivity': t('explore.productivity'),

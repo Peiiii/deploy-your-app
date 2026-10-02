@@ -3,6 +3,7 @@ import type { ExploreAppCard } from '@/components/explore-app-card';
 
 export type CategoryFilter =
   | 'All Apps'
+  | 'Education'
   | 'Development'
   | 'Image Gen'
   | 'Productivity'
@@ -13,6 +14,7 @@ export type CategoryFilter =
 
 export const CATEGORIES: readonly CategoryFilter[] = [
   'All Apps',
+  'Education',
   'Development',
   'Image Gen',
   'Productivity',
@@ -69,7 +71,9 @@ export const useExploreStore = create<ExploreState>((set) => ({
     appendApps: (apps) =>
       set((state) => ({ apps: [...state.apps, ...apps] })),
     setActiveCategory: (category) =>
-      set({ activeCategory: category, page: 1, activeTag: null }),
+      set((state) => state.activeCategory === category && state.activeTag === null
+        ? state
+        : { activeCategory: category, page: 1, activeTag: null, apps: [], hasMore: false }),
     setActiveTag: (tag) => set({ activeTag: tag }),
     setSearchQuery: (query) => set({ searchQuery: query }),
     setPage: (page) => set({ page }),

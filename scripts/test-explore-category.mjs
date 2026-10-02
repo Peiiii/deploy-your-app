@@ -1,0 +1,95 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import vm from 'node:vm';
+import ts from 'typescript';
+
+const frontendRequire = createRequire(new URL('../frontend/package.json', import.meta.url));
+const pending = [];
+const fetchDouble = (url) => new Promise((resolve) => pending.push({ url, resolve }));
+
+// Assemble the real manager, store and HTTP adapter without rendering React.
+// Card projection and unrelated browser services do not affect request ordering.
+function loadSource(path, dependencies) {
+  const source = readFileSync(new URL(path, import.meta.url), 'utf8');
+  const { outputText } = ts.transpileModule(source, {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  });
+  const module = { exports: {} };
+  vm.runInNewContext(outputText, {
+    module,
+    exports: module.exports,
+    require: (name) => {
+      assert.ok(Object.hasOwn(dependencies, name), `Unexpected dependency: ${name}`);
+      return dependencies[name];
+    },
+    fetch: fetchDouble,
+    URLSearchParams,
+    console,
+  }, { filename: path });
+  return module.exports;
+}
+
+const constants = loadSource('../frontend/src/constants.ts', {});
+const store = loadSource('../frontend/src/features/explore/stores/explore.store.ts', {
+  zustand: frontendRequire('zustand'),
+}).useExploreStore;
+const adapter = loadSource('../frontend/src/services/http/explore-api.ts', {
+  '../../constants': constants,
+});
+const { ExploreManager } = loadSource('../frontend/src/features/explore/managers/explore.manager.ts', {
+  '@/analytics/collector': { track() {} },
+  '@/features/explore/stores/explore.store': { useExploreStore: store },
+  '@/features/auth/stores/auth.store': { useAuthStore: { getState: () => ({ user: null }) } },
+  '@/components/explore-app-card': { mapProjectsToApps: (projects) => projects },
+  '@/services/http/explore-api': adapter,
+  '@/i18n/config': { default: {} },
+});
+const manager = new ExploreManager({}, {}, { seedCountsFromProjects() {} });
+const actions = store.getState().actions;
+const result = (category, page = 1, total = 1) => new Response(JSON.stringify({
+  items: [{ id: category, name: category, category }], page, pageSize: 12, total,
+}), { headers: { 'Content-Type': 'application/json' } });
+
+const oldPage = manager.loadPage(2, true);
+actions.setActiveCategory('Education');
+assert.equal(store.getState().hasMore, false);
+assert.equal(store.getState().apps.length, 0);
+pending[0].resolve(result('Fun', 2, 100));
+await oldPage;
+assert.equal(store.getState().apps.length, 0);
+assert.equal(store.getState().page, 1);
+assert.equal(store.getState().hasMore, false);
+
+const educationPage = manager.loadPage(1);
+assert.match(pending[1].url, /category=Education/);
+actions.setActiveCategory('All Apps');
+const allPage = manager.loadPage(1);
+assert.doesNotMatch(pending[2].url, /category=/);
+pending[1].resolve(result('Education'));
+await educationPage;
+assert.equal(store.getState().isLoading, true);
+assert.equal(store.getState().apps.length, 0);
+pending[2].resolve(result('Fun'));
+await allPage;
+assert.equal(store.getState().apps[0].category, 'Fun');
+assert.equal(store.getState().page, 1);
+assert.equal(store.getState().hasMore, false);
+assert.equal(store.getState().isLoading, false);
+
+actions.setActiveCategory('All Apps');
+assert.equal(store.getState().apps[0].category, 'Fun');
+
+// Even for the same filter, an older response cannot overwrite a newer refresh.
+const firstRefresh = manager.loadPage(1);
+const secondRefresh = manager.loadPage(1);
+pending[4].resolve(result('Development'));
+await secondRefresh;
+pending[3].resolve(result('Fun', 3, 100));
+await firstRefresh;
+assert.equal(store.getState().apps[0].category, 'Development');
+assert.equal(store.getState().page, 1);
+assert.equal(store.getState().hasMore, false);
+assert.equal(store.getState().isLoading, false);
+
+console.log('PASS: category queries and stale response protection for apps, pagination and loading.');
