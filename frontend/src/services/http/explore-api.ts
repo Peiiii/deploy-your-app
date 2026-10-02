@@ -4,6 +4,7 @@ import type { ExploreProjectsResponse } from '../../types';
 export type ExploreSort = 'recent' | 'popularity';
 
 export interface ExploreQueryParams {
+  languages?: string[] | null;
   search?: string;
   category?: string;
   tag?: string | null;
@@ -17,6 +18,7 @@ export async function fetchExploreProjects(
 ): Promise<ExploreProjectsResponse> {
   const query = new URLSearchParams();
 
+  if (params.languages) query.set('languages', params.languages.join(','));
   if (params.search && params.search.trim().length > 0) {
     query.set('search', params.search.trim());
   }

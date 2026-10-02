@@ -668,6 +668,28 @@
     "nameSaved": "名字已保存，大家可以认出你了。",
     "nameSessionChanged": "登录状态已变化，请重新设置名字。"
   },
+  "languages": {
+    "appLanguage": "想看哪些语言的应用？",
+    "siteLanguage": "网站显示语言",
+    "automaticActive": "已按浏览器语言自动选择",
+    "automatic": "恢复自动选择",
+    "all": "全部语言",
+    "more": "更多语言",
+    "unknown": "语言待确认",
+    "independent": "无需特定语言",
+    "hint": "只展示支持所选语言的应用，可多选。网站显示语言可在右上角切换。",
+    "empty": "当前语言和筛选条件下还没有应用，可以换一种语言，或浏览全部。",
+    "loadFailed": "应用加载失败，请重试。",
+    "retry": "重新加载",
+    "browseAll": "浏览全部语言",
+    "authorHint": "选择应用实际支持的语言；名称、简介的翻译不代表应用支持该语言。留空可恢复自动识别。",
+    "detected": "根据应用自动识别",
+    "declared": "你已确认",
+    "save": "保存应用语言",
+    "saved": "应用语言已保存。",
+    "saveFailed": "保存应用语言失败。",
+    "supportedLanguages": "应用支持的语言"
+  },
   "legal": {
     "language": "语言",
     "notice": "禁止利用 GemiGo 发布违法内容或从事诈骗、钓鱼、侵权等活动。违规内容可能被移除，服务可能被限制。",

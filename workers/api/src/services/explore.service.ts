@@ -14,6 +14,7 @@ export class ExploreService {
     async getExploreProjects(
         db: D1Database,
         options: {
+            languages?: string[];
             search?: string;
             category?: string;
             tag?: string;
@@ -27,6 +28,7 @@ export class ExploreService {
         page: number;
         pageSize: number;
         total: number;
+        availableLanguages: string[];
         engagement: Record<string, { likesCount: number; favoritesCount: number }>;
     }> {
         const page = Math.max(1, options.page ?? 1);
@@ -34,6 +36,7 @@ export class ExploreService {
 
         const fromDateInclusive = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
         const result = await projectRepository.queryExplorePage(db, {
+            languages: options.languages,
             search: options.search,
             category: options.category,
             tag: options.tag,
@@ -50,6 +53,7 @@ export class ExploreService {
             page,
             pageSize,
             total: result.total,
+            availableLanguages: result.availableLanguages,
             engagement: result.engagement,
         };
     }

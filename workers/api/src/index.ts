@@ -1,3 +1,4 @@
+import { projectLanguageService } from './services/project-language.service';
 import { deploymentSourceService } from './services/deployment-source.service';
 import { deployService } from './services/deploy.service';
 import { getSettings } from '@gemigo/product-analytics';
@@ -37,6 +38,7 @@ const worker: ExportedHandler<ApiWorkerEnv> = {
   async scheduled(_event, env) {
     if (env.PROJECTS_DB) await deployService.reconcilePending(env, env.PROJECTS_DB);
     await deploymentSourceService.cleanup(env);
+    await projectLanguageService.scanPending(env, env.PROJECTS_DB);
   },
   async fetch(request, env, ctx) {
     try {

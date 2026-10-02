@@ -672,6 +672,28 @@
     "nameSaved": "Your public name is saved.",
     "nameSessionChanged": "Your sign-in session changed. Please set your name again."
   },
+  "languages": {
+    "appLanguage": "Which languages can you use?",
+    "siteLanguage": "Website display language",
+    "automaticActive": "Auto-selected from your browser",
+    "automatic": "Use browser language",
+    "all": "All languages",
+    "more": "More languages",
+    "unknown": "Language unconfirmed",
+    "independent": "Language independent",
+    "hint": "Show apps that support your selected languages. You can select more than one. Change website display language at the top right.",
+    "empty": "No apps match your languages and current filters yet. Try another language or browse all.",
+    "loadFailed": "Unable to load apps. Please try again.",
+    "retry": "Try again",
+    "browseAll": "Browse all languages",
+    "authorHint": "Select the languages the app actually supports. Translated names or descriptions do not count. Leave empty to detect automatically.",
+    "detected": "Detected from the app",
+    "declared": "Confirmed by you",
+    "save": "Save languages",
+    "saved": "App languages saved.",
+    "saveFailed": "Could not save app languages.",
+    "supportedLanguages": "Languages supported by this app"
+  },
   "legal": {
     "language": "Language",
     "notice": "Do not use GemiGo for illegal content, fraud, phishing or infringement. Violating content may be removed and services restricted.",

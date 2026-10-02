@@ -4,6 +4,7 @@ interface PopoverProps {
   trigger: ReactNode;
   triggerClassName: string;
   triggerTitle?: string;
+  triggerAriaLabel?: string;
   className?: string;
   panelClassName: string;
   children: ReactNode | ((close: () => void) => ReactNode);
@@ -13,6 +14,7 @@ export const Popover = ({
   trigger,
   triggerClassName,
   triggerTitle,
+  triggerAriaLabel,
   className = 'relative',
   panelClassName,
   children,
@@ -59,6 +61,7 @@ export const Popover = ({
         type="button"
         className={`group ${triggerClassName}`}
         title={triggerTitle}
+        aria-label={triggerAriaLabel}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={() => setOpen((value) => !value)}

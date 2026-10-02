@@ -1,3 +1,4 @@
+import { parseAppLanguage, type AppLanguage } from '../utils/app-language';
 import {
   type CreateProjectRecordInput,
   type ProjectLocalization,
@@ -36,6 +37,7 @@ function parseJsonObject<T>(value: unknown): T | undefined {
 let schemaEnsured = false;
 
 export interface ProjectQueryOptions {
+  languages?: string[];
   search?: string;
   category?: string;
   tag?: string;
@@ -93,6 +95,13 @@ function projectFilters(options: Omit<ProjectQueryOptions, 'sort'>): { where: st
     params.push(q, q, q, q);
   }
 
+  if (options.languages) {
+    where.push(`((? = 1 AND COALESCE(json_array_length(json_extract(app_language, '$.languages')), 0) = 0)
+      OR EXISTS (SELECT 1 FROM json_each(json_extract(app_language, '$.languages')) AS lang
+        WHERE lang.value IN (SELECT value FROM json_each(?)) OR (lang.value = 'zxx' AND ? = 1)))`);
+    params.push(options.languages.includes('und') ? 1 : 0, JSON.stringify(options.languages), options.languages.some(code => code !== 'und') ? 1 : 0);
+  }
+
   if (options.tag) {
     // tags is stored as a JSON array; we approximate tag matching by
     // searching for the tag name inside the JSON string.
@@ -106,7 +115,7 @@ class ProjectRepository {
   /** Aggregate and paginate inside D1; never transfer all candidates to the Worker. */
   async queryExplorePage(
     db: D1Database,
-    options: Pick<ProjectQueryOptions, 'search' | 'category' | 'tag' | 'isExtensionSupported'> & {
+    options: Pick<ProjectQueryOptions, 'languages' | 'search' | 'category' | 'tag' | 'isExtensionSupported'> & {
       sort: 'recent' | 'popularity';
       limit: number;
       offset: number;
@@ -115,7 +124,8 @@ class ProjectRepository {
   ): Promise<{
     items: Project[];
     total: number;
-    engagement: Record<string, { likesCount: number; favoritesCount: number }>;
+    availableLanguages: string[];
+    engagement: Record<string, { likesCount: number; favoritesCount: number }>; 
   }> {
     await Promise.all([
       this.ensureSchema(db),
@@ -131,7 +141,8 @@ class ProjectRepository {
       : '';
     const orderSql = `${popular ? 'explore_views DESC, explore_favorites DESC, explore_likes DESC, ' : ''}
       julianday(last_deployed) DESC, last_deployed DESC, id ASC`;
-    const [count, page] = await db.batch<ProjectRow>([
+    const catalogFilters = projectFilters({ ...options, languages: undefined, onlyPublic: true });
+    const [count, page, languageRows] = await db.batch<ProjectRow>([
       db.prepare(`SELECT COUNT(*) AS total FROM projects WHERE ${whereSql}`).bind(...params),
       db.prepare(`SELECT p.*,
         (SELECT COUNT(*) FROM project_likes WHERE project_id = p.id) AS explore_likes,
@@ -140,6 +151,9 @@ class ProjectRepository {
         FROM projects p WHERE ${whereSql}
         ORDER BY ${orderSql} LIMIT ? OFFSET ?`)
         .bind(...(popular ? [options.fromDateInclusive] : []), ...params, options.limit, options.offset),
+      db.prepare(`SELECT DISTINCT COALESCE(lang.value, 'und') AS language
+        FROM projects LEFT JOIN json_each(json_extract(app_language, '$.languages')) AS lang
+        WHERE ${catalogFilters.where.join(' AND ')} ORDER BY language`).bind(...catalogFilters.params),
     ]);
     const rows = (page.results ?? []) as ProjectRow[];
     const engagement: Record<string, { likesCount: number; favoritesCount: number }> = {};
@@ -152,6 +166,7 @@ class ProjectRepository {
     return {
       items: rows.map((row) => this.mapRowToProject(row)),
       total: Number(count.results?.[0]?.total ?? 0),
+      availableLanguages: (languageRows.results ?? []).map(row => String(row.language)),
       engagement,
     };
   }
@@ -176,6 +191,7 @@ class ProjectRepository {
           description TEXT,
           default_locale TEXT,
           localized_metadata TEXT,
+          app_language TEXT,
           framework TEXT,
           category TEXT,
           tags TEXT,
@@ -281,6 +297,7 @@ class ProjectRepository {
     }
 
     for (const column of [
+      'app_language TEXT',
       'created_at TEXT',
       'updated_at TEXT',
       'last_success_at TEXT',
@@ -391,6 +408,7 @@ class ProjectRepository {
       defaultLocale:
         typeof row.default_locale === 'string' ? row.default_locale : undefined,
       ...(localization ? { localization } : {}),
+      appLanguage: parseAppLanguage(parseJsonObject(row.app_language)),
       framework:
         (typeof row.framework === 'string'
           ? (row.framework as Project['framework'])
@@ -603,6 +621,26 @@ class ProjectRepository {
     return { items: rows.map((row) => this.mapRowToProject(row)), total };
   }
 
+  async languageScanCandidates(db: D1Database, limit = 3): Promise<Project[]> {
+    await this.ensureSchema(db);
+    const result = await db.prepare(`SELECT * FROM projects
+      WHERE status = 'Live' AND url IS NOT NULL AND last_success_at IS NOT NULL
+        AND COALESCE(is_deleted, 0) = 0 AND COALESCE(is_public, 1) = 1
+        AND (app_language IS NULL OR (json_extract(app_language, '$.source') <> 'author'
+          AND COALESCE(json_extract(app_language, '$.revision'), '') <> last_success_at))
+      ORDER BY last_success_at DESC LIMIT ?`).bind(limit).all<ProjectRow>();
+    return (result.results ?? []).map(row => this.mapRowToProject(row));
+  }
+
+  async saveDetectedLanguage(db: D1Database, project: Project, appLanguage: AppLanguage): Promise<void> {
+    await this.ensureSchema(db);
+    await db.prepare(`UPDATE projects SET app_language = ?
+      WHERE id = ? AND last_success_at = ? AND status = 'Live'
+        AND COALESCE(is_deleted, 0) = 0 AND COALESCE(is_public, 1) = 1
+        AND (app_language IS NULL OR json_extract(app_language, '$.source') <> 'author')`)
+      .bind(JSON.stringify(appLanguage), project.id, project.lastSuccessAt).run();
+  }
+
   async updateProjectRecord(
     db: D1Database,
     id: string,
@@ -614,6 +652,7 @@ class ProjectRepository {
       category?: string;
       tags?: string[];
       localization?: ProjectLocalization;
+      appLanguage?: AppLanguage | null;
       isPublic?: boolean;
       isExtensionSupported?: boolean;
       sourceType?: SourceType;
@@ -657,6 +696,10 @@ class ProjectRepository {
         statements.push('description = ?');
         params.push(localizedFlat.description);
       }
+    }
+    if (patch.appLanguage !== undefined) {
+      statements.push('app_language = ?');
+      params.push(patch.appLanguage ? JSON.stringify(patch.appLanguage) : null);
     }
     if (patch.category !== undefined) {
       statements.push('category = ?');

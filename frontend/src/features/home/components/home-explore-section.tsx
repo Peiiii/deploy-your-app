@@ -1,3 +1,5 @@
+import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
+import { AppLanguageFilter } from '@/features/explore/components/app-language-filter';
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, Search, Sparkles, TrendingUp, X } from 'lucide-react';
@@ -174,6 +176,8 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
     sortBy,
     setSortBy,
     isLoadingExplore,
+    exploreError,
+    retryExplore,
     isLoadingMore,
     hasMore,
     loadMoreRef,
@@ -198,6 +202,7 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
         </div>
       </div>
 
+      <div className="mb-3"><AppLanguageFilter /></div>
       <div className={`flex flex-col sm:flex-row items-center gap-2 mb-3`}>
         <div className="flex-1 min-w-0 w-full overflow-hidden">
           <CategoryFilter
@@ -266,11 +271,12 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
             <Search className="w-10 h-10 text-slate-400 dark:text-slate-500" />
           </div>
           <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
-            {t('explore.noAppsFound')}
+            {t(exploreError ? 'languages.loadFailed' : 'explore.noAppsFound')}
           </h4>
           <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-            {t('explore.adjustSearch')}
+            {t('languages.empty')}
           </p>
+          <button type="button" onClick={exploreError ? retryExplore : () => useAppLanguageStore.getState().actions.select(null)} className="mt-4 rounded-full bg-brand-600 text-white px-4 py-2 text-sm">{t(exploreError ? 'languages.retry' : 'languages.browseAll')}</button>
         </div>
       )}
     </section>

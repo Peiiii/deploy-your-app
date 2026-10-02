@@ -1,3 +1,4 @@
+import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
 import { track } from '@/analytics/collector';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ExploreAppCard } from '@/components/explore-app-card';
@@ -11,12 +12,14 @@ import { PERFORMANCE_CONFIG } from '@/constants';
 
 export const useHomeExploreFeed = () => {
   const presenter = usePresenter();
+  const languages = useAppLanguageStore(s => s.languages);
   const [apps, setApps] = useState<ExploreAppCard[]>([]);
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All Apps');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('recommended');
   const [isLoadingExplore, setIsLoadingExplore] = useState(false);
+  const [exploreError, setExploreError] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -40,6 +43,7 @@ export const useHomeExploreFeed = () => {
   const loadExplorePage = useCallback(
     async (pageToLoad: number, append: boolean) => {
       const requestId = ++exploreRequestIdRef.current;
+      setExploreError(false);
       if (append) {
         setIsLoadingMore(true);
       } else {
@@ -54,6 +58,7 @@ export const useHomeExploreFeed = () => {
       try {
       if (pageToLoad === 1 && searchQuery.trim()) track('search_submit');
         const result = await fetchExploreProjects({
+          languages,
           search: searchQuery.trim() || undefined,
           category: activeCategory !== 'All Apps' ? activeCategory : undefined,
           tag: activeTag,
@@ -62,7 +67,8 @@ export const useHomeExploreFeed = () => {
           pageSize: sortBy === 'recommended' ? 36 : PAGE_SIZE,
         });
 
-        if (requestId !== exploreRequestIdRef.current) return;
+        if (requestId !== exploreRequestIdRef.current || JSON.stringify(languages) !== JSON.stringify(useAppLanguageStore.getState().languages)) return;
+        useAppLanguageStore.getState().actions.setAvailable(result.availableLanguages || []);
 
         const projects = result.items;
         const mapped = mapProjectsToApps(projects);
@@ -91,6 +97,7 @@ export const useHomeExploreFeed = () => {
           presenter.reaction.loadReactionsForProjectsBulk(ids);
         }
       } catch (error) {
+        if (requestId === exploreRequestIdRef.current) setExploreError(true);
         console.error('Failed to load explore apps for Home', error);
       } finally {
         console.log('[useHomeExploreFeed] finally', {
@@ -104,6 +111,7 @@ export const useHomeExploreFeed = () => {
       }
     },
     [
+      languages,
       activeCategory,
       activeTag,
       mergeUniqueApps,
@@ -143,6 +151,8 @@ export const useHomeExploreFeed = () => {
     sortBy,
     setSortBy,
     isLoadingExplore,
+    exploreError,
+    retryExplore: () => void loadExplorePage(1, false),
     isLoadingMore,
     hasMore,
     loadMoreRef,

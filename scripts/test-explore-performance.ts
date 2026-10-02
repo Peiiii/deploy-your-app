@@ -62,7 +62,7 @@ try {
   assert.equal(first.items[0].publicAuthor?.handle,'public-creator');
   assert.ok(!JSON.stringify(first).includes('private@example.com'), 'public author hides email');
   assert.equal(batches,1,'one D1 batch for page and count regardless of candidate count');
-  assert.equal(prepared.length,3,'two SQL statements plus current-page author lookup');
+  assert.equal(prepared.length,4,'page, count, language facets plus current-page author lookup');
   const pageSql=prepared.find(sql=>sql.includes('explore_views'))!;
   const plan=await db.prepare(`EXPLAIN QUERY PLAN ${pageSql}`).bind(oldest,6,0).all();
   const details=plan.results.map((row: { detail: string })=>row.detail).join('\n');

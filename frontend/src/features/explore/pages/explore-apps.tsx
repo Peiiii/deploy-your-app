@@ -1,3 +1,5 @@
+import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
+import { AppLanguageFilter } from '@/features/explore/components/app-language-filter';
 import { Search, LayoutGrid, Smartphone } from 'lucide-react';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -88,6 +90,8 @@ const CategoryFilterBar: React.FC<CategoryFilterProps> = ({
 
 export const ExploreApps: React.FC = () => {
   const { t } = useTranslation();
+  const languages = useAppLanguageStore(s => s.languages);
+  const error = useExploreStore(s => s.error);
   const presenter = usePresenter();
   const { openAppPreview } = useAppPreviewPanel();
 
@@ -104,20 +108,15 @@ export const ExploreApps: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'feed'>('grid');
   const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
 
-  // Load on mount
+  React.useEffect(() => { presenter.explore.refresh(); }, [languages, presenter.explore]);
+  const previousFilters = React.useRef(JSON.stringify([searchQuery, activeCategory, activeTag]));
   React.useEffect(() => {
-    presenter.explore.refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Reload when search query or category changes
-  React.useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      presenter.explore.refresh();
-    }, 300); // Debounce search
-
+    const key = JSON.stringify([searchQuery, activeCategory, activeTag]);
+    if (previousFilters.current === key) return;
+    previousFilters.current = key;
+    const timeoutId = setTimeout(() => presenter.explore.refresh(), 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, activeCategory, presenter.explore]);
+  }, [searchQuery, activeCategory, activeTag, presenter.explore]);
 
 
 
@@ -148,6 +147,9 @@ export const ExploreApps: React.FC = () => {
   if (isFeedView) {
     return (
       <ExploreFeed
+        key={JSON.stringify(languages)}
+        error={error}
+        onRetry={presenter.explore.refresh}
         apps={apps}
         hasMore={hasMore}
         isLoading={isLoading}
@@ -209,10 +211,17 @@ export const ExploreApps: React.FC = () => {
           {t('explore.discoverApps')} {t('explore.spendCreditsSupportCreators')}
         </p>
 
+        <AppLanguageFilter />
+
         <CategoryFilterBar
           activeCategory={activeCategory}
           onCategoryChange={actions.setActiveCategory}
         />
+
+        {!isLoading && (error || apps.length === 0) && <div className="rounded-2xl border border-slate-200 dark:border-slate-700 p-8 text-center">
+          <p className="text-slate-700 dark:text-slate-200">{t(error ? 'languages.loadFailed' : 'languages.empty')}</p>
+          <button type="button" onClick={error ? presenter.explore.refresh : () => useAppLanguageStore.getState().actions.select(null)} className="mt-4 px-4 py-2 rounded-full bg-brand-600 text-white text-sm">{t(error ? 'languages.retry' : 'languages.browseAll')}</button>
+        </div>}
 
         {apps.length === 0 && isLoading ? (
           <div className="mt-6">

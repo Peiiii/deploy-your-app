@@ -394,6 +394,11 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   // Admin routes
   // -----------------
   router.add({
+    path: '/api/v1/admin/projects/:id/detect-language',
+    method: 'POST',
+    handler: (req, params) => adminController.detectProjectLanguage(req, env, requireDb(), params.id),
+  });
+  router.add({
     path: '/api/v1/admin/projects',
     method: 'GET',
     handler: (req) => adminController.listProjects(req, env, requireDb()),
