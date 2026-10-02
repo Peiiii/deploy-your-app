@@ -157,6 +157,14 @@ try {
       choices: [{ message: { content: JSON.stringify({ language: 'th', confidence: 0.96 }) } }],
     });
   };
+  globalThis.fetch = async () => new Response('Unavailable', { status: 503 });
+  assert.equal((await projectLanguageService.scanProject(env, db, project)).status, 'classifier_unavailable');
+  assert.equal((await projectRepository.getProjectById(db, project.id)).appLanguage, undefined, 'classifier failure never stamps unknown');
+  assert.equal((await projectRepository.languageScanCandidates(db)).length, 1, 'failed classification remains retryable');
+  const unavailableEnv = { ...env, APP_CONTENT: { fetch: async () => new Response('Unavailable', { status: 503 }) } } as unknown as ApiWorkerEnv;
+  assert.equal((await projectLanguageService.scanProject(unavailableEnv, db, project)).status, 'content_unavailable');
+  assert.equal((await projectRepository.getProjectById(db, project.id)).appLanguage, undefined, 'render failure never stamps unknown');
+  globalThis.fetch = async () => Response.json({ choices: [{ message: { content: '{"language":"th","confidence":0.96}' } }] });
   await projectLanguageService.scanProject(env, db, project);
   assert.deepEqual((await projectRepository.getProjectById(db, project.id)).appLanguage.languages, [
     'th',

@@ -674,6 +674,8 @@
   },
   "languages": {
     "appLanguage": "Which languages can you use?",
+    "contentShort": "Apps",
+    "contentLanguage": "Content language",
     "siteLanguage": "Website display language",
     "automaticActive": "Auto-selected from your browser",
     "automatic": "Use browser language",

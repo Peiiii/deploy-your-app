@@ -197,12 +197,12 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
             {t('explore.discoverApps')}
           </p>
         </div>
-        <div className={`w-full ${compact ? 'md:w-auto' : 'md:w-96'}`}>
-          <SearchBar value={searchQuery} onChange={setSearchQuery} />
+        <div className="w-full md:w-auto flex items-center gap-2">
+          <div className={`flex-1 min-w-0 ${compact ? 'md:w-64' : 'md:w-80'}`}><SearchBar value={searchQuery} onChange={setSearchQuery} /></div>
+          <AppLanguageFilter />
         </div>
       </div>
 
-      <div className="mb-3"><AppLanguageFilter /></div>
       <div className={`flex flex-col sm:flex-row items-center gap-2 mb-3`}>
         <div className="flex-1 min-w-0 w-full overflow-hidden">
           <CategoryFilter
