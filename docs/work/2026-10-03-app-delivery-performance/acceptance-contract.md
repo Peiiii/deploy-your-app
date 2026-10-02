@@ -21,7 +21,7 @@
 | AP-02 | true | passed | 线上QA JS ETag/HTML*304与HEAD，发布2.567s、回滚3.265s、legacy10.890s含2秒容差；详细证据见日志 | — |
 | AP-03 | true | passed | evidence/summary.json：二次TTFB中位 .580→.248，gateway13ms；6浏览器完整cold/warm结果；详细证据见日志 | — |
 | AP-04 | true | passed | 2→0读取断言；原服务bindings不变；platform镜像408350bytes与官方边际计价；详细证据见日志 | — |
-| AP-05 | true | passed | strict tsc、lint、4行为测试、dry-run、review passed；master推送/线上gateway与QA证据；最后小修上线待收尾核对；详细证据见日志 | — |
+| AP-05 | true | passed | strict tsc、lint、4行为测试、dry-run、review passed；master推送/线上gateway与QA证据；最终ef5bc879生产版本与新增分支已补验；详细证据见日志 | — |
 
 单阶段，当前门：实现统一托管策略→行为测试→对比实测→按最大缺口迭代→生产 QA→Review/交付/复盘。open-required: AP-01..05。parent_status: in-progress。无待决范围变化。
 
@@ -36,3 +36,5 @@
 - Required:true；Status:passed；同原字节镜像线上hash/gzip/ETag；真实HTMLRewriter source/CSP/plugin/version/credentials/SRI属性不变；最终6/6浏览器无timeout，green5.188s/portfolio3.840s首屏；见日志evidence/browser-final.json。
 - AP-04授权内增量：客户发布产物不变，平台额外408350bytes；请求/CPU有边际计费，不是新固定服务。
 - AP-02已验证conditional server合同；Cloudflare HTML变换移除部分browser ETag的边界已显式记录，不宣称每个HTML浏览器自动304。
+
+最终AP-05证据：gateway ef5bc879-5fa9-4bbf-9f07-56ea4e917f65上线；新增no-store分支、weak304/HEAD精确0bytes、geeglo双HIT补验passed；源提交普通推送master。历史immutable浏览器缓存需一次强制刷新，边界已在交付说明与日志记录。全部 Required 标准有效，正常路径性能与生命周期证据未被只影响no-store分支的补丁失效。
