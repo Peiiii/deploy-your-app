@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 export type ToastVariant = 'success' | 'error' | 'info';
 
@@ -55,7 +56,7 @@ const getInitialLanguage = (): string => {
   return 'en';
 };
 
-export const useUIStore = create<UIState>((set) => ({
+export const useUIStore = create<UIState>()(persist((set) => ({
   theme: 'light',
   sidebarOpen: false,
   sidebarCollapsed: false,
@@ -100,5 +101,28 @@ export const useUIStore = create<UIState>((set) => ({
       set((state) => ({
         rightPanelLayout: state.rightPanelLayout === 'fullscreen' ? 'half' : 'fullscreen',
       })),
+  },
+}), {
+  name: 'gemigo-ui-preferences',
+  storage: createJSONStorage(() => ({
+    getItem: (name) => {
+      try { return localStorage.getItem(name); } catch { return null; }
+    },
+    setItem: (name, value) => {
+      try { localStorage.setItem(name, value); } catch { /* In-memory settings still work. */ }
+    },
+    removeItem: (name) => {
+      try { localStorage.removeItem(name); } catch { /* Storage may be disabled. */ }
+    },
+  })),
+  partialize: (state) => ({ sidebarCollapsed: state.sidebarCollapsed }),
+  merge: (persisted, current) => {
+    const saved = persisted as { sidebarCollapsed?: unknown } | null | undefined;
+    return {
+      ...current,
+      sidebarCollapsed: typeof saved?.sidebarCollapsed === 'boolean'
+        ? saved.sidebarCollapsed
+        : current.sidebarCollapsed,
+    };
   },
 }));
