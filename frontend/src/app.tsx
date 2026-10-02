@@ -1,5 +1,6 @@
 import { trackPage } from '@/analytics/collector';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { usePreviewScrollAnchor } from '@/hooks/use-preview-scroll-anchor';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { Sidebar } from '@/components/sidebar';
@@ -75,6 +76,8 @@ const useAppInitialize = () => {
  * Width adjusts based on whether right panel is open.
  */
 const MainContent: React.FC = () => {
+  const scrollRef = useRef<HTMLElement>(null);
+  usePreviewScrollAnchor(scrollRef);
   const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
   const hasRightPanel = useUIStore((s) => s.rightPanelContent !== null);
   const rightPanelLayout = useUIStore((s) => s.rightPanelLayout);
@@ -87,7 +90,8 @@ const MainContent: React.FC = () => {
 
   return (
     <main
-      className={`h-full overflow-y-auto overflow-x-hidden flex flex-col transition-all duration-300 ${sidebarOffset} ${rightPanelOffset} ${isFullscreenPanel ? 'pointer-events-none select-none' : ''}`}
+      ref={scrollRef}
+      className={`h-full overflow-y-auto overflow-x-hidden flex flex-col ${sidebarOffset} ${rightPanelOffset} ${isFullscreenPanel ? 'pointer-events-none select-none' : ''}`}
     >
       <Header />
       <div className="flex-1">

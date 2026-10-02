@@ -27,6 +27,7 @@ interface UIState {
   // Right Panel Service
   rightPanelContent: ReactNode | null;
   rightPanelId: string | null;
+  rightPanelAppId: string | null;
   rightPanelLayout: RightPanelLayout;
   actions: {
     toggleTheme: () => void;
@@ -40,7 +41,7 @@ interface UIState {
     openConfirmDialog: (dialog: ConfirmDialogState) => void;
     closeConfirmDialog: () => void;
     // Right Panel Service
-    openRightPanel: (content: ReactNode, id: string) => void;
+    openRightPanel: (content: ReactNode, id: string, appId?: string) => void;
     closeRightPanel: (id?: string) => void;
     setRightPanelLayout: (layout: RightPanelLayout) => void;
     toggleRightPanelLayout: () => void;
@@ -63,6 +64,7 @@ export const useUIStore = create<UIState>((set) => ({
   confirmDialog: null,
   rightPanelContent: null,
   rightPanelId: null,
+  rightPanelAppId: null,
   rightPanelLayout: 'half',
   actions: {
     toggleTheme: () =>
@@ -83,13 +85,13 @@ export const useUIStore = create<UIState>((set) => ({
     },
     openConfirmDialog: (dialog) => set({ confirmDialog: dialog }),
     closeConfirmDialog: () => set({ confirmDialog: null }),
-    openRightPanel: (content, id) =>
-      set({ rightPanelContent: content, rightPanelId: id, rightPanelLayout: 'half' }),
+    openRightPanel: (content, id, appId) =>
+      set({ rightPanelContent: content, rightPanelId: id, rightPanelAppId: appId ?? null, rightPanelLayout: 'half' }),
     closeRightPanel: (id) =>
       set((state) => {
         // If no id provided, force close. If id provided, only close if it matches.
         if (!id || state.rightPanelId === id) {
-          return { rightPanelContent: null, rightPanelId: null, rightPanelLayout: 'half' };
+          return { rightPanelContent: null, rightPanelId: null, rightPanelAppId: null, rightPanelLayout: 'half' };
         }
         return state;
       }),

@@ -1,5 +1,6 @@
 import { appLanguageLabel } from '@/features/explore/stores/language-preference';
 import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
+import { useUIStore } from '@/stores/ui.store';
 import { track } from '@/analytics/collector';
 /* eslint-disable react-refresh/only-export-components */
 import { getAuthorColor, getAuthorInitial, getAuthorName } from '../utils/author';
@@ -100,6 +101,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   onCardClick,
 }) => {
   const presenter = usePresenter();
+  const isPreviewing = useUIStore((s) => s.rightPanelAppId === app.id);
   const { t } = useTranslation();
   const showLanguage = useAppLanguageStore((s) => s.languages === null || s.languages.length > 1);
   const reactionEntry = useReactionStore((s) => s.byProjectId[app.id]);
@@ -147,7 +149,9 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   return (
     <div
       onClick={handleRootClick}
-      className="group relative flex flex-col bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer break-inside-avoid"
+      data-preview-app-id={app.id}
+      aria-current={isPreviewing ? 'true' : undefined}
+      className={`group relative flex flex-col bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer break-inside-avoid ${isPreviewing ? 'ring-2 ring-brand-500' : ''}`}
     >
       {/* Image Area */}
       <div
