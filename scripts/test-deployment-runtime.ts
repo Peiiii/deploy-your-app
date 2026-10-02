@@ -259,6 +259,10 @@ try {
   assert.equal(objects.has(`${manifest.prefix}/.well-known/test.txt`), true);
   assert.ok(manifest.previousPrefix.startsWith('apps/site/releases/'));
   objects.set(`${manifest.previousPrefix}/old.js`, Buffer.from('old asset'));
+  // This test isolates publication; dedicated gateway tests exercise cache TTLs.
+  Object.defineProperty(globalThis, 'caches', { configurable: true, value: { default: {
+    match: async () => undefined, put: async () => {},
+  } } });
   const bucket = {
     get: async (key: string) =>
       objects.has(key)

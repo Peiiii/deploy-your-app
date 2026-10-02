@@ -12,6 +12,7 @@ class ProjectLanguageService {
     status: 'skipped' | 'detected' | 'unknown' | 'content_unavailable' | 'classifier_unavailable';
     contentStatus?: number;
     contentStage?: string;
+    appStatus?: number;
     failureReason?: string;
   }> {
     if (
@@ -33,8 +34,10 @@ class ProjectLanguageService {
         url.port ||
         url.username ||
         url.password
-      )
+      ) {
+        await projectRepository.deferLanguageScan(db, project);
         return { status: 'skipped' };
+      }
       const response = await env.APP_CONTENT.fetch('https://app-content.internal/content', {
         method: 'POST',
         headers: {
@@ -45,8 +48,9 @@ class ProjectLanguageService {
         signal: AbortSignal.timeout(45000),
       });
       if (!response.ok) {
-        const detail = await response.json().catch(() => null) as { stage?: string } | null;
-        return { status: 'content_unavailable', contentStatus: response.status, contentStage: detail?.stage };
+        const detail = await response.json().catch(() => null) as { stage?: string; appStatus?: number } | null;
+        await projectRepository.deferLanguageScan(db, project);
+        return { status: 'content_unavailable', contentStatus: response.status, contentStage: detail?.stage, appStatus: detail?.appStatus };
       }
       const data = (await response.json()) as {
         text?: string;
@@ -58,10 +62,14 @@ class ProjectLanguageService {
         controls: typeof data.controls === 'string' ? data.controls.slice(0, 2000) : '',
         htmlLang: typeof data.htmlLang === 'string' ? data.htmlLang.slice(0, 32) : '',
       });
-      if (classified === null) return { status: 'classifier_unavailable' };
+      if (classified === null) {
+        await projectRepository.deferLanguageScan(db, project);
+        return { status: 'classifier_unavailable' };
+      }
       languages = classified;
     } catch (error) {
       console.warn('App content request failed', error instanceof Error ? error.message.slice(0, 200) : 'Error');
+      await projectRepository.deferLanguageScan(db, project);
       return { status: 'content_unavailable', failureReason: error instanceof Error && error.name === 'TimeoutError' ? 'timeout' : 'request_failed' };
     }
     await projectRepository.saveDetectedLanguage(db, project, {

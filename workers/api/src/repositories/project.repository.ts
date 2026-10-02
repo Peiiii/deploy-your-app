@@ -626,9 +626,11 @@ class ProjectRepository {
     const result = await db.prepare(`SELECT * FROM projects
       WHERE status = 'Live' AND url IS NOT NULL AND last_success_at IS NOT NULL
         AND COALESCE(is_deleted, 0) = 0 AND COALESCE(is_public, 1) = 1
-        AND (app_language IS NULL OR (json_extract(app_language, '$.source') <> 'author'
+        AND (app_language IS NULL OR (COALESCE(json_extract(app_language, '$.source'), '') <> 'author'
           AND COALESCE(json_extract(app_language, '$.revision'), '') <> last_success_at))
-      ORDER BY last_success_at DESC LIMIT ?`).bind(limit).all<ProjectRow>();
+        AND (COALESCE(json_extract(app_language, '$.retryRevision'), '') <> last_success_at
+          OR COALESCE(json_extract(app_language, '$.retryAfter'), '') <= ?)
+      ORDER BY last_success_at DESC LIMIT ?`).bind(new Date().toISOString(), limit).all<ProjectRow>();
     return (result.results ?? []).map(row => this.mapRowToProject(row));
   }
 
@@ -637,8 +639,19 @@ class ProjectRepository {
     await db.prepare(`UPDATE projects SET app_language = ?
       WHERE id = ? AND last_success_at = ? AND status = 'Live'
         AND COALESCE(is_deleted, 0) = 0 AND COALESCE(is_public, 1) = 1
-        AND (app_language IS NULL OR json_extract(app_language, '$.source') <> 'author')`)
+        AND (app_language IS NULL OR COALESCE(json_extract(app_language, '$.source'), '') <> 'author')`)
       .bind(JSON.stringify(appLanguage), project.id, project.lastSuccessAt).run();
+  }
+
+  /** Failed infrastructure scans back off without classifying or completing a release. */
+  async deferLanguageScan(db: D1Database, project: Project): Promise<void> {
+    await this.ensureSchema(db);
+    await db.prepare(`UPDATE projects SET app_language = json_set(COALESCE(app_language, '{}'),
+      '$.retryRevision', ?, '$.retryAfter', ?)
+      WHERE id = ? AND last_success_at = ? AND status = 'Live'
+        AND COALESCE(is_deleted, 0) = 0 AND COALESCE(is_public, 1) = 1
+        AND COALESCE(json_extract(app_language, '$.source'), '') <> 'author'`)
+      .bind(project.lastSuccessAt, new Date(Date.now() + 5 * 60_000).toISOString(), project.id, project.lastSuccessAt).run();
   }
 
   async updateProjectRecord(

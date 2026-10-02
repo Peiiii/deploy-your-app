@@ -63,3 +63,5 @@
 恢复范围：逆转15e50d6的frontend及新增测试实现，保留本任务日志而不删除历史，也不逆转e569388以前其它任务的新功能。恢复原主题token/Tailwind、原Header/Profile/Menu/Home发布和探索外观、原右侧AppPreviewPanel完整w-full容器/iframe/Dock、原路由与状态逻辑。用户明确要求顶栏固定，因此在原Header上只增加sticky top-0，未继续设计其它界面。回退产品合同取代原UX01–UX10执行计划；旧“Review无finding”只代表AI当时自审，用户反馈已经否定其主观质量结论，不能作为达标证据。原目标没有实现，应停止而不标记complete。
 
 回退验收：与e569388的frontend差异只剩Header sticky；frontend tsc/lint/build、diff检查；真实首页发布区/原主题与原右侧预览全宽，滚动时Header停留顶部。回退发布后核对gemigo.io实际asset和产品画面，不以Git操作代替恢复。
+
+本地回退验收通过：1280×900真实页面中iframe与其父容器均607px，滚动main到900px后Header的top仍0且position=sticky。发布前定向fetch发现origin/master已推进至fb4a228；保留其后台发布修正、托管缓存、语言扫描及语言badge新逻辑，冲突仅复合回原卡片配色/原语言控件与最新语言功能，不覆盖用户最新功能。

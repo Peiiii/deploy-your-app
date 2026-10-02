@@ -211,6 +211,92 @@ const checkCentralThumbnail = async (env: Env, slug: string): Promise<Response> 
   });
 };
 
+// Public URLs can be reused by arbitrary uploads. Cache immutable release objects
+// at the edge, but always validate browser copies against the active deployment.
+const DEPLOYMENT_CACHE_SECONDS = 5;
+const LEGACY_ASSET_CACHE_SECONDS = 5;
+const RELEASE_ASSET_CACHE_SECONDS = 86400;
+type DeploymentPointer = { prefix: string; previousPrefix?: string };
+type CacheState = 'HIT' | 'MISS' | 'BYPASS';
+
+const siteCacheKey = (url: URL, kind: string, key: string): Request =>
+  new Request(`${url.origin}/__gemigo_cache/v1/${kind}/${encodeURIComponent(key)}`);
+
+const readSiteCache = async (key: Request): Promise<Response | undefined> => {
+  try {
+    return await caches.default.match(key);
+  } catch (error) {
+    console.error('Site cache read failed', error);
+    return undefined;
+  }
+};
+
+const writeSiteCache = (ctx: ExecutionContext, key: Request, response: Response): void => {
+  ctx.waitUntil(Promise.resolve().then(() => caches.default.put(key, response)).catch((error) => {
+    console.error('Site cache write failed', error);
+  }));
+};
+
+const resolveDeployment = async (
+  url: URL, slug: string, bucket: R2BucketBinding, ctx: ExecutionContext,
+  bypass: boolean, store: boolean,
+): Promise<{ deployment: DeploymentPointer; state: CacheState } | null> => {
+  const cacheKey = siteCacheKey(url, 'deployment', slug);
+  const cached = bypass ? undefined : await readSiteCache(cacheKey);
+  if (cached) return { deployment: await cached.json() as DeploymentPointer, state: 'HIT' };
+
+  let deployment: DeploymentPointer = { prefix: `apps/${slug}/current` };
+  const pointer = await bucket.get(`apps/${slug}/deployment.json`);
+  if (pointer?.body) {
+    try {
+      const manifest = await new Response(pointer.body).json() as DeploymentPointer;
+      const validPrefix = (value?: string): value is string => typeof value === 'string'
+        && (value === `apps/${slug}/current`
+          || (value.startsWith(`apps/${slug}/releases/`)
+            && /^[a-f0-9-]{36}$/i.test(value.slice(`apps/${slug}/releases/`.length))));
+      if (!validPrefix(manifest.prefix)) return null;
+      deployment = { prefix: manifest.prefix };
+      if (validPrefix(manifest.previousPrefix)) deployment.previousPrefix = manifest.previousPrefix;
+    } catch {
+      return null;
+    }
+  }
+  if (store) writeSiteCache(ctx, cacheKey, Response.json(deployment, {
+    headers: { 'cache-control': `public, max-age=${DEPLOYMENT_CACHE_SECONDS}` },
+  }));
+  return { deployment, state: bypass ? 'BYPASS' : 'MISS' };
+};
+
+const readSiteObject = async (
+  url: URL, key: string, bucket: R2BucketBinding, ctx: ExecutionContext,
+  bypass: boolean, store: boolean,
+): Promise<{ response: Response; state: CacheState } | null> => {
+  const cacheKey = siteCacheKey(url, 'object', key);
+  const cached = bypass ? undefined : await readSiteCache(cacheKey);
+  if (cached) return { response: cached, state: 'HIT' };
+  const object = await bucket.get(key);
+  if (!object) return null;
+  const headers = new Headers();
+  object.writeHttpMetadata?.(headers);
+  if (object.httpEtag) headers.set('etag', object.httpEtag);
+  if (!headers.has('content-type')) {
+    headers.set('content-type', getContentTypeFromExt(key.split('.').pop()?.toLowerCase() ?? ''));
+  }
+  const ttl = /^apps\/[^/]+\/releases\//.test(key) ? RELEASE_ASSET_CACHE_SECONDS : LEGACY_ASSET_CACHE_SECONDS;
+  headers.set('cache-control', `public, max-age=${ttl}`);
+  const response = new Response(object.body, { headers });
+  if (store) writeSiteCache(ctx, cacheKey, response.clone());
+  return { response, state: bypass ? 'BYPASS' : 'MISS' };
+};
+
+const matchesEtag = (condition: string | null, etag: string | null): boolean => {
+  if (!condition) return false;
+  if (condition.trim() === '*') return true;
+  if (!etag) return false;
+  const normalize = (tag: string): string => tag.trim().replace(/^W\//, '');
+  return condition.split(',').some((tag) => normalize(tag) === normalize(etag));
+};
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -298,78 +384,48 @@ export default {
       return new Response(thumb.body, { headers });
     }
 
-    // This must match the prefix used by the backend R2 deployer:
-    //   apps/<slug>/current/...
-    let basePrefix = `apps/${subdomain}/current`;
-    let previousPrefix: string | undefined;
-    const pointer = await bucket.get(`apps/${subdomain}/deployment.json`);
-    if (pointer?.body) {
-      const manifest = await new Response(pointer.body).json() as { prefix?: string; previousPrefix?: string };
-      const validPrefix = (value?: string): value is string => Boolean(value && (value === `apps/${subdomain}/current` || new RegExp(`^apps/${subdomain}/releases/[a-f0-9-]{36}$`, 'i').test(value)));
-      if (!validPrefix(manifest.prefix)) return new Response('Invalid site deployment', { status: 503 });
-      basePrefix = manifest.prefix;
-      if (validPrefix(manifest.previousPrefix)) previousPrefix = manifest.previousPrefix;
+    const started = performance.now();
+    const cacheableMethod = request.method === 'GET' || request.method === 'HEAD';
+    const requestCacheControl = request.headers.get('cache-control') ?? '';
+    const noStore = /(?:^|,)\s*no-store\b/i.test(requestCacheControl);
+    const bypass = !cacheableMethod || noStore || /(?:^|,)\s*no-cache\b/i.test(requestCacheControl);
+    const store = cacheableMethod && !noStore;
+    const resolved = await resolveDeployment(url, subdomain, bucket, ctx, bypass, store);
+    if (!resolved) return new Response('Invalid site deployment', { status: 503 });
+    const { prefix, previousPrefix } = resolved.deployment;
+    let pathname = url.pathname || '/';
+    if (pathname.endsWith('/')) pathname += 'index.html';
+
+    let result = await readSiteObject(url, `${prefix}${pathname}`, bucket, ctx, bypass, store);
+    // Existing open tabs can still need files from the previous release.
+    if (!result && previousPrefix && /\.[a-z0-9]+$/i.test(pathname) && !pathname.endsWith('.html')) {
+      result = await readSiteObject(url, `${previousPrefix}${pathname}`, bucket, ctx, bypass, store);
     }
-
-    let pathname = url.pathname;
-    if (!pathname || pathname === '/') {
-      pathname = '/index.html';
+    // Keep the existing SPA fallback, caching the actual index object, not each route.
+    if (!result && pathname !== '/index.html') {
+      result = await readSiteObject(url, `${prefix}/index.html`, bucket, ctx, bypass, store);
     }
+    if (!result) return new Response('Not found', { status: 404 });
 
-    let objectKey =
-      pathname.endsWith('/')
-        ? `${basePrefix}${pathname}index.html`
-        : `${basePrefix}${pathname}`;
-
-    // Try to fetch the requested asset first.
-    let object = await bucket.get(objectKey);
-
-    if (!object && previousPrefix && /\.[a-z0-9]+$/i.test(pathname) && !pathname.endsWith('.html')) {
-      object = await bucket.get(`${previousPrefix}${pathname}`);
-    }
-
-    // SPA fallback: if the asset does not exist, return index.html so
-    // client-side routing (React/Vue/etc.) can handle the path.
-    if (!object) {
-      const fallbackKey = `${basePrefix}/index.html`;
-      object = await bucket.get(fallbackKey);
-      objectKey = fallbackKey;
-    }
-
-    if (!object) {
-      return new Response('Not found', { status: 404 });
-    }
-
-    // Record page views for top-level HTML / SPA routes.
     if (isPageViewRequest(url)) {
-      ctx.waitUntil(
-        recordPageView(env, request, url, subdomain).catch((err) => {
-          console.error('Failed to record page view', err);
-        }),
-      );
+      ctx.waitUntil(recordPageView(env, request, url, subdomain).catch((err) => {
+        console.error('Failed to record page view', err);
+      }));
     }
-
-    const headers = new Headers();
-    if (typeof object.writeHttpMetadata === 'function') {
-      object.writeHttpMetadata(headers);
-    }
-    if (object.httpEtag) {
-      headers.set('etag', object.httpEtag);
-    }
-
-    // Basic content-type safety net in case metadata is missing.
-    if (!headers.has('content-type')) {
-      const ext = objectKey.split('.').pop()?.toLowerCase() ?? '';
-      headers.set('content-type', getContentTypeFromExt(ext));
-    }
-
-    // Debug/diagnostic header so we can verify in curl/DevTools
-    // that this Worker handled the request.
+    const headers = new Headers(result.response.headers);
+    headers.set('cache-control', 'no-cache');
     headers.set('x-gemigo-gateway', 'r2');
-
-    return new Response(object.body, {
-      headers,
-    });
+    headers.set('x-gemigo-cache', result.state);
+    headers.set('x-gemigo-deployment-cache', resolved.state);
+    headers.set('server-timing', `gemigo;dur=${(performance.now() - started).toFixed(1)}`);
+    const notModified = cacheableMethod && matchesEtag(request.headers.get('if-none-match'), headers.get('etag'));
+    if (notModified || request.method === 'HEAD') {
+      // Content length in a cache copy describes the full object, not a 304 body.
+      if (notModified) headers.delete('content-length');
+      if (result.response.body) ctx.waitUntil(result.response.body.cancel());
+      return new Response(null, { status: notModified ? 304 : 200, headers });
+    }
+    return new Response(result.response.body, { headers });
   },
 };
 

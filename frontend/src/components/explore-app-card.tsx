@@ -1,4 +1,5 @@
 import { appLanguageLabel } from '@/features/explore/stores/language-preference';
+import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
 import { track } from '@/analytics/collector';
 /* eslint-disable react-refresh/only-export-components */
 import { getAuthorColor, getAuthorInitial, getAuthorName } from '../utils/author';
@@ -100,6 +101,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
 }) => {
   const presenter = usePresenter();
   const { t } = useTranslation();
+  const showLanguage = useAppLanguageStore((s) => s.languages === null || s.languages.length > 1);
   const reactionEntry = useReactionStore((s) => s.byProjectId[app.id]);
   const navigate = useNavigate();
   const [isNearViewport, setIsNearViewport] = useState(
@@ -111,6 +113,9 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   const showThumbnail = app.thumbnailUrl && !thumbnail.error;
   const shouldLoadThumbnail = imagePriority || isNearViewport;
   const authorName = getAuthorName(app.author, t);
+  const languageLabel = app.appLanguages?.length
+    ? app.appLanguages.map(code => code === 'zxx' ? t('languages.independent') : appLanguageLabel(code)).join(' · ')
+    : t('languages.unknown');
 
   useEffect(() => {
     if (imagePriority || !app.thumbnailUrl || isNearViewport) return;
@@ -203,15 +208,12 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
           )}
         </div>
 
-        <p className="text-[11px] text-slate-500 dark:text-slate-400" aria-label={t('languages.supportedLanguages')}>
-          {app.appLanguages?.length ? app.appLanguages.map(code => code === 'zxx' ? t('languages.independent') : appLanguageLabel(code)).join(' · ') : t('languages.unknown')}
-        </p>
-        <div className="flex items-center justify-between mt-1">
+        <div className="flex items-center justify-between gap-2 mt-1">
           <button
             type="button"
             disabled={!app.authorProfileIdentifier}
             title={authorName}
-            className="flex items-center gap-2 min-w-0 group/author rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:cursor-default"
+            className="flex flex-1 items-center gap-2 min-w-0 group/author rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:cursor-default"
             onClick={(e) => {
               e.stopPropagation();
               if (app.authorProfileIdentifier) {
@@ -229,12 +231,21 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
             </span>
           </button>
 
+          {showLanguage && (
+            <span
+              title={languageLabel}
+              aria-label={`${t('languages.supportedLanguages')}：${languageLabel}`}
+              className="max-w-[35%] shrink-0 truncate rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500 dark:bg-slate-700/50 dark:text-slate-400"
+            >
+              {languageLabel}
+            </span>
+          )}
           <button
             onClick={(e) => {
               e.stopPropagation();
               presenter.reaction.toggleLike(app.id);
             }}
-            className="flex items-center gap-1 text-slate-400 hover:text-brand-500 transition-colors group/like"
+            className="flex shrink-0 items-center gap-1 text-slate-400 hover:text-brand-500 transition-colors group/like"
           >
             <Heart
               className={`w-3.5 h-3.5 transition-transform group-hover/like:scale-110 ${reactionEntry?.likedByCurrentUser ? 'fill-brand-500 text-brand-500' : ''}`}
