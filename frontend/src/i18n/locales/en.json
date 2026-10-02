@@ -272,13 +272,15 @@
     "publishHeading": "Publish your page",
     "publishDescription": "Add your content and get a link to share.",
     "chooseContentSource": "Choose your content source",
+    "htmlPlaceholder": "Paste your HTML code here…",
+    "trySample": "Try an example",
     "contentSources": {
       "html": {
-        "label": "HTML code / file",
+        "label": "HTML code",
         "description": "Paste HTML code or import an HTML file."
       },
       "zip": {
-        "label": "ZIP archive",
+        "label": "ZIP file",
         "description": "Upload a ZIP archive containing your page or app project files."
       },
       "github": {

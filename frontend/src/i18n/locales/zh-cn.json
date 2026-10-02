@@ -268,13 +268,15 @@
     "publishHeading": "发布你的网页",
     "publishDescription": "添加内容，发布后获得可以直接分享的链接。",
     "chooseContentSource": "选择内容来源",
+    "htmlPlaceholder": "在这里粘贴 HTML 代码…",
+    "trySample": "试用示例",
     "contentSources": {
       "html": {
-        "label": "HTML 代码 / 文件",
+        "label": "HTML 代码",
         "description": "粘贴 HTML 代码，或导入一个 HTML 文件。"
       },
       "zip": {
-        "label": "ZIP 压缩包",
+        "label": "ZIP 文件",
         "description": "上传包含网页或应用项目文件的 ZIP 压缩包。"
       },
       "github": {
