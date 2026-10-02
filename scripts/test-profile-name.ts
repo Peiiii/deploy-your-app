@@ -58,6 +58,9 @@ try {
   const pending = profile.savePublicName();
   await profile.savePublicName();
   assert.equal(calls, 1, 'saving twice must not create concurrent updates');
+  profile.dismissNameReminder();
+  assert.equal(useProfileNameStore.getState().editingUserId, first.id, 'saving cannot be dismissed');
+  assert.equal(useProfileNameStore.getState().dismissedUserIds.includes(first.id), false);
   useAuthStore.setState({ user: second });
   assert.equal(useProfileNameStore.getState().displayName, '', 'account switches clear drafts');
   profile.beginNameSetup();

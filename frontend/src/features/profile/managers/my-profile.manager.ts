@@ -34,6 +34,7 @@ export class MyProfileManager {
   };
 
   dismissNameReminder = () => {
+    if (useProfileNameStore.getState().isSaving) return;
     const user = this.authManager.getCurrentUser();
     if (!user) return;
     useProfileNameStore.setState((state) => ({

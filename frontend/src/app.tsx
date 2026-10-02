@@ -90,7 +90,6 @@ const MainContent: React.FC = () => {
       className={`h-full overflow-y-auto overflow-x-hidden flex flex-col transition-all duration-300 ${sidebarOffset} ${rightPanelOffset} ${isFullscreenPanel ? 'pointer-events-none select-none' : ''}`}
     >
       <Header />
-      <ProfileNameReminder />
       <div className="flex-1">
         <AppRoutes />
       </div>
@@ -142,6 +141,7 @@ const MainLayout: React.FC = () => {
       <CrispChat />
       <AuthModal />
       <ConfirmDialog />
+      <ProfileNameReminder />
       <Toast />
 
       {/* Layout: Three siblings at root level */}
