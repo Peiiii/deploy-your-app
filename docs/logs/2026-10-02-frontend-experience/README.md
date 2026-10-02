@@ -45,3 +45,12 @@
 - 第一批首包 gzip 约 167.8 kB（基线191.14）；原 ≤150 kB 门槛尚未通过，整体 goal 不关闭。当前 localhost proxy 访问生产 API 有网络延迟，本地等待/错误可见，但不能据此声称生产 API 退化。
 - 发布准备只修改本工作树 frontend、任务 docs 和新增回归脚本。用户原工作区及其他任务 backend/analytics/admin WIP 不提交。保留公共 Crisp 网站配置用于构建，未拷贝或打印生产 Secrets。
 - 第一批复盘判断：通用经验已在现有流程要求中（沿实际 UI 验证、身份请求归属、共享 owner 优先），本次仅记录项目事实和证据，不新增平行方法文档。整体复盘待第二批完成。
+
+
+## 第一批线上交付
+
+实现提交 15e50d6 普通推送 origin/master；仓库 pnpm deploy:pages 成功，gh-pages source 69502b4，Cloudflare Pages production bb55f58d-4c90-4e6c-8cf9-dadbf3b71b79。https://gemigo.io/dashboard 实际加载 /assets/index-MORflqby.js，与本批 production build 的版本路径一致（539.44kB/gzip167.79kB），不以推送日志代替域名证据。
+
+用户当前真实已登录会话刷新：先显示“仪表板”+内容骨架，随后26个项目正常呈现；旧锁图标等待卡片消失，draft/local-static 识别文本改为 HTML/上传 ZIP，部署时间本地化。1280px 亮色截图已经打开复核并保存于 `/Users/peiwang/.codex/visualizations/2026/10/02/01a0fd0c-6575-7831-a513-01159b83eb9f/gemigo-dashboard-live.jpg`。搜索 no-result-ux-20261003 出现“未找到项目”和可恢复操作，清除搜索返回项目；项目侧栏真实 Link 进入既有管理详情。未写生产资料、未删除项目。独立 shell curl 域名超时属本机网络路径，浏览器域名资源与真实产品操作已确认，Cloudflare只读查询也返回production版本。
+
+用户允许分批交付，第一批线上可用；整体合同保持 active，第二批性能/全页矩阵与残余体验继续推进。
