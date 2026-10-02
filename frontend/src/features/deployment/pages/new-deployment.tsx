@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { Loader2, ArrowRight, ChevronDown } from 'lucide-react';
+import { Loader2, ArrowRight } from 'lucide-react';
 import { useDeploymentStore } from '../stores/deployment.store';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { usePresenter } from '@/contexts/presenter-context';
@@ -85,7 +85,7 @@ export const NewDeployment = () => {
                       presenter.deployment.handleSourceChange(type);
                       setParams({ source: type });
                     }}
-                    className={`rounded-lg px-2 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${state.sourceType === type ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+                    className={`rounded-lg px-2 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${state.sourceType === type ? 'bg-brand-100 text-brand-700 shadow-sm dark:bg-brand-900/50 dark:text-brand-200' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
                   >
                     {t(`deployment.contentSources.${type}.label`)}
                   </button>
@@ -120,14 +120,10 @@ export const NewDeployment = () => {
                 onRepoUrlChange={presenter.deployment.setRepoUrl}
               />
             )}
-            <details className="group">
-              <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 rounded text-xs font-medium text-slate-500 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-slate-400 dark:hover:text-white [&::-webkit-details-marker]:hidden">
-                {t('deployment.optionalName')}
-                <ChevronDown aria-hidden="true" className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
-              </summary>
+            <div>
               <label
                 htmlFor="publication-name"
-                className="sr-only"
+                className="block text-sm font-medium text-slate-900 dark:text-white"
               >
                 {t('deployment.optionalName')}
               </label>
@@ -137,9 +133,9 @@ export const NewDeployment = () => {
                 onChange={(e) => presenter.deployment.setProjectName(e.target.value)}
                 placeholder={t('deployment.optionalNameHint')}
                 maxLength={80}
-                className="mt-3 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="mt-2 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
-            </details>
+            </div>
           </fieldset>
           <button
             type="button"
