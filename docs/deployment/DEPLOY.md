@@ -58,6 +58,7 @@ chmod 600 ~/.ssh/authorized_keys
 | `ALIYUN_USER` | SSH 用户名 | `root` 或 `ubuntu` |
 | `ALIYUN_SSH_KEY` | SSH 私钥内容 | 复制 `~/.ssh/aliyun_deploy` 的完整内容 |
 | `ALIYUN_PORT` | SSH 端口（可选，默认 22） | `22` |
+| `DEPLOY_SERVICE_TOKEN` | Node 内部 API 与 API Worker 共用的服务凭据（两侧必须一致） | 由 Secret 管理，不写入源码 |
 
 **获取 SSH 私钥内容：**
 
@@ -73,10 +74,10 @@ cat ~/.ssh/aliyun_deploy
 
 当代码推送到 `main` 或 `master` 分支时，GitHub Actions 会自动：
 
-1. 构建 Docker 镜像
-2. 将镜像和部署脚本上传到服务器
-3. 在服务器上执行部署脚本
-4. 重启容器
+1. 构建 Docker 镜像，并验证真实隔离构建、结果恢复和升级回滚
+2. 将镜像和部署脚本上传到服务器，先加载并验证新镜像
+3. 暂停新作业、等待已有作业结束，保留旧容器后切换
+4. 健康检查成功才删除旧容器；失败恢复旧容器并确认健康
 
 ### 手动触发
 
@@ -93,7 +94,7 @@ cat ~/.ssh/aliyun_deploy
 1. 进入 GitHub 仓库的 **Actions** 标签页
 2. 点击最新的工作流运行
 3. 查看 "Execute deployment script" 步骤的日志
-4. 如果看到 `✅ Deployment completed successfully!` 表示部署成功
+4. 如果看到 `Deployment health check passed.` 表示部署成功
 
 ### 方法 2: 在服务器上运行检查脚本
 
@@ -108,16 +109,16 @@ docker ps --filter "name=deploy-your-app"
 docker logs --tail 50 deploy-your-app
 
 # 测试 API
-curl http://localhost/api/v1/projects
+curl http://localhost/healthz
 ```
 
 ### 方法 3: 从外部测试 API
 
 ```bash
 # 替换为你的服务器 IP
-curl http://<你的服务器IP>/api/v1/projects
+curl http://<你的服务器IP>/healthz
 
-# 应该返回项目列表的 JSON 数据
+# 应该返回健康状态 JSON；项目 CRUD 位于 gemigo.io/api/v1
 ```
 
 ### 方法 4: 使用检查脚本（推荐）
@@ -315,3 +316,11 @@ tar -czf backup-$(date +%Y%m%d).tar.gz /opt/deploy-your-app/data
 - `scripts/deploy.sh` - 服务器端部署脚本
 
 修改后提交到仓库，下次部署时会自动使用新脚本。
+
+## 发布服务与作业隔离
+
+`DEPLOY_SERVICE_TOKEN` 同时配置在 GitHub Secrets 和 `workers/api` 的 Worker Secret 中。Worker 通过 HTTPS 调用 `https://builderapi.gemigo.io/api/v1`，不转发用户 Cookie/Authorization。生产 Node 缺少 token 或构建隔离配置时拒绝启动；直接调用内部 API 必须认证。`/healthz` 仅暴露健康状态和待完成数量。
+
+构建容器只挂载自己的源码目录，以非 root 用户运行，只读根目录；无控制器的 Secrets、数据目录或 Docker socket。限制 512 MiB、1 CPU、128 PID、每个命令 5 分钟；控制器串行运行、有界等待。部署脚本把 Docker socket 仅挂载给受内部 token 保护的可信控制器，使用本次镜像不可变 ID 作为构建镜像。静态站点不启动构建容器。
+
+可用 `gh workflow run deploy.yml --ref <branch> -f validate_only=true` 验证镜像而不发布。改动存储布局时先部署兼容 gateway，再发布 Node/API Worker，最后更新 Pages。R2 新版本写入 releases 后最后切换 deployment.json；旧 current 仍可访问，上一版资产保留。源 ZIP 保留最多一天，Node 结果保留 30 天；D1 保留终态 URL、stage/build_mode/error_code/error_message，项目设置“部署”页可读最近结果。

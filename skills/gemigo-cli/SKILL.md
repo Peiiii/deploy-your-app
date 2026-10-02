@@ -57,10 +57,10 @@ Rules:
 
 Use Node.js `>=18`.
 
-Published package:
+Binary-upload release (0.1.4):
 
 ```bash
-npm install -g gemigo
+npm install -g https://github.com/Peiiii/deploy-your-app/releases/download/gemigo-v0.1.4/gemigo-0.1.4.tgz
 ```
 
 Inside this repository:
@@ -189,3 +189,5 @@ When new CLI commands or workflows are added:
 1. Update this skill first.
 2. Keep the overview split into current capabilities versus current limits.
 3. Preserve backward-compatible guidance for existing commands unless the CLI behavior actually changed.
+
+ZIP uploads use a binary request and support archives up to 75 MiB. Connection interruptions recover the server-confirmed result; an unconfirmed result is reported as pending. Older releases only support small Base64 uploads; upgrade for larger apps.

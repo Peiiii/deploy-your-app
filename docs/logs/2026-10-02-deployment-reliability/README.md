@@ -21,3 +21,5 @@ UTC 2026-09-02 至 2026-10-01；attempt 历史从 9 月 18 日晚开始，不能
 ## 实现验证与 Review（发布前）
 2026-10-02：真实 Miniflare Worker/R2/D1 流式上传、归属/认证/限额、flow 幂等、确认前禁止 Live、终态持久 URL、旧状态覆盖与 SQL 写入条件通过；Provider+Executor 413 和 12 MiB 二进制/断线恢复通过；Node ZIP/默认分支/入口/重启/临时目录回收，R2 上传失败、指针失败、写入后响应丢失与新旧 Gateway 通过；CLI 7 项回归、metadata policy、analytics foundation 通过。根 tsc、受影响 ESLint、前后端 build、域名登记、Worker/gateway dry-run、bash 语法、diff whitespace 通过。构建仅有既有体积/Browserslist 提示。项目没有 diff-only maintainability 脚本，完成手工 findings-first 与 owner/状态/异步/发布边界复核：发现的客户端终态权、指针模糊提交、SQL 旧作业写入、共享构建环境均已修正并回归；no findings（源码范围）。
 生产镜像隔离验收交由既有 GitHub deployment workflow 的 validate_only 入口先执行，失败不得进入发布。新增独立服务 token 已以不显示值的方式配置两侧 Secret；未访问或修改既有凭据。npm whoami=E401，registry 发布需有效身份；提供可安装 CLI 包的发布入口。
+
+镜像验收：[validate_only run](https://github.com/Peiiii/deploy-your-app/actions/runs/36998453472)，源码07a4dbe，通过实际 pnpm 沙箱、凭据/共享目录/socket 隔离、非 root/只读根、结果跨重启、排空拒绝新作业、健康升级与启动失败恢复旧服务。前三次仅验收环境/等待/清理边界失败，未发布；已修正测试和回滚健康等待后全通过。开始 Gateway 兼容发布，version=b0aa49a6-2a35-4c87-9406-5a90c46d3bb2。

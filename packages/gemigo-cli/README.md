@@ -14,10 +14,10 @@ Requirements:
 
 - Node.js `>=18`
 
-Install from npm:
+Install the binary-upload release (0.1.4):
 
 ```bash
-npm install -g gemigo
+npm install -g https://github.com/Peiiii/deploy-your-app/releases/download/gemigo-v0.1.4/gemigo-0.1.4.tgz
 ```
 
 Or run it from this repo during development:
@@ -247,3 +247,5 @@ EOF
 gemigo login
 gemigo deploy --config ./gemigo.app.json
 ```
+
+ZIP uploads use a binary request and support archives up to 75 MiB. Connection interruptions recover the server-confirmed result; an unconfirmed result is reported as pending. Older releases only support small Base64 uploads; upgrade for larger apps.

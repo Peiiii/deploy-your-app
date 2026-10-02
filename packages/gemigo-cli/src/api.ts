@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type {
   CliUser,
   CreateProjectPayload,
@@ -158,7 +159,7 @@ export class GemigoApiClient {
     sourceType: 'zip';
     zipSourceKey: string;
   }): Promise<{ deploymentId: string }> {
-    const body = JSON.stringify({ ...input, clientChannel: 'cli', deploymentFlowId: crypto.randomUUID() });
+    const body = JSON.stringify({ ...input, clientChannel: 'cli', deploymentFlowId: randomUUID() });
     let response: Response | undefined;
     for (let retry = 0; retry < 3; retry++) {
       try {
