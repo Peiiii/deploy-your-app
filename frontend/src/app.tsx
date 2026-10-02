@@ -78,20 +78,13 @@ const useAppInitialize = () => {
 const MainContent: React.FC = () => {
   const scrollRef = useRef<HTMLElement>(null);
   usePreviewScrollAnchor(scrollRef);
-  const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
-  const hasRightPanel = useUIStore((s) => s.rightPanelContent !== null);
-  const rightPanelLayout = useUIStore((s) => s.rightPanelLayout);
-
-  const sidebarOffset = sidebarCollapsed ? 'md:ml-16' : 'md:ml-64';
-  // When right panel is open, reserve right half of remaining space
-  const rightPanelOffset =
-    hasRightPanel && rightPanelLayout === 'half' ? 'lg:mr-[50%]' : '';
-  const isFullscreenPanel = hasRightPanel && rightPanelLayout === 'fullscreen';
+  const isFullscreenPanel = useUIStore((s) =>
+    s.rightPanelContent !== null && s.rightPanelLayout === 'fullscreen');
 
   return (
     <main
       ref={scrollRef}
-      className={`h-full overflow-y-auto overflow-x-hidden flex flex-col ${sidebarOffset} ${rightPanelOffset} ${isFullscreenPanel ? 'pointer-events-none select-none' : ''}`}
+      className={`app-scrollbar min-w-0 min-h-0 h-full overflow-y-auto overflow-x-hidden flex flex-col ${isFullscreenPanel ? 'pointer-events-none select-none' : ''}`}
     >
       <Header />
       <div className="flex-1">
@@ -105,14 +98,10 @@ const MainContent: React.FC = () => {
  * Right panel container, rendered at root level as sibling of Sidebar and MainContent.
  */
 const RightPanel: React.FC = () => {
-  const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
   const rightPanelContent = useUIStore((s) => s.rightPanelContent);
   const rightPanelLayout = useUIStore((s) => s.rightPanelLayout);
 
   if (!rightPanelContent) return null;
-
-  // Width = 50% of (viewport - sidebar width)
-  const sidebarWidth = sidebarCollapsed ? '4rem' : '16rem';
 
   if (rightPanelLayout === 'fullscreen') {
     return (
@@ -124,8 +113,7 @@ const RightPanel: React.FC = () => {
 
   return (
     <aside
-      className="hidden lg:flex fixed top-0 right-0 bottom-0 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-40"
-      style={{ width: `calc((100vw - ${sidebarWidth}) / 2)` }}
+      className="hidden lg:flex relative min-w-0 min-h-0 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-40"
     >
       {rightPanelContent}
     </aside>
@@ -138,9 +126,12 @@ const RightPanel: React.FC = () => {
  */
 const MainLayout: React.FC = () => {
   useAppInitialize();
+  const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
+  const isSplitPanel = useUIStore((s) =>
+    s.rightPanelContent !== null && s.rightPanelLayout === 'half');
 
   return (
-    <div className="h-screen bg-app-bg text-slate-900 dark:text-gray-200 font-sans selection:bg-brand-500/30 selection:text-brand-700 dark:selection:text-brand-200 transition-colors duration-300 overflow-hidden">
+    <div className={`h-screen grid grid-cols-[minmax(0,1fr)] ${isSplitPanel ? 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]' : ''} ${sidebarCollapsed ? 'md:pl-16' : 'md:pl-64'} bg-app-bg text-slate-900 dark:text-gray-200 font-sans selection:bg-brand-500/30 selection:text-brand-700 dark:selection:text-brand-200 transition-colors duration-300 overflow-hidden`}>
       {/* Global UI Components */}
       <CrispChat />
       <AuthModal />
