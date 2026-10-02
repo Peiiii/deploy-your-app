@@ -10,6 +10,8 @@ export interface ApiWorkerEnv {
   PLATFORM_AI_BASE_URL?: string;
   PLATFORM_AI_MODEL?: string;
   DASHSCOPE_API_KEY?: string;
+  /** Temporary bounded legacy backfill; absent means three per cron. */
+  DESCRIPTION_TRANSLATION_BATCH_SIZE?: string;
   DEPLOY_SERVICE_BASE_URL?: string;
   DEPLOY_SERVICE_TOKEN?: string;
   /**

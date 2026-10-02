@@ -133,9 +133,15 @@ class MetadataService {
 
   async translatePendingDescriptions(env: ApiWorkerEnv, db?: D1Database): Promise<void> {
     if (!db || !aiService.isEnabled(env)) return;
-    for (const project of await projectRepository.descriptionTranslationCandidates(db)) {
-      await this.translateDescription(env, db, project);
-    }
+    const requested = Number(env.DESCRIPTION_TRANSLATION_BATCH_SIZE || 3);
+    const limit = Number.isInteger(requested) ? Math.max(1, Math.min(100, requested)) : 3;
+    const projects = await projectRepository.descriptionTranslationCandidates(db, limit);
+    let index = 0;
+    await Promise.all(Array.from({ length: Math.min(5, projects.length) }, async () => {
+      while (index < projects.length) {
+        await this.translateDescription(env, db, projects[index++]);
+      }
+    }));
   }
 
   async ensureProjectMetadata(
