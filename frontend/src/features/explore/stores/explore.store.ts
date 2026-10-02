@@ -1,28 +1,8 @@
 import { create } from 'zustand';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 
-export type CategoryFilter =
-  | 'All Apps'
-  | 'Education'
-  | 'Development'
-  | 'Image Gen'
-  | 'Productivity'
-  | 'Marketing'
-  | 'Legal'
-  | 'Fun'
-  | 'Other';
-
-export const CATEGORIES: readonly CategoryFilter[] = [
-  'All Apps',
-  'Education',
-  'Development',
-  'Image Gen',
-  'Productivity',
-  'Marketing',
-  'Legal',
-  'Fun',
-  'Other',
-] as const;
+import type { CategoryFilter } from '@/constants/app-categories';
+export { CATEGORIES, type CategoryFilter } from '@/constants/app-categories';
 
 interface ExploreState {
   // Data

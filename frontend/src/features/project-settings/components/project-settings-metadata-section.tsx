@@ -1,3 +1,4 @@
+import { CATEGORIES, CATEGORY_LABEL_KEYS } from '@/constants/app-categories';
 import React from 'react';
 import { Save } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -74,16 +75,22 @@ export const ProjectSettingsMetadataSection: React.FC<
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="block text-xs font-semibold text-slate-700 dark:text-gray-300">
+          <label htmlFor="project-category" className="block text-xs font-semibold text-slate-700 dark:text-gray-300">
             {t('project.category')}
           </label>
-          <input
-            type="text"
+          <select
+            id="project-category"
             value={categoryDraft}
             onChange={(e) => actions.setCategoryDraft(e.target.value)}
             className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all"
-            placeholder={t('project.categoryPlaceholder')}
-          />
+          >
+            {!CATEGORIES.some((category) => category === categoryDraft) && (
+              <option value={categoryDraft}>{categoryDraft || t('project.categoryPlaceholder')}</option>
+            )}
+            {CATEGORIES.filter((category) => category !== 'All Apps').map((category) => (
+              <option key={category} value={category}>{t(CATEGORY_LABEL_KEYS[category])}</option>
+            ))}
+          </select>
         </div>
         <div className="space-y-2">
           <label className="block text-xs font-semibold text-slate-700 dark:text-gray-300">

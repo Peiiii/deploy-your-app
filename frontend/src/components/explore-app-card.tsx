@@ -1,3 +1,4 @@
+import { getCategoryLabelKey } from '@/constants/app-categories';
 import { appLanguageLabel } from '@/features/explore/stores/language-preference';
 import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
 import { useUIStore } from '@/stores/ui.store';
@@ -199,7 +200,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
         {/* Category Badge - Optional, top right overlay */}
         {app.category !== 'Other' && (
           <div className="absolute top-2 right-2 bg-black/20 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] font-medium text-white/90 uppercase tracking-wider border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
-            {app.category}
+            {t(getCategoryLabelKey(app.category))}
           </div>
         )}
       </div>

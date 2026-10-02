@@ -78,8 +78,20 @@ function projectFilters(options: Omit<ProjectQueryOptions, 'sort'>): { where: st
   }
 
   if (options.category) {
-    where.push('category = ?');
-    params.push(options.category);
+    if (options.category === 'Other') {
+      // Unknown and future categories stay discoverable until the catalog grows.
+      where.push("COALESCE(category, '') NOT IN ('Education', 'Games', 'Productivity', 'Creative', 'Development')");
+    } else if (options.category === 'Games') {
+      where.push(`(category = 'Games' OR (category = 'Education' AND EXISTS (
+        SELECT 1 FROM json_each(CASE WHEN json_valid(tags)
+          THEN CASE WHEN json_type(tags) = 'array' THEN tags ELSE '[]' END
+          ELSE '[]' END)
+        WHERE type = 'text' AND lower(value) = 'game'
+      )))`);
+    } else {
+      where.push('category = ?');
+      params.push(options.category);
+    }
   }
 
   if (options.search) {

@@ -1,3 +1,4 @@
+import { CATEGORY_LABEL_KEYS } from '@/constants/app-categories';
 import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
 import { AppLanguageFilter } from '@/features/explore/components/app-language-filter';
 import React, { useCallback, useState } from 'react';
@@ -88,18 +89,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   };
 
   const getCategoryLabel = (cat: CategoryFilter): string => {
-    const categoryMap: Record<CategoryFilter, string> = {
-      'All Apps': t('explore.allApps'),
-      'Education': t('explore.education'),
-      'Development': t('explore.development'),
-      'Image Gen': t('explore.imageGen'),
-      'Productivity': t('explore.productivity'),
-      'Marketing': t('explore.marketing'),
-      'Legal': t('explore.legal'),
-      'Fun': t('explore.fun'),
-      'Other': t('explore.other'),
-    };
-    return categoryMap[cat] || cat;
+    return t(CATEGORY_LABEL_KEYS[cat]);
   };
 
   return (

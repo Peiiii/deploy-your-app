@@ -86,5 +86,23 @@ try {
   assert.equal(capped.page,1); assert.equal(capped.pageSize,50); assert.equal(capped.items.length,50);
   // Existing profile/general query remains compatible with shared filter owner.
   assert.equal((await projectRepository.queryProjects(db,{onlyPublic:true,search:'ALPHA',category:'Tools',limit:7})).length,7);
+  // Real filtering includes teaching games, but not loose tag substrings or invalid JSON.
+  for (const [id,category,tags] of [
+    ['teaching-game','Education','["game"]'], ['lesson','Education','["quiz"]'],
+    ['invalid-tags','Education','invalid json'], ['object-tags','Education','{"tag":"game"}'], ['gamepad','Education','["gamepad"]'],
+    ['unknown-category',null,'[]'], ['blank-category','  ','[]'], ['future-category','Health','[]'],
+    ['noncanonical',' Education ','[]'], ['explicit-other','Other','[]'], ['creative','Creative','[]'],
+  ]) {
+    await db.prepare(`INSERT INTO projects (id,name,repo_url,last_deployed,status,url,is_public,is_deleted,category,tags)
+      VALUES (?,?,'repo','2026-10-03','Live','https://example.test/',1,0,?,?)`).bind(id,id,category,tags).run();
+  }
+  const games = await exploreService.getExploreProjects(db,{category:'Games',pageSize:50});
+  assert.equal(games.total,107);
+  assert.equal((await exploreService.getExploreProjects(db,{category:'Games',search:'teaching-game'})).total,1);
+  assert.equal((await exploreService.getExploreProjects(db,{category:'Games',search:'gamepad'})).total,0);
+  assert.equal((await exploreService.getExploreProjects(db,{category:'Education'})).total,5);
+  const other = await exploreService.getExploreProjects(db,{category:'Other'});
+  assert.equal(other.total,105, '100 custom Tools + null, blank, future, noncanonical, explicit Other');
+  assert.equal((await exploreService.getExploreProjects(db,{category:'Creative'})).total,1);
   console.log('PASS real D1: 206 public candidates; ranking/window/visibility/filters/pagination/privacy; constant page batch; indexed statistics; recent skips analytics.');
 } finally { await mf.dispose(); }

@@ -18,15 +18,7 @@ export interface ProjectMetadataSuggestion {
   slug: string | null;
 }
 
-const MARKETPLACE_CATEGORIES = [
-  'Education',
-  'Development',
-  'Image Gen',
-  'Productivity',
-  'Marketing',
-  'Legal',
-  'Fun',
-] as const;
+const MARKETPLACE_CATEGORIES = ['Education', 'Games', 'Productivity', 'Creative', 'Development', 'Other'] as const;
 
 const METADATA_RESPONSE_FORMAT = {
   type: 'json_schema',
@@ -43,6 +35,7 @@ const METADATA_RESPONSE_FORMAT = {
         category: {
           type: 'string',
           description: `One of: ${MARKETPLACE_CATEGORIES.join(', ')}`,
+          enum: MARKETPLACE_CATEGORIES,
         },
         tags: {
           type: 'array',
@@ -68,12 +61,12 @@ const METADATA_RESPONSE_FORMAT = {
 } as const;
 
 const METADATA_SYSTEM_PROMPT =
-  'You are a product manager helping categorize AI and web apps into a marketplace.\n' +
+  'You are a product manager helping categorize web apps into a marketplace.\n' +
   'Respond with JSON only, containing fields "name", "category", "tags", "description" and "slug".\n' +
   '"name" must be <= 40 characters. "category" must be one of:\n' +
   MARKETPLACE_CATEGORIES.map((c) => `- ${c}`).join('\n') +
   '\n' +
-  'Choose Education for learning tools, teaching resources, course exercises, quizzes, language practice, and educational games. When a game has a clear learning or teaching purpose, prefer Education over Fun; use Fun for general entertainment.\n' +
+  'Choose Education for learning, teaching, quizzes, language practice and educational games. Add the exact tag game for educational games. Choose Games for entertainment games; Productivity for practical tools including finance, marketing and legal tools; Creative for art, portfolios, greetings, community and showcase pages; Development for coding tools, technical demos and prototypes; Other when purpose is unclear or none fits. Classify by actual content, not the source platform.\n' +
   '"tags" must be an array of 1-5 short, lowercase keywords (no spaces).\n' +
   '"description" should accurately explain the app in <= 160 characters and avoid fluff.\n' +
   'Base the description on the supplied source context. Do not invent features or expand ambiguous name tokens when the source does not support them.\n' +
@@ -332,7 +325,9 @@ class AIService {
           ? parsed.description.trim()
           : null;
       const categoryResult =
-        typeof parsed.category === 'string' ? parsed.category : null;
+        typeof parsed.category === 'string'
+          ? MARKETPLACE_CATEGORIES.find((category) => category.toLowerCase() === parsed.category.trim().toLowerCase()) ?? null
+          : null;
       const tagsResult = Array.isArray(parsed.tags)
         ? parsed.tags
           .filter((tag): tag is string => typeof tag === 'string')

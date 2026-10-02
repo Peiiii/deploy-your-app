@@ -1,29 +1,8 @@
 import type { ExploreAppCard } from '@/components/explore-app-card';
 
-export type CategoryFilter =
-  | 'All Apps'
-  | 'Education'
-  | 'Development'
-  | 'Image Gen'
-  | 'Productivity'
-  | 'Marketing'
-  | 'Legal'
-  | 'Fun'
-  | 'Other';
+export { CATEGORIES, type CategoryFilter } from '@/constants/app-categories';
 
 export type SortOption = 'recommended' | 'popularity' | 'recent';
-
-export const CATEGORIES: readonly CategoryFilter[] = [
-  'All Apps',
-  'Education',
-  'Development',
-  'Image Gen',
-  'Productivity',
-  'Marketing',
-  'Legal',
-  'Fun',
-  'Other',
-] as const;
 
 /** Rank candidates without hiding results; diversify the first row by author. */
 export function rankHomeRecommendations(apps: ExploreAppCard[]): ExploreAppCard[] {

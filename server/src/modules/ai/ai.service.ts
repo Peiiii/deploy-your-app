@@ -13,24 +13,9 @@ interface AIResponse {
   }>;
 }
 
-export type ProjectCategory =
-  | 'Education'
-  | 'Development'
-  | 'Image Gen'
-  | 'Productivity'
-  | 'Marketing'
-  | 'Legal'
-  | 'Fun';
+export type ProjectCategory = (typeof MARKETPLACE_CATEGORIES)[number];
 
-const MARKETPLACE_CATEGORIES: ProjectCategory[] = [
-  'Education',
-  'Development',
-  'Image Gen',
-  'Productivity',
-  'Marketing',
-  'Legal',
-  'Fun',
-];
+const MARKETPLACE_CATEGORIES = ['Education', 'Games', 'Productivity', 'Creative', 'Development', 'Other'] as const;
 
 interface ParsedCategory {
   category?: string;
@@ -96,6 +81,7 @@ const METADATA_RESPONSE_FORMAT = {
         category: {
           type: 'string',
           description: `One of: ${MARKETPLACE_CATEGORIES.join(', ')}`,
+          enum: MARKETPLACE_CATEGORIES,
         },
         tags: {
           type: 'array',
@@ -121,12 +107,12 @@ const METADATA_RESPONSE_FORMAT = {
 } as const;
 
 const METADATA_SYSTEM_PROMPT =
-  'You are a product manager helping categorize AI and web apps into a marketplace.\n' +
+  'You are a product manager helping categorize web apps into a marketplace.\n' +
   'Respond with JSON only, containing fields "name", "category", "tags", "description" and "slug".\n' +
   '"name" must be <= 40 characters. "category" must be one of:\n' +
   MARKETPLACE_CATEGORIES.map((c) => `- ${c}`).join('\n') +
   '\n' +
-  'Choose Education for learning tools, teaching resources, course exercises, quizzes, language practice, and educational games. When a game has a clear learning or teaching purpose, prefer Education over Fun; use Fun for general entertainment.\n' +
+  'Choose Education for learning, teaching, quizzes, language practice and educational games. Add the exact tag game for educational games. Choose Games for entertainment games; Productivity for practical tools including finance, marketing and legal tools; Creative for art, portfolios, greetings, community and showcase pages; Development for coding tools, technical demos and prototypes; Other when purpose is unclear or none fits. Classify by actual content, not the source platform.\n' +
   '"tags" must be an array of 1-5 short, lowercase keywords (no spaces).\n' +
   '"description" should explain the app in <= 120 characters.\n' +
   '"slug" must contain only lowercase letters, numbers, or hyphens.';
@@ -196,11 +182,11 @@ export class AIService {
     }
 
     const systemPrompt =
-      'You are a product manager helping categorize AI and web apps into marketplace categories.\n' +
+      'You are a product manager helping categorize web apps into marketplace categories.\n' +
       'You MUST respond with JSON only, with a single field "category".\n' +
       'The value MUST be exactly one of the following strings:\n' +
       MARKETPLACE_CATEGORIES.map((c) => `- ${c}`).join('\n') +
-      '\nChoose Education for learning tools, teaching resources, course exercises, quizzes, language practice, and educational games. When a game has a clear learning or teaching purpose, prefer Education over Fun; use Fun for general entertainment.';
+      '\nChoose Education for learning, teaching, quizzes, language practice and educational games. Add the exact tag game for educational games. Choose Games for entertainment games; Productivity for practical tools including finance, marketing and legal tools; Creative for art, portfolios, greetings, community and showcase pages; Development for coding tools, technical demos and prototypes; Other when purpose is unclear or none fits. Classify by actual content, not the source platform.';
 
     const userPrompt =
       `App name: ${name}\n` +
@@ -225,6 +211,7 @@ export class AIService {
               category: {
                 type: 'string',
                 description: `One of: ${MARKETPLACE_CATEGORIES.join(', ')}`,
+                enum: MARKETPLACE_CATEGORIES,
               },
             },
             required: ['category'],

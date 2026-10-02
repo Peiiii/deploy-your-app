@@ -33,12 +33,14 @@ function loadSource(path, dependencies) {
 const constants = loadSource('../frontend/src/constants.ts', {});
 const store = loadSource('../frontend/src/features/explore/stores/explore.store.ts', {
   zustand: frontendRequire('zustand'),
+  '@/constants/app-categories': loadSource('../frontend/src/constants/app-categories.ts', {}),
 }).useExploreStore;
 const adapter = loadSource('../frontend/src/services/http/explore-api.ts', {
   '../../constants': constants,
 });
 const { ExploreManager } = loadSource('../frontend/src/features/explore/managers/explore.manager.ts', {
   '@/analytics/collector': { track() {} },
+  '@/features/explore/stores/app-language.store': { useAppLanguageStore: { getState: () => ({ languages: null, actions: { setAvailable() {} } }) } },
   '@/features/explore/stores/explore.store': { useExploreStore: store },
   '@/features/auth/stores/auth.store': { useAuthStore: { getState: () => ({ user: null }) } },
   '@/components/explore-app-card': { mapProjectsToApps: (projects) => projects },

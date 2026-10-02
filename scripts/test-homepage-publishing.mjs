@@ -50,6 +50,7 @@ for (const valid of [
 ]) {
   assert.equal(normalizeGitHubRepoUrl(valid), 'https://github.com/owner/repo');
 }
+assert.equal(normalizeGitHubRepoUrl('https://github.com/owner/repo/tree/master'), 'https://github.com/owner/repo/tree/master');
 for (const invalid of [
   '',
   'draft:id',
@@ -57,12 +58,11 @@ for (const invalid of [
   'https://github.com.evil.test/owner/repo',
   'https://other.test/owner/repo',
   'https://github.com/owner',
-  'https://github.com/owner/repo/tree/master',
   'https://token@github.com/owner/repo',
 ]) {
   assert.equal(normalizeGitHubRepoUrl(invalid), null);
 }
-const { rankHomeRecommendations } = load('features/home/components/home-explore.ts');
+const { rankHomeRecommendations } = load('features/home/components/home-explore.ts', { '@/constants/app-categories': load('constants/app-categories.ts') });
 const app = (id, name, author, description = 'A useful tool') => ({
   id,
   name,
@@ -89,6 +89,7 @@ const store = load('features/deployment/stores/deployment.store.ts', {
   '@/types': types,
 }).useDeploymentStore;
 const deploymentDependency = {
+  '@/i18n/config': { default: { t: (key) => key } },
   '@/features/deployment/stores/deployment.store': { useDeploymentStore: store },
   '@/types': types,
 };
@@ -123,6 +124,7 @@ let creates = 0,
   releaseCreate;
 let delayedCreation = false;
 const projectManager = {
+  async loadProjects() {},
   async createDraftProject(name) {
     creates++;
     if (delayedCreation)
@@ -148,16 +150,20 @@ const projectManager = {
   },
 };
 const provider = {
-  async startDeployment(project, onLog, onStatus) {
+  async startDeployment(project, onLog, onStatus, options) {
     calls++;
-    if (project.sourceType === SourceType.ZIP) assert.equal(project.zipData, 'UEsFBg==');
+    if (project.sourceType === SourceType.ZIP) assert.equal(options.zipFile.base64, 'UEsFBg==');
     assert.equal(project.id, store.getState().activeProjectId);
-    if (failDeploy) throw new Error('Build failed');
+    if (failDeploy) {
+      projectStore.projects.find((p) => p.id === project.id).status = 'Failed';
+      throw new Error('Build failed');
+    }
     if (project.sourceType === SourceType.GITHUB)
       assert.equal(
         projectStore.projects.find((p) => p.id === project.id).repoUrl,
         'https://github.com/owner/repo'
       );
+    Object.assign(projectStore.projects.find((p) => p.id === project.id), { status: 'Live', url: `https://${project.id}.gemigo.app/` });
     onStatus(DeploymentStatus.SUCCESS);
     return { metadata: { url: `https://${project.id}.gemigo.app/` } };
   },
@@ -245,8 +251,8 @@ assert.equal(store.getState().deploymentStatus, DeploymentStatus.SUCCESS);
 
 const { HttpDeploymentProvider } = load(
   'services/http/http-deployment-provider.ts',
-  { '../../types': types, '../../constants': constants },
-  { fetch: async () => ({ ok: false }) }
+  { '../../types': types, '../../constants': constants, '@/i18n/config': { default: { t: () => 'Failed to start deployment' } } },
+  { AbortSignal, setTimeout: (callback) => { callback(); return 0; }, clearTimeout() {}, fetch: async () => Response.json({ error: 'Failed to start deployment' }, { status: 400 }) }
 );
 let failedStatus;
 await assert.rejects(
@@ -262,8 +268,8 @@ await assert.rejects(
 );
 assert.equal(
   failedStatus,
-  DeploymentStatus.FAILED,
-  'HTTP start failures reject instead of becoming Live'
+  undefined,
+  'HTTP provider rejects; the deployment executor owns failure state'
 );
 
 const outer = { parentElement: null, overflow: 'auto', scrollHeight: 2400, clientHeight: 720 };
