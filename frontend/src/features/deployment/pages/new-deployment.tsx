@@ -59,7 +59,7 @@ export const NewDeployment = () => {
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8 px-5 py-8 md:py-12">
+    <div className="mx-auto max-w-3xl space-y-6 px-5 py-8 md:py-10">
       <header className="text-center">
         <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
           {t('deployment.publishHeading')}
@@ -69,7 +69,7 @@ export const NewDeployment = () => {
         </p>
       </header>
       {!success && (
-        <div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-7">
           <fieldset disabled={busy} className="min-w-0 space-y-5 disabled:opacity-70">
             <div className="space-y-3">
               <h2 id="publication-source-label" className="text-sm font-medium text-slate-900 dark:text-white">
@@ -133,7 +133,7 @@ export const NewDeployment = () => {
                 onChange={(e) => presenter.deployment.setProjectName(e.target.value)}
                 placeholder={t('deployment.optionalNameHint')}
                 maxLength={80}
-                className="mt-2 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="mt-2 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 px-3 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
           </fieldset>
