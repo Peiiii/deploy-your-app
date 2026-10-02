@@ -265,6 +265,15 @@
     "buildingStatus": "构建中...",
     "logEntries": "条记录",
     "signInRequired": "部署应用前请先登录。",
+    "publishHeading": "发布你的网页",
+    "publishDescription": "添加内容，发布后获得可以直接分享的链接。",
+    "optionalName": "项目名称（可选）",
+    "optionalNameHint": "不填写时，使用网页标题或文件名",
+    "publish": "发布并获取链接",
+    "publishAnother": "再发布一个",
+    "invalidGithubRepo": "请输入有效的 GitHub 仓库地址，例如 https://github.com/用户名/仓库名",
+    "copyLink": "复制链接",
+    "manageProject": "管理项目",
     "zipTooLarge": "ZIP 不能超过 75 MB。请移除 node_modules 和 .git，或仅上传构建好的 dist 文件夹。",
     "uploadingZip": "正在上传 ZIP…",
     "zipUploaded": "ZIP 已上传，正在开始部署…",
@@ -319,7 +328,9 @@
     "noProjects": "还没有项目",
     "noFavoriteProjects": "还没有收藏的项目",
     "noFavoriteProjectsDesc": "您还没有收藏任何项目。在探索页面发现喜欢的应用时可以收藏它们。",
-    "viewAllProjects": "查看所有项目"
+    "viewAllProjects": "查看所有项目",
+    "totalProjects": "我的项目",
+    "projectsLoaded": "已加载的项目数量"
   },
   "explore": {
     "exploreApps": "探索应用",
@@ -365,7 +376,8 @@
       "share": "分享",
       "originalSound": "原声",
       "interactive": "互动"
-    }
+    },
+    "sortByRecommended": "推荐"
   },
   "project": {
     "projectSettings": "项目设置",
@@ -533,7 +545,8 @@
     "enableInExtension": "在浏览器扩展中启用",
     "enableInExtensionDescription": "允许此项目出现在浏览器扩展的探索列表中。",
     "enableInExtensionRequiresGemigoApp": "需要在 https://*.gemigo.app 下的实时 URL 才能在扩展中运行。",
-    "toggleExtensionSupport": "切换扩展支持"
+    "toggleExtensionSupport": "切换扩展支持",
+    "offline": "未上线"
   },
   "ui": {
     "dashboard": "仪表板",
@@ -559,7 +572,13 @@
     "aiPublishCopy": "复制给 AI",
     "aiPublishCopied": "已复制，粘贴给 AI",
     "aiPublishCopyFailed": "复制失败，请检查浏览器剪贴板权限。",
-    "aiPublishPrompt": "请帮我把当前项目发布到 GemiGo。先从 {{skillUrl}} 获取完整的 SKILL.md，按你所用 AI 工具的 Skill 目录规范安装到本地并读取它；如果当前环境无法安装 Skill，就直接读取该 URL 的内容并按其中步骤执行。检查项目，必要时先构建静态产物，然后安装并使用 GemiGo CLI 完成 init、validate、login、publish。需要我登录时请提示我。发布成功后给我线上 URL，并检查页面能否访问。CLI 只支持静态站点；如果项目需要服务端运行，请先说明限制。"
+    "aiPublishPrompt": "请帮我把当前项目发布到 GemiGo。先从 {{skillUrl}} 获取完整的 SKILL.md，按你所用 AI 工具的 Skill 目录规范安装到本地并读取它；如果当前环境无法安装 Skill，就直接读取该 URL 的内容并按其中步骤执行。检查项目，必要时先构建静态产物，然后安装并使用 GemiGo CLI 完成 init、validate、login、publish。需要我登录时请提示我。发布成功后给我线上 URL，并检查页面能否访问。CLI 只支持静态站点；如果项目需要服务端运行，请先说明限制。",
+    "publishHeading": "把网页变成可分享的链接",
+    "publishDescription": "上传 HTML 或 ZIP，发布后即可分享。",
+    "publishHtml": "发布 HTML",
+    "publishZip": "上传 ZIP",
+    "moreWays": "更多方式",
+    "publishGithub": "从 GitHub 发布"
   },
   "profile": {
     "title": "我的主页",

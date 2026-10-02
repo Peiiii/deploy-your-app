@@ -1,6 +1,6 @@
-import i18n from '@/i18n/config';
 import { track } from '@/analytics/collector';
 import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
+import i18n from '@/i18n/config';
 import { SourceType } from '@/types';
 
 /**

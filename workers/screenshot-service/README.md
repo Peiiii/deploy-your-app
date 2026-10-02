@@ -1,6 +1,6 @@
 # Screenshot Service Worker (`gemigo-screenshot-service`)
 
-This Worker exposes a direct Cloudflare Browser Run (Puppeteer) screenshot endpoint. It is not part of the current automated thumbnail pipeline because Browser Run launch timed out in production. The [production capture container](../thumbnail-capture/README.md) now generates app covers; `.github/workflows/capture-thumbnails.yml` is a manual recovery tool.
+This Worker exposes a direct Cloudflare Browser Run (Puppeteer) screenshot endpoint. It is not part of the current automated thumbnail pipeline because Browser Run launch timed out in production. `.github/workflows/capture-thumbnails.yml` generates app covers, driven by the [Cloudflare trigger](../thumbnail-trigger/README.md); manual recovery remains available.
 
 - Entry: `worker.ts`
 - Deployed name (per `wrangler.toml`): `gemigo-screenshot-service`

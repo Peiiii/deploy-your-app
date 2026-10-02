@@ -204,9 +204,9 @@ export const Dashboard: React.FC = () => {
         <div className={isCompact ? 'sm:col-span-2 md:col-span-1' : ''}>
           <StatCard
             icon={FileText}
-            label={t('dashboard.systemStatus')}
-            value="100%"
-            sublabel={t('dashboard.systemsOperational')}
+            label={t('dashboard.totalProjects')}
+            value={projects.length.toLocaleString()}
+            sublabel={t('dashboard.projectsLoaded')}
             iconColor="text-orange-600 dark:text-orange-400"
           />
         </div>

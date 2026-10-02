@@ -1,4 +1,4 @@
-"""Capture missing public app covers, once or as the production worker."""
+"""Capture recent public apps that do not yet have a thumbnail in R2."""
 
 import argparse
 import base64
@@ -6,10 +6,8 @@ from concurrent.futures import ThreadPoolExecutor
 import io
 import json
 import os
-from pathlib import Path
 import re
 import sys
-import time
 import urllib.error
 import urllib.request
 
@@ -18,8 +16,6 @@ CACHE_CONTROL = "public, max-age=86400, s-maxage=86400, stale-while-revalidate=6
 SLUG = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 MAX_IMAGES_PER_RUN = 20
 MAX_BYTES = 300 * 1024
-SCAN_INTERVAL_SECONDS = 60
-HEALTH_FILE = Path("/tmp/gemigo-thumbnail-last-scan")
 
 
 def recent_public_slugs():
@@ -179,28 +175,11 @@ def run_once(check_only=False):
     return failed + readiness_errors
 
 
-def watch():
-    while True:
-        print(f"scan started: {time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}", flush=True)
-        try:
-            failures = run_once()
-            HEALTH_FILE.write_text(str(time.time()), encoding="utf-8")
-            if failures:
-                print(f"scan completed with {failures} failure(s); retrying next cycle", file=sys.stderr, flush=True)
-        except Exception as error:
-            print(f"scan failed: {error}; retrying next cycle", file=sys.stderr, flush=True)
-        time.sleep(SCAN_INTERVAL_SECONDS)
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    mode = parser.add_mutually_exclusive_group()
-    mode.add_argument("--check-only", action="store_true")
-    mode.add_argument("--watch", action="store_true")
+    parser.add_argument("--check-only", action="store_true")
     args = parser.parse_args()
-    if args.watch:
-        watch()
-    elif run_once(check_only=args.check_only):
+    if run_once(check_only=args.check_only):
         raise RuntimeError("Thumbnail scan completed with failures")
 
 

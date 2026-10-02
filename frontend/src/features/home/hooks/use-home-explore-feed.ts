@@ -6,7 +6,7 @@ import { usePresenter } from '@/contexts/presenter-context';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { fetchExploreProjects } from '@/services/http/explore-api';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
-import { type CategoryFilter, type SortOption } from '@/features/home/components/home-explore';
+import { rankHomeRecommendations, type CategoryFilter, type SortOption } from '@/features/home/components/home-explore';
 import { PERFORMANCE_CONFIG } from '@/constants';
 
 export const useHomeExploreFeed = () => {
@@ -15,7 +15,7 @@ export const useHomeExploreFeed = () => {
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All Apps');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('popularity');
+  const [sortBy, setSortBy] = useState<SortOption>('recommended');
   const [isLoadingExplore, setIsLoadingExplore] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
@@ -57,15 +57,17 @@ export const useHomeExploreFeed = () => {
           search: searchQuery.trim() || undefined,
           category: activeCategory !== 'All Apps' ? activeCategory : undefined,
           tag: activeTag,
-          sort: sortBy,
+          sort: sortBy === 'recommended' ? 'popularity' : sortBy,
           page: pageToLoad,
-          pageSize: PAGE_SIZE,
+          pageSize: sortBy === 'recommended' ? 36 : PAGE_SIZE,
         });
 
         if (requestId !== exploreRequestIdRef.current) return;
 
         const projects = result.items;
-        const pageApps = mapProjectsToApps(projects);
+        const mapped = mapProjectsToApps(projects);
+        const pageApps = sortBy === 'recommended' && activeCategory === 'All Apps' && !activeTag && !searchQuery.trim()
+          ? rankHomeRecommendations(mapped) : mapped;
         setApps((prev) => (append ? mergeUniqueApps(prev, pageApps) : pageApps));
 
         setPage(result.page);

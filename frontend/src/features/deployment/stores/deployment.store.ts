@@ -3,6 +3,9 @@ import { DeploymentStatus, SourceType } from '@/types';
 import type { BuildLog } from '@/types';
 
 interface DeploymentState {
+  newProjectId: string | null;
+  activeProjectId: string | null;
+  isPublishingNewProject: boolean;
   step: number;
   sourceType: SourceType;
   repoUrl: string;
@@ -14,6 +17,9 @@ interface DeploymentState {
   htmlContent: string;
 
   actions: {
+    setNewProjectId: (id: string | null) => void;
+    setActiveProjectId: (id: string | null) => void;
+    setIsPublishingNewProject: (value: boolean) => void;
     setStep: (step: number) => void;
     setSourceType: (type: SourceType) => void;
     setHtmlContent: (html: string) => void;
@@ -29,8 +35,11 @@ interface DeploymentState {
 }
 
 export const useDeploymentStore = create<DeploymentState>((set) => ({
+  newProjectId: null,
+  activeProjectId: null,
+  isPublishingNewProject: false,
   step: 1,
-  sourceType: SourceType.GITHUB,
+  sourceType: SourceType.HTML,
   htmlContent: '',
   repoUrl: '',
   zipFile: null,
@@ -40,6 +49,9 @@ export const useDeploymentStore = create<DeploymentState>((set) => ({
   logs: [],
 
   actions: {
+    setNewProjectId: (newProjectId) => set({ newProjectId }),
+    setActiveProjectId: (activeProjectId) => set({ activeProjectId }),
+    setIsPublishingNewProject: (isPublishingNewProject) => set({ isPublishingNewProject }),
     setStep: (step) => set({ step }),
     setSourceType: (sourceType) => set({ sourceType }),
     setHtmlContent: (htmlContent) => set({ htmlContent }),
@@ -51,8 +63,11 @@ export const useDeploymentStore = create<DeploymentState>((set) => ({
     addLog: (log) => set((state) => ({ logs: [...state.logs, log] })),
     clearLogs: () => set({ logs: [] }),
     reset: () => set({
+      newProjectId: null,
+      activeProjectId: null,
+      isPublishingNewProject: false,
       step: 1,
-      sourceType: SourceType.GITHUB,
+      sourceType: SourceType.HTML,
       repoUrl: '',
       zipFile: null,
       projectName: '',

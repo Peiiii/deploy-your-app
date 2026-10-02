@@ -81,12 +81,10 @@ export const ProjectLayout: React.FC<ProjectLayoutProps> = ({
 
                         {/* Status Badge + Actions */}
                         <div className="flex items-center gap-3 flex-shrink-0">
-                            {project.isPublic !== false && (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                    {t('project.live', 'Live')}
-                                </span>
-                            )}
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${project.status === 'Live' ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${project.status === 'Live' ? 'bg-emerald-500' : project.status === 'Failed' ? 'bg-red-500' : project.status === 'Building' ? 'bg-amber-500 animate-pulse' : 'bg-slate-400'}`} />
+                                {t(project.status === 'Live' ? 'project.live' : project.status === 'Building' ? 'deployment.building' : project.status === 'Failed' ? 'project.failed' : 'project.offline')}
+                            </span>
                             {actions}
                         </div>
                     </div>

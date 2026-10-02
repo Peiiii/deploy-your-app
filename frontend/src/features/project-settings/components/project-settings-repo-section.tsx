@@ -3,7 +3,7 @@ import { GitBranch, Save } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings.store';
-import { formatRepoLabel } from '@/utils/project';
+import { normalizeGitHubRepoUrl, getDisplayRepoUrl } from '@/utils/project';
 import type { Project } from '@/types';
 
 interface ProjectSettingsRepoSectionProps {
@@ -21,7 +21,8 @@ export const ProjectSettingsRepoSection: React.FC<
   const isSavingRepoUrl = useProjectSettingsStore((s) => s.isSavingRepoUrl);
   const actions = useProjectSettingsStore((s) => s.actions);
 
-  const repoLabel = formatRepoLabel(project);
+  const repo = normalizeGitHubRepoUrl(project.repoUrl);
+  const repoLabel = repo ? getDisplayRepoUrl(repo) : null;
 
   return (
     <div className="space-y-3">
@@ -45,13 +46,14 @@ export const ProjectSettingsRepoSection: React.FC<
         />
         <button
           onClick={presenter.projectSettings.saveRepoUrl}
-          disabled={isSavingRepoUrl}
+          disabled={isSavingRepoUrl || !normalizeGitHubRepoUrl(repoUrlDraft)}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm hover:shadow"
         >
           <Save className={`w-3 h-3 ${isSavingRepoUrl ? 'animate-pulse' : ''}`} />
           {isSavingRepoUrl ? t('common.saving') : t('common.save')}
         </button>
       </div>
+      {repoUrlDraft.trim() && !normalizeGitHubRepoUrl(repoUrlDraft) && <p role="alert" className="text-xs text-red-500">{t('deployment.invalidGithubRepo')}</p>}
     </div>
   );
 };

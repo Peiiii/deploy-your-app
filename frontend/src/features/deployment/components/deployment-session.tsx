@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
 import { useProjectStore } from '@/stores/project.store';
 import { usePresenter } from '@/contexts/presenter-context';
+import { copyToClipboard } from '@/utils/clipboard';
 import { DeploymentStatus, SourceType } from '@/types';
 import { Terminal } from '@/features/deployment/components/terminal';
 import {
@@ -18,15 +19,12 @@ import {
 } from 'lucide-react';
 
 interface DeploymentSessionProps {
-  // Optional override of the deployed application's public URL.
-  // When not provided, the component will try to resolve it from the project list
-  // using the current deploymentStore.projectName.
-  projectUrlOverride?: string;
+  projectId?: string;
   className?: string;
 }
 
 export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
-  projectUrlOverride,
+  projectId,
   className,
 }) => {
   const { t } = useTranslation();
@@ -41,29 +39,18 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
   const isInProgress =
     state.deploymentStatus === DeploymentStatus.BUILDING || isDeploying;
 
-  const resolvedProject = useMemo(() => {
-    return projects.find((p) => {
-      if (state.sourceType === SourceType.GITHUB) {
-        return p.repoUrl === state.repoUrl;
-      }
-      if (state.sourceType === SourceType.ZIP) {
-        const identifier = state.zipFile?.name || 'archive.zip';
-        return p.repoUrl === identifier;
-      }
-      if (state.sourceType === SourceType.HTML) {
-        const identifier = 'inline.html';
-        return p.repoUrl === identifier || p.name === state.projectName;
-      }
-      return p.name === state.projectName;
-    }) ?? null;
-  }, [
-    projects,
-    state.projectName,
-    state.repoUrl,
-    state.sourceType,
-    state.zipFile,
-  ]);
-  const deploymentUrl = projectUrlOverride ?? resolvedProject?.url ?? null;
+  const resolvedProject = useMemo(() => projects.find((p) => p.id === (projectId ?? state.activeProjectId)) ?? null,
+    [projects, projectId, state.activeProjectId]);
+  const deploymentUrl = resolvedProject?.url ?? null;
+  const handleCopyLink = async () => {
+    if (!deploymentUrl) return;
+    try {
+      await copyToClipboard(deploymentUrl);
+      presenter.ui.showSuccessToast(t('common.copied'));
+    } catch {
+      presenter.ui.showErrorToast(t('home.aiPublishCopyFailed'));
+    }
+  };
   const finalProjectName = resolvedProject?.name ?? state.projectName;
   const sourceLabel =
     resolvedProject?.repoUrl ??
@@ -79,6 +66,8 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
       presenter.project.loadProjects();
     }
   }, [state.deploymentStatus, presenter.project]);
+
+  if (projectId && state.activeProjectId !== projectId) return null;
 
   if (state.deploymentStatus === DeploymentStatus.ANALYZING) {
     return (
@@ -101,7 +90,7 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
   }
 
   if (state.deploymentStatus === DeploymentStatus.SUCCESS) {
-    if (!resolvedProject && !projectUrlOverride) {
+    if (!resolvedProject) {
       // If projects are still loading, keep showing the "finalizing" spinner.
       if (projectsLoading) {
         return (
@@ -149,8 +138,8 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
         {/* Unified Card Container */}
         <div className="rounded-xl border border-green-200 dark:border-green-900/50 shadow-lg overflow-hidden">
           {/* Success Content Section - Green Background */}
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 p-8">
-            <div className="flex items-start gap-6">
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 p-4 md:p-8">
+            <div className="flex items-start gap-3 md:gap-6">
               <div className="flex-shrink-0">
                 <div className="w-14 h-14 bg-green-500 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30">
                   <CheckCircle2 className="w-8 h-8 text-white" />
@@ -191,7 +180,14 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
                       </p>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 pt-2">
+                  <div className="flex flex-wrap items-center gap-3 pt-2">
+                    <button
+                      disabled={!deploymentUrl}
+                      onClick={() => void handleCopyLink()}
+                      className="rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
+                    >
+                      {t('deployment.copyLink')}
+                    </button>
                     <button
                       onClick={() =>
                         deploymentUrl && window.open(deploymentUrl, '_blank')
@@ -203,10 +199,10 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
                       {deploymentUrl ? t('deployment.openSite') : t('deployment.preparingUrl')}
                     </button>
                     <button
-                      onClick={() => navigate('/dashboard')}
+                      onClick={() => navigate(resolvedProject ? `/projects/${resolvedProject.id}` : '/dashboard')}
                       className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                     >
-                      {t('deployment.viewDashboard')}
+                      {t('deployment.manageProject')}
                     </button>
                   </div>
                 </div>

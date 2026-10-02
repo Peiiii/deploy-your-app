@@ -1,106 +1,44 @@
 import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
+import { useProjectStore } from '@/stores/project.store';
 import type { ProjectManager } from '@/managers/project.manager';
-import type { Project } from '@/types';
-import { SourceType } from '@/types';
+import { SourceType, type Project } from '@/types';
 
 type DeploymentStoreSnapshot = ReturnType<typeof useDeploymentStore.getState>;
 
-/**
- * Handles project creation logic for different source types.
- * Used both by the wizard flow and the project-first flow.
- */
 export class ProjectCreator {
-    constructor(
-        private projectManager: ProjectManager,
-    ) { }
+  constructor(private projectManager: ProjectManager) {}
 
-    /**
-     * Derive a reasonable default project name from the current wizard state.
-     */
-    getFallbackNameFromState = (state: DeploymentStoreSnapshot): string => {
-        if (state.projectName) {
-            return state.projectName;
-        }
-        if (state.sourceType === SourceType.GITHUB) {
-            return state.repoUrl.split('/').filter(Boolean).pop() || 'my-app';
-        }
-        if (state.sourceType === SourceType.ZIP) {
-            return state.zipFile?.name.replace(/\.zip$/i, '') || 'my-app';
-        }
-        return 'my-html-app';
-    };
+  getFallbackNameFromState = (state: DeploymentStoreSnapshot): string => {
+    if (state.projectName.trim()) return state.projectName.trim();
+    if (state.sourceType === SourceType.GITHUB)
+      return (
+        state.repoUrl
+          .split('/')
+          .filter(Boolean)
+          .pop()
+          ?.replace(/\.git$/, '') || 'my-app'
+      );
+    if (state.sourceType === SourceType.ZIP)
+      return state.zipFile?.name.replace(/\.zip$/i, '') || 'my-app';
+    const title = state.htmlContent
+      .match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]
+      .replace(/<[^>]*>/g, '')
+      .trim();
+    return title?.slice(0, 80) || 'my-html-app';
+  };
 
-    /**
-     * Project-first flow: create (or reuse) a project from the current wizard state.
-     */
-    createFromWizard = async (): Promise<Project | undefined> => {
-        const state = useDeploymentStore.getState();
-        const fallbackName = this.getFallbackNameFromState(state);
-
-        if (state.sourceType === SourceType.GITHUB) {
-            return this.createFromGithub(state, fallbackName);
-        }
-
-        if (state.sourceType === SourceType.ZIP) {
-            return this.createFromZip(state, fallbackName);
-        }
-
-        if (state.sourceType === SourceType.HTML) {
-            return this.createFromHtml(state, fallbackName);
-        }
-
-        return undefined;
-    };
-
-    createFromGithub = async (
-        state: DeploymentStoreSnapshot,
-        fallbackName: string,
-    ): Promise<Project | undefined> => {
-        const trimmedRepo = state.repoUrl.trim();
-        if (!trimmedRepo) {
-            return undefined;
-        }
-
-        try {
-            const existing = await this.projectManager.findExistingProjectForRepo(trimmedRepo);
-            if (existing) {
-                return existing;
-            }
-        } catch (err) {
-            console.error('Failed to check existing project for repo', err);
-        }
-
-        return await this.projectManager.addProject(
-            fallbackName,
-            state.sourceType,
-            trimmedRepo,
-        );
-    };
-
-    createFromZip = async (
-        state: DeploymentStoreSnapshot,
-        fallbackName: string,
-    ): Promise<Project | undefined> => {
-        const identifier = state.zipFile?.name || 'archive.zip';
-        return await this.projectManager.addProject(
-            fallbackName,
-            state.sourceType,
-            identifier,
-        );
-    };
-
-    createFromHtml = async (
-        state: DeploymentStoreSnapshot,
-        fallbackName: string,
-    ): Promise<Project | undefined> => {
-        if (!state.htmlContent.trim()) {
-            return undefined;
-        }
-        return await this.projectManager.addProject(
-            fallbackName,
-            state.sourceType,
-            'inline.html',
-            { htmlContent: state.htmlContent },
-        );
-    };
+  createFromWizard = async (): Promise<Project> => {
+    const state = useDeploymentStore.getState();
+    if (state.newProjectId) {
+      const existing = useProjectStore.getState().projects.find((p) => p.id === state.newProjectId);
+      if (!existing) throw new Error('This project is no longer available.');
+      return existing;
+    }
+    const project = await this.projectManager.createDraftProject(
+      this.getFallbackNameFromState(state)
+    );
+    if (!project) throw new Error('Failed to create project.');
+    state.actions.setNewProjectId(project.id);
+    return project;
+  };
 }

@@ -50,7 +50,7 @@ export class HttpDeploymentProvider implements IDeploymentProvider {
           {
             method: 'PUT',
             credentials: 'include',
-            headers: { 'Content-Type': 'application/zip' },
+            headers: { 'Content-Type': 'application/zip', 'X-Gemigo-Flow-Id': context.flowId },
             body: context.zipFile,
           }
         )
@@ -62,7 +62,7 @@ export class HttpDeploymentProvider implements IDeploymentProvider {
       await fetch(`${this.baseUrl}${API_ROUTES.DEPLOY}`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Gemigo-Flow-Id': context.flowId },
         body: JSON.stringify({
           ...project,
           ...(zipSourceKey ? { zipSourceKey } : {}),

@@ -23,7 +23,7 @@ export const SettingsDeploymentTab: React.FC<SettingsDeploymentTabProps> = ({
             </div>
 
             {/* Active Deployment Session or Result */}
-            <DeploymentSession projectUrlOverride={project.url} />
+            <DeploymentSession projectId={project.id} />
         </div>
     );
 };

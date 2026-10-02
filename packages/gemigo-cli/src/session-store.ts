@@ -16,8 +16,8 @@ export async function loadSession(): Promise<StoredSession | null> {
 }
 
 export async function saveSession(session: StoredSession): Promise<void> {
-  await fs.mkdir(SESSION_DIR, { recursive: true });
-  await fs.writeFile(SESSION_PATH, JSON.stringify(session, null, 2), 'utf8');
+  await fs.mkdir(SESSION_DIR, { recursive: true, mode: 0o700 });
+  await fs.writeFile(SESSION_PATH, JSON.stringify(session, null, 2), { encoding: 'utf8', mode: 0o600 });
 }
 
 export async function clearSession(): Promise<void> {

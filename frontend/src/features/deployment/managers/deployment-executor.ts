@@ -23,6 +23,7 @@ export class DeploymentExecutor {
     zipFile: File | null,
   ): void => {
     const actions = useDeploymentStore.getState().actions;
+    actions.setActiveProjectId(project.id);
     actions.setStep(2);
     actions.setDeploymentStatus(DeploymentStatus.BUILDING);
     actions.clearLogs();

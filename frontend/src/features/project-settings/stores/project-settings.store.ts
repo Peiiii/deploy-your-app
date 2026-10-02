@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { Project } from '@/types';
+import { normalizeGitHubRepoUrl } from '@/utils/project';
 
 interface ProjectSettingsState {
   // 当前编辑的项目 ID
@@ -102,10 +103,7 @@ export const useProjectSettingsStore = create<ProjectSettingsState>((set) => ({
           project.tags && project.tags.length > 0
             ? project.tags.join(', ')
             : '',
-        repoUrlDraft:
-          project.repoUrl && project.repoUrl.startsWith('draft:')
-            ? ''
-            : project.repoUrl || '',
+        repoUrlDraft: normalizeGitHubRepoUrl(project.repoUrl) ?? '',
         slugDraft: project.slug || '',
         error: null,
       }),

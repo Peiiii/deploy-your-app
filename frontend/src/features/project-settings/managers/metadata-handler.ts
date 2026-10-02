@@ -3,6 +3,8 @@ import { useProjectStore } from '@/stores/project.store';
 import type { Project } from '@/types';
 import type { ProjectManager } from '@/managers/project.manager';
 import type { UIManager } from '@/managers/ui.manager';
+import { normalizeGitHubRepoUrl } from '@/utils/project';
+import i18n from '@/i18n/config';
 
 /**
  * Handles metadata save operations for project settings.
@@ -28,21 +30,26 @@ export class MetadataHandler {
 
     saveRepoUrl = async () => {
         const project = this.getCurrentProject();
-        if (!project) return;
+        if (!project) return false;
 
         const repoUrlDraft = useProjectSettingsStore.getState().repoUrlDraft;
         const actions = useProjectSettingsStore.getState().actions;
 
+        const repoUrl = normalizeGitHubRepoUrl(repoUrlDraft);
+        if (!repoUrl) { actions.setError(i18n.t('deployment.invalidGithubRepo')); return false; }
         actions.setError(null);
         actions.setIsSavingRepoUrl(true);
 
         try {
             await this.projectManager.updateProject(project.id, {
-                repoUrl: repoUrlDraft.trim(),
+                repoUrl,
             });
+            actions.setRepoUrlDraft(repoUrl);
+            return true;
         } catch (err) {
             console.error(err);
             actions.setError('Failed to update repository URL.');
+            return false;
         } finally {
             actions.setIsSavingRepoUrl(false);
         }
