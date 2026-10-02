@@ -26,13 +26,13 @@ Scan batch is bounded and sequential (three apps per 2-minute cron); model reque
 ## Acceptance contract (EL v1)
 | ID | Required | Observable criterion | Status / evidence |
 |---|---|---|---|
-| EL01 | yes | browser zh/th/en default; stored explicit/multi/all override; reload/storage failure safe | not-run |
-| EL02 | yes | visible desktop/mobile switch; all/reset; labeled UI vs app language; empty and error recovery | not-run |
-| EL03 | yes | backend filters before page/count/sort; unknown/all/multilingual/zxx; stale requests discarded | not-run |
-| EL04 | yes | rendered text detector; short/low-confidence unknown; bounded failures; stale/deleted/private/manual guard | not-run |
-| EL05 | yes | author correction through existing owned UI and authenticated API; persists across scan/redeploy | not-run |
-| EL06 | yes | legacy public Live language backfill; scheduled new-release scans; inspect aggregate coverage honestly | not-run |
-| EL07 | yes | applicable type/lint/build and implementation review; exact commit/master sync; production UI/API acceptance | not-run |
+| EL01 | yes | browser zh/th/en default; stored explicit/multi/all override; reload/storage failure safe | passed — test-app-languages.ts browser defaults/storage; production Thai, multi/all refresh and automatic reset |
+| EL02 | yes | visible desktop/mobile switch; all/reset; labeled UI vs app language; empty and error recovery | passed — production desktop/mobile compact switch and independent site language; local 390px card refinement (single no label, all inline 32px footer, no overflow); production 1280px single-language and 390px all-language card render; no overflow |
+| EL03 | yes | backend filters before page/count/sort; unknown/all/multilingual/zxx; stale requests discarded | passed — real Miniflare HTTP/D1 tests and 206-candidate test-explore-performance.ts; frontend-experience stale-response regression |
+| EL04 | yes | rendered text detector; short/low-confidence unknown; bounded failures; stale/deleted/private/manual guard | passed — rendered production zh/th; Puppeteer transport compatibility fixed; bounded failures/retry/backoff and author/private/deleted/revision regressions |
+| EL05 | yes | author correction through existing owned UI and authenticated API; persists across scan/redeploy | passed — owned private QA project UI English save/reload, reset restored; authenticated PATCH and scan/redeploy authority regressions |
+| EL06 | yes | legacy public Live language backfill; scheduled new-release scans; inspect aggregate coverage honestly | passed — entire 564 visible-app catalog attempted; 504 known, 48 valid unknown, 12 pending; 11 pending apps return 404 and one request failure; cron */2 and five-minute failure backoff active |
+| EL07 | yes | applicable type/lint/build and implementation review; exact commit/master sync; production UI/API acceptance | passed — type/lint/build and implementation review; source fb4a228 pushed master; Pages production 7b065777 / gh-pages bc53c9b; live index-DXXuYLpo.js SHA-256 matches build; desktop single and mobile mixed-language cards verified |
 
 ## UI feedback revision
 2026-10-02: user rejects the native website-language dropdown screenshot. Website language becomes a visible two-button segmented choice inside shared Popover; more-language choices use styled shared Popovers. No native language select remains. User also rejects ambiguous 应用语言 wording: discovery question becomes 想看哪些语言的应用？, platform setting 网站显示语言, author declaration 应用支持的语言. Same preference and filtering contracts remain; visual evidence must be refreshed.
