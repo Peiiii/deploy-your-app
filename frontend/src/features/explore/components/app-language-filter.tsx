@@ -1,3 +1,4 @@
+import { Popover } from '@/components/popover';
 import { Languages } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
@@ -58,23 +59,29 @@ export function AppLanguageFilter({ compact = false }: { compact?: boolean }) {
           {t('languages.all')}
         </button>
         {others.length > 0 && (
-          <select
-            aria-label={t('languages.more')}
-            value={languages?.length === 1 && others.includes(languages[0]) ? languages[0] : ''}
-            className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 text-sm min-h-9"
-            onChange={(event) => {
-              if (event.target.value) actions.select([event.target.value]);
-            }}
+          <Popover
+            trigger={t('languages.more')}
+            triggerTitle={t('languages.more')}
+            triggerClassName="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 text-sm min-h-9"
+            panelClassName="absolute left-0 top-full mt-2 w-48 max-h-60 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl p-1 z-50"
           >
-            <option value="" disabled>
-              {t('languages.more')}
-            </option>
-            {others.map((code) => (
-              <option key={code} value={code}>
-                {code === 'und' ? t('languages.unknown') : appLanguageLabel(code)}
-              </option>
-            ))}
-          </select>
+            {(close) =>
+              others.map((code) => (
+                <button
+                  key={code}
+                  type="button"
+                  aria-pressed={!!languages?.includes(code)}
+                  onClick={() => {
+                    actions.select([code]);
+                    close();
+                  }}
+                  className="w-full px-3 py-2.5 rounded-lg text-sm text-left text-slate-700 dark:text-slate-200 hover:bg-brand-50 dark:hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                >
+                  {code === 'und' ? t('languages.unknown') : appLanguageLabel(code)}
+                </button>
+              ))
+            }
+          </Popover>
         )}
       </div>
       {!compact && (

@@ -1,3 +1,4 @@
+import { Popover } from '@/components/popover';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '@/contexts/presenter-context';
@@ -85,50 +86,54 @@ export function ProjectAppLanguages({ project }: { project: Project }) {
         ))}
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <select
-          aria-label={t('languages.more')}
-          value=""
-          onChange={(event) => {
-            if (event.target.value && selected.length < 8)
-              setSelected((current) => [...new Set([...current, event.target.value])]);
-          }}
-          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-200"
+        <Popover
+          trigger={t('languages.more')}
+          triggerClassName="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm text-slate-700 dark:text-slate-200"
+          panelClassName="absolute bottom-full left-0 mb-2 w-56 max-h-64 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl z-50 p-1"
         >
-          <option value="" disabled>
-            {t('languages.more')}
-          </option>
-          {[
-            'it',
-            'nl',
-            'pl',
-            'tr',
-            'uk',
-            'bn',
-            'ta',
-            'ur',
-            'fa',
-            'ms',
-            'fil',
-            'sv',
-            'da',
-            'fi',
-            'he',
-            'el',
-            'cs',
-            'ro',
-            'hu',
-            'bg',
-            'sk',
-            'no',
-            'sw',
-          ]
-            .filter((code) => !selected.includes(code))
-            .map((code) => (
-              <option key={code} value={code}>
-                {appLanguageLabel(code)}
-              </option>
-            ))}
-        </select>
+          {(close) =>
+            [
+              'it',
+              'nl',
+              'pl',
+              'tr',
+              'uk',
+              'bn',
+              'ta',
+              'ur',
+              'fa',
+              'ms',
+              'fil',
+              'sv',
+              'da',
+              'fi',
+              'he',
+              'el',
+              'cs',
+              'ro',
+              'hu',
+              'bg',
+              'sk',
+              'no',
+              'sw',
+            ]
+              .filter((code) => !selected.includes(code))
+              .map((code) => (
+                <button
+                  key={code}
+                  type="button"
+                  disabled={saving || selected.length >= 8}
+                  onClick={() => {
+                    setSelected((current) => [...new Set([...current, code])]);
+                    close();
+                  }}
+                  className="w-full text-left rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-brand-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                >
+                  {appLanguageLabel(code)}
+                </button>
+              ))
+          }
+        </Popover>
         <button
           type="button"
           disabled={saving}
