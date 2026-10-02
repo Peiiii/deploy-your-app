@@ -4,6 +4,8 @@ import './style.css';
 import { api } from './api';
 import Operations from './operations';
 import AccountSecurity from './account-security';
+import Feedback from './feedback';
+import Growth from './growth';
 
 type Report = Awaited<ReturnType<typeof queryAnalytics>> & { cached: boolean };
 type Budget = Awaited<ReturnType<typeof getBudget>>;
@@ -257,9 +259,11 @@ export default function App() {
     );
   const nav = [
     ['dashboard', '◫', '经营总览'],
+    ['growth', '↗', '增长大盘'],
     ['users', '♙', '用户管理'],
     ['projects', '▦', '应用管理'],
     ['deployments', '↗', '部署记录'],
+    ['feedback', '☷', '反馈管理'],
     ['overview', '◈', '使用概览'],
     ['features', '◈', '功能使用'],
     ['funnels', '⇢', '转化与路径'],
@@ -277,9 +281,9 @@ export default function App() {
         <nav>
           {nav.map(([key, icon, label], index) => (
             <Fragment key={key}>
-              {[0, 4, 8].includes(index) && (
+              {[0, 6, 10].includes(index) && (
                 <span className="nav-label section-group">
-                  {index === 0 ? '运营管理' : index === 4 ? '产品分析' : '系统设置'}
+                  {index === 0 ? '运营管理' : index === 6 ? '产品分析' : '系统设置'}
                 </span>
               )}
               <button
@@ -339,11 +343,13 @@ export default function App() {
               <p className="muted">
                 {section === 'dashboard'
                   ? '从整体表现到具体问题，掌握平台的每一步。'
-                  : section === 'security'
-                    ? '管理独立账号，保护后台访问权限。'
-                    : ['users', 'projects', 'deployments', 'audit'].includes(section)
-                      ? '查询真实记录，每一次管理操作都有迹可循。'
-                      : '让真实行为帮助你决定下一步。'}
+                  : section === 'growth'
+                    ? '查看每日流量、获客和新用户激活，判断增长的下一步。'
+                    : section === 'security'
+                      ? '管理独立账号，保护后台访问权限。'
+                      : ['users', 'projects', 'deployments', 'feedback', 'audit'].includes(section)
+                        ? '查询真实记录，每一次管理操作都有迹可循。'
+                        : '让真实行为帮助你决定下一步。'}
               </p>
             </div>
             <span className="pill">● 独立管理后台</span>
@@ -423,6 +429,8 @@ export default function App() {
           {['dashboard', 'users', 'projects', 'deployments', 'audit'].includes(section) && (
             <Operations key={section} section={section} />
           )}
+          {section === 'feedback' && <Feedback />}
+          {section === 'growth' && <Growth />}
           {section === 'security' && (
             <AccountSecurity
               username={username}

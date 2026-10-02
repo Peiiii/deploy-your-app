@@ -1,3 +1,6 @@
+// Reserved independent-console reply identity; main user IDs are generated UUIDs.
+export const FEEDBACK_TEAM_ID = 'gemigo-admin-team';
+
 export type FeedbackCategory = 'general' | 'idea' | 'bug' | 'question';
 
 export type FeedbackStatus = 'open' | 'planned' | 'in_progress' | 'completed';

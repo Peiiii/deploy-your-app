@@ -3,6 +3,10 @@ export interface AdminEnv {
   ASSETS: Fetcher;
   ADMIN_USERNAME: string;
   ADMIN_PASSWORD_HASH: string;
+  ANALYTICS_CF_TOKEN?: string;
+  CLOUDFLARE_ACCOUNT_ID?: string;
+  GROWTH_PLATFORM_SITE_TAG?: string;
+  GROWTH_APPS_SITE_TAG?: string;
 }
 const COOKIE = '__Host-gemigo_admin';
 const hex = (bytes: ArrayBuffer) =>
