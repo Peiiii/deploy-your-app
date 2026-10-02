@@ -21,3 +21,12 @@
 
 ## Design review
 mode=design，2026-10-03：no findings，design-review: passed。用户原始目标→托管统一覆盖存量 current 与 releases→真实 40/6 样本和独立在线发布场景均已映射。修正主要反例：不能按文件名猜 immutable；legacy 双 TTL 10 秒；负指针缓存必须在首个发布后有界失效；没有 Cache API 全球刷新承诺。未新增流程审批，授权来源为当前用户消息与 AGENTS.md。
+
+## 实测后的第二轮设计（2026-10-03）
+第一轮39个正常样本的连接复用TTFB中位数 .580→.251s，gateway316→12ms；达门槛。但6浏览器样本仍有green-men-gaze与portfolio冷首屏等待18秒，pending cdn.tailwindcss.com，直连curl也SSL timeout。当前根CDN明确302到3.4.17，官方MIT许可。
+
+授权内改进：保留上传文件，gateway HTMLRewriter仅将无query、无显式版本的 Tailwind根URL替换为assets.gemigo.app固定content-hash镜像；复制当前3.4.17原字节、保留bundled notices并提供完整LICENSE。专用静态R2 key平台owner，不是任意URL代理；资源准备验证后再发布重写代码。有meta CSP、crossorigin=use-credentials的脚本保留原地址；带版本/插件query不改。CSP的出现顺序按浏览器meta语义（之前脚本不受后续meta限制）。所有HTML使用delivery版本弱ETag，删除原content-length，避免变换前后误304；正常Cloudflare压缩与既有beacon继续保留。
+
+第二轮黄金路径：同6应用直连浏览器再次冷/热加载，Tailwind请求改走镜像、相同样式渲染且无首屏超时。真实Miniflare HTMLRewriter验证准确地址匹配、CSP/query/credentials保留、source对象不变、镜像GET/HEAD/304/CORS。平台资源byte-hash与上游一致，镜像gzip验证。新增存储约407KB(实际上传后记录)，无新固定费。
+
+Design review mode=design：passed，已关闭主要反例（CSP/SRI、脚本currentScript与plugin query、同字节许可、资源先部署、旧HTML ETag升级）。不禁止与本用户结果相关的进一步迭代；根CDN已稳定v3固定兼容，显式版本选择不改变。

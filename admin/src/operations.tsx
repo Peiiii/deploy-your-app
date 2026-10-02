@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { api } from './api';
 
 type Row = Record<string, string | number | null>;
@@ -29,6 +29,9 @@ const labels: Record<string, string> = {
   visibility: '应用公开性',
   revoke_sessions: '撤销登录',
   password_changed: '修改密码',
+  feedback_status: '反馈状态',
+  feedback_reply: '团队回复',
+  feedback_delete: '删除反馈',
 };
 const statusTag = (value: unknown) => (
   <span className={`tag status-${String(value)}`}>
@@ -79,6 +82,10 @@ export default function Operations({ section }: { section: string }) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [pending, setPending] = useState<Row | null>(null);
+  const trend = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (trend.current) trend.current.scrollLeft = trend.current.scrollWidth;
+  }, [data]);
   useEffect(() => {
     let active = true;
     api<List | Overview>(section === 'dashboard' ? `overview?days=${days}` : `${section}?${query}`)
@@ -201,7 +208,7 @@ export default function Operations({ section }: { section: string }) {
               [
                 '注册用户',
                 report.summary.users,
-                `近 ${days} 天新增 ${count(report.summary.newUsers)}`,
+                `近 ${report.days} 天新增 ${count(report.summary.newUsers)}`,
               ],
               [
                 '有效应用',
@@ -233,7 +240,12 @@ export default function Operations({ section }: { section: string }) {
                 <span className="legend">紫色：全部 · 绿色：成功</span>
               </div>
               {Number(report.deployments.total) > 0 ? (
-                <div className="trend business-trend" role="img" aria-label="每日部署趋势">
+                <div
+                  ref={trend}
+                  className="trend business-trend"
+                  role="img"
+                  aria-label="每日部署趋势"
+                >
                   {report.daily.map((row) => (
                     <div className="bar-column" key={String(row.day)}>
                       <span>{count(row.total)}</span>
@@ -258,6 +270,7 @@ export default function Operations({ section }: { section: string }) {
                 </div>
               )}
               <p className="footnote">
+                {report.days === 30 && '左右滑动图表查看全部日期。'}
                 开始日期在所选范围内的部署尝试；未结束的尝试单独计为处理中。
               </p>
             </article>

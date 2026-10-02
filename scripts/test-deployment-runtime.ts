@@ -259,6 +259,10 @@ try {
   assert.equal(objects.has(`${manifest.prefix}/.well-known/test.txt`), true);
   assert.ok(manifest.previousPrefix.startsWith('apps/site/releases/'));
   objects.set(`${manifest.previousPrefix}/old.js`, Buffer.from('old asset'));
+  Object.defineProperty(globalThis, 'HTMLRewriter', { configurable: true, value: class {
+    on() { return this; }
+    transform(response: Response) { return response; }
+  } });
   // This test isolates publication; dedicated gateway tests exercise cache TTLs.
   Object.defineProperty(globalThis, 'caches', { configurable: true, value: { default: {
     match: async () => undefined, put: async () => {},

@@ -21,6 +21,10 @@ let failRead = false;
 let failWrite = false;
 const cached = new Map<string, { bytes: ArrayBuffer; headers: Headers; expires: number }>();
 const originalCaches = globalThis.caches;
+Object.defineProperty(globalThis, 'HTMLRewriter', { configurable: true, value: class {
+  on() { return this; }
+  transform(response: Response) { return response; }
+} });
 Object.defineProperty(globalThis, 'caches', { configurable: true, value: { default: {
   async match(request: Request) {
     if (failRead) throw new Error('cache unavailable');
@@ -69,7 +73,7 @@ try {
   assert.equal(hot.response.headers.get('cache-control'), 'no-cache');
   assert.equal(reads.length, 0, 'a fully warm request reads no R2 objects');
   const etag = hot.response.headers.get('etag')!;
-  for (const condition of [etag, `W/${etag}`, `"unrelated", W/${etag}`, '*']) {
+  for (const condition of [etag, etag.replace(/^W\//, ''), `"unrelated", ${etag}`, '*']) {
     const result = await request('/', { 'if-none-match': condition });
     assert.equal(result.response.status, 304);
     assert.equal(result.body, '');
