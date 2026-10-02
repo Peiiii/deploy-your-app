@@ -74,6 +74,7 @@ export async function runCommand(
         env: sandbox ? { PATH: process.env.PATH } : cleanEnv,
       });
       let timedOut = false;
+      const outputTail: string[] = [];
       const timeout = setTimeout(() => {
         timedOut = true;
         void cleanup();
@@ -84,14 +85,19 @@ export async function runCommand(
       }, 5 * 60 * 1000);
       for (const [stream, level] of [[child.stdout, 'info'], [child.stderr, 'warning']] as const) {
         stream?.on('data', data => {
-          for (const line of data.toString().split(/\r?\n/).filter(Boolean)) appendLog(id, stripAnsi(line), level);
+          for (const line of data.toString().split(/\r?\n/).filter(Boolean)) {
+            const clean = stripAnsi(line);
+            outputTail.push(clean.slice(0, 200));
+            if (outputTail.length > 8) outputTail.shift();
+            appendLog(id, clean, level);
+          }
         });
       }
       child.on('error', err => { clearTimeout(timeout); reject(Object.assign(new Error(`Could not start ${command}. Upload prebuilt assets or use npm, pnpm, or yarn.`), { code: 'package_manager_unavailable', cause: err })); });
       child.on('close', code => {
         clearTimeout(timeout);
         if (code === 0 && !timedOut) resolve();
-        else reject(Object.assign(new Error(timedOut ? 'Install/build exceeded five minutes. Please reduce dependencies or upload prebuilt static assets.' : `Command "${command}" exited with code ${code}. Check the preceding build log.`), { code: timedOut ? 'build_timeout' : 'command_failed' }));
+        else reject(Object.assign(new Error(timedOut ? 'Install/build exceeded five minutes. Please reduce dependencies or upload prebuilt static assets.' : `Command "${command}" exited with code ${code}. Check the build output:\n${outputTail.join('\n')}`), { code: timedOut ? 'build_timeout' : 'command_failed' }));
       });
     });
   } finally { await cleanup(); }

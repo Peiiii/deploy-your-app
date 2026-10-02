@@ -30,6 +30,7 @@ const SEED_PROJECTS: Project[] = [
 ];
 
 export class IndexedDBProjectProvider implements IProjectProvider {
+  async getLatestDeployment() { return null; }
   async getProjects(page = 1, pageSize = 50): Promise<PaginatedResponse<Project>> {
     // Check if empty, if so, seed data
     const count = await db.count('projects');

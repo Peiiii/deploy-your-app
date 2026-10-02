@@ -8,6 +8,8 @@ import { randomUUID } from 'node:crypto';
 const image = process.env.BUILD_TEST_IMAGE || 'deploy-your-app-server:latest';
 const dir = mkdtempSync(path.join(tmpdir(), 'gemigo-sandbox-'));
 const container = `gemigo-sandbox-qa-${randomUUID()}`;
+const keepAlive = setInterval(() => {}, 1000);
+const request = (url, init = {}) => fetch(url, { ...init, signal: AbortSignal.timeout(10000) });
 const token = 'qa-internal-token';
 const sentinel = 'qa-controller-secret-does-not-belong-in-builds';
 const docker = (...args) => execFileSync('docker', args, { encoding: 'utf8' }).trim();
@@ -69,15 +71,15 @@ try {
   const base = `http://127.0.0.1:${port}`;
   for (let n = 0; n < 60; n++) {
     if (
-      await fetch(`${base}/healthz`)
+      await request(`${base}/healthz`)
         .then((r) => r.ok)
         .catch(() => false)
     )
       break;
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
-  assert.equal((await fetch(`${base}/api/v1/deployments/${randomUUID()}`)).status, 401);
-  const started = await fetch(`${base}/api/v1/deploy`, {
+  assert.equal((await request(`${base}/api/v1/deployments/${randomUUID()}`)).status, 401);
+  const started = await request(`${base}/api/v1/deploy`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-gemigo-builder-token': token },
     body: JSON.stringify({
@@ -97,7 +99,7 @@ try {
   let receipt;
   for (let n = 0; n < 180; n++) {
     receipt = await (
-      await fetch(`${base}/api/v1/deployments/${deploymentId}`, {
+      await request(`${base}/api/v1/deployments/${deploymentId}`, {
         headers: { 'x-gemigo-builder-token': token },
       })
     ).json();
@@ -106,15 +108,39 @@ try {
   }
   assert.equal(receipt.status, 'SUCCESS', JSON.stringify(receipt));
   assert.equal(receipt.buildMode, 'build');
-  assert.match(await (await fetch(`${base}/apps/isolation-qa/`)).text(), /Isolated build passed/);
+  assert.match(await (await request(`${base}/apps/isolation-qa/`)).text(), /Isolated build passed/);
   assert.equal(
     docker('ps', '-a', '--filter', `name=gemigo-build-${deploymentId}`, '--format', '{{.Names}}'),
     ''
   );
+  assert.equal(
+    (
+      await request(`${base}/api/v1/maintenance/drain`, {
+        method: 'POST',
+        headers: { 'x-gemigo-builder-token': token },
+      })
+    ).status,
+    200
+  );
+  assert.equal(
+    (
+      await request(`${base}/api/v1/deploy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-gemigo-builder-token': token },
+        body: JSON.stringify({
+          id: randomUUID(),
+          name: 'Rejected during drain',
+          slug: 'drain-qa',
+          repoUrl: 'qa.zip',
+        }),
+      })
+    ).status,
+    429
+  );
   docker('restart', container);
   for (let n = 0; n < 30; n++) {
     if (
-      await fetch(`${base}/healthz`)
+      await request(`${base}/healthz`)
         .then((r) => r.ok)
         .catch(() => false)
     )
@@ -124,7 +150,7 @@ try {
   assert.equal(
     (
       await (
-        await fetch(`${base}/api/v1/deployments/${deploymentId}`, {
+        await request(`${base}/api/v1/deployments/${deploymentId}`, {
           headers: { 'x-gemigo-builder-token': token },
         })
       ).json()
@@ -141,4 +167,5 @@ try {
     /* absent */
   }
   rmSync(dir, { recursive: true, force: true });
+  clearInterval(keepAlive);
 }

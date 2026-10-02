@@ -146,6 +146,11 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   // Projects routes
   // -----------------
   router.add({
+    path: '/api/v1/projects/:id/deployment-result', method: 'GET',
+    handler: (req, params) => deployController.latestResult(req, env, requireDb(), params.id),
+  });
+
+  router.add({
     path: '/api/v1/projects',
     method: 'GET',
     handler: (req) => projectsController.listProjects(req, env, requireDb()),

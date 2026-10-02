@@ -33,6 +33,7 @@ export interface AcceptedDeployment {
   error_message?: string;
   error_code?: string;
   result_url?: string;
+  finished_at?: string;
 }
 
 class DeploymentRepository {
@@ -67,7 +68,7 @@ class DeploymentRepository {
 
   latestForProject = async (db: D1Database, projectId: string): Promise<AcceptedDeployment | null> => {
     await this.ensureSchema(db);
-    return db.prepare('SELECT id, project_id, provider_deployment_id, started_at, status FROM deployment_attempts WHERE project_id = ? ORDER BY started_at DESC, rowid DESC LIMIT 1')
+    return db.prepare('SELECT id, project_id, provider_deployment_id, started_at, finished_at, status, stage, build_mode, error_message, error_code FROM deployment_attempts WHERE project_id = ? ORDER BY started_at DESC, rowid DESC LIMIT 1')
       .bind(projectId).first<AcceptedDeployment>();
   };
 

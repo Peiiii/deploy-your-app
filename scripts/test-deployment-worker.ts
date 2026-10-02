@@ -252,6 +252,10 @@ try {
     'stale completion is blocked inside the SQL write'
   );
   assert.equal((await projectRepository.getProjectById(db, project.id))?.status, 'Failed');
+  assert.equal((await call(`/projects/${project.id}/deployment-result`, {}, false)).status, 401);
+  const diagnostics = await (await call(`/projects/${project.id}/deployment-result`)).json();
+  assert.equal(diagnostics.errorCode, 'command_failed');
+  assert.equal(diagnostics.errorMessage, 'fixture compiler failed');
   console.log(
     'PASS: real R2 streaming, size/ownership/auth boundaries, idempotent start, service token, canonical D1 result, late client protection, persistent diagnostic fields'
   );

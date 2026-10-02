@@ -177,6 +177,18 @@ class DeployController {
     return response;
   }
 
+  async latestResult(request: Request, _env: ApiWorkerEnv, db: D1Database, projectId: string): Promise<Response> {
+    const user = await this.requireAuth(request, db);
+    const project = await projectService.getProjectById(db, projectId);
+    if (!project || project.ownerId !== user.id) throw new UnauthorizedError('Only the project owner can read deployment results.');
+    const attempt = await deploymentRepository.latestForProject(db, projectId);
+    return jsonResponse(attempt ? {
+      status: attempt.status, stage: attempt.stage, buildMode: attempt.build_mode,
+      errorCode: attempt.error_code, errorMessage: attempt.error_message,
+      startedAt: attempt.started_at, finishedAt: attempt.finished_at,
+    } : null);
+  }
+
   async uploadSource(request: Request, env: ApiWorkerEnv, db: D1Database, projectId: string): Promise<Response> {
     const user = await this.requireAuth(request, db);
     const project = await projectService.getProjectById(db, projectId);

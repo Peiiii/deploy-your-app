@@ -98,12 +98,15 @@ function detectPackageManager(workDir: string): PackageManagerInfo {
 }
 
 export class DeploymentService {
+  private accepting = true;
   private pending = 0;
   private tail: Promise<void> = Promise.resolve();
 
   pendingCount(): number { return this.pending; }
 
-  canAccept(): boolean { return this.pending < 5; }
+  setAccepting(value: boolean): void { this.accepting = value; }
+
+  canAccept(): boolean { return this.accepting && this.pending < 5; }
 
   runDeployment(id: string): Promise<void> {
     this.pending++;

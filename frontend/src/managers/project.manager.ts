@@ -10,6 +10,8 @@ export class ProjectManager {
     this.provider = provider;
   }
 
+  getLatestDeployment = (id: string) => this.provider.getLatestDeployment(id);
+
   loadProjects = async (page = 1) => {
     const actions = useProjectStore.getState().actions;
     actions.setIsLoading(true);

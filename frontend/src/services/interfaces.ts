@@ -13,7 +13,18 @@ export interface DeploymentResult {
   metadata?: DeploymentMetadata;
 }
 
+export interface DeploymentDiagnostic {
+  status: 'started' | 'accepted' | 'succeeded' | 'failed' | 'rejected';
+  stage?: string;
+  buildMode?: 'static' | 'build';
+  errorCode?: string;
+  errorMessage?: string;
+  startedAt: string;
+  finishedAt?: string;
+}
+
 export interface IProjectProvider {
+  getLatestDeployment(id: string): Promise<DeploymentDiagnostic | null>;
   getProjects(page?: number, pageSize?: number): Promise<PaginatedResponse<Project>>;
   findProjectByRepoUrl(repoUrl: string): Promise<Project | null>;
   createDraftProject(

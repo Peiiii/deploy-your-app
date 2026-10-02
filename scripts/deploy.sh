@@ -28,12 +28,17 @@ for var_name in "${OPTIONAL_ENV_VARS[@]}"; do
 done
 # New controllers expose pending jobs; legacy controllers have no health endpoint.
 if docker inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
+  docker exec "$CONTAINER_NAME" node -e "fetch('http://localhost:4173/api/v1/maintenance/drain',{method:'POST',headers:{'x-gemigo-builder-token':process.env.DEPLOY_SERVICE_TOKEN||''}}).then(r=>{if(!r.ok&&r.status!==404)process.exit(1)}).catch(()=>process.exit(1))"
   for _ in $(seq 1 120); do
     PENDING=$(docker exec "$CONTAINER_NAME" node -e "fetch('http://localhost:4173/healthz').then(r=>r.ok?r.json():{pending:0}).then(x=>console.log(x.pending||0)).catch(()=>process.exit(1))")
     if [ "$PENDING" = 0 ]; then break; fi
     sleep 5
   done
-  if [ "$PENDING" != 0 ]; then echo 'Active deployments did not drain; leaving the current service running.' >&2; exit 1; fi
+  if [ "$PENDING" != 0 ]; then
+    docker exec "$CONTAINER_NAME" node -e "fetch('http://localhost:4173/api/v1/maintenance/resume',{method:'POST',headers:{'x-gemigo-builder-token':process.env.DEPLOY_SERVICE_TOKEN||''}}).catch(()=>{})"
+    echo 'Active deployments did not drain; leaving the current service running.' >&2
+    exit 1
+  fi
   docker rm -f "$PREVIOUS_NAME" >/dev/null 2>&1 || true
   docker stop -t 30 "$CONTAINER_NAME"
   docker rename "$CONTAINER_NAME" "$PREVIOUS_NAME"

@@ -286,7 +286,27 @@
       "server_restarted": "部署服务在完成前重启了，请重新部署。",
       "missing_entry": "发布目录中没有 index.html。请上传构建好的 dist/build/out 文件夹，或提供可用的构建脚本。",
       "build_timeout": "构建用时过长，请减少依赖，或上传已构建好的静态文件。",
-      "result_unavailable": "无法恢复本次部署结果，请重新部署。"
+      "result_unavailable": "无法恢复本次部署结果，请重新部署。",
+      "missing_build_script": "这是需要构建的源代码。请添加 build 脚本，或上传已构建的 dist/build/out 文件夹。",
+      "sandbox_unavailable": "构建服务暂不可用，请稍后重试，或直接上传已构建的静态文件。"
+    },
+    "latestResult": "查看最近发布结果",
+    "noRecordedResult": "暂无发布记录",
+    "noDetailedError": "这条历史记录未保存详细原因。请重新发布以获取诊断日志。",
+    "resultLoadFailed": "暂时无法读取发布结果，请稍后重试。",
+    "modes": {
+      "static": "静态托管",
+      "build": "源码构建"
+    },
+    "stages": {
+      "queued": "等待开始",
+      "source": "准备文件",
+      "install": "安装依赖",
+      "build": "构建应用",
+      "validate": "检查产物",
+      "publish": "发布文件",
+      "complete": "发布完成",
+      "recovery": "恢复结果"
     }
   },
   "dashboard": {

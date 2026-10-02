@@ -1,4 +1,4 @@
-import type { IProjectProvider } from '../interfaces';
+import type { IProjectProvider, DeploymentDiagnostic } from '../interfaces';
 import type {
   Project,
   DeploymentMetadata,
@@ -10,6 +10,12 @@ import { APP_CONFIG, API_ROUTES } from '../../constants';
 
 export class HttpProjectProvider implements IProjectProvider {
   private baseUrl = APP_CONFIG.API_BASE_URL;
+
+  async getLatestDeployment(id: string): Promise<DeploymentDiagnostic | null> {
+    const response = await fetch(`${this.baseUrl}/projects/${encodeURIComponent(id)}/deployment-result`, { credentials: 'include' });
+    if (!response.ok) throw new Error('Deployment result could not be loaded.');
+    return response.json();
+  }
 
   async getProjects(page = 1, pageSize = 100): Promise<PaginatedResponse<Project>> {
     const url = `${this.baseUrl}${API_ROUTES.PROJECTS}?scope=mine&page=${page}&pageSize=${pageSize}`;

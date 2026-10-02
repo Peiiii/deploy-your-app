@@ -25,6 +25,8 @@ app.use('/api/v1', (req, res, next) => {
   next();
 });
 app.use(express.json({ limit: '10mb' }));
+app.post('/api/v1/maintenance/drain', (_req, res) => { deploymentService.setAccepting(false); res.json({ ok: true }); });
+app.post('/api/v1/maintenance/resume', (_req, res) => { deploymentService.setAccepting(true); res.json({ ok: true }); });
 
 // Serve built apps under /apps/:project
 app.use('/apps', express.static(CONFIG.paths.staticRoot));

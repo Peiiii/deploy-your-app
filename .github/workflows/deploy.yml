@@ -18,10 +18,15 @@ on:
         type: boolean
         default: false
 
+concurrency:
+  group: gemigo-builder-${{ github.event_name == 'workflow_dispatch' && inputs.validate_only && github.run_id || 'production' }}
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     
     steps:
       - name: Checkout code

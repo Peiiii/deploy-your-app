@@ -1,5 +1,6 @@
 import { DeploymentSession } from '@/features/deployment/components/deployment-session';
 import React from 'react';
+import { DeploymentResult } from '../deployment-result';
 import { ProjectSettingsDeploymentGroup } from '@/features/project-settings/components/project-settings-deployment-group';
 import type { Project } from '@/types';
 
@@ -24,6 +25,7 @@ export const SettingsDeploymentTab: React.FC<SettingsDeploymentTabProps> = ({
 
             {/* Active Deployment Session or Result */}
             <DeploymentSession projectId={project.id} />
+            <DeploymentResult key={project.id} projectId={project.id} />
         </div>
     );
 };

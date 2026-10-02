@@ -43,3 +43,5 @@ ZIP 解压前校验路径、大小/文件数；忽略 __MACOSX/.DS_Store 后提�
 已确认 runCommand 会将平台 R2/API/AI 环境变量交给用户脚本，单纯过滤 env 仍不能防止共享进程和文件系统读取。生产 install/build 必须进入独立临时 Docker 容器：仅绑定本作业目录、非 root、只读根目录、独立 PID、无 Docker socket/平台凭据、512 MiB/1 CPU/128 PID、5 分钟超时和强制回收。可信 Node 服务使用宿主 Docker socket，只允许由配置的 buildsRoot 推导宿主目录，镜像使用本次已构建镜像的不可变 ID。npm/pnpm/yarn 复用镜像既有工具；缺少工具明确报错。静态产物不启动构建容器。Node 启动验证配置与 socket；实际镜像验证隔离后方可发布。
 服务脚本先加载新镜像，再停止并保留旧容器；健康检查成功才删除旧容器，失败恢复旧容器。R2 指针响应不确定时查询确认，无法确认则保留完整新版本，绝不删除可能已激活版本。D1 保存终态 URL，Node receipt 过期不能把已确认成功改为失败。
 补审核对：以上均位于现有 build/deploy/status owner，未增加作业平台；新增 socket 权限仅可信控制器获得，来访 API 受内部 token 保护。验证增加实际隔离容器、失败回滚和指针写入后断线。design-review: passed（受影响范围）。
+
+补审：仅持久化诊断无法让关页后回来的用户看到失败原因。复用项目设置的 Deployments 页增加“最近发布结果”只读入口：按项目归属返回 D1 最新 attempt 的状态、阶段、模式、错误与时间；前端由既有 ProjectManager/Provider 读取，页面仅渲染。原日志未保存时明确说明，不能补造原因。构建命令失败将有界的最后输出纳入 error_message，使断线后仍有可用原因。验证真实 Worker owner 权限和终态结果、线上失败后刷新再查看。design-review: passed（受影响范围）。
