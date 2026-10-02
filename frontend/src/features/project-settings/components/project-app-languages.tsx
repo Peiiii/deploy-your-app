@@ -52,7 +52,7 @@ export function ProjectAppLanguages({ project }: { project: Project }) {
     <section className="space-y-3 border-t border-slate-200 dark:border-slate-700 pt-5">
       <div className="flex flex-wrap justify-between gap-2">
         <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
-          {t('languages.appLanguage')}
+          {t('languages.supportedLanguages')}
         </h3>
         <span className="text-xs text-slate-500">
           {t(

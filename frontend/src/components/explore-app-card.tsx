@@ -203,7 +203,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
           )}
         </div>
 
-        <p className="text-[11px] text-slate-500 dark:text-slate-400" aria-label={t('languages.appLanguage')}>
+        <p className="text-[11px] text-slate-500 dark:text-slate-400" aria-label={t('languages.supportedLanguages')}>
           {app.appLanguages?.length ? app.appLanguages.map(code => code === 'zxx' ? t('languages.independent') : appLanguageLabel(code)).join(' · ') : t('languages.unknown')}
         </p>
         <div className="flex items-center justify-between mt-1">
