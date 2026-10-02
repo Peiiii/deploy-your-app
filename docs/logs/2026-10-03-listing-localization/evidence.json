@@ -1,0 +1,32 @@
+{
+  "sourceCommit": "190de7cd248d4ab6090f524d48f03263aa50aa09",
+  "productionApiVersion": "3cbe7785-a258-40ff-810e-d9db6c2a3ef6",
+  "productionAsset": "index-DWHH00J8.js",
+  "coverage": {
+    "visible": 565,
+    "with_description": 228,
+    "translated": 227,
+    "retrying": 0
+  },
+  "translationCandidates": 0,
+  "authorBilingual": 1,
+  "defaultBatch": 3,
+  "temporaryBatchRemoved": true,
+  "uiChecks": [
+    "Geeglo zh/en/zh immediate",
+    "Chinese content preference retained",
+    "Chinese feed description",
+    "Chinese public creator profile"
+  ],
+  "verification": [
+    "root typecheck",
+    "root lint",
+    "frontend production build",
+    "real D1 translation/source lifecycle",
+    "deployment metadata policy",
+    "app-language HTTP/D1 regression",
+    "manual implementation review clear"
+  ],
+  "aiAcceptance": "passed",
+  "userAcceptance": "pending"
+}
