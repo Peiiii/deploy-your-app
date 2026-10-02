@@ -83,3 +83,5 @@ skip-design依据：根因和恢复目标明确，纯CSS布局约束，无状态
 本地当前构建frontend tsc、定向ESLint、production build、diff --check通过。真实1280px首页英文长标签：搜索320px、与语言按钮8px间隔；390px首页和探索自动换行，main.scrollWidth=clientWidth=390；手机语言菜单left16/right374。900px探索页面宽644px时筛选在内容栏；1280px打开Geeglo预览后主区域576px时筛选在内容栏，搜索254.21px、按钮289.79px、8px间隔，无重叠；宽页面保留标题栏筛选。首页预览下搜索256px并换行，主区域无横向溢出。
 
 同owner排查包括网站语言Popover、Feed内容语言展开面板、首页更多方式菜单、仪表板/个人页输入；它们没有搜索固定384px越过320px父层的同一模式。本项不冒充全站逐页面全状态验证。diff-only人工实现Review（项目无专用maintainability入口）检查CSS作用域、重复控件仅一组可见、手机长标签与菜单定位、旧样式及共享PageLayout未启用容器时保持行为，无开放finding。复盘no-increment：本次通过修正现有布局约束解决，不新建通用规则/框架/组件。
+
+本项已提交596c704，正常合并最新R2 runtime其它任务提交后54215c7推送master，pnpm deploy:pages成功；Cloudflare production f764728b-1362-4160-8804-8b440f1ef755，gh-pages b9be0a1。gemigo.io真实页面消费/assets/index-Cfj035tp.js。与修前同一1280px中文首页实测search.right=1068、language.left=1076，原56px重叠消失，保持8px间距；探索页宽布局同样8px间距。线上完整画面已打开复看并保存gemigo-adaptive-search-live.jpg，保留原主题和发布区。仅本项局部修复交付，整体改版goal仍暂停。
