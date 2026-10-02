@@ -1,3 +1,5 @@
+import runtimeAssets from './runtime-assets.json';
+
 type R2ObjectLike = {
   body: ReadableStream | null;
   httpMetadata?: {
@@ -282,7 +284,7 @@ const readSiteObject = async (
   if (!headers.has('content-type')) {
     headers.set('content-type', getContentTypeFromExt(key.split('.').pop()?.toLowerCase() ?? ''));
   }
-  const ttl = /^apps\/[^/]+\/releases\//.test(key) ? RELEASE_ASSET_CACHE_SECONDS : LEGACY_ASSET_CACHE_SECONDS;
+  const ttl = key.startsWith('platform/runtime/') || /^apps\/[^/]+\/releases\//.test(key) ? RELEASE_ASSET_CACHE_SECONDS : LEGACY_ASSET_CACHE_SECONDS;
   headers.set('cache-control', `public, max-age=${ttl}`);
   const response = new Response(object.body, { headers });
   if (store) writeSiteCache(ctx, cacheKey, response.clone());
@@ -295,6 +297,36 @@ const matchesEtag = (condition: string | null, etag: string | null): boolean => 
   if (!etag) return false;
   const normalize = (tag: string): string => tag.trim().replace(/^W\//, '');
   return condition.split(',').some((tag) => normalize(tag) === normalize(etag));
+};
+
+const respondWithValidation = (
+  request: Request, response: Response, headers: Headers, ctx: ExecutionContext,
+): Response => {
+  const notModified = (request.method === 'GET' || request.method === 'HEAD')
+    && matchesEtag(request.headers.get('if-none-match'), headers.get('etag'));
+  if (notModified || request.method === 'HEAD') {
+    if (notModified) headers.delete('content-length');
+    if (response.body) ctx.waitUntil(response.body.cancel());
+    return new Response(null, { status: notModified ? 304 : 200, headers });
+  }
+  return new Response(response.body, { headers });
+};
+
+const rewriteSharedRuntime = (response: Response, rootDomain: string): Response => {
+  let hasCsp = false;
+  return new HTMLRewriter()
+    .on('meta[http-equiv]', { element(element) {
+      if (element.getAttribute('http-equiv')?.toLowerCase() === 'content-security-policy') hasCsp = true;
+    } })
+    .on('script[src]', { element(element) {
+      if (hasCsp || element.getAttribute('crossorigin')?.toLowerCase() === 'use-credentials') return;
+      const src = element.getAttribute('src');
+      // Exact root URL only: explicit versions and plugin/query configuration stay upstream.
+      if (src && /^(?:https?:)?\/\/cdn\.tailwindcss\.com\/?$/i.test(src)) {
+        element.setAttribute('src', `https://${CENTRAL_THUMBNAIL_HOST}.${rootDomain}${runtimeAssets.tailwind.path}`);
+      }
+    } })
+    .transform(response);
 };
 
 export default {
@@ -340,6 +372,24 @@ export default {
           return checkCentralThumbnail(env, match[1]);
         }
         return serveCentralThumbnail(request, env, ctx, match[1]);
+      }
+    }
+
+    if (subdomain === CENTRAL_THUMBNAIL_HOST && (request.method === 'GET' || request.method === 'HEAD')) {
+      const asset = Object.values(runtimeAssets).find((entry) => entry.path === url.pathname);
+      if (asset) {
+        const started = performance.now();
+        const result = await readSiteObject(url, asset.key, bucket, ctx, false, true);
+        if (!result) return new Response('Runtime asset unavailable', { status: 503 });
+        const headers = new Headers(result.response.headers);
+        headers.set('cache-control', 'public, max-age=31536000, immutable');
+        headers.set('content-type', asset.contentType);
+        headers.set('access-control-allow-origin', '*');
+        headers.set('x-content-type-options', 'nosniff');
+        headers.set('x-gemigo-gateway', 'r2');
+        headers.set('x-gemigo-cache', result.state);
+        headers.set('server-timing', `gemigo;dur=${(performance.now() - started).toFixed(1)}`);
+        return respondWithValidation(request, result.response, headers, ctx);
       }
     }
 
@@ -418,14 +468,15 @@ export default {
     headers.set('x-gemigo-cache', result.state);
     headers.set('x-gemigo-deployment-cache', resolved.state);
     headers.set('server-timing', `gemigo;dur=${(performance.now() - started).toFixed(1)}`);
-    const notModified = cacheableMethod && matchesEtag(request.headers.get('if-none-match'), headers.get('etag'));
-    if (notModified || request.method === 'HEAD') {
-      // Content length in a cache copy describes the full object, not a 304 body.
-      if (notModified) headers.delete('content-length');
-      if (result.response.body) ctx.waitUntil(result.response.body.cancel());
-      return new Response(null, { status: notModified ? 304 : 200, headers });
+    if (headers.get('content-type')?.includes('text/html')) {
+      const etag = headers.get('etag');
+      if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, `-hosting-${runtimeAssets.tailwind.sha256.slice(0, 8)}"`)}`);
+      headers.delete('content-length');
+      // Origin objects stay byte-for-byte intact; this is a delivery-only URL substitution.
+      const response = rewriteSharedRuntime(new Response(result.response.body, { headers }), rootDomain);
+      return respondWithValidation(request, response, headers, ctx);
     }
-    return new Response(result.response.body, { headers });
+    return respondWithValidation(request, result.response, headers, ctx);
   },
 };
 
