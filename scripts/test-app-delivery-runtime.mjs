@@ -42,6 +42,9 @@ try {
   response = await mf.dispatchFetch(mirrored, { method: 'HEAD' });
   assert.equal(response.status, 200);
   assert.equal(await response.text(), '');
+  response = await mf.dispatchFetch(mirrored, { headers: { 'cache-control': 'no-store' } });
+  assert.equal(response.headers.get('x-gemigo-cache'), 'BYPASS');
+  assert.equal(await response.text(), 'window.tailwind={};');
   assert.equal((await mf.dispatchFetch('https://other.gemigo.app'+assets.tailwind.path)).status,404);
   console.log('PASS real Worker runtime: HTMLRewriter exact root, CSP/plugin/version/credentials/SRI preservation, unchanged R2 source, delivery ETag, runtime CORS/cache/304/HEAD/tenant boundary');
 } finally { await mf.dispose(); }

@@ -17,11 +17,11 @@
 ## Active ledger
 | ID | Required | Status | 当前证据 | 失效原因 |
 |---|---|---|---|---|
-| AP-01 | true | not-run | — | — |
-| AP-02 | true | not-run | — | — |
-| AP-03 | true | not-run | 历史 baseline + 发布前复测中 | — |
-| AP-04 | true | not-run | 方案复用现有服务 | — |
-| AP-05 | true | not-run | design-review passed | — |
+| AP-01 | true | passed | 本地核心缓存测试+真实Miniflare；线上QA hit/private/SPA/previous与thumbnail回归；详细证据见日志 | — |
+| AP-02 | true | passed | 线上QA JS ETag/HTML*304与HEAD，发布2.567s、回滚3.265s、legacy10.890s含2秒容差；详细证据见日志 | — |
+| AP-03 | true | passed | evidence/summary.json：二次TTFB中位 .580→.248，gateway13ms；6浏览器完整cold/warm结果；详细证据见日志 | — |
+| AP-04 | true | passed | 2→0读取断言；原服务bindings不变；platform镜像408350bytes与官方边际计价；详细证据见日志 | — |
+| AP-05 | true | passed | strict tsc、lint、4行为测试、dry-run、review passed；master推送/线上gateway与QA证据；最后小修上线待收尾核对；详细证据见日志 | — |
 
 单阶段，当前门：实现统一托管策略→行为测试→对比实测→按最大缺口迭代→生产 QA→Review/交付/复盘。open-required: AP-01..05。parent_status: in-progress。无待决范围变化。
 
@@ -31,3 +31,8 @@
 第一轮浏览器暴露共性Tailwind根CDN超时，增加AP-06（Required:true，Status:not-run）：同字节固定3.4.17平台镜像，准确重写无query根URL；保留显式版本/插件/CSP/credentials，客户R2源字节不变。再次6浏览器样本无Tailwind首屏18秒超时，并报告完整FCP。此项对应原目标的实测不满意继续优化，未减少原标准；AP-01..05相关证据在代码变更后需要重验。
 
 线上学习：Cloudflare自动HTML beacon等变换会移除HTML ETag（39样本仅2保留），服务器仍正确支持conditional匹配与*；JS/CSS镜像ETag正常。继续保留已有Web Analytics和压缩，不以关闭统计换取header。浏览器HTML并非全部能获得ETag，完整响应仍可用边缘缓存加速；在线bodyless304已由JS精确ETag和HTML*验证。
+
+## AP-06 evidence update
+- Required:true；Status:passed；同原字节镜像线上hash/gzip/ETag；真实HTMLRewriter source/CSP/plugin/version/credentials/SRI属性不变；最终6/6浏览器无timeout，green5.188s/portfolio3.840s首屏；见日志evidence/browser-final.json。
+- AP-04授权内增量：客户发布产物不变，平台额外408350bytes；请求/CPU有边际计费，不是新固定服务。
+- AP-02已验证conditional server合同；Cloudflare HTML变换移除部分browser ETag的边界已显式记录，不宣称每个HTML浏览器自动304。
