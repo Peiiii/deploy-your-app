@@ -20,11 +20,11 @@ contract-id: discovery-categories-2026-10-03；parent-goal: 新分类和正确�
 
 | ID | 标准 | Status | 当前证据 |
 | --- | --- | --- | --- |
-| CAT-01 | 首页/探索同序，中英文标签正确，开发/其他可用 | not-run | 待 UI 和目录检查 |
-| CAT-02 | 分类过滤、教学游戏交叉发现、空值/未知归其他，排序与分页保持 | not-run | 待真实 D1 和前端组装检查 |
-| CAT-03 | 两个 AI 运行时新分类一致，创作者可选择 | not-run | 待 schema/解析/类型检查 |
-| CAT-04 | 现有公开应用结合内容校正，备份/并发保护/生产核验成立 | not-run | 待分类提案和生产写入审计 |
-| CAT-05 | 受影响部署上线，origin/master 与主工作区 master 同步 | not-run | 待部署及 SHA 核验 |
+| CAT-01 | 首页/探索同序，中英文标签正确，开发/其他可用 | passed | 实际浏览器首页/探索及中英文目录，生产游戏/学习筛选截图 |
+| CAT-02 | 分类过滤、教学游戏交叉发现、空值/未知归其他，排序与分页保持 | passed | 真实 D1 回归、前端组装、生产七路分类计数 |
+| CAT-03 | 两个 AI 运行时新分类一致，创作者可选择 | passed | 两运行时 schema/解析器、生产六类 AI 样例、生产分类选择控件 |
+| CAT-04 | 现有公开应用结合内容校正，备份/并发保护/生产核验成立 | passed | 565 条提案全部匹配；523 条修改；原名称/描述/地址/部署时间全部保持；完整备份和写入前日志 |
+| CAT-05 | 受影响部署上线，origin/master 与主工作区 master 同步 | passed | Worker/Pages 已部署；Node CI 成功及 healthz；两主线已 fast-forward，同步结束再核对实际远程 SHA |
 
 完整验证后执行实现 Review 与交付，复盘只更新已有事实有增量处。不存在需要用户再次批准的阶段门。
 
@@ -36,4 +36,14 @@ contract-id: discovery-categories-2026-10-03；parent-goal: 新分类和正确�
 - 565 个公开 Live 应用逐项审阅部署文本/程序片段与介绍，存疑页面补浏览器渲染。150 个教学游戏带 game 标签；教学游戏总数与主分类总数分别统计，不重复累计目录总数。
 - 生产原值、内容快照、已审阅提案和写入日志留在 `/Users/peiwang/.codex/catalog-backups/2026-10-03-discovery-categories/`（目录 700，文件 600；不提交含应用内容的原始数据）。校正入口 `scripts/reclassify-discovery-apps.py`；prepare 只取证，apply 使用原值和部署版本保护，rollback 使用写入前日志及反向条件。
 - 实现 Review：新增目录由现有消费者直接共用；数据库查询保持单一过滤 owner；JSON 非数组不被当游戏标签；写入前日志覆盖网络响应不确定性；未知目录值保持可发现。无未关闭 findings。未发现仓库 diff-only maintainability 命令，按已有 Review 方法审查实际 diff。
-- CAT-01/02/03 本地证据有效；CAT-04/05 待生产执行及核验，不以本地通过代替上线。
+- CAT-01 至 CAT-05 的本地与生产证据有效。线上入口为 https://gemigo.io/ 与 https://gemigo.io/explore；点分类即可筛选。分类用途判断仍受内容可读性限制，21 个无法可靠判断的应用使用 Other，不猜测其真实功能。
+
+## 生产结果与复盘
+
+2026-10-03：主分类学习与教育 177、游戏 74、实用工具 101、创意与展示 115、开发 77、其他 21，总计 565。150 个教学游戏同时能在游戏发现，故 Games 筛选为 224，不重复累计主分类总数。共 523 个应用修正分类或标签；无并发覆盖，生产校验全部匹配审阅提案，未知/旧类别剩余 0。聚合证据保存在备份目录 `verification.json`。
+
+API Worker 版本 `7f928873-e587-4df0-b187-b792662648f0`；Pages 生产资源 `index-CNjzPGm_.js`；Node [生产部署](https://github.com/Peiiii/deploy-your-app/actions/runs/37043921783)成功，`/healthz` 返回 ok=true、pending=0。生产 AI 实测六类均返回正确类别，教学游戏附带 game 标签。创作者分类控件显示已校正的 Games 并提供所有六类选项。
+
+数据库写入初期 Wrangler OAuth 凭据中途失去 D1 API 权限；利用写入前日志恢复，改用项目既有专用 D1 凭据继续，没有修改 Secrets、增加访问权限或丢失已写记录。校正工具支持通过 `CLOUDFLARE_D1_API_TOKEN` 或显式 `--env-file` 使用既有凭据；原值备份及 guarded rollback 保留在主工作区外，清理 worktree 不影响恢复。
+
+retrospective_decision: 已把分类边界、生产分布、回退入口和凭据恢复事实写入本设计 owner；通用流程无新增规则必要，不生成平行复盘文档。retrospective_state=completed。开发交付已具备用户验收条件，未把 AI 检查当作用户主观确认。
