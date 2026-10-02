@@ -48,7 +48,17 @@ contract-id=preview-scroll-anchor-release；parent-goal=正常访问gemigo.io时
 
 | ID | Required | 合同 | Status | 证据 |
 | --- | --- | --- | --- | --- |
-| PSA01 | true | gemigo.io消费包含本次修复的前端生产资产 | not-run | 发布后核对线上index资产路径及hash |
-| PSA02 | true | 真实线上中部卡片打开、滚动后关闭、全屏往返布局漂移不超过2px；选中随应用切换/关闭更新 | not-run | 线上实际点击与连续帧DOM测量 |
-| PSA03 | true | 390px手机维持原行为，无横向溢出 | not-run | 线上视口和DOM宽度核对 |
-| PSA04 | true | 本任务及上线记录已入主线，本地master与远端实际master同步，保护无关WIP | not-run | fetch、rev-list、ls-remote及status |
+| PSA01 | true | gemigo.io消费包含本次修复的前端生产资产 | passed | 默认首页与实际浏览器均加载index-BynEWPeW.js，线上/本地产物SHA256一致 |
+| PSA02 | true | 真实线上中部卡片打开、滚动后关闭、全屏往返布局漂移不超过2px；选中随应用切换/关闭更新 | passed | 1440×900实际点击隔空投送=0px，全屏往返6帧=0px，滚动650px后关闭6帧=0.125px，替换应用更新选中 |
+| PSA03 | true | 390px手机维持原行为，无横向溢出 | passed | 默认线上首页document/main宽度与scrollWidth均390，实际点击无双栏、无选中，原window.open链路未改变 |
+| PSA04 | true | 本任务及上线记录已入主线，本地master与远端实际master同步，保护无关WIP | passed | 本记录随提交交付；交付检查执行fetch、rev-list及ls-remote，保留analytics脚本及原未跟踪文件 |
+
+### 发布与最终复盘
+
+2026-10-03按仓库pnpm deploy:pages发布成功。源码dcaccca（包含修复5a34c8b）、gh-pages d920b76a952316a05e3562dc9599a4817b03761d、Cloudflare Production 870a3e5e-166b-41d6-9d3a-2e41a65ef27f。上一版gh-pages 10b9c0601386fd482877ddf0350d31f667963a8f、Production 78218fe0-5a83-4b5c-a371-05409610e58f保留为回退依据。只发布前端，无Secrets或后台修改。
+
+发布后默认https://gemigo.io/已经返回本次JS/CSS路径，浏览器默认地址同样消费index-BynEWPeW.js，线上资产SHA256=b0f7eb8cd8f7c08fbefbfa4824875a4fdc92803f1dc6e88567157d61bcad97a4，与本地构建完全一致。早期域名曾读到上一版缓存，切换后已在默认地址复核；没有把带查询参数的新页面作为唯一上线证据。
+
+线上真实鼠标与连续帧测量覆盖开预览、全屏往返、切换应用、滚动后关闭；关闭选中数归零，iframe名称随应用替换。390px手机默认首页实际点击后无双栏、无选中和水平溢出。单独手机新标签的出现未由即时工具列表确认；保留原有window.open，第一轮本地已验证该链路，没有冒称本轮观测新标签成功。
+
+retrospective_decision=no-increment：这次是已有全托管授权和完整交付要求被错误缩减，已修正当前交付并更新原任务owner记录；现有流程明确禁止自行缩减用户结果，无需新增平行流程或通用规则。全部Required验证有效，交付入口为https://gemigo.io/；体验偏好待用户反馈，不声称用户验收通过。retrospective_state=completed。
