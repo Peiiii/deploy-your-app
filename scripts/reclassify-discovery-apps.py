@@ -22,6 +22,7 @@ PUBLIC = "COALESCE(is_deleted,0)=0 AND is_public=1 AND status='Live' AND trim(CO
 def request_json(url, body, token, timeout=90):
     request = urllib.request.Request(url, json.dumps(body).encode(), {
         'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; GemiGo catalog maintenance)',
     })
     for attempt in range(3):
         try:
@@ -98,10 +99,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mode', choices=['prepare', 'apply', 'rollback'])
     parser.add_argument('--directory', type=Path, required=True)
+    parser.add_argument('--env-file', type=Path, help='Existing backend .env containing the scoped D1 credential')
     parser.add_argument('--account', default='adb27b39051202962038992eeaf8f6bb')
     parser.add_argument('--database', default='e1e28d75-d0a0-4f8e-9b5d-714454686a4f')
     args = parser.parse_args()
-    token = os.environ.get('CLOUDFLARE_API_TOKEN')
+    token = os.environ.get('CLOUDFLARE_D1_API_TOKEN')
+    if not token and args.env_file:
+        match = re.search(r'^CLOUDFLARE_D1_API_TOKEN\s*=\s*(.+)$', args.env_file.read_text(), re.M)
+        if match:
+            token = match[1].strip().strip('\"\'')
+    token = token or os.environ.get('CLOUDFLARE_API_TOKEN')
     if not token:
         config = Path.home() / 'Library/Preferences/.wrangler/config/default.toml'
         token = tomllib.loads(config.read_text())['oauth_token']
