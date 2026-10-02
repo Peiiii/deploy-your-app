@@ -231,6 +231,15 @@ export default {
       return new Response('Not found', { status: 404 });
     }
 
+    // Block private build configuration in both current and legacy publications.
+    let decodedPath: string;
+    try { decodedPath = decodeURIComponent(url.pathname); }
+    catch { return new Response('Invalid path', { status: 400 }); }
+    if (decodedPath.replace(/\\/g, '/').split('/').some(segment => {
+      const name = segment.toLowerCase();
+      return name === '.env' || name.startsWith('.env.') || name === '.npmrc' || name === '.git' || name === 'node_modules';
+    })) return new Response('Not found', { status: 404 });
+
     const bucket = env.ASSETS; // R2 bucket binding configured in wrangler / dashboard
     if (!bucket) {
       return new Response('R2 bucket binding "ASSETS" is not configured', {

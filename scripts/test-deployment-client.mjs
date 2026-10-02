@@ -5,7 +5,9 @@ import ts from 'typescript';
 import { webcrypto } from 'node:crypto';
 
 function load(file, name, scope) {
-  const source = fs.readFileSync(file, 'utf8').replace(/^import[\s\S]*?;\s*$/gm, '');
+  const source = fs.readFileSync(file, 'utf8')
+    .replace(/^import[\s\S]*?;\s*$/gm, '')
+    .replace(/^export\s*\{[^}]*\}\s*from\s*['"][^'"]+['"];?\s*$/gm, '');
   const js = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
@@ -16,6 +18,7 @@ function load(file, name, scope) {
     clearTimeout,
     Date,
     AbortSignal,
+    URL,
     ...scope,
   };
   vm.runInNewContext(js, sandbox);

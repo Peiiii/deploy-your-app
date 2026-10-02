@@ -220,6 +220,11 @@ try {
   await mkdir(distPath);
   await writeFile(path.join(distPath, 'index.html'), '<h1>New version</h1>');
   await writeFile(path.join(distPath, 'test.js'), 'console.log("new")');
+  await writeFile(path.join(distPath, '.env'), 'FAKE_KEY=must-not-publish');
+  await mkdir(path.join(distPath, 'nested'));
+  await writeFile(path.join(distPath, 'nested', '.env.local'), 'FAKE_KEY=must-not-publish');
+  await mkdir(path.join(distPath, '.well-known'));
+  await writeFile(path.join(distPath, '.well-known', 'test.txt'), 'public asset');
   const active = 'apps/site/current';
   objects.set(`${active}/index.html`, Buffer.from('<h1>Old version</h1>'));
   objects.set(`${active}/old.js`, Buffer.from('old asset'));
@@ -249,6 +254,9 @@ try {
   );
   lostPointerResponse = false;
   const manifest = JSON.parse(objects.get('apps/site/deployment.json')!.toString());
+  assert.equal(objects.has(`${manifest.prefix}/.env`), false);
+  assert.equal(objects.has(`${manifest.prefix}/nested/.env.local`), false);
+  assert.equal(objects.has(`${manifest.prefix}/.well-known/test.txt`), true);
   assert.ok(manifest.previousPrefix.startsWith('apps/site/releases/'));
   objects.set(`${manifest.previousPrefix}/old.js`, Buffer.from('old asset'));
   const bucket = {
@@ -269,6 +277,10 @@ try {
     typeof gateway.fetch
   >[1];
   const ctx = { waitUntil() {} } as ExecutionContext;
+  objects.set(`${manifest.previousPrefix}/.env`, Buffer.from('FAKE_OLD_KEY=private'));
+  for (const privatePath of ['/.env', '/%2eenv', '/nested/.env.local', '/.npmrc', '/.git/config']) {
+    assert.equal((await gateway.fetch(new Request(`https://site.gemigo.app${privatePath}`), env, ctx)).status, 404);
+  }
   assert.match(
     await (await gateway.fetch(new Request('https://site.gemigo.app/'), env, ctx)).text(),
     /New version/

@@ -140,6 +140,8 @@ async function uploadDirectoryToR2(opts: {
     const full = path.join(localDir, currentRel);
     const entries = await fs.promises.readdir(full, { withFileTypes: true });
     for (const entry of entries) {
+      const name = entry.name.toLowerCase();
+      if (name === '.env' || name.startsWith('.env.') || name === '.npmrc' || name === '.git' || name === 'node_modules') continue;
       const relPath = path.join(currentRel, entry.name);
       const fullPath = path.join(localDir, relPath);
 

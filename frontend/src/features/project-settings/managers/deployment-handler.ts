@@ -5,6 +5,7 @@ import { DeploymentStatus, SourceType } from '@/types';
 import type { Project } from '@/types';
 import type { ProjectManager } from '@/managers/project.manager';
 import type { DeploymentManager } from '@/features/deployment/managers/deployment.manager';
+import i18n from '@/i18n/config';
 
 /**
  * Handles deployment operations for project settings.
@@ -37,7 +38,7 @@ export class DeploymentHandler {
             });
         } catch (err) {
             console.error(err);
-            actions.setError('Failed to deploy from GitHub.');
+            actions.setError(err instanceof Error ? err.message : i18n.t('deployment.deploymentFailedTitle'));
         } finally {
             actions.setIsRedeploying(false);
         }
@@ -70,7 +71,7 @@ export class DeploymentHandler {
             });
         } catch (err) {
             console.error(err);
-            actions.setError('Failed to deploy from HTML.');
+            actions.setError(err instanceof Error ? err.message : i18n.t('deployment.deploymentFailedTitle'));
         } finally {
             actions.setIsDeployingHtml(false);
         }
@@ -80,7 +81,7 @@ export class DeploymentHandler {
         const project = this.getCurrentProject();
         if (!project) return;
 
-        if (!file.name.endsWith('.zip')) {
+        if (!file.name.toLowerCase().endsWith('.zip')) {
             useProjectSettingsStore.getState().actions.setError('Please upload a .zip file.');
             return;
         }
@@ -97,7 +98,7 @@ export class DeploymentHandler {
             });
         } catch (err) {
             console.error(err);
-            actions.setError('Failed to deploy from ZIP archive.');
+            actions.setError(err instanceof Error ? err.message : i18n.t('deployment.deploymentFailedTitle'));
         } finally {
             actions.setZipUploading(false);
         }
@@ -128,7 +129,7 @@ export class DeploymentHandler {
             });
         } catch (err) {
             console.error(err);
-            actions.setError('Failed to deploy from HTML file.');
+            actions.setError(err instanceof Error ? err.message : i18n.t('deployment.deploymentFailedTitle'));
         } finally {
             actions.setHtmlUploading(false);
         }
@@ -158,7 +159,7 @@ export class DeploymentHandler {
             });
         } catch (err) {
             console.error(err);
-            actions.setError('Failed to deploy HTML content.');
+            actions.setError(err instanceof Error ? err.message : i18n.t('deployment.deploymentFailedTitle'));
         } finally {
             actions.setIsDeployingHtml(false);
         }

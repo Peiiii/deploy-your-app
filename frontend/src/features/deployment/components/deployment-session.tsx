@@ -53,12 +53,11 @@ export const DeploymentSession: React.FC<DeploymentSessionProps> = ({
   };
   const finalProjectName = resolvedProject?.name ?? state.projectName;
   const sourceLabel =
-    resolvedProject?.repoUrl ??
-    (state.sourceType === SourceType.GITHUB
-      ? state.repoUrl
+    state.sourceType === SourceType.GITHUB
+      ? state.repoUrl || resolvedProject?.repoUrl
       : state.sourceType === SourceType.ZIP
-        ? state.zipFile?.name
-        : 'inline.html');
+        ? state.zipFile?.name || resolvedProject?.repoUrl
+        : 'inline.html';
 
   // Whenever a deployment succeeds, refresh projects so that URLs / metadata stay in sync.
   useEffect(() => {
