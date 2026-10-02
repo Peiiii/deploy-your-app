@@ -74,7 +74,7 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
       {/* Error Banner */}
       {
         error && (
-          <div className="mb-6 flex items-start gap-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3 shadow-sm ">
+          <div className="mb-6 flex items-start gap-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3 shadow-sm animate-fade-in">
             <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <span className="flex-1">{error}</span>
           </div>

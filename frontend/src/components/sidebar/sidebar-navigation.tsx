@@ -1,10 +1,9 @@
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LayoutDashboard, Sparkles, Package, Home, User, MessagesSquare } from 'lucide-react';
 import { useUIStore } from '../../stores/ui.store';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
-import { preloadRoute } from '@/route-loader';
 import { useBreakpoint } from '../../hooks/use-breakpoint';
 
 interface NavItem {
@@ -16,6 +15,7 @@ interface NavItem {
 export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed }) => {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const { setSidebarOpen } = useUIStore((state) => state.actions);
   const authUser = useAuthStore((s) => s.user);
   const { isMobile } = useBreakpoint();
@@ -40,32 +40,32 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
           ? location.pathname === '/'
           : location.pathname.startsWith(item.path);
         return (
-          <Link
-            to={item.path}
-            onPointerEnter={() => { void preloadRoute(item.path); }}
-            onFocus={() => { void preloadRoute(item.path); }}
+          <button
             key={item.path}
             aria-current={isActive ? 'page' : undefined}
             aria-label={item.label}
             title={collapsed ? item.label : undefined}
             data-event="navigation_click"
             onClick={() => {
+              navigate(item.path);
               if (isMobile) {
                 setSidebarOpen(false);
               }
             }}
-            className={`group flex items-center gap-3 rounded-lg text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 relative overflow-hidden ${collapsed ? 'w-10 h-10 justify-center p-0 mx-auto' : 'w-full min-h-10 px-3 py-2'
+            className={`group flex items-center gap-3 rounded-xl text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 relative overflow-hidden ${collapsed ? 'w-10 h-10 justify-center p-0 mx-auto' : 'w-full min-h-[44px] px-4 py-2.5'
               } ${isActive
-                ? 'font-medium text-app-text bg-app-surfaceHighlight'
+                ? 'font-semibold text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-500/15'
                 : 'font-medium text-slate-600 dark:text-slate-400 bg-transparent hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-white/5'
               }`}
           >
-            <item.icon className={`flex-shrink-0  ${collapsed ? 'w-5 h-5' : 'w-5 h-5'} ${isActive ? 'text-app-text' : 'text-app-muted'}`} />
+            <item.icon className={`flex-shrink-0 transition-transform duration-300 group-hover:scale-110 ${collapsed ? 'w-5 h-5' : 'w-5 h-5'} ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500'}`} />
             {!collapsed && (
               <span className="relative z-10 whitespace-nowrap flex-shrink-0">{item.label}</span>
             )}
-
-          </Link>
+            {isActive && !collapsed && (
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-brand-600 dark:bg-brand-400 rounded-r-full" />
+            )}
+          </button>
         );
       })}
     </div>

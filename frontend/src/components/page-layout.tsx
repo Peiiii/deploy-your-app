@@ -15,11 +15,11 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
     const { isCompact } = useLayoutMode();
 
     return (
-        <div className="page-layout flex min-h-full min-w-0 flex-col bg-app-bg">
+        <div className="flex flex-col min-h-full bg-[#f8fafc] dark:bg-slate-900">
             {/* Header */}
-            <header className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-5 pb-6 pt-7 md:px-8 md:pt-8">
+            <header className={`${isCompact ? 'h-16' : 'h-20'} px-4 md:px-8 flex items-center justify-between sticky top-0 bg-[#f8fafc]/80 dark:bg-slate-900/80 backdrop-blur z-20 border-b border-slate-100 dark:border-slate-800/50 transition-all duration-300`}>
                 <div className="flex items-center gap-4 min-w-0">
-                    <h1 className={`${isCompact ? 'text-xl' : 'text-2xl'} font-semibold text-app-text tracking-tight`}>
+                    <h1 className={`${isCompact ? 'text-xl md:text-2xl' : 'text-2xl md:text-3xl'} font-bold text-slate-900 dark:text-white tracking-tight truncate transition-all duration-300`}>
                         {title}
                     </h1>
                 </div>
@@ -28,7 +28,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
 
             {/* Content Area */}
             <div className="flex-1">
-                <div className={`max-w-7xl mx-auto ${isCompact ? 'px-5' : 'px-5 md:px-8'} pb-10 space-y-7`}>
+                <div className={`max-w-7xl mx-auto ${isCompact ? 'p-3' : 'p-4 md:p-8'} pt-6 space-y-8 transition-all duration-300`}>
                     {children}
                 </div>
             </div>

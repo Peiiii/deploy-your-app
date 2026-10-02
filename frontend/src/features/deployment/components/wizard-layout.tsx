@@ -14,7 +14,7 @@ export const WizardLayout: React.FC<WizardLayoutProps> = ({
     const { t } = useTranslation();
 
     return (
-        <div className="min-h-screen bg-app-bg flex flex-col">
+        <div className="min-h-screen bg-slate-50 dark:bg-black/20 flex flex-col">
             {/* Header */}
             <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20">
                 <div className="max-w-3xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">

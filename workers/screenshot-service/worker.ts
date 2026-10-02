@@ -231,7 +231,7 @@ async function extractAppContent(request: Request, env: Env): Promise<Response> 
     stage = 'navigate';
     const response = await page.goto(body.url, { waitUntil: 'domcontentloaded', timeout: 12000 });
     if (!response?.ok() || !allowed(page.url()))
-      return new Response('App unavailable', { status: 422 });
+      return Response.json({ error: 'app_unavailable', stage: 'navigate', appStatus: response?.status() ?? 0 }, { status: 422 });
     await new Promise((resolve) => setTimeout(resolve, 1200));
     // Hydrated apps often start with an empty shell. Bound waiting for actual text.
     await page

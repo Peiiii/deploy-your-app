@@ -1,12 +1,9 @@
-import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { track } from '@/analytics/collector';
 import { useProjectStore } from '../stores/project.store';
 import type { IProjectProvider } from '../services/interfaces';
 import { SourceType, type DeploymentMetadata, type Project } from '../types';
 
 export class ProjectManager {
-  private requestId = 0;
-  private requestOwner: string | undefined;
   private provider: IProjectProvider;
 
   constructor(provider: IProjectProvider) {
@@ -16,23 +13,16 @@ export class ProjectManager {
   getLatestDeployment = (id: string) => this.provider.getLatestDeployment(id);
 
   loadProjects = async (page = 1) => {
-    const userId = useAuthStore.getState().user?.id;
-    if (!userId) return;
-    if (useProjectStore.getState().isLoading && this.requestOwner === userId) return;
-    if (this.requestOwner !== userId) useProjectStore.getState().actions.reset();
-    this.requestOwner = userId;
-    const requestId = ++this.requestId;
-    const isCurrent = () => requestId === this.requestId && useAuthStore.getState().user?.id === userId;
     const actions = useProjectStore.getState().actions;
     actions.setIsLoading(true);
     try {
       const response = await this.provider.getProjects(page);
-      if (isCurrent()) actions.setProjects(response, false);
+      actions.setProjects(response, false);
     } catch (error) {
       console.error("Failed to load projects", error);
-      if (isCurrent()) actions.setLoadError('failed_to_load_projects');
+      actions.setLoadError('failed_to_load_projects');
     } finally {
-      if (isCurrent()) actions.setIsLoading(false);
+      actions.setIsLoading(false);
     }
   };
 
@@ -45,20 +35,17 @@ export class ProjectManager {
     }
 
     const actions = useProjectStore.getState().actions;
-    const userId = useAuthStore.getState().user?.id;
-    const requestId = ++this.requestId;
-    const isCurrent = () => requestId === this.requestId && useAuthStore.getState().user?.id === userId;
     actions.setIsLoading(true);
 
     try {
       const nextPage = pagination.page + 1;
       const response = await this.provider.getProjects(nextPage, pagination.pageSize);
-      if (isCurrent()) actions.setProjects(response, true); // append=true
+      actions.setProjects(response, true); // append=true
     } catch (error) {
       console.error("Failed to load more projects", error);
-      if (isCurrent()) actions.setLoadError('failed_to_load_projects');
+      actions.setLoadError('failed_to_load_projects');
     } finally {
-      if (isCurrent()) actions.setIsLoading(false);
+      actions.setIsLoading(false);
     }
   };
 

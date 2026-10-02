@@ -45,3 +45,31 @@
 - 第一批首包 gzip 约 167.8 kB（基线191.14）；原 ≤150 kB 门槛尚未通过，整体 goal 不关闭。当前 localhost proxy 访问生产 API 有网络延迟，本地等待/错误可见，但不能据此声称生产 API 退化。
 - 发布准备只修改本工作树 frontend、任务 docs 和新增回归脚本。用户原工作区及其他任务 backend/analytics/admin WIP 不提交。保留公共 Crisp 网站配置用于构建，未拷贝或打印生产 Secrets。
 - 第一批复盘判断：通用经验已在现有流程要求中（沿实际 UI 验证、身份请求归属、共享 owner 优先），本次仅记录项目事实和证据，不新增平行方法文档。整体复盘待第二批完成。
+
+
+## 第一批线上交付
+
+实现提交 15e50d6 普通推送 origin/master；仓库 pnpm deploy:pages 成功，gh-pages source 69502b4，Cloudflare Pages production bb55f58d-4c90-4e6c-8cf9-dadbf3b71b79。https://gemigo.io/dashboard 实际加载 /assets/index-MORflqby.js，与本批 production build 的版本路径一致（539.44kB/gzip167.79kB），不以推送日志代替域名证据。
+
+用户当前真实已登录会话刷新：先显示“仪表板”+内容骨架，随后26个项目正常呈现；旧锁图标等待卡片消失，draft/local-static 识别文本改为 HTML/上传 ZIP，部署时间本地化。1280px 亮色截图已经打开复核并保存于 `/Users/peiwang/.codex/visualizations/2026/10/02/01a0fd0c-6575-7831-a513-01159b83eb9f/gemigo-dashboard-live.jpg`。搜索 no-result-ux-20261003 出现“未找到项目”和可恢复操作，清除搜索返回项目；项目侧栏真实 Link 进入既有管理详情。未写生产资料、未删除项目。独立 shell curl 域名超时属本机网络路径，浏览器域名资源与真实产品操作已确认，Cloudflare只读查询也返回production版本。
+
+用户允许分批交付，第一批线上可用；整体合同保持 active，第二批性能/全页矩阵与残余体验继续推进。
+
+
+## 用户否定与回退（2026-10-03）
+
+用户明确指出：不能照搬ChatGPT外观而丢掉本产品主题/风格；本批中性配色失去语义区分，顶栏滚走，HTML/ZIP发布区域不如旧版；提供右侧预览iframe只占窄区的截图，要求停止改动、恢复精心设计的原容器。AI确认这些来自自己的15e50d6改动，停止第二批。第二批草稿存入frontend-experience-cancelled-second-batch的本任务stash，未上线。
+
+恢复范围：逆转15e50d6的frontend及新增测试实现，保留本任务日志而不删除历史，也不逆转e569388以前其它任务的新功能。恢复原主题token/Tailwind、原Header/Profile/Menu/Home发布和探索外观、原右侧AppPreviewPanel完整w-full容器/iframe/Dock、原路由与状态逻辑。用户明确要求顶栏固定，因此在原Header上只增加sticky top-0，未继续设计其它界面。回退产品合同取代原UX01–UX10执行计划；旧“Review无finding”只代表AI当时自审，用户反馈已经否定其主观质量结论，不能作为达标证据。原目标没有实现，应停止而不标记complete。
+
+回退验收：与e569388的frontend差异只剩Header sticky；frontend tsc/lint/build、diff检查；真实首页发布区/原主题与原右侧预览全宽，滚动时Header停留顶部。回退发布后核对gemigo.io实际asset和产品画面，不以Git操作代替恢复。
+
+本地回退验收通过：1280×900真实页面中iframe与其父容器均607px，滚动main到900px后Header的top仍0且position=sticky。发布前定向fetch发现origin/master已推进至fb4a228；保留其后台发布修正、托管缓存、语言扫描及语言badge新逻辑，冲突仅复合回原卡片配色/原语言控件与最新语言功能，不覆盖用户最新功能。
+
+## 回退线上验收与停止
+
+恢复实现6217543，合并最新master的92ef17e/cb9db1c后frontend tsc、ESLint、生产构建与diff检查通过。合并新增语言badge条件与控件短标题后复核无开放finding；除Header sticky及原格式清理外，基线差异均为保留其它任务最新语言功能。普通推送master成功，pnpm deploy:pages发布成功；gh-pages eacccc4bf157289f6909ac58c22eb5057f3aaaed，Cloudflare production e7f02e06-5566-4b62-b103-1966ca724a39 Active。
+
+真实gemigo.io首页已加载本次/assets/index-CF6b3Ur3.js，紫色主题、导航选中态、原账户Header与HTML/ZIP发布区恢复。通过同一实际应用“李睿博的网站”复现并验收：1440×900下iframe/父容器均687px，原Dock恢复，右侧不再空白；main滚动1425px时Header top=0/position=sticky。没有写入任何用户业务数据。原缓存曾短暂读取旧资产，临时关闭验证tab缓存后确认新版本，结束时恢复浏览器设置。
+
+真实截图：gemigo-restored-home.jpg及gemigo-restored-preview.jpg，位于/Users/peiwang/.codex/visualizations/2026/10/02/01a0fd0c-6575-7831-a513-01159b83eb9f/。整体改版未达到用户要求，用户明确要求停止；仅恢复交付完成，原goal按暂停处理，第二批隔离草稿不再执行。

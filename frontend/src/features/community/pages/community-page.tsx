@@ -1,14 +1,13 @@
 import {
   Inbox,
   LockKeyhole,
+  Loader2,
   MessageSquarePlus,
   RotateCcw,
   SlidersHorizontal,
 } from 'lucide-react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ContentSkeleton } from '@/components/loading-state';
-import { SessionError } from '@/components/session-error';
 import { PageLayout } from '@/components/page-layout';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
@@ -36,7 +35,6 @@ export const CommunityPage: React.FC = () => {
   const { t } = useTranslation();
   const presenter = usePresenter();
   const authUser = useAuthStore((state) => state.user);
-  const sessionError = useAuthStore((s) => s.sessionError);
   const authLoading = useAuthStore((state) => state.isLoading);
   const posts = useCommunityStore((state) => state.posts);
   const total = useCommunityStore((state) => state.total);
@@ -51,9 +49,9 @@ export const CommunityPage: React.FC = () => {
 
   useEffect(() => {
     presenter.community.clearPrivateFeedback();
-    if (authLoading || sessionError || !authUserId) return;
+    if (authLoading || !authUserId) return;
     void presenter.community.loadPosts();
-  }, [authLoading, sessionError, authUserId, categoryFilter, isAdmin, presenter.community, statusFilter]);
+  }, [authLoading, authUserId, categoryFilter, isAdmin, presenter.community, statusFilter]);
 
   return (
     <PageLayout
@@ -64,7 +62,7 @@ export const CommunityPage: React.FC = () => {
             type="button"
             onClick={presenter.community.openComposer}
             aria-label={t('community.newFeedback')}
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg  transition hover:bg-brand-700"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/20 transition hover:bg-brand-700"
           >
             <MessageSquarePlus className="h-4 w-4" />
             <span className="hidden sm:inline">{t('community.newFeedback')}</span>
@@ -73,8 +71,10 @@ export const CommunityPage: React.FC = () => {
       }
     >
       {authLoading ? (
-        <ContentSkeleton shape="list" />
-      ) : sessionError ? <SessionError /> : !authUser ? (
+        <div className="flex min-h-48 items-center justify-center text-slate-400">
+          <Loader2 className="h-7 w-7 animate-spin" />
+        </div>
+      ) : !authUser ? (
         <section className="flex flex-col gap-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between md:p-8">
           <div className="flex min-w-0 gap-4">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-300">
@@ -165,7 +165,9 @@ export const CommunityPage: React.FC = () => {
             )}
 
             {isLoading && posts.length === 0 ? (
-              <ContentSkeleton shape="list" />
+              <div className="flex min-h-48 items-center justify-center text-slate-400">
+                <Loader2 className="h-7 w-7 animate-spin" />
+              </div>
             ) : error ? (
               <div className="flex min-h-48 flex-col items-center justify-center rounded-2xl border border-dashed border-red-200 bg-red-50/50 px-6 text-center dark:border-red-500/20 dark:bg-red-500/5">
                 <p className="text-sm text-red-600 dark:text-red-300">{error}</p>

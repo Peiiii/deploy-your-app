@@ -42,8 +42,7 @@
     "copyUrl": "复制链接",
     "copied": "已复制",
     "add": "添加",
-    "clickToEnter": "点击进入应用",
-    "settings": "项目设置"
+    "clickToEnter": "点击进入应用"
   },
   "navigation": {
     "home": "首页",
@@ -583,8 +582,7 @@
     "indieHacker": "独立开发者",
     "thePlayground": "游乐场",
     "collapseSidebar": "收起侧边栏",
-    "expandSidebar": "展开侧边栏",
-    "changeLanguage": "切换语言"
+    "expandSidebar": "展开侧边栏"
   },
   "home": {
     "quickDeploy": "快速部署",
@@ -674,6 +672,7 @@
     "appLanguage": "想看哪些语言的应用？",
     "contentShort": "内容",
     "contentLanguage": "内容语言",
+    "contentShort": "内容",
     "siteLanguage": "网站显示语言",
     "automaticActive": "已按浏览器语言自动选择",
     "automatic": "恢复自动选择",
@@ -686,12 +685,12 @@
     "loadFailed": "应用加载失败，请重试。",
     "retry": "重新加载",
     "browseAll": "浏览全部语言",
-    "authorHint": "选择应用实际支持的语言；名称、简介的翻译不代表应用支持该语言。留空可恢复自动识别。",
+    "authorHint": "选择应用实际支持的语言；名称、简介的翻译不代表应用支持该语言。留空后，公开部署的应用将自动识别。",
     "detected": "根据应用自动识别",
     "declared": "你已确认",
-    "save": "保存应用语言",
-    "saved": "应用语言已保存。",
-    "saveFailed": "保存应用语言失败。",
+    "save": "保存支持的语言",
+    "saved": "支持的语言已保存。",
+    "saveFailed": "保存支持的语言失败。",
     "supportedLanguages": "应用支持的语言"
   },
   "legal": {
@@ -722,24 +721,5 @@
     "reportEvidence": "请提供应用的完整网址、疑似违规的具体说明、发现时间及必要证据。不必下载或转发违法材料，请勿提交密码、密钥或无关个人信息。",
     "reportPrivacy": "反馈仅你和 GemiGo 团队可见；可在“我的反馈”中查看回复或补充说明。",
     "reportAction": "前往私密反馈（需登录）"
-  },
-  "experience": {
-    "skipToContent": "跳到主要内容",
-    "mainNavigation": "主导航",
-    "supportError": "暂时无法打开帮助，请重试。",
-    "pageError": "暂时无法打开此页面",
-    "pageErrorDescription": "请检查网络后重新加载，已保存的项目不会丢失。",
-    "sessionError": "暂时无法连接到你的账户",
-    "sessionErrorDescription": "请检查网络后重试，继续之前的操作。",
-    "projectsError": "暂时无法加载你的项目",
-    "projectUnavailable": "暂时无法访问此项目",
-    "projectUnavailableDescription": "项目可能已被删除，或属于其他账户。",
-    "exploreError": "暂时无法加载应用",
-    "resetFilters": "清除筛选",
-    "refreshing": "正在更新结果…",
-    "profileError": "暂时无法加载此主页",
-    "likeApp": "赞 {{name}}",
-    "favoriteApp": "收藏 {{name}}",
-    "preview": "应用预览"
   }
 }

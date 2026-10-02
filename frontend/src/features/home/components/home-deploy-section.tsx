@@ -20,13 +20,13 @@ export const HomeDeploySection = ({ compact, onQuickDeploy }: HomeDeploySectionP
   return (
     <section
       aria-label={t('home.quickDeploy')}
-      className="surface-card rounded-2xl p-5 md:p-6"
+      className="rounded-2xl border border-brand-100 dark:border-brand-900 bg-brand-50/60 dark:bg-brand-950/20 p-4 md:p-5"
     >
       <div
         className={`flex gap-3 ${compact ? 'flex-col' : 'flex-col xl:flex-row xl:items-center xl:justify-between'}`}
       >
         <div>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
             {t('home.publishHeading')}
           </h2>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
@@ -36,21 +36,21 @@ export const HomeDeploySection = ({ compact, onQuickDeploy }: HomeDeploySectionP
         <div className="relative flex flex-wrap items-center gap-2">
           <button
             onClick={() => publish(SourceType.HTML)}
-            className="btn-primary gap-2"
+            className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-brand-700"
           >
             <FileCode className="h-4 w-4" />
             {t('home.publishHtml')}
           </button>
           <button
             onClick={() => publish(SourceType.ZIP)}
-            className="btn-secondary gap-2"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50"
           >
             <FileArchive className="h-4 w-4" />
             {t('home.publishZip')}
           </button>
           <Popover
             className="sm:relative"
-            triggerClassName="btn-secondary gap-1 border-transparent"
+            triggerClassName="flex items-center gap-1 px-2 py-2.5 text-sm text-slate-600 dark:text-slate-300"
             trigger={
               <>
                 {t('home.moreWays')}

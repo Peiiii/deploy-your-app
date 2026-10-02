@@ -43,7 +43,7 @@ export async function fetchExploreProjects(
     qs ? `?${qs}` : ''
   }`;
 
-  const response = await fetch(url, { signal: AbortSignal.timeout(15_000) });
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error('Failed to load explore projects');
   }

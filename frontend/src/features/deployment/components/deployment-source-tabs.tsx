@@ -19,7 +19,7 @@ export const DeploymentSourceTabs: React.FC<DeploymentSourceTabsProps> = ({
       <button
         type="button"
         onClick={() => onSelect(SourceType.GITHUB)}
-        className={`group relative p-6 rounded-xl border-2 text-left transition-colors duration-150 hover:shadow-lg ${
+        className={`group relative p-6 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-lg ${
           activeSource === SourceType.GITHUB
             ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-950/20 shadow-md'
             : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-purple-300 dark:hover:border-purple-800'
@@ -58,7 +58,7 @@ export const DeploymentSourceTabs: React.FC<DeploymentSourceTabsProps> = ({
       <button
         type="button"
         onClick={() => onSelect(SourceType.ZIP)}
-        className={`group relative p-6 rounded-xl border-2 text-left transition-colors duration-150 hover:shadow-lg ${
+        className={`group relative p-6 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-lg ${
           activeSource === SourceType.ZIP
             ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-950/20 shadow-md'
             : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-purple-300 dark:hover:border-purple-800'
@@ -97,7 +97,7 @@ export const DeploymentSourceTabs: React.FC<DeploymentSourceTabsProps> = ({
       <button
         type="button"
         onClick={() => onSelect(SourceType.HTML)}
-        className={`group relative p-6 rounded-xl border-2 text-left transition-colors duration-150 hover:shadow-lg ${
+        className={`group relative p-6 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-lg ${
           activeSource === SourceType.HTML
             ? 'border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-950/20 shadow-md'
             : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-purple-300 dark:hover:border-purple-800'

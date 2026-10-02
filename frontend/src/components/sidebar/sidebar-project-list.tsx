@@ -26,16 +26,16 @@ export const SidebarProjectList: React.FC<SidebarProjectListProps> = ({
   const location = useLocation();
 
   return (
-    <div className="mt-5 pt-4 flex flex-col min-h-0 flex-1">
+    <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/5 flex flex-col min-h-0 flex-1">
       <div className="px-3 mb-3 flex items-center justify-between gap-2 flex-shrink-0">
-        <p className="text-xs font-medium text-app-muted">
+        <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
           {t('navigation.projects')}
         </p>
       </div>
       <div className="overflow-y-auto flex-1 min-h-0">
-        {isLoading && projects.length === 0 ? (
+        {isLoading ? (
           <SidebarProjectListSkeleton />
-        ) : hasLoadError && projects.length === 0 ? (
+        ) : hasLoadError ? (
           <div className="px-3 py-1 text-[11px] text-slate-400 dark:text-gray-500">
             <p>{t('navigation.projectsLoadError')}</p>
             {onRetry && (

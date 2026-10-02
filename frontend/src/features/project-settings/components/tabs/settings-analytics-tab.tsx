@@ -24,7 +24,7 @@ export const SettingsAnalyticsTab: React.FC<SettingsAnalyticsTabProps> = ({
     const error = analyticsEntry?.error;
 
     return (
-        <div className="space-y-8 ">
+        <div className="space-y-8 animate-fade-in">
             <div className="glass-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
                 <div className="flex items-center gap-3 mb-6">
                     <div className="p-2 rounded-lg bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400">

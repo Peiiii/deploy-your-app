@@ -18,9 +18,9 @@ export const useHomeExploreFeed = () => {
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('recommended');
-  const [isLoadingExplore, setIsLoadingExplore] = useState(true);
+  const [isLoadingExplore, setIsLoadingExplore] = useState(false);
+  const [exploreError, setExploreError] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -43,10 +43,14 @@ export const useHomeExploreFeed = () => {
   const loadExplorePage = useCallback(
     async (pageToLoad: number, append: boolean) => {
       const requestId = ++exploreRequestIdRef.current;
-      setError(null);
+      setExploreError(false);
       if (append) {
         setIsLoadingMore(true);
       } else {
+        console.log('[useHomeExploreFeed] loading explore page', {
+          pageToLoad,
+          append,
+        });
         setIsLoadingExplore(true);
         setIsLoadingMore(false);
       }
@@ -93,9 +97,13 @@ export const useHomeExploreFeed = () => {
           presenter.reaction.loadReactionsForProjectsBulk(ids);
         }
       } catch (error) {
-        if (requestId === exploreRequestIdRef.current) setError(append ? 'append_failed' : 'failed_to_load_apps');
+        if (requestId === exploreRequestIdRef.current) setExploreError(true);
         console.error('Failed to load explore apps for Home', error);
       } finally {
+        console.log('[useHomeExploreFeed] finally', {
+          requestId,
+          exploreRequestIdRefCurrent: exploreRequestIdRef.current,
+        });
         if (requestId === exploreRequestIdRef.current) {
           setIsLoadingExplore(false);
           setIsLoadingMore(false);
@@ -114,28 +122,26 @@ export const useHomeExploreFeed = () => {
   );
 
   useEffect(() => {
+    setApps([]);
     setPage(1);
     setHasMore(false);
     void loadExplorePage(1, false);
-    return () => { exploreRequestIdRef.current += 1; };
   }, [activeCategory, activeTag, loadExplorePage, searchQuery, sortBy]);
 
   const handleLoadMoreExplore = useCallback(() => {
-    if (!hasMore || isLoadingExplore || isLoadingMore || error) return;
+    if (!hasMore || isLoadingExplore || isLoadingMore) return;
     void loadExplorePage(page + 1, true);
-  }, [hasMore, isLoadingExplore, isLoadingMore, error, loadExplorePage, page]);
+  }, [hasMore, isLoadingExplore, isLoadingMore, loadExplorePage, page]);
 
   useInfiniteScroll({
     targetRef: loadMoreRef,
     onLoadMore: handleLoadMoreExplore,
-    enabled: hasMore && !isLoadingExplore && !isLoadingMore && !error,
+    enabled: hasMore && !isLoadingExplore && !isLoadingMore,
     rootMargin: PERFORMANCE_CONFIG.EXPLORE_PRELOAD_ROOT_MARGIN,
   });
 
   return {
     apps,
-    error,
-    retry: () => { void loadExplorePage(error === 'append_failed' ? page + 1 : 1, error === 'append_failed'); },
     activeCategory,
     setActiveCategory,
     activeTag,
@@ -145,6 +151,8 @@ export const useHomeExploreFeed = () => {
     sortBy,
     setSortBy,
     isLoadingExplore,
+    exploreError,
+    retryExplore: () => void loadExplorePage(1, false),
     isLoadingMore,
     hasMore,
     loadMoreRef,
