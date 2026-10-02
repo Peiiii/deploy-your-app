@@ -46,8 +46,7 @@
     "justNow": "Just now",
     "minutesAgo": "m ago",
     "hoursAgo": "h ago",
-    "daysAgo": "d ago",
-    "settings": "Project settings"
+    "daysAgo": "d ago"
   },
   "navigation": {
     "home": "Home",
@@ -587,8 +586,7 @@
     "indieHacker": "Indie Hacker",
     "thePlayground": "The Playground",
     "collapseSidebar": "Collapse sidebar",
-    "expandSidebar": "Expand sidebar",
-    "changeLanguage": "Change language"
+    "expandSidebar": "Expand sidebar"
   },
   "home": {
     "quickDeploy": "Quick Deploy",
@@ -726,24 +724,5 @@
     "reportEvidence": "Include the full app URL, the suspected violation, when you observed it and necessary evidence. You do not need to download or redistribute illegal material. Do not submit passwords, secrets or unrelated personal information.",
     "reportPrivacy": "Only you and the GemiGo team can read your feedback. View replies or add details in “My feedback”.",
     "reportAction": "Open private feedback (sign-in required)"
-  },
-  "experience": {
-    "skipToContent": "Skip to content",
-    "mainNavigation": "Main navigation",
-    "supportError": "Support could not be opened. Please try again.",
-    "pageError": "This page could not be opened",
-    "pageErrorDescription": "Check your connection, then reload the page. Your saved projects are safe.",
-    "sessionError": "We couldn’t reconnect to your account",
-    "sessionErrorDescription": "Check your connection and try again to continue.",
-    "projectsError": "Your projects couldn’t be loaded",
-    "projectUnavailable": "This project isn’t available",
-    "projectUnavailableDescription": "It may have been removed, or belongs to another account.",
-    "exploreError": "Apps couldn’t be loaded",
-    "resetFilters": "Clear filters",
-    "refreshing": "Updating results…",
-    "profileError": "This profile couldn’t be loaded",
-    "likeApp": "Like {{name}}",
-    "favoriteApp": "Save {{name}}",
-    "preview": "App preview"
   }
 }

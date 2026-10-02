@@ -1,29 +1,17 @@
-import { lazy, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { routeLoaders } from '@/route-loader';
-import { RouteBoundary } from '@/components/route-boundary';
 import { Home } from '@/features/home/pages/home-page';
-
-const Dashboard = lazy(routeLoaders.dashboard);
-
-const NewDeployment = lazy(routeLoaders.deploy);
-
-const ExploreApps = lazy(routeLoaders.explore);
-
-const CommunityPage = lazy(routeLoaders.community);
-
-const ProjectSettings = lazy(routeLoaders.projects);
-
-const MyProfile = lazy(routeLoaders.me);
-
-const PublicProfile = lazy(routeLoaders.publicProfile);
-
-const AdminProjectsPage = lazy(routeLoaders.admin);
-
-const BrandingDesignPage = lazy(routeLoaders.branding);
-
-const PrivacyPolicyPage = lazy(routeLoaders.privacy);
-const AcceptableUsePage = lazy(routeLoaders.acceptableUse);
+import { Dashboard } from '@/features/dashboard/pages/dashboard';
+import { NewDeployment } from '@/features/deployment/pages/new-deployment';
+import { ExploreApps } from '@/features/explore/pages/explore-apps';
+import { ProjectSettings } from '@/features/project-settings/pages/project-settings';
+import { MyProfile } from '@/features/profile/pages/my-profile';
+import { PublicProfile } from '@/features/profile/pages/public-profile';
+import { AdminProjectsPage } from '@/features/admin/pages/admin-projects';
+import { BrandingDesignPage } from '@/features/design/pages/branding-design-page';
+import { PrivacyPolicyPage } from '@/features/legal/pages/privacy-policy';
+import { AcceptableUsePage } from '@/features/legal/pages/acceptable-use';
+import { CommunityPage } from '@/features/community/pages/community-page';
 
 const AdminRedirect = () => {
   useEffect(() => { window.location.replace('https://admin.gemigo.io'); }, []);
@@ -31,7 +19,7 @@ const AdminRedirect = () => {
 };
 
 export const AppRoutes = () => (
-    <RouteBoundary><Routes>
+    <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/deploy" element={<NewDeployment />} />
@@ -47,5 +35,5 @@ export const AppRoutes = () => (
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/acceptable-use" element={<AcceptableUsePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes></RouteBoundary>
+    </Routes>
 );

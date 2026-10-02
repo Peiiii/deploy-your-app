@@ -6,7 +6,6 @@ interface AuthState {
   // Loading current session (/me)
   isLoading: boolean;
   error: string | null;
-  sessionError: string | null;
   // Email auth modal UI state
   modalOpen: boolean;
   mode: 'login' | 'signup';
@@ -22,7 +21,6 @@ export const useAuthStore = create<AuthState>(() => ({
   user: null,
   isLoading: true,
   error: null,
-  sessionError: null,
   modalOpen: false,
   mode: 'login',
   email: '',

@@ -5,11 +5,10 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
-        slate: { 50: '#fafafa', 100: '#f5f5f5', 200: '#e5e5e5', 300: '#d4d4d4', 400: '#a3a3a3', 500: '#737373', 600: '#525252', 700: '#404040', 800: '#2b2b2b', 900: '#171717', 950: '#101010' },
         brand: {
           50: '#f5f3ff',
           100: '#ede9fe',
@@ -24,7 +23,6 @@ module.exports = {
           950: '#2e1065',
         },
         app: {
-          sidebar: 'var(--bg-sidebar)',
           bg: 'var(--bg-main)',
           surface: 'var(--bg-surface)',
           surfaceHighlight: 'var(--bg-highlight)',

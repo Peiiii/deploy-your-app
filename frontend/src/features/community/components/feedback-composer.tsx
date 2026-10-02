@@ -16,7 +16,7 @@ export const FeedbackComposer: React.FC = () => {
   const actions = useCommunityStore((state) => state.actions);
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-brand-200 bg-white shadow-xl  dark:border-brand-500/20 dark:bg-slate-900">
+    <section className="overflow-hidden rounded-3xl border border-brand-200 bg-white shadow-xl shadow-brand-500/5 dark:border-brand-500/20 dark:bg-slate-900">
       <div className="flex items-start justify-between border-b border-slate-100 px-5 py-4 dark:border-slate-800 md:px-7">
         <div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">
@@ -119,7 +119,7 @@ export const FeedbackComposer: React.FC = () => {
             type="button"
             disabled={isSubmitting || !title.trim() || !content.trim()}
             onClick={() => void presenter.community.submitPost()}
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg  transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/20 transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? (
               <Loader2 className="h-4 w-4 animate-spin" />

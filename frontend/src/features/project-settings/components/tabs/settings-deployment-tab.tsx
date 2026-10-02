@@ -14,7 +14,7 @@ export const SettingsDeploymentTab: React.FC<SettingsDeploymentTabProps> = ({
     canDeployFromGitHub,
 }) => {
     return (
-        <div className="space-y-8 ">
+        <div className="space-y-8 animate-fade-in">
             {/* Deployment Management Controls */}
             <div className="glass-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
                 <ProjectSettingsDeploymentGroup

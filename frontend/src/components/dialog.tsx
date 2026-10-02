@@ -8,8 +8,6 @@ type DialogContentProps = ComponentProps<typeof DialogPrimitive.Content> & {
   closeLabel: string;
   dismissible?: boolean;
   size?: 'sm' | 'md';
-  layout?: 'modal' | 'drawer' | 'fullscreen';
-  showClose?: boolean;
 };
 
 /** Shared modal shell; callers own open state and the meaning of cancellation. */
@@ -19,8 +17,6 @@ export const DialogContent = ({
   closeLabel,
   dismissible = true,
   size = 'md',
-  layout = 'modal',
-  showClose = true,
   onEscapeKeyDown,
   onPointerDownOutside,
   onInteractOutside,
@@ -29,16 +25,11 @@ export const DialogContent = ({
   ...props
 }: DialogContentProps) => {
   const returnFocus = useRef<HTMLElement | null>(null);
-  const geometry = layout === 'drawer'
-    ? 'inset-y-0 left-0 h-[100dvh] w-64 overflow-y-auto'
-    : layout === 'fullscreen'
-      ? 'inset-0 h-[100dvh] w-full overflow-hidden'
-      : `left-1/2 top-1/2 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-app-border p-6 shadow-xl ${size === 'sm' ? 'max-w-sm' : 'max-w-md'}`;
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-[100] bg-black/35" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm motion-safe:animate-fade-in" />
       <DialogPrimitive.Content
-        className={`fixed z-[100] bg-app-bg text-app-text focus:outline-none ${geometry} ${className}`}
+        className={`fixed left-1/2 top-1/2 z-[100] max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 ${size === 'sm' ? 'max-w-sm' : 'max-w-md'} ${className}`}
         onOpenAutoFocus={(event) => {
           // App dialogs also open from managers, without a Radix DialogTrigger.
           returnFocus.current =
@@ -67,13 +58,13 @@ export const DialogContent = ({
         {...props}
       >
         {children}
-        {showClose && <DialogPrimitive.Close
+        <DialogPrimitive.Close
           disabled={!dismissible}
           aria-label={closeLabel}
           className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:pointer-events-none disabled:opacity-40 dark:hover:bg-slate-800 dark:hover:text-slate-200"
         >
           <X className="h-4 w-4" aria-hidden="true" />
-        </DialogPrimitive.Close>}
+        </DialogPrimitive.Close>
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
   );

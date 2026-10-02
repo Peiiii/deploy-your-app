@@ -77,7 +77,7 @@ export function AppLanguageFilter({ compact = false }: { compact?: boolean }) {
       triggerAriaLabel={`${t('languages.contentLanguage')}：${selected}`}
       triggerTitle={t('languages.appLanguage')}
       triggerClassName="min-h-10 px-3 rounded-full flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm whitespace-nowrap"
-      trigger={<><Languages className="h-4 w-4 shrink-0" /><span className="hidden xl:inline">{t('languages.contentLanguage')}：</span><span className="max-w-28 truncate">{selected}</span><ChevronDown className="h-3.5 w-3.5 shrink-0" /></>}
+      trigger={<><Languages className="h-4 w-4 shrink-0" /><span className="sm:hidden">{t('languages.contentShort')}：</span><span className="hidden sm:inline">{t('languages.contentLanguage')}：</span><span className="max-w-28 truncate">{selected}</span><ChevronDown className="h-3.5 w-3.5 shrink-0" /></>}
       panelClassName="absolute right-0 top-full mt-2 w-[min(360px,calc(100vw-2rem))] rounded-2xl bg-white dark:bg-slate-900 shadow-xl z-50"
     >
       {panel}

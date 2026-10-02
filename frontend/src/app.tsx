@@ -1,5 +1,5 @@
 import { trackPage } from '@/analytics/collector';
-import { lazy, useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { Sidebar } from '@/components/sidebar';
@@ -13,14 +13,14 @@ import { AuthModal } from '@/features/auth/components/auth-modal';
 import { ProfileNameReminder } from '@/features/profile/components/profile-name-reminder';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Toast } from '@/components/toast';
-import { routeLoaders } from '@/route-loader';
-import { Modal } from '@/components/modal';
-import { RouteBoundary } from '@/components/route-boundary';
-const PrivacyPolicyPage = lazy(routeLoaders.privacy);
-const AcceptableUsePage = lazy(routeLoaders.acceptableUse);
-const SdkAuthBrokerPage = lazy(routeLoaders.sdk);
-const CliLoginPage = lazy(routeLoaders.cli);
-const CliLoginSuccessPage = lazy(routeLoaders.cliSuccess);
+import { CrispChat } from '@/components/crisp-chat';
+import { PrivacyPolicyPage } from '@/features/legal/pages/privacy-policy';
+import { AcceptableUsePage } from '@/features/legal/pages/acceptable-use';
+import { SdkAuthBrokerPage } from '@/features/sdk-auth/pages/sdk-auth-broker';
+import {
+  CliLoginPage,
+  CliLoginSuccessPage,
+} from '@/features/cli-auth/pages/cli-login-page';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hooks
@@ -36,7 +36,6 @@ const useAppInitialize = () => {
   const theme = useUIStore((s) => s.theme);
   const language = useUIStore((s) => s.language);
   const authUserId = useAuthStore((s) => s.user?.id);
-  const sessionError = useAuthStore((s) => s.sessionError);
   const authLoading = useAuthStore((s) => s.isLoading);
   const presenter = usePresenter();
 
@@ -53,13 +52,13 @@ const useAppInitialize = () => {
   // Load the signed-in user's projects only after session restoration. This
   // avoids both an unauthorized request and a global-project pagination race.
   useEffect(() => {
-    if (authLoading || sessionError) return;
+    if (authLoading) return;
     if (!authUserId) {
       useProjectStore.getState().actions.reset();
       return;
     }
     void presenter.project.loadProjects();
-  }, [authLoading, authUserId, sessionError, presenter.project]);
+  }, [authLoading, authUserId, presenter.project]);
 
   // Apply theme to document
   useEffect(() => {
@@ -76,9 +75,6 @@ const useAppInitialize = () => {
  * Width adjusts based on whether right panel is open.
  */
 const MainContent: React.FC = () => {
-  const scrollRef = useRef<HTMLElement>(null);
-  const { pathname } = useLocation();
-  useEffect(() => { scrollRef.current?.scrollTo({ top: 0 }); }, [pathname]);
   const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
   const hasRightPanel = useUIStore((s) => s.rightPanelContent !== null);
   const rightPanelLayout = useUIStore((s) => s.rightPanelLayout);
@@ -91,11 +87,10 @@ const MainContent: React.FC = () => {
 
   return (
     <main
-      id="main-content" tabIndex={-1} ref={scrollRef}
-      className={`h-full min-w-0 overflow-y-auto overflow-x-hidden flex flex-col ${sidebarOffset} ${rightPanelOffset} ${isFullscreenPanel ? 'pointer-events-none select-none' : ''}`}
+      className={`h-full overflow-y-auto overflow-x-hidden flex flex-col transition-all duration-300 ${sidebarOffset} ${rightPanelOffset} ${isFullscreenPanel ? 'pointer-events-none select-none' : ''}`}
     >
       <Header />
-      <div className="flex-1 min-w-0">
+      <div className="flex-1">
         <AppRoutes />
       </div>
     </main>
@@ -106,11 +101,9 @@ const MainContent: React.FC = () => {
  * Right panel container, rendered at root level as sibling of Sidebar and MainContent.
  */
 const RightPanel: React.FC = () => {
-  const { t } = useTranslation();
   const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
   const rightPanelContent = useUIStore((s) => s.rightPanelContent);
   const rightPanelLayout = useUIStore((s) => s.rightPanelLayout);
-  const closePanel = useUIStore((s) => s.actions.closeRightPanel);
 
   if (!rightPanelContent) return null;
 
@@ -119,13 +112,15 @@ const RightPanel: React.FC = () => {
 
   if (rightPanelLayout === 'fullscreen') {
     return (
-      <Modal open onClose={closePanel} titleId="preview-title" title={t('experience.preview')} layout="fullscreen"><div className="h-[100dvh]">{rightPanelContent}</div></Modal>
+      <aside className="fixed inset-0 bg-white dark:bg-black z-50">
+        {rightPanelContent}
+      </aside>
     );
   }
 
   return (
     <aside
-      className="hidden lg:flex fixed top-0 right-0 bottom-0 border-l border-slate-200 dark:border-slate-800 bg-app-bg z-40"
+      className="hidden lg:flex fixed top-0 right-0 bottom-0 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-40"
       style={{ width: `calc((100vw - ${sidebarWidth}) / 2)` }}
     >
       {rightPanelContent}
@@ -139,12 +134,11 @@ const RightPanel: React.FC = () => {
  */
 const MainLayout: React.FC = () => {
   useAppInitialize();
-  const { i18n } = useTranslation();
 
   return (
-    <div className="h-[100dvh] bg-app-bg text-app-text font-sans selection:bg-brand-500/30 selection:text-brand-700 dark:selection:text-brand-200 overflow-hidden">
-      <a href="#main-content" className="skip-link btn-primary">{i18n.t('experience.skipToContent')}</a>
+    <div className="h-screen bg-app-bg text-slate-900 dark:text-gray-200 font-sans selection:bg-brand-500/30 selection:text-brand-700 dark:selection:text-brand-200 transition-colors duration-300 overflow-hidden">
       {/* Global UI Components */}
+      <CrispChat />
       <AuthModal />
       <ConfirmDialog />
       <ProfileNameReminder />
@@ -172,11 +166,11 @@ export default function App() {
   const isCliLoginSuccess = pathname === '/cli/login/success';
 
   if (isPrivacyPolicy) {
-    return <RouteBoundary><PrivacyPolicyPage /></RouteBoundary>;
+    return <PrivacyPolicyPage />;
   }
 
   if (pathname === '/acceptable-use') {
-    return <RouteBoundary><AcceptableUsePage /></RouteBoundary>;
+    return <AcceptableUsePage />;
   }
 
   if (isSdkAuthBroker) {
@@ -186,7 +180,7 @@ export default function App() {
           <AuthModal />
           <ConfirmDialog />
           <Toast />
-          <RouteBoundary><SdkAuthBrokerPage /></RouteBoundary>
+          <SdkAuthBrokerPage />
         </div>
       </PresenterProvider>
     );
@@ -199,14 +193,14 @@ export default function App() {
           <AuthModal />
           <ConfirmDialog />
           <Toast />
-          <RouteBoundary><CliLoginPage /></RouteBoundary>
+          <CliLoginPage />
         </div>
       </PresenterProvider>
     );
   }
 
   if (isCliLoginSuccess) {
-    return <RouteBoundary><CliLoginSuccessPage /></RouteBoundary>;
+    return <CliLoginSuccessPage />;
   }
 
   return (

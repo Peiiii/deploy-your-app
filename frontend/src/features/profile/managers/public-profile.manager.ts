@@ -8,7 +8,6 @@ import type { ReactionManager } from '@/managers/reaction.manager';
  * All methods are arrow functions to avoid `this` binding issues.
  */
 export class PublicProfileManager {
-  private requestId = 0;
   private authManager: AuthManager;
   private reactionManager: ReactionManager;
 
@@ -24,15 +23,11 @@ export class PublicProfileManager {
     const actions = usePublicProfileStore.getState().actions;
     const user = this.authManager.getCurrentUser();
 
-    const requestId = ++this.requestId;
-    const isCurrent = () => requestId === this.requestId;
-    actions.setRequestedId(id);
     actions.setIsLoading(true);
     actions.setError(null);
 
     try {
       const profile = await fetchPublicProfile(id);
-      if (!isCurrent()) return;
       actions.setData(profile);
 
       // Load reactions if user is logged in
@@ -45,9 +40,9 @@ export class PublicProfileManager {
       }
     } catch (err) {
       console.error('Failed to load public profile', err);
-      if (isCurrent()) actions.setError(err instanceof Error && err.message === 'not_found' ? 'not_found' : 'network');
+      actions.setError('not_found');
     } finally {
-      if (isCurrent()) actions.setIsLoading(false);
+      actions.setIsLoading(false);
     }
   };
 

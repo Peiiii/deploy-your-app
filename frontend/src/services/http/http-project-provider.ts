@@ -19,7 +19,7 @@ export class HttpProjectProvider implements IProjectProvider {
 
   async getProjects(page = 1, pageSize = 100): Promise<PaginatedResponse<Project>> {
     const url = `${this.baseUrl}${API_ROUTES.PROJECTS}?scope=mine&page=${page}&pageSize=${pageSize}`;
-    const response = await fetch(url, { credentials: 'include', signal: AbortSignal.timeout(15_000) });
+    const response = await fetch(url, { credentials: 'include' });
     if (!response.ok) throw new Error("Failed to fetch projects");
     return response.json();
   }

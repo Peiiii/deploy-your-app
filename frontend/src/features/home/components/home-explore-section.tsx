@@ -3,8 +3,6 @@ import { AppLanguageFilter } from '@/features/explore/components/app-language-fi
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, Search, Sparkles, TrendingUp, X } from 'lucide-react';
-import { ContentSkeleton } from '@/components/loading-state';
-import { PageState } from '@/components/page-state';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 import { ExploreAppCardView } from '@/components/explore-app-card';
 import { CATEGORIES, type CategoryFilter } from '@/features/home/components/home-explore';
@@ -43,20 +41,19 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
   }, [value]);
 
   return (
-    <div className="relative w-full group">
+    <div className="relative w-full md:w-96 group">
       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-        <Search className="h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors duration-150 group-focus-within:scale-110" />
+        <Search className="h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-all duration-300 group-focus-within:scale-110" />
       </div>
       <input
-        type="search" aria-label={t('explore.searchApps')}
+        type="text"
         value={localValue}
         onChange={handleChange}
         placeholder={t('explore.searchApps')}
-        className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all shadow-sm"
+        className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all shadow-sm"
       />
       {localValue && (
         <button
-          aria-label={t('experience.resetFilters')}
           onClick={() => {
             setLocalValue('');
             onChange('');
@@ -109,14 +106,15 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
     <div
       className={`flex gap-2 overflow-x-auto ${isCompact ? 'pb-2 pt-1' : 'pb-2 pt-1'} px-1 scrollbar-hide [mask-image:linear-gradient(to_right,black,black_90%,transparent)]`}
     >
-      {CATEGORIES.map((cat) => {
+      {CATEGORIES.map((cat, index) => {
         const isActive = cat === activeCategory;
         return (
           <button
-            key={cat} aria-pressed={isActive}
+            key={cat}
             data-event="filter_change" onClick={() => handleCategoryClick(cat)}
-            className={`rounded-full font-medium whitespace-nowrap transition-colors duration-150 ${isCompact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'} ${isActive
-              ? 'bg-brand-600 text-white'
+            style={{ animationDelay: `${index * 30}ms` }}
+            className={`rounded-full font-medium whitespace-nowrap transition-all duration-200 ${isCompact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'} ${isActive
+              ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30 scale-105'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
               }`}
           >
@@ -124,6 +122,35 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
           </button>
         );
       })}
+    </div>
+  );
+};
+
+interface ExploreSkeletonGridProps {
+  compact: boolean;
+}
+
+const ExploreSkeletonGrid: React.FC<ExploreSkeletonGridProps> = ({ compact }) => {
+  return (
+    <div className={`grid ${compact ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-6`}>
+      {Array.from({ length: 6 }).map((_, idx) => (
+        <div
+          key={idx}
+          className="flex flex-col rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden shadow-sm animate-pulse"
+        >
+          <div className="aspect-video bg-slate-100 dark:bg-slate-800" />
+          <div className="p-3 space-y-3">
+            <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <div className="w-4 h-4 rounded-full bg-slate-100 dark:bg-slate-800" />
+                <div className="w-12 h-2 bg-slate-100 dark:bg-slate-800 rounded" />
+              </div>
+              <div className="w-6 h-2 bg-slate-100 dark:bg-slate-800 rounded" />
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
@@ -140,8 +167,6 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
   const { t } = useTranslation();
   const {
     apps,
-    error,
-    retry,
     activeCategory,
     setActiveCategory,
     activeTag,
@@ -151,6 +176,8 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
     sortBy,
     setSortBy,
     isLoadingExplore,
+    exploreError,
+    retryExplore,
     isLoadingMore,
     hasMore,
     loadMoreRef,
@@ -158,11 +185,11 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
   } = useHomeExploreFeed();
 
   return (
-    <section className=" text-left">
-      <div className={`flex flex-col ${compact ? '' : 'lg:flex-row lg:items-center'} justify-between items-start gap-3 mb-3`}>
+    <section className="animate-fade-in text-left">
+      <div className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-3`}>
         <div className="space-y-1">
           <h2
-            className={`font-semibold text-app-text text-left text-xl md:text-2xl`}
+            className={`font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-100 dark:to-white bg-clip-text text-transparent text-left text-xl md:text-2xl`}
           >
             {t('explore.exploreApps')}
           </h2>
@@ -170,13 +197,13 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
             {t('explore.discoverApps')}
           </p>
         </div>
-        <div className={`flex w-full items-center gap-2 ${compact ? '' : 'lg:w-auto'}`}>
-          <div className={`min-w-0 flex-1 ${compact ? '' : 'lg:w-80'}`}><SearchBar value={searchQuery} onChange={setSearchQuery} /></div>
+        <div className="w-full md:w-auto flex items-center gap-2">
+          <div className={`flex-1 min-w-0 ${compact ? 'md:w-64' : 'md:w-80'}`}><SearchBar value={searchQuery} onChange={setSearchQuery} /></div>
           <AppLanguageFilter />
         </div>
       </div>
 
-      <div className="mb-3 flex flex-col items-center gap-2 xl:flex-row">
+      <div className={`flex flex-col sm:flex-row items-center gap-2 mb-3`}>
         <div className="flex-1 min-w-0 w-full overflow-hidden">
           <CategoryFilter
             activeCategory={activeCategory}
@@ -186,7 +213,7 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
           />
         </div>
 
-        <div className="shrink-0 flex w-full xl:w-auto justify-end gap-1 rounded-full bg-slate-100 dark:bg-slate-800 p-1">
+        <div className="shrink-0 flex w-full sm:w-auto justify-end gap-1 rounded-full bg-slate-100 dark:bg-slate-800 p-1">
           {([
             ['recommended', Sparkles, 'explore.sortByRecommended'],
             ['popularity', TrendingUp, 'explore.sortByPopularity'],
@@ -201,10 +228,8 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
         </div>
       </div>
 
-      {error && <PageState title={t('experience.exploreError')} action={<button className="btn-secondary" onClick={retry}>{t('common.retry')}</button>} />}
-      {isLoadingExplore && apps.length > 0 && <p role="status" className="mb-3 text-sm text-app-muted">{t('experience.refreshing')}</p>}
-      {isLoadingExplore && apps.length === 0 ? (
-        <ContentSkeleton shape="apps" />
+      {isLoadingExplore ? (
+        <ExploreSkeletonGrid compact={compact} />
       ) : apps.length > 0 ? (
         <div>
           <div className={`grid ${compact ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-6`}>
@@ -222,7 +247,7 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
 
           <div ref={loadMoreRef} className="h-1" />
 
-          {!error && (hasMore || isLoadingMore) && (
+          {(hasMore || isLoadingMore) && (
             <div className="flex justify-center mt-8">
               {isLoadingMore ? (
                 <div className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-500 dark:text-slate-400">
@@ -241,7 +266,18 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
           )}
         </div>
       ) : (
-        !error && <PageState title={t('explore.noAppsFound')} description={t('explore.adjustSearch')} action={<button className="btn-secondary" onClick={() => { setActiveCategory('All Apps'); setActiveTag(null); setSearchQuery(''); useAppLanguageStore.getState().actions.select(null); }}>{t('experience.resetFilters')}</button>} />
+        <div className="glass-card rounded-2xl p-16 text-center animate-fade-in">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center shadow-lg">
+            <Search className="w-10 h-10 text-slate-400 dark:text-slate-500" />
+          </div>
+          <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+            {t(exploreError ? 'languages.loadFailed' : 'explore.noAppsFound')}
+          </h4>
+          <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto">
+            {t('languages.empty')}
+          </p>
+          <button type="button" onClick={exploreError ? retryExplore : () => useAppLanguageStore.getState().actions.select(null)} className="mt-4 rounded-full bg-brand-600 text-white px-4 py-2 text-sm">{t(exploreError ? 'languages.retry' : 'languages.browseAll')}</button>
+        </div>
       )}
     </section>
   );

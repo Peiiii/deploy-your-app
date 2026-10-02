@@ -2,9 +2,6 @@ import { useAppLanguageStore } from '@/features/explore/stores/app-language.stor
 import { AppLanguageFilter } from '@/features/explore/components/app-language-filter';
 import { getAuthorColor, getAuthorInitial, getAuthorName } from '@/utils/author';
 import { track } from '@/analytics/collector';
-import { Modal } from '@/components/modal';
-import { ContentSkeleton } from '@/components/loading-state';
-import { PageState } from '@/components/page-state';
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -19,13 +16,13 @@ import { createProjectComment, deleteComment, fetchProjectComments } from '@/ser
 import { fetchFollowSummary, followUser, unfollowUser } from '@/services/http/follow-api';
 
 interface ExploreFeedProps {
+    error: boolean;
+    onRetry: () => void;
     apps: ExploreAppCard[];
     hasMore: boolean;
     isLoading: boolean;
     onLoadMore: () => void;
     onToggleView: () => void;
-    error?: string | null;
-    onRetry?: () => void;
 }
 
 const buildAvatarFallback = (author: ProjectComment['author']): string => {
@@ -67,10 +64,12 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
     const [languageOpen, setLanguageOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
     const [isAnyAppEntered, setIsAnyAppEntered] = useState(false);
+    const [lastScrollTop, setLastScrollTop] = useState(0);
+    const [isScrollingUp, setIsScrollingUp] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Header visibility logic: Show at top OR when scrolling up
-    const showHeader = !isAnyAppEntered;
+    const showHeader = (activeIndex === 0 || isScrollingUp) && !isAnyAppEntered;
 
     // Auto-load when the user reaches the end of the feed. This is more reliable
     // than an intersection sentinel because the feed uses snap scrolling.
@@ -98,13 +97,32 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
         const items: NodeListOf<Element> | undefined = containerRef.current?.querySelectorAll('.feed-item-wrapper');
         items?.forEach((item) => observer.observe(item));
 
+        // Scroll direction tracking
+        const handleScroll = (e: Event) => {
+            const target = e.target as HTMLDivElement;
+            const currentScrollTop = target.scrollTop;
+
+            // Re-show header if scrolling up significantly
+            if (currentScrollTop < lastScrollTop - 10) {
+                setIsScrollingUp(true);
+            } else if (currentScrollTop > lastScrollTop + 10) {
+                setIsScrollingUp(false);
+            }
+
+            setLastScrollTop(currentScrollTop);
+        };
+
+        const container = containerRef.current;
+        container?.addEventListener('scroll', handleScroll);
+
         return () => {
             observer.disconnect();
+            container?.removeEventListener('scroll', handleScroll);
         };
-    }, [apps.length]);
+    }, [apps.length, lastScrollTop]);
 
     return (
-        <Modal open onClose={onToggleView} titleId="feed-title" title={t('explore.feedView')} layout="fullscreen"><div className="h-[100dvh] bg-black overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-[100] bg-black overflow-hidden flex flex-col">
             <div className="fixed top-20 left-4 z-[120] max-w-[calc(100vw-2rem)]">
               <button type="button" aria-expanded={languageOpen} onClick={() => setLanguageOpen(!languageOpen)} className="rounded-full bg-white text-slate-800 px-3 py-2 text-sm shadow-lg">{t('languages.appLanguage')}</button>
               {languageOpen && <div className="mt-2 w-[min(340px,calc(100vw-2rem))]"><AppLanguageFilter compact /></div>}
@@ -117,9 +135,8 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
                 {/* Left Side - Back Button */}
                 <div className="flex-1">
                     <button
-                        aria-label={t('explore.gridView')}
                         onClick={onToggleView}
-                        className="p-2 -ml-2 text-white hover:text-white/80 transition-all  filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                        className="p-2 -ml-2 text-white hover:text-white/80 transition-all active:scale-95 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
                     >
                         <ChevronLeft className="w-8 h-8" />
                     </button>
@@ -132,7 +149,7 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
                 <div className="flex-1 flex justify-end">
                     <button
                         onClick={onToggleView}
-                        className="p-2 text-white hover:text-white/80 transition-all  filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                        className="p-2 text-white hover:text-white/80 transition-all active:scale-95 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
                         title={t('explore.feed.exitFullscreen')}
                     >
                         <X className="w-7 h-7" />
@@ -144,9 +161,10 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
                 ref={containerRef}
                 className="flex-1 overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
             >
-                {error && <div className="m-6 mt-20"><PageState title={t('experience.exploreError')} action={<button className="btn-secondary" onClick={onRetry}>{t('common.retry')}</button>} /></div>}
-                {isLoading && apps.length === 0 && <div className="bg-app-bg p-6 pt-20"><ContentSkeleton shape="apps" /></div>}
-                {!isLoading && !error && apps.length === 0 && <div className="m-6 mt-20"><PageState title={t('languages.empty')} action={<button className="btn-secondary" onClick={() => useAppLanguageStore.getState().actions.select(null)}>{t('languages.browseAll')}</button>} /></div>}
+                {apps.length === 0 && <div className="h-full flex flex-col items-center justify-center px-6 text-center text-white gap-4">
+                  <p>{t(isLoading ? 'common.loading' : error ? 'languages.loadFailed' : 'languages.empty')}</p>
+                  {!isLoading && <button type="button" className="rounded-full bg-brand-600 px-4 py-2" onClick={error ? onRetry : () => useAppLanguageStore.getState().actions.select(null)}>{t(error ? 'languages.retry' : 'languages.browseAll')}</button>}
+                </div>}
                 {apps.map((app, index) => {
                     const isVisible = Math.abs(index - activeIndex) <= 1;
                     const isActive = index === activeIndex;
@@ -154,7 +172,7 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
                     return (
                         <div
                             key={app.id}
-                            className="feed-item-wrapper h-[100dvh] w-full snap-start snap-always"
+                            className="feed-item-wrapper h-screen w-full snap-start snap-always"
                             data-index={index}
                         >
                             <FeedItem
@@ -167,7 +185,7 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
                     );
                 })}
             </div>
-        </div></Modal>
+        </div>
     );
 };
 
@@ -393,7 +411,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                         </div>
                         {followIdentifier && !isSelfFollowTarget && (
                             <button
-                                className={`ml-1 px-3 py-1 text-white text-[10px] font-bold rounded-full  transition-all shadow-md ${isFollowing
+                                className={`ml-1 px-3 py-1 text-white text-[10px] font-bold rounded-full active:scale-95 transition-all shadow-md ${isFollowing
                                     ? 'bg-white/10 hover:bg-white/15'
                                     : 'bg-[#ff0050] hover:brightness-110'
                                     } ${isFollowLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
@@ -412,7 +430,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                             <span className="text-white/60 text-[10px] font-medium uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{t('explore.feed.interactive')}</span>
                         </div>
                         <button
-                            className="w-10 h-10 flex items-center justify-center text-white/80 hover:text-white transition-all  filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                            className="w-10 h-10 flex items-center justify-center text-white/80 hover:text-white transition-all active:scale-90 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
                             onClick={handleExit}
                             title={t('common.exit')}
                         >
@@ -428,7 +446,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                     <iframe
                         ref={iframeRef}
                         src={app.url}
-                        className="w-full h-full border-none bg-white transition-colors duration-150"
+                        className="w-full h-full border-none bg-white transition-all duration-300"
                         title={app.name}
                     />
                 ) : (
@@ -455,12 +473,12 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                 {/* Interaction Shield */}
                 {!isEntered && (
                     <div
-                        className="absolute inset-0 z-10 cursor-pointer bg-transparent flex flex-col items-center justify-center group transition-colors duration-150"
+                        className="absolute inset-0 z-10 cursor-pointer bg-transparent flex flex-col items-center justify-center group transition-all duration-300"
                         data-event="app_visit" onClick={handleEnter}
                     >
                         {isRendered && (
                             <>
-                                <div className="w-16 h-16 rounded-full border-2 border-white flex items-center justify-center filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]  transition-transform duration-300">
+                                <div className="w-16 h-16 rounded-full border-2 border-white flex items-center justify-center filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-300">
                                     <Play className="w-8 h-8 text-white fill-current translate-x-0.5" />
                                 </div>
                                 <p className="mt-4 text-white font-bold text-lg drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -500,7 +518,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                             <div className={`w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-gradient-to-tr ${authorColor} flex items-center justify-center text-xl shadow-xl text-white font-bold`}>
                                 {getAuthorInitial(authorName, app.author.anonymousCode)}
                             </div>
-                            <button className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-5 h-5 bg-[#ff0050] text-white rounded-full flex items-center justify-center font-bold text-lg border-2 border-white shadow-lg  transition-transform">
+                            <button className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-5 h-5 bg-[#ff0050] text-white rounded-full flex items-center justify-center font-bold text-lg border-2 border-white shadow-lg hover:scale-110 transition-transform">
                                 +
                             </button>
                         </div>
@@ -508,7 +526,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
 
                     <div className="flex flex-col items-center gap-1">
                         <div
-                            className="p-2 transition-transform  cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+                            className="p-2 transition-transform active:scale-90 cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                             onClick={() => presenter.reaction.toggleLike(app.id)}
                         >
                             <Heart className={`w-8 h-8 text-white transition-colors ${isLiked ? 'fill-[#ff0050] text-[#ff0050]' : 'fill-white/20'}`} />
@@ -520,7 +538,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
 
                     <div className="flex flex-col items-center gap-1">
                         <div
-                            className="p-2 transition-transform  cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+                            className="p-2 transition-transform active:scale-90 cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                             onClick={openComments}
                         >
                             <MessageCircle className="w-8 h-8 text-white fill-white/20" />
@@ -532,7 +550,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
 
                     <div className="flex flex-col items-center gap-1">
                         <div
-                            className="p-2 transition-transform  cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+                            className="p-2 transition-transform active:scale-90 cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                             onClick={() => presenter.reaction.toggleFavorite(app.id)}
                         >
                             <Star className={`w-8 h-8 text-white transition-colors ${isFavorited ? 'fill-yellow-400 text-yellow-400' : 'fill-white/20'}`} />
@@ -543,7 +561,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                     </div>
 
                     <div className="flex flex-col items-center gap-1">
-                        <div className="p-2 transition-transform  cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                        <div className="p-2 transition-transform active:scale-90 cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                             <Share2 className="w-8 h-8 text-white fill-white/20" />
                         </div>
                         <span className="text-white text-xs font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{t('explore.feed.share')}</span>
@@ -552,7 +570,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
 
                 {/* Comment Drawer */}
                 <div
-                    className={`absolute inset-0 z-50 transition-colors duration-150 ${isCommentsOpen ? 'pointer-events-auto' : 'pointer-events-none'
+                    className={`absolute inset-0 z-50 transition-all duration-300 ${isCommentsOpen ? 'pointer-events-auto' : 'pointer-events-none'
                         }`}
                 >
                     {/* Backdrop */}

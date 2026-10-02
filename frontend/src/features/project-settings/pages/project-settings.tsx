@@ -1,10 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { PageLayout } from '@/components/page-layout';
-import { PageSkeleton } from '@/components/loading-state';
-import { PageState } from '@/components/page-state';
-import { SessionError } from '@/components/session-error';
 import { ProjectSettingsCard } from '@/features/project-settings/components/project-settings-card';
 import { URLS } from '@/constants';
 import { usePresenter } from '@/contexts/presenter-context';
@@ -16,12 +12,6 @@ export const ProjectSettings: React.FC = () => {
   const { t } = useTranslation();
   const presenter = usePresenter();
   const projects = useProjectStore((s) => s.projects);
-  const authLoading = useAuthStore((s) => s.isLoading);
-  const sessionError = useAuthStore((s) => s.sessionError);
-  const hasLoaded = useProjectStore((s) => s.hasLoaded);
-  const isLoading = useProjectStore((s) => s.isLoading);
-  const loadError = useProjectStore((s) => s.loadError);
-  const hasMore = useProjectStore((s) => s.pagination.hasMore);
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
@@ -35,13 +25,13 @@ export const ProjectSettings: React.FC = () => {
     [projects, projectId],
   );
 
-  // App restores the session and initial list. Locate older projects across pages
-  // without competing with initial loading or requesting before authentication.
+  // Load projects if not available yet
   useEffect(() => {
-    if (user && hasLoaded && !project && !isLoading && !loadError && hasMore) {
-      void presenter.project.loadMore();
+    if (!projectId) return;
+    if (!project && projects.length === 0) {
+      presenter.project.loadProjects();
     }
-  }, [user, hasLoaded, project, isLoading, loadError, hasMore, presenter.project]);
+  }, [projectId, project, projects.length, presenter.project]);
 
   // Initialize form when project changes
   useEffect(() => {
@@ -70,17 +60,52 @@ export const ProjectSettings: React.FC = () => {
     }
   };
 
-  if (authLoading) return <PageSkeleton title={t('common.settings')} shape="details" />;
-  if (sessionError) return <PageLayout title={t('common.settings')}><SessionError /></PageLayout>;
-  if (!user) return <PageLayout title={t('common.settings')}><PageState title={t('dashboard.signInToViewProjects')} description={t('dashboard.dashboardPrivate')} action={<button className="btn-primary" onClick={() => presenter.auth.openAuthModal('login')}>{t('common.signIn')}</button>} /></PageLayout>;
+  if (!projectId) {
+    return (
+      <div className="p-8 max-w-4xl mx-auto">
+        <div className="rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30 p-6 text-center">
+          <p className="text-sm font-medium text-red-600 dark:text-red-400">
+            Invalid project URL.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!project) {
-    if (loadError) return <PageLayout title={t('common.settings')}><PageState title={t('experience.projectsError')} action={<button className="btn-primary" onClick={() => { void (hasLoaded ? presenter.project.loadMore() : presenter.project.loadProjects()); }}>{t('common.retry')}</button>} /></PageLayout>;
-    if (!hasLoaded || isLoading || hasMore) return <PageSkeleton title={t('common.settings')} shape="details" />;
-    return <PageLayout title={t('common.settings')}><PageState title={t('experience.projectUnavailable')} description={t('experience.projectUnavailableDescription')} action={<button className="btn-secondary" onClick={() => navigate('/dashboard')}>{t('dashboard.viewAllProjects')}</button>} /></PageLayout>;
+    return (
+      <div className="p-8 max-w-4xl mx-auto">
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-12 text-center">
+          <div className="inline-block w-8 h-8 border-2 border-slate-300 dark:border-slate-600 border-t-brand-500 rounded-full animate-spin mb-4"></div>
+          <p className="text-sm text-slate-600 dark:text-gray-400">
+            {t('common.loadingProjectDetails')}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const canRedeployFromGitHub =
     !!project.repoUrl && project.repoUrl.startsWith(URLS.GITHUB_BASE);
 
-  return <ProjectSettingsCard project={project} canDeployFromGitHub={canRedeployFromGitHub} error={error} onDeleteProject={handleDeleteProject} />;
+  // Layout Note: The ProjectSettingsCard (via ProjectLayout) now handles
+  // the full page structure including header and padding.
+  // We utilize a fragment here to avoid double-padding the content.
+  return (
+    <>
+      {/* Back button is now integrated into URL flow or ProjectLayout header context if needed */}
+      <div className="hidden">
+        {/* Legacy header components that were removed.
+               ProjectLayout now renders the header. */}
+      </div>
+
+      <ProjectSettingsCard
+        project={project}
+        canDeployFromGitHub={canRedeployFromGitHub}
+        error={error}
+        onDeleteProject={handleDeleteProject}
+      />
+
+    </>
+  );
 };

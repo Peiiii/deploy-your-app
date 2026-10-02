@@ -28,7 +28,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   onCopyUrl,
   isCopied,
 }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const analyticsByProject = useAnalyticsStore((s) => s.byProjectId);
   const analytics = analyticsByProject[project.id];
@@ -47,9 +47,12 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 
   return (
     <div
-      className="surface-card p-5 group relative transition-colors hover:border-app-borderHighlight flex flex-col h-full min-w-0"
+      className="bg-white dark:bg-slate-900 rounded-2xl p-5 group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer flex flex-col h-full"
       onClick={handleCardClick}
     >
+      {/* Subtle Gradient Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-transparent dark:from-slate-800/30 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
       {/* Status Indicator */}
       <div
         className={`absolute top-4 right-4 flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider z-10 ${project.status === 'Live'
@@ -61,7 +64,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
       >
         <span
           className={`w-1.5 h-1.5 rounded-full ${project.status === 'Live'
-            ? 'bg-emerald-500'
+            ? 'bg-emerald-500 animate-pulse'
             : project.status === 'Failed'
               ? 'bg-red-500'
               : 'bg-amber-500'
@@ -71,13 +74,13 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
       </div>
 
       {/* Header - Project Name & Repo */}
-      <div className="mb-3 relative pr-20">
+      <div className="mb-3 relative pr-16">
         <button
           onClick={(e) => {
             e.stopPropagation();
             navigate(`/projects/${encodeURIComponent(project.id)}`);
           }}
-          className="font-semibold text-slate-900 dark:text-white text-base group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors truncate mb-0.5 block w-full text-left"
+          className="font-bold text-slate-900 dark:text-white text-base group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors truncate mb-0.5 block w-full text-left"
         >
           {project.name}
         </button>
@@ -108,7 +111,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             ) : (
               <GitBranch className="w-3 h-3 flex-shrink-0" />
             )}
-            <span className="truncate">{project.sourceType === SourceType.GITHUB ? 'GitHub' : project.sourceType === SourceType.ZIP ? t('home.publishZip') : 'HTML'}</span>
+            <span className="truncate">{displayRepoUrl}</span>
           </div>
         )}
       </div>
@@ -139,7 +142,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             </span>
             <span className="text-slate-700 dark:text-gray-300 flex items-center gap-1 font-medium">
               <Clock className="w-3 h-3" />
-              {Number.isNaN(Date.parse(project.lastDeployed)) ? '—' : new Intl.DateTimeFormat(i18n.language, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(project.lastDeployed))}
+              {project.lastDeployed}
             </span>
           </div>
         </div>
@@ -164,8 +167,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                   e.stopPropagation();
                   onCopyUrl(project.url!, project.id);
                 }}
-                aria-label={isCopied(project.id) ? t('common.copied') : t('common.copyUrl')}
-                className="p-2 text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
                 title={
                   isCopied(project.id) ? t('common.copied') : t('common.copyUrl')
                 }

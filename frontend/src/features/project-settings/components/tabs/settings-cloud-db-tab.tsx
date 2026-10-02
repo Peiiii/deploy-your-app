@@ -113,7 +113,7 @@ export const SettingsCloudDbTab: React.FC<{ project: Project }> = ({ project }) 
 
   if (slugMissing) {
     return (
-      <div className="space-y-6 ">
+      <div className="space-y-6 animate-fade-in">
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 dark:border-slate-800">
             <h2 className="text-base font-semibold text-slate-900 dark:text-white">
@@ -143,7 +143,7 @@ export const SettingsCloudDbTab: React.FC<{ project: Project }> = ({ project }) 
   }
 
   return (
-    <div className="space-y-6 ">
+    <div className="space-y-6 animate-fade-in">
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-slate-100 dark:border-slate-800">
           <h2 className="text-base font-semibold text-slate-900 dark:text-white">

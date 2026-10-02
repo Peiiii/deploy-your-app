@@ -21,7 +21,7 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-app-bg dark:bg-slate-900 relative flex flex-col">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-900 relative flex flex-col">
       <div className="flex-1 flex flex-col">
         {/* Main Content Area */}
         <div

@@ -54,3 +54,12 @@
 用户当前真实已登录会话刷新：先显示“仪表板”+内容骨架，随后26个项目正常呈现；旧锁图标等待卡片消失，draft/local-static 识别文本改为 HTML/上传 ZIP，部署时间本地化。1280px 亮色截图已经打开复核并保存于 `/Users/peiwang/.codex/visualizations/2026/10/02/01a0fd0c-6575-7831-a513-01159b83eb9f/gemigo-dashboard-live.jpg`。搜索 no-result-ux-20261003 出现“未找到项目”和可恢复操作，清除搜索返回项目；项目侧栏真实 Link 进入既有管理详情。未写生产资料、未删除项目。独立 shell curl 域名超时属本机网络路径，浏览器域名资源与真实产品操作已确认，Cloudflare只读查询也返回production版本。
 
 用户允许分批交付，第一批线上可用；整体合同保持 active，第二批性能/全页矩阵与残余体验继续推进。
+
+
+## 用户否定与回退（2026-10-03）
+
+用户明确指出：不能照搬ChatGPT外观而丢掉本产品主题/风格；本批中性配色失去语义区分，顶栏滚走，HTML/ZIP发布区域不如旧版；提供右侧预览iframe只占窄区的截图，要求停止改动、恢复精心设计的原容器。AI确认这些来自自己的15e50d6改动，停止第二批。第二批草稿存入frontend-experience-cancelled-second-batch的本任务stash，未上线。
+
+恢复范围：逆转15e50d6的frontend及新增测试实现，保留本任务日志而不删除历史，也不逆转e569388以前其它任务的新功能。恢复原主题token/Tailwind、原Header/Profile/Menu/Home发布和探索外观、原右侧AppPreviewPanel完整w-full容器/iframe/Dock、原路由与状态逻辑。用户明确要求顶栏固定，因此在原Header上只增加sticky top-0，未继续设计其它界面。回退产品合同取代原UX01–UX10执行计划；旧“Review无finding”只代表AI当时自审，用户反馈已经否定其主观质量结论，不能作为达标证据。原目标没有实现，应停止而不标记complete。
+
+回退验收：与e569388的frontend差异只剩Header sticky；frontend tsc/lint/build、diff检查；真实首页发布区/原主题与原右侧预览全宽，滚动时Header停留顶部。回退发布后核对gemigo.io实际asset和产品画面，不以Git操作代替恢复。

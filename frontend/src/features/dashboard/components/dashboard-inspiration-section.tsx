@@ -62,7 +62,7 @@ export const DashboardInspirationSection: React.FC = () => {
               <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
 
               <div className="relative">
-                <div className={`w-10 h-10 rounded-xl ${item.iconBg} ${item.iconColor} flex items-center justify-center mb-3 transition-transform `}>
+                <div className={`w-10 h-10 rounded-xl ${item.iconBg} ${item.iconColor} flex items-center justify-center mb-3 transition-transform group-hover:scale-110`}>
                   <item.icon className="w-5 h-5" />
                 </div>
                 <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 mb-1.5">
