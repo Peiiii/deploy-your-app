@@ -1,6 +1,6 @@
 # 应用预览切换时保留浏览位置
 
-用户在首页滚动后点击应用，宽屏打开右侧预览，左侧仍应看得见刚才的应用并能继续浏览。任务为 bugfix，风险 L2；复盘 pending；单批完成，不另建 plan。AGENTS.md 授权精确提交、普通推送 master。交付完整本地产品预览，不以生产部署为本次完成条件。
+用户在首页滚动后点击应用，宽屏打开右侧预览，左侧仍应看得见刚才的应用并能继续浏览。任务为 bugfix，实现风险 L2、上线 L4；单批完成，不另建 plan。AGENTS.md 授权精确提交、普通推送 master。2026-10-03 用户纠正交付边界：“为什么没部署上线？咱们目前不是全托管的模式吗”。最终结果须在线上 gemigo.io 生效；此前 AI 自行将交付停在本地预览的判断撤回。
 
 ## 现状和复现
 
@@ -39,5 +39,16 @@
 - 最终生产构建运行于 http://localhost:5175/，使用既有 Vite preview 代理生产 API；首页标题打开连续6帧漂移0px，应用 iframe实际显示。http://localhost:5175/explore 实际鼠标点击「申安云」漂移0px，选中与右侧 iframe名称一致。开发实例的 API请求曾悬挂，最终交付改用已验生产构建实例，不以旧开发页面代替验证。
 - 390×844：document/main宽度与scrollWidth均390，无水平溢出；点击应用未开双栏、无选中，实际新标签已出现。手机仍沿原有 window.open。
 - diff-only实现 Review：核对 store 元数据清理/替换、同批sidebar更新、开关/全屏锚点、节点移除guard、DOM订阅卸载、hover transform和共享PageLayout尺寸变化；无开放 findings。没有新增持久化或业务请求路径。边界位置受原生scrollTop夹限，不能保证所有卡片在列表首尾也保持任意屏幕坐标。
-- 交付入口为本地生产构建预览，不部署线上；按AGENTS授权精确提交本任务9个文件并普通推送master，交付后fetch核对本地/远端主线同步。预览服务保留供用户检查。
-- retrospective_decision=no-increment：通用的真实点击取证、单owner和相邻链路验证已有流程覆盖；本次项目事实和验证收在本设计记录，不新增通用规则。retrospective_state=completed。体验是否符合用户偏好仍待反馈，不冒称用户验收通过。
+- 第一轮仅交付本地生产构建预览，精确提交5a34c8b并普通推送master，两端同步。用户指出未上线，第一轮交付并未完整满足其目标，继续完成发布和线上验证。
+- 第一轮复盘no-increment只覆盖实现取证；漏掉上线的完成判断撤回。当前retrospective_state=pending，线上交付后重新判断。体验是否符合用户偏好仍待反馈，不冒称用户验收通过。
+
+## 上线有效验收合同
+
+contract-id=preview-scroll-anchor-release；parent-goal=正常访问gemigo.io时应用预览开关及全屏往返保留左侧浏览位置；scope-revision=1（用户澄清，恢复完整交付范围）。源码验证与实现Review复用上一轮有效证据；部署采用既有pnpm deploy:pages，保留原gh-pages发布资产作为回退依据。只发布frontend，不部署无关后台或修改Secrets。契约Review：所有条目通过可覆盖原问题和生产交付，无待决选择。
+
+| ID | Required | 合同 | Status | 证据 |
+| --- | --- | --- | --- | --- |
+| PSA01 | true | gemigo.io消费包含本次修复的前端生产资产 | not-run | 发布后核对线上index资产路径及hash |
+| PSA02 | true | 真实线上中部卡片打开、滚动后关闭、全屏往返布局漂移不超过2px；选中随应用切换/关闭更新 | not-run | 线上实际点击与连续帧DOM测量 |
+| PSA03 | true | 390px手机维持原行为，无横向溢出 | not-run | 线上视口和DOM宽度核对 |
+| PSA04 | true | 本任务及上线记录已入主线，本地master与远端实际master同步，保护无关WIP | not-run | fetch、rev-list、ls-remote及status |
