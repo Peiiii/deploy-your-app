@@ -3,7 +3,7 @@
 - contract-id: thumbnail-scheduling-2026-10-02
 - parent-goal: 新上线的公开产品及时获得首页截图，恢复当前缺图。
 - 来源：2026-10-02 用户要求“为什么隔了数小时都还没有完成排查一下是什么问题？修复一下。”；后续要求“能通过github 完成最好。减少对成本服务器的依赖”，明确选择“GitHub 截图，Cloudflare 免费定时器负责触发（推荐；不占用阿里云服务器）”。AGENTS.md 授权验证、精确提交、推送和线上交付。
-- scope-revision: 2（用户确认宿主约束）；flow: bugfix；risk: L4；retrospective_state: pending。
+- scope-revision: 2（用户确认宿主约束）；flow: bugfix；risk: L4；retrospective_state: completed。
 - reproduction: 线上运行记录与截图 HEAD 原触发取证；plan: not-required（单批交付）。
 
 ## 已确认现状
@@ -36,15 +36,23 @@ https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-t
 | ID | Required | Status | 判定与当前证据 |
 | --- | --- | --- | --- |
 | TS-01 | true | passed | 原断点有运行日志；36987019682 保存 7 张且全部成功，任务约 1 分钟完成。 |
-| TS-02 | true | not-run | 生产 Cloudflare Cron 自动触发 GitHub；连续两个调度事件取证，无新阿里云常驻进程。 |
+| TS-02 | true | passed | Cloudflare Workers Logs 记录 10:12:07Z、10:14:07Z、10:16:07Z 的 scheduled/dispatched，outcome=ok，CPU 各 1ms；对应 GitHub 36994151091、36994339571、36994528211 成功。阿里云工作流启动步骤 skipped，未启动截图容器。 |
 | TS-03 | true | passed | Worker tsc、targeted ESLint、调度回归（进行中/排队跳过、鉴权/上游失败、下一轮恢复、错误体不泄露）和 9 项 Python 回归（失败隔离、原有/并发封面保护）通过；actionlint、Wrangler dry-run、diff check 通过。 |
-| TS-04 | true | not-run | 真实部署通过 Cloudflare 自动触发 GitHub，5 分钟内生成 WebP，首页实际加载；最近首页缺图清零（应用可访问前提）。 |
-| TS-05 | true | not-run | 本任务文件精确提交并同步 origin/master，原应用可用，生产 Secrets 与无关 WIP 保护。 |
+| TS-04 | true | passed | 生效后 CLI 真实部署 thumbnail-smoke-1790936025：10:16:16.156Z 成功，自动任务 36994528211 在 10:17:06.455Z 保存 13,490 字节 WebP，10:17:10.196Z HEAD 200（54 秒），首页实际显示截图。10:20 自动任务 36994893111 scanned=50 pending=0 readiness_errors=0；原缺图 7 项和 xiaoyv 均 HEAD 200 image/webp。两个临时项目与 8 个已知 R2 测试对象已清理。 |
+| TS-05 | true | passed | 实现提交 dbbf4b1 已普通推送 origin/master，线上自动任务采用包含该提交的 master；工作区原有分析脚本改动与未跟踪文件保留，未提交 Secrets。原首页正常可用，API/后端未由本任务重部署。 |
 
 设计 Review（revision 2）：passed。从原用户目标核对自动触发、成本/宿主约束、鉴权、超时/下一轮恢复、重复运行、旧封面、原首页消费和主线交付；无开放 finding。验证采用 Worker 定向类型/lint、回归、Wrangler dry-run、生产 Cron 和 CLI 完整链路。不触达 API Worker/后端运行链路。
 
 ## 当前执行状态
 
-stage: delivery（生产 Cron 验收待执行）；open-required: TS-02, TS-04, TS-05。
+stage: completed；open-required: none。
 
 实现 Review（revision 2）：no findings。项目无 diff-only maintainability 工具，按本任务 diff 与相邻合同审查。调度复用 GitHub 实际运行状态，不复制项目查询/截图算法；Worker 无 HTTP 入口；凭据保存在 Secret 且不进入错误体/日志；失败由下一次 Cron 重试；人工与兜底并发由现有 GitHub concurrency 隔离。未触达 API Worker、后端或其它工作区前端改动。
+
+## 生产交付与复盘
+
+生产 Worker 当前版本为 f7a68aaa-f7c6-4b02-828e-26b7d95f203f，流量 100%，Cron 为每 2 分钟，workers.dev 与 preview URL 均关闭。该版本是同一实现设置 Secret 后生成的版本；凭据由已授权 GitHub 登录安全写入 Cloudflare Secret。
+
+初次启用存在真实未通过证据：Cron 配置创建于 09:44:09Z，09:59 部署的第一份测试页面超过 5 分钟仍无图；为隔离执行链路，手动任务 36993996461 在 10:11 成功保存它与 xiaoyv。首条自动调度记录直到 10:12 才出现，约 28 分钟后，不能把 Cloudflare 部署返回成功或文档中的传播时间当作实际生效证据。自动调度生效后重新部署独立测试页面，54 秒完成全链路，随后持续每 2 分钟触发。首次启用等待与正常运行时限分开记录；未推断首次延迟的内部平台原因。
+
+复盘增量归入现有事实 owner `workers/thumbnail-trigger/README.md`：新定时器交付须看到连续两条实际调度事件和对应 GitHub 运行，首次启用可人工补图。无需新增跨项目 Skill 或平行规则。交付 diff-only 检查与实现 Review 无开放 finding。

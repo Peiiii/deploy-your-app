@@ -27,8 +27,13 @@ pnpm exec wrangler tail --config workers/thumbnail-trigger/wrangler.toml --forma
 
 Logs record `thumbnail-trigger` with the scheduled timestamp and `dispatched`
 or `busy`. GitHub failures/timeouts fail the Cron invocation and retry on the
-next invocation. Each request has a ten-second timeout. Cron propagation can
-take up to fifteen minutes after changes. No persistence or task queue is added.
+next invocation. Each request has a ten-second timeout. Cloudflare documents
+up to fifteen minutes for Cron propagation, but this deployment's first observed
+invocation arrived about twenty-eight minutes after configuration. Verify two
+actual `scheduled`/`dispatched` events and their GitHub runs before treating a
+new trigger as active; deploy success alone is insufficient. Use manual GitHub
+dispatch for missing covers during initial activation. No persistence or task
+queue is added.
 
 An accessible new public app should acquire a real cover within five minutes
 at normal light load. Runner queueing, unavailable apps and large batches may
