@@ -9,10 +9,10 @@ export const Toast: React.FC = () => {
   const clearToast = useUIStore((s) => s.actions.clearToast);
 
   useEffect(() => {
-    if (!toast) return;
+    if (!toast || toast.variant === 'error') return;
     const timer = setTimeout(() => {
       clearToast();
-    }, 3000);
+    }, 5000);
     return () => clearTimeout(timer);
   }, [toast, clearToast]);
 
@@ -24,7 +24,7 @@ export const Toast: React.FC = () => {
   const Icon = isSuccess ? CheckCircle2 : isError ? AlertTriangle : Info;
 
   const baseClasses =
-    'fixed bottom-4 right-4 z-50 max-w-sm rounded-xl shadow-lg px-4 py-3 flex items-start gap-2 text-xs';
+    'fixed bottom-4 right-4 left-4 sm:left-auto z-[150] max-w-sm rounded-xl shadow-lg px-4 py-3 flex items-start gap-2 text-sm';
   const colorClasses = isSuccess
     ? 'bg-green-50 text-green-700 border border-green-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800/80'
     : isError
@@ -32,7 +32,7 @@ export const Toast: React.FC = () => {
       : 'bg-slate-900 text-slate-100 border border-slate-800';
 
   return (
-    <div className={`${baseClasses} ${colorClasses}`}>
+    <div role={isError ? 'alert' : 'status'} className={`${baseClasses} ${colorClasses}`}>
       <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" />
       <div className="flex-1">{toast.message}</div>
       <button

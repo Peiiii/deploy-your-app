@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Shield, Trash2, RotateCcw, Loader2, Search } from 'lucide-react';
+import { PageSkeleton } from '@/components/loading-state';
+import { SessionError } from '@/components/session-error';
 import { PageLayout } from '@/components/page-layout';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import {
@@ -13,6 +15,7 @@ import type { Project } from '@/types';
 export const AdminProjectsPage: React.FC = () => {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
+  const sessionError = useAuthStore((s) => s.sessionError);
   const isLoadingAuth = useAuthStore((s) => s.isLoading);
 
   const [projects, setProjects] = useState<Project[]>([]);
@@ -71,14 +74,8 @@ export const AdminProjectsPage: React.FC = () => {
     }
   };
 
-  if (isLoadingAuth) {
-    return (
-      <div className="flex items-center justify-center h-48 text-slate-500">
-        <Loader2 className="w-5 h-5 animate-spin mr-2" />
-        {t('common.loading')}
-      </div>
-    );
-  }
+  if (isLoadingAuth) return <PageSkeleton title={t('adminProjects.title')} shape="list" />;
+  if (sessionError) return <PageLayout title={t('adminProjects.title')}><SessionError /></PageLayout>;
 
   if (!user?.isAdmin) {
     return (

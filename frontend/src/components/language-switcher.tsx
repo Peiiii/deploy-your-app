@@ -23,7 +23,7 @@ export const LanguageSwitcher: React.FC = () => {
       trigger={
         <>
           <Languages className="w-4 h-4" />
-          <span className="text-xs font-medium">
+          <span className="hidden text-xs font-medium sm:inline">
             {currentLanguage === 'zh-CN' ? '中文' : 'English'}
           </span>
         </>

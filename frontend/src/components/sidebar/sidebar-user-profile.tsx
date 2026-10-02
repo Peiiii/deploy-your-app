@@ -14,6 +14,8 @@ export const SidebarUserProfile: React.FC<SidebarUserProfileProps> = ({ collapse
   const { t } = useTranslation();
   const navigate = useNavigate();
   const authUser = useAuthStore((s) => s.user);
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const sessionError = useAuthStore((s) => s.sessionError);
   const { setSidebarOpen } = useUIStore((state) => state.actions);
   const presenter = usePresenter();
   const { isMobile } = useBreakpoint();
@@ -29,15 +31,27 @@ export const SidebarUserProfile: React.FC<SidebarUserProfileProps> = ({ collapse
     }
   };
 
+  if (isLoading) return (
+    <div role="status" aria-label={t('common.loading')} className="flex items-center gap-3 border-t border-app-border p-5">
+      <div aria-hidden="true" className="skeleton h-8 w-8 shrink-0 rounded-full" />
+      {!collapsed && <div aria-hidden="true" className="skeleton h-4 w-24 rounded" />}
+    </div>
+  );
+  if (sessionError) return (
+    <div className="border-t border-app-border p-3">
+      <button className="btn-secondary w-full" title={t('experience.sessionError')} onClick={() => { void presenter.auth.loadCurrentUser(); }}>{t('common.retry')}</button>
+    </div>
+  );
+
   return (
-    <div className={`p-3 border-t border-slate-200 dark:border-slate-800 ${collapsed ? 'flex justify-center' : ''}`}>
+    <div className={`p-3 border-t border-app-border ${collapsed ? 'flex justify-center' : ''}`}>
       <button
         type="button"
         onClick={handleClick}
         aria-label={authUser ? t('navigation.profile') : t('common.signIn')}
-        className={`flex items-center gap-3 w-full bg-transparent p-2 rounded-xl transition-all duration-300 hover:bg-slate-200/50 dark:hover:bg-white/5 active:scale-95 group ${collapsed ? 'justify-center' : ''}`}
+        className={`flex items-center gap-3 w-full bg-transparent p-2 rounded-xl transition-colors duration-150 hover:bg-slate-200/50 dark:hover:bg-white/5  group ${collapsed ? 'justify-center' : ''}`}
       >
-        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 ring-2 ring-white dark:ring-slate-800 group-hover:ring-purple-500/50 dark:group-hover:ring-purple-400/50 transition-all shrink-0 flex items-center justify-center text-xs font-semibold text-white">
+        <div className="w-8 h-8 rounded-full bg-brand-600 ring-2 ring-white dark:ring-slate-800 group-hover:ring-purple-500/50 dark:group-hover:ring-purple-400/50 transition-all shrink-0 flex items-center justify-center text-xs font-semibold text-white">
           {(authUser?.displayName || authUser?.email || 'U')
             .toUpperCase()
             .charAt(0)}

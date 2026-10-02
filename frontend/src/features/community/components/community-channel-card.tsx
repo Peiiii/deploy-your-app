@@ -25,7 +25,7 @@ export const CommunityChannelCard: React.FC<CommunityChannelCardProps> = ({
   return (
     <article
       className={`relative overflow-hidden rounded-3xl border bg-white p-6 shadow-sm transition dark:bg-slate-900 md:p-7 ${primary
-        ? 'border-brand-300 shadow-lg shadow-brand-500/10 dark:border-brand-500/40'
+        ? 'border-brand-300 shadow-lg  dark:border-brand-500/40'
         : 'border-slate-200 hover:border-slate-300 dark:border-slate-800 dark:hover:border-slate-700'
       }`}
     >

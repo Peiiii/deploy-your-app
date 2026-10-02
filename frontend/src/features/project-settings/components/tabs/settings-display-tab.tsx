@@ -11,7 +11,7 @@ export const SettingsDisplayTab: React.FC<SettingsDisplayTabProps> = ({
     project,
 }) => {
     return (
-        <div className="space-y-8 animate-fade-in">
+        <div className="space-y-8 ">
             <div className="glass-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
                 <ProjectSettingsDisplayGroup project={project} />
                 <div className="mt-6"><ProjectAppLanguages project={project} /></div>
