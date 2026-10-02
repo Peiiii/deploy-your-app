@@ -1,0 +1,1202 @@
+[
+  {
+    "slug": "qingshui",
+    "run": "cold",
+    "error": null,
+    "metric": {
+      "ttfbMs": 1577.2000002861023,
+      "fcpMs": 3020,
+      "lcpMs": 3020,
+      "loadMs": 3218.800000190735,
+      "encodedHtmlBytes": 2865,
+      "decodedHtmlBytes": 6776,
+      "textChars": 136,
+      "tailwindPresent": null,
+      "styleSheetCount": null,
+      "bodyBackground": null,
+      "longTasks": [],
+      "navServerTiming": [
+        {
+          "name": "cfEdge",
+          "duration": 8
+        },
+        {
+          "name": "cfOrigin",
+          "duration": 0
+        },
+        {
+          "name": "cfWorker",
+          "duration": 362
+        }
+      ]
+    },
+    "failures": [],
+    "network": [
+      {
+        "url": "https://qingshui.gemigo.app/",
+        "status": 200,
+        "durationMs": 1464.7300001233816,
+        "encodedBytes": 3347,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "server-timing": "cfEdge;dur=8,cfOrigin;dur=0,cfWorker;dur=362"
+        }
+      },
+      {
+        "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+        "status": 200,
+        "durationMs": 1369.2899998277426,
+        "encodedBytes": 10338,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=86400",
+          "etag": "W/\"2026.9.1\""
+        }
+      },
+      {
+        "url": "https://qingshui.gemigo.app/cdn-cgi/rum?",
+        "status": 204,
+        "durationMs": 233.86000003665686,
+        "encodedBytes": 380,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "https://qingshui.gemigo.app/favicon.ico",
+        "status": 200,
+        "durationMs": 837.1810000389814,
+        "encodedBytes": 2874,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache"
+        }
+      }
+    ]
+  },
+  {
+    "slug": "qingshui",
+    "run": "warm",
+    "error": null,
+    "metric": {
+      "ttfbMs": 531.0999999046326,
+      "fcpMs": 848,
+      "lcpMs": 848,
+      "loadMs": 839.2999997138977,
+      "encodedHtmlBytes": 2865,
+      "decodedHtmlBytes": 6776,
+      "textChars": 136,
+      "tailwindPresent": null,
+      "styleSheetCount": null,
+      "bodyBackground": null,
+      "longTasks": [],
+      "navServerTiming": [
+        {
+          "name": "cfEdge",
+          "duration": 5
+        },
+        {
+          "name": "cfOrigin",
+          "duration": 0
+        },
+        {
+          "name": "cfWorker",
+          "duration": 289
+        }
+      ]
+    },
+    "failures": [],
+    "network": [
+      {
+        "url": "https://qingshui.gemigo.app/",
+        "status": 200,
+        "durationMs": 818.2049999013543,
+        "encodedBytes": 3186,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "server-timing": "cfEdge;dur=5,cfOrigin;dur=0,cfWorker;dur=289"
+        }
+      },
+      {
+        "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+        "status": 200,
+        "durationMs": 0.15399977564811707,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=86400",
+          "etag": "W/\"2026.9.1\""
+        }
+      },
+      {
+        "url": "https://qingshui.gemigo.app/cdn-cgi/rum?",
+        "status": 204,
+        "durationMs": 266.45899983122945,
+        "encodedBytes": 246,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "https://qingshui.gemigo.app/favicon.ico",
+        "status": 200,
+        "durationMs": 818.2899998500943,
+        "encodedBytes": 2872,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache"
+        }
+      }
+    ]
+  },
+  {
+    "slug": "2-0",
+    "run": "cold",
+    "error": null,
+    "metric": {
+      "ttfbMs": 2240,
+      "fcpMs": 2648,
+      "lcpMs": 2648,
+      "loadMs": 4314.599999904633,
+      "encodedHtmlBytes": 2252,
+      "decodedHtmlBytes": 4961,
+      "textChars": 77,
+      "tailwindPresent": null,
+      "styleSheetCount": null,
+      "bodyBackground": null,
+      "longTasks": [],
+      "navServerTiming": [
+        {
+          "name": "cfEdge",
+          "duration": 18
+        },
+        {
+          "name": "cfOrigin",
+          "duration": 0
+        },
+        {
+          "name": "cfWorker",
+          "duration": 328
+        }
+      ]
+    },
+    "failures": [],
+    "network": [
+      {
+        "url": "https://2-0.gemigo.app/",
+        "status": 200,
+        "durationMs": 2240.6190000474453,
+        "encodedBytes": 2725,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "server-timing": "cfEdge;dur=18,cfOrigin;dur=0,cfWorker;dur=328"
+        }
+      },
+      {
+        "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+        "status": 200,
+        "durationMs": 2030.9350001625717,
+        "encodedBytes": 10338,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=86400",
+          "etag": "W/\"2026.9.1\""
+        }
+      },
+      {
+        "url": "https://2-0.gemigo.app/api/database/chat?orderBy=createdAt&order=asc",
+        "status": 200,
+        "durationMs": 1273.2559996657073,
+        "encodedBytes": 2247,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache"
+        }
+      },
+      {
+        "url": "https://2-0.gemigo.app/api/database/chat?orderBy=createdAt&order=asc",
+        "status": 200,
+        "durationMs": 1262.6590002328157,
+        "encodedBytes": 2218,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache"
+        }
+      },
+      {
+        "url": "https://2-0.gemigo.app/cdn-cgi/rum?",
+        "status": 204,
+        "durationMs": 238.80299972370267,
+        "encodedBytes": 381,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "https://2-0.gemigo.app/favicon.ico",
+        "status": 200,
+        "durationMs": null,
+        "encodedBytes": null,
+        "pending": true,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache"
+        }
+      },
+      {
+        "url": "https://2-0.gemigo.app/api/database/chat?orderBy=createdAt&order=asc",
+        "status": null,
+        "durationMs": null,
+        "encodedBytes": null,
+        "pending": true,
+        "fromDiskCache": null,
+        "headers": {}
+      }
+    ]
+  },
+  {
+    "slug": "2-0",
+    "run": "warm",
+    "error": null,
+    "metric": {
+      "ttfbMs": 636.5999999046326,
+      "fcpMs": 792,
+      "lcpMs": 792,
+      "loadMs": 661.5,
+      "encodedHtmlBytes": 2252,
+      "decodedHtmlBytes": 4961,
+      "textChars": 77,
+      "tailwindPresent": null,
+      "styleSheetCount": null,
+      "bodyBackground": null,
+      "longTasks": [],
+      "navServerTiming": [
+        {
+          "name": "cfEdge",
+          "duration": 4
+        },
+        {
+          "name": "cfOrigin",
+          "duration": 0
+        },
+        {
+          "name": "cfWorker",
+          "duration": 352
+        }
+      ]
+    },
+    "failures": [],
+    "network": [
+      {
+        "url": "https://2-0.gemigo.app/",
+        "status": 200,
+        "durationMs": 634.9430000409484,
+        "encodedBytes": 2573,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "server-timing": "cfEdge;dur=4,cfOrigin;dur=0,cfWorker;dur=352"
+        }
+      },
+      {
+        "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+        "status": 200,
+        "durationMs": 0.1050001010298729,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=86400",
+          "etag": "W/\"2026.9.1\""
+        }
+      },
+      {
+        "url": "https://2-0.gemigo.app/api/database/chat?orderBy=createdAt&order=asc",
+        "status": 200,
+        "durationMs": 1139.0680000185966,
+        "encodedBytes": 2299,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache"
+        }
+      },
+      {
+        "url": "https://2-0.gemigo.app/cdn-cgi/rum?",
+        "status": 204,
+        "durationMs": 233.2830000668764,
+        "encodedBytes": 239,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "https://2-0.gemigo.app/favicon.ico",
+        "status": 200,
+        "durationMs": null,
+        "encodedBytes": null,
+        "pending": true,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache"
+        }
+      }
+    ]
+  },
+  {
+    "slug": "app-129",
+    "run": "cold",
+    "error": null,
+    "metric": {
+      "ttfbMs": 2176,
+      "fcpMs": 4788,
+      "lcpMs": 4788,
+      "loadMs": 6291.5,
+      "encodedHtmlBytes": 16679,
+      "decodedHtmlBytes": 57674,
+      "textChars": 768,
+      "tailwindPresent": null,
+      "styleSheetCount": null,
+      "bodyBackground": null,
+      "longTasks": [
+        {
+          "start": 4173.5,
+          "duration": 295
+        }
+      ],
+      "navServerTiming": [
+        {
+          "name": "cfEdge",
+          "duration": 5
+        },
+        {
+          "name": "cfOrigin",
+          "duration": 0
+        },
+        {
+          "name": "cfWorker",
+          "duration": 310
+        }
+      ]
+    },
+    "failures": [],
+    "network": [
+      {
+        "url": "https://app-129.gemigo.app/",
+        "status": 200,
+        "durationMs": 4157.782000023872,
+        "encodedBytes": 17176,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "server-timing": "cfEdge;dur=5,cfOrigin;dur=0,cfWorker;dur=310"
+        }
+      },
+      {
+        "url": "data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23e74c3c' stroke-width='0.5'%3E%3Cpath d='M100 0 L100 200 M0 100 L200 100 M0 0 L200 200 M200 0 L0 200'/%3E%3Ccircle cx='100' cy='100' r='20'/%3E%3Ccircle cx='100' cy='100' r='40'/%3E%3Ccircle cx='100' cy='100' r='60'/%3E%3Ccircle cx='100' cy='100' r='80'/%3E%3C/g%3E%3C/svg%3E",
+        "status": 200,
+        "durationMs": 0.09900005534291267,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E",
+        "status": 200,
+        "durationMs": 0.09400025010108948,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+        "status": 200,
+        "durationMs": 1813.7770001776516,
+        "encodedBytes": 10338,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=86400",
+          "etag": "W/\"2026.9.1\""
+        }
+      },
+      {
+        "url": "https://app-129.gemigo.app/cdn-cgi/rum?",
+        "status": 204,
+        "durationMs": 228.9180001243949,
+        "encodedBytes": 378,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "https://app-129.gemigo.app/favicon.ico",
+        "status": 200,
+        "durationMs": null,
+        "encodedBytes": null,
+        "pending": true,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache"
+        }
+      }
+    ]
+  },
+  {
+    "slug": "app-129",
+    "run": "warm",
+    "error": null,
+    "metric": {
+      "ttfbMs": 957.6000003814697,
+      "fcpMs": 1584,
+      "lcpMs": 1584,
+      "loadMs": 1524.2000002861023,
+      "encodedHtmlBytes": 16615,
+      "decodedHtmlBytes": 57674,
+      "textChars": 768,
+      "tailwindPresent": null,
+      "styleSheetCount": null,
+      "bodyBackground": null,
+      "longTasks": [],
+      "navServerTiming": [
+        {
+          "name": "cfEdge",
+          "duration": 3
+        },
+        {
+          "name": "cfOrigin",
+          "duration": 0
+        },
+        {
+          "name": "cfWorker",
+          "duration": 411
+        }
+      ]
+    },
+    "failures": [],
+    "network": [
+      {
+        "url": "https://app-129.gemigo.app/",
+        "status": 200,
+        "durationMs": 1488.8399997726083,
+        "encodedBytes": 16954,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "server-timing": "cfEdge;dur=3,cfOrigin;dur=0,cfWorker;dur=411"
+        }
+      },
+      {
+        "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+        "status": 200,
+        "durationMs": 0.1250002533197403,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=86400",
+          "etag": "W/\"2026.9.1\""
+        }
+      },
+      {
+        "url": "data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23e74c3c' stroke-width='0.5'%3E%3Cpath d='M100 0 L100 200 M0 100 L200 100 M0 0 L200 200 M200 0 L0 200'/%3E%3Ccircle cx='100' cy='100' r='20'/%3E%3Ccircle cx='100' cy='100' r='40'/%3E%3Ccircle cx='100' cy='100' r='60'/%3E%3Ccircle cx='100' cy='100' r='80'/%3E%3C/g%3E%3C/svg%3E",
+        "status": 200,
+        "durationMs": 0.0650002621114254,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E",
+        "status": 200,
+        "durationMs": 0.06600003689527512,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "https://app-129.gemigo.app/cdn-cgi/rum?",
+        "status": 204,
+        "durationMs": 227.21799975261092,
+        "encodedBytes": 242,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "https://app-129.gemigo.app/favicon.ico",
+        "status": 200,
+        "durationMs": null,
+        "encodedBytes": null,
+        "pending": true,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache"
+        }
+      }
+    ]
+  },
+  {
+    "slug": "green-men-gaze",
+    "run": "cold",
+    "error": null,
+    "metric": {
+      "ttfbMs": 1925.3000001907349,
+      "fcpMs": 4676,
+      "lcpMs": 4676,
+      "loadMs": 4601.900000095367,
+      "encodedHtmlBytes": 798,
+      "decodedHtmlBytes": 1393,
+      "textChars": 12,
+      "tailwindPresent": null,
+      "styleSheetCount": null,
+      "bodyBackground": null,
+      "longTasks": [
+        {
+          "start": 4407.700000286102,
+          "duration": 63
+        },
+        {
+          "start": 4471,
+          "duration": 109
+        }
+      ],
+      "navServerTiming": [
+        {
+          "name": "cfEdge",
+          "duration": 6
+        },
+        {
+          "name": "cfOrigin",
+          "duration": 0
+        },
+        {
+          "name": "cfWorker",
+          "duration": 311
+        }
+      ]
+    },
+    "failures": [],
+    "network": [
+      {
+        "url": "https://green-men-gaze.gemigo.app/",
+        "status": 200,
+        "durationMs": 2685.920999851078,
+        "encodedBytes": 1282,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "server-timing": "cfEdge;dur=6,cfOrigin;dur=0,cfWorker;dur=311"
+        }
+      },
+      {
+        "url": "https://cdn.tailwindcss.com/3.4.17",
+        "status": 200,
+        "durationMs": 663.2409999147058,
+        "encodedBytes": 126870,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "max-age=31536000"
+        }
+      },
+      {
+        "url": "https://green-men-gaze.gemigo.app/assets/index-CDoBlQCT.js",
+        "status": 200,
+        "durationMs": 1595.7360002212226,
+        "encodedBytes": 65217,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=31536000, immutable",
+          "etag": "W/\"39a659e9019e738149ee84250efdba48\""
+        }
+      },
+      {
+        "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+        "status": 200,
+        "durationMs": 1760.6359999626875,
+        "encodedBytes": 10338,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=86400",
+          "etag": "W/\"2026.9.1\""
+        }
+      },
+      {
+        "url": "https://green-men-gaze.gemigo.app/cdn-cgi/rum?",
+        "status": 204,
+        "durationMs": 232.3209997266531,
+        "encodedBytes": 394,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "https://green-men-gaze.gemigo.app/favicon.ico",
+        "status": null,
+        "durationMs": null,
+        "encodedBytes": null,
+        "pending": true,
+        "fromDiskCache": null,
+        "headers": {}
+      }
+    ]
+  },
+  {
+    "slug": "green-men-gaze",
+    "run": "warm",
+    "error": null,
+    "metric": {
+      "ttfbMs": 780.5999999046326,
+      "fcpMs": 1508,
+      "lcpMs": 1508,
+      "loadMs": 929.2999997138977,
+      "encodedHtmlBytes": 798,
+      "decodedHtmlBytes": 1393,
+      "textChars": 12,
+      "tailwindPresent": null,
+      "styleSheetCount": null,
+      "bodyBackground": null,
+      "longTasks": [],
+      "navServerTiming": [
+        {
+          "name": "cfEdge",
+          "duration": 6
+        },
+        {
+          "name": "cfOrigin",
+          "duration": 0
+        },
+        {
+          "name": "cfWorker",
+          "duration": 306
+        }
+      ]
+    },
+    "failures": [],
+    "network": [
+      {
+        "url": "https://green-men-gaze.gemigo.app/",
+        "status": 200,
+        "durationMs": 780.3960000164807,
+        "encodedBytes": 1121,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "server-timing": "cfEdge;dur=6,cfOrigin;dur=0,cfWorker;dur=306"
+        }
+      },
+      {
+        "url": "https://cdn.tailwindcss.com/",
+        "status": 200,
+        "durationMs": 0.09300000965595245,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "max-age=31536000"
+        }
+      },
+      {
+        "url": "https://green-men-gaze.gemigo.app/assets/index-CDoBlQCT.js",
+        "status": 200,
+        "durationMs": 0.08399970829486847,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=31536000, immutable",
+          "etag": "W/\"39a659e9019e738149ee84250efdba48\""
+        }
+      },
+      {
+        "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+        "status": 200,
+        "durationMs": 0.07300032302737236,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=86400",
+          "etag": "W/\"2026.9.1\""
+        }
+      },
+      {
+        "url": "https://green-men-gaze.gemigo.app/cdn-cgi/rum?",
+        "status": 204,
+        "durationMs": 227.99700032919645,
+        "encodedBytes": 248,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "https://green-men-gaze.gemigo.app/favicon.ico",
+        "status": 200,
+        "durationMs": 653.322999831289,
+        "encodedBytes": 837,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache"
+        }
+      }
+    ]
+  },
+  {
+    "slug": "peiiii-os-portfolio",
+    "run": "cold",
+    "error": "Navigation timeout of 18000 ms exceeded",
+    "metric": {
+      "ttfbMs": 2003.0999999046326,
+      "fcpMs": null,
+      "lcpMs": null,
+      "loadMs": null,
+      "encodedHtmlBytes": 1733,
+      "decodedHtmlBytes": 4439,
+      "textChars": null,
+      "tailwindPresent": null,
+      "styleSheetCount": null,
+      "bodyBackground": null,
+      "longTasks": [],
+      "navServerTiming": [
+        {
+          "name": "cfEdge",
+          "duration": 20
+        },
+        {
+          "name": "cfOrigin",
+          "duration": 0
+        },
+        {
+          "name": "cfWorker",
+          "duration": 319
+        }
+      ]
+    },
+    "failures": [],
+    "network": [
+      {
+        "url": "https://peiiii-os-portfolio.gemigo.app/",
+        "status": 200,
+        "durationMs": 1970.6640001386404,
+        "encodedBytes": 2224,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "server-timing": "cfEdge;dur=20,cfOrigin;dur=0,cfWorker;dur=319"
+        }
+      },
+      {
+        "url": "https://cdn.tailwindcss.com/",
+        "status": null,
+        "durationMs": null,
+        "encodedBytes": null,
+        "pending": true,
+        "fromDiskCache": null,
+        "headers": {}
+      },
+      {
+        "url": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap",
+        "status": 200,
+        "durationMs": 936.24799977988,
+        "encodedBytes": 1204,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "private, max-age=86400, stale-while-revalidate=604800"
+        }
+      },
+      {
+        "url": "https://peiiii-os-portfolio.gemigo.app/assets/index-BWr942bA.js",
+        "status": 200,
+        "durationMs": 1677.8319999575615,
+        "encodedBytes": 112727,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=31536000, immutable",
+          "etag": "W/\"0d281c0d295b24b052494d6bc84414ee\""
+        }
+      },
+      {
+        "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+        "status": 200,
+        "durationMs": 1271.3350001722574,
+        "encodedBytes": 10338,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=86400",
+          "etag": "W/\"2026.9.1\""
+        }
+      }
+    ]
+  },
+  {
+    "slug": "peiiii-os-portfolio",
+    "run": "warm",
+    "error": null,
+    "metric": {
+      "ttfbMs": 551.4000000953674,
+      "fcpMs": 2324,
+      "lcpMs": 2324,
+      "loadMs": 2109.2000002861023,
+      "encodedHtmlBytes": 1733,
+      "decodedHtmlBytes": 4439,
+      "textChars": 2164,
+      "tailwindPresent": null,
+      "styleSheetCount": null,
+      "bodyBackground": null,
+      "longTasks": [
+        {
+          "start": 1910.9000000953674,
+          "duration": 58
+        },
+        {
+          "start": 1969.3000001907349,
+          "duration": 91
+        },
+        {
+          "start": 2109.800000190735,
+          "duration": 136
+        },
+        {
+          "start": 2296.5999999046326,
+          "duration": 67
+        }
+      ],
+      "navServerTiming": [
+        {
+          "name": "cfEdge",
+          "duration": 8
+        },
+        {
+          "name": "cfOrigin",
+          "duration": 0
+        },
+        {
+          "name": "cfWorker",
+          "duration": 296
+        }
+      ]
+    },
+    "failures": [],
+    "network": [
+      {
+        "url": "https://peiiii-os-portfolio.gemigo.app/",
+        "status": 200,
+        "durationMs": 552.24599968642,
+        "encodedBytes": 2069,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "server-timing": "cfEdge;dur=8,cfOrigin;dur=0,cfWorker;dur=296"
+        }
+      },
+      {
+        "url": "https://cdn.tailwindcss.com/3.4.17",
+        "status": 200,
+        "durationMs": 680.8290001936257,
+        "encodedBytes": 126871,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "max-age=31536000"
+        }
+      },
+      {
+        "url": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap",
+        "status": 200,
+        "durationMs": 3.5230000503361225,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": true,
+        "headers": {
+          "cache-control": "private, max-age=86400, stale-while-revalidate=604800"
+        }
+      },
+      {
+        "url": "https://peiiii-os-portfolio.gemigo.app/assets/index-BWr942bA.js",
+        "status": 200,
+        "durationMs": 15.634000301361084,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": true,
+        "headers": {
+          "cache-control": "public, max-age=31536000, immutable",
+          "etag": "W/\"0d281c0d295b24b052494d6bc84414ee\""
+        }
+      },
+      {
+        "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+        "status": 200,
+        "durationMs": 15.077000018209219,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": true,
+        "headers": {
+          "cache-control": "public, max-age=86400",
+          "etag": "W/\"2026.9.1\""
+        }
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD7OwGtT0rU.woff2",
+        "status": 200,
+        "durationMs": 1171.9900001771748,
+        "encodedBytes": 41030,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=31536000"
+        }
+      },
+      {
+        "url": "https://peiiii-os-portfolio.gemigo.app/cdn-cgi/rum?",
+        "status": 204,
+        "durationMs": 697.7249998599291,
+        "encodedBytes": 403,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "https://peiiii-os-portfolio.gemigo.app/favicon.ico",
+        "status": null,
+        "durationMs": null,
+        "encodedBytes": null,
+        "pending": true,
+        "fromDiskCache": null,
+        "headers": {}
+      }
+    ]
+  },
+  {
+    "slug": "voxel-world-builder",
+    "run": "cold",
+    "error": null,
+    "metric": {
+      "ttfbMs": 2316.300000190735,
+      "fcpMs": 5884,
+      "lcpMs": 5884,
+      "loadMs": 5740.400000095367,
+      "encodedHtmlBytes": 1674,
+      "decodedHtmlBytes": 4406,
+      "textChars": 85,
+      "tailwindPresent": null,
+      "styleSheetCount": null,
+      "bodyBackground": null,
+      "longTasks": [
+        {
+          "start": 5740.900000095367,
+          "duration": 65
+        },
+        {
+          "start": 5913.5,
+          "duration": 761
+        }
+      ],
+      "navServerTiming": [
+        {
+          "name": "cfEdge",
+          "duration": 8
+        },
+        {
+          "name": "cfOrigin",
+          "duration": 0
+        },
+        {
+          "name": "cfWorker",
+          "duration": 316
+        }
+      ]
+    },
+    "failures": [],
+    "network": [
+      {
+        "url": "https://voxel-world-builder.gemigo.app/",
+        "status": 200,
+        "durationMs": 2307.7090000733733,
+        "encodedBytes": 2166,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "server-timing": "cfEdge;dur=8,cfOrigin;dur=0,cfWorker;dur=316"
+        }
+      },
+      {
+        "url": "https://voxel-world-builder.gemigo.app/assets/index-DgwOpFOy.js",
+        "status": 200,
+        "durationMs": 3314.80300007388,
+        "encodedBytes": 210497,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=31536000, immutable",
+          "etag": "W/\"2aad69f258d58ba139081ebb7bbe29fa\""
+        }
+      },
+      {
+        "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+        "status": 200,
+        "durationMs": 1179.3390000239015,
+        "encodedBytes": 10338,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=86400",
+          "etag": "W/\"2026.9.1\""
+        }
+      },
+      {
+        "url": "https://voxel-world-builder.gemigo.app/cdn-cgi/rum?",
+        "status": 204,
+        "durationMs": 229.70000002533197,
+        "encodedBytes": 402,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "https://voxel-world-builder.gemigo.app/favicon.ico",
+        "status": 200,
+        "durationMs": null,
+        "encodedBytes": null,
+        "pending": true,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache"
+        }
+      }
+    ]
+  },
+  {
+    "slug": "voxel-world-builder",
+    "run": "warm",
+    "error": null,
+    "metric": {
+      "ttfbMs": 616.2999997138977,
+      "fcpMs": 3160,
+      "lcpMs": 3160,
+      "loadMs": 2905.199999809265,
+      "encodedHtmlBytes": 1674,
+      "decodedHtmlBytes": 4406,
+      "textChars": 85,
+      "tailwindPresent": null,
+      "styleSheetCount": null,
+      "bodyBackground": null,
+      "longTasks": [
+        {
+          "start": 2915,
+          "duration": 192
+        },
+        {
+          "start": 3166.3999996185303,
+          "duration": 1025
+        },
+        {
+          "start": 4192.199999809265,
+          "duration": 60
+        }
+      ],
+      "navServerTiming": [
+        {
+          "name": "cfEdge",
+          "duration": 4
+        },
+        {
+          "name": "cfOrigin",
+          "duration": 0
+        },
+        {
+          "name": "cfWorker",
+          "duration": 309
+        }
+      ]
+    },
+    "failures": [],
+    "network": [
+      {
+        "url": "https://voxel-world-builder.gemigo.app/",
+        "status": 200,
+        "durationMs": 2536.73700010404,
+        "encodedBytes": 2013,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "server-timing": "cfEdge;dur=4,cfOrigin;dur=0,cfWorker;dur=309"
+        }
+      },
+      {
+        "url": "https://voxel-world-builder.gemigo.app/assets/index-DgwOpFOy.js",
+        "status": 200,
+        "durationMs": 0.2310001291334629,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=31536000, immutable",
+          "etag": "W/\"2aad69f258d58ba139081ebb7bbe29fa\""
+        }
+      },
+      {
+        "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+        "status": 200,
+        "durationMs": 0.10700011625885963,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=86400",
+          "etag": "W/\"2026.9.1\""
+        }
+      },
+      {
+        "url": "https://voxel-world-builder.gemigo.app/cdn-cgi/rum?",
+        "status": 204,
+        "durationMs": 243.96900041028857,
+        "encodedBytes": 290,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "https://voxel-world-builder.gemigo.app/favicon.ico",
+        "status": null,
+        "durationMs": null,
+        "encodedBytes": null,
+        "pending": true,
+        "fromDiskCache": null,
+        "headers": {}
+      }
+    ]
+  }
+]

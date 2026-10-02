@@ -25,15 +25,18 @@ export const HomeDeploySection = ({ compact, onQuickDeploy }: HomeDeploySectionP
       <div
         className={`flex gap-3 ${compact ? 'flex-col' : 'flex-col xl:flex-row xl:items-center xl:justify-between'}`}
       >
-        <div>
+        <div className="min-w-0">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">
             {t('home.publishHeading')}
           </h2>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-            {t('home.publishDescription')}
-          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              {t('home.publishDescription')}
+            </p>
+            <UsageNotice compact />
+          </div>
         </div>
-        <div className="relative flex flex-wrap items-center gap-2">
+        <div className="relative flex shrink-0 flex-wrap items-center gap-2">
           <button
             onClick={() => publish(SourceType.HTML)}
             className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-brand-700"
@@ -76,9 +79,6 @@ export const HomeDeploySection = ({ compact, onQuickDeploy }: HomeDeploySectionP
             )}
           </Popover>
         </div>
-      </div>
-      <div className="mt-3">
-        <UsageNotice />
       </div>
     </section>
   );

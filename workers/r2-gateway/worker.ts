@@ -375,11 +375,17 @@ export default {
       }
     }
 
+    const cacheableMethod = request.method === 'GET' || request.method === 'HEAD';
+    const requestCacheControl = request.headers.get('cache-control') ?? '';
+    const noStore = /(?:^|,)\s*no-store\b/i.test(requestCacheControl);
+    const bypass = !cacheableMethod || noStore || /(?:^|,)\s*no-cache\b/i.test(requestCacheControl);
+    const store = cacheableMethod && !noStore;
+
     if (subdomain === CENTRAL_THUMBNAIL_HOST && (request.method === 'GET' || request.method === 'HEAD')) {
       const asset = Object.values(runtimeAssets).find((entry) => entry.path === url.pathname);
       if (asset) {
         const started = performance.now();
-        const result = await readSiteObject(url, asset.key, bucket, ctx, false, true);
+        const result = await readSiteObject(url, asset.key, bucket, ctx, bypass, store);
         if (!result) return new Response('Runtime asset unavailable', { status: 503 });
         const headers = new Headers(result.response.headers);
         headers.set('cache-control', 'public, max-age=31536000, immutable');
@@ -435,11 +441,6 @@ export default {
     }
 
     const started = performance.now();
-    const cacheableMethod = request.method === 'GET' || request.method === 'HEAD';
-    const requestCacheControl = request.headers.get('cache-control') ?? '';
-    const noStore = /(?:^|,)\s*no-store\b/i.test(requestCacheControl);
-    const bypass = !cacheableMethod || noStore || /(?:^|,)\s*no-cache\b/i.test(requestCacheControl);
-    const store = cacheableMethod && !noStore;
     const resolved = await resolveDeployment(url, subdomain, bucket, ctx, bypass, store);
     if (!resolved) return new Response('Invalid site deployment', { status: 503 });
     const { prefix, previousPrefix } = resolved.deployment;
