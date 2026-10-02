@@ -1,4 +1,6 @@
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { parseEnv } from 'node:util';
 import { aiService } from '../workers/api/src/services/ai.service';
 import {
   DESCRIPTION_TRANSLATION_CANDIDATES_SQL,
@@ -10,8 +12,13 @@ const apply = process.argv.includes('--apply');
 const limit = Number(process.argv.find((a) => a.startsWith('--limit='))?.slice(8) || 1000);
 if (!Number.isInteger(limit) || limit < 1 || limit > 2000) throw new Error('limit must be 1–2000');
 const envFile = process.argv.find((a) => a.startsWith('--env-file='))?.slice(11);
-if (apply && envFile) process.loadEnvFile(envFile);
-const env = process.env as unknown as ApiWorkerEnv;
+const modelEnv = apply && envFile ? parseEnv(readFileSync(envFile, 'utf8')) : process.env;
+// Do not import unrelated Cloudflare credentials from a builder environment.
+const env = {
+  DASHSCOPE_API_KEY: modelEnv.DASHSCOPE_API_KEY,
+  PLATFORM_AI_BASE_URL: modelEnv.PLATFORM_AI_BASE_URL,
+  PLATFORM_AI_MODEL: modelEnv.PLATFORM_AI_MODEL,
+} as ApiWorkerEnv;
 if (apply && !aiService.isEnabled(env)) throw new Error('AI credentials required for apply');
 const sqlLiteral = (value: unknown): string =>
   typeof value === 'number' ? String(value) : `'${String(value).replaceAll("'", "''")}'`;
