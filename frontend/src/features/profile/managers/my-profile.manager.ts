@@ -5,6 +5,8 @@ import { fetchPublicProfile, updateMyProfile } from '@/services/http/profile-api
 import type { AuthManager } from '@/features/auth/managers/auth.manager';
 import type { UIManager } from '@/managers/ui.manager';
 import i18n from '@/i18n/config';
+import { normalizePublicHandle, normalizePublicLabel } from '@gemigo/public-author';
+import { useProfileNameStore } from '@/features/profile/stores/profile-name.store';
 
 /**
  * MyProfileManager handles all business logic for the MyProfile page.
@@ -18,6 +20,63 @@ export class MyProfileManager {
     this.authManager = authManager;
     this.uiManager = uiManager;
   }
+
+  beginNameSetup = () => {
+    const user = this.authManager.getCurrentUser();
+    if (!user) return;
+    useProfileNameStore.setState({
+      editingUserId: user.id,
+      displayName: normalizePublicLabel(user.displayName) ?? '',
+      handle: user.handle ?? '',
+      error: null,
+      isSaving: false,
+    });
+  };
+
+  dismissNameReminder = () => {
+    const user = this.authManager.getCurrentUser();
+    if (!user) return;
+    useProfileNameStore.setState((state) => ({
+      dismissedUserIds: [...new Set([...state.dismissedUserIds, user.id])],
+      editingUserId: null,
+      displayName: '',
+      handle: '',
+      error: null,
+    }));
+  };
+
+  savePublicName = async () => {
+    const user = this.authManager.getCurrentUser();
+    const draft = useProfileNameStore.getState();
+    if (!user || draft.editingUserId !== user.id || draft.isSaving) return;
+    const displayName = normalizePublicLabel(draft.displayName);
+    const rawHandle = draft.handle.trim();
+    const handle = normalizePublicHandle(rawHandle);
+    if (!displayName || displayName.length > 50) {
+      useProfileNameStore.setState({ error: i18n.t('profile.nameError') });
+      return;
+    }
+    if (rawHandle && !handle) {
+      useProfileNameStore.setState({ error: i18n.t('profile.handleFormatHint') });
+      return;
+    }
+    useProfileNameStore.setState({ isSaving: true, error: null });
+    try {
+      await this.authManager.updateHandle(handle ?? '', displayName);
+      if (this.authManager.getCurrentUser()?.id === user.id) {
+        this.uiManager.showSuccessToast(i18n.t('profile.nameSaved'));
+        useProfileNameStore.setState({ editingUserId: null, displayName: '', handle: '' });
+      }
+    } catch (error) {
+      if (useProfileNameStore.getState().editingUserId === user.id) {
+        useProfileNameStore.setState({ error: error instanceof Error ? error.message : i18n.t('profile.updateError') });
+      }
+    } finally {
+      if (useProfileNameStore.getState().editingUserId === user.id || useProfileNameStore.getState().editingUserId === null) {
+        useProfileNameStore.setState({ isSaving: false });
+      }
+    }
+  };
 
   /**
    * Load the current user's profile data.

@@ -654,7 +654,19 @@
     "clickToPin": "点击应用卡片可以将其置顶",
     "displayNameLabel": "公开昵称",
     "displayNamePlaceholder": "填写你希望大家看到的名字",
-    "displayNameHint": "应用和主页统一显示此昵称，不随界面语言改变；邮箱不会公开展示。"
+    "displayNameHint": "这是大家在作品和主页上看到的名字，可以重名；邮箱不会公开展示。",
+    "nameReminderTitle": "给自己起个名字，让大家认出你的作品",
+    "nameReminderDescription": "设置公开昵称，替换系统默认的创作者名称。你也可以稍后再设置。",
+    "setName": "设置名字",
+    "saveName": "保存名字",
+    "nameReminderLater": "稍后再说",
+    "optionalHandleLabel": "账号用户名（选填）",
+    "handleUniquenessHint": "用户名不能重复，用于你的专属主页地址；不填写也能保存昵称。",
+    "handleFormatHint": "用户名需要 3–24 位字母、数字或短横线，大小写视为同一个用户名。",
+    "handleTaken": "这个用户名已经有人使用了，请换一个。",
+    "nameError": "请填写 1–50 个字符的昵称，不要包含邮箱或控制字符。",
+    "nameSaved": "名字已保存，大家可以认出你了。",
+    "nameSessionChanged": "登录状态已变化，请重新设置名字。"
   },
   "languages": {
     "appLanguage": "应用语言",

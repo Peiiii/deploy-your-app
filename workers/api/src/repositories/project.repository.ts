@@ -10,6 +10,9 @@ import {
   deriveFlatMetadataFromLocalization,
 } from '../utils/project-localization';
 
+import { engagementRepository } from './engagement.repository';
+import { analyticsRepository } from './analytics.repository';
+
 type ProjectRow = Record<string, unknown>;
 
 function parseJsonArray<T>(value: unknown, fallback: T): T {
@@ -34,6 +37,7 @@ function parseJsonObject<T>(value: unknown): T | undefined {
 let schemaEnsured = false;
 
 export interface ProjectQueryOptions {
+  languages?: string[];
   search?: string;
   category?: string;
   tag?: string;
@@ -46,7 +50,127 @@ export interface ProjectQueryOptions {
   offset?: number;
 }
 
+function projectFilters(options: Omit<ProjectQueryOptions, 'sort'>): { where: string[]; params: unknown[] } {
+  const where: string[] = [];
+  const params: unknown[] = [];
+
+  if (!options.includeDeleted) {
+    where.push('(is_deleted = 0 OR is_deleted IS NULL)');
+  }
+
+  if (options.onlyPublic) {
+    where.push('is_public = 1');
+    // "Public" in product terms means the app is actually accessible.
+    // Projects that have never successfully deployed (no live URL) must not
+    // appear in public feeds like Explore.
+    where.push("status = 'Live'");
+    where.push("url IS NOT NULL AND TRIM(url) != ''");
+  }
+
+  if (typeof options.isExtensionSupported === 'boolean') {
+    where.push('is_extension_supported = ?');
+    params.push(options.isExtensionSupported ? 1 : 0);
+  }
+
+  if (options.ownerId) {
+    where.push('owner_id = ?');
+    params.push(options.ownerId);
+  }
+
+  if (options.category) {
+    where.push('category = ?');
+    params.push(options.category);
+  }
+
+  if (options.search) {
+    const q = `%${options.search.toLowerCase()}%`;
+    where.push(
+      `(
+        LOWER(name) LIKE ?
+        OR LOWER(IFNULL(description, '')) LIKE ?
+        OR LOWER(IFNULL(category, '')) LIKE ?
+        OR LOWER(IFNULL(tags, '')) LIKE ?
+      )`,
+    );
+    params.push(q, q, q, q);
+  }
+
+  if (options.languages) {
+    where.push(`((? = 1 AND COALESCE(json_array_length(json_extract(app_language, '$.languages')), 0) = 0)
+      OR EXISTS (SELECT 1 FROM json_each(json_extract(app_language, '$.languages')) AS lang
+        WHERE lang.value IN (SELECT value FROM json_each(?)) OR (lang.value = 'zxx' AND ? = 1)))`);
+    params.push(options.languages.includes('und') ? 1 : 0, JSON.stringify(options.languages), options.languages.some(code => code !== 'und') ? 1 : 0);
+  }
+
+  if (options.tag) {
+    // tags is stored as a JSON array; we approximate tag matching by
+    // searching for the tag name inside the JSON string.
+    where.push('tags LIKE ?');
+    params.push(`%${options.tag}%`);
+  }
+  return { where, params };
+}
+
 class ProjectRepository {
+  /** Aggregate and paginate inside D1; never transfer all candidates to the Worker. */
+  async queryExplorePage(
+    db: D1Database,
+    options: Pick<ProjectQueryOptions, 'languages' | 'search' | 'category' | 'tag' | 'isExtensionSupported'> & {
+      sort: 'recent' | 'popularity';
+      limit: number;
+      offset: number;
+      fromDateInclusive: string;
+    },
+  ): Promise<{
+    items: Project[];
+    total: number;
+    availableLanguages: string[];
+    engagement: Record<string, { likesCount: number; favoritesCount: number }>; 
+  }> {
+    await Promise.all([
+      this.ensureSchema(db),
+      engagementRepository.ensureSchema(db),
+      ...(options.sort === 'popularity' ? [analyticsRepository.ensureSchema(db)] : []),
+    ]);
+    const { where, params } = projectFilters({ ...options, onlyPublic: true });
+    const whereSql = where.join(' AND ');
+    const popular = options.sort === 'popularity';
+    const viewsSql = popular
+      ? `, COALESCE((SELECT SUM(human_views) FROM project_daily_stats
+          WHERE slug = COALESCE(p.slug, p.id) AND date >= ?), 0) AS explore_views`
+      : '';
+    const orderSql = `${popular ? 'explore_views DESC, explore_favorites DESC, explore_likes DESC, ' : ''}
+      julianday(last_deployed) DESC, last_deployed DESC, id ASC`;
+    const catalogFilters = projectFilters({ ...options, languages: undefined, onlyPublic: true });
+    const [count, page, languageRows] = await db.batch<ProjectRow>([
+      db.prepare(`SELECT COUNT(*) AS total FROM projects WHERE ${whereSql}`).bind(...params),
+      db.prepare(`SELECT p.*,
+        (SELECT COUNT(*) FROM project_likes WHERE project_id = p.id) AS explore_likes,
+        (SELECT COUNT(*) FROM project_favorites WHERE project_id = p.id) AS explore_favorites
+        ${viewsSql}
+        FROM projects p WHERE ${whereSql}
+        ORDER BY ${orderSql} LIMIT ? OFFSET ?`)
+        .bind(...(popular ? [options.fromDateInclusive] : []), ...params, options.limit, options.offset),
+      db.prepare(`SELECT DISTINCT COALESCE(lang.value, 'und') AS language
+        FROM projects LEFT JOIN json_each(json_extract(app_language, '$.languages')) AS lang
+        WHERE ${catalogFilters.where.join(' AND ')} ORDER BY language`).bind(...catalogFilters.params),
+    ]);
+    const rows = (page.results ?? []) as ProjectRow[];
+    const engagement: Record<string, { likesCount: number; favoritesCount: number }> = {};
+    for (const row of rows) {
+      engagement[String(row.id)] = {
+        likesCount: Number(row.explore_likes),
+        favoritesCount: Number(row.explore_favorites),
+      };
+    }
+    return {
+      items: rows.map((row) => this.mapRowToProject(row)),
+      total: Number(count.results?.[0]?.total ?? 0),
+      availableLanguages: (languageRows.results ?? []).map(row => String(row.language)),
+      engagement,
+    };
+  }
+
   private async ensureSchema(db: D1Database): Promise<void> {
     if (schemaEnsured) return;
     await db
@@ -408,56 +532,7 @@ class ProjectRepository {
   ): Promise<Project[]> {
     await this.ensureSchema(db);
 
-    const where: string[] = [];
-    const params: unknown[] = [];
-
-    if (!options.includeDeleted) {
-      where.push('(is_deleted = 0 OR is_deleted IS NULL)');
-    }
-
-    if (options.onlyPublic) {
-      where.push('is_public = 1');
-      // "Public" in product terms means the app is actually accessible.
-      // Projects that have never successfully deployed (no live URL) must not
-      // appear in public feeds like Explore.
-      where.push("status = 'Live'");
-      where.push("url IS NOT NULL AND TRIM(url) != ''");
-    }
-
-    if (typeof options.isExtensionSupported === 'boolean') {
-      where.push('is_extension_supported = ?');
-      params.push(options.isExtensionSupported ? 1 : 0);
-    }
-
-    if (options.ownerId) {
-      where.push('owner_id = ?');
-      params.push(options.ownerId);
-    }
-
-    if (options.category) {
-      where.push('category = ?');
-      params.push(options.category);
-    }
-
-    if (options.search) {
-      const q = `%${options.search.toLowerCase()}%`;
-      where.push(
-        `(
-          LOWER(name) LIKE ?
-          OR LOWER(IFNULL(description, '')) LIKE ?
-          OR LOWER(IFNULL(category, '')) LIKE ?
-          OR LOWER(IFNULL(tags, '')) LIKE ?
-        )`,
-      );
-      params.push(q, q, q, q);
-    }
-
-    if (options.tag) {
-      // tags is stored as a JSON array; we approximate tag matching by
-      // searching for the tag name inside the JSON string.
-      where.push('tags LIKE ?');
-      params.push(`%${options.tag}%`);
-    }
+    const { where, params } = projectFilters(options);
 
     let sql = 'SELECT * FROM projects';
     if (where.length > 0) {

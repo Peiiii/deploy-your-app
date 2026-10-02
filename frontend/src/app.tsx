@@ -10,6 +10,7 @@ import { useUIStore } from '@/stores/ui.store';
 import { useProjectStore } from '@/stores/project.store';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { AuthModal } from '@/features/auth/components/auth-modal';
+import { ProfileNameReminder } from '@/features/profile/components/profile-name-reminder';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Toast } from '@/components/toast';
 import { CrispChat } from '@/components/crisp-chat';
@@ -88,6 +89,7 @@ const MainContent: React.FC = () => {
       className={`h-full overflow-y-auto overflow-x-hidden flex flex-col transition-all duration-300 ${sidebarOffset} ${rightPanelOffset} ${isFullscreenPanel ? 'pointer-events-none select-none' : ''}`}
     >
       <Header />
+      <ProfileNameReminder />
       <div className="flex-1">
         <AppRoutes />
       </div>
