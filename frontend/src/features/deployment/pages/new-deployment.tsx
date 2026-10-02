@@ -71,21 +71,29 @@ export const NewDeployment = () => {
       {!success && (
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 md:p-6">
           <fieldset disabled={busy} className="space-y-5 disabled:opacity-70">
-            <div className="flex gap-2" role="group" aria-label={t('home.moreWays')}>
-              {[SourceType.HTML, SourceType.ZIP, SourceType.GITHUB].map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  aria-pressed={state.sourceType === type}
-                  onClick={() => {
-                    presenter.deployment.handleSourceChange(type);
-                    setParams({ source: type });
-                  }}
-                  className={`rounded-full px-4 py-2 text-sm font-medium ${state.sourceType === type ? 'bg-brand-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
-                >
-                  {type === SourceType.GITHUB ? 'GitHub' : type.toUpperCase()}
-                </button>
-              ))}
+            <div className="space-y-3">
+              <h2 id="publication-source-label" className="text-sm font-medium text-slate-900 dark:text-white">
+                {t('deployment.chooseContentSource')}
+              </h2>
+              <div className="flex flex-wrap gap-2" role="group" aria-labelledby="publication-source-label" aria-describedby="publication-source-hint">
+                {[SourceType.HTML, SourceType.ZIP, SourceType.GITHUB].map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    aria-pressed={state.sourceType === type}
+                    onClick={() => {
+                      presenter.deployment.handleSourceChange(type);
+                      setParams({ source: type });
+                    }}
+                    className={`rounded-full px-4 py-2 text-sm font-medium ${state.sourceType === type ? 'bg-brand-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
+                  >
+                    {t(`deployment.contentSources.${type}.label`)}
+                  </button>
+                ))}
+              </div>
+              <p id="publication-source-hint" className="text-sm text-slate-500 dark:text-slate-400">
+                {t(`deployment.contentSources.${state.sourceType}.description`)}
+              </p>
             </div>
             {state.sourceType === SourceType.HTML && (
               <HtmlSourceForm

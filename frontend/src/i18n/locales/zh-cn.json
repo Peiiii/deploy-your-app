@@ -267,6 +267,21 @@
     "signInRequired": "部署应用前请先登录。",
     "publishHeading": "发布你的网页",
     "publishDescription": "添加内容，发布后获得可以直接分享的链接。",
+    "chooseContentSource": "选择内容来源",
+    "contentSources": {
+      "html": {
+        "label": "HTML 代码 / 文件",
+        "description": "粘贴 HTML 代码，或导入一个 HTML 文件。"
+      },
+      "zip": {
+        "label": "ZIP 压缩包",
+        "description": "上传包含网页或应用项目文件的 ZIP 压缩包。"
+      },
+      "github": {
+        "label": "GitHub 仓库",
+        "description": "填写公开 GitHub 仓库的地址，从仓库获取项目内容。"
+      }
+    },
     "optionalName": "项目名称（可选）",
     "optionalNameHint": "不填写时，使用网页标题或文件名",
     "publish": "发布并获取链接",

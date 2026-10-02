@@ -271,6 +271,21 @@
     "signInRequired": "Please sign in to deploy applications.",
     "publishHeading": "Publish your page",
     "publishDescription": "Add your content and get a link to share.",
+    "chooseContentSource": "Choose your content source",
+    "contentSources": {
+      "html": {
+        "label": "HTML code / file",
+        "description": "Paste HTML code or import an HTML file."
+      },
+      "zip": {
+        "label": "ZIP archive",
+        "description": "Upload a ZIP archive containing your page or app project files."
+      },
+      "github": {
+        "label": "GitHub repository",
+        "description": "Enter a public GitHub repository URL to use its project files."
+      }
+    },
     "optionalName": "Project name (optional)",
     "optionalNameHint": "Leave blank to use the page title or filename",
     "publish": "Publish and get a link",
