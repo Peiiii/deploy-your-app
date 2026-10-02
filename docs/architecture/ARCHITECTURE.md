@@ -151,6 +151,10 @@ server/src/
 - 根据子域名路由到对应应用
 - 提供静态资源服务
 
+截至2026-10-03，公共缓存策略由 gateway 持有：deployment pointer 边缘缓存5秒，文件按 tenant/release R2 key 缓存；releases 为不可变版本，legacy current 最多5秒缓存。浏览器普通应用URL使用 no-cache + conditional ETag/HEAD，避免任意文件名覆盖后被缓存一年。版本发布/rollback可见性最多5秒，legacy原地更新最多10秒；Cloudflare HTML变换可能移除客户端ETag，不能假定所有HTML都能自动304。
+
+默认无query的Tailwind CDN根脚本在交付HTML时替换成平台同字节固定版本镜像；上传源码不变，CSP/显式版本/插件query等保留原地址。资源版本/hash由 [runtime-assets.json](../../workers/r2-gateway/runtime-assets.json) 持有，发布脚本先验证hash再上传镜像和许可证，之后才能发布gateway。原始验证与线上数据见 [性能交付记录](../logs/2026-10-03-app-delivery-performance/README.md)。
+
 ## 技术栈
 
 ### 前端技术
@@ -234,7 +238,7 @@ server/src/
    ↓
 2. DNS 解析到 R2 Gateway Worker
    ↓
-3. Worker 从 R2 读取对应应用
+3. Worker 解析当前发布版本，优先读边缘缓存，未命中回源 R2
    ↓
 4. 返回静态资源
 ```

@@ -1,0 +1,3007 @@
+{
+  "environment": "curl direct IPv4 pinned to reachable Cloudflare 104.21.14.73 to exclude known failed-IP issue; unthrottled; sequential transfers reuse connection; no browser cache",
+  "catalogSize": 264,
+  "sampleSize": 40,
+  "rows": [
+    {
+      "slug": "v2",
+      "url": "https://v2.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 1.222904,
+          "time_appconnect": 1.454634,
+          "time_starttransfer": 2.269664,
+          "time_total": 2.270224,
+          "size_download": 8804,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453f4828eeafef-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=347.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.240209,
+          "time_total": 0.468143,
+          "size_download": 8804,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f4d4bf3afef-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=9.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.7e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.239692,
+          "time_total": 1.4109,
+          "size_download": 8804,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f502866afef-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=10.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-103",
+      "url": "https://app-103.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 3.2e-05,
+          "time_connect": 1.225153,
+          "time_appconnect": 1.460209,
+          "time_starttransfer": 2.26502,
+          "time_total": 2.323093,
+          "size_download": 5037,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453f483fdd6c12-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=339.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 9e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.248967,
+          "time_total": 0.253508,
+          "size_download": 5037,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f4dadae6c12-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=7.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 1.148899,
+          "time_total": 1.372442,
+          "size_download": 5037,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f4f3b996c12-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=10.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "mnlg232101126",
+      "url": "https://mnlg232101126.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 4.9e-05,
+          "time_connect": 0.224271,
+          "time_appconnect": 0.456923,
+          "time_starttransfer": 2.030953,
+          "time_total": 3.118085,
+          "size_download": 16632,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453f41fa0e23de-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=392.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.246844,
+          "time_total": 0.92422,
+          "size_download": 16625,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f529b2423de-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=12.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.5e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.253229,
+          "time_total": 2.019573,
+          "size_download": 16625,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f585ded23de-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=15.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "919191-3",
+      "url": "https://919191-3.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.224106,
+          "time_appconnect": 0.45593,
+          "time_starttransfer": 1.28046,
+          "time_total": 1.28115,
+          "size_download": 9282,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453f4209118900-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=348.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.1e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.246398,
+          "time_total": 0.256198,
+          "size_download": 9282,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f473b298900-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=13.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 3.2e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.241242,
+          "time_total": 0.69619,
+          "size_download": 9282,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f48d9d98900-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=9.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "game-thai-1",
+      "url": "https://game-thai-1.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 1.228776,
+          "time_appconnect": 2.409814,
+          "time_starttransfer": 2.989781,
+          "time_total": 5.731736,
+          "size_download": 3529,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453f5cbf284818-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=339.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 2.4e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.255458,
+          "time_total": 1.089905,
+          "size_download": 3528,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f718ac34818-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=16.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.2e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.244868,
+          "time_total": 1.087095,
+          "size_download": 3494,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f785bdc4818-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=11.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-127",
+      "url": "https://app-127.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 1.1e-05,
+          "time_connect": 0.216916,
+          "time_appconnect": 0.715866,
+          "time_starttransfer": 1.513802,
+          "time_total": 1.729517,
+          "size_download": 4873,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453f5c5ba7f7d7-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=349.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.5e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.238461,
+          "time_total": 0.513644,
+          "size_download": 4873,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f62ad01f7d7-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=13.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.232683,
+          "time_total": 1.021325,
+          "size_download": 4873,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f65ea63f7d7-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=9.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "peiiii-os-portfolio",
+      "url": "https://peiiii-os-portfolio.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 1.3e-05,
+          "time_connect": 0.229452,
+          "time_appconnect": 0.755839,
+          "time_starttransfer": 2.242852,
+          "time_total": 2.243546,
+          "size_download": 1416,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453f5dec442ed9-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=373.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 2.4e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.25728,
+          "time_total": 0.544123,
+          "size_download": 1439,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f672dd72ed9-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=15.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 6e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.262113,
+          "time_total": 0.263535,
+          "size_download": 1439,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f6a98972ed9-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=18.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-40",
+      "url": "https://app-40.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 1.222603,
+          "time_appconnect": 1.452204,
+          "time_starttransfer": 2.258569,
+          "time_total": 4.032735,
+          "size_download": 41931,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453f6e2e7008d6-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=531.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.1e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.257261,
+          "time_total": 0.949971,
+          "size_download": 41994,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f7e480b08d6-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=11.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.9e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.262324,
+          "time_total": 1.608295,
+          "size_download": 41994,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f843b6708d6-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=17.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "1523",
+      "url": "https://1523.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 1.2e-05,
+          "time_connect": 0.216629,
+          "time_appconnect": 0.434506,
+          "time_starttransfer": 1.906535,
+          "time_total": 1.906808,
+          "size_download": 1185,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453f6f0b63565f-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=332.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.6e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.500381,
+          "time_total": 0.501037,
+          "size_download": 1185,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f783e10565f-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=13.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.498458,
+          "time_total": 0.498732,
+          "size_download": 1185,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f7b58d0565f-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=9.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "zzqzzq",
+      "url": "https://zzqzzq.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 9e-06,
+          "time_connect": 0.2258,
+          "time_appconnect": 0.70995,
+          "time_starttransfer": 1.325601,
+          "time_total": 1.781216,
+          "size_download": 14203,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453f70ce51c171-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=374.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.24376,
+          "time_total": 0.473507,
+          "size_download": 14200,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f778972c171-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=9.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.277769,
+          "time_total": 2.403462,
+          "size_download": 14200,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f7aadadc171-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=8.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "a-wonderful-tiny-animal-game",
+      "url": "https://a-wonderful-tiny-animal-game.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 1.2e-05,
+          "time_connect": 0.220166,
+          "time_appconnect": 0.724731,
+          "time_starttransfer": 1.482755,
+          "time_total": 2.300993,
+          "size_download": 4998,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453f832ef48e03-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=305.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 9e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.238333,
+          "time_total": 1.120792,
+          "size_download": 4992,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f8cf9ad8e03-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=8.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.240449,
+          "time_total": 0.990016,
+          "size_download": 4992,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f93f9008e03-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=10.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-g2sk",
+      "url": "https://app-g2sk.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.226011,
+          "time_appconnect": 0.45841,
+          "time_starttransfer": 1.266379,
+          "time_total": 1.26668,
+          "size_download": 5534,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453f8208245708-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=339.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 6e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.242954,
+          "time_total": 0.814388,
+          "size_download": 5534,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f8719885708-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=11.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.1e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.241471,
+          "time_total": 0.246128,
+          "size_download": 5534,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f8c2b8b5708-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=9.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "78",
+      "url": "https://78.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.22605,
+          "time_appconnect": 0.457792,
+          "time_starttransfer": 1.004019,
+          "time_total": 1.516289,
+          "size_download": 1725,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": "W/\"a9e8731b689983f4abc9535132d41872-hosting-176e8946\"",
+            "cf-cache-status": null,
+            "cf-ray": "a4453f8c78dfa652-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=306.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.532962,
+          "time_total": 0.533149,
+          "size_download": 1725,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": "W/\"a9e8731b689983f4abc9535132d41872-hosting-176e8946\"",
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f9318aca652-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=13.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 6e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.248761,
+          "time_total": 0.534558,
+          "size_download": 1732,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": "W/\"a9e8731b689983f4abc9535132d41872-hosting-176e8946\"",
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f966df4a652-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=15.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-41",
+      "url": "https://app-41.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 6e-06,
+          "time_connect": 0.224789,
+          "time_appconnect": 0.462104,
+          "time_starttransfer": 1.001753,
+          "time_total": 1.224103,
+          "size_download": 5564,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453f90aeb2d2bd-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=296.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 6e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.242783,
+          "time_total": 1.327346,
+          "size_download": 5526,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f9569f5d2bd-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=11.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.244719,
+          "time_total": 0.527492,
+          "size_download": 5526,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f9dbb63d2bd-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=9.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-j29f",
+      "url": "https://app-j29f.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 9e-06,
+          "time_connect": 0.221782,
+          "time_appconnect": 0.45569,
+          "time_starttransfer": 1.054607,
+          "time_total": 1.056712,
+          "size_download": 7252,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453f914e9e2b7e-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=340.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.310599,
+          "time_total": 0.535356,
+          "size_download": 7252,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f953a642b7e-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=14.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 5e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.250587,
+          "time_total": 1.069512,
+          "size_download": 7252,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453f986db22b7e-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=16.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "919191-1",
+      "url": "https://919191-1.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 1.218945,
+          "time_appconnect": 1.451264,
+          "time_starttransfer": 2.327621,
+          "time_total": 4.549087,
+          "size_download": 7763,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453fa2de4a6a2b-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=417.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 2e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.548429,
+          "time_total": 2.433379,
+          "size_download": 7763,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453fb63cd16a2b-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=16.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 9e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.637395,
+          "time_total": 0.914978,
+          "size_download": 7763,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453fc56f926a2b-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=396.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-001",
+      "url": "https://app-001.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 6e-06,
+          "time_connect": 0.235766,
+          "time_appconnect": 1.400734,
+          "time_starttransfer": 1.95507,
+          "time_total": 2.871521,
+          "size_download": 8009,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453fa2fe6cb3d0-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=308.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 9e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.24423,
+          "time_total": 0.251834,
+          "size_download": 8009,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453fac3ef0b3d0-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=15.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 2.9e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.239367,
+          "time_total": 1.499342,
+          "size_download": 8009,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453fadcc09b3d0-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=9.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-107",
+      "url": "https://app-107.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 1.227846,
+          "time_appconnect": 1.470183,
+          "time_starttransfer": 2.357564,
+          "time_total": 2.358063,
+          "size_download": 7993,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453fa859d42edf-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=348.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.263178,
+          "time_total": 0.593385,
+          "size_download": 7993,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453faddf2c2edf-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=20.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 6e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.564963,
+          "time_total": 0.565224,
+          "size_download": 7993,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453fb19ad12edf-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=30.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-naxi",
+      "url": "https://app-naxi.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 1.277838,
+          "time_appconnect": 1.508743,
+          "time_starttransfer": 2.208421,
+          "time_total": 2.212357,
+          "size_download": 15693,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453faa8b29402a-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=166.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.2e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.246613,
+          "time_total": 0.512088,
+          "size_download": 15693,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453faeeda7402a-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=14.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.230745,
+          "time_total": 1.436262,
+          "size_download": 15693,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453fb21e14402a-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=11.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "case-1-evidence-graph",
+      "url": "https://case-1-evidence-graph.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.229693,
+          "time_appconnect": 0.464049,
+          "time_starttransfer": 1.565609,
+          "time_total": 1.56602,
+          "size_download": 6248,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453fb81ed01659-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=341.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.251407,
+          "time_total": 0.255913,
+          "size_download": 6284,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453fbefe5b1659-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=12.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.6e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.25365,
+          "time_total": 0.258301,
+          "size_download": 6248,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453fc09bb61659-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=13.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-xi7t",
+      "url": "https://app-xi7t.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.219591,
+          "time_appconnect": 0.444159,
+          "time_starttransfer": 1.106209,
+          "time_total": 1.910781,
+          "size_download": 20599,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453fb9ff708e3c-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=424.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.4e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 1.405581,
+          "time_total": 1.406016,
+          "size_download": 20447,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453fc31fe28e3c-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=14.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.243213,
+          "time_total": 0.53597,
+          "size_download": 20599,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453fcbee868e3c-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=13.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "test-game",
+      "url": "https://test-game.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 1e-05,
+          "time_connect": 0.220775,
+          "time_appconnect": 1.436003,
+          "time_starttransfer": 2.274381,
+          "time_total": 2.280979,
+          "size_download": 4227,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453fc42f9cd908-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=382.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.237932,
+          "time_total": 0.242472,
+          "size_download": 4227,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453fc968ced908-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=10.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.3e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.522228,
+          "time_total": 0.522736,
+          "size_download": 4227,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453fcafe3ad908-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=8.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "www",
+      "url": "https://www.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 404,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.220147,
+          "time_appconnect": 0.444216,
+          "time_starttransfer": 0.941984,
+          "time_total": 3.059529,
+          "size_download": 9,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": null,
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453fc50c9d8e03-LAX",
+            "content-type": "text/plain;charset=UTF-8",
+            "content-encoding": null,
+            "server-timing": null,
+            "x-gemigo-cache": null,
+            "x-gemigo-deployment-cache": null
+          }
+        },
+        {
+          "http_code": 404,
+          "time_namelookup": 9e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.226047,
+          "time_total": 0.226198,
+          "size_download": 9,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": null,
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453fd56bf98e03-LAX",
+            "content-type": "text/plain;charset=UTF-8",
+            "content-encoding": null,
+            "server-timing": null,
+            "x-gemigo-cache": null,
+            "x-gemigo-deployment-cache": null
+          }
+        },
+        {
+          "http_code": 404,
+          "time_namelookup": 6e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.224657,
+          "time_total": 0.225049,
+          "size_download": 9,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": null,
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453fd6ca088e03-LAX",
+            "content-type": "text/plain;charset=UTF-8",
+            "content-encoding": null,
+            "server-timing": null,
+            "x-gemigo-cache": null,
+            "x-gemigo-deployment-cache": null
+          }
+        }
+      ]
+    },
+    {
+      "slug": "nonganfield-qnd-nongdiaw",
+      "url": "https://nonganfield-qnd-nongdiaw.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 4.526149,
+          "time_appconnect": 4.756685,
+          "time_starttransfer": 5.350822,
+          "time_total": 5.620093,
+          "size_download": 5466,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453fe8fd33b74c-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=343.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.5e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.527583,
+          "time_total": 0.743523,
+          "size_download": 5466,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453fee6ac2b74c-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=15.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.232708,
+          "time_total": 0.237164,
+          "size_download": 5466,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453ff30cf9b74c-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=18.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "x-2",
+      "url": "https://x-2.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 2.378137,
+          "time_appconnect": 3.503607,
+          "time_starttransfer": 4.059519,
+          "time_total": 6.113016,
+          "size_download": 29315,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453fe43c4a55f7-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=311.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.1e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.534,
+          "time_total": 1.223147,
+          "size_download": 29115,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453ff48f0955f7-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=13.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.612638,
+          "time_total": 1.900998,
+          "size_download": 29298,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453ffc2b1e55f7-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=8.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-101",
+      "url": "https://app-101.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.225145,
+          "time_appconnect": 0.454066,
+          "time_starttransfer": 1.310849,
+          "time_total": 1.311429,
+          "size_download": 5530,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": "W/\"bc60b0dcef05ab46ff36480852f47135-hosting-176e8946\"",
+            "cf-cache-status": null,
+            "cf-ray": "a4453fd238aad2bd-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=336.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 9e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.246632,
+          "time_total": 0.537778,
+          "size_download": 5468,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": "W/\"bc60b0dcef05ab46ff36480852f47135-hosting-176e8946\"",
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453fd79c22d2bd-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=13.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.53141,
+          "time_total": 0.754745,
+          "size_download": 5468,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": "W/\"bc60b0dcef05ab46ff36480852f47135-hosting-176e8946\"",
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453fdae993d2bd-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=17.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "sth-mcjs",
+      "url": "https://sth-mcjs.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 2.38031,
+          "time_appconnect": 2.618725,
+          "time_starttransfer": 3.284501,
+          "time_total": 4.458559,
+          "size_download": 14057,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453fe8bada2ed9-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=413.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.248097,
+          "time_total": 1.61944,
+          "size_download": 14057,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453ff43bc82ed9-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=15.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.839124,
+          "time_total": 0.839602,
+          "size_download": 14057,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453ffe5b6d2ed9-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=21.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-84",
+      "url": "https://app-84.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 1.2e-05,
+          "time_connect": 1.276476,
+          "time_appconnect": 1.508753,
+          "time_starttransfer": 2.063605,
+          "time_total": 2.073989,
+          "size_download": 3994,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453fe9387fcd33-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=305.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 2.3e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.264299,
+          "time_total": 0.772513,
+          "size_download": 3994,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453fecce2bcd33-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=25.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.2e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.245449,
+          "time_total": 0.250286,
+          "size_download": 3994,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4453ff1a83fcd33-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=20.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-hf8y",
+      "url": "https://app-hf8y.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.198969,
+          "time_appconnect": 0.41912,
+          "time_starttransfer": 1.927796,
+          "time_total": 2.149344,
+          "size_download": 25680,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4453ff5edaaaef8-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=325.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.244928,
+          "time_total": 1.05858,
+          "size_download": 25578,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4454000ba78aef8-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=8.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.245226,
+          "time_total": 0.539422,
+          "size_download": 25680,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a44540074b16aef8-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=11.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-86",
+      "url": "https://app-86.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.218419,
+          "time_appconnect": 2.057691,
+          "time_starttransfer": 2.81064,
+          "time_total": 2.810865,
+          "size_download": 442,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a44540017905b103-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=292.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 6e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.241586,
+          "time_total": 0.241953,
+          "size_download": 442,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a44540062b34b103-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=10.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.239222,
+          "time_total": 0.520577,
+          "size_download": 442,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4454007a858b103-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=9.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "voxel-smash-rebuild",
+      "url": "https://voxel-smash-rebuild.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 1.7e-05,
+          "time_connect": 0.220643,
+          "time_appconnect": 0.450075,
+          "time_starttransfer": 1.885838,
+          "time_total": 1.886123,
+          "size_download": 693,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a445400689eac135-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=311.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 1.087706,
+          "time_total": 1.088114,
+          "size_download": 699,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a445400f8bdcc135-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=14.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.9e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.237114,
+          "time_total": 0.95965,
+          "size_download": 699,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a44540165e0ac135-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=8.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-133",
+      "url": "https://app-133.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.214446,
+          "time_appconnect": 0.703719,
+          "time_starttransfer": 1.279774,
+          "time_total": 1.547369,
+          "size_download": 1348,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a445400c8a366414-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=347.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.4e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.23747,
+          "time_total": 0.237636,
+          "size_download": 1348,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4454011dc376414-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=15.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 6e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.23562,
+          "time_total": 0.940039,
+          "size_download": 1348,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a445401359716414-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=13.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "applibweb",
+      "url": "https://applibweb.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.216715,
+          "time_appconnect": 1.995618,
+          "time_starttransfer": 2.410794,
+          "time_total": 3.111241,
+          "size_download": 7455,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a44540173d758900-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=184.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.4e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.236288,
+          "time_total": 0.670641,
+          "size_download": 7451,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a445401e3fde8900-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=13.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 6e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.455558,
+          "time_total": 0.458908,
+          "size_download": 7449,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a44540226f818900-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=14.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-z0pa",
+      "url": "https://app-z0pa.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.219014,
+          "time_appconnect": 1.330865,
+          "time_starttransfer": 1.915554,
+          "time_total": 3.63234,
+          "size_download": 4572,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4454013584908ac-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=311.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.238579,
+          "time_total": 1.02393,
+          "size_download": 4572,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4454021ba6f08ac-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=13.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.2e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.232593,
+          "time_total": 1.391125,
+          "size_download": 4572,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a44540282c2608ac-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=9.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "x-1",
+      "url": "https://x-1.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 1.1e-05,
+          "time_connect": 0.225483,
+          "time_appconnect": 0.462526,
+          "time_starttransfer": 1.016194,
+          "time_total": 3.237576,
+          "size_download": 29054,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a445401c383bc28f-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=310.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.3e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.245959,
+          "time_total": 1.593089,
+          "size_download": 29054,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a445402d8f1bc28f-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=11.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.260259,
+          "time_total": 0.866381,
+          "size_download": 29054,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a44540377c5ac28f-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=12.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "thanakit",
+      "url": "https://thanakit.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 1.268808,
+          "time_appconnect": 2.676637,
+          "time_starttransfer": 3.233353,
+          "time_total": 3.677638,
+          "size_download": 4271,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a445402d1d92b54d-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=316.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.236618,
+          "time_total": 0.241286,
+          "size_download": 4271,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a44540335b5fb54d-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=10.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 5e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.217398,
+          "time_total": 0.221692,
+          "size_download": 4271,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4454034e83bb54d-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=9.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-134",
+      "url": "https://app-134.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 1e-05,
+          "time_connect": 2.373437,
+          "time_appconnect": 4.199154,
+          "time_starttransfer": 5.03639,
+          "time_total": 5.039482,
+          "size_download": 1615,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a445403fac960f19-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=334.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.9e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.271113,
+          "time_total": 0.548342,
+          "size_download": 1615,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4454044ee740f19-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=19.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 6e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.248824,
+          "time_total": 0.978671,
+          "size_download": 1621,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a44540485da40f19-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=14.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "91",
+      "url": "https://91.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 1.4e-05,
+          "time_connect": 0.21749,
+          "time_appconnect": 0.441355,
+          "time_starttransfer": 0.961006,
+          "time_total": 1.471489,
+          "size_download": 6144,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a4454033a9c65f7f-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=310.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 8e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.258076,
+          "time_total": 0.52922,
+          "size_download": 6144,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a445403a1ecb5f7f-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=12.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 5e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.232626,
+          "time_total": 0.501315,
+          "size_download": 6144,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a445403d69c85f7f-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=9.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "app-dtks",
+      "url": "https://app-dtks.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 6e-06,
+          "time_connect": 0.212388,
+          "time_appconnect": 0.448362,
+          "time_starttransfer": 1.244636,
+          "time_total": 1.469464,
+          "size_download": 9264,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a44540392cbfe4ec-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=320.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.256523,
+          "time_total": 0.71692,
+          "size_download": 9264,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a445403f8aaae4ec-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=22.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 1.6e-05,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.248536,
+          "time_total": 0.760076,
+          "size_download": 9264,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4454043fb47e4ec-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=12.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "1077564alc",
+      "url": "https://1077564alc.gemigo.app/",
+      "runs": [
+        {
+          "http_code": 200,
+          "time_namelookup": 7e-06,
+          "time_connect": 0.220349,
+          "time_appconnect": 0.451447,
+          "time_starttransfer": 3.503884,
+          "time_total": 3.504299,
+          "size_download": 9672,
+          "num_connects": 1,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": null,
+            "cf-ray": "a445403fccba1b45-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=304.0",
+            "x-gemigo-cache": "MISS",
+            "x-gemigo-deployment-cache": "MISS"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 6e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.250282,
+          "time_total": 0.260121,
+          "size_download": 9672,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a4454052eeb81b45-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=20.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        },
+        {
+          "http_code": 200,
+          "time_namelookup": 9e-06,
+          "time_connect": 0.0,
+          "time_appconnect": 0.0,
+          "time_starttransfer": 0.253278,
+          "time_total": 0.535051,
+          "size_download": 9672,
+          "num_connects": 0,
+          "exitcode": 0,
+          "errormsg": null,
+          "headers": {
+            "cache-control": "no-cache",
+            "etag": null,
+            "cf-cache-status": "HIT",
+            "cf-ray": "a44540548db81b45-LAX",
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip",
+            "server-timing": "gemigo;dur=18.0",
+            "x-gemigo-cache": "HIT",
+            "x-gemigo-deployment-cache": "HIT"
+          }
+        }
+      ]
+    }
+  ]
+}

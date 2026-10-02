@@ -1,0 +1,282 @@
+[
+  {
+    "slug": "geeglo",
+    "run": "cold",
+    "error": null,
+    "metric": {
+      "ttfbMs": 1416.7999997138977,
+      "fcpMs": 4252,
+      "lcpMs": 4252,
+      "loadMs": 5517.400000095367,
+      "encodedHtmlBytes": 7482,
+      "decodedHtmlBytes": 24409,
+      "textChars": 59,
+      "tailwindPresent": false,
+      "styleSheetCount": 2,
+      "bodyBackground": "rgb(255, 255, 255)",
+      "longTasks": [],
+      "navServerTiming": [
+        {
+          "name": "gemigo",
+          "duration": 179
+        },
+        {
+          "name": "cfCacheStatus",
+          "duration": 0
+        },
+        {
+          "name": "cfEdge",
+          "duration": 11
+        },
+        {
+          "name": "cfOrigin",
+          "duration": 0
+        },
+        {
+          "name": "cfWorker",
+          "duration": 182
+        }
+      ]
+    },
+    "failures": [],
+    "network": [
+      {
+        "url": "https://geeglo.gemigo.app/",
+        "status": 200,
+        "durationMs": 2307.2450002655387,
+        "encodedBytes": 8060,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "server-timing": "gemigo;dur=179.0\ncfCacheStatus;desc=\"HIT\"\ncfEdge;dur=11,cfOrigin;dur=0,cfWorker;dur=182",
+          "x-gemigo-cache": "HIT",
+          "x-gemigo-deployment-cache": "MISS"
+        }
+      },
+      {
+        "url": "https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.min.css",
+        "status": 200,
+        "durationMs": 1918.4449999593198,
+        "encodedBytes": 1391,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "etag": "W/\"c70-+P5N93KDoTvKwtHD7GVjah3tPGQ\"",
+          "cache-control": "public, max-age=31536000, s-maxage=31536000, immutable"
+        }
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg",
+        "status": 200,
+        "durationMs": 1820.2990000136197,
+        "encodedBytes": 2775,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "etag": "W/e99543bb86794e15928d03e9b41bb3c8",
+          "server-timing": "cache;desc=\"hit-front\", host;desc=\"cp5028\""
+        }
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Google_mic.svg",
+        "status": 200,
+        "durationMs": 2116.5660000406206,
+        "encodedBytes": 3008,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "etag": "W/09d3d7ff8ec72d3cd422a35918598842",
+          "server-timing": "cache;desc=\"hit-front\", host;desc=\"cp5028\""
+        }
+      },
+      {
+        "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+        "status": 200,
+        "durationMs": 681.4429997466505,
+        "encodedBytes": 10338,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=86400",
+          "etag": "W/\"2026.9.1\""
+        }
+      },
+      {
+        "url": "https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.woff2",
+        "status": 200,
+        "durationMs": 1280.2120000123978,
+        "encodedBytes": 129250,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "etag": "W/\"1f560-C8DGdUgNlOx+hgndpiJ/iMXQjSw\"",
+          "cache-control": "public, max-age=31536000, s-maxage=31536000, immutable"
+        }
+      },
+      {
+        "url": "https://geeglo.gemigo.app/cdn-cgi/rum?",
+        "status": 204,
+        "durationMs": 231.83199996128678,
+        "encodedBytes": 381,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "https://geeglo.gemigo.app/favicon.ico",
+        "status": 200,
+        "durationMs": 926.6380001790822,
+        "encodedBytes": 7521,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "x-gemigo-cache": "HIT",
+          "server-timing": "gemigo;dur=401.0",
+          "x-gemigo-deployment-cache": "HIT"
+        }
+      }
+    ]
+  },
+  {
+    "slug": "geeglo",
+    "run": "warm",
+    "error": null,
+    "metric": {
+      "ttfbMs": 425,
+      "fcpMs": 1104,
+      "lcpMs": 1104,
+      "loadMs": 1101.5,
+      "encodedHtmlBytes": 7479,
+      "decodedHtmlBytes": 24409,
+      "textChars": 59,
+      "tailwindPresent": false,
+      "styleSheetCount": 2,
+      "bodyBackground": "rgb(255, 255, 255)",
+      "longTasks": [],
+      "navServerTiming": [
+        {
+          "name": "gemigo",
+          "duration": 186
+        },
+        {
+          "name": "cfCacheStatus",
+          "duration": 0
+        },
+        {
+          "name": "cfEdge",
+          "duration": 10
+        },
+        {
+          "name": "cfOrigin",
+          "duration": 0
+        },
+        {
+          "name": "cfWorker",
+          "duration": 188
+        }
+      ]
+    },
+    "failures": [],
+    "network": [
+      {
+        "url": "https://geeglo.gemigo.app/",
+        "status": 200,
+        "durationMs": 1098.0789996683598,
+        "encodedBytes": 7822,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "server-timing": "gemigo;dur=186.0\ncfCacheStatus;desc=\"HIT\"\ncfEdge;dur=10,cfOrigin;dur=0,cfWorker;dur=188",
+          "x-gemigo-cache": "HIT",
+          "x-gemigo-deployment-cache": "MISS"
+        }
+      },
+      {
+        "url": "https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.min.css",
+        "status": 200,
+        "durationMs": 0.0550001859664917,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "etag": "W/\"c70-+P5N93KDoTvKwtHD7GVjah3tPGQ\"",
+          "cache-control": "public, max-age=31536000, s-maxage=31536000, immutable"
+        }
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg",
+        "status": 200,
+        "durationMs": 0.08199969306588173,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "etag": "W/e99543bb86794e15928d03e9b41bb3c8",
+          "server-timing": "cache;desc=\"hit-front\", host;desc=\"cp5028\""
+        }
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Google_mic.svg",
+        "status": 200,
+        "durationMs": 0.045000109821558,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "etag": "W/09d3d7ff8ec72d3cd422a35918598842",
+          "server-timing": "cache;desc=\"hit-front\", host;desc=\"cp5028\""
+        }
+      },
+      {
+        "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+        "status": 200,
+        "durationMs": 0.04700012505054474,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "public, max-age=86400",
+          "etag": "W/\"2026.9.1\""
+        }
+      },
+      {
+        "url": "https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.woff2",
+        "status": 200,
+        "durationMs": 0.04700012505054474,
+        "encodedBytes": 0,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "etag": "W/\"1f560-C8DGdUgNlOx+hgndpiJ/iMXQjSw\"",
+          "cache-control": "public, max-age=31536000, s-maxage=31536000, immutable"
+        }
+      },
+      {
+        "url": "https://geeglo.gemigo.app/cdn-cgi/rum?",
+        "status": 204,
+        "durationMs": 224.99000001698732,
+        "encodedBytes": 247,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {}
+      },
+      {
+        "url": "https://geeglo.gemigo.app/favicon.ico",
+        "status": 200,
+        "durationMs": 603.6399998702109,
+        "encodedBytes": 7512,
+        "pending": false,
+        "fromDiskCache": false,
+        "headers": {
+          "cache-control": "no-cache",
+          "x-gemigo-cache": "HIT",
+          "server-timing": "gemigo;dur=363.0",
+          "x-gemigo-deployment-cache": "HIT"
+        }
+      }
+    ]
+  }
+]

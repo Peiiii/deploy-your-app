@@ -1,0 +1,178 @@
+{
+  "slug": "qa-cache-681258b0",
+  "events": [
+    {
+      "event": "publish-visible",
+      "ms": 2567
+    },
+    {
+      "event": "rollback-visible",
+      "ms": 3265
+    },
+    {
+      "event": "legacy-visible",
+      "ms": 10890
+    }
+  ],
+  "requests": [
+    {
+      "path": "/",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "server-timing": "gemigo;dur=739.0",
+        "x-gemigo-cache": "MISS",
+        "x-gemigo-deployment-cache": "MISS",
+        "content-encoding": "gzip"
+      }
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "server-timing": "gemigo;dur=15.0",
+        "x-gemigo-cache": "HIT",
+        "x-gemigo-deployment-cache": "HIT",
+        "content-encoding": "gzip"
+      }
+    },
+    {
+      "path": "/main.js",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "etag": "\"22f9c281414fbcc78d95759a22ec262c\"",
+        "server-timing": "gemigo;dur=327.0",
+        "x-gemigo-cache": "MISS",
+        "x-gemigo-deployment-cache": "HIT"
+      }
+    },
+    {
+      "path": "/main.js",
+      "status": 304,
+      "headers": {
+        "cache-control": "no-cache",
+        "etag": "\"22f9c281414fbcc78d95759a22ec262c\"",
+        "server-timing": "gemigo;dur=219.0",
+        "x-gemigo-cache": "HIT",
+        "x-gemigo-deployment-cache": "MISS"
+      }
+    },
+    {
+      "path": "/",
+      "status": 304,
+      "headers": {
+        "cache-control": "no-cache",
+        "server-timing": "gemigo;dur=19.0",
+        "x-gemigo-cache": "HIT",
+        "x-gemigo-deployment-cache": "HIT"
+      }
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "server-timing": "gemigo;dur=190.0",
+        "x-gemigo-cache": "HIT",
+        "x-gemigo-deployment-cache": "MISS",
+        "content-encoding": "gzip"
+      }
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "server-timing": "gemigo;dur=613.0",
+        "x-gemigo-cache": "MISS",
+        "x-gemigo-deployment-cache": "MISS",
+        "content-encoding": "gzip"
+      }
+    },
+    {
+      "path": "/main.js",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "etag": "\"4aab7dd87350684485391a56b650f837\"",
+        "server-timing": "gemigo;dur=332.0",
+        "x-gemigo-cache": "MISS",
+        "x-gemigo-deployment-cache": "HIT"
+      }
+    },
+    {
+      "path": "/old.js",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "etag": "\"401ca892470f3bdbf86339bbeab3417d\"",
+        "server-timing": "gemigo;dur=634.0",
+        "x-gemigo-cache": "MISS",
+        "x-gemigo-deployment-cache": "MISS"
+      }
+    },
+    {
+      "path": "/spa/route",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "server-timing": "gemigo;dur=170.0",
+        "x-gemigo-cache": "HIT",
+        "x-gemigo-deployment-cache": "HIT",
+        "content-encoding": "gzip"
+      }
+    },
+    {
+      "path": "/.env",
+      "status": 404,
+      "headers": {}
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "server-timing": "gemigo;dur=284.0",
+        "x-gemigo-cache": "HIT",
+        "x-gemigo-deployment-cache": "MISS",
+        "content-encoding": "gzip"
+      }
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "server-timing": "gemigo;dur=459.0",
+        "x-gemigo-cache": "BYPASS",
+        "x-gemigo-deployment-cache": "BYPASS",
+        "content-encoding": "gzip"
+      }
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "server-timing": "gemigo;dur=18.0",
+        "x-gemigo-cache": "HIT",
+        "x-gemigo-deployment-cache": "HIT",
+        "content-encoding": "gzip"
+      }
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "server-timing": "gemigo;dur=544.0",
+        "x-gemigo-cache": "MISS",
+        "x-gemigo-deployment-cache": "MISS",
+        "content-encoding": "gzip"
+      }
+    }
+  ],
+  "cleanup": "all task QA R2 objects deleted; list prefix returned zero"
+}
