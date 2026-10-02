@@ -1,4 +1,7 @@
 import React from 'react';
+import { PageSkeleton } from '@/components/loading-state';
+import { PageLayout } from '@/components/page-layout';
+import { PageState } from '@/components/page-state';
 import { getAuthorName, getAuthorColor, getAuthorInitial } from '@/utils/author';
 import { resolvePublicAuthorIdentity } from '@gemigo/public-author';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -16,7 +19,6 @@ import {
   Star,
   Zap,
   ExternalLink,
-  Lock,
   ArrowLeft,
   Github,
   Twitter,
@@ -33,6 +35,7 @@ export const PublicProfile: React.FC = () => {
 
   // Subscribe to store
   const data = usePublicProfileStore((s) => s.data);
+  const requestedId = usePublicProfileStore((s) => s.requestedId);
   const isLoading = usePublicProfileStore((s) => s.isLoading);
   const error = usePublicProfileStore((s) => s.error);
   const reactionStore = useReactionStore();
@@ -46,43 +49,11 @@ export const PublicProfile: React.FC = () => {
 
   const reactionFor = (projectId: string) => reactionStore.byProjectId[projectId];
 
-  if (isLoading) {
-    return (
-      <div className="p-4 md:p-8 max-w-5xl mx-auto flex items-center justify-center h-full animate-fade-in">
-        <div className="glass-card rounded-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur max-w-md w-full text-center space-y-4">
-          <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse">
-            <Lock className="w-6 h-6 text-slate-500 dark:text-slate-300" />
-          </div>
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-            {t('common.loading')}
-          </h2>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="p-4 md:p-8 max-w-3xl mx-auto flex items-center justify-center h-full animate-fade-in">
-        <div className="glass-card rounded-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur max-w-md w-full text-center space-y-4">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-            {t('profile.creatorProfile')}
-          </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            {t('profile.profileNotFound')}
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate('/explore')}
-            className="mt-2 inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 transition-all"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            {t('explore.exploreApps')}
-          </button>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading || requestedId !== id) return <PageSkeleton title={t('profile.creatorProfile')} shape="profile" />;
+  if (error || !data) return <PageLayout title={t('profile.creatorProfile')}><PageState
+    title={error === 'network' ? t('experience.profileError') : t('profile.profileNotFound')}
+    action={<div className="flex flex-wrap justify-center gap-3">{error === 'network' && <button className="btn-primary" onClick={() => { if (id) void presenter.publicProfile.loadProfile(id); }}>{t('common.retry')}</button>}<button className="btn-secondary" onClick={() => navigate('/explore')}><ArrowLeft className="h-4 w-4" />{t('explore.exploreApps')}</button></div>}
+  /></PageLayout>;
 
   const publicAuthor = data.publicAuthor ?? resolvePublicAuthorIdentity({
     ownerId: data.user.id,
@@ -147,6 +118,7 @@ export const PublicProfile: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               type="button"
+              aria-label={t('experience.favoriteApp', { name: project.name })} aria-pressed={favorited}
               onClick={() => presenter.publicProfile.toggleFavorite(project.id)}
               className="inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
             >
@@ -160,6 +132,7 @@ export const PublicProfile: React.FC = () => {
             </button>
             <button
               type="button"
+              aria-label={t('experience.likeApp', { name: project.name })} aria-pressed={liked}
               onClick={() => presenter.publicProfile.toggleLike(project.id)}
               className="inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
             >
@@ -180,7 +153,7 @@ export const PublicProfile: React.FC = () => {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 md:space-y-8 animate-fade-in">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 md:space-y-8 ">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -188,9 +161,9 @@ export const PublicProfile: React.FC = () => {
             {getAuthorInitial(authorName, publicAuthor.anonymousCode)}
           </div>
           <div className="min-w-0">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight break-words">
+            <h1 className="text-2xl font-semibold text-slate-900 dark:text-white tracking-tight break-words">
               {authorName}
-            </h2>
+            </h1>
             {data.user.handle && authorName !== `@${data.user.handle}` && (
               <p className="text-sm text-brand-600 dark:text-brand-400 break-all">@{data.user.handle}</p>
             )}

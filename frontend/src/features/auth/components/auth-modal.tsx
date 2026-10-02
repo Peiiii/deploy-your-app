@@ -75,7 +75,7 @@ export const AuthModal: React.FC = () => {
             <button
               type="button"
               onClick={() => presenter.auth.loginWithGoogle()}
-              className="group w-full inline-flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="group w-full inline-flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-colors duration-150"
             >
               <GoogleIcon className="w-5 h-5" />
               <span className="truncate">{t('auth.signInWithGoogle')}</span>
@@ -83,9 +83,9 @@ export const AuthModal: React.FC = () => {
             <button
               type="button"
               onClick={() => presenter.auth.loginWithGithub()}
-              className="group w-full inline-flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="group w-full inline-flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-colors duration-150"
             >
-              <Github className="w-5 h-5 text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white group-hover:scale-110 transition-all" />
+              <Github className="w-5 h-5 text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
               <span className="truncate">{t('auth.signInWithGithub')}</span>
             </button>
           </div>
@@ -101,29 +101,31 @@ export const AuthModal: React.FC = () => {
 
           {/* Email / password fields */}
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+            <label htmlFor="auth-email" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
               {t('auth.email')}
             </label>
             <input
+              id="auth-email" required
               type="email"
               value={email}
               onChange={(e) => presenter.auth.setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 dark:focus:ring-brand-400/50 dark:focus:border-brand-400/50 transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 dark:focus:ring-brand-400/50 dark:focus:border-brand-400/50 transition-colors duration-150 hover:border-slate-300 dark:hover:border-slate-600"
               placeholder={t('auth.emailPlaceholder')}
               autoComplete="email"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+            <label htmlFor="auth-password" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
               {t('auth.password')}
             </label>
             <div className="relative">
               <input
+                id="auth-password" required
                 type={passwordVisible ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => presenter.auth.setPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 dark:focus:ring-brand-400/50 dark:focus:border-brand-400/50 transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600"
+                className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 dark:focus:ring-brand-400/50 dark:focus:border-brand-400/50 transition-colors duration-150 hover:border-slate-300 dark:hover:border-slate-600"
                 placeholder={mode === 'login' ? t('auth.passwordPlaceholder') : t('auth.passwordPlaceholderSignup')}
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               />
@@ -140,17 +142,18 @@ export const AuthModal: React.FC = () => {
 
           {mode === 'signup' && (
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <label htmlFor="auth-confirm-password" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
                 {t('auth.confirmPassword')}
               </label>
               <div className="relative">
                 <input
+                  id="auth-confirm-password" required
                   type={confirmPasswordVisible ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) =>
                     presenter.auth.setConfirmPassword(e.target.value)
                   }
-                  className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 dark:focus:ring-brand-400/50 dark:focus:border-brand-400/50 transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600"
+                  className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 dark:focus:ring-brand-400/50 dark:focus:border-brand-400/50 transition-colors duration-150 hover:border-slate-300 dark:hover:border-slate-600"
                   placeholder={t('auth.confirmPasswordPlaceholder')}
                   autoComplete="new-password"
                 />
@@ -175,7 +178,7 @@ export const AuthModal: React.FC = () => {
           )}
 
           {error && (
-            <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40 px-4 py-3 animate-slide-up">
+            <div role="alert" className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40 px-4 py-3">
               <p className="text-sm text-red-600 dark:text-red-400 font-medium">
                 {error}
               </p>
@@ -185,7 +188,7 @@ export const AuthModal: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 dark:from-brand-500 dark:to-brand-600 text-white text-sm font-semibold hover:from-slate-800 hover:to-slate-700 dark:hover:from-brand-400 dark:hover:to-brand-500 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-slate-900/20 dark:shadow-brand-500/20 hover:shadow-xl hover:shadow-slate-900/30 dark:hover:shadow-brand-500/30 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100"
+            className="btn-primary w-full py-3"
           >
             {isSubmitting ? (
               <>

@@ -141,20 +141,19 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
 
   return (
     <div
-      onClick={handleRootClick}
-      className="group relative flex flex-col bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer break-inside-avoid"
+      className="surface-card group relative flex min-w-0 flex-col overflow-hidden transition-colors hover:border-app-borderHighlight break-inside-avoid"
     >
       {/* Image Area */}
       <div
         ref={thumbnailAreaRef}
-        className={`relative aspect-video overflow-hidden bg-gradient-to-br ${app.color}`}
+        className={`relative aspect-video overflow-hidden bg-app-surfaceHighlight`}
       >
         <div
           aria-hidden="true"
           className={`absolute inset-0 flex items-center justify-center overflow-hidden transition-opacity duration-300 ${thumbnail.loaded ? 'opacity-0' : 'opacity-100'}`}
         >
           <div className="absolute inset-0 bg-black/5" />
-          <span className="text-8xl font-black text-white mix-blend-overlay opacity-50 select-none transform -rotate-12 scale-150">
+          <span className="text-5xl font-semibold text-app-muted/25 select-none">
             {app.name.charAt(0).toUpperCase()}
           </span>
         </div>
@@ -168,16 +167,17 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
             loading="eager"
             decoding="async"
             fetchPriority={imagePriority ? 'high' : 'auto'}
-            className={`absolute inset-0 w-full h-full object-cover transition-[opacity,transform] duration-500 group-hover:scale-105 ${thumbnail.loaded ? 'opacity-100' : 'opacity-0'
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-150  ${thumbnail.loaded ? 'opacity-100' : 'opacity-0'
               }`}
             onLoad={thumbnail.onLoad}
             onError={thumbnail.onError}
           />
         )}
 
+        <button type="button" onClick={handleRootClick} aria-label={`${t('common.visit')} ${app.name}`} className="absolute inset-0 z-10 rounded-t-2xl focus-visible:outline-offset-[-3px]" />
         {/* Hover Overlay */}
         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white transform scale-90 group-hover:scale-100 transition-transform">
+          <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white transform scale-90  transition-transform">
             <Play className="w-6 h-6 fill-current" />
           </div>
         </div>
@@ -191,13 +191,13 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
       </div>
 
       {/* Info Area */}
-      <div className="p-3 flex flex-col gap-2">
+      <div className="p-4 flex flex-col gap-2">
         <div>
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-white line-clamp-1 leading-snug group-hover:text-brand-600 transition-colors">
-            {app.name}
+          <h3 className="text-base font-semibold text-slate-900 dark:text-white line-clamp-1 leading-snug group-hover:text-brand-600 transition-colors">
+            <button type="button" onClick={handleRootClick} className="block w-full truncate text-left">{app.name}</button>
           </h3>
           {app.description && (
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
               {app.description}
             </p>
           )}
@@ -230,11 +230,12 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
           </button>
 
           <button
+            aria-label={t('experience.likeApp', { name: app.name })} aria-pressed={Boolean(reactionEntry?.likedByCurrentUser)}
             onClick={(e) => {
               e.stopPropagation();
               presenter.reaction.toggleLike(app.id);
             }}
-            className="flex items-center gap-1 text-slate-400 hover:text-brand-500 transition-colors group/like"
+            className="flex items-center gap-1 min-h-8 min-w-8 justify-center text-slate-500 hover:text-brand-500 transition-colors group/like"
           >
             <Heart
               className={`w-3.5 h-3.5 transition-transform group-hover/like:scale-110 ${reactionEntry?.likedByCurrentUser ? 'fill-brand-500 text-brand-500' : ''}`}

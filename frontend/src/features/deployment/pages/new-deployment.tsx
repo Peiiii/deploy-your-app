@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
+import { SessionError } from '@/components/session-error';
 import { Loader2, ArrowRight } from 'lucide-react';
 import { useDeploymentStore } from '../stores/deployment.store';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
@@ -21,6 +22,7 @@ export const NewDeployment = () => {
   const presenter = usePresenter();
   const state = useDeploymentStore();
   const user = useAuthStore((s) => s.user);
+  const sessionError = useAuthStore((s) => s.sessionError);
   const authLoading = useAuthStore((s) => s.isLoading);
   const [params, setParams] = useSearchParams();
   const requestedSource = params.get('source');
@@ -61,13 +63,14 @@ export const NewDeployment = () => {
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 md:py-8">
       <header>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
           {t('deployment.publishHeading')}
         </h1>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
           {t('deployment.publishDescription')}
         </p>
       </header>
+      {sessionError && <SessionError />}
       {!success && (
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 md:p-6">
           <fieldset disabled={busy} className="space-y-5 disabled:opacity-70">
@@ -133,7 +136,7 @@ export const NewDeployment = () => {
           <button
             type="button"
             onClick={() => void publish()}
-            disabled={busy || !valid || authLoading}
+            disabled={busy || !valid || authLoading || Boolean(sessionError)}
             className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
           >
             {busy ? (

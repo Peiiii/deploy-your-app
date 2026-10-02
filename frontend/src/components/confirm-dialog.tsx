@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Dialog,
@@ -13,6 +13,7 @@ import { confirmController } from '../services/confirm-controller';
 
 export const ConfirmDialog: React.FC = () => {
   const { t } = useTranslation();
+  const cancelRef = useRef<HTMLButtonElement>(null);
   const confirmDialog = useUIStore((state) => state.confirmDialog);
   const actions = useUIStore((state) => state.actions);
 
@@ -43,7 +44,7 @@ export const ConfirmDialog: React.FC = () => {
         if (!open) handleSecondary();
       }}
     >
-      <DialogContent size="sm" closeLabel={t('common.close')}>
+      <DialogContent size="sm" closeLabel={t('common.close')} onOpenAutoFocus={(event) => { event.preventDefault(); cancelRef.current?.focus(); }}>
         <DialogHeader>
           <DialogTitle>{title || t('common.confirm')}</DialogTitle>
           <DialogDescription>{message}</DialogDescription>
@@ -51,15 +52,16 @@ export const ConfirmDialog: React.FC = () => {
         <DialogFooter>
           <button
             type="button"
+            ref={cancelRef}
             onClick={handleSecondary}
-            className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            className="btn-secondary"
           >
             {secondaryLabel}
           </button>
           <button
             type="button"
             onClick={handlePrimary}
-            className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 dark:bg-brand-500 dark:hover:bg-brand-400 transition-colors"
+            className="btn-primary"
           >
             {primaryLabel}
           </button>

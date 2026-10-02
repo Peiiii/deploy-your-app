@@ -14,7 +14,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
     footer,
 }) => {
     return (
-        <div className="flex flex-col md:flex-row md:items-start gap-6 py-8 border-b border-slate-200 dark:border-slate-800 last:border-0 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:items-start gap-6 py-8 border-b border-slate-200 dark:border-slate-800 last:border-0 ">
             {/* Left Column: Context (Title & Description) - Width 1/3 */}
             <div className="w-full md:w-1/3 flex-shrink-0">
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-white">

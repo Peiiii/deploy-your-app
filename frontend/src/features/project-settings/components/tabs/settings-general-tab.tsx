@@ -36,7 +36,7 @@ export const SettingsGeneralTab: React.FC<SettingsGeneralTabProps> = ({
     })();
 
     return (
-        <div className="space-y-8 animate-fade-in">
+        <div className="space-y-8 ">
             {/* Main Settings Card - Clean List Style */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
 

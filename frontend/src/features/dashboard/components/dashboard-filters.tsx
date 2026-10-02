@@ -24,7 +24,7 @@ export const DashboardFilters: React.FC = () => {
           <Search className="h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
         </div>
         <input
-          type="text"
+          type="search" aria-label={t('dashboard.searchProjects')}
           value={searchQuery}
           onChange={(e) => dashboardActions.setSearchQuery(e.target.value)}
           placeholder={t('dashboard.searchProjects')}
@@ -37,6 +37,7 @@ export const DashboardFilters: React.FC = () => {
         <div className="inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1 text-xs">
           <button
             type="button"
+            aria-pressed={!showFavoritesOnly}
             onClick={() => dashboardActions.setShowFavoritesOnly(false)}
             className={`px-2 py-1 rounded-md transition-colors ${!showFavoritesOnly
                 ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
@@ -47,6 +48,7 @@ export const DashboardFilters: React.FC = () => {
           </button>
           <button
             type="button"
+            aria-pressed={showFavoritesOnly}
             onClick={() => dashboardActions.setShowFavoritesOnly(true)}
             className={`px-2 py-1 rounded-md inline-flex items-center gap-1 transition-colors ${showFavoritesOnly
                 ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'

@@ -39,7 +39,8 @@ interface ExploreState {
 
   // UI state
   isLoading: boolean;
-  error: boolean;
+  hasLoaded: boolean;
+  error: string | null;
 
   actions: {
     setApps: (apps: ExploreAppCard[]) => void;
@@ -49,7 +50,7 @@ interface ExploreState {
     setSearchQuery: (query: string) => void;
     setPage: (page: number) => void;
     setHasMore: (hasMore: boolean) => void;
-    setError: (error: boolean) => void;
+    setError: (error: string | null) => void;
     setIsLoading: (loading: boolean) => void;
     resetFilters: () => void;
   };
@@ -62,23 +63,24 @@ const initialState = {
   searchQuery: '',
   page: 1,
   hasMore: false,
-  isLoading: false,
-  error: false,
+  isLoading: true,
+  hasLoaded: false,
+  error: null as string | null,
 };
 
 export const useExploreStore = create<ExploreState>((set) => ({
   ...initialState,
 
   actions: {
-    setApps: (apps) => set({ apps }),
+    setApps: (apps) => set({ apps, hasLoaded: true, error: null }),
     appendApps: (apps) =>
       set((state) => ({ apps: [...state.apps, ...apps] })),
     setActiveCategory: (category) =>
       set((state) => state.activeCategory === category && state.activeTag === null
         ? state
-        : { activeCategory: category, page: 1, activeTag: null, apps: [], hasMore: false }),
-    setActiveTag: (tag) => set({ activeTag: tag }),
-    setSearchQuery: (query) => set({ searchQuery: query }),
+        : { activeCategory: category, page: 1, activeTag: null, hasMore: false, isLoading: true, error: null }),
+    setActiveTag: (tag) => set((state) => state.activeTag === tag ? state : { activeTag: tag, hasMore: false, isLoading: true, error: null }),
+    setSearchQuery: (query) => set({ searchQuery: query, hasMore: false, isLoading: true, error: null }),
     setPage: (page) => set({ page }),
     setHasMore: (hasMore) => set({ hasMore }),
     setError: (error) => set({ error }),

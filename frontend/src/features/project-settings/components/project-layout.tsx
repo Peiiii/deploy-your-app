@@ -48,19 +48,19 @@ export const ProjectLayout: React.FC<ProjectLayoutProps> = ({
     return (
         <div className="flex flex-col min-h-0">
             {/* Header Section */}
-            <div className={`bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 ${isCompact ? 'pt-4 pb-0 px-4' : 'pt-8 pb-0 px-6 md:px-8'} sticky top-0 z-20`}>
+            <div className={`bg-app-bg border-b border-app-border ${isCompact ? 'pt-4 pb-0 px-4' : 'pt-7 pb-0 px-5 md:px-8'}`}>
                 <div className="max-w-6xl mx-auto">
                     {/* Project Identity Row */}
-                    <div className={`flex ${isCompact ? 'flex-col' : 'flex-col md:flex-row md:items-start md:justify-between'} gap-4 ${isCompact ? 'mb-4' : 'mb-8'}`}>
-                        <div className="flex items-center gap-4">
+                    <div className={`flex ${isCompact ? 'flex-col' : 'flex-col md:flex-row md:items-start md:justify-between'} gap-4 ${isCompact ? 'mb-4' : 'mb-6'}`}>
+                        <div className="flex min-w-0 items-center gap-3">
                             {/* Project Icon */}
-                            <div className={`${isCompact ? 'w-10 h-10 text-base' : 'w-14 h-14 text-xl'} bg-gradient-to-br from-brand-500 to-purple-600 rounded-xl shadow-lg shadow-brand-500/20 flex items-center justify-center text-white font-bold flex-shrink-0`}>
+                            <div className={`${isCompact ? 'w-10 h-10 text-base' : 'w-10 h-10 text-base'} bg-app-surfaceHighlight rounded-xl  flex items-center justify-center text-app-text font-semibold flex-shrink-0`}>
                                 {initials || 'P'}
                             </div>
 
                             {/* Project Info */}
                             <div className="min-w-0">
-                                <h1 className={`${isCompact ? 'text-lg' : 'text-2xl'} font-bold text-slate-900 dark:text-white truncate`}>
+                                <h1 className={`${isCompact ? 'text-lg' : 'text-2xl'} font-semibold text-slate-900 dark:text-white truncate`}>
                                     {project.name}
                                 </h1>
                                 {projectUrl ? (
@@ -95,7 +95,7 @@ export const ProjectLayout: React.FC<ProjectLayoutProps> = ({
                             const isActive = activeTab === tab.id;
                             return (
                                 <button
-                                    key={tab.id}
+                                    key={tab.id} aria-pressed={isActive}
                                     onClick={() => onTabChange(tab.id)}
                                     className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${isActive
                                         ? 'border-brand-600 text-brand-600 dark:border-brand-400 dark:text-brand-400'
@@ -111,7 +111,7 @@ export const ProjectLayout: React.FC<ProjectLayoutProps> = ({
             </div>
 
             {/* Content Area */}
-            <div className={`flex-1 bg-slate-50 dark:bg-slate-950 ${isCompact ? 'py-4 px-4' : 'py-8 px-6 md:px-8'}`}>
+            <div className={`flex-1 bg-app-bg ${isCompact ? 'py-4 px-4' : 'py-8 px-6 md:px-8'}`}>
                 <div className="max-w-6xl mx-auto">
                     {children}
                 </div>

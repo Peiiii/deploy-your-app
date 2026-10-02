@@ -41,30 +41,37 @@ export class AuthManager {
   // Session / identity
   // -------------------
 
-  loadCurrentUser = async (): Promise<void> => {
-    useAuthStore.setState({ isLoading: true, error: null });
+  private identityVersion = 0;
+  private sessionRequest: Promise<void> | null = null;
+
+  loadCurrentUser = (): Promise<void> => {
+    if (this.sessionRequest) return this.sessionRequest;
+    useAuthStore.setState({ isLoading: true, sessionError: null });
+    const request = this.restoreSession(this.identityVersion).finally(() => {
+      if (this.sessionRequest === request) this.sessionRequest = null;
+    });
+    this.sessionRequest = request;
+    return request;
+  };
+
+  private restoreSession = async (version: number): Promise<void> => {
     try {
       const res = await fetch(`${API_BASE}/me`, {
-        credentials: 'include',
+        credentials: 'include', signal: AbortSignal.timeout(10_000),
       });
-      if (!res.ok) {
-        // Treat non-OK as "not logged in" for now.
-        useAuthStore.setState({ user: null, isLoading: false });
+      if (version !== this.identityVersion) return;
+      if (res.status === 401) {
+        useAuthStore.setState({ user: null, isLoading: false, sessionError: null });
         return;
       }
+      if (!res.ok) throw new Error('Session could not be restored');
       const data = (await res.json()) as { user: User | null };
-      useAuthStore.setState({
-        user: data.user ?? null,
-        isLoading: false,
-        error: null,
-      });
-    } catch (err) {
-      console.error('Failed to load current user', err);
-      useAuthStore.setState({
-        user: null,
-        isLoading: false,
-        error: 'failed_to_load_user',
-      });
+      if (version !== this.identityVersion) return;
+      useAuthStore.setState({ user: data.user ?? null, isLoading: false, sessionError: null });
+    } catch (error) {
+      if (version !== this.identityVersion) return;
+      console.error('Failed to load current user', error);
+      useAuthStore.setState({ isLoading: false, sessionError: 'failed_to_load_user' });
     }
   };
 
@@ -112,6 +119,7 @@ export class AuthManager {
 
       useAuthStore.setState({
         user: data.user,
+        sessionError: null,
       });
     } catch (err) {
       console.error('Failed to update handle', err);
@@ -130,6 +138,9 @@ export class AuthManager {
   };
 
   logout = async (): Promise<void> => {
+    const version = ++this.identityVersion;
+    this.sessionRequest = null;
+    useAuthStore.setState({ user: null, isLoading: false, sessionError: null });
     try {
       await fetch(`${API_BASE}/logout`, {
         method: 'POST',
@@ -138,7 +149,7 @@ export class AuthManager {
     } catch (err) {
       console.error('Failed to logout', err);
     } finally {
-      useAuthStore.setState({ user: null });
+      if (version === this.identityVersion) useAuthStore.setState({ user: null, isLoading: false, sessionError: null });
     }
   };
 
@@ -279,9 +290,13 @@ export class AuthManager {
         return;
       }
 
+      this.identityVersion++;
+      this.sessionRequest = null;
       useAuthStore.setState({
         user: data.user,
+        sessionError: null,
         modalOpen: false,
+        isLoading: false,
         isSubmitting: false,
         password: '',
         error: null,
@@ -322,9 +337,13 @@ export class AuthManager {
         return;
       }
 
+      this.identityVersion++;
+      this.sessionRequest = null;
       useAuthStore.setState({
         user: data.user,
+        sessionError: null,
         modalOpen: false,
+        isLoading: false,
         isSubmitting: false,
         password: '',
         error: null,
