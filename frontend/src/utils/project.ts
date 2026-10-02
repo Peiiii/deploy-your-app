@@ -40,7 +40,7 @@ export function normalizeGitHubRepoUrl(value: string): string | null {
     )
       return null;
     const parts = url.pathname.replace(/\/$/, '').slice(1).split('/');
-    if (parts.length !== 2) return null;
+    if (parts.length !== 2 && !(parts[2] === 'tree' && parts.length > 3 && parts.slice(3).every(Boolean))) return null;
     const [owner, rawRepo] = parts;
     const repo = rawRepo.replace(/\.git$/, '');
     if (
@@ -50,7 +50,7 @@ export function normalizeGitHubRepoUrl(value: string): string | null {
       repo === '..'
     )
       return null;
-    return `https://github.com/${owner}/${repo}`;
+    return `https://github.com/${owner}/${repo}${parts.length > 2 ? `/tree/${parts.slice(3).join('/')}` : ''}`;
   } catch {
     return null;
   }

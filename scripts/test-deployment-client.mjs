@@ -129,3 +129,8 @@ assert.equal(recovered.events.filter((event) => event === 'deployment_success').
 console.log(
   'PASS: 413 rejects without false Live/success; binary ZIP upload; lost SSE recovers confirmed success'
 );
+
+const normalizeRepo = load('frontend/src/utils/project.ts', 'normalizeGitHubRepoUrl', {});
+assert.equal(normalizeRepo('git@github.com:owner/repo.git'), 'https://github.com/owner/repo');
+assert.equal(normalizeRepo('https://github.com/owner/repo/tree/feature/reliable'), 'https://github.com/owner/repo/tree/feature/reliable');
+assert.equal(normalizeRepo('https://github.com/owner/repo/blob/main/file'), null);

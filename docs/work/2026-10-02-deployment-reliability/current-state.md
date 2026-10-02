@@ -9,3 +9,6 @@
 - 未核实外部动作：无。未关闭源码 findings：无；生产镜像/发布/线上验收仍未完成。授权：AGENTS 全托管提交推送，当前用户明确全权优化发布链路。
 
 - 新增已审查补项：独立构建容器（无控制器 Secrets/storage/socket，非 root/只读根、CPU/mem/PID/超时）；服务升级健康检查/回滚；D1 保存终态 URL、SQL 阻止旧作业覆盖。所有本地定向回归、tsc/lint/build/dry-run 已通过，证据见日志。npm registry 身份 E401；CLI 将交付可安装 release 包。新增 token 位于 ignored tmp/deployment-reliability/internal-token（0600，仅投递工具使用，不打印、不提交），GitHub/Worker Secret 已配置。下一步提交测试分支、合并最新 master、validate_only 镜像 CI，通过后 gateway→Node→Worker→Pages 上线，当前登录用户私有 QA 验收、清理并更新合同。
+
+- 发布检查点：主线已普通推送并同步主工作区至 4c5ba01；无关 analytics 脚本、interview/education 文档和旧 tgz 未变。镜像 validate_only run36998453472 passed（pnpm/隔离/重启/排空/真实升级回滚），生产 run36999308707 正在发布同 Node 源码。Gateway version b0aa49a6-2a35-4c87-9406-5a90c46d3bb2 已上线。CLI GitHub release gemigo-v0.1.4 已公开，registry 身份 E401 未更新；安装验收进行中。Node 新 Token 已配置；Node健康确认后须立即 deploy API Worker，显式 --var DEPLOY_SERVICE_BASE_URL:https://builderapi.gemigo.io/api/v1 --keep-vars，然后 Pages。
+- 线上 QA：两个私有项目/登录会话已创建，ID/slug 保存 ignored tmp/deployment-reliability/online-qa.json；12 MiB ZIP 和缺入口 ZIP 同目录。临时 GitHub QA 分支 codex/deployment-runtime-qa-20261002 已普通推送（仅无 Secrets 的构建夹具），完成须删除本分支并清理本任务 QA 项目/对应 R2 prefix/attempts。用户原 IAB explore tab1 未动，QA login tab2 已成功且可关闭。CLI session 为生产账号、owner-only 权限；session-store 已修正为按调用时 HOME 解析以避免测试污染用户登录。DR-01..07仍待真实线上验收，不得报告整体完成。
