@@ -71,7 +71,7 @@ export const FeedbackCard: React.FC<{ post: FeedbackPost }> = ({ post }) => {
       : post.author.displayName || post.author.handle || t('community.anonymous');
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/80 dark:hover:border-slate-700">
+    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-app-surface dark:hover:border-slate-700">
       <div className="p-4 md:p-5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">

@@ -16,6 +16,7 @@ interface MyProfileState {
   handleError: string | null;
   draggingPinnedId: string | null;
   isLoading: boolean;
+  loadError: string | null;
   isSaving: boolean;
 
   actions: {
@@ -27,6 +28,7 @@ interface MyProfileState {
     setPinnedIds: (ids: string[]) => void;
     setHandleError: (error: string | null) => void;
     setDraggingPinnedId: (id: string | null) => void;
+    setLoadError: (error: string | null) => void;
     setIsLoading: (loading: boolean) => void;
     setIsSaving: (saving: boolean) => void;
     addLink: () => void;
@@ -50,6 +52,7 @@ const initialState = {
   handleError: null as string | null,
   draggingPinnedId: null as string | null,
   isLoading: false,
+  loadError: null as string | null,
   isSaving: false,
 };
 
@@ -65,6 +68,7 @@ export const useMyProfileStore = create<MyProfileState>((set) => ({
     setPinnedIds: (ids) => set({ pinnedIds: ids }),
     setHandleError: (error) => set({ handleError: error }),
     setDraggingPinnedId: (id) => set({ draggingPinnedId: id }),
+    setLoadError: (loadError) => set({ loadError }),
     setIsLoading: (loading) => set({ isLoading: loading }),
     setIsSaving: (saving) => set({ isSaving: saving }),
 

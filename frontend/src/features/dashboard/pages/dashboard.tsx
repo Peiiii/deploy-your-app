@@ -11,6 +11,9 @@ import { usePresenter } from '@/contexts/presenter-context';
 import { useLayoutMode } from '@/hooks/use-layout-mode';
 import { useCopyToClipboardWithKey } from '@/hooks/use-copy-to-clipboard-with-key';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
+import { ContentSkeleton, PageSkeleton } from '@/components/loading-state';
+import { PageState } from '@/components/page-state';
+import { SessionError } from '@/components/session-error';
 import { StatCard } from '@/features/dashboard/components/stat-card';
 import { ProjectCard } from '@/features/dashboard/components/project-card';
 import { DashboardLayout } from '@/features/dashboard/components/dashboard-layout';
@@ -21,6 +24,9 @@ import { DashboardInspirationSection } from '@/features/dashboard/components/das
 export const Dashboard: React.FC = () => {
   const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
+  const sessionError = useAuthStore((s) => s.sessionError);
+  const hasLoaded = useProjectStore((s) => s.hasLoaded);
+  const loadError = useProjectStore((s) => s.loadError);
   const isLoadingAuth = useAuthStore((state) => state.isLoading);
   const allProjects = useProjectStore((state) => state.projects);
   const presenter = usePresenter();
@@ -46,7 +52,7 @@ export const Dashboard: React.FC = () => {
   useInfiniteScroll({
     targetRef: sentinelRef,
     onLoadMore: () => presenter.project.loadMore(),
-    enabled: pagination.hasMore && !isLoadingProjects,
+    enabled: pagination.hasMore && !isLoadingProjects && !loadError,
   });
 
   const projects = React.useMemo(
@@ -129,25 +135,16 @@ export const Dashboard: React.FC = () => {
     copyToClipboard(url, projectId);
   };
 
-  if (isLoadingAuth) {
-    return (
-      <div className="p-4 md:p-8 max-w-4xl mx-auto flex items-center justify-center h-full animate-fade-in">
-        <div className="glass-card rounded-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur max-w-md w-full text-center space-y-4">
-          <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse">
-            <Lock className="w-6 h-6 text-slate-500 dark:text-slate-300" />
-          </div>
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-            {t('common.loading')}
-          </h2>
-        </div>
-      </div>
-    );
-  }
+  if (isLoadingAuth) return <PageSkeleton title={t('ui.dashboard')} />;
+  if (sessionError) return <DashboardLayout><SessionError /></DashboardLayout>;
+  if (user && !hasLoaded) return <DashboardLayout>{loadError
+    ? <PageState title={t('experience.projectsError')} action={<button className="btn-primary" onClick={() => { void presenter.project.loadProjects(); }}>{t('common.retry')}</button>} />
+    : <ContentSkeleton />}</DashboardLayout>;
 
   if (!user) {
     return (
-      <div className="p-4 md:p-8 max-w-4xl mx-auto flex items-center justify-center h-full animate-fade-in">
-        <div className="glass-card rounded-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur max-w-md w-full text-center space-y-4">
+      <div className="p-4 md:p-8 max-w-4xl mx-auto flex items-center justify-center h-full ">
+        <div className="glass-card rounded-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-app-surface backdrop-blur max-w-md w-full text-center space-y-4">
           <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
             <Lock className="w-6 h-6 text-slate-500 dark:text-slate-300" />
           </div>
@@ -182,6 +179,7 @@ export const Dashboard: React.FC = () => {
         </button>
       }
     >
+      {loadError && <PageState title={t('experience.projectsError')} action={<button className="btn-secondary" onClick={() => { void presenter.project.loadProjects(); }}>{t('common.retry')}</button>} />}
       {/* Filters (Search & Sort) */}
       <DashboardFilters />
 
@@ -242,9 +240,9 @@ export const Dashboard: React.FC = () => {
             {/* Add New Project Card */}
             <button
               onClick={() => navigate('/deploy')}
-              className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-white/5 hover:bg-gradient-to-br hover:from-brand-500/5 hover:to-purple-500/5 hover:border-brand-500/50 dark:hover:border-brand-500/50 transition-all group flex flex-col items-center justify-center p-6 gap-3 text-slate-500 dark:text-gray-500 hover:text-brand-600 dark:hover:text-brand-400 min-h-[280px]"
+              className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-white/5 hover:bg-app-surfaceHighlight hover:border-brand-500/50 dark:hover:border-brand-500/50 transition-all group flex flex-col items-center justify-center p-6 gap-3 text-slate-500 dark:text-gray-500 hover:text-brand-600 dark:hover:text-brand-400 min-h-[220px]"
             >
-              <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 group-hover:bg-brand-100 dark:group-hover:bg-brand-900/30 flex items-center justify-center transition-all shadow-sm group-hover:scale-110">
+              <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 group-hover:bg-brand-100 dark:group-hover:bg-brand-900/30 flex items-center justify-center transition-all shadow-sm ">
                 <Plus className="w-7 h-7" />
               </div>
               <span className="font-bold text-sm">{t('dashboard.deployApp')}</span>

@@ -5,7 +5,7 @@ const API_BASE = APP_CONFIG.API_BASE_URL;
 
 export async function fetchMyProfile(): Promise<UserProfile> {
   const res = await fetch(`${API_BASE}/me/profile`, {
-    method: 'GET',
+    method: 'GET', signal: AbortSignal.timeout(15_000),
     credentials: 'include',
   });
 
@@ -51,7 +51,7 @@ export async function fetchPublicProfile(
   const res = await fetch(
     `${API_BASE}/users/${encodeURIComponent(userId)}/profile`,
     {
-      method: 'GET',
+      method: 'GET', signal: AbortSignal.timeout(15_000),
       credentials: 'include',
     },
   );

@@ -1,5 +1,6 @@
 import React from 'react';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { X, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '../../stores/ui.store';
 
@@ -28,18 +29,18 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
 
   return (
     <>
-      <div className={`transition-all duration-300 flex items-center gap-3 relative ${collapsed ? 'p-0 w-full justify-center py-6' : 'p-6 pb-6'}`}>
+      <div className={`transition-colors duration-150 flex items-center gap-3 relative ${collapsed ? 'px-2 py-4 justify-center' : 'px-4 py-4'}`}>
         <button
           onClick={() => setSidebarOpen(false)}
-          aria-label={t('ui.collapseSidebar')}
+          aria-label={t('common.close')}
           className="md:hidden absolute top-4 right-4 p-1 text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white"
         >
           <X className="w-5 h-5" />
         </button>
         {/* Precise 30 Logo (Purple) */}
         {/* Precise 30 Logo (Purple) - Optimized for Collapsed State */}
-        <div className={`relative flex items-center justify-center transition-all duration-300 ${collapsed ? 'w-10 h-10' : 'w-10 h-10'}`}>
-          <div className={`transition-all duration-300 ${collapsed ? 'w-7 h-7' : 'w-10 h-10'}`}>
+        <div className={`relative flex items-center justify-center transition-colors duration-150 ${collapsed ? 'w-8 h-8' : 'w-8 h-8'}`}>
+          <div className={`transition-colors duration-150 ${collapsed ? 'w-7 h-7' : 'w-8 h-8'}`}>
             <svg width="100%" height="100%" viewBox="0 0 32 32" fill="none">
               <Sector start={-90} end={-30} color="#a78bfa" />
               <Sector start={0} end={90} color="#7c3aed" />
@@ -50,22 +51,23 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
         </div>
         {!collapsed && (
           <div>
-            <h1 className="font-bold text-xl tracking-tight text-slate-900 dark:text-white leading-none font-sans">
+            <Link to="/" className="font-semibold text-lg tracking-tight text-slate-900 dark:text-white leading-none font-sans">
               Gemi<span className="text-brand-600 dark:text-brand-400">Go</span>
-            </h1>
+            </Link>
           </div>
         )}
       </div>
 
       <button
+        style={collapsed ? { position: 'static', margin: '0 auto 8px' } : undefined}
         onClick={onToggleCollapsed}
-        className="hidden md:flex absolute top-4 -right-3 w-6 h-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full items-center justify-center shadow-md hover:shadow-lg transition-all z-50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+        className="icon-button hidden md:flex absolute right-2 top-5"
         aria-label={collapsed ? t('ui.expandSidebar') : t('ui.collapseSidebar')}
       >
         {collapsed ? (
-          <ChevronRight className="w-4 h-4" />
+          <PanelLeftOpen className="w-[18px] h-[18px]" />
         ) : (
-          <ChevronLeft className="w-4 h-4" />
+          <PanelLeftClose className="w-[18px] h-[18px]" />
         )}
       </button>
 

@@ -55,7 +55,7 @@ const getInitialLanguage = (): string => {
 };
 
 export const useUIStore = create<UIState>((set) => ({
-  theme: 'light',
+  theme: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light',
   sidebarOpen: false,
   sidebarCollapsed: false,
   toast: null,
@@ -66,7 +66,11 @@ export const useUIStore = create<UIState>((set) => ({
   rightPanelLayout: 'half',
   actions: {
     toggleTheme: () =>
-      set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
+      set((state) => {
+        const theme = state.theme === 'dark' ? 'light' : 'dark';
+        try { localStorage.setItem('gemigo-theme', theme); } catch { /* Optional preference persistence. */ }
+        return { theme };
+      }),
     toggleSidebar: () =>
       set((state) => ({ sidebarOpen: !state.sidebarOpen })),
     setSidebarOpen: (open) => set({ sidebarOpen: open }),

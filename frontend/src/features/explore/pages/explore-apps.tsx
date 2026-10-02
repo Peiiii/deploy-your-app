@@ -5,6 +5,8 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ExploreAppCardView } from '@/components/explore-app-card';
+import { ContentSkeleton } from '@/components/loading-state';
+import { PageState } from '@/components/page-state';
 import { PageLayout } from '@/components/page-layout';
 import { useExploreStore, CATEGORIES, type CategoryFilter } from '@/features/explore/stores/explore.store';
 import { useLayoutMode } from '@/hooks/use-layout-mode';
@@ -26,10 +28,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
   return (
     <div className="relative w-full md:w-96 group">
       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-        <Search className="h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-all duration-300 group-focus-within:scale-110" />
+        <Search className="h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors duration-150 group-focus-within:scale-110" />
       </div>
       <input
-        type="text"
+        type="search" aria-label={t('explore.searchApps')}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={t('explore.searchApps')}
@@ -73,10 +75,10 @@ const CategoryFilterBar: React.FC<CategoryFilterProps> = ({
         const isActive = cat === activeCategory;
         return (
           <button
-            key={cat}
+            key={cat} aria-pressed={isActive}
             data-event="filter_change" onClick={() => onCategoryChange(cat)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${isActive
-              ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30 scale-105'
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-150 ${isActive
+              ? 'bg-brand-600 text-white'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
               }`}
           >
@@ -148,12 +150,11 @@ export const ExploreApps: React.FC = () => {
     return (
       <ExploreFeed
         key={JSON.stringify(languages)}
-        error={error}
-        onRetry={presenter.explore.refresh}
         apps={apps}
         hasMore={hasMore}
         isLoading={isLoading}
         onLoadMore={presenter.explore.loadMore}
+        error={error} onRetry={presenter.explore.retry}
         onToggleView={() => setViewMode('grid')}
       />
     );
@@ -178,7 +179,7 @@ export const ExploreApps: React.FC = () => {
                 ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                 }`}
-              title={t('explore.feedView')}
+              aria-label={t('explore.feedView')} title={t('explore.feedView')}
             >
               <Smartphone className="w-4 h-4 md:w-3.5 md:h-3.5 shrink-0" />
               {!isCompact && <span className="hidden sm:inline">{t('explore.feedView')}</span>}
@@ -189,7 +190,7 @@ export const ExploreApps: React.FC = () => {
                 ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                 }`}
-              title={t('explore.gridView')}
+              aria-label={t('explore.gridView')} title={t('explore.gridView')}
             >
               <LayoutGrid className="w-4 h-4 md:w-3.5 md:h-3.5 shrink-0" />
               {!isCompact && <span className="hidden sm:inline">{t('explore.gridView')}</span>}
@@ -202,7 +203,7 @@ export const ExploreApps: React.FC = () => {
         </div>
       }
     >
-      <div className="flex flex-col gap-3 md:gap-4 animate-fade-in">
+      <div className="flex flex-col gap-3 md:gap-4 ">
         {/* Mobile Search Bar - Visible only on small screens */}
         <div className="md:hidden mb-1 flex items-center gap-2">
           <div className="flex-1 min-w-0"><SearchBar value={searchQuery} onChange={actions.setSearchQuery} /></div>
@@ -218,35 +219,10 @@ export const ExploreApps: React.FC = () => {
           onCategoryChange={actions.setActiveCategory}
         />
 
-        {!isLoading && (error || apps.length === 0) && <div className="rounded-2xl border border-slate-200 dark:border-slate-700 p-8 text-center">
-          <p className="text-slate-700 dark:text-slate-200">{t(error ? 'languages.loadFailed' : 'languages.empty')}</p>
-          <button type="button" onClick={error ? presenter.explore.refresh : () => useAppLanguageStore.getState().actions.select(null)} className="mt-4 px-4 py-2 rounded-full bg-brand-600 text-white text-sm">{t(error ? 'languages.retry' : 'languages.browseAll')}</button>
-        </div>}
+        {error && <PageState title={t('experience.exploreError')} action={<button className="btn-secondary" onClick={presenter.explore.retry}>{t('common.retry')}</button>} />}
+        {isLoading && apps.length > 0 && <p role="status" className="text-sm text-app-muted">{t('experience.refreshing')}</p>}
+        {!error && apps.length === 0 && isLoading ? <ContentSkeleton shape="apps" /> : !error && apps.length === 0 && !isLoading ? <PageState title={t('explore.noAppsFound')} description={t('explore.adjustSearch')} action={<button className="btn-secondary" onClick={() => { actions.resetFilters(); useAppLanguageStore.getState().actions.select(null); }}>{t('experience.resetFilters')}</button>} /> : (
 
-        {apps.length === 0 && isLoading ? (
-          <div className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, idx) => (
-                <div
-                  key={idx}
-                  className="flex flex-col rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden shadow-sm animate-pulse mb-6"
-                >
-                  <div className="aspect-video bg-slate-100 dark:bg-slate-800" />
-                  <div className="p-3 space-y-3">
-                    <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <div className="w-4 h-4 rounded-full bg-slate-100 dark:bg-slate-800" />
-                        <div className="w-12 h-2 bg-slate-100 dark:bg-slate-800 rounded" />
-                      </div>
-                      <div className="w-6 h-2 bg-slate-100 dark:bg-slate-800 rounded" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {apps.map((app, index) => (
@@ -262,7 +238,7 @@ export const ExploreApps: React.FC = () => {
             </div>
             <div ref={loadMoreRef} className="h-1" />
 
-            {(hasMore || (isLoading && apps.length > 0)) && (
+            {!error && (hasMore || (isLoading && apps.length > 0)) && (
               <div className="flex justify-center mt-8">
                 {isLoading ? (
                   <div className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-500 dark:text-slate-400">

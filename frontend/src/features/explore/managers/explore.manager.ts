@@ -50,8 +50,8 @@ export class ExploreManager {
     };
 
     if (!append) { actions.setApps([]); actions.setHasMore(false); }
-    actions.setError(false);
     actions.setIsLoading(true);
+    actions.setError(null);
 
     try {
       if (pageToLoad === 1 && state.searchQuery.trim()) track('search_submit');
@@ -100,8 +100,8 @@ export class ExploreManager {
       }
     } catch (error) {
       if (!isCurrentRequest()) return;
-      actions.setError(true);
       console.error('Failed to load explore apps', error);
+      actions.setError(append ? 'append_failed' : 'failed_to_load_apps');
     } finally {
       if (isCurrentRequest()) actions.setIsLoading(false);
     }
@@ -112,9 +112,14 @@ export class ExploreManager {
    */
   loadMore = () => {
     const state = useExploreStore.getState();
-    if (!state.hasMore || state.isLoading) return;
+    if (!state.hasMore || state.isLoading || state.error) return;
     track('load_more');
     void this.loadPage(state.page + 1, true);
+  };
+
+  retry = () => {
+    const state = useExploreStore.getState();
+    void this.loadPage(state.error === 'append_failed' ? state.page + 1 : 1, state.error === 'append_failed');
   };
 
   /**

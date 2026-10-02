@@ -1,28 +1,16 @@
-import { useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Crisp } from 'crisp-sdk-web';
+let supportPromise: Promise<typeof import('crisp-sdk-web')> | null = null;
 
-const CRISP_WEBSITE_ID = import.meta.env.VITE_CRISP_WEBSITE_ID;
-
-export const CrispChat = () => {
-  const location = useLocation();
-  const configuredRef = useRef(false);
-
-  useEffect(() => {
-    if (!CRISP_WEBSITE_ID) {
-      console.warn('Crisp Website ID is not configured. Please set VITE_CRISP_WEBSITE_ID in your environment variables.');
-      return;
-    }
-
-    if (!configuredRef.current) {
-      Crisp.configure(CRISP_WEBSITE_ID);
-      configuredRef.current = true;
-    }
-
-    // Product decision: don't show the default floating bubble.
-    // The app can still open the chat explicitly (e.g. Help button).
-    Crisp.chat.hide();
-  }, [location.pathname]);
-
-  return null;
+export const openSupportChat = async () => {
+  const websiteId = import.meta.env.VITE_CRISP_WEBSITE_ID;
+  if (!websiteId) {
+    window.location.assign('/community');
+    return;
+  }
+  supportPromise ??= import('crisp-sdk-web').then((module) => {
+    module.Crisp.configure(websiteId);
+    return module;
+  }).catch((error: unknown) => { supportPromise = null; throw error; });
+  const { Crisp } = await supportPromise;
+  Crisp.chat.open();
+  Crisp.chat.show();
 };

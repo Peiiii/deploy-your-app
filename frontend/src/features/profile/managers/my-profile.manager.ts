@@ -13,6 +13,7 @@ import { useProfileNameStore } from '@/features/profile/stores/profile-name.stor
  * All methods are arrow functions to avoid `this` binding issues.
  */
 export class MyProfileManager {
+  private profileRequestId = 0;
   private authManager: AuthManager;
   private uiManager: UIManager;
 
@@ -87,15 +88,19 @@ export class MyProfileManager {
     if (!user) return;
 
     const actions = useMyProfileStore.getState().actions;
+    const requestId = ++this.profileRequestId;
+    const isCurrent = () => requestId === this.profileRequestId && this.authManager.getCurrentUser()?.id === user.id;
     actions.setIsLoading(true);
+    actions.setLoadError(null);
 
     try {
       const data = await fetchPublicProfile(user.id);
-      actions.initializeFromProfile(data, user.handle);
+      if (isCurrent()) actions.initializeFromProfile(data, user.handle);
     } catch (err) {
       console.error('Failed to load profile', err);
+      if (isCurrent()) actions.setLoadError('failed_to_load_profile');
     } finally {
-      actions.setIsLoading(false);
+      if (isCurrent()) actions.setIsLoading(false);
     }
   };
 
@@ -144,6 +149,7 @@ export class MyProfileManager {
     const state = useMyProfileStore.getState();
     const actions = state.actions;
 
+    if (state.isLoading || state.isSaving || state.loadError || state.profileData?.user.id !== user.id) return;
     if (state.handleError) {
       this.uiManager.showErrorToast(state.handleError);
       return;
@@ -157,6 +163,8 @@ export class MyProfileManager {
       if (trimmedHandle !== (user.handle ?? '') || state.displayNameInput.trim() !== (user.displayName ?? '')) {
         await this.authManager.updateHandle(trimmedHandle, state.displayNameInput.trim());
       }
+
+      if (this.authManager.getCurrentUser()?.id !== user.id) return;
 
       // Prepare valid links
       const validLinks = state.links
@@ -172,6 +180,8 @@ export class MyProfileManager {
         links: validLinks,
         pinnedProjectIds: state.pinnedIds,
       });
+
+      if (this.authManager.getCurrentUser()?.id !== user.id) return;
 
       // Update store
       actions.setProfileData(
