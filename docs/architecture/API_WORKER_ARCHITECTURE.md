@@ -29,8 +29,10 @@
 
 - Node 部署服务（Aliyun 上的 Node 服务）
   - 只负责部署逻辑（打包、推 Pages / 压缩包、SSE 日志等）；
-  - 对外暴露 `/api/v1/deploy` 和 `/api/v1/deployments/:id/stream` 这样的接口；
-  - `gemigo-api` 通过 `DEPLOY_SERVICE_BASE_URL` 来访问它。
+  - 内部提供 `/api/v1/deploy`、持久结果查询和 SSE 日志接口；浏览器访问由 Worker 验证项目归属后代理；
+  - `gemigo-api` 通过 HTTPS `DEPLOY_SERVICE_BASE_URL` 和 `DEPLOY_SERVICE_TOKEN` 访问它，Node 的作业接口禁止匿名访问，健康检查公开；
+  - 用户构建脚本运行在独立容器，不能读取控制器凭据和共享数据；
+  - Worker/D1 拥有产品发布终态，日志断线和关页后由查询/定时对账恢复。上传、结果与资产切换的具体合同见[部署指南](../deployment/DEPLOY.md)。
 
 推荐的请求链路：
 

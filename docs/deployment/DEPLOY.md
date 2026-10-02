@@ -2,6 +2,14 @@
 
 本文档说明如何通过 GitHub Actions 自动部署到阿里云轻量应用服务器。
 
+当前生产发布链路（2026-10-02 验证）：网站与项目 API 在 Cloudflare，Node 构建控制器位于阿里云；生产 Worker 的 `DEPLOY_SERVICE_BASE_URL` 为 `https://builderapi.gemigo.io/api/v1`，与 Node 共用 `DEPLOY_SERVICE_TOKEN`。健康检查 `/healthz` 可以匿名访问，构建业务 API 必须由带服务凭据的 Worker 调用，不能让浏览器直连。
+
+用户 ZIP 经 Worker 二进制流写入临时 R2（75 MiB），消费后删除；未消费源文件由定时任务回收。已构建的静态目录直接发布，带 build 脚本的源码执行隔离构建。生产发布必须使用 `scripts/deploy.sh`：它配置不可变镜像 ID、独立工作目录、非 root/只读根及 CPU、内存、PID、命令超时限制。仅启动旧版 compose 配置无法满足当前生产构建合同。
+
+发布结果由 D1 `deployment_attempts` 确认，Node receipt 在持久数据目录 `deployments/` 保留 30 天；日志断线由查询恢复，关页后的作业由 Worker 每两分钟对账。R2 上传完整新版本后切换 `apps/<slug>/deployment.json`，保留上一版本资产，失败不删除当前网站；`.env`、`.env.*`、`.npmrc`、`.git` 和 `node_modules` 不公开。项目设置 → 部署 → 查看最近发布结果可以读取最近一次失败原因。
+
+结构与验证依据：[发布可靠性设计](../designs/2026-10-02-deployment-reliability.design.md)、[交付记录](../logs/2026-10-02-deployment-reliability/README.md)。
+
 ## 前置要求
 
 ### 1. 服务器准备
