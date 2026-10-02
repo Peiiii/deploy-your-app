@@ -74,9 +74,24 @@ export function normalizeProjectLocalization(
     return undefined;
   }
 
+  const rawGenerated = input.generatedDescriptions as Record<string, unknown> | undefined;
+  const generatedLocales: Record<string, string> = {};
+  if (rawGenerated && typeof rawGenerated.source === 'string' && rawGenerated.locales && typeof rawGenerated.locales === 'object') {
+    for (const code of ['zh', 'en']) {
+      const text = (rawGenerated.locales as Record<string, unknown>)[code];
+      if (typeof text === 'string' && text.trim()) generatedLocales[code] = text.trim();
+    }
+  }
   return {
     defaultLocale,
     locales,
+    ...(rawGenerated && typeof rawGenerated.source === 'string' ? {
+      generatedDescriptions: {
+        source: rawGenerated.source,
+        locales: generatedLocales,
+        ...(typeof rawGenerated.retryAfter === 'string' ? { retryAfter: rawGenerated.retryAfter } : {}),
+      },
+    } : {}),
   };
 }
 
@@ -128,6 +143,7 @@ export function mergeDefaultLocaleIntoLocalization(
       : current.description;
 
   return {
+    ...localization,
     defaultLocale: locale,
     locales: {
       ...localization.locales,

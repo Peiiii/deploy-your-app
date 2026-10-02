@@ -111,6 +111,35 @@ function projectFilters(options: Omit<ProjectQueryOptions, 'sort'>): { where: st
   return { where, params };
 }
 
+/** Shared by scheduled runtime and the bounded operational backfill. */
+export const DESCRIPTION_TRANSLATION_CANDIDATES_SQL = `SELECT * FROM projects
+  WHERE is_public=1 AND status='Live' AND COALESCE(is_deleted,0)=0
+    AND url IS NOT NULL AND TRIM(url)!='' AND description IS NOT NULL AND TRIM(description)!=''
+    AND (COALESCE(json_extract(localized_metadata,'$.generatedDescriptions.source'),'') <> description
+      OR COALESCE(json_extract(localized_metadata,'$.generatedDescriptions.retryAfter'),'') <= ?)
+    AND (${['zh', 'en']
+      .map(
+        (
+          code
+        ) => `(NOT EXISTS (SELECT 1 FROM json_each(json_extract(localized_metadata,'$.locales'))
+      WHERE (LOWER(key)='${code}' OR LOWER(key) LIKE '${code}-%') AND LENGTH(TRIM(COALESCE(json_extract(value,'$.description'),'')))>0)
+      AND (COALESCE(json_extract(localized_metadata,'$.generatedDescriptions.source'),'') <> description
+        OR COALESCE(json_extract(localized_metadata,'$.generatedDescriptions.locales.${code}'),'')=''))`
+      )
+      .join(' OR ')})
+  ORDER BY last_deployed DESC, id LIMIT ?`;
+
+export function descriptionTranslationWrite(
+  project: Pick<Project, 'id' | 'description'>,
+  generated: NonNullable<ProjectLocalization['generatedDescriptions']>
+): { sql: string; params: string[] } {
+  return {
+    sql: `UPDATE projects SET localized_metadata=json_set(COALESCE(localized_metadata,json_object('defaultLocale','und','locales',json_object('und',json_object('name',name,'description',description)))), '$.generatedDescriptions',json(?))
+      WHERE id=? AND description=? AND is_public=1 AND status='Live' AND COALESCE(is_deleted,0)=0`,
+    params: [JSON.stringify(generated), project.id, project.description || ''],
+  };
+}
+
 class ProjectRepository {
   /** Aggregate and paginate inside D1; never transfer all candidates to the Worker. */
   async queryExplorePage(
@@ -619,6 +648,28 @@ class ProjectRepository {
 
     const rows = result.results ?? [];
     return { items: rows.map((row) => this.mapRowToProject(row)), total };
+  }
+
+  async descriptionTranslationCandidates(db: D1Database, limit = 3): Promise<Project[]> {
+    await this.ensureSchema(db);
+    const result = await db
+      .prepare(DESCRIPTION_TRANSLATION_CANDIDATES_SQL)
+      .bind(new Date().toISOString(), limit)
+      .all<ProjectRow>();
+    return (result.results ?? []).map((row) => this.mapRowToProject(row));
+  }
+
+  async saveDescriptionTranslations(
+    db: D1Database,
+    project: Project,
+    generated: NonNullable<ProjectLocalization['generatedDescriptions']>
+  ): Promise<void> {
+    await this.ensureSchema(db);
+    const write = descriptionTranslationWrite(project, generated);
+    await db
+      .prepare(write.sql)
+      .bind(...write.params)
+      .run();
   }
 
   async languageScanCandidates(db: D1Database, limit = 3): Promise<Project[]> {

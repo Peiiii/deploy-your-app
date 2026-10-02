@@ -1,3 +1,4 @@
+import { getProjectDescription } from '@/utils/project';
 import React from 'react';
 import { getAuthorName, getAuthorColor, getAuthorInitial } from '@/utils/author';
 import { resolvePublicAuthorIdentity } from '@gemigo/public-author';
@@ -28,7 +29,7 @@ import {
 export const PublicProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const presenter = usePresenter();
 
   // Subscribe to store
@@ -124,9 +125,9 @@ export const PublicProfile: React.FC = () => {
             <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
               {project.name}
             </div>
-            {project.description && (
+            {getProjectDescription(project, i18n.resolvedLanguage || i18n.language) && (
               <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                {project.description}
+                {getProjectDescription(project, i18n.resolvedLanguage || i18n.language)}
               </div>
             )}
           </div>

@@ -26,6 +26,7 @@ export interface ExploreAppCard {
   id: string;
   name: string;
   description: string;
+  localization?: Project['localization'];
   appLanguages?: string[];
   author: PublicAuthorIdentity;
   authorColor?: string;
@@ -74,6 +75,7 @@ export function mapProjectsToApps(projects: Project[]): ExploreAppCard[] {
       name: project.name,
       appLanguages: project.appLanguage?.languages,
       description,
+      localization: project.localization,
       author,
       authorColor: getAuthorColor(author.identityKey),
       category,
@@ -100,7 +102,8 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   onCardClick,
 }) => {
   const presenter = usePresenter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const description = getProjectDescription(app, i18n.resolvedLanguage || i18n.language);
   const showLanguage = useAppLanguageStore((s) => s.languages === null || s.languages.length > 1);
   const reactionEntry = useReactionStore((s) => s.byProjectId[app.id]);
   const navigate = useNavigate();
@@ -201,9 +204,9 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
           <h3 className="text-sm font-semibold text-slate-900 dark:text-white line-clamp-1 leading-snug group-hover:text-brand-600 transition-colors">
             {app.name}
           </h3>
-          {app.description && (
+          {description && (
             <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
-              {app.description}
+              {description}
             </p>
           )}
         </div>

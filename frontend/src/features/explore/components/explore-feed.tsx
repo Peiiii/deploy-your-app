@@ -1,3 +1,4 @@
+import { getProjectDescription } from '@/utils/project';
 import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
 import { AppLanguageFilter } from '@/features/explore/components/app-language-filter';
 import { getAuthorColor, getAuthorInitial, getAuthorName } from '@/utils/author';
@@ -197,7 +198,7 @@ interface FeedItemProps {
 }
 
 const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterStateChange }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const presenter = usePresenter();
     const currentUser = useAuthStore((s) => s.user);
@@ -500,9 +501,9 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                         >
                             {authorHeadline}
                         </h3>
-                        {app.description && (
+                        {getProjectDescription(app, i18n.resolvedLanguage || i18n.language) && (
                             <p className="text-sm text-gray-200 line-clamp-2 mb-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                                {app.description}
+                                {getProjectDescription(app, i18n.resolvedLanguage || i18n.language)}
                             </p>
                         )}
                     </div>

@@ -111,8 +111,23 @@ export function buildProjectDescription(project: Project): string {
   return '';
 }
 
-export function getProjectDescription(project: Project): string {
-  return project.description && project.description.trim().length > 0
-    ? project.description
-    : buildProjectDescription(project);
+export function getProjectDescription(
+  project: Pick<Project, 'description' | 'localization'>,
+  locale?: string
+): string {
+  const primary = locale?.toLowerCase().split('-')[0];
+  if (primary && project.localization) {
+    const entries = Object.entries(project.localization.locales);
+    const exact = entries.find(([code]) => code.toLowerCase() === locale?.toLowerCase());
+    const matching =
+      exact?.[1].description ||
+      entries.find(
+        ([code, fields]) => code.toLowerCase().split('-')[0] === primary && fields.description
+      )?.[1].description;
+    if (matching?.trim()) return matching;
+    const generated = project.localization.generatedDescriptions;
+    if (generated && generated.source === project.description && generated.locales[primary]?.trim())
+      return generated.locales[primary];
+  }
+  return project.description && project.description.trim().length > 0 ? project.description : '';
 }

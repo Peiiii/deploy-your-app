@@ -1,3 +1,4 @@
+import { getProjectDescription } from '@/utils/project';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -28,7 +29,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   onCopyUrl,
   isCopied,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const analyticsByProject = useAnalyticsStore((s) => s.byProjectId);
   const analytics = analyticsByProject[project.id];
@@ -118,9 +119,9 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 
       {/* Content - flex-1 to push footer to bottom */}
       <div className="flex-1">
-        {project.description && (
+        {getProjectDescription(project, i18n.resolvedLanguage || i18n.language) && (
           <p className="text-sm text-slate-600 dark:text-gray-400 mb-4 line-clamp-2">
-            {project.description}
+            {getProjectDescription(project, i18n.resolvedLanguage || i18n.language)}
           </p>
         )}
 

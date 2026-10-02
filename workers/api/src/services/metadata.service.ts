@@ -11,6 +11,8 @@ import {
   normalizeProjectLocalization,
 } from '../utils/project-localization';
 import { aiService } from './ai.service';
+import { projectRepository } from '../repositories/project.repository';
+import type { Project } from '../types/project';
 
 const DEFAULT_CATEGORY = 'Other';
 
@@ -107,6 +109,35 @@ interface MetadataRequestInput {
 }
 
 class MetadataService {
+  async translateDescription(
+    env: ApiWorkerEnv,
+    db: D1Database,
+    project: Project
+  ): Promise<boolean> {
+    if (
+      !project.description?.trim() ||
+      project.status !== 'Live' ||
+      project.isPublic !== true ||
+      project.isDeleted
+    )
+      return false;
+    const locales = await aiService.translateDescription(env, project.description);
+    const previous = project.localization?.generatedDescriptions;
+    await projectRepository.saveDescriptionTranslations(db, project, {
+      source: project.description,
+      locales: locales || (previous?.source === project.description ? previous.locales : {}),
+      ...(!locales ? { retryAfter: new Date(Date.now() + 5 * 60_000).toISOString() } : {}),
+    });
+    return !!locales;
+  }
+
+  async translatePendingDescriptions(env: ApiWorkerEnv, db?: D1Database): Promise<void> {
+    if (!db || !aiService.isEnabled(env)) return;
+    for (const project of await projectRepository.descriptionTranslationCandidates(db)) {
+      await this.translateDescription(env, db, project);
+    }
+  }
+
   async ensureProjectMetadata(
     env: ApiWorkerEnv,
     input: MetadataRequestInput,

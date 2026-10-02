@@ -23,6 +23,7 @@ export interface ProjectLocalizedFields {
 export interface ProjectLocalization {
   defaultLocale: string;
   locales: Record<string, ProjectLocalizedFields>;
+  generatedDescriptions?: { source: string; locales: Record<string, string>; retryAfter?: string };
 }
 
 export interface Project {

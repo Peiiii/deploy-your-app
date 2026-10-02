@@ -1,3 +1,4 @@
+import { getProjectDescription } from '@/utils/project';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { PinOff } from 'lucide-react';
@@ -5,7 +6,7 @@ import { useMyProfileStore } from '@/features/profile/stores/my-profile.store';
 import { usePresenter } from '@/contexts/presenter-context';
 
 export const ProfileAllProjects: React.FC = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const presenter = usePresenter();
 
     const pinnedIds = useMyProfileStore((s) => s.pinnedIds);
@@ -51,9 +52,9 @@ export const ProfileAllProjects: React.FC = () => {
                             <div className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">
                                 {project.name}
                             </div>
-                            {project.description && (
+                            {getProjectDescription(project, i18n.resolvedLanguage || i18n.language) && (
                                 <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">
-                                    {project.description}
+                                    {getProjectDescription(project, i18n.resolvedLanguage || i18n.language)}
                                 </div>
                             )}
                         </div>

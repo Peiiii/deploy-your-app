@@ -1,3 +1,4 @@
+import { metadataService } from './services/metadata.service';
 import { projectLanguageService } from './services/project-language.service';
 import { deploymentSourceService } from './services/deployment-source.service';
 import { deployService } from './services/deploy.service';
@@ -39,6 +40,7 @@ const worker: ExportedHandler<ApiWorkerEnv> = {
     if (env.PROJECTS_DB) await deployService.reconcilePending(env, env.PROJECTS_DB);
     await deploymentSourceService.cleanup(env);
     await projectLanguageService.scanPending(env, env.PROJECTS_DB);
+    await metadataService.translatePendingDescriptions(env, env.PROJECTS_DB);
   },
   async fetch(request, env, ctx) {
     try {
