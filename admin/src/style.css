@@ -1241,3 +1241,11 @@ a:focus-visible {
   color: #7639cb;
   border-color: #c4acef;
 }
+
+.growth-console table {
+  min-width: 840px;
+}
+.growth-console th,
+.growth-console td {
+  white-space: nowrap;
+}

@@ -25,7 +25,7 @@ export const Home: React.FC = () => {
       <div className="flex-1 flex flex-col">
         {/* Main Content Area */}
         <div
-          className={`transition-all duration-500 ease-out pb-8 ${isPanelOpen ? 'w-full' : 'w-full max-w-7xl mx-auto'
+          className={`pb-8 ${isPanelOpen ? 'w-full' : 'w-full max-w-7xl mx-auto'
             }`}
         >
           <h1 className="sr-only">GemiGo</h1>

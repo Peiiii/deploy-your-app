@@ -46,7 +46,7 @@ export const useAppPreviewPanel = (options?: UseAppPreviewPanelOptions) => {
           onClose={closeRightPanel}
           onOpenInNewTab={openInNewTab}
         />,
-        { closeOnUnmount: options?.closeOnUnmount ?? false },
+        { closeOnUnmount: options?.closeOnUnmount ?? false, appId: app.id },
       );
 
       const shouldCollapse = options?.collapseSidebar ?? true;

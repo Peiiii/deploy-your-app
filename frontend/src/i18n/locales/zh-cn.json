@@ -694,6 +694,7 @@
     "supportedLanguages": "应用支持的语言"
   },
   "legal": {
+    "homeNotice": "仅限合法用途",
     "language": "语言",
     "notice": "禁止利用 GemiGo 发布违法内容或从事诈骗、钓鱼、侵权等活动。违规内容可能被移除，服务可能被限制。",
     "readPolicy": "查看使用规范 ↗",

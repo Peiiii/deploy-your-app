@@ -58,3 +58,11 @@
 
 ## 复盘
 retrospective_decision: updated-existing-owner。原architecture网关与访问流程回写已验证缓存owner、freshness、delivery mirror和HTML ETag边界，指向源码manifest与本记录；不新建流程Skill/规则。可复用事实：不能由任意上传文件名猜immutable；不能用header阶段加速声称首屏同等改善；Cloudflare beacon等可能移除HTML ETag，保留统计并如实说明。具体数据仅作为本环境历史记录，不升级为全局SLO。retrospective_state: completed；parent_status: ready-for-completion-check（待最后版本入口与Git核对）。
+
+## 最终版本与完成核对
+- 最终生产Worker：ef5bc879-5fa9-4bbf-9f07-56ea4e917f65（原bindings/routes不变，gzip6.46KiB）。收尾修正镜像no-store与普通应用共用同一策略；strict tsc、lint、全部4个行为测试及diff-only review重新通过，no findings。
+- 部署后准确命中新增分支：runtime no-store=BYPASS/gzip且解压hash一致；weak ETag conditional=304/0bytes；HEAD=200/0bytes；geeglo200、重复请求双HIT/gateway12ms。原始结果见evidence/final-verification.json。
+- 正常GET路径未变，保留前述39/6样本数据；最终版本新增分支另验，不重复跑没有改变的浏览器负载。
+- 历史浏览器已经缓存的一年immutable文件不会因服务器改header立即失效；若首次打开仍见旧资源，强制刷新一次。新取得普通应用文件均no-cache，后续发布靠校验；未向客户任意JS/资源URL注入version参数。
+- 源码提交：3883c48（缓存）、ef3fb13（镜像）、57c670b（no-store补验与证据）；本任务提交均普通推送origin/master。最终主工作区master同步与actual remote SHA在本次交付末尾再次核对，不移动分支指针、不改其它任务草稿。
+- AP-01..06 passed；retrospective_state completed；parent_status ready-for-completion-check，无剩余必要实现或外部待授权动作。
