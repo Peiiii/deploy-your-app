@@ -26,3 +26,8 @@
 单阶段，当前门：实现统一托管策略→行为测试→对比实测→按最大缺口迭代→生产 QA→Review/交付/复盘。open-required: AP-01..05。parent_status: in-progress。无待决范围变化。
 
 契约 review: passed。删除“全球所有网络打开”“第三方脚本无任何失败”“重新构建所有客户应用”等噪声标准，前者被用户暂缓，后两者不是获批托管方案可保证的结果；第三方瓶颈仍属于实测与优化判断，不隐藏超时。
+
+## 授权内设计学习
+第一轮浏览器暴露共性Tailwind根CDN超时，增加AP-06（Required:true，Status:not-run）：同字节固定3.4.17平台镜像，准确重写无query根URL；保留显式版本/插件/CSP/credentials，客户R2源字节不变。再次6浏览器样本无Tailwind首屏18秒超时，并报告完整FCP。此项对应原目标的实测不满意继续优化，未减少原标准；AP-01..05相关证据在代码变更后需要重验。
+
+线上学习：Cloudflare自动HTML beacon等变换会移除HTML ETag（39样本仅2保留），服务器仍正确支持conditional匹配与*；JS/CSS镜像ETag正常。继续保留已有Web Analytics和压缩，不以关闭统计换取header。浏览器HTML并非全部能获得ETag，完整响应仍可用边缘缓存加速；在线bodyless304已由JS精确ETag和HTML*验证。

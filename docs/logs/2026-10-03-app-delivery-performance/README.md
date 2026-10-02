@@ -12,3 +12,10 @@
 - wrangler deploy --dry-run：passed，gzip5.62KiB；只包含原有ASSETS和3个vars。
 - diff-only maintainability：项目无自动入口，人工审查 gateway diff 与发布 pointer、缩略图、analytics 相邻合同。新函数分别拥有缓存I/O、manifest解析、object读取和conditional matching，没有第二发布owner或source rewrite。
 - mode=implementation：no findings；审查 GET/HEAD 条件顺序、缓存错误、legacy TTL、缓存 key tenant/release/query 隔离、negative缓存与fallback。残余风险仅线上 Cache API/压缩/ETag变换与网络，交生产验收关闭。
+
+## 第二轮实现与发布前验证
+- 真实直连Tailwind根CDN curl SSL timeout，浏览器两个pending均为同域。上游通过已配置代理取得，根URL302到3.4.17；SHA256 176e894661aa9cdc9a5cba6c720044cbbf7b8bd80d1c9a142a7c24b1b6c50d15，407279bytes；MIT全文1071bytes另存固定平台key。
+- 发布脚本先验证所有下载hash，再写2个platform/runtime对象；未触及任何客户对象。资源先于Worker重写发布。
+- 第二轮strict tsc、定向lint、4个行为/发布/thumbnail/真实Miniflare HTMLRewriter测试均passed；dry-run gzip6.47KiB。
+- implementation review / diff-only maintainability：no findings。按内容hash镜像和delivery弱ETag避免旧200/304混用；检查CSP、版本/plugin、credentials、原attrs、真实原R2不变、CORS与共享缓存；验证脚本credential仅发原R2 endpoint。
+- 完整回退：原Worker版本5c3939b8-7f61-422f-b6cb-a1af7c0023b6；仅回退runtime重写可用第一轮3c125788-931a-48a1-a36d-1951e9a902f2。平台镜像是独立静态文件，rollback无需修改客户发布。

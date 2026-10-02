@@ -1,0 +1,16 @@
+{
+  "tailwind": {
+    "path": "/runtime/tailwind-3.4.17.176e8946.js",
+    "key": "platform/runtime/tailwind-3.4.17.176e8946.js",
+    "source": "https://cdn.tailwindcss.com/3.4.17",
+    "sha256": "176e894661aa9cdc9a5cba6c720044cbbf7b8bd80d1c9a142a7c24b1b6c50d15",
+    "contentType": "application/javascript; charset=utf-8"
+  },
+  "license": {
+    "path": "/runtime/tailwind-3.4.17.LICENSE.txt",
+    "key": "platform/runtime/tailwind-3.4.17.LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/tailwindlabs/tailwindcss/v3.4.17/LICENSE",
+    "sha256": "60e0b68c0f35c078eef3a5d29419d0b03ff84ec1df9c3f9d6e39a519a5ae7985",
+    "contentType": "text/plain; charset=utf-8"
+  }
+}
