@@ -61,3 +61,5 @@ pnpm exec wrangler d1 execute gemigo-projects --remote -c workers/admin/wrangler
 增长服务的真人流量权威遵守 `skills/gemigo-customer-analytics/references/metric-contract.md`：CF Web Analytics RUM `bot=0`，账号/两个 siteTag 由 admin Worker vars 定义，使用现有后台服务账号的持久 API token，通过 `ANALYTICS_CF_TOKEN` Worker Secret 安装；不得使用短期 Wrangler OAuth、不进入浏览器或 Git。查询固定字段，流量缓存 30 分钟（既有 analytics_settings 命名 key）与报表缓存 5 分钟，失效上游明确 stale/last fetched，首次失败指标 null。业务查询沿原百万日预算先计数再按实际规模保守预留，不因理论采集上限耗尽额度。采样、DNT、预算和留存分别限制指标覆盖；Cloudflare visits 不能被命名为 UV。运营激活只对同一新注册 cohort 计算，截至周期末持有有效应用与该有效应用成功部署。
 
 事件合同与查询公共接口由 `packages/product-analytics` 唯一维护。新增功能时添加语义事件/允许的维度、在具体交互或确认结果处接入，再补充对应测试。禁止直接采集 DOM 文本、搜索词、邮箱、代码、密钥或原始 URL。
+
+生产验收同样会占用查询预留：执行前记录现有日预留基线，并保存每次非缓存响应的 `reservedReads` 与生成时间；缓存命中不能重复归账。收尾仅恢复能明确归属本次验收的预留，保护既有实际使用与所有其它用量，不清零采集或查询预算。升级缓存 namespace 会再次产生查询预留，切换版本后的验证范围应只覆盖受影响行为。

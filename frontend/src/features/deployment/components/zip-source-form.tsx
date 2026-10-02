@@ -6,12 +6,14 @@ interface ZipSourceFormProps {
   zipFile: File | null;
   onFileSelected: (file: File) => void;
   onClearFile: () => void;
+  compact?: boolean;
 }
 
 export const ZipSourceForm: React.FC<ZipSourceFormProps> = ({
   zipFile,
   onFileSelected,
   onClearFile,
+  compact = false,
 }) => {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -32,12 +34,12 @@ export const ZipSourceForm: React.FC<ZipSourceFormProps> = ({
   };
 
   return (
-    <div className="space-y-4">
-      <label className="block text-sm font-medium text-slate-900 dark:text-white">
+    <div className={compact ? undefined : 'space-y-4'}>
+      <label className={compact ? 'sr-only' : 'block text-sm font-medium text-slate-900 dark:text-white'}>
         {t('deployment.uploadArchive')}
       </label>
       <div
-        className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer group ${
+        className={`relative border-dashed text-center transition-all cursor-pointer group ${compact ? 'rounded-xl border p-6' : 'rounded-lg border-2 p-8'} ${
           zipFile
             ? 'border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-950/20'
             : 'border-slate-300 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-700 bg-slate-50 dark:bg-slate-800/50'
@@ -97,4 +99,3 @@ export const ZipSourceForm: React.FC<ZipSourceFormProps> = ({
     </div>
   );
 };
-
