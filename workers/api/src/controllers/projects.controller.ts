@@ -138,6 +138,7 @@ class ProjectsController {
           : ['0', 'false', 'no'].includes(normalizedExtensionParam)
             ? false
             : undefined;
+    const startedAt = performance.now();
     const result = await exploreService.getExploreProjects(db, {
       search: url.searchParams.get('search')?.trim() || undefined,
       category: url.searchParams.get('category')?.trim() || undefined,
@@ -147,7 +148,9 @@ class ProjectsController {
       page: Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1),
       pageSize: Math.min(50, Math.max(1, parseInt(url.searchParams.get('pageSize') || '12', 10) || 12)),
     });
-    return jsonResponse(result);
+    const response = jsonResponse(result);
+    response.headers.set('Server-Timing', `explore;dur=${(performance.now() - startedAt).toFixed(1)}`);
+    return response;
   }
 
   // ─────────────────────────────────────────────────────────────

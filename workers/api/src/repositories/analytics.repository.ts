@@ -17,7 +17,7 @@ type ViewsBySlugRow = { slug: string; views: number };
 let statsSchemaEnsured = false;
 
 class AnalyticsRepository {
-  private ensureSchema = async (db: D1Database): Promise<void> => {
+  ensureSchema = async (db: D1Database): Promise<void> => {
     if (statsSchemaEnsured) return;
     await db.prepare(`CREATE TABLE IF NOT EXISTS project_daily_stats (
       slug TEXT NOT NULL, date TEXT NOT NULL, views INTEGER NOT NULL DEFAULT 0,

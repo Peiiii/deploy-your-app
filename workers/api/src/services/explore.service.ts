@@ -1,8 +1,6 @@
 import type { D1Database } from '@cloudflare/workers-types';
 import type { Project } from '../types/project';
 import { projectRepository } from '../repositories/project.repository';
-import { engagementService } from './engagement.service';
-import { analyticsService } from './analytics.service';
 import { publicAuthorService } from './public-author.service';
 
 /**
@@ -34,91 +32,25 @@ export class ExploreService {
         const page = Math.max(1, options.page ?? 1);
         const pageSize = Math.max(1, Math.min(50, options.pageSize ?? 12));
 
-        const allPublic = await projectRepository.queryProjects(db, {
+        const fromDateInclusive = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+        const result = await projectRepository.queryExplorePage(db, {
             search: options.search,
             category: options.category,
             tag: options.tag,
-            onlyPublic: true,
-            ...(typeof options.isExtensionSupported === 'boolean'
-                ? { isExtensionSupported: options.isExtensionSupported }
-                : {}),
+            isExtensionSupported: options.isExtensionSupported,
+            sort: options.sort ?? 'recent',
+            limit: pageSize,
+            offset: (page - 1) * pageSize,
+            fromDateInclusive,
         });
-
-        const idList = allPublic.map((p) => p.id);
-        const counts = await engagementService.getEngagementCountsForProjects(
-            db,
-            idList,
-        );
-
-        let sorted: Project[];
-        if (options.sort === 'popularity') {
-            const viewsBySlug = await analyticsService.getViewsByProjectSlug(
-                db,
-                allPublic,
-                7,
-            );
-            sorted = [...allPublic].sort((a, b) => {
-                const aCounts = counts[a.id] ?? {
-                    likesCount: 0,
-                    favoritesCount: 0,
-                };
-                const bCounts = counts[b.id] ?? {
-                    likesCount: 0,
-                    favoritesCount: 0,
-                };
-                const aViews7d = viewsBySlug[a.slug ?? a.id] ?? 0;
-                const bViews7d = viewsBySlug[b.slug ?? b.id] ?? 0;
-                if (bViews7d !== aViews7d) {
-                    return bViews7d - aViews7d;
-                }
-                if (bCounts.favoritesCount !== aCounts.favoritesCount) {
-                    return bCounts.favoritesCount - aCounts.favoritesCount;
-                }
-                if (bCounts.likesCount !== aCounts.likesCount) {
-                    return bCounts.likesCount - aCounts.likesCount;
-                }
-                return (
-                    new Date(b.lastDeployed).getTime() -
-                    new Date(a.lastDeployed).getTime()
-                );
-            });
-        } else {
-            // Default sort: most recently deployed first.
-            sorted = [...allPublic].sort(
-                (a, b) =>
-                    new Date(b.lastDeployed).getTime() -
-                    new Date(a.lastDeployed).getTime(),
-            );
-        }
-
-        const total = sorted.length;
-        const start = (page - 1) * pageSize;
-        const end = start + pageSize;
-        const items = sorted.slice(start, end);
-
-        const enrichedItems = await publicAuthorService.enrichProjects(db, items);
-
-        const engagement: Record<
-            string,
-            { likesCount: number; favoritesCount: number }
-        > = {};
-        enrichedItems.forEach((project) => {
-            const entry = counts[project.id] ?? {
-                likesCount: 0,
-                favoritesCount: 0,
-            };
-            engagement[project.id] = {
-                likesCount: entry.likesCount,
-                favoritesCount: entry.favoritesCount,
-            };
-        });
+        const items = await publicAuthorService.enrichProjects(db, result.items);
 
         return {
-            items: enrichedItems,
+            items,
             page,
             pageSize,
-            total,
-            engagement,
+            total: result.total,
+            engagement: result.engagement,
         };
     }
 }

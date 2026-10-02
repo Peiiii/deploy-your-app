@@ -12,7 +12,7 @@ type CountRow = {
 let engagementSchemaEnsured = false;
 
 class EngagementRepository {
-  private async ensureSchema(db: D1Database): Promise<void> {
+  async ensureSchema(db: D1Database): Promise<void> {
     if (engagementSchemaEnsured) return;
 
     await db
