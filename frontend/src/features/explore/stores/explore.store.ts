@@ -39,6 +39,7 @@ interface ExploreState {
 
   // UI state
   isLoading: boolean;
+  error: boolean;
 
   actions: {
     setApps: (apps: ExploreAppCard[]) => void;
@@ -48,6 +49,7 @@ interface ExploreState {
     setSearchQuery: (query: string) => void;
     setPage: (page: number) => void;
     setHasMore: (hasMore: boolean) => void;
+    setError: (error: boolean) => void;
     setIsLoading: (loading: boolean) => void;
     resetFilters: () => void;
   };
@@ -61,6 +63,7 @@ const initialState = {
   page: 1,
   hasMore: false,
   isLoading: false,
+  error: false,
 };
 
 export const useExploreStore = create<ExploreState>((set) => ({
@@ -78,6 +81,7 @@ export const useExploreStore = create<ExploreState>((set) => ({
     setSearchQuery: (query) => set({ searchQuery: query }),
     setPage: (page) => set({ page }),
     setHasMore: (hasMore) => set({ hasMore }),
+    setError: (error) => set({ error }),
     setIsLoading: (loading) => set({ isLoading: loading }),
     resetFilters: () =>
       set({

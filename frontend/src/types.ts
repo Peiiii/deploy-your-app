@@ -70,6 +70,7 @@ export interface Project {
   description?: string;
   defaultLocale?: string;
   localization?: ProjectLocalization;
+  appLanguage?: { languages: string[]; source: 'author' | 'detected'; revision?: string; checkedAt?: string };
   framework: 'React' | 'Vue' | 'Next.js' | 'Unknown';
   // High-level category used by Explore Apps (e.g. "Development", "Image Gen").
   category?: string;
@@ -206,6 +207,7 @@ export interface ExploreProjectsResponse {
   page: number;
   pageSize: number;
   total: number;
+  availableLanguages?: string[];
   engagement?: Record<string, { likesCount: number; favoritesCount: number }>;
 }
 

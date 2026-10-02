@@ -49,8 +49,7 @@ interface UIState {
 
 const getInitialLanguage = (): string => {
   if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('i18nextLng');
-    if (stored) return stored;
+    try { const stored = localStorage.getItem('i18nextLng'); if (stored) return stored; } catch { /* Storage may be disabled. */ }
   }
   return 'en';
 };
@@ -79,7 +78,7 @@ export const useUIStore = create<UIState>((set) => ({
     setLanguage: (lang) => {
       set({ language: lang });
       if (typeof window !== 'undefined') {
-        localStorage.setItem('i18nextLng', lang);
+        try { localStorage.setItem('i18nextLng', lang); } catch { /* In-memory settings still work. */ }
       }
     },
     openConfirmDialog: (dialog) => set({ confirmDialog: dialog }),

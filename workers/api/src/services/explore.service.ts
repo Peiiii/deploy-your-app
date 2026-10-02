@@ -1,3 +1,4 @@
+import { matchesAppLanguages } from '../utils/app-language';
 import type { D1Database } from '@cloudflare/workers-types';
 import type { Project } from '../types/project';
 import { projectRepository } from '../repositories/project.repository';
@@ -16,6 +17,7 @@ export class ExploreService {
     async getExploreProjects(
         db: D1Database,
         options: {
+            languages?: string[];
             search?: string;
             category?: string;
             tag?: string;
@@ -29,12 +31,13 @@ export class ExploreService {
         page: number;
         pageSize: number;
         total: number;
+        availableLanguages: string[];
         engagement: Record<string, { likesCount: number; favoritesCount: number }>;
     }> {
         const page = Math.max(1, options.page ?? 1);
         const pageSize = Math.max(1, Math.min(50, options.pageSize ?? 12));
 
-        const allPublic = await projectRepository.queryProjects(db, {
+        const catalog = await projectRepository.queryProjects(db, {
             search: options.search,
             category: options.category,
             tag: options.tag,
@@ -44,6 +47,8 @@ export class ExploreService {
                 : {}),
         });
 
+        const availableLanguages = [...new Set(catalog.flatMap(project => project.appLanguage?.languages.length ? project.appLanguage.languages : ['und']))].sort();
+        const allPublic = options.languages ? catalog.filter(project => matchesAppLanguages(project.appLanguage, options.languages)) : catalog;
         const idList = allPublic.map((p) => p.id);
         const counts = await engagementService.getEngagementCountsForProjects(
             db,
@@ -115,6 +120,7 @@ export class ExploreService {
 
         return {
             items: enrichedItems,
+            availableLanguages,
             page,
             pageSize,
             total,

@@ -1,3 +1,4 @@
+import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
 import { track } from '@/analytics/collector';
 import { useExploreStore } from '@/features/explore/stores/explore.store';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
@@ -35,22 +36,27 @@ export class ExploreManager {
    */
   loadPage = async (pageToLoad: number, append: boolean = false) => {
     const state = useExploreStore.getState();
+    const languages = useAppLanguageStore.getState().languages;
+    const languageKey = JSON.stringify(languages);
     const actions = state.actions;
     const currentUser = useAuthStore.getState().user;
     const requestId = ++this.requestId;
     const isCurrentRequest = () => {
       const current = useExploreStore.getState();
-      return requestId === this.requestId &&
+      return JSON.stringify(useAppLanguageStore.getState().languages) === languageKey && requestId === this.requestId &&
         current.activeCategory === state.activeCategory &&
         current.activeTag === state.activeTag &&
         current.searchQuery === state.searchQuery;
     };
 
+    if (!append) { actions.setApps([]); actions.setHasMore(false); }
+    actions.setError(false);
     actions.setIsLoading(true);
 
     try {
       if (pageToLoad === 1 && state.searchQuery.trim()) track('search_submit');
       const result = await fetchExploreProjects({
+        languages,
         search: state.searchQuery.trim() || undefined,
         category: state.activeCategory !== 'All Apps' ? state.activeCategory : undefined,
         tag: state.activeTag,
@@ -61,6 +67,7 @@ export class ExploreManager {
 
       if (!isCurrentRequest()) return;
 
+      useAppLanguageStore.getState().actions.setAvailable(result.availableLanguages || []);
       const projects = result.items;
       const pageApps = mapProjectsToApps(projects);
 
@@ -93,6 +100,7 @@ export class ExploreManager {
       }
     } catch (error) {
       if (!isCurrentRequest()) return;
+      actions.setError(true);
       console.error('Failed to load explore apps', error);
     } finally {
       if (isCurrentRequest()) actions.setIsLoading(false);

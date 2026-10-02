@@ -85,6 +85,7 @@ export class HttpProjectProvider implements IProjectProvider {
       description?: string;
       category?: string;
       tags?: string[];
+      appLanguages?: string[];
       localization?: ProjectLocalization;
       isPublic?: boolean;
       isExtensionSupported?: boolean;

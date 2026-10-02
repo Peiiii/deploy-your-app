@@ -1,3 +1,4 @@
+import { normalizeAppLanguages, normalizeAppLanguageCode } from '../utils/app-language';
 import type { ApiWorkerEnv } from '../types/env';
 import {
   SourceType,
@@ -143,6 +144,7 @@ class ProjectsController {
       category: url.searchParams.get('category')?.trim() || undefined,
       tag: url.searchParams.get('tag')?.trim() || undefined,
       sort: sortParam === 'popularity' ? 'popularity' : 'recent',
+      languages: url.searchParams.has('languages') ? url.searchParams.get('languages').split(',').map(code => code === 'und' ? code : normalizeAppLanguageCode(code)).filter(Boolean).slice(0, 8) : undefined,
       ...(typeof isExtensionSupported === 'boolean' ? { isExtensionSupported } : {}),
       page: Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1),
       pageSize: Math.min(50, Math.max(1, parseInt(url.searchParams.get('pageSize') || '12', 10) || 12)),
@@ -208,12 +210,16 @@ class ProjectsController {
       category,
       tags,
       localization,
+      appLanguages,
       isPublic,
       isExtensionSupported,
     } = body;
 
-    if ([name, slug, repoUrl, description, category, tags, localization, isPublic, isExtensionSupported].every((v) => v === undefined)) {
+    if ([name, slug, repoUrl, description, category, tags, localization, appLanguages, isPublic, isExtensionSupported].every((v) => v === undefined)) {
       throw new ValidationError('At least one field must be provided');
+    }
+    if (appLanguages !== undefined && (!Array.isArray(appLanguages) || appLanguages.length > 8 || appLanguages.some(value => !normalizeAppLanguageCode(value)))) {
+      throw new ValidationError('appLanguages must contain up to 8 valid language codes');
     }
     if (isPublic !== undefined && typeof isPublic !== 'boolean') {
       throw new ValidationError('isPublic must be a boolean');
@@ -230,6 +236,7 @@ class ProjectsController {
       ...(category !== undefined && { category: validateOptionalString(category) }),
       ...(tags !== undefined && { tags: validateOptionalArray(tags, String) }),
       ...(localization !== undefined && { localization: this.parseProjectLocalization(localization) }),
+      ...(appLanguages !== undefined && { appLanguage: normalizeAppLanguages(appLanguages).length ? { languages: normalizeAppLanguages(appLanguages), source: 'author' as const } : null }),
       ...(isPublic !== undefined && { isPublic: isPublic as boolean }),
       ...(isExtensionSupported !== undefined && { isExtensionSupported: isExtensionSupported as boolean }),
     });

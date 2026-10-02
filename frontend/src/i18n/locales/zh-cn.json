@@ -655,5 +655,26 @@
     "displayNameLabel": "公开昵称",
     "displayNamePlaceholder": "填写你希望大家看到的名字",
     "displayNameHint": "应用和主页统一显示此昵称，不随界面语言改变；邮箱不会公开展示。"
+  },
+  "languages": {
+    "appLanguage": "应用语言",
+    "siteLanguage": "网站界面语言",
+    "automaticActive": "已按浏览器语言自动选择",
+    "automatic": "恢复自动选择",
+    "all": "全部语言",
+    "more": "更多语言",
+    "unknown": "语言待确认",
+    "independent": "无需特定语言",
+    "hint": "选择你能使用的语言，可多选。这会改变展示的应用，不会改变网站界面语言。",
+    "empty": "当前语言和筛选条件下还没有应用，可以换一种语言，或浏览全部。",
+    "loadFailed": "应用加载失败，请重试。",
+    "retry": "重新加载",
+    "browseAll": "浏览全部语言",
+    "authorHint": "选择应用实际支持的语言；名称、简介的翻译不代表应用支持该语言。留空可恢复自动识别。",
+    "detected": "根据应用自动识别",
+    "declared": "你已确认",
+    "save": "保存应用语言",
+    "saved": "应用语言已保存。",
+    "saveFailed": "保存应用语言失败。"
   }
 }

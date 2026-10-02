@@ -1,3 +1,4 @@
+import { appLanguageLabel } from '@/features/explore/stores/language-preference';
 import { track } from '@/analytics/collector';
 /* eslint-disable react-refresh/only-export-components */
 import { getAuthorColor, getAuthorInitial, getAuthorName } from '../utils/author';
@@ -24,6 +25,7 @@ export interface ExploreAppCard {
   id: string;
   name: string;
   description: string;
+  appLanguages?: string[];
   author: PublicAuthorIdentity;
   authorColor?: string;
   category: string;
@@ -69,6 +71,7 @@ export function mapProjectsToApps(projects: Project[]): ExploreAppCard[] {
     return {
       id: project.id,
       name: project.name,
+      appLanguages: project.appLanguage?.languages,
       description,
       author,
       authorColor: getAuthorColor(author.identityKey),
@@ -200,6 +203,9 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
           )}
         </div>
 
+        <p className="text-[11px] text-slate-500 dark:text-slate-400" aria-label={t('languages.appLanguage')}>
+          {app.appLanguages?.length ? app.appLanguages.map(code => code === 'zxx' ? t('languages.independent') : appLanguageLabel(code)).join(' · ') : t('languages.unknown')}
+        </p>
         <div className="flex items-center justify-between mt-1">
           <button
             type="button"

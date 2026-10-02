@@ -1,3 +1,4 @@
+import { parseAppLanguage, type AppLanguage } from '../utils/app-language';
 import {
   type CreateProjectRecordInput,
   type ProjectLocalization,
@@ -66,6 +67,7 @@ class ProjectRepository {
           description TEXT,
           default_locale TEXT,
           localized_metadata TEXT,
+          app_language TEXT,
           framework TEXT,
           category TEXT,
           tags TEXT,
@@ -171,6 +173,7 @@ class ProjectRepository {
     }
 
     for (const column of [
+      'app_language TEXT',
       'created_at TEXT',
       'updated_at TEXT',
       'last_success_at TEXT',
@@ -281,6 +284,7 @@ class ProjectRepository {
       defaultLocale:
         typeof row.default_locale === 'string' ? row.default_locale : undefined,
       ...(localization ? { localization } : {}),
+      appLanguage: parseAppLanguage(parseJsonObject(row.app_language)),
       framework:
         (typeof row.framework === 'string'
           ? (row.framework as Project['framework'])
@@ -542,6 +546,26 @@ class ProjectRepository {
     return { items: rows.map((row) => this.mapRowToProject(row)), total };
   }
 
+  async languageScanCandidates(db: D1Database, limit = 3): Promise<Project[]> {
+    await this.ensureSchema(db);
+    const result = await db.prepare(`SELECT * FROM projects
+      WHERE status = 'Live' AND url IS NOT NULL AND last_success_at IS NOT NULL
+        AND COALESCE(is_deleted, 0) = 0 AND COALESCE(is_public, 1) = 1
+        AND (app_language IS NULL OR (json_extract(app_language, '$.source') <> 'author'
+          AND COALESCE(json_extract(app_language, '$.revision'), '') <> last_success_at))
+      ORDER BY last_success_at DESC LIMIT ?`).bind(limit).all<ProjectRow>();
+    return (result.results ?? []).map(row => this.mapRowToProject(row));
+  }
+
+  async saveDetectedLanguage(db: D1Database, project: Project, appLanguage: AppLanguage): Promise<void> {
+    await this.ensureSchema(db);
+    await db.prepare(`UPDATE projects SET app_language = ?
+      WHERE id = ? AND last_success_at = ? AND status = 'Live'
+        AND COALESCE(is_deleted, 0) = 0 AND COALESCE(is_public, 1) = 1
+        AND (app_language IS NULL OR json_extract(app_language, '$.source') <> 'author')`)
+      .bind(JSON.stringify(appLanguage), project.id, project.lastSuccessAt).run();
+  }
+
   async updateProjectRecord(
     db: D1Database,
     id: string,
@@ -553,6 +577,7 @@ class ProjectRepository {
       category?: string;
       tags?: string[];
       localization?: ProjectLocalization;
+      appLanguage?: AppLanguage | null;
       isPublic?: boolean;
       isExtensionSupported?: boolean;
       sourceType?: SourceType;
@@ -596,6 +621,10 @@ class ProjectRepository {
         statements.push('description = ?');
         params.push(localizedFlat.description);
       }
+    }
+    if (patch.appLanguage !== undefined) {
+      statements.push('app_language = ?');
+      params.push(patch.appLanguage ? JSON.stringify(patch.appLanguage) : null);
     }
     if (patch.category !== undefined) {
       statements.push('category = ?');

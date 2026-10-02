@@ -659,5 +659,26 @@
     "displayNameLabel": "Public display name",
     "displayNamePlaceholder": "The name you want others to see",
     "displayNameHint": "Shown on your apps and profile in every language. Your email stays private."
+  },
+  "languages": {
+    "appLanguage": "App language",
+    "siteLanguage": "Website language",
+    "automaticActive": "Auto-selected from your browser",
+    "automatic": "Use browser language",
+    "all": "All languages",
+    "more": "More languages",
+    "unknown": "Language unconfirmed",
+    "independent": "Language independent",
+    "hint": "Choose the languages you can use. You can select more than one. This changes the apps shown, not the website language.",
+    "empty": "No apps match your languages and current filters yet. Try another language or browse all.",
+    "loadFailed": "Unable to load apps. Please try again.",
+    "retry": "Try again",
+    "browseAll": "Browse all languages",
+    "authorHint": "Select the languages the app actually supports. Translated names or descriptions do not count. Leave empty to detect automatically.",
+    "detected": "Detected from the app",
+    "declared": "Confirmed by you",
+    "save": "Save languages",
+    "saved": "App languages saved.",
+    "saveFailed": "Could not save app languages."
   }
 }

@@ -1,3 +1,4 @@
+import type { AppLanguage } from '../utils/app-language';
 import type { ApiWorkerEnv } from '../types/env';
 import {
   SourceType,
@@ -232,6 +233,7 @@ class ProjectService {
       category?: string;
       tags?: string[];
       localization?: ProjectLocalization;
+      appLanguage?: AppLanguage | null;
       isPublic?: boolean;
       isExtensionSupported?: boolean;
       sourceType?: SourceType;

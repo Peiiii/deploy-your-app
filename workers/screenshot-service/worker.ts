@@ -10,6 +10,8 @@ interface ScreenshotRequestBody {
 
 interface Env {
   BROWSER: BrowserWorker;
+  APP_CONTENT_TOKEN?: string;
+  APPS_ROOT_DOMAIN?: string;
 }
 
 const OPTIMIZED_WIDTH = 960;
@@ -34,7 +36,9 @@ function getErrorMessage(error: unknown): string {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const { searchParams } = new URL(request.url);
+    const requestUrl = new URL(request.url);
+    if (requestUrl.pathname === '/content') return extractAppContent(request, env);
+    const { searchParams } = requestUrl;
 
     let targetUrl = searchParams.get("url");
     let imageUrl: string | null = null;
@@ -177,4 +181,42 @@ export default {
       }
     }
   }
+}
+
+/** Authenticated internal consumer; public screenshot behavior is unchanged. */
+async function extractAppContent(request: Request, env: Env): Promise<Response> {
+  if (request.method !== 'POST' || !env.APP_CONTENT_TOKEN || request.headers.get('x-gemigo-content-token') !== env.APP_CONTENT_TOKEN) return new Response('Not found', { status: 404 });
+  const allowed = (value: string): boolean => {
+    try {
+      const url = new URL(value);
+      return url.protocol === 'https:' && url.hostname.endsWith(`.${env.APPS_ROOT_DOMAIN || 'gemigo.app'}`) && !url.username && !url.password && !url.port;
+    } catch { return false; }
+  };
+  let browser: Browser | null = null;
+  try {
+    const body = await request.json() as { url?: string };
+    if (typeof body.url !== 'string' || !allowed(body.url)) return new Response('Invalid app URL', { status: 400 });
+    browser = await puppeteer.launch(env.BROWSER);
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1280, height: 720 });
+    await page.setRequestInterception(true);
+    page.on('request', intercepted => {
+      if (intercepted.isNavigationRequest() && intercepted.frame() === page.mainFrame() && !allowed(intercepted.url())) void intercepted.abort();
+      else void intercepted.continue();
+    });
+    const response = await page.goto(body.url, { waitUntil: 'domcontentloaded', timeout: 12000 });
+    if (!response?.ok() || !allowed(page.url())) return new Response('App unavailable', { status: 422 });
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    // Hydrated apps often start with an empty shell. Bound waiting for actual text.
+    await page.waitForFunction(() => (document.body?.innerText.trim().length ?? 0) >= 20, { timeout: 3000 }).catch(() => undefined);
+    const content = await page.evaluate(() => ({
+      text: (document.body?.innerText ?? '').slice(0, 6000),
+      controls: Array.from(document.querySelectorAll('button, label, nav, [role="button"], input[placeholder], select'))
+        .filter(el => el.getClientRects().length > 0)
+        .map(el => el.textContent || el.getAttribute('placeholder') || '').join('\n').slice(0, 2000),
+      htmlLang: document.documentElement.lang.slice(0, 32),
+    }));
+    return Response.json(content, { headers: { 'cache-control': 'no-store' } });
+  } catch { return new Response('Content unavailable', { status: 503 }); }
+  finally { if (browser) await browser.close(); }
 }

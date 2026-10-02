@@ -1,3 +1,4 @@
+import type { AppLanguage } from '../utils/app-language';
 import type { PublicAuthorIdentity } from '@gemigo/public-author';
 
 export enum SourceType {
@@ -49,6 +50,7 @@ export interface Project {
   description?: string;
   defaultLocale?: string;
   localization?: ProjectLocalization;
+  appLanguage?: AppLanguage;
   framework: 'React' | 'Vue' | 'Next.js' | 'Unknown';
   category?: string;
   tags?: string[];

@@ -111,6 +111,7 @@ export class ProjectManager {
       description?: string;
       category?: string;
       tags?: string[];
+      appLanguages?: string[];
       isPublic?: boolean;
       isExtensionSupported?: boolean;
     },

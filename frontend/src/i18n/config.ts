@@ -17,6 +17,7 @@ i18n
       },
     },
     fallbackLng: 'en',
+    supportedLngs: ['zh-CN', 'en'],
     defaultNS: 'translation',
     interpolation: {
       escapeValue: false,

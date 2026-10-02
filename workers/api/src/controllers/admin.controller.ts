@@ -1,3 +1,4 @@
+import { projectLanguageService } from '../services/project-language.service';
 import { projectService } from '../services/project.service';
 import { jsonResponse, readJson } from '../utils/http';
 import { UnauthorizedError, NotFoundError, ValidationError } from '../utils/error-handler';
@@ -23,6 +24,17 @@ class AdminController {
       throw new UnauthorizedError('Admin access denied.');
     }
     return sessionWithUser.user;
+  };
+
+  detectProjectLanguage = async (request: Request, env: ApiWorkerEnv, db: D1Database, id: string): Promise<Response> => {
+    // Scoped operational token can only invoke this public-app scan, not other admin actions.
+    if (!env.APP_CONTENT_TOKEN || request.headers.get('x-gemigo-content-token') !== env.APP_CONTENT_TOKEN) await this.requireAdmin(request, env, db);
+    if (!env.APP_CONTENT || !env.APP_CONTENT_TOKEN) throw new ValidationError('App content service unavailable');
+    const project = await projectService.getProjectById(db, id);
+    if (!project || project.status !== 'Live' || project.isPublic === false) throw new NotFoundError('Public live project not found');
+    await projectLanguageService.scanProject(env, db, project);
+    const updated = await projectService.getProjectById(db, id);
+    return jsonResponse({ appLanguage: updated?.appLanguage });
   };
 
   listProjects = async (
