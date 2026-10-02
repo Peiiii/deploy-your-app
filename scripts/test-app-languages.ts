@@ -160,7 +160,9 @@ try {
   globalThis.fetch = async () => new Response('Unavailable', { status: 503 });
   assert.equal((await projectLanguageService.scanProject(env, db, project)).status, 'classifier_unavailable');
   assert.equal((await projectRepository.getProjectById(db, project.id)).appLanguage, undefined, 'classifier failure never stamps unknown');
-  assert.equal((await projectRepository.languageScanCandidates(db)).length, 1, 'failed classification remains retryable');
+  assert.equal((await projectRepository.languageScanCandidates(db)).length, 0, 'failed classification backs off so it cannot starve the queue');
+  await db.prepare("UPDATE projects SET app_language=json_set(app_language, '$.retryAfter', '2000-01-01T00:00:00Z') WHERE id=?").bind(project.id).run();
+  assert.equal((await projectRepository.languageScanCandidates(db)).length, 1, 'failed classification becomes retryable after backoff');
   const unavailableEnv = { ...env, APP_CONTENT: { fetch: async () => new Response('Unavailable', { status: 503 }) } } as unknown as ApiWorkerEnv;
   assert.equal((await projectLanguageService.scanProject(unavailableEnv, db, project)).status, 'content_unavailable');
   assert.equal((await projectRepository.getProjectById(db, project.id)).appLanguage, undefined, 'render failure never stamps unknown');
@@ -174,6 +176,8 @@ try {
     0,
     'only once per successful release'
   );
+  await projectLanguageService.scanProject(unavailableEnv, db, project);
+  assert.deepEqual((await projectRepository.getProjectById(db, project.id)).appLanguage.languages, ['th'], 'failed rescan preserves the last valid language');
   await projectRepository.updateProjectRecord(db, project.id, {
     appLanguage: { languages: ['zh'], source: 'author' },
   });
@@ -183,6 +187,8 @@ try {
     ['zh'],
     'manual declaration wins over in-flight scan'
   );
+  await projectLanguageService.scanProject(unavailableEnv, db, project);
+  assert.equal((await projectRepository.getProjectById(db, project.id)).appLanguage.source, 'author', 'retry metadata cannot override an author declaration');
   await projectRepository.updateProjectRecord(db, project.id, { appLanguage: null });
   await projectRepository.updateProjectDeploymentRecord(db, project.id, {
     lastDeployed: '2026-10-02T12:00:00Z',
