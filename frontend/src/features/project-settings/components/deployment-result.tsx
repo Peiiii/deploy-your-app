@@ -53,7 +53,11 @@ export function DeploymentResult({ projectId }: { projectId: string }) {
           </p>
           {failed && (
             <pre className="text-sm whitespace-pre-wrap break-words text-red-600 dark:text-red-400">
-              {result.errorMessage || t('deployment.noDetailedError')}
+              {result.errorCode
+                ? t(`deployment.errors.${result.errorCode}`, {
+                    defaultValue: result.errorMessage || t('deployment.noDetailedError'),
+                  })
+                : result.errorMessage || t('deployment.noDetailedError')}
             </pre>
           )}
           <p className="text-xs text-slate-500">
