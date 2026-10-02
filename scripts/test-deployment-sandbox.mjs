@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawn } from 'node:child_process';
+import { mkdtempSync, rmSync, readFileSync, writeFileSync, createWriteStream } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { createGzip } from 'node:zlib';
+import { pipeline } from 'node:stream/promises';
 
 const image = process.env.BUILD_TEST_IMAGE || 'deploy-your-app-server:latest';
 const dir = mkdtempSync(path.join(tmpdir(), 'gemigo-sandbox-'));
@@ -24,6 +26,7 @@ const files = {
   'package.json': JSON.stringify({
     name: 'isolated-qa',
     version: '1.0.0',
+    packageManager: JSON.parse(readFileSync('package.json', 'utf8')).packageManager,
     scripts: { build: 'node build.cjs' },
   }),
   'build.cjs': buildScript,
@@ -68,7 +71,7 @@ try {
     imageId
   );
   const port = docker('port', container, '4173/tcp').split(':').at(-1);
-  const base = `http://127.0.0.1:${port}`;
+  let base = `http://127.0.0.1:${port}`;
   for (let n = 0; n < 60; n++) {
     if (
       await request(`${base}/healthz`)
@@ -138,6 +141,7 @@ try {
     429
   );
   docker('restart', container);
+  base = `http://127.0.0.1:${docker('port', container, '4173/tcp').split(':').at(-1)}`;
   for (let n = 0; n < 30; n++) {
     if (
       await request(`${base}/healthz`)
@@ -157,11 +161,56 @@ try {
     ).status,
     'SUCCESS'
   );
+  // Exercise the same release entry used in production, including rollback on startup failure.
+  const archive = path.join(dir, 'image.tar.gz');
+  const save = spawn('docker', ['save', image]);
+  const exited = new Promise((resolve, reject) => {
+    save.on('error', reject);
+    save.on('close', (code) => (code === 0 ? resolve() : reject(new Error('Image export failed'))));
+  });
+  await pipeline(save.stdout, createGzip(), createWriteStream(archive));
+  await exited;
+  const releaseEnv = {
+    ...process.env,
+    DEPLOY_CONTAINER_NAME: container,
+    DEPLOY_DATA_DIR: dir,
+    PORT: '14173',
+    DEPLOY_SERVICE_TOKEN: token,
+    STORAGE_TYPE: 'file',
+    DEPLOY_TARGET: 'local',
+  };
+  execFileSync('bash', ['scripts/deploy.sh', archive], { env: releaseEnv, stdio: 'pipe' });
+  base = 'http://127.0.0.1:14173';
+  assert.equal((await request(`${base}/healthz`)).status, 200);
+  const beforeRollback = docker('inspect', container, '--format', '{{.Id}}');
+  assert.throws(() =>
+    execFileSync('bash', ['scripts/deploy.sh', archive], {
+      env: { ...releaseEnv, PORT: 'invalid-port' },
+      stdio: 'pipe',
+    })
+  );
+  assert.equal(
+    docker('inspect', container, '--format', '{{.Id}}'),
+    beforeRollback,
+    'restore the same previously healthy container'
+  );
+  assert.match(await (await request(`${base}/apps/isolation-qa/`)).text(), /Isolated build passed/);
   console.log(
     'PASS: production image builds in a non-root isolated container without controller secrets, storage or Docker socket; read-only root; cleanup and receipt survive restart'
   );
 } finally {
   try {
+    docker(
+      'run',
+      '--rm',
+      '--entrypoint',
+      'node',
+      '-v',
+      `${dir}:/data`,
+      image,
+      '-e',
+      "const fs=require('fs'); for(const n of fs.readdirSync('/data')) fs.rmSync('/data/'+n,{recursive:true,force:true});"
+    );
     docker('rm', '-f', container);
   } catch {
     /* absent */

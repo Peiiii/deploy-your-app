@@ -30,6 +30,9 @@ class DeployController {
     // 1. Authenticate
     const user = await this.requireAuth(request, db);
 
+    // Reject old Base64 requests before allocating a large JSON body in the Worker.
+    if (Number(request.headers.get('content-length')) > 10 * 1024 * 1024) throw new ValidationError('This ZIP request is too large. Use the website file upload or the latest GemiGo CLI.');
+
     // 2. Parse request
     const body = await readJson(request);
     const input = deployService.parseDeployInput(body);

@@ -3,9 +3,9 @@
 set -euo pipefail
 IMAGE_TAR="${1:-}"
 IMAGE_NAME="deploy-your-app-server"
-CONTAINER_NAME="deploy-your-app"
+CONTAINER_NAME="${DEPLOY_CONTAINER_NAME:-deploy-your-app}"
 PREVIOUS_NAME="${CONTAINER_NAME}-previous"
-DATA_DIR="/opt/deploy-your-app/data"
+DATA_DIR="${DEPLOY_DATA_DIR:-/opt/deploy-your-app/data}"
 HOST_PORT="${PORT:-80}"
 CONTAINER_PORT=4173
 if [ ! -f "$IMAGE_TAR" ]; then
