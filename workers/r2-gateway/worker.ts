@@ -291,7 +291,16 @@ export default {
 
     // This must match the prefix used by the backend R2 deployer:
     //   apps/<slug>/current/...
-    const basePrefix = `apps/${subdomain}/current`;
+    let basePrefix = `apps/${subdomain}/current`;
+    let previousPrefix: string | undefined;
+    const pointer = await bucket.get(`apps/${subdomain}/deployment.json`);
+    if (pointer?.body) {
+      const manifest = await new Response(pointer.body).json() as { prefix?: string; previousPrefix?: string };
+      const validPrefix = (value?: string): value is string => Boolean(value && (value === `apps/${subdomain}/current` || new RegExp(`^apps/${subdomain}/releases/[a-f0-9-]{36}$`, 'i').test(value)));
+      if (!validPrefix(manifest.prefix)) return new Response('Invalid site deployment', { status: 503 });
+      basePrefix = manifest.prefix;
+      if (validPrefix(manifest.previousPrefix)) previousPrefix = manifest.previousPrefix;
+    }
 
     let pathname = url.pathname;
     if (!pathname || pathname === '/') {
@@ -305,6 +314,10 @@ export default {
 
     // Try to fetch the requested asset first.
     let object = await bucket.get(objectKey);
+
+    if (!object && previousPrefix && /\.[a-z0-9]+$/i.test(pathname) && !pathname.endsWith('.html')) {
+      object = await bucket.get(`${previousPrefix}${pathname}`);
+    }
 
     // SPA fallback: if the asset does not exist, return index.html so
     // client-side routing (React/Vue/etc.) can handle the path.

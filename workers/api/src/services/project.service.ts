@@ -303,8 +303,9 @@ class ProjectService {
       cloudflareProjectName?: string;
       sourceType?: SourceType;
     },
+    expectedAttemptId?: string,
   ): Promise<Project | null> {
-    return projectRepository.updateProjectDeploymentRecord(db, id, patch);
+    return projectRepository.updateProjectDeploymentRecord(db, id, patch, expectedAttemptId);
   }
 
   async getProjectById(db: D1Database, id: string): Promise<Project | null> {

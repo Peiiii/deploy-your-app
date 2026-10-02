@@ -263,6 +263,19 @@ class ProjectsController {
       throw new ValidationError('deploymentFlowId must be a UUID');
     }
 
+    if (status === 'Building') return jsonResponse(await projectService.getProjectById(db, id));
+
+    if (status === 'Live' || status === 'Failed') {
+      const latest = await deploymentRepository.latestForProject(db, id);
+      const expected = status === 'Live' ? 'succeeded' : 'failed';
+      const flow = deploymentFlowId ? await deploymentRepository.findByFlow(db, deploymentFlowId) : latest;
+      if (!latest || flow?.id !== latest.id || latest.status !== expected) {
+        throw new ValidationError('Deployment status is managed by the deployment service. Refresh the project to see its result.');
+      }
+      // Legacy clients may acknowledge a result, but cannot stamp a new success date.
+      return jsonResponse(await projectService.getProjectById(db, id));
+    }
+
     const patch = {
       ...(status && { status: status as 'Live' | 'Building' | 'Failed' | 'Offline' }),
       ...(body.lastDeployed !== undefined && { lastDeployed: validateRequiredString(body.lastDeployed, 'lastDeployed') }),
@@ -278,16 +291,6 @@ class ProjectsController {
 
     const updated = await projectService.updateProjectDeployment(db, id, patch);
     if (!updated) throw new NotFoundError('Project not found');
-    if (deploymentFlowId && (status === 'Live' || status === 'Failed')) {
-      await deploymentRepository.finishAttemptByFlow(
-        db,
-        id,
-        deploymentFlowId,
-        status === 'Live' ? 'succeeded' : 'failed',
-        new Date().toISOString(),
-        status === 'Failed' ? 'client_observed_failure' : undefined,
-      );
-    }
     return jsonResponse(updated);
   }
 

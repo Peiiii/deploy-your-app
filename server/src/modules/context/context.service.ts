@@ -4,11 +4,10 @@ import * as fs from 'fs/promises';
 import { CONFIG } from '../../common/config/config.js';
 import { SourceType } from '../../common/types.js';
 import { materializeSourceForDeployment } from '../deployment/pipeline/sourceMaterialization.js';
-import { deployments } from '../deployment/state.js';
+import { deployments, analysisSessions } from '../deployment/state.js';
 import type {
     ContextInput,
     ContextOutput,
-    ContextSession,
     ProjectContext,
 } from './context.types.js';
 import { extractHtmlContent, extractInlineHtml } from './extractors/html-extractor.js';
@@ -21,7 +20,7 @@ import { extractReadme } from './extractors/readme-extractor.js';
 // ============================================================
 
 /** In-memory storage for context sessions (reused by deploy) */
-export const contextSessions = new Map<string, ContextSession>();
+
 
 // ============================================================
 // Service
@@ -60,13 +59,14 @@ class ContextService {
             };
 
             // For ZIP source, store zipData in deployments state first
-            if (input.sourceType === SourceType.Zip && input.zipData) {
+            if (input.sourceType === SourceType.Zip && (input.zipData || input.zipSourceKey)) {
                 deployments.set(contextId, {
                     status: 'ANALYZING',
                     logs: [],
                     project: tempProject,
                     workDir,
                     zipData: input.zipData,
+                    zipSourceKey: input.zipSourceKey,
                 });
             }
 
@@ -79,14 +79,18 @@ class ContextService {
             const context = await this.extractContextFromDir(workDir);
 
             // Store session for later deploy reuse
-            contextSessions.set(contextId, {
+            analysisSessions.set(contextId, {
+                filePath: '',
                 workDir,
                 repoUrl: input.repoUrl,
             });
 
+            deployments.delete(contextId);
+            setTimeout(() => { void this.cleanupSession(contextId); }, 15 * 60 * 1000).unref();
             return { contextId, context };
         } catch (err) {
             // Cleanup on failure
+            deployments.delete(contextId);
             await this.cleanupWorkDir(workDir);
             throw err;
         }
@@ -129,10 +133,10 @@ class ContextService {
      * Cleanup a context session's workDir.
      */
     cleanupSession = async (contextId: string): Promise<void> => {
-        const session = contextSessions.get(contextId);
+        const session = analysisSessions.get(contextId);
         if (session) {
             await this.cleanupWorkDir(session.workDir);
-            contextSessions.delete(contextId);
+            analysisSessions.delete(contextId);
         }
     };
 

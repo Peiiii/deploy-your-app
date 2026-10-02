@@ -9,6 +9,7 @@ import {
 } from '../modules/deployment/state.js';
 import type { Project } from '../common/types.js';
 import { SourceType } from '../common/types.js';
+import { readDeploymentReceipt, saveDeploymentReceipt, recoverDeploymentReceipts } from '../modules/deployment/deploymentReceipt.js';
 import { deploymentService } from '../modules/deployment/deployment.service.js';
 import { metadataService } from '../modules/metadata/index.js';
 import { CONFIG } from '../common/config/config.js';
@@ -40,6 +41,7 @@ type AppLike = {
 
 // Attach all API routes to the given Express app instance.
 export function registerRoutes(app: AppLike): void {
+  recoverDeploymentReceipts();
   // ----------------------
   // Project context extraction
   // ----------------------
@@ -181,19 +183,26 @@ export function registerRoutes(app: AppLike): void {
       });
     }
 
+    if (!deploymentService.canAccept()) {
+      return res.status(429).json({ error: 'The deployment service is busy. Please try again shortly.', code: 'builder_busy' });
+    }
     const id = randomUUID();
     const workDirFromAnalysis =
       project.analysisId && analysisSessions.has(project.analysisId)
         ? analysisSessions.get(project.analysisId)!.workDir
         : null;
 
+    if (workDirFromAnalysis && project.analysisId) analysisSessions.delete(project.analysisId);
     deployments.set(id, {
       status: 'IDLE',
       logs: [],
       project,
       workDir: workDirFromAnalysis,
       zipData,
+      zipSourceKey: (req.body as { zipSourceKey?: string }).zipSourceKey,
+      stage: 'queued',
     });
+    saveDeploymentReceipt(id, deployments.get(id)!);
 
     res.json({ deploymentId: id });
 
@@ -207,8 +216,15 @@ export function registerRoutes(app: AppLike): void {
   // Deployment log stream (SSE)
   // ----------------------
 
+  app.get('/api/v1/deployments/:id', (req, res) => {
+    const receipt = readDeploymentReceipt(req.params!.id);
+    return receipt ? res.json(receipt) : res.status(404).json({ error: 'Deployment result is no longer available.', code: 'result_unavailable' });
+  });
+
   app.get('/api/v1/deployments/:id/stream', (req, res) => {
     const { id } = req.params as { id: string };
+    const receipt = readDeploymentReceipt(id);
+    if (!receipt) return res.status(404).json({ error: 'Deployment result is no longer available.' });
 
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
@@ -224,24 +240,18 @@ export function registerRoutes(app: AppLike): void {
     }
     listeners.add(res);
 
-    // Send existing logs and status immediately
+    // Replay durable terminal metadata and errors after a browser/server restart.
     const deployment = deployments.get(id);
-    if (deployment) {
-      for (const log of deployment.logs) {
-        res.write(
-          `data: ${JSON.stringify({
-            type: 'log',
-            message: log.message,
-            level: log.level || 'info',
-          })}\n\n`,
-        );
-      }
-      res.write(
-        `data: ${JSON.stringify({
-          type: 'status',
-          status: deployment.status,
-        })}\n\n`,
-      );
+    const snapshot = deployment ? { ...receipt, status: deployment.status, logs: deployment.logs } : receipt;
+    for (const log of snapshot.logs) {
+      res.write(`data: ${JSON.stringify({ type: 'log', message: log.message, level: log.level })}\n\n`);
+    }
+    res.write(`data: ${JSON.stringify({ ...snapshot, logs: undefined })}\n\n`);
+    if (snapshot.status === 'SUCCESS' || snapshot.status === 'FAILED') {
+      listeners.delete(res);
+      if (listeners.size === 0) streams.delete(id);
+      res.end();
+      return;
     }
 
     const keepAlive = setInterval(() => {

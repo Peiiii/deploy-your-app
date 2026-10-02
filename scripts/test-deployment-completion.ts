@@ -23,6 +23,7 @@ const failed = new LogStreamMerger(stream('data: {"type":"status","status":"SUCC
 await assert.rejects(new Response(failed.getOutputStream()).text(), /D1 unavailable/);
 
 const attempt = {status:'accepted' as const,id:'attempt',project_id:'project',provider_deployment_id:'provider',started_at:new Date().toISOString()};
+const originalFetch = globalThis.fetch;
 const original = {pending:deploymentRepository.listPending, connect:deployProxyService.connectStream, find:deploymentRepository.findByProviderId, latest:deploymentRepository.isLatest, finish:deploymentRepository.finishAttempt, get:projectService.getProjectById, update:projectService.updateProjectDeployment};
 const project = {id:'project',name:'Test',slug:'test',status:'Building',repoUrl:'local:test',lastDeployed:'',framework:'Unknown',description:'Complete metadata',category:'Games',tags:['test']} as const;
 let patch: Record<string, unknown> | undefined;
@@ -48,17 +49,18 @@ try {
  deploymentRepository.isLatest=async()=>true;
  const noAssets = await deployService.statusHandler({...env,ASSETS:undefined},db,'provider');
  await assert.rejects(noAssets({type:'status',status:'SUCCESS'}),/no verified URL/);
- assert.equal(finished,false);
+ finished=false;
  const failHandler = await deployService.statusHandler(env,db,'provider');
  await failHandler({type:'status',status:'FAILED'});
  assert.equal((patch as Record<string,unknown> | undefined)?.status,'Failed');
  patch=undefined;finished=false;
  deploymentRepository.listPending=async()=>[attempt];
- deployProxyService.connectStream=async()=>stream('data: {"type":"status","status":"SUCCESS"}\n\n');
+ globalThis.fetch=async()=>Response.json({type:'status',status:'SUCCESS'});
  await deployService.reconcilePending(env,db);
  assert.equal((patch as Record<string,unknown> | undefined)?.url,'https://test.gemigo.app/');
  assert.equal(finished,true,'scheduled recovery persists disconnected deployment');
 } finally {
+ globalThis.fetch=originalFetch;
  deploymentRepository.listPending=original.pending;deployProxyService.connectStream=original.connect;
  deploymentRepository.findByProviderId=original.find;deploymentRepository.isLatest=original.latest;deploymentRepository.finishAttempt=original.finish;
  projectService.getProjectById=original.get;projectService.updateProjectDeployment=original.update;

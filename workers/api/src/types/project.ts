@@ -110,4 +110,8 @@ export interface DeploymentStatusPayload {
   type?: string;
   status?: 'SUCCESS' | 'FAILED' | string;
   projectMetadata?: ProjectMetadataOverrides & { url?: string };
+  stage?: string;
+  buildMode?: 'static' | 'build';
+  errorCode?: string;
+  errorMessage?: string;
 }

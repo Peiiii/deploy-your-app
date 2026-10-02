@@ -52,6 +52,7 @@ export interface ContextInput {
     repoUrl: string;
     sourceType: SourceType;
     zipData?: string;
+    zipSourceKey?: string;
     htmlContent?: string;
 }
 
@@ -102,7 +103,7 @@ class DeployProxyService {
         const headers = new Headers();
         source.forEach((value, key) => {
             const lower = key.toLowerCase() as SkippedHeaderPrefix | string;
-            if (lower === 'host' || lower.startsWith('cf-') || lower === 'content-length') {
+            if (lower === 'cookie' || lower === 'authorization' || lower === 'x-gemigo-builder-token' || lower === 'host' || lower.startsWith('cf-') || lower === 'content-length') {
                 return;
             }
             headers.set(key, value);
@@ -160,7 +161,7 @@ class DeployProxyService {
         const targetUrl = this.buildTargetUrl(env, subPath);
         const fetchOptions: RequestInit = {
             method: request.method,
-            headers: this.sanitizeHeaders(request.headers),
+            headers: { ...Object.fromEntries(this.sanitizeHeaders(request.headers)), ...(env.DEPLOY_SERVICE_TOKEN ? { 'x-gemigo-builder-token': env.DEPLOY_SERVICE_TOKEN } : {}) },
         };
 
         if (request.method !== 'GET' && request.method !== 'HEAD') {
@@ -182,6 +183,7 @@ class DeployProxyService {
     ): Promise<Response> => {
         const targetUrl = this.buildTargetUrl(env, subPath);
         const headers = this.createJsonHeaders(request.headers);
+        if (env.DEPLOY_SERVICE_TOKEN) headers.set('x-gemigo-builder-token', env.DEPLOY_SERVICE_TOKEN);
 
         const upstream = await fetch(targetUrl, {
             method: request.method,
@@ -206,10 +208,13 @@ class DeployProxyService {
             throw new Error('Failed to connect to deployment stream');
         }
 
-        const merger = new LogStreamMerger(nodeStream, beforeEvent);
+        const merger = new LogStreamMerger(nodeStream, beforeEvent, () => {
+            if (this.activeMergers.get(deploymentId) === merger) this.cleanupMerger(deploymentId);
+        });
         const outputStream = merger.getOutputStream();
 
         // Store merger for potential log injection
+        if (this.activeMergers.size >= 100) this.activeMergers.delete(this.activeMergers.keys().next().value!);
         this.activeMergers.set(deploymentId, merger);
 
         // Inject any pending logs that were queued before stream was created
@@ -254,9 +259,12 @@ class DeployProxyService {
         } else {
             // Stream doesn't exist yet, queue for later
             if (!this.pendingLogs.has(deploymentId)) {
+                if (this.pendingLogs.size >= 100) this.pendingLogs.delete(this.pendingLogs.keys().next().value!);
                 this.pendingLogs.set(deploymentId, []);
             }
-            this.pendingLogs.get(deploymentId)!.push({ message, level });
+            const logs = this.pendingLogs.get(deploymentId)!;
+            if (logs.length >= 50) logs.shift();
+            logs.push({ message: message.slice(0, 4000), level });
         }
     };
 
@@ -283,7 +291,7 @@ class DeployProxyService {
 
         const upstream = await fetch(targetUrl, {
             method: 'GET',
-            headers: this.sanitizeHeaders(request.headers),
+            headers: { ...Object.fromEntries(this.sanitizeHeaders(request.headers)), ...(env.DEPLOY_SERVICE_TOKEN ? { 'x-gemigo-builder-token': env.DEPLOY_SERVICE_TOKEN } : {}) },
         });
 
         const contentType = upstream.headers.get('content-type') ?? '';
@@ -306,6 +314,7 @@ class DeployProxyService {
     ): Promise<AnalyzeResult> => {
         const targetUrl = this.buildTargetUrl(env, '/analyze');
         const headers = this.createJsonHeaders(request.headers);
+        if (env.DEPLOY_SERVICE_TOKEN) headers.set('x-gemigo-builder-token', env.DEPLOY_SERVICE_TOKEN);
 
         const upstream = await fetch(targetUrl, {
             method: 'POST',
@@ -344,7 +353,7 @@ class DeployProxyService {
 
         const upstream = await fetch(targetUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...(env.DEPLOY_SERVICE_TOKEN ? { 'x-gemigo-builder-token': env.DEPLOY_SERVICE_TOKEN } : {}) },
             body: JSON.stringify(input),
         });
 
@@ -369,7 +378,7 @@ class DeployProxyService {
             `/deployments/${encodeURIComponent(deploymentId)}/stream`,
         );
 
-        const upstream = await fetch(targetUrl, { method: 'GET', signal });
+        const upstream = await fetch(targetUrl, { method: 'GET', signal, headers: env.DEPLOY_SERVICE_TOKEN ? { 'x-gemigo-builder-token': env.DEPLOY_SERVICE_TOKEN } : {} });
         if (!upstream.ok) throw new Error(`Deployment stream returned ${upstream.status}`);
         return upstream.body;
     };

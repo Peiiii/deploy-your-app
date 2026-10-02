@@ -1,182 +1,64 @@
 #!/bin/bash
-
-# Deployment script for Aliyun Lightweight Server
-# This script loads the Docker image and restarts the container
-
-set -e
-
-IMAGE_TAR="$1"
+# Load first, drain jobs, then switch with health-checked rollback.
+set -euo pipefail
+IMAGE_TAR="${1:-}"
 IMAGE_NAME="deploy-your-app-server"
 CONTAINER_NAME="deploy-your-app"
-APP_DIR="/opt/deploy-your-app"
+PREVIOUS_NAME="${CONTAINER_NAME}-previous"
 DATA_DIR="/opt/deploy-your-app/data"
-# Host port (can be overridden via PORT environment variable)
-# Default to 80 for standard HTTP access
 HOST_PORT="${PORT:-80}"
-# Container internal port (always 4173 as defined in Dockerfile)
 CONTAINER_PORT=4173
-
-if [ -z "$IMAGE_TAR" ]; then
-  echo "❌ Error: Docker image tar file path is required"
-  echo "Usage: $0 <path-to-image.tar.gz>"
-  exit 1
-fi
-
-echo "🚀 Starting deployment..."
-echo "📅 Deployment time: $(date)"
-echo "🐳 Docker version: $(docker --version)"
-
-# Create application directory if it doesn't exist
-mkdir -p "$APP_DIR"
-mkdir -p "$DATA_DIR"
-
-# Stop and remove old container if exists
-echo "🛑 Stopping old container..."
-docker stop "$CONTAINER_NAME" 2>/dev/null || true
-docker rm "$CONTAINER_NAME" 2>/dev/null || true
-
-# Load Docker image
-echo "📦 Loading Docker image..."
-echo "   Image file: $IMAGE_TAR"
 if [ ! -f "$IMAGE_TAR" ]; then
-  echo "❌ Error: Image file not found: $IMAGE_TAR"
+  echo 'Deployment image is missing.' >&2
   exit 1
 fi
-
-echo "   File size: $(du -h "$IMAGE_TAR" | cut -f1)"
-LOAD_OUTPUT=$(gunzip -c "$IMAGE_TAR" | docker load 2>&1) || {
-  echo "❌ Failed to load Docker image!"
-  echo "Error output: $LOAD_OUTPUT"
-  exit 1
-}
-echo "$LOAD_OUTPUT"
-
-# Verify image was loaded
-echo ""
-echo "🔍 Verifying image was loaded..."
-if docker images "${IMAGE_NAME}:latest" --format "{{.Repository}}:{{.Tag}}" | grep -q "${IMAGE_NAME}:latest"; then
-  echo "✅ Image loaded successfully: ${IMAGE_NAME}:latest"
-  docker images "${IMAGE_NAME}:latest" --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}"
-else
-  echo "❌ Error: Image ${IMAGE_NAME}:latest not found after loading!"
-  echo "Available images:"
-  docker images
-  exit 1
-fi
-
-# Clean up old image (after loading new one to avoid conflicts)
-echo ""
-echo "🧹 Cleaning up old image versions..."
-docker images "${IMAGE_NAME}" --format "{{.ID}}" | head -n -1 | xargs -r docker rmi 2>/dev/null || true
-
-# Start new container
-echo "🚀 Starting new container..."
-echo "   Host port: ${HOST_PORT}"
-echo "   Container port: ${CONTAINER_PORT}"
-echo "   Image: ${IMAGE_NAME}:latest"
-
-# Check if image exists
-if ! docker images "${IMAGE_NAME}:latest" --format "{{.Repository}}:{{.Tag}}" | grep -q "${IMAGE_NAME}:latest"; then
-  echo "❌ Error: Docker image ${IMAGE_NAME}:latest not found!"
-  echo "Available images:"
-  docker images | grep "${IMAGE_NAME}" || echo "No images found"
-  exit 1
-fi
-
-# Build environment variable arguments for Docker
-ENV_ARGS=(
-  -e NODE_ENV=production
-  -e DATA_DIR=/data
-  -e PORT=${CONTAINER_PORT}
-)
-
-# Append optional configuration env vars when provided
-OPTIONAL_ENV_VARS=(
-  CLOUDFLARE_ACCOUNT_ID
-  CLOUDFLARE_PAGES_API_TOKEN
-  CLOUDFLARE_PAGES_PROJECT_PREFIX
-  DASHSCOPE_API_KEY
-  DEPLOY_TARGET
-  R2_ACCOUNT_ID
-  R2_ACCESS_KEY_ID
-  R2_SECRET_ACCESS_KEY
-  R2_BUCKET_NAME
-  APPS_ROOT_DOMAIN
-  CLOUDFLARE_D1_DATABASE_ID
-  CLOUDFLARE_D1_API_TOKEN
-  STORAGE_TYPE
-)
-
+: "${DEPLOY_SERVICE_TOKEN:?Deployment service token must be configured}"
+mkdir -p "$DATA_DIR"
+gunzip -c "$IMAGE_TAR" | docker load
+IMAGE_ID=$(docker image inspect "${IMAGE_NAME}:latest" --format '{{.Id}}')
+ENV_ARGS=(-e NODE_ENV=production -e DATA_DIR=/data -e "PORT=$CONTAINER_PORT"
+  -e "BUILD_SANDBOX_IMAGE=$IMAGE_ID" -e "BUILD_HOST_DATA_DIR=$DATA_DIR")
+OPTIONAL_ENV_VARS=(DEPLOY_SERVICE_TOKEN CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_PAGES_API_TOKEN
+  CLOUDFLARE_PAGES_PROJECT_PREFIX DASHSCOPE_API_KEY DEPLOY_TARGET R2_ACCOUNT_ID R2_ACCESS_KEY_ID
+  R2_SECRET_ACCESS_KEY R2_BUCKET_NAME APPS_ROOT_DOMAIN CLOUDFLARE_D1_DATABASE_ID
+  CLOUDFLARE_D1_API_TOKEN STORAGE_TYPE)
 for var_name in "${OPTIONAL_ENV_VARS[@]}"; do
-  value="${!var_name}"
-  if [ -n "${value}" ]; then
-    ENV_ARGS+=(-e "${var_name}=${value}")
-  fi
+  value="${!var_name:-}"
+  if [ -n "$value" ]; then ENV_ARGS+=(-e "${var_name}=${value}"); fi
 done
-
-# Try to start container
-CONTAINER_ID=$(docker run -d \
-  --name "$CONTAINER_NAME" \
-  --restart unless-stopped \
-  -p "${HOST_PORT}:${CONTAINER_PORT}" \
-  -v "${DATA_DIR}:/data" \
-  "${ENV_ARGS[@]}" \
-  "${IMAGE_NAME}:latest" 2>&1) || {
-  echo "❌ Failed to start container!"
-  echo "Error: $CONTAINER_ID"
-  exit 1
-}
-
-echo "✅ Container started with ID: ${CONTAINER_ID}"
-
-# Wait for container to start
-echo "⏳ Waiting for container to start..."
-sleep 5
-
-# Check container status
-echo ""
-echo "🔍 Checking container status..."
-if docker ps --filter "name=$CONTAINER_NAME" --format "{{.Names}}" | grep -q "$CONTAINER_NAME"; then
-  echo "✅ Container is running!"
-  echo ""
-  echo "📋 Container status:"
-  docker ps --filter "name=$CONTAINER_NAME" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-  echo ""
-  echo "📝 Recent logs:"
-  docker logs --tail 20 "$CONTAINER_NAME" 2>&1
-  echo ""
-  echo "✅ Deployment completed successfully!"
-  echo ""
-  SERVER_IP=$(hostname -I | awk '{print $1}' 2>/dev/null || echo "localhost")
-  echo "🌐 Service URL: http://${SERVER_IP}:${HOST_PORT}"
-  echo "📊 API endpoint: http://${SERVER_IP}:${HOST_PORT}/api/v1/projects"
-else
-  echo "❌ Container failed to start or does not exist!"
-  echo ""
-  echo "📋 Checking if container exists (stopped):"
-  if docker ps -a --filter "name=$CONTAINER_NAME" --format "{{.Names}}" | grep -q "$CONTAINER_NAME"; then
-    echo "Container exists but is not running:"
-    docker ps -a --filter "name=$CONTAINER_NAME" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-    echo ""
-    echo "📝 Container exit code:"
-    docker inspect "$CONTAINER_NAME" --format='{{.State.ExitCode}}' 2>/dev/null || echo "Unknown"
-    echo ""
-    echo "📝 Container logs (last 50 lines):"
-    docker logs --tail 50 "$CONTAINER_NAME" 2>&1 || echo "Failed to get logs"
-    echo ""
-    echo "🔍 Container state details:"
-    docker inspect "$CONTAINER_NAME" --format='State: {{.State.Status}}, ExitCode: {{.State.ExitCode}}, Error: {{.State.Error}}' 2>/dev/null || echo "Failed to inspect"
-  else
-    echo "Container does not exist at all!"
-    echo ""
-    echo "📋 Checking Docker images:"
-    docker images | grep "$IMAGE_NAME" || echo "No images found for $IMAGE_NAME"
-    echo ""
-    echo "📋 All containers:"
-    docker ps -a
+# New controllers expose pending jobs; legacy controllers have no health endpoint.
+if docker inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
+  for _ in $(seq 1 120); do
+    PENDING=$(docker exec "$CONTAINER_NAME" node -e "fetch('http://localhost:4173/healthz').then(r=>r.ok?r.json():{pending:0}).then(x=>console.log(x.pending||0)).catch(()=>process.exit(1))")
+    if [ "$PENDING" = 0 ]; then break; fi
+    sleep 5
+  done
+  if [ "$PENDING" != 0 ]; then echo 'Active deployments did not drain; leaving the current service running.' >&2; exit 1; fi
+  docker rm -f "$PREVIOUS_NAME" >/dev/null 2>&1 || true
+  docker stop -t 30 "$CONTAINER_NAME"
+  docker rename "$CONTAINER_NAME" "$PREVIOUS_NAME"
+fi
+rollback() {
+  echo 'New service did not become healthy; restoring the previous container.' >&2
+  docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+  if docker inspect "$PREVIOUS_NAME" >/dev/null 2>&1; then
+    docker rename "$PREVIOUS_NAME" "$CONTAINER_NAME"
+    docker start "$CONTAINER_NAME"
   fi
-  echo ""
-  echo "🔍 Checking port availability:"
-  netstat -tulpn 2>/dev/null | grep ":${HOST_PORT} " || ss -tulpn 2>/dev/null | grep ":${HOST_PORT} " || echo "Port ${HOST_PORT} appears to be available"
+}
+if ! docker run -d --name "$CONTAINER_NAME" --restart unless-stopped \
+  -p "${HOST_PORT}:${CONTAINER_PORT}" -v "${DATA_DIR}:/data" \
+  -v /var/run/docker.sock:/var/run/docker.sock "${ENV_ARGS[@]}" "$IMAGE_ID"; then
+  rollback
   exit 1
 fi
+for _ in $(seq 1 30); do
+  if docker exec "$CONTAINER_NAME" node -e "fetch('http://localhost:4173/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))" >/dev/null 2>&1; then
+    docker rm "$PREVIOUS_NAME" >/dev/null 2>&1 || true
+    echo 'Deployment health check passed.'
+    exit 0
+  fi
+  sleep 2
+done
+rollback
+exit 1

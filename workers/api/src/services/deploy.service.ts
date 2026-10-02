@@ -4,7 +4,7 @@ import { projectService } from './project.service';
 import { deployProxyService, type ProjectContext } from './deploy-proxy.service';
 import { aiService } from './ai.service';
 import { deploymentMetadataPolicy } from './deployment-metadata-policy';
-import { extractSseEvents } from '../utils/sse-parser';
+
 import { configService } from './config.service';
 import { slugify } from '../utils/strings';
 import { deploymentRepository } from '../repositories/deployment.repository';
@@ -18,6 +18,7 @@ export interface DeployInput {
     projectId: string;
     sourceType?: SourceType;
     zipData?: string;
+    zipSourceKey?: string;
     htmlContent?: string;
     analysisId?: string;
     flowId?: string;
@@ -41,6 +42,7 @@ class DeployService {
             projectId: projectId.trim(),
             sourceType: this.parseSourceType(raw.sourceType),
             zipData: typeof raw.zipData === 'string' ? raw.zipData : undefined,
+            zipSourceKey: typeof raw.zipSourceKey === 'string' ? raw.zipSourceKey : undefined,
             htmlContent: typeof raw.htmlContent === 'string' ? raw.htmlContent : undefined,
             analysisId: typeof raw.analysisId === 'string' ? raw.analysisId : undefined,
             flowId:
@@ -82,8 +84,8 @@ class DeployService {
 
     /** Validate that required inputs are present for the source type */
     validateSourceInputs(sourceType: SourceType, project: Project, input: DeployInput): void {
-        if (sourceType === SourceType.Zip && !input.zipData?.trim()) {
-            throw new ValidationError('zipData is required for ZIP deployments.');
+        if (sourceType === SourceType.Zip && !input.zipData?.trim() && !input.zipSourceKey) {
+            throw new ValidationError('Upload a ZIP file before deploying.');
         }
         if (sourceType === SourceType.Html) {
             const html = input.htmlContent || project.htmlContent;
@@ -92,9 +94,14 @@ class DeployService {
             }
         }
         if (sourceType === SourceType.GitHub) {
-            if (!project.repoUrl?.trim() || project.repoUrl.startsWith('draft:')) {
-                throw new ValidationError('repoUrl must be configured for GitHub deployments.');
+            const candidate = project.repoUrl?.trim().replace(/^git@github\.com:/, 'https://github.com/');
+            let url: URL;
+            try { url = new URL(/^github\.com\//i.test(candidate) ? `https://${candidate}` : candidate); }
+            catch { throw new ValidationError('Enter a public GitHub repository: https://github.com/owner/repo'); }
+            if (url.hostname !== 'github.com' || !['https:', 'http:'].includes(url.protocol) || !/^\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\/tree\/[^?#]+)?\/?$/.test(url.pathname) || url.username || url.password) {
+                throw new ValidationError('Enter a public GitHub repository: https://github.com/owner/repo');
             }
+            project.repoUrl = `https://github.com${url.pathname}`;
         }
     }
 
@@ -171,6 +178,7 @@ class DeployService {
                 repoUrl: project.repoUrl,
                 sourceType,
                 zipData: input.zipData,
+                zipSourceKey: input.zipSourceKey,
                 htmlContent: input.htmlContent || project.htmlContent,
             });
 
@@ -345,48 +353,49 @@ class DeployService {
         let settled = false;
         return async (payload: DeploymentStatusPayload): Promise<void> => {
             if (settled || !attempt || attempt.status !== 'accepted' || payload.type !== 'status' || !['SUCCESS', 'FAILED'].includes(payload.status ?? '')) return;
-            if (!await deploymentRepository.isLatest(db, attempt)) return;
+            if (!await deploymentRepository.isLatest(db, attempt)) {
+                await deploymentRepository.finishAttempt(db, attempt.id, payload.status === 'SUCCESS' ? 'succeeded' : 'failed', new Date().toISOString(), Date.now() - Date.parse(attempt.started_at), payload.errorCode, payload);
+                settled = true;
+                return;
+            }
             await this.handleStatusPayload(env, db, attempt.project_id, attempt.id,
                 Date.parse(attempt.started_at), payload);
             settled = true;
         };
     };
 
-    /** Recover deployments even if the user closed the SSE connection. */
+    /** Recover deployments independently of an open browser or SSE connection. */
+    reconcileDeployment = async (env: ApiWorkerEnv, db: D1Database, deploymentId: string): Promise<DeploymentStatusPayload> => {
+        const attempt = await deploymentRepository.findByProviderId(db, deploymentId);
+        if (!attempt) throw new ValidationError('Deployment not found.');
+        if (attempt.status === 'succeeded' && attempt.result_url) return {
+            type: 'status', status: 'SUCCESS', stage: attempt.stage, buildMode: attempt.build_mode as 'static' | 'build', projectMetadata: { url: attempt.result_url },
+        };
+        if (attempt.status === 'failed' || attempt.status === 'rejected') return {
+            type: 'status', status: 'FAILED', stage: attempt.stage, buildMode: attempt.build_mode as 'static' | 'build', errorCode: attempt.error_code, errorMessage: attempt.error_message,
+        };
+        const response = await fetch(`${configService.getDeployServiceBaseUrl(env)}/deployments/${encodeURIComponent(deploymentId)}`, { headers: env.DEPLOY_SERVICE_TOKEN ? { 'x-gemigo-builder-token': env.DEPLOY_SERVICE_TOKEN } : {}, signal: AbortSignal.timeout(5000) });
+        let payload: DeploymentStatusPayload;
+        if (response.status === 404) {
+            payload = { type: 'status', status: 'FAILED', errorCode: 'result_unavailable', errorMessage: 'The deployment result expired or was lost during a service restart. Please deploy again.', stage: 'recovery' };
+        } else {
+            if (!response.ok) throw new Error(`Deployment status temporarily unavailable (${response.status}).`);
+            payload = await response.json() as DeploymentStatusPayload;
+        }
+        const handle = await this.statusHandler(env, db, deploymentId);
+        await handle(payload);
+        return payload;
+    };
+
     reconcilePending = async (env: ApiWorkerEnv, db: D1Database): Promise<void> => {
         for (const attempt of await deploymentRepository.listPending(db)) {
-            const abort = new AbortController();
-            const timeout = setTimeout(() => abort.abort(), 5000);
-            let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
-            try {
-                const stream = await deployProxyService.connectStream(env, attempt.provider_deployment_id, abort.signal);
-                if (!stream) continue;
-                reader = stream.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
-                let receivedStatus = false;
-                const handle = await this.statusHandler(env, db, attempt.provider_deployment_id);
-                while (!receivedStatus) {
-                    const {done, value} = await reader.read();
-                    if (done) break;
-                    buffer += decoder.decode(value, {stream: true});
-                    const parsed = extractSseEvents(buffer);
-                    buffer = parsed.rest;
-                    for (const event of parsed.events) {
-                        let payload: DeploymentStatusPayload;
-                        try { payload = JSON.parse(event); } catch { continue; }
-                        if (payload.type === 'status') {
-                            await handle(payload);
-                            receivedStatus = true;
-                            break;
-                        }
-                    }
+            try { await this.reconcileDeployment(env, db, attempt.provider_deployment_id); }
+            catch {
+                if (Date.now() - Date.parse(attempt.started_at) > 86400000) {
+                    const handle = await this.statusHandler(env, db, attempt.provider_deployment_id);
+                    await handle({ type: 'status', status: 'FAILED', errorCode: 'result_unavailable', errorMessage: 'Deployment result could not be recovered. Please deploy again.', stage: 'recovery' });
                 }
-            } catch (error) {
-                console.error('[DeployService] Reconciliation will retry', attempt.id, error);
-            } finally {
-                clearTimeout(timeout);
-                await reader?.cancel().catch(() => {});
+                console.warn('[DeployService] Status recovery will retry');
             }
         }
     };
@@ -432,13 +441,14 @@ class DeployService {
                 status: 'Live',
                 lastDeployed: new Date().toISOString(),
                 ...(meta.url && { url: meta.url }),
-            });
+            }, attemptId);
             await deploymentRepository.finishAttempt(
                 db,
                 attemptId,
                 'succeeded',
                 new Date().toISOString(),
                 Date.now() - startedAtMs,
+                undefined, { ...payload, projectMetadata: meta },
             );
             return true;
         }
@@ -446,14 +456,15 @@ class DeployService {
         if (payload.status === 'FAILED') {
             await projectService.updateProjectDeployment(db, projectId, {
                 status: 'Failed',
-            });
+            }, attemptId);
             await deploymentRepository.finishAttempt(
                 db,
                 attemptId,
                 'failed',
                 new Date().toISOString(),
                 Date.now() - startedAtMs,
-                'builder_failed',
+                payload.errorCode ?? 'builder_failed',
+                payload,
             );
             return true;
         }

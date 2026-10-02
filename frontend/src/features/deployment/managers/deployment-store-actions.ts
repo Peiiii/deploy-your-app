@@ -1,3 +1,4 @@
+import i18n from '@/i18n/config';
 import { track } from '@/analytics/collector';
 import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
 import { SourceType } from '@/types';
@@ -17,7 +18,8 @@ export class DeploymentStoreActions {
   };
 
   handleFileDrop = (file: File) => {
-    if (file.name.endsWith('.zip')) {
+    if (file.size > 75 * 1024 * 1024) { alert(i18n.t('deployment.zipTooLarge')); return; }
+    if (file.name.toLowerCase().endsWith('.zip')) {
       const actions = useDeploymentStore.getState().actions;
       actions.setZipFile(file);
       const currentName = useDeploymentStore.getState().projectName;

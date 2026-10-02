@@ -1,5 +1,6 @@
 import type { ApiWorkerEnv } from '../types/env';
-import { readJson } from '../utils/http';
+import { deploymentSourceService } from '../services/deployment-source.service';
+import { readJson, jsonResponse } from '../utils/http';
 import { configService } from '../services/config.service';
 import { NotFoundError, UnauthorizedError, ValidationError } from '../utils/error-handler';
 import { getSessionIdFromRequest } from '../utils/auth';
@@ -40,6 +41,19 @@ class DeployController {
     }
     if (project.ownerId !== user.id) {
       throw new UnauthorizedError('Only the project owner can deploy.');
+    }
+
+    if (input.flowId) {
+      const existing = await deploymentRepository.findByFlow(db, input.flowId);
+      if (existing) {
+        if (existing.project_id !== project.id || existing.owner_id !== user.id) throw new UnauthorizedError('Deployment flow belongs to another project.');
+        if (existing.provider_deployment_id) return jsonResponse({ deploymentId: existing.provider_deployment_id });
+        return jsonResponse({ error: 'This deployment request is already recorded. Please start a new attempt.' }, 409);
+      }
+    }
+    const uploadedBytes = input.zipSourceKey ? await deploymentSourceService.validate(env, project.id, input.zipSourceKey) : undefined;
+    if (input.zipData && input.zipData.length > 9 * 1024 * 1024) {
+      throw new ValidationError('For ZIP files larger than 6.75 MB, use the website file upload or the latest GemiGo CLI.');
     }
 
     // 4. Resolve source type and validate inputs
@@ -87,22 +101,28 @@ class DeployController {
       sourceType,
       clientChannel: input.clientChannel,
       fileExtension: this.getFileExtension(input.sourceFilename),
-      payloadBytes: input.zipData
+      payloadBytes: uploadedBytes ?? (input.zipData
         ? Math.floor((input.zipData.length * 3) / 4)
         : htmlContent
           ? new TextEncoder().encode(htmlContent).byteLength
-          : undefined,
+          : undefined),
       startedAt,
     });
     await projectService.updateProject(db, project.id, { sourceType });
     await projectService.updateProjectDeployment(db, project.id, {
       status: 'Building',
       sourceType,
-    });
+    }, attemptId);
 
-    const forwardBody = input.zipData ? { ...payload, zipData: input.zipData } : payload;
     let response: Response;
     try {
+      let zipSourceKey = input.zipSourceKey;
+      if (input.zipData && env.ASSETS) {
+        const bytes = Uint8Array.from(atob(input.zipData), character => character.charCodeAt(0));
+        zipSourceKey = `deployment-sources/${new Date().toISOString().slice(0, 10)}/${project.id}/${crypto.randomUUID()}.zip`;
+        await env.ASSETS.put(zipSourceKey, bytes, { customMetadata: { projectId: project.id }, httpMetadata: { contentType: 'application/zip' } });
+      }
+      const forwardBody = zipSourceKey ? { ...payload, zipSourceKey } : input.zipData ? { ...payload, zipData: input.zipData } : payload;
       response = await deployProxyService.proxyJson(env, request, '/deploy', forwardBody);
     } catch (error) {
       await deploymentRepository.finishAttempt(
@@ -115,7 +135,7 @@ class DeployController {
       );
       await projectService.updateProjectDeployment(db, project.id, {
         status: 'Failed',
-      });
+      }, attemptId);
       throw error;
     }
 
@@ -151,10 +171,30 @@ class DeployController {
       );
       await projectService.updateProjectDeployment(db, project.id, {
         status: 'Failed',
-      });
+      }, attemptId);
     }
 
     return response;
+  }
+
+  async uploadSource(request: Request, env: ApiWorkerEnv, db: D1Database, projectId: string): Promise<Response> {
+    const user = await this.requireAuth(request, db);
+    const project = await projectService.getProjectById(db, projectId);
+    if (!project || project.ownerId !== user.id) throw new UnauthorizedError('Only the project owner can upload deployment sources.');
+    return jsonResponse(await deploymentSourceService.upload(env, projectId, request));
+  }
+
+  async reconcile(request: Request, env: ApiWorkerEnv, db: D1Database, id: string): Promise<Response> {
+    await this.requireDeploymentOwner(request, db, id);
+    return jsonResponse(await deployService.reconcileDeployment(env, db, id));
+  }
+
+  private async requireDeploymentOwner(request: Request, db: D1Database, id: string): Promise<void> {
+    const user = await this.requireAuth(request, db);
+    const attempt = await deploymentRepository.findByProviderId(db, id);
+    if (!attempt) throw new NotFoundError('Deployment not found.');
+    const project = await projectService.getProjectById(db, attempt.project_id);
+    if (!project || project.ownerId !== user.id) throw new UnauthorizedError('Only the project owner can read deployment results.');
   }
 
   private getFileExtension = (filename?: string): string | undefined => {
@@ -181,6 +221,7 @@ class DeployController {
     id: string,
     db: D1Database,
   ): Promise<Response> {
+    await this.requireDeploymentOwner(request, db, id);
     // Use merged stream instead of simple proxy
     // This allows Worker to inject its own logs
     const handle = await deployService.statusHandler(env, db, id);

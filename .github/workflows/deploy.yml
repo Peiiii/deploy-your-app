@@ -9,8 +9,14 @@ on:
       - Dockerfile
       - server/**
       - scripts/deploy.sh
+      - scripts/test-deployment-sandbox.mjs
       - .github/workflows/deploy.yml
   workflow_dispatch:
+    inputs:
+      validate_only:
+        description: Build and verify isolation without deploying
+        type: boolean
+        default: false
 
 jobs:
   deploy:
@@ -28,11 +34,16 @@ jobs:
         run: |
           docker build -t deploy-your-app-server:latest .
 
+      - name: Verify isolated build and restart recovery
+        run: node scripts/test-deployment-sandbox.mjs
+
       - name: Save Docker image
+        if: github.event_name != 'workflow_dispatch' || !inputs.validate_only
         run: |
           docker save deploy-your-app-server:latest | gzip > deploy-image.tar.gz
 
       - name: Upload deployment files
+        if: github.event_name != 'workflow_dispatch' || !inputs.validate_only
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.ALIYUN_HOST }}
@@ -44,13 +55,14 @@ jobs:
           strip_components: 0
 
       - name: Execute deployment script
+        if: github.event_name != 'workflow_dispatch' || !inputs.validate_only
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.ALIYUN_HOST }}
           username: ${{ secrets.ALIYUN_USER }}
           key: ${{ secrets.ALIYUN_SSH_KEY }}
           port: ${{ secrets.ALIYUN_PORT || 22 }}
-          envs: CLOUDFLARE_ACCOUNT_ID,CLOUDFLARE_API_TOKEN,DASHSCOPE_API_KEY,DEPLOY_TARGET,CLOUDFLARE_PAGES_PROJECT_PREFIX,R2_ACCOUNT_ID,R2_ACCESS_KEY_ID,R2_SECRET_ACCESS_KEY,R2_BUCKET_NAME,APPS_ROOT_DOMAIN,CLOUDFLARE_D1_DATABASE_ID,CLOUDFLARE_D1_API_TOKEN,STORAGE_TYPE
+          envs: DEPLOY_SERVICE_TOKEN,CLOUDFLARE_ACCOUNT_ID,CLOUDFLARE_API_TOKEN,DASHSCOPE_API_KEY,DEPLOY_TARGET,CLOUDFLARE_PAGES_PROJECT_PREFIX,R2_ACCOUNT_ID,R2_ACCESS_KEY_ID,R2_SECRET_ACCESS_KEY,R2_BUCKET_NAME,APPS_ROOT_DOMAIN,CLOUDFLARE_D1_DATABASE_ID,CLOUDFLARE_D1_API_TOKEN,STORAGE_TYPE
           script: |
             set -e
             echo "🔍 Pre-deployment checks..."
@@ -72,6 +84,7 @@ jobs:
             # Cleanup
             rm -f /tmp/deploy-your-app/deploy-image.tar.gz
         env:
+          DEPLOY_SERVICE_TOKEN: ${{ secrets.DEPLOY_SERVICE_TOKEN }}
           # Sensitive information - use Secrets
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -90,6 +103,7 @@ jobs:
           STORAGE_TYPE: ${{ vars.STORAGE_TYPE }}
 
       - name: Verify deployment
+        if: github.event_name != 'workflow_dispatch' || !inputs.validate_only
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.ALIYUN_HOST }}

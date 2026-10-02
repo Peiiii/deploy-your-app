@@ -58,6 +58,11 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
       deployController.streamDeployment(req, env, params.id, requireDb()),
   });
 
+  router.add({ path: '/api/v1/projects/:id/deployment-source', method: 'PUT',
+    handler: (req, params) => deployController.uploadSource(req, env, requireDb(), params.id) });
+  router.add({ path: '/api/v1/deployments/:id/reconcile', method: 'POST',
+    handler: (req, params) => deployController.reconcile(req, env, requireDb(), params.id) });
+
   // --------------
   // Auth routes
   // --------------

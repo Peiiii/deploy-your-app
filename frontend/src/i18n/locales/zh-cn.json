@@ -222,7 +222,7 @@
     "chooseDeploymentMethod": "选择部署方式",
     "githubRepository": "GitHub 仓库",
     "connectGitHubRepo": "连接 GitHub 仓库",
-    "connectRepoDescription": "从 GitHub 连接仓库",
+    "connectRepoDescription": "支持公开 GitHub 仓库；私有仓库请下载 ZIP 后上传。",
     "uploadArchive": "上传压缩包",
     "uploadZipFile": "上传 ZIP 文件",
     "uploadZipDescription": "从您的计算机上传 ZIP 文件",
@@ -238,7 +238,7 @@
     "finalizingDeployment": "正在完成部署...请稍候，我们正在准备实时预览和元数据。",
     "insertSampleTemplate": "插入示例模板",
     "importHtmlFile": "导入 .html 文件",
-    "maximumFileSize": "最大文件大小：100MB",
+    "maximumFileSize": "ZIP 最大 75 MB。请排除 node_modules 和 .git；上传构建好的 dist 文件夹即可直接托管。",
     "repoDuplicateTitle": "仓库已部署",
     "repoDuplicateMessage": "检测到你已经有一个项目使用这个仓库（“{{name}}”）。你可以重新部署这个项目以保持访问地址不变，或者创建一个新的项目并使用新的访问地址。",
     "repoDuplicateRedeploy": "重新部署已有项目",
@@ -264,7 +264,21 @@
     "deployingStatus": "部署中...",
     "buildingStatus": "构建中...",
     "logEntries": "条记录",
-    "signInRequired": "部署应用前请先登录。"
+    "signInRequired": "部署应用前请先登录。",
+    "zipTooLarge": "ZIP 不能超过 75 MB。请移除 node_modules 和 .git，或仅上传构建好的 dist 文件夹。",
+    "uploadingZip": "正在上传 ZIP…",
+    "zipUploaded": "ZIP 已上传，正在开始部署…",
+    "requestFailed": "部署请求失败（{{status}}），请重试。",
+    "recoveringConnection": "日志连接已中断，部署仍会继续。正在重新查询结果…",
+    "resultPending": "部署结果还在确认中，请稍后刷新仪表盘查看。这不代表构建失败。",
+    "errors": {
+      "repository_unavailable": "GitHub 仓库不存在或为私有仓库。请使用公开仓库，或下载 ZIP 后上传。",
+      "repository_download_failed": "GitHub 暂时无法下载。请稍后重试，或改用 ZIP 上传。",
+      "server_restarted": "部署服务在完成前重启了，请重新部署。",
+      "missing_entry": "发布目录中没有 index.html。请上传构建好的 dist/build/out 文件夹，或提供可用的构建脚本。",
+      "build_timeout": "构建用时过长，请减少依赖，或上传已构建好的静态文件。",
+      "result_unavailable": "无法恢复本次部署结果，请重新部署。"
+    }
   },
   "dashboard": {
     "signInToViewProjects": "登录以查看您的项目",

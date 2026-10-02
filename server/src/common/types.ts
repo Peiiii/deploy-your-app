@@ -55,6 +55,12 @@ export interface DeploymentRecord {
   // Optional base64-encoded ZIP archive used when sourceType === 'zip'
   // and the client uploads a ZIP file instead of providing a remote URL.
   zipData?: string;
+  zipSourceKey?: string;
+  stage?: string;
+  buildMode?: 'static' | 'build';
+  errorCode?: string;
+  errorMessage?: string;
+  projectMetadata?: Record<string, unknown>;
 }
 
 export interface AnalysisSession {

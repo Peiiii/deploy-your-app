@@ -226,7 +226,7 @@
     "chooseDeploymentMethod": "Choose your deployment method",
     "githubRepository": "GitHub Repository",
     "connectGitHubRepo": "Connect your GitHub repo and deploy automatically",
-    "connectRepoDescription": "Connect a repository from GitHub",
+    "connectRepoDescription": "Use a public GitHub repository. Private repositories can be uploaded as ZIP.",
     "uploadArchive": "Upload Archive",
     "uploadZipFile": "Upload a ZIP file and deploy instantly",
     "uploadZipDescription": "Upload a ZIP file from your computer",
@@ -242,7 +242,7 @@
     "finalizingDeployment": "Finalizing your deployment... please wait while we prepare the live preview and metadata.",
     "insertSampleTemplate": "Insert sample template",
     "importHtmlFile": "Import .html file",
-    "maximumFileSize": "Maximum file size: 100MB",
+    "maximumFileSize": "ZIP up to 75 MB. Exclude node_modules and .git. Upload a built dist folder for static hosting.",
     "repoDuplicateTitle": "Repository already deployed",
     "repoDuplicateMessage": "We found an existing project for this repository (\"{{name}}\"). You can redeploy that project to keep the same URL, or create a new project with a different URL.",
     "repoDuplicateRedeploy": "Redeploy existing project",
@@ -268,7 +268,21 @@
     "deployingStatus": "Deploying...",
     "buildingStatus": "Building...",
     "logEntries": "entries",
-    "signInRequired": "Please sign in to deploy applications."
+    "signInRequired": "Please sign in to deploy applications.",
+    "zipTooLarge": "ZIP files must be 75 MB or smaller. Remove node_modules and .git, or upload only the built dist folder.",
+    "uploadingZip": "Uploading ZIP…",
+    "zipUploaded": "ZIP uploaded. Starting deployment…",
+    "requestFailed": "Deployment request failed ({{status}}). Please try again.",
+    "recoveringConnection": "The log connection was interrupted. Your deployment is continuing; reconnecting to check the result…",
+    "resultPending": "The deployment result is still being confirmed. Refresh your dashboard later; this does not mean the build failed.",
+    "errors": {
+      "repository_unavailable": "The GitHub repository was not found or is private. Use a public repository or upload a ZIP.",
+      "repository_download_failed": "GitHub downloads are temporarily unavailable. Try again later or upload a ZIP.",
+      "server_restarted": "The deployment service restarted before completion. Please deploy again.",
+      "missing_entry": "No index.html found. Upload the built dist/build/out folder or provide a working build script.",
+      "build_timeout": "The build took too long. Reduce dependencies or upload the built static folder.",
+      "result_unavailable": "The deployment result could not be recovered. Please deploy again."
+    }
   },
   "dashboard": {
     "signInToViewProjects": "Sign in to view your projects",

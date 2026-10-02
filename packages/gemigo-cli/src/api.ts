@@ -132,7 +132,7 @@ export class GemigoApiClient {
       headers: this.buildHeaders({
         'Content-Type': 'application/json',
       }),
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, clientChannel: 'cli' }),
     });
 
     if (!response.ok) {
@@ -143,17 +143,27 @@ export class GemigoApiClient {
     return parseJsonResponse<ProjectResponse>(response);
   }
 
+  async uploadDeploymentSource(projectId: string, bytes: Buffer): Promise<{ zipSourceKey: string }> {
+    const response = await fetch(`${this.origin}/api/v1/projects/${encodeURIComponent(projectId)}/deployment-source`, {
+      method: 'PUT', headers: this.buildHeaders({ 'Content-Type': 'application/zip' }),
+      body: new Blob([new Uint8Array(bytes)]),
+    });
+    const data = await parseJsonResponse<{ zipSourceKey?: string; error?: string }>(response);
+    if (!response.ok || !data.zipSourceKey) throw new Error(data.error ?? 'ZIP upload failed. Please try again.');
+    return { zipSourceKey: data.zipSourceKey };
+  }
+
   async startDeployment(input: {
     id: string;
     sourceType: 'zip';
-    zipData: string;
+    zipSourceKey: string;
   }): Promise<{ deploymentId: string }> {
     const response = await fetch(`${this.origin}/api/v1/deploy`, {
       method: 'POST',
       headers: this.buildHeaders({
         'Content-Type': 'application/json',
       }),
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, clientChannel: 'cli' }),
     });
 
     if (!response.ok) {
@@ -178,42 +188,50 @@ export class GemigoApiClient {
       onStatus?: (event: StreamStatusEvent) => void;
     },
   ): Promise<StreamStatusEvent> {
-    const response = await fetch(
-      `${this.origin}/api/v1/deployments/${encodeURIComponent(deploymentId)}/stream`,
-      {
-        headers: this.buildHeaders(),
-      },
-    );
-
-    if (!response.ok || !response.body) {
-      throw new Error('Failed to open deployment log stream.');
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const { events, rest } = extractSseEvents(buffer);
-      buffer = rest;
-
-      for (const rawEvent of events) {
-        const parsed = JSON.parse(rawEvent) as DeploymentStreamEvent;
-        if (parsed.type === 'log') {
-          handlers?.onLog?.(parsed);
-        } else if (parsed.type === 'status') {
-          handlers?.onStatus?.(parsed);
-          if (parsed.status === 'SUCCESS' || parsed.status === 'FAILED') {
-            return parsed;
+    const deadline = Date.now() + 10 * 60 * 1000;
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+    try {
+      const response = await fetch(`${this.origin}/api/v1/deployments/${encodeURIComponent(deploymentId)}/stream`, {
+        headers: this.buildHeaders(), signal: AbortSignal.timeout(10 * 60 * 1000),
+      });
+      if (!response.ok || !response.body) throw new Error('Log stream is unavailable.');
+      reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parsed = extractSseEvents(buffer);
+        buffer = parsed.rest;
+        for (const rawEvent of parsed.events) {
+          const event = JSON.parse(rawEvent) as DeploymentStreamEvent;
+          if (event.type === 'log') handlers?.onLog?.(event);
+          else if (event.type === 'status') {
+            handlers?.onStatus?.(event);
+            if (event.status === 'SUCCESS' || event.status === 'FAILED') return event;
           }
         }
       }
+    } catch {
+      handlers?.onLog?.({ type: 'log', level: 'warning', message: 'Log connection interrupted. Deployment continues; checking its result.' });
+    } finally { await reader?.cancel().catch(() => {}); }
+    while (Date.now() < deadline) {
+      let sessionExpired = false;
+      try {
+        const response = await fetch(`${this.origin}/api/v1/deployments/${encodeURIComponent(deploymentId)}/reconcile`, {
+          method: 'POST', headers: this.buildHeaders(), signal: AbortSignal.timeout(10000),
+        });
+        if (response.status === 401 || response.status === 403) sessionExpired = true;
+        if (response.ok) {
+          const status = await parseJsonResponse<StreamStatusEvent>(response);
+          handlers?.onStatus?.(status);
+          if (status.status === 'SUCCESS' || status.status === 'FAILED') return status;
+        }
+      } catch { /* Recover transient network failures without changing deployment state. */ }
+      if (sessionExpired) throw new Error('Session expired. Sign in again to check the deployment.');
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
-
-    throw new Error('Deployment stream closed before completion.');
+    throw new Error('Deployment result is still pending. Check your dashboard; this does not mean the build failed.');
   }
 }

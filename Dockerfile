@@ -4,7 +4,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Enable corepack so we can use pnpm
-RUN corepack enable
+RUN apk add --no-cache docker-cli && corepack enable
 
 # Copy root workspace manifests (needed for pnpm workspace)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./

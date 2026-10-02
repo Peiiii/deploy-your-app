@@ -58,7 +58,13 @@ export async function validateStaticDirectory(
 }
 
 export async function zipDirectoryToBase64(dir: string): Promise<string> {
+  return (await zipDirectory(dir)).toString('base64');
+}
+
+export async function zipDirectory(dir: string): Promise<Buffer> {
   const zip = new AdmZip();
   zip.addLocalFolder(dir);
-  return zip.toBuffer().toString('base64');
+  const buffer = zip.toBuffer();
+  if (buffer.byteLength > 75 * 1024 * 1024) throw new Error('ZIP exceeds 75 MB. Upload a smaller static directory.');
+  return buffer;
 }

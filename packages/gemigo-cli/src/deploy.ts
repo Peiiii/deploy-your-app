@@ -2,7 +2,7 @@ import * as path from 'node:path';
 import { GemigoApiClient } from './api.js';
 import { loadManifest, resolveManifestPath } from './config.js';
 import { loadSession } from './session-store.js';
-import { validateStaticDirectory, zipDirectoryToBase64 } from './static-site.js';
+import { validateStaticDirectory, zipDirectory } from './static-site.js';
 import type { CreateProjectPayload, GemigoManifest } from './types.js';
 
 function slugify(value: string): string {
@@ -75,16 +75,17 @@ export async function deployStaticApp(options: {
     `Validated static directory: ${deploymentInput.dir} (${deploymentInput.fileCount} files)`,
   );
 
-  const zipData = await zipDirectoryToBase64(deploymentInput.dir);
+  const zipBuffer = await zipDirectory(deploymentInput.dir);
   const project = await client.createProject(
     buildCreateProjectPayload(deploymentInput.manifest),
   );
   onOutput?.(`Created project: ${project.name} (${project.id})`);
 
+  const uploaded = await client.uploadDeploymentSource(project.id, zipBuffer);
   const deployment = await client.startDeployment({
     id: project.id,
     sourceType: 'zip',
-    zipData,
+    zipSourceKey: uploaded.zipSourceKey,
   });
   onOutput?.(`Started deployment: ${deployment.deploymentId}`);
 

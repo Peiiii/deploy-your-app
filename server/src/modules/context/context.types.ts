@@ -16,6 +16,7 @@ export const MAX_PACKAGE_DEPS = 30;
 export interface ContextInput {
     repoUrl: string;
     sourceType: SourceType;
+    zipSourceKey?: string;
     zipData?: string;       // base64 encoded
     htmlContent?: string;   // inline HTML
 }

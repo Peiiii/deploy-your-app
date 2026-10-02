@@ -14,6 +14,7 @@ import {
   appendLog,
   updateStatus,
   broadcastEvent,
+  setDeploymentStage,
 } from './pipeline/deploymentEvents.js';
 import { materializeSourceForDeployment } from './pipeline/sourceMaterialization.js';
 import {
@@ -34,6 +35,7 @@ export {
   appendLog,
   updateStatus,
   broadcastEvent,
+  setDeploymentStage,
   copyDir,
   runCommand,
   findAIClientFile,
@@ -96,7 +98,21 @@ function detectPackageManager(workDir: string): PackageManagerInfo {
 }
 
 export class DeploymentService {
-  async runDeployment(id: string): Promise<void> {
+  private pending = 0;
+  private tail: Promise<void> = Promise.resolve();
+
+  pendingCount(): number { return this.pending; }
+
+  canAccept(): boolean { return this.pending < 5; }
+
+  runDeployment(id: string): Promise<void> {
+    this.pending++;
+    const run = this.tail.then(() => this.executeDeployment(id));
+    this.tail = run.catch(() => {});
+    return run.finally(() => { this.pending--; });
+  }
+
+  private async executeDeployment(id: string): Promise<void> {
     const deployment = deployments.get(id);
     if (!deployment) return;
 
@@ -112,19 +128,17 @@ export class DeploymentService {
     project.tags = project.tags ?? [];
 
     // Reuse an existing prepared repo when analysis has been run, otherwise create a fresh workdir.
+    const isFromAnalysis = Boolean(deployment.workDir);
     let workDir = deployment.workDir;
     if (!workDir) {
       workDir = path.join(CONFIG.paths.buildsRoot, id);
       deployment.workDir = workDir;
     }
 
-    const isFromAnalysis =
-      Boolean(analysisId) &&
-      analysisSessions.has(analysisId!) &&
-      deployment.workDir === analysisSessions.get(analysisId!)!.workDir;
     let metadataForClient: ResolvedProjectMetadata | null = null;
 
     try {
+      setDeploymentStage(id, 'source');
       updateStatus(id, 'BUILDING');
       appendLog(id, `Starting deployment for "${project.name}"`, 'info');
       if (analysisId) {
@@ -199,15 +213,16 @@ export class DeploymentService {
       await applyFixesForDeployment(id, workDir);
 
       const hasPackageJson = fs.existsSync(path.join(workDir, 'package.json'));
-      const treatAsStatic =
-        project.sourceType === SourceType.Html || !hasPackageJson;
+      const packageJson = hasPackageJson ? JSON.parse(fs.readFileSync(path.join(workDir, 'package.json'), 'utf8')) : null;
+      const treatAsStatic = project.sourceType === SourceType.Html || !hasPackageJson || !packageJson?.scripts?.build;
+      setDeploymentStage(id, treatAsStatic ? 'validate' : 'install', treatAsStatic ? 'static' : 'build');
 
       let distPath: string | null = null;
 
       if (treatAsStatic) {
         appendLog(
           id,
-          'No package.json detected or HTML source provided – skipping install/build and treating source as static assets.',
+          'Using ready static assets; no install/build is needed.',
           'info',
         );
         distPath = workDir;
@@ -231,6 +246,7 @@ export class DeploymentService {
             env: installEnv,
           });
 
+          setDeploymentStage(id, 'build');
           appendLog(id, 'Building project (pnpm run build)', 'info');
           await runCommand(id, 'pnpm', ['run', 'build'], { cwd: workDir });
         } else if (packageManager.name === 'yarn') {
@@ -239,6 +255,7 @@ export class DeploymentService {
             cwd: workDir,
           });
 
+          setDeploymentStage(id, 'build');
           appendLog(id, 'Building project (yarn build)', 'info');
           await runCommand(id, 'yarn', ['build'], { cwd: workDir });
         } else if (packageManager.name === 'bun') {
@@ -247,6 +264,7 @@ export class DeploymentService {
             cwd: workDir,
           });
 
+          setDeploymentStage(id, 'build');
           appendLog(id, 'Building project (bun run build)', 'info');
           await runCommand(id, 'bun', ['run', 'build'], { cwd: workDir });
         } else {
@@ -256,6 +274,7 @@ export class DeploymentService {
             env: installEnv,
           });
 
+          setDeploymentStage(id, 'build');
           appendLog(id, 'Building project (npm run build)', 'info');
           await runCommand(id, 'npm', ['run', 'build'], { cwd: workDir });
         }
@@ -277,10 +296,32 @@ export class DeploymentService {
         );
       }
 
+      setDeploymentStage(id, 'validate');
+      const outputRelative = path.relative(fs.realpathSync(workDir), fs.realpathSync(distPath));
+      if (outputRelative.startsWith('..') || path.isAbsolute(outputRelative)) throw new Error('Build output must remain inside the project directory.');
+      if (!fs.existsSync(path.join(distPath, 'index.html')) || !fs.lstatSync(path.join(distPath, 'index.html')).isFile()) {
+        throw Object.assign(new Error('No index.html found in the published directory. Upload the built dist/build/out folder, or provide a build script that produces index.html.'), { code: 'missing_entry' });
+      }
+      if (treatAsStatic && /<script\b[^>]*\bsrc\s*=\s*["'][^"']*\.(?:tsx?|jsx)(?:[?#][^"']*)?["']/i.test(fs.readFileSync(path.join(distPath, 'index.html'), 'utf8'))) {
+        throw Object.assign(new Error('This is source code that requires a build. Add a package.json build script, or upload the built dist/build/out directory.'), { code: 'missing_build_script' });
+      }
+      let outputBytes = 0, outputFiles = 0;
+      const checkOutput = async (directory: string): Promise<void> => {
+        for (const entry of await fs.promises.readdir(directory, { withFileTypes: true })) {
+          const file = path.join(directory, entry.name);
+          if (entry.isDirectory()) await checkOutput(file);
+          else if (entry.isFile()) {
+            outputFiles++; outputBytes += (await fs.promises.stat(file)).size;
+            if (outputFiles > 10000 || outputBytes > 500 * 1024 * 1024) throw Object.assign(new Error('Published assets exceed 500 MB or 10,000 files. Remove unused assets and dependencies.'), { code: 'archive_too_large' });
+          }
+        }
+      };
+      await checkOutput(distPath);
       await applyFixesForDeployment(id, workDir, distPath);
 
       const target = project.deployTarget || DEPLOY_TARGET;
 
+      setDeploymentStage(id, 'publish');
       updateStatus(id, 'DEPLOYING');
       appendLog(id, `Using deploy target: ${target}`, 'info');
 
@@ -342,7 +383,7 @@ export class DeploymentService {
             tags: project.tags ?? [],
           };
 
-      updateStatus(id, 'SUCCESS', {
+      updateStatus(id, 'SUCCESS', { stage: 'complete', buildMode: deployment.buildMode,
         projectMetadata: {
           ...successMetadata,
           url: finalUrl,
@@ -356,12 +397,15 @@ export class DeploymentService {
         `Deployment failed: ${errorMessage}`,
         'error',
       );
-      updateStatus(id, 'FAILED', { errorMessage });
+      const errorCode = (err as { code?: string })?.code ?? `${deployment.stage ?? 'source'}_failed`;
+      updateStatus(id, 'FAILED', { errorMessage, errorCode, stage: deployment.stage, buildMode: deployment.buildMode });
     } finally {
       if (analysisId && analysisSessions.has(analysisId)) {
         analysisSessions.delete(analysisId);
       }
 
+      // Terminal receipts own history; release live payloads from memory.
+      deployments.delete(id);
       // Best-effort cleanup of the per-deployment working directory so we don't
       // accumulate cloned repos / node_modules under data/builds over time.
       if (workDir) {

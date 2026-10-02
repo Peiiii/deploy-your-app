@@ -653,6 +653,7 @@ class ProjectRepository {
       cloudflareProjectName?: string;
       sourceType?: SourceType;
     },
+    expectedAttemptId?: string,
   ): Promise<Project | null> {
     await this.ensureSchema(db);
     const statements: string[] = [];
@@ -711,9 +712,11 @@ class ProjectRepository {
     }
 
     params.push(id);
+    const condition = expectedAttemptId ? ' AND ? = (SELECT id FROM deployment_attempts WHERE project_id = projects.id ORDER BY started_at DESC, rowid DESC LIMIT 1)' : '';
+    if (expectedAttemptId) params.push(expectedAttemptId);
     const row = await db
       .prepare(
-        `UPDATE projects SET ${statements.join(', ')} WHERE id = ? RETURNING *`,
+        `UPDATE projects SET ${statements.join(', ')} WHERE id = ?${condition} RETURNING *`,
       )
       .bind(...params)
       .first<ProjectRow>();

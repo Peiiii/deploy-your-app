@@ -27,12 +27,18 @@ export interface AcceptedDeployment {
   provider_deployment_id: string;
   started_at: string;
   status: DeploymentAttemptStatus;
+  owner_id?: string;
+  stage?: string;
+  build_mode?: string;
+  error_message?: string;
+  error_code?: string;
+  result_url?: string;
 }
 
 class DeploymentRepository {
   findByProviderId = async (db: D1Database, providerId: string): Promise<AcceptedDeployment | null> => {
     await this.ensureSchema(db);
-    return db.prepare(`SELECT id, project_id, provider_deployment_id, started_at, status
+    return db.prepare(`SELECT id, project_id, owner_id, provider_deployment_id, started_at, status, stage, build_mode, error_message, error_code, result_url
       FROM deployment_attempts WHERE provider_deployment_id = ? ORDER BY started_at DESC LIMIT 1`)
       .bind(providerId).first<AcceptedDeployment>();
   };
@@ -48,12 +54,21 @@ class DeploymentRepository {
     await this.ensureSchema(db);
     const rows = await db.prepare(`SELECT a.id, a.project_id, a.provider_deployment_id, a.started_at, a.status
       FROM deployment_attempts a WHERE a.status = 'accepted' AND a.provider_deployment_id IS NOT NULL
-      AND julianday(a.started_at) > julianday('now', '-1 day')
-      AND a.id = (SELECT b.id FROM deployment_attempts b WHERE b.project_id = a.project_id
-        ORDER BY b.started_at DESC, b.rowid DESC LIMIT 1)
-      ORDER BY a.started_at DESC LIMIT 20`)
+      ORDER BY a.started_at ASC LIMIT 20`)
       .all<AcceptedDeployment>();
     return rows.results;
+  };
+
+  findByFlow = async (db: D1Database, flowId: string): Promise<AcceptedDeployment | null> => {
+    await this.ensureSchema(db);
+    return db.prepare('SELECT id, project_id, owner_id, provider_deployment_id, started_at, status FROM deployment_attempts WHERE flow_id = ?')
+      .bind(flowId).first<AcceptedDeployment>();
+  };
+
+  latestForProject = async (db: D1Database, projectId: string): Promise<AcceptedDeployment | null> => {
+    await this.ensureSchema(db);
+    return db.prepare('SELECT id, project_id, provider_deployment_id, started_at, status FROM deployment_attempts WHERE project_id = ? ORDER BY started_at DESC, rowid DESC LIMIT 1')
+      .bind(projectId).first<AcceptedDeployment>();
   };
 
   private ensureSchema = async (db: D1Database): Promise<void> => {
@@ -97,6 +112,14 @@ class DeploymentRepository {
          ON deployment_attempts(started_at, status)`,
       )
       .run();
+    const columns = await db.prepare('PRAGMA table_info(deployment_attempts)').all<{ name: string }>();
+    for (const name of ['stage', 'build_mode', 'error_message', 'result_url']) {
+      if (!columns.results.some(column => column.name === name)) {
+        await db.prepare(`ALTER TABLE deployment_attempts ADD COLUMN ${name} TEXT`).run().catch(error => {
+          if (!String(error).includes('duplicate column')) throw error;
+        });
+      }
+    }
     deploymentSchemaEnsured = true;
   };
 
@@ -150,15 +173,16 @@ class DeploymentRepository {
     finishedAt: string,
     durationMs: number,
     errorCode?: string,
+    detail?: { stage?: string; buildMode?: string; errorMessage?: string; projectMetadata?: { url?: string } },
   ): Promise<void> => {
     await this.ensureSchema(db);
     await db
       .prepare(
         `UPDATE deployment_attempts
-         SET status = ?, finished_at = ?, duration_ms = ?, error_code = ?
+         SET status = ?, finished_at = ?, duration_ms = ?, error_code = ?, stage = ?, build_mode = ?, error_message = ?, result_url = ?
          WHERE id = ?`,
       )
-      .bind(status, finishedAt, durationMs, errorCode ?? null, id)
+      .bind(status, finishedAt, durationMs, errorCode ?? null, detail?.stage ?? null, detail?.buildMode ?? null, detail?.errorMessage?.slice(0, 2000) ?? null, detail?.projectMetadata?.url ?? null, id)
       .run();
   };
 

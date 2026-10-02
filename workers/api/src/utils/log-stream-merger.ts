@@ -42,7 +42,7 @@ export class LogStreamMerger {
 
     private buffer = '';
 
-    constructor(nodeStream: ReadableStream<Uint8Array>, private beforeEvent?: (event: DeploymentStatusPayload) => Promise<void>) {
+    constructor(nodeStream: ReadableStream<Uint8Array>, private beforeEvent?: (event: DeploymentStatusPayload) => Promise<void>, private onClose?: () => void) {
         this.nodeReader = nodeStream.getReader();
     }
 
@@ -86,6 +86,7 @@ export class LogStreamMerger {
                             this.flushQueueToController(controller);
                             controller.close();
                             this.closed = true;
+                            this.onClose?.();
                             return;
                         }
 
@@ -110,10 +111,12 @@ export class LogStreamMerger {
                     await this.nodeReader.cancel().catch(() => {});
                     controller.error(err);
                     this.closed = true;
+                            this.onClose?.();
                 }
             },
             cancel: async () => {
                 this.closed = true;
+                            this.onClose?.();
                 try {
                     await this.nodeReader.cancel();
                 } catch {

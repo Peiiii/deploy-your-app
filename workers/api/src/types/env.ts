@@ -9,6 +9,7 @@ export interface ApiWorkerEnv {
   PLATFORM_AI_MODEL?: string;
   DASHSCOPE_API_KEY?: string;
   DEPLOY_SERVICE_BASE_URL?: string;
+  DEPLOY_SERVICE_TOKEN?: string;
   /**
    * Comma-separated admin allowlist (emails, case-insensitive).
    * Example: "admin@example.com,ops@example.com"

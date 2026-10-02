@@ -267,6 +267,18 @@ test('deployStaticApp creates a project and completes a ZIP deployment', async (
         return;
       }
 
+      if (url.pathname === '/api/v1/projects/project_1/deployment-source' && request.method === 'PUT') {
+        assert.equal(request.headers.cookie, 'session_id=saved-session');
+        const chunks = [];
+        request.on('data', chunk => chunks.push(chunk));
+        request.on('end', () => {
+          assert.equal(Buffer.concat(chunks).subarray(0, 2).toString(), 'PK');
+          response.writeHead(200, { 'Content-Type': 'application/json' });
+          response.end(JSON.stringify({ zipSourceKey: 'fixture-upload.zip' }));
+        });
+        return;
+      }
+
       if (url.pathname === '/api/v1/deploy' && request.method === 'POST') {
         let raw = '';
         request.on('data', (chunk) => {
@@ -344,7 +356,8 @@ test('deployStaticApp creates a project and completes a ZIP deployment', async (
       );
       assert.equal(deployBody.id, 'project_1');
       assert.equal(deployBody.sourceType, 'zip');
-      assert.match(deployBody.zipData, /^[A-Za-z0-9+/=]+$/);
+      assert.equal(deployBody.zipData, undefined);
+      assert.equal(deployBody.zipSourceKey, 'fixture-upload.zip');
       assert.ok(output.some((line) => line.includes('Status: SUCCESS')));
     } finally {
       await new Promise((resolve) => server.close(resolve));

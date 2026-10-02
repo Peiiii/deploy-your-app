@@ -60,7 +60,7 @@ export interface IDeploymentProvider {
     project: Project,
     onLog: (log: BuildLog) => void,
     onStatusChange: (status: DeploymentStatus) => void,
-    context: { flowId: string; clientChannel: NonNullable<Project['clientChannel']>; sourceFilename?: string },
+    context: { flowId: string; clientChannel: NonNullable<Project['clientChannel']>; sourceFilename?: string; zipFile?: File },
   ): Promise<DeploymentResult | undefined>;
 }
 
