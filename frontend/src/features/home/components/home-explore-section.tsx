@@ -41,7 +41,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
   }, [value]);
 
   return (
-    <div className="relative w-full md:w-96 group">
+    <div className="relative w-full min-w-0 group">
       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
         <Search className="h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-all duration-300 group-focus-within:scale-110" />
       </div>
@@ -186,7 +186,7 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
 
   return (
     <section className="animate-fade-in text-left">
-      <div className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-3`}>
+      <div className={`flex flex-wrap justify-between items-center gap-3 mb-3`}>
         <div className="space-y-1">
           <h2
             className={`font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-100 dark:to-white bg-clip-text text-transparent text-left text-xl md:text-2xl`}
@@ -197,8 +197,8 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
             {t('explore.discoverApps')}
           </p>
         </div>
-        <div className="w-full md:w-auto flex items-center gap-2">
-          <div className={`flex-1 min-w-0 ${compact ? 'md:w-64' : 'md:w-80'}`}><SearchBar value={searchQuery} onChange={setSearchQuery} /></div>
+        <div className="w-full md:w-auto max-w-full min-w-0 flex flex-wrap items-center gap-2">
+          <div className={`flex-1 basis-48 min-w-0 max-w-full md:flex-none ${compact ? 'md:w-64' : 'md:w-80'}`}><SearchBar value={searchQuery} onChange={setSearchQuery} /></div>
           <AppLanguageFilter />
         </div>
       </div>

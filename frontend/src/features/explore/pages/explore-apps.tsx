@@ -24,7 +24,7 @@ interface SearchBarProps {
 const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
   const { t } = useTranslation();
   return (
-    <div className="relative w-full md:w-96 group">
+    <div className="relative w-full min-w-0 group">
       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
         <Search className="h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-all duration-300 group-focus-within:scale-110" />
       </div>
@@ -161,6 +161,7 @@ export const ExploreApps: React.FC = () => {
 
   return (
     <PageLayout
+      className="page-layout-container"
       title={
         <div className={`flex items-center gap-3 whitespace-nowrap overflow-hidden shrink-0`}>
           {t('explore.exploreApps')}
@@ -195,17 +196,17 @@ export const ExploreApps: React.FC = () => {
               {!isCompact && <span className="hidden sm:inline">{t('explore.gridView')}</span>}
             </button>
           </div>
-          <div className="hidden md:flex items-center gap-2">
+          <div className="explore-wide-filters hidden items-center gap-2">
             <AppLanguageFilter />
-            <SearchBar value={searchQuery} onChange={actions.setSearchQuery} />
+            <div className="w-80 min-w-0"><SearchBar value={searchQuery} onChange={actions.setSearchQuery} /></div>
           </div>
         </div>
       }
     >
       <div className="flex flex-col gap-3 md:gap-4 animate-fade-in">
-        {/* Mobile Search Bar - Visible only on small screens */}
-        <div className="md:hidden mb-1 flex items-center gap-2">
-          <div className="flex-1 min-w-0"><SearchBar value={searchQuery} onChange={actions.setSearchQuery} /></div>
+        {/* Keep filters below the title when the page container is narrow. */}
+        <div className="explore-narrow-filters mb-1 flex flex-wrap items-center gap-2">
+          <div className="flex-1 basis-48 min-w-0 max-w-full"><SearchBar value={searchQuery} onChange={actions.setSearchQuery} /></div>
           <AppLanguageFilter />
         </div>
 
