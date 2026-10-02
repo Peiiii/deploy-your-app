@@ -23,17 +23,17 @@ export const AiPublishCard = () => {
   };
 
   return (
-    <section className="rounded-3xl border border-brand-200 bg-brand-50/70 p-5 dark:border-brand-800 dark:bg-brand-950/30 md:p-6">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-4">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-300">
+    <section className="rounded-xl border border-brand-200 bg-brand-50/70 p-3 dark:border-brand-800 dark:bg-brand-950/30">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-start gap-2">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-300">
             <Sparkles aria-hidden="true" className="h-5 w-5" />
           </span>
           <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
               {t('home.aiPublishTitle')}
             </h3>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+            <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
               {t('home.aiPublishDescription')}
             </p>
             <a
@@ -47,11 +47,11 @@ export const AiPublishCard = () => {
             </a>
           </div>
         </div>
-        <div className="sm:shrink-0">
+        <div className="w-full">
           <button
             type="button"
             onClick={() => void handleCopy()}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-700"
           >
             {copied ? <Check aria-hidden="true" className="h-4 w-4" /> : <Copy aria-hidden="true" className="h-4 w-4" />}
             {t(copied ? 'home.aiPublishCopied' : 'home.aiPublishCopy')}

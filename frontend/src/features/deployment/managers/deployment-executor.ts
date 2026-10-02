@@ -43,6 +43,7 @@ export class DeploymentExecutor {
     zipFile: File | null,
   ): void => {
     const actions = useDeploymentStore.getState().actions;
+    actions.setActiveProjectId(project.id);
     actions.setStep(2);
     actions.setDeploymentStatus(DeploymentStatus.BUILDING);
     actions.clearLogs();
@@ -145,10 +146,9 @@ export class DeploymentExecutor {
     // Initialize UI state
     this.initializeDeploymentStore(project, zipFile);
 
-    // Update project status to Building
-    await this.updateProjectStatus(project.id, 'Building', undefined, flowId);
-
     try {
+      // Keep persistence failures inside the deployment failure boundary.
+      await this.updateProjectStatus(project.id, 'Building', undefined, flowId);
       // Validate and prepare data
       this.validateHtmlContent(project);
       const zipData = await this.prepareZipData(project, zipFile);

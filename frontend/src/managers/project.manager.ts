@@ -118,8 +118,10 @@ export class ProjectManager {
       useProjectStore.setState((state) => ({
         projects: state.projects.map((p) => p.id === updated.id ? updated : p)
       }));
+      return updated;
     } catch (error) {
       console.error("Failed to update project", error);
+      throw error;
     }
   };
 

@@ -45,7 +45,7 @@ export class HttpDeploymentProvider implements IDeploymentProvider {
       console.error(error);
       onStatusChange(DeploymentStatus.FAILED);
       onLog({ timestamp: new Date().toISOString(), message: 'Failed to reach backend server.', type: 'error' });
-      return;
+      throw error;
     }
 
     // Step 2: Subscribe to the log stream using EventSource (SSE)

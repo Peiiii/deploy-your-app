@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Clock, Search, TrendingUp, X } from 'lucide-react';
+import { Clock, Search, Sparkles, TrendingUp, X } from 'lucide-react';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 import { ExploreAppCardView } from '@/components/explore-app-card';
 import { CATEGORIES, type CategoryFilter } from '@/features/home/components/home-explore';
@@ -48,7 +48,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
         value={localValue}
         onChange={handleChange}
         placeholder={t('explore.searchApps')}
-        className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all shadow-sm"
+        className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all shadow-sm"
       />
       {localValue && (
         <button
@@ -134,7 +134,7 @@ const ExploreSkeletonGrid: React.FC<ExploreSkeletonGridProps> = ({ compact }) =>
       {Array.from({ length: 6 }).map((_, idx) => (
         <div
           key={idx}
-          className="flex flex-col rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden shadow-sm animate-pulse mb-6"
+          className="flex flex-col rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden shadow-sm animate-pulse"
         >
           <div className="aspect-video bg-slate-100 dark:bg-slate-800" />
           <div className="p-3 space-y-3">
@@ -182,15 +182,14 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
 
   return (
     <section className="animate-fade-in text-left">
-      <div className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ${compact ? 'mb-4' : 'mb-6'}`}>
+      <div className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-3`}>
         <div className="space-y-1">
           <h2
-            className={`font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-100 dark:to-white bg-clip-text text-transparent text-left ${compact ? 'text-xl md:text-2xl' : 'text-2xl sm:text-3xl md:text-4xl'
-              }`}
+            className={`font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-100 dark:to-white bg-clip-text text-transparent text-left text-xl md:text-2xl`}
           >
             {t('explore.exploreApps')}
           </h2>
-          <p className={`text-slate-600 dark:text-slate-400 text-left ${compact ? 'text-xs md:text-sm' : 'text-sm md:text-base'}`}>
+          <p className={`text-slate-600 dark:text-slate-400 text-left ${compact ? 'text-xs md:text-sm' : 'text-sm'}`}>
             {t('explore.discoverApps')}
           </p>
         </div>
@@ -199,42 +198,28 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
         </div>
       </div>
 
-      <div className={`flex flex-col sm:flex-row items-center gap-4 ${compact ? 'mb-4' : 'mb-8'}`}>
+      <div className={`flex flex-col sm:flex-row items-center gap-2 mb-3`}>
         <div className="flex-1 min-w-0 w-full overflow-hidden">
           <CategoryFilter
             activeCategory={activeCategory}
             onCategoryChange={setActiveCategory}
             onTagReset={() => setActiveTag(null)}
-            isCompact={compact}
+            isCompact
           />
         </div>
 
-        <div className={`shrink-0 flex items-center gap-2 ${compact ? 'w-full sm:w-auto justify-end' : ''}`}>
-          <span className={`font-medium text-slate-500 dark:text-slate-400 ${compact ? 'text-xs' : 'text-sm'}`}>
-            {t('explore.sortBy')}:
-          </span>
-          <div
-            className={`relative isolate inline-grid grid-cols-2 gap-1 rounded-full bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 ${compact ? 'p-1' : 'p-1.5'}`}
-          >
-            <div
-              className={`absolute top-1 bottom-1 left-1 bg-white dark:bg-slate-800 rounded-full shadow-md transition-transform duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] z-0 ${compact ? 'w-[calc(50%-6px)]' : 'w-[calc(50%-8px)]'}`}
-              style={{ transform: sortBy === 'recent' ? 'translateX(calc(100% + 4px))' : 'translateX(0)' }}
-            />
-            <button
-              data-event="sort_change" data-dimension="popular" onClick={() => setSortBy('popularity')}
-              className={`relative z-10 inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-colors duration-200 ${compact ? 'px-2 py-1.5 text-[10px]' : 'px-3 py-2 text-xs'} ${sortBy === 'popularity' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
-            >
-              <TrendingUp className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
-              <span className="whitespace-nowrap">{t('explore.sortByPopularity')}</span>
+        <div className="shrink-0 flex w-full sm:w-auto justify-end gap-1 rounded-full bg-slate-100 dark:bg-slate-800 p-1">
+          {([
+            ['recommended', Sparkles, 'explore.sortByRecommended'],
+            ['popularity', TrendingUp, 'explore.sortByPopularity'],
+            ['recent', Clock, 'explore.sortByRecent'],
+          ] as const).map(([sort, Icon, label]) => (
+            <button key={sort} aria-pressed={sortBy === sort} data-event="sort_change" data-dimension={sort}
+              onClick={() => setSortBy(sort)}
+              className={`inline-flex items-center justify-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium ${sortBy === sort ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
+              <Icon className="h-3.5 w-3.5" />{t(label)}
             </button>
-            <button
-              data-event="sort_change" data-dimension="recent" onClick={() => setSortBy('recent')}
-              className={`relative z-10 inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-colors duration-200 ${compact ? 'px-2 py-1.5 text-[10px]' : 'px-3 py-2 text-xs'} ${sortBy === 'recent' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
-            >
-              <Clock className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
-              <span className="whitespace-nowrap">{t('explore.sortByRecent')}</span>
-            </button>
-          </div>
+          ))}
         </div>
       </div>
 

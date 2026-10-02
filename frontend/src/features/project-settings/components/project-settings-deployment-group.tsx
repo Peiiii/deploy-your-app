@@ -5,10 +5,10 @@ import { ProjectSettingsRepoSection } from './project-settings-repo-section';
 import { ZipSourceForm } from '@/features/deployment/components/zip-source-form';
 import { HtmlSourceForm } from '@/features/deployment/components/html-source-form';
 import { SourceType } from '@/types';
+import { normalizeGitHubRepoUrl } from '@/utils/project';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useProjectSettingsStore } from '@/features/project-settings/stores/project-settings.store';
 import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
-import { useUIStore } from '@/stores/ui.store';
 import { RefreshCcw, Play } from 'lucide-react';
 import type { Project } from '@/types';
 
@@ -45,7 +45,6 @@ export const ProjectSettingsDeploymentGroup: React.FC<
   const htmlUploading = useProjectSettingsStore((s) => s.htmlUploading);
   const deploymentStatus = useDeploymentStore((s) => s.deploymentStatus);
   const repoUrlDraft = useProjectSettingsStore((s) => s.repoUrlDraft);
-  const showToast = useUIStore((s) => s.actions.showToast);
 
   const isDeploying =
     isRedeploying ||
@@ -56,23 +55,11 @@ export const ProjectSettingsDeploymentGroup: React.FC<
 
   const handleDeploy = async () => {
     if (activeSource === SourceType.GITHUB) {
-      // Check if there are unsaved GitHub repo changes
-      const hasUnsavedRepoChanges = repoUrlDraft !== project.repoUrl && repoUrlDraft.trim() !== '';
-
-      if (hasUnsavedRepoChanges) {
-        // Auto-save the repo URL before deploying
-        await presenter.projectSettings.saveRepoUrl();
-
-        // Show toast notification
-        showToast({
-          message: t('project.repoAutoSaved', 'Repository URL saved automatically before deployment'),
-          variant: 'success',
-        });
-
-        // Small delay to let the save complete
-        await new Promise(resolve => setTimeout(resolve, 500));
+      if (!normalizeGitHubRepoUrl(repoUrlDraft)) return;
+      if (normalizeGitHubRepoUrl(repoUrlDraft) !== normalizeGitHubRepoUrl(project.repoUrl)) {
+        const saved = await presenter.projectSettings.saveRepoUrl();
+        if (!saved) return;
       }
-
       presenter.projectSettings.deployFromGitHub();
     } else if (activeSource === SourceType.HTML) {
       presenter.projectSettings.deployHtmlContent(htmlContent);
@@ -158,7 +145,7 @@ export const ProjectSettingsDeploymentGroup: React.FC<
             isDeploying ||
             (activeSource === SourceType.ZIP && !zipFile) ||
             (activeSource === SourceType.HTML && !htmlContent.trim()) ||
-            (activeSource === SourceType.GITHUB && !repoUrlDraft.trim())
+            (activeSource === SourceType.GITHUB && !normalizeGitHubRepoUrl(repoUrlDraft))
           }
           className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-brand-500 text-white font-medium hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
         >

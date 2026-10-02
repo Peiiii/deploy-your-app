@@ -33,10 +33,11 @@ export const HtmlSourceForm: React.FC<HtmlSourceFormProps> = ({
 
   return (
     <div className="space-y-4">
-      <label className="block text-sm font-medium text-slate-900 dark:text-white">
+      <label htmlFor="publication-html" className="block text-sm font-medium text-slate-900 dark:text-white">
         HTML {t('common.content') || 'Content'}
       </label>
       <textarea
+        id="publication-html"
         value={htmlContent}
         onChange={(e) => onHtmlChange(e.target.value)}
         onBlur={onHtmlBlur}

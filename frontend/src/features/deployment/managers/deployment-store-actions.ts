@@ -17,7 +17,7 @@ export class DeploymentStoreActions {
   };
 
   handleFileDrop = (file: File) => {
-    if (file.name.endsWith('.zip')) {
+    if (file.name.toLowerCase().endsWith('.zip')) {
       const actions = useDeploymentStore.getState().actions;
       actions.setZipFile(file);
       const currentName = useDeploymentStore.getState().projectName;

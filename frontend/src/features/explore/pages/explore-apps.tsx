@@ -101,7 +101,7 @@ export const ExploreApps: React.FC = () => {
   const isLoading = useExploreStore((s) => s.isLoading);
   const actions = useExploreStore((s) => s.actions);
 
-  const [viewMode, setViewMode] = useState<'grid' | 'feed'>('feed');
+  const [viewMode, setViewMode] = useState<'grid' | 'feed'>('grid');
   const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
 
   // Load on mount
