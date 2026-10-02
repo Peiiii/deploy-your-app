@@ -49,6 +49,14 @@ rollback() {
   if docker inspect "$PREVIOUS_NAME" >/dev/null 2>&1; then
     docker rename "$PREVIOUS_NAME" "$CONTAINER_NAME"
     docker start "$CONTAINER_NAME"
+    for _ in $(seq 1 30); do
+      if docker exec "$CONTAINER_NAME" node -e "fetch('http://localhost:4173/healthz').then(r=>{if(!r.ok&&r.status!==404)process.exit(1)}).catch(()=>process.exit(1))" >/dev/null 2>&1; then
+        echo 'Previous service health check passed.'
+        return
+      fi
+      sleep 2
+    done
+    echo 'Previous service did not become healthy after rollback.' >&2
   fi
 }
 if ! docker run -d --name "$CONTAINER_NAME" --restart unless-stopped \

@@ -58,25 +58,41 @@ export class HttpDeploymentProvider implements IDeploymentProvider {
       zipSourceKey = uploaded.zipSourceKey;
       log(i18n.t('deployment.zipUploaded'));
     }
-    const started = await this.responseJson<{ deploymentId?: string }>(
-      await fetch(`${this.baseUrl}${API_ROUTES.DEPLOY}`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json', 'X-Gemigo-Flow-Id': context.flowId },
-        body: JSON.stringify({
-          ...project,
-          ...(zipSourceKey ? { zipSourceKey } : {}),
-          deploymentFlowId: context.flowId,
-          clientChannel: context.clientChannel,
-          sourceFilename: context.sourceFilename,
-        }),
-      })
-    );
-    if (!started.deploymentId)
-      throw new Error(i18n.t('deployment.requestFailed', { status: 'missing deployment ID' }));
+    const startBody = JSON.stringify({
+      ...project,
+      ...(zipSourceKey ? { zipSourceKey } : {}),
+      deploymentFlowId: context.flowId,
+      clientChannel: context.clientChannel,
+      sourceFilename: context.sourceFilename,
+    });
+    let started: { deploymentId?: string } | undefined;
+    for (let retry = 0; retry < 3; retry++) {
+      let response: Response | undefined;
+      try {
+        response = await fetch(`${this.baseUrl}${API_ROUTES.DEPLOY}`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json', 'X-Gemigo-Flow-Id': context.flowId },
+          body: startBody,
+          signal: AbortSignal.timeout(30000),
+        });
+      } catch {
+        /* The request may have been accepted; retry the same flow. */
+      }
+      if (response && response.status < 500) {
+        started = await this.responseJson<{ deploymentId?: string }>(response);
+        if (started.deploymentId) break;
+      }
+      if (retry < 2) await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    if (!started?.deploymentId) {
+      const error = new Error(i18n.t('deployment.resultPending'));
+      error.name = 'DeploymentPendingError';
+      throw error;
+    }
 
     return new Promise<DeploymentResult>((resolve, reject) => {
-      const id = encodeURIComponent(started.deploymentId!);
+      const id = encodeURIComponent(started!.deploymentId!);
       const eventSource = new EventSource(`${this.baseUrl}/deployments/${id}/stream`, {
         withCredentials: true,
       });

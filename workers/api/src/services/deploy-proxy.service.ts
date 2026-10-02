@@ -33,6 +33,7 @@ export interface AnalyzeResult {
 
 /** Input for /deploy endpoint - extends Project with deployment-specific fields */
 export interface DeployInput extends Project {
+    deploymentId?: string;
     analysisId?: string;
     zipData?: string;
     deployTarget?: 'local' | 'cloudflare' | 'r2';

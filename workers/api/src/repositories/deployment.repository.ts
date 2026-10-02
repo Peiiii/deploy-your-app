@@ -10,6 +10,7 @@ export type DeploymentAttemptStatus =
 export interface CreateDeploymentAttemptInput {
   id: string;
   projectId: string;
+  providerDeploymentId?: string;
   ownerId: string;
   flowId?: string;
   sourceType: SourceType;
@@ -54,7 +55,7 @@ class DeploymentRepository {
   listPending = async (db: D1Database): Promise<AcceptedDeployment[]> => {
     await this.ensureSchema(db);
     const rows = await db.prepare(`SELECT a.id, a.project_id, a.provider_deployment_id, a.started_at, a.status
-      FROM deployment_attempts a WHERE a.status = 'accepted' AND a.provider_deployment_id IS NOT NULL
+      FROM deployment_attempts a WHERE a.status IN ('started', 'accepted') AND a.provider_deployment_id IS NOT NULL
       ORDER BY a.started_at ASC LIMIT 20`)
       .all<AcceptedDeployment>();
     return rows.results;
@@ -133,8 +134,8 @@ class DeploymentRepository {
       .prepare(
         `INSERT INTO deployment_attempts (
           id, project_id, owner_id, flow_id, source_type, client_channel,
-          file_extension, payload_bytes, status, started_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'started', ?)`,
+          file_extension, payload_bytes, status, started_at, provider_deployment_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'started', ?, ?)`,
       )
       .bind(
         input.id,
@@ -146,6 +147,7 @@ class DeploymentRepository {
         input.fileExtension ?? null,
         input.payloadBytes ?? null,
         input.startedAt,
+        input.providerDeploymentId ?? null,
       )
       .run();
   };

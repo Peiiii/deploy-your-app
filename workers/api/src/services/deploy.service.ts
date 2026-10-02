@@ -352,7 +352,7 @@ class DeployService {
         const attempt = await deploymentRepository.findByProviderId(db, deploymentId);
         let settled = false;
         return async (payload: DeploymentStatusPayload): Promise<void> => {
-            if (settled || !attempt || attempt.status !== 'accepted' || payload.type !== 'status' || !['SUCCESS', 'FAILED'].includes(payload.status ?? '')) return;
+            if (settled || !attempt || !['accepted', 'started'].includes(attempt.status) || payload.type !== 'status' || !['SUCCESS', 'FAILED'].includes(payload.status ?? '')) return;
             if (!await deploymentRepository.isLatest(db, attempt)) {
                 await deploymentRepository.finishAttempt(db, attempt.id, payload.status === 'SUCCESS' ? 'succeeded' : 'failed', new Date().toISOString(), Date.now() - Date.parse(attempt.started_at), payload.errorCode, payload);
                 settled = true;
@@ -376,6 +376,7 @@ class DeployService {
         };
         const response = await fetch(`${configService.getDeployServiceBaseUrl(env)}/deployments/${encodeURIComponent(deploymentId)}`, { headers: env.DEPLOY_SERVICE_TOKEN ? { 'x-gemigo-builder-token': env.DEPLOY_SERVICE_TOKEN } : {}, signal: AbortSignal.timeout(5000) });
         let payload: DeploymentStatusPayload;
+        if (response.status === 404 && attempt.status === 'started' && Date.now() - Date.parse(attempt.started_at) < 120000) return { type: 'status', status: 'IDLE', stage: 'queued' };
         if (response.status === 404) {
             payload = { type: 'status', status: 'FAILED', errorCode: 'result_unavailable', errorMessage: 'The deployment result expired or was lost during a service restart. Please deploy again.', stage: 'recovery' };
         } else {

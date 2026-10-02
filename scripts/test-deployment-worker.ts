@@ -43,7 +43,7 @@ const mf = new Miniflare({
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 let builderMode = 'success';
-const providerId = crypto.randomUUID();
+let providerId = crypto.randomUUID();
 app.post(
   '/api/v1/deploy',
   (
@@ -54,7 +54,9 @@ app.post(
     assert.equal(req.headers.cookie, undefined, 'never forward customer credentials to builder');
     assert.equal(req.body.zipData, undefined);
     assert.ok(req.body.zipSourceKey);
-    if (builderMode === 'reject') return res.status(413).json({ error: 'fixture rejection' });
+  providerId = req.body.deploymentId;
+    if (builderMode === 'lost-response') return res.status(520).json({ error: 'response lost' });
+  if (builderMode === 'reject') return res.status(413).json({ error: 'fixture rejection' });
     res.json({ deploymentId: providerId });
   }
 );
@@ -224,7 +226,7 @@ try {
     ownerId: user.id,
     sourceType: SourceType.GitHub,
     clientChannel: 'web',
-    startedAt: new Date(Date.now() + 1000).toISOString(),
+    startedAt: new Date().toISOString(),
   });
   await deploymentRepository.markAccepted(
     db,
@@ -256,6 +258,19 @@ try {
   const diagnostics = await (await call(`/projects/${project.id}/deployment-result`)).json();
   assert.equal(diagnostics.errorCode, 'command_failed');
   assert.equal(diagnostics.errorMessage, 'fixture compiler failed');
+  builderMode = 'lost-response';
+  const lostFlow = crypto.randomUUID();
+  const uncertain = await call('/deploy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: project.id, sourceType: 'zip', zipSourceKey: uploaded.zipSourceKey, deploymentFlowId: lostFlow }) });
+  assert.equal(uncertain.status, 200);
+  const lost = await uncertain.json();
+  assert.equal(lost.deploymentId, providerId);
+  assert.equal((await deploymentRepository.findByProviderId(db, providerId))?.status, 'started');
+  builderMode = 'missing';
+  assert.equal((await (await call(`/deployments/${providerId}/reconcile`, { method: 'POST' })).json()).status, 'IDLE', 'wait for uncertain acceptance instead of reporting a false build failure');
+  builderMode = 'success';
+  assert.equal((await (await call(`/deployments/${providerId}/reconcile`, { method: 'POST' })).json()).status, 'SUCCESS');
+  assert.equal((await deploymentRepository.findByProviderId(db, providerId))?.status, 'succeeded');
+  assert.equal((await projectRepository.getProjectById(db, project.id))?.status, 'Live');
   console.log(
     'PASS: real R2 streaming, size/ownership/auth boundaries, idempotent start, service token, canonical D1 result, late client protection, persistent diagnostic fields'
   );

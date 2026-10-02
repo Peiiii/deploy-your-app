@@ -98,6 +98,7 @@ class DeployController {
     const startedAt = new Date(startedAtMs).toISOString();
     await deploymentRepository.createAttempt(db, {
       id: attemptId,
+      providerDeploymentId: attemptId,
       projectId: project.id,
       ownerId: user.id,
       flowId: input.flowId,
@@ -118,6 +119,7 @@ class DeployController {
     }, attemptId);
 
     let response: Response;
+    let dispatched = false;
     try {
       let zipSourceKey = input.zipSourceKey;
       if (input.zipData && env.ASSETS) {
@@ -126,8 +128,10 @@ class DeployController {
         await env.ASSETS.put(zipSourceKey, bytes, { customMetadata: { projectId: project.id }, httpMetadata: { contentType: 'application/zip' } });
       }
       const forwardBody = zipSourceKey ? { ...payload, zipSourceKey } : input.zipData ? { ...payload, zipData: input.zipData } : payload;
-      response = await deployProxyService.proxyJson(env, request, '/deploy', forwardBody);
+      dispatched = true;
+      response = await deployProxyService.proxyJson(env, request, '/deploy', { ...forwardBody, deploymentId: attemptId });
     } catch (error) {
+      if (dispatched) return jsonResponse({ deploymentId: attemptId, recovering: true });
       await deploymentRepository.finishAttempt(
         db,
         attemptId,
@@ -141,6 +145,9 @@ class DeployController {
       }, attemptId);
       throw error;
     }
+
+    // A failed HTTP hop cannot prove that the builder did not accept the job.
+    if (response.status >= 500) return jsonResponse({ deploymentId: attemptId, recovering: true });
 
     // 8. Start background monitoring and inject enrichment logs
     const deploymentId = await deployProxyService.parseDeploymentId(response);

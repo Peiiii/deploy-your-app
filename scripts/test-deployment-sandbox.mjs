@@ -11,7 +11,12 @@ const image = process.env.BUILD_TEST_IMAGE || 'deploy-your-app-server:latest';
 const dir = mkdtempSync(path.join(tmpdir(), 'gemigo-sandbox-'));
 const container = `gemigo-sandbox-qa-${randomUUID()}`;
 const keepAlive = setInterval(() => {}, 1000);
-const request = (url, init = {}) => fetch(url, { ...init, signal: AbortSignal.timeout(10000) });
+const request = (url, init = {}) =>
+  fetch(url, {
+    ...init,
+    headers: { Connection: 'close', ...init.headers },
+    signal: AbortSignal.timeout(10000),
+  });
 const token = 'qa-internal-token';
 const sentinel = 'qa-controller-secret-does-not-belong-in-builds';
 const docker = (...args) => execFileSync('docker', args, { encoding: 'utf8' }).trim();

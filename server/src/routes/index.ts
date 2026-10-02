@@ -183,10 +183,13 @@ export function registerRoutes(app: AppLike): void {
       });
     }
 
+    const requestedId = (req.body as { deploymentId?: string }).deploymentId;
+    if (requestedId && !/^[a-f0-9-]{36}$/i.test(requestedId)) return res.status(400).json({ error: 'Invalid deployment identity.' });
+    if (requestedId && readDeploymentReceipt(requestedId)) return res.json({ deploymentId: requestedId });
     if (!deploymentService.canAccept()) {
       return res.status(429).json({ error: 'The deployment service is busy. Please try again shortly.', code: 'builder_busy' });
     }
-    const id = randomUUID();
+    const id = requestedId || randomUUID();
     const workDirFromAnalysis =
       project.analysisId && analysisSessions.has(project.analysisId)
         ? analysisSessions.get(project.analysisId)!.workDir

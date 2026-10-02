@@ -45,3 +45,5 @@ ZIP 解压前校验路径、大小/文件数；忽略 __MACOSX/.DS_Store 后提�
 补审核对：以上均位于现有 build/deploy/status owner，未增加作业平台；新增 socket 权限仅可信控制器获得，来访 API 受内部 token 保护。验证增加实际隔离容器、失败回滚和指针写入后断线。design-review: passed（受影响范围）。
 
 补审：仅持久化诊断无法让关页后回来的用户看到失败原因。复用项目设置的 Deployments 页增加“最近发布结果”只读入口：按项目归属返回 D1 最新 attempt 的状态、阶段、模式、错误与时间；前端由既有 ProjectManager/Provider 读取，页面仅渲染。原日志未保存时明确说明，不能补造原因。构建命令失败将有界的最后输出纳入 error_message，使断线后仍有可用原因。验证真实 Worker owner 权限和终态结果、线上失败后刷新再查看。design-review: passed（受影响范围）。
+
+补审：Node 接受作业后 HTTP 响应丢失可能使作业 ID 无法保存。使用既有 attempt UUID 作为 Node deploymentId，先持久化关联，再启动；Node 同 ID receipt 幂等重放。确认的 4xx 拒绝仍为 rejected；5xx/连接错误保持可恢复 started，返回作业 ID；cron 覆盖带 ID 的 started。started 的 Node 404 等待两分钟启动确认窗口后明确失败，accepted 的缺失 receipt 按已有结果丢失规则处理。客户端同 flow 重试取同一作业，无新状态系统。测试覆盖响应丢失后生产者成功与无作业结果。design-review: passed（受影响范围）。

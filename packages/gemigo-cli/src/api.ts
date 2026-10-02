@@ -158,14 +158,19 @@ export class GemigoApiClient {
     sourceType: 'zip';
     zipSourceKey: string;
   }): Promise<{ deploymentId: string }> {
-    const response = await fetch(`${this.origin}/api/v1/deploy`, {
-      method: 'POST',
-      headers: this.buildHeaders({
-        'Content-Type': 'application/json',
-      }),
-      body: JSON.stringify({ ...input, clientChannel: 'cli' }),
-    });
-
+    const body = JSON.stringify({ ...input, clientChannel: 'cli', deploymentFlowId: crypto.randomUUID() });
+    let response: Response | undefined;
+    for (let retry = 0; retry < 3; retry++) {
+      try {
+        response = await fetch(`${this.origin}/api/v1/deploy`, {
+          method: 'POST', headers: this.buildHeaders({ 'Content-Type': 'application/json' }), body,
+          signal: AbortSignal.timeout(30000),
+        });
+        if (response.status < 500) break;
+      } catch { /* Same flow safely recovers an accepted request. */ }
+      if (retry < 2) await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    if (!response || response.status >= 500) throw new Error('Deployment acceptance is still being confirmed. Check your dashboard; this does not mean the build failed.');
     if (!response.ok) {
       const data = await parseJsonResponse<{ error?: string }>(response);
       throw new Error(data.error ?? 'Failed to start deployment.');
