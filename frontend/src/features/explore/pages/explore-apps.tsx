@@ -195,7 +195,8 @@ export const ExploreApps: React.FC = () => {
               {!isCompact && <span className="hidden sm:inline">{t('explore.gridView')}</span>}
             </button>
           </div>
-          <div className={`${isCompact ? 'hidden' : 'hidden md:block'}`}>
+          <div className="hidden md:flex items-center gap-2">
+            <AppLanguageFilter />
             <SearchBar value={searchQuery} onChange={actions.setSearchQuery} />
           </div>
         </div>
@@ -203,15 +204,14 @@ export const ExploreApps: React.FC = () => {
     >
       <div className="flex flex-col gap-3 md:gap-4 animate-fade-in">
         {/* Mobile Search Bar - Visible only on small screens */}
-        <div className="md:hidden mb-1">
-          <SearchBar value={searchQuery} onChange={actions.setSearchQuery} />
+        <div className="md:hidden mb-1 flex items-center gap-2">
+          <div className="flex-1 min-w-0"><SearchBar value={searchQuery} onChange={actions.setSearchQuery} /></div>
+          <AppLanguageFilter />
         </div>
 
         <p className="hidden md:block text-slate-500 dark:text-gray-400 text-left">
           {t('explore.discoverApps')} {t('explore.spendCreditsSupportCreators')}
         </p>
-
-        <AppLanguageFilter />
 
         <CategoryFilterBar
           activeCategory={activeCategory}

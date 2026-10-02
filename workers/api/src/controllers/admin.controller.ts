@@ -26,15 +26,26 @@ class AdminController {
     return sessionWithUser.user;
   };
 
-  detectProjectLanguage = async (request: Request, env: ApiWorkerEnv, db: D1Database, id: string): Promise<Response> => {
+  detectProjectLanguage = async (
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    id: string
+  ): Promise<Response> => {
     // Scoped operational token can only invoke this public-app scan, not other admin actions.
-    if (!env.APP_CONTENT_TOKEN || request.headers.get('x-gemigo-content-token') !== env.APP_CONTENT_TOKEN) await this.requireAdmin(request, env, db);
-    if (!env.APP_CONTENT || !env.APP_CONTENT_TOKEN) throw new ValidationError('App content service unavailable');
+    if (
+      !env.APP_CONTENT_TOKEN ||
+      request.headers.get('x-gemigo-content-token') !== env.APP_CONTENT_TOKEN
+    )
+      await this.requireAdmin(request, env, db);
+    if (!env.APP_CONTENT || !env.APP_CONTENT_TOKEN)
+      throw new ValidationError('App content service unavailable');
     const project = await projectService.getProjectById(db, id);
-    if (!project || project.status !== 'Live' || project.isPublic === false) throw new NotFoundError('Public live project not found');
-    await projectLanguageService.scanProject(env, db, project);
+    if (!project || project.status !== 'Live' || project.isPublic === false)
+      throw new NotFoundError('Public live project not found');
+    const scan = await projectLanguageService.scanProject(env, db, project);
     const updated = await projectService.getProjectById(db, id);
-    return jsonResponse({ appLanguage: updated?.appLanguage });
+    return jsonResponse({ scan, appLanguage: updated?.appLanguage });
   };
 
   listProjects = async (

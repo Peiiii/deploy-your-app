@@ -670,6 +670,8 @@
   },
   "languages": {
     "appLanguage": "想看哪些语言的应用？",
+    "contentShort": "内容",
+    "contentLanguage": "内容语言",
     "siteLanguage": "网站显示语言",
     "automaticActive": "已按浏览器语言自动选择",
     "automatic": "恢复自动选择",
