@@ -698,6 +698,7 @@
     "supportedLanguages": "Languages supported by this app"
   },
   "legal": {
+    "homeNotice": "For lawful use only",
     "language": "Language",
     "notice": "Do not use GemiGo for illegal content, fraud, phishing or infringement. Violating content may be removed and services restricted.",
     "readPolicy": "Read acceptable use policy ↗",
