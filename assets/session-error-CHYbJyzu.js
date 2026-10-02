@@ -1,0 +1,1 @@
+import{a as e,dt as t,f as n,pt as r}from"./index-MORflqby.js";var i=t();const a=()=>{let{t}=r(),a=n();return(0,i.jsx)(e,{title:t(`experience.sessionError`),description:t(`experience.sessionErrorDescription`),action:(0,i.jsx)(`button`,{className:`btn-primary`,onClick:()=>{a.auth.loadCurrentUser()},children:t(`common.retry`)})})};export{a as t};
