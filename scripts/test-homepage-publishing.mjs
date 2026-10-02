@@ -81,6 +81,8 @@ assert.equal(new Set(ranked.slice(0, 3).map((a) => a.author.identityKey)).size, 
 assert.equal(ranked.at(-1).id, '1');
 assert.equal(ranked.length, candidates.length);
 assert.equal(candidates[0].id, '1', 'Ranking does not mutate its API input');
+const withTemporary = rankHomeRecommendations([app('temp', '临时验收', 'd', 'Temporary verification'), ...candidates]);
+assert.ok(!withTemporary.slice(0, 3).some(a => a.id === 'temp'), 'Temporary checks do not occupy the first row');
 
 const store = load('features/deployment/stores/deployment.store.ts', {
   zustand: frontendRequire('zustand'),

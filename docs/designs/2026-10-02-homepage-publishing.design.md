@@ -43,6 +43,6 @@ mode=design：独立反查用户要求：首屏可见、HTML 权重、少决策�
 
 ## 实现 Review 与本地证据
 
-mode=implementation，diff-only 检查：项目无 maintainability 入口，按 findings-first 与条件主观复核审查。已关闭发现：① 手机菜单相对单按钮定位越界，改为手机相对发布操作区域；② AI 卡旧 viewport 横排在窄菜单上失真，收为单列；③ HTTP 触发失败吞错导致 executor 写 Live，改为 reject；④ 元数据保存吞错及时间延迟假设，改为真实返回结果；⑤ 创建中的跨项目部署冲突，统一 manager 边界拒绝。修正后对应截图、定向 lint、typecheck 与行为回归全部通过。剩余 findings=none，implementation-review=passed。无新增服务、依赖或平行创建 owner；旧部署卡与选项无消费者，删除；创建复用原 ProjectCreator 与 draft 路径。
+mode=implementation，diff-only 检查：项目无 maintainability 入口，按 findings-first 与条件主观复核审查。已关闭发现：① 手机菜单相对单按钮定位越界，改为手机相对发布操作区域；② AI 卡旧 viewport 横排在窄菜单上失真，收为单列；③ HTTP 触发失败吞错导致 executor 写 Live，改为 reject；④ 元数据保存吞错及时间延迟假设，改为真实返回结果；⑤ 创建中的跨项目部署冲突，统一 manager 边界拒绝。修正后对应截图、定向 lint、typecheck 与行为回归全部通过。⑥ 生产出现明确 temporary/临时作品，推荐元数据评分后置并增加回归。剩余 findings=none，implementation-review=passed。无新增服务、依赖或平行创建 owner；旧部署卡与选项无消费者，删除；创建复用原 ProjectCreator 与 draft 路径。
 
 本地命令：`pnpm typecheck`；本任务 TS/TSX 文件及 `scripts/test-homepage-publishing.mjs` 定向 ESLint `--max-warnings 0`；`node scripts/test-homepage-publishing.mjs`；`node scripts/test-explore-category.mjs`；`pnpm test:thumbnail-performance`；`pnpm build:frontend`。构建已有大 chunk/Browserslist 时效警告为非阻塞，本任务未扩大到拆包或依赖升级。

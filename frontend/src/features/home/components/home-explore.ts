@@ -31,8 +31,9 @@ export function rankHomeRecommendations(apps: ExploreAppCard[]): ExploreAppCard[
     const name = app.name.trim();
     let value = /^app[-_]|^\d+(?:\.\d+)*$|^my[- ](?:app|html)/i.test(name) ? -4 : 2;
     if (app.description?.trim()) value += 1;
+    if (/临时|\btemporary\b/i.test(name)) value -= 4;
     if (
-      /placeholder|starter|draft|prototype|basic html|likely|reference only|草稿|原型/i.test(
+      /placeholder|starter|draft|prototype|basic html|likely|reference only|temporary|草稿|原型|临时/i.test(
         app.description ?? ''
       )
     )
