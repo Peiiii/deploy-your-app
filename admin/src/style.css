@@ -136,16 +136,21 @@ aside {
   padding: 31px 20px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 .nav-label {
   font-size: 10px;
   letter-spacing: 1px;
   color: #a0a5b5;
-  margin: 48px 12px 16px;
+  margin: 25px 12px 16px;
 }
 nav {
   display: grid;
-  gap: 7px;
+  gap: 3px;
+}
+.section-group {
+  margin: 18px 12px 8px;
+  font-size: 10px;
 }
 nav button {
   display: flex;
@@ -154,7 +159,7 @@ nav button {
   text-align: left;
   border: 0;
   background: transparent;
-  padding: 13px 15px;
+  padding: 11px 15px;
   color: #7d8396;
   font-size: 13px;
 }
@@ -235,11 +240,14 @@ main {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 29px;
+  gap: 16px;
 }
 .page-title p {
   margin-top: 8px;
 }
 .pill {
+  white-space: nowrap;
+  flex-shrink: 0;
   background: #edf6f1;
   color: #648676;
   border: 1px solid #dcece4;
@@ -787,5 +795,208 @@ footer {
   }
   .result-grid strong {
     font-size: 23px;
+  }
+}
+
+.operations-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.operations-toolbar > button {
+  margin-left: auto;
+}
+.period-tabs {
+  display: flex;
+  background: #eeebf5;
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+}
+.period-tabs button {
+  border: 0;
+  background: transparent;
+}
+.period-tabs .selected {
+  background: #fff;
+  color: #7639cb;
+  box-shadow: 0 2px 6px #34205210;
+}
+.dashboard-columns {
+  grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+}
+.dashboard-columns .panel {
+  margin-bottom: 0;
+}
+.business-metrics .metric:first-child {
+  background: #312345;
+  color: white;
+  border-color: #312345;
+}
+.business-metrics .metric:first-child > span,
+.business-metrics .metric:first-child small {
+  color: #c8b8de;
+}
+.business-trend {
+  min-height: 230px;
+  margin-bottom: 20px;
+}
+.business-trend .bar {
+  position: relative;
+  overflow: hidden;
+}
+.business-trend .bar i {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #73bda4;
+}
+.success-panel {
+  background: linear-gradient(135deg, #fff, #f7f4fc);
+}
+.success-value {
+  display: block;
+  color: #7140b1;
+  font-size: 58px;
+  letter-spacing: -3px;
+  margin: 28px 0 8px;
+  font-weight: 600;
+}
+.cell-sub {
+  display: block;
+  color: #9298ab;
+  font-size: 10px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 6px;
+}
+.status-Live,
+.status-succeeded {
+  color: #297959;
+  background: #e8f4ed;
+}
+.status-Failed,
+.status-failed,
+.status-rejected {
+  color: #ac4859;
+  background: #fff0f1;
+}
+.status-Building,
+.status-started,
+.status-accepted {
+  color: #94702e;
+  background: #fff7e6;
+}
+.management-search input {
+  min-width: min(310px, 100%);
+}
+.management-search {
+  margin-bottom: 10px;
+}
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  white-space: nowrap;
+}
+.table-actions button,
+td > button {
+  padding: 7px 10px;
+  font-size: 11px;
+}
+.confirm-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border: 1px solid #e2d5f5;
+  background: #f8f3ff;
+  padding: 20px;
+  margin-top: 20px;
+  border-radius: 10px;
+}
+.confirm-box p {
+  margin-top: 8px;
+  color: #82728f;
+  font-size: 12px;
+}
+.confirm-box > div:last-child {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.resource-id {
+  max-width: 260px;
+  overflow-wrap: anywhere;
+}
+.password-form {
+  display: grid;
+  gap: 24px;
+  margin-top: 28px;
+  max-width: 420px;
+}
+.password-form label small {
+  color: #9890a5;
+  font-weight: 400;
+}
+.security-note {
+  align-self: start;
+  line-height: 1.8;
+}
+.loading-panel {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  color: #9288a7;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #8b55cc;
+}
+@media (max-width: 1000px) {
+  .dashboard-columns,
+  .security-columns {
+    grid-template-columns: 1fr;
+  }
+  aside {
+    overflow-y: auto;
+  }
+}
+@media (max-width: 760px) {
+  .operations-toolbar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .operations-toolbar .muted {
+    display: none;
+  }
+  .operations-toolbar > button {
+    margin-left: auto;
+  }
+  .confirm-box {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .business-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+  .metric {
+    padding: 18px;
+  }
+  .metric strong {
+    font-size: 30px;
+  }
+  .success-value {
+    font-size: 48px;
+  }
+  .management-search > label {
+    width: 100%;
+  }
+  .management-search input {
+    width: 100%;
   }
 }

@@ -1,6 +1,9 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { Fragment, useEffect, useState, type FormEvent } from 'react';
 import { EVENTS, type queryAnalytics, type getBudget } from '@gemigo/product-analytics';
 import './style.css';
+import { api } from './api';
+import Operations from './operations';
+import AccountSecurity from './account-security';
 
 type Report = Awaited<ReturnType<typeof queryAnalytics>> & { cached: boolean };
 type Budget = Awaited<ReturnType<typeof getBudget>>;
@@ -19,25 +22,6 @@ const today = () => new Date().toISOString().slice(0, 10);
 const dateAgo = (days: number) => new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
 const number = (n: number) => n.toLocaleString('zh-CN');
 const time = (n: number) => new Date(n).toLocaleString('zh-CN', { hour12: false });
-const api = async <T,>(path: string, data?: object): Promise<T> => {
-  const response = await fetch(
-    '/api/' + path,
-    data
-      ? {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        }
-      : undefined
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    if (response.status === 401 && path !== 'login')
-      window.dispatchEvent(new Event('admin-session-expired'));
-    throw new Error(result.error || '请求失败');
-  }
-  return result;
-};
 const Empty = ({ text = '这段时间还没有采集到数据' }: { text?: string }) => (
   <div className="empty">
     <span>◌</span>
@@ -102,7 +86,7 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [section, setSection] = useState('overview');
+  const [section, setSection] = useState('dashboard');
   const [from, setFrom] = useState(dateAgo(6));
   const [to, setTo] = useState(today());
   const [device, setDevice] = useState('all');
@@ -162,7 +146,8 @@ export default function App() {
       await api('login', { username, password });
       setPassword('');
       setSignedIn(true);
-      await load();
+      setSection('dashboard');
+      setNotice('');
     });
   };
   const loadEvents = async (name = eventName, id = session, page = 1) => {
@@ -215,16 +200,16 @@ export default function App() {
             <b>G</b> GemiGo <small>ADMIN</small>
           </a>
           <div>
-            <span className="eyebrow">PRODUCT INSIGHTS</span>
+            <span className="eyebrow">OPERATIONS CONSOLE</span>
             <h1>
-              看见使用，
+              掌握全局，
               <br />
-              再做决定。
+              从这里开始。
             </h1>
             <p>
-              从一次访问到成功部署，
+              用户、应用、部署与产品数据，
               <br />
-              理解功能的真实使用情况。
+              在一个管理空间里清晰掌握。
             </p>
           </div>
           <small>独立管理系统 · 与主站账号分离</small>
@@ -253,6 +238,11 @@ export default function App() {
               maxLength={256}
             />
           </label>
+          {notice && (
+            <p className="notice" role="status">
+              {notice}
+            </p>
+          )}
           {error && (
             <p role="alert" className="error">
               {error}
@@ -266,11 +256,17 @@ export default function App() {
       </main>
     );
   const nav = [
-    ['overview', '◫', '使用概览'],
+    ['dashboard', '◫', '经营总览'],
+    ['users', '♙', '用户管理'],
+    ['projects', '▦', '应用管理'],
+    ['deployments', '↗', '部署记录'],
+    ['overview', '◈', '使用概览'],
     ['features', '◈', '功能使用'],
     ['funnels', '⇢', '转化与路径'],
     ['events', '≡', '事件明细'],
     ['settings', '⚙', '采集与预算'],
+    ['security', '◇', '账号安全'],
+    ['audit', '≡', '操作记录'],
   ];
   return (
     <div className="shell">
@@ -278,17 +274,32 @@ export default function App() {
         <a className="brand" href="/">
           <b>G</b> GemiGo <small>ADMIN</small>
         </a>
-        <span className="nav-label">产品分析</span>
         <nav>
-          {nav.map(([key, icon, label]) => (
-            <button
-              key={key}
-              className={section === key ? 'active' : ''}
-              onClick={() => setSection(key)}
-            >
-              <span>{icon}</span>
-              {label}
-            </button>
+          {nav.map(([key, icon, label], index) => (
+            <Fragment key={key}>
+              {[0, 4, 8].includes(index) && (
+                <span className="nav-label section-group">
+                  {index === 0 ? '运营管理' : index === 4 ? '产品分析' : '系统设置'}
+                </span>
+              )}
+              <button
+                key={key}
+                className={section === key ? 'active' : ''}
+                onClick={() => {
+                  setSection(key);
+                  setError('');
+                  setNotice('');
+                  if (
+                    ['overview', 'features', 'funnels', 'events', 'settings'].includes(key) &&
+                    !report
+                  )
+                    void run(load);
+                }}
+              >
+                <span>{icon}</span>
+                {label}
+              </button>
+            </Fragment>
           ))}
         </nav>
         <div className="aside-bottom">
@@ -311,6 +322,8 @@ export default function App() {
                   setSignedIn(false);
                   setReport(null);
                   setDetails(null);
+                  setBudget(null);
+                  setPassword('');
                 })
               }
             >
@@ -321,11 +334,19 @@ export default function App() {
         <main>
           <div className="page-title">
             <div>
-              <span className="eyebrow">PRODUCT ANALYTICS</span>
+              <span className="eyebrow">GEMIGO ADMINISTRATION</span>
               <h1>{nav.find((n) => n[0] === section)?.[2]}</h1>
-              <p className="muted">让真实行为帮助你决定下一步。</p>
+              <p className="muted">
+                {section === 'dashboard'
+                  ? '从整体表现到具体问题，掌握平台的每一步。'
+                  : section === 'security'
+                    ? '管理独立账号，保护后台访问权限。'
+                    : ['users', 'projects', 'deployments', 'audit'].includes(section)
+                      ? '查询真实记录，每一次管理操作都有迹可循。'
+                      : '让真实行为帮助你决定下一步。'}
+              </p>
             </div>
-            <span className="pill">● 低请求采集</span>
+            <span className="pill">● 独立管理后台</span>
           </div>
           {error && (
             <div className="error" role="alert">
@@ -337,7 +358,7 @@ export default function App() {
               {notice}
             </div>
           )}
-          {section !== 'settings' && (
+          {['overview', 'features', 'funnels', 'events'].includes(section) && (
             <form
               className="filters"
               onSubmit={(e) => {
@@ -388,16 +409,32 @@ export default function App() {
               </button>
             </form>
           )}
-          {section !== 'settings' && section !== 'events' && !report && (
+          {['overview', 'features', 'funnels'].includes(section) && !report && (
             <article className="panel">
               <Empty text="点击“应用筛选 / 刷新”加载报表" />
             </article>
           )}
-          {report && section !== 'settings' && section !== 'events' && (
+          {report && ['overview', 'features', 'funnels'].includes(section) && (
             <p className="caption">
               当前报表：{applied} · 更新于 {time(report.generatedAt)} ·{' '}
               {report.cached ? '缓存结果' : '新生成'}（报表缓存 15 分钟）
             </p>
+          )}
+          {['dashboard', 'users', 'projects', 'deployments', 'audit'].includes(section) && (
+            <Operations key={section} section={section} />
+          )}
+          {section === 'security' && (
+            <AccountSecurity
+              username={username}
+              changed={() => {
+                setSignedIn(false);
+                setReport(null);
+                setDetails(null);
+                setBudget(null);
+                setPassword('');
+                setNotice('密码已修改，请使用新密码重新登录。');
+              }}
+            />
           )}
           {section === 'overview' && report && (
             <>

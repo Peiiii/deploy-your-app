@@ -7,8 +7,19 @@ import {
   queryEventDetails,
   reserve,
 } from '@gemigo/product-analytics';
-import { authenticated, createSession, hash, logout, verifyPassword, type AdminEnv } from './auth';
+import {
+  authenticated,
+  changePassword,
+  credential,
+  initializeAccount,
+  createSession,
+  hash,
+  logout,
+  verifyPassword,
+  type AdminEnv,
+} from './auth';
 import { maintenanceService } from './maintenance';
+import { AdminInputError, listOperations, manageOperation, overview } from './operations';
 
 const json = (value: unknown, status = 200, extra: HeadersInit = {}) =>
   new Response(JSON.stringify(value), {
@@ -22,8 +33,16 @@ const json = (value: unknown, status = 200, extra: HeadersInit = {}) =>
   });
 const body = async (request: Request) => {
   const text = await request.text();
-  if (text.length > 2048) throw new Error('请求过大');
-  return JSON.parse(text) as Record<string, unknown>;
+  if (text.length > 2048) throw new AdminInputError('请求过大');
+  let value: unknown;
+  try {
+    value = JSON.parse(text);
+  } catch {
+    throw new AdminInputError('请求 JSON 无效');
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw new AdminInputError('请求参数无效');
+  return value as Record<string, unknown>;
 };
 const handle = async (
   request: Request,
@@ -38,22 +57,57 @@ const handle = async (
   if (url.pathname === '/api/login' && request.method === 'POST') {
     // No IP is stored: salted daily hash expires after 48h. Limit before expensive hashing.
     const ipKey = await hash(
-      `${dayKey()}:${env.ADMIN_PASSWORD_HASH}:${request.headers.get('cf-connecting-ip') || 'local'}`
+      `${dayKey()}:${env.ADMIN_PASSWORD_HASH}:admin-login:${request.headers.get('cf-connecting-ip') || 'local'}`
     );
-    if (!(await reserve(env.ANALYTICS_DB, `login:${dayKey()}:${ipKey}`, 1, 10)))
-      return json({ error: '尝试次数过多，请明天再试。' }, 429);
+    if (
+      !(await reserve(env.ANALYTICS_DB, `login:${Math.floor(Date.now() / 600000)}:${ipKey}`, 1, 20))
+    )
+      return json({ error: '尝试次数过多，请 10 分钟后再试。' }, 429);
     const input = await body(request);
+    await initializeAccount(env);
+    const current = await credential(env);
     const valid =
       typeof input.password === 'string' &&
-      (await verifyPassword(input.password, env.ADMIN_PASSWORD_HASH || ''));
+      input.password.length <= 256 &&
+      (await verifyPassword(input.password, current.password_hash));
     if (!valid || input.username !== env.ADMIN_USERNAME)
       return json({ error: '账号或密码不正确' }, 401);
-    return json({ ok: true }, 200, { 'Set-Cookie': await createSession(env) });
+    return json({ ok: true }, 200, { 'Set-Cookie': await createSession(env, current.version) });
   }
   if (!(await authenticated(request, env))) return json({ error: '请登录独立管理账号' }, 401);
   if (url.pathname === '/api/session') return json({ username: env.ADMIN_USERNAME });
   if (url.pathname === '/api/logout' && request.method === 'POST')
     return json({ ok: true }, 200, { 'Set-Cookie': await logout(request, env) });
+  if (url.pathname === '/api/password' && request.method === 'POST') {
+    const input = await body(request);
+    if (
+      typeof input.currentPassword !== 'string' ||
+      input.currentPassword.length > 256 ||
+      typeof input.newPassword !== 'string' ||
+      input.newPassword.length < 8 ||
+      input.newPassword.length > 256 ||
+      input.newPassword !== input.confirmPassword ||
+      input.newPassword === input.currentPassword
+    )
+      return json({ error: '新密码须为 8–256 字符、两次一致，且不同于当前密码' }, 400);
+    const key = await hash(request.headers.get('cookie') || '');
+    if (!(await reserve(env.ANALYTICS_DB, `password:${dayKey()}:${key}`, 1, 10)))
+      return json({ error: '修改尝试过多，请明天再试' }, 429);
+    await initializeAccount(env);
+    const current = await credential(env);
+    if (!(await verifyPassword(input.currentPassword, current.password_hash)))
+      return json({ error: '当前密码不正确' }, 400);
+    if (!(await changePassword(env, current, input.newPassword)))
+      return json({ error: '密码已被更改，请重新登录' }, 409);
+    return json({ ok: true }, 200, { 'Set-Cookie': await logout(request, env) });
+  }
+  if (url.pathname === '/api/overview' && request.method === 'GET')
+    return json(await overview(env.ANALYTICS_DB, url));
+  const kind = url.pathname.slice('/api/'.length);
+  if (['users', 'projects', 'deployments', 'audit'].includes(kind) && request.method === 'GET')
+    return json(await listOperations(env.ANALYTICS_DB, kind, url));
+  if (url.pathname === '/api/manage' && request.method === 'POST')
+    return json(await manageOperation(env, await body(request)));
   if (url.pathname === '/api/settings' && request.method === 'POST') {
     const input = await body(request);
     if (
@@ -105,11 +159,16 @@ export default {
       return json(
         {
           error:
-            error instanceof Error && /预算|date|range|filter|请求/.test(error.message)
+            error instanceof AdminInputError ||
+            (error instanceof Error && /预算|date|range|filter|请求/.test(error.message))
               ? error.message
               : '请求失败，请稍后重试。',
         },
-        400
+        error instanceof AdminInputError
+          ? error.status
+          : error instanceof Error && /预算|date|range|filter|请求/.test(error.message)
+            ? 400
+            : 500
       );
     }
   },

@@ -42,6 +42,7 @@
     "build:admin": "pnpm --filter @gemigo/product-analytics build && pnpm --filter @gemigo/admin build",
     "deploy:admin": "pnpm build:admin && pnpm --filter @gemigo/admin-worker deploy",
     "admin:password": "python3 scripts/configure-admin.py",
+    "test:admin": "./server/node_modules/.bin/tsx scripts/test-admin-console.ts && python3 scripts/test-admin-recovery.py",
     "test:analytics": "node scripts/test-analytics-collector.mjs && ./server/node_modules/.bin/tsx scripts/test-product-analytics.ts",
     "test:customer-analytics": "./server/node_modules/.bin/tsx scripts/test-customer-analytics-foundation.ts",
     "test:public-author": "./server/node_modules/.bin/tsx scripts/test-public-author.ts",
