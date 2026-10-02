@@ -1,10 +1,15 @@
 name: Capture missing app thumbnails
 
 on:
-  # Best-effort recovery; the reliable trigger must not depend on schedule.
+  # Hourly bounded repair; normal dispatch processes only queued work.
   schedule:
-    - cron: '2-57/5 * * * *'
+    - cron: '17 * * * *'
   workflow_dispatch:
+    inputs:
+      reconcile:
+        description: Check the latest 50 public apps for lost/missing covers
+        type: boolean
+        default: true
 
 concurrency:
   group: capture-missing-app-thumbnails
@@ -14,31 +19,41 @@ jobs:
   capture:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+      CLOUDFLARE_D1_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install R2 metadata client
+        run: python -m pip install boto3==1.40.0
       - name: Check for missing thumbnails
         id: check
         env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
-          CLOUDFLARE_D1_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-        run: python scripts/capture-missing-thumbnails.py --check-only
+          RECONCILE: ${{ github.event_name == 'schedule' || inputs.reconcile }}
+        run: |
+          if [ "$RECONCILE" = "true" ]; then
+            python scripts/capture-missing-thumbnails.py --check-only --reconcile
+          else
+            python scripts/capture-missing-thumbnails.py --check-only
+          fi
       - name: Install screenshot dependencies
         if: steps.check.outputs.pending == 'true'
         run: |
-          python -m pip install boto3==1.40.0 Pillow==12.0.0 playwright==1.57.0
+          python -m pip install Pillow==12.0.0 playwright==1.57.0
           python -m playwright install --with-deps chromium
       - name: Capture and upload missing thumbnails
         if: steps.check.outputs.pending == 'true'
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
-          CLOUDFLARE_D1_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
-          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
         run: python scripts/capture-missing-thumbnails.py
+      - name: Report deferred readiness failures
+        if: always() && steps.check.outputs.readiness_errors != '' && steps.check.outputs.readiness_errors != '0'
+        run: |
+          echo 'Some readiness checks failed; their tasks were deferred for retry.'
+          exit 1

@@ -2,7 +2,28 @@ import assert from 'node:assert/strict';
 import worker, { triggerCapture } from '../workers/thumbnail-trigger/worker.ts';
 
 const originalFetch = globalThis.fetch;
-const env = { GITHUB_DISPATCH_TOKEN: 'test-secret' };
+let pending = true;
+let databaseError = false;
+const env = {
+  GITHUB_DISPATCH_TOKEN: 'test-secret',
+  PROJECTS_DB: {
+    prepare(sql: string) {
+      assert.match(sql, /thumbnail_jobs WHERE next_attempt_at <= \?/);
+      assert.match(sql, /ORDER BY next_attempt_at, project_id LIMIT 1/);
+      return {
+        bind(time: string) {
+          assert.ok(Number.isFinite(Date.parse(time)));
+          return {
+            async first<T>(): Promise<T | null> {
+              if (databaseError) throw new Error('D1 unavailable');
+              return pending ? { project_id: 'new-app' } as T : null;
+            },
+          };
+        },
+      };
+    },
+  },
+};
 const requests: Array<{ url: string; init?: RequestInit }> = [];
 let responses: Response[] = [];
 globalThis.fetch = async (input, init) => {
@@ -21,11 +42,20 @@ const reset = (...next: Response[]) => {
 };
 
 try {
+  pending = false;
+  reset();
+  assert.equal(await triggerCapture(env), 'empty');
+  assert.equal(requests.length, 0, 'idle Cron must not access GitHub');
+  pending = true;
+  databaseError = true;
+  await assert.rejects(triggerCapture(env), /D1 unavailable/);
+  assert.equal(requests.length, 0, 'failed queue check must not dispatch');
+  databaseError = false;
   reset(runs(['completed']), new Response(null, { status: 204 }));
   assert.equal(await triggerCapture(env), 'dispatched');
   assert.equal(requests.length, 2);
   assert.equal(requests[1].init?.method, 'POST');
-  assert.deepEqual(JSON.parse(String(requests[1].init?.body)), { ref: 'master' });
+  assert.deepEqual(JSON.parse(String(requests[1].init?.body)), { ref: 'master', inputs: { reconcile: 'false' } });
   assert.equal(new Headers(requests[1].init?.headers).get('Authorization'), 'Bearer test-secret');
   assert.ok(requests.every(request => request.init?.signal instanceof AbortSignal));
 
@@ -51,7 +81,7 @@ try {
   assert.equal(requests.length, 1);
 
   reset();
-  await assert.rejects(triggerCapture({ GITHUB_DISPATCH_TOKEN: '' }), /Missing GitHub dispatch credential/);
+  await assert.rejects(triggerCapture({ ...env, GITHUB_DISPATCH_TOKEN: '' }), /Missing GitHub dispatch credential/);
   assert.equal(requests.length, 0);
   console.log('Thumbnail trigger regression checks passed');
 } finally {

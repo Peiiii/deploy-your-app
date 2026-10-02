@@ -1,11 +1,20 @@
 interface Env {
   GITHUB_DISPATCH_TOKEN: string;
+  PROJECTS_DB: {
+    prepare(sql: string): {
+      bind(...values: string[]): { first<T>(): Promise<T | null> };
+    };
+  };
 }
 
 const WORKFLOW_URL =
   'https://api.github.com/repos/Peiiii/deploy-your-app/actions/workflows/capture-thumbnails.yml';
 
-export async function triggerCapture(env: Env): Promise<'busy' | 'dispatched'> {
+export async function triggerCapture(env: Env): Promise<'empty' | 'busy' | 'dispatched'> {
+  const job = await env.PROJECTS_DB.prepare(
+    'SELECT project_id FROM thumbnail_jobs WHERE next_attempt_at <= ? ORDER BY next_attempt_at, project_id LIMIT 1',
+  ).bind(new Date().toISOString()).first<{ project_id: string }>();
+  if (!job) return 'empty';
   if (!env.GITHUB_DISPATCH_TOKEN) throw new Error('Missing GitHub dispatch credential');
 
   const headers = {
@@ -28,7 +37,7 @@ export async function triggerCapture(env: Env): Promise<'busy' | 'dispatched'> {
   const response = await fetch(`${WORKFLOW_URL}/dispatches`, {
     method: 'POST',
     headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ref: 'master' }),
+    body: JSON.stringify({ ref: 'master', inputs: { reconcile: 'false' } }),
     signal: AbortSignal.timeout(10000),
   });
   if (response.status !== 204) throw new Error(`GitHub workflow dispatch failed: HTTP ${response.status}`);

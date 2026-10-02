@@ -3,7 +3,7 @@
 - contract-id: thumbnail-scheduling-2026-10-02
 - parent-goal: 新上线的公开产品及时获得首页截图，恢复当前缺图。
 - 来源：2026-10-02 用户要求“为什么隔了数小时都还没有完成排查一下是什么问题？修复一下。”；后续要求“能通过github 完成最好。减少对成本服务器的依赖”，明确选择“GitHub 截图，Cloudflare 免费定时器负责触发（推荐；不占用阿里云服务器）”。AGENTS.md 授权验证、精确提交、推送和线上交付。
-- scope-revision: 2（用户确认宿主约束）；flow: bugfix；risk: L4；retrospective_state: completed。
+- scope-revision: 3（用户要求优化成本与增量处理）；flow: standard；task-type: small-change；risk: L4；retrospective_state: pending。
 - reproduction: 线上运行记录与截图 HEAD 原触发取证；plan: not-required（单批交付）。
 
 ## 已确认现状
@@ -45,7 +45,27 @@ https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-t
 
 ## 当前执行状态
 
-stage: completed；open-required: none。
+stage: implementation（revision 3 方案审查通过）；open-required: TS-02 至 TS-07。上方 revision 2 的运行证据保留为历史，TS-01 不受影响，其余受影响证据暂为 stale。
+
+## Revision 3：增量与成本优化
+
+来源：用户“那你优化吧”，并要求确认方案是否高效、是否每次扫描全部。基线每两分钟扫描最近 50 个产品，经图片 Worker HEAD 读取 R2；实际一次 D1 查询 rows_read=1144。空闲仍消耗 50 次图片 Worker 调用，且启动 GitHub。
+
+采用 D1 待处理队列而非永久封面状态：`thumbnail_jobs` 只记录未完成工作，R2 仍是封面唯一 owner。数据库 INSERT/UPDATE 触发器覆盖现有 API 和后端两种 projects 写入入口，公开 Live 且有 URL 的新发布/重新发布/可见性变化入队；私有、删除、不可用状态撤销任务，物理删除由外键清理。每项目一个任务；随机 generation 与条件删除/重试防止正在执行的旧任务清掉新任务。项目无关更新不触发。
+
+Cloudflare 每两分钟通过 next_attempt_at 索引查询一项到期任务；空队列直接返回 empty，不访问 GitHub/R2。有任务才检查工作流并 dispatch，显式 reconcile=false。GitHub 每轮最多处理 20 个到期任务，直接 R2 head_object 检查 WebP 或大于 80 字节的旧 PNG；现有图立即完成任务，缺图才加载 Chromium。截图后复查任务 generation 和封面，保留已有/并发封面，继续条件写 WebP。失败按 2/4/8 分钟至最多 1 小时退避，单任务失败不阻断其它任务；重试日志只含类型/HTTP 状态。
+
+每小时 GitHub schedule（错峰）及手动默认 reconcile=true，检查最近 50 个公开 Live 产品作为既有缺图、队列丢失或外部删除图片的修复兜底，直连 R2，不经图片 Worker。成功任务不保留平行 ready 状态。未扩大历史全量回填范围。与每轮改成直连 R2 相比，队列多一个小表和触发器，但消除了空闲遍历、GitHub 启动以及缺图超过最近 50 项后的遗漏；与 GitHub cache 水位/持久 JSON manifest 相比，数据库触发器不依赖缓存存活或遗漏可见性变化。
+
+冻结验收：正常轻负载新公开部署 5 分钟内有真实首页图；两次连续生产空闲 tick 为 empty，零 GitHub dispatch、零 R2 操作；代表性 50 项已有图的 hourly 修复不生成截图，最多 100 个 R2 HEAD，零图片 Worker HEAD，队列查询使用索引。记录生产 D1 rows_read、GitHub R2 检查次数、实际端到端样本，不用理论免费额度代替实测。每天常规空闲调度仅 720 次 Worker 与 720 次小索引 D1 查询；小时修复最多 2400 R2 HEAD/日，不随全部产品增长；实际费用仍取决于账号其它业务及套餐。
+
+新增 TS-06 Required pending：上述空闲与 50 项修复成本口径有效证明。新增 TS-07 Required pending：真实 SQLite migration/触发器组装测试覆盖发布、私有转公开、退避、删除、重新发布 generation、无关更新；旧任务不能删除新任务，原封面/并发保护和失败隔离回归通过。TS-02/03/04/05 按新运行链路重验。
+
+发布顺序：先定向测试、类型/lint、actionlint、dry-run 和 diff Review；只执行新增 additive migration（不重放旧迁移），旧调度仍可运行；精确提交推送，GitHub 新脚本可处理空表并由一次手动 hourly 模式修复旧缺图；部署带 D1 绑定的触发 Worker；连续 Cron 与真实临时公开部署验收、清理。没有 API/阿里云后端部署。回滚旧 Worker 与工作流即可恢复旧扫描，新增表可保留；停用触发器时只 drop 本次两个 trigger，不能改 projects/R2 数据。
+
+设计 Review（revision 3）：passed。核对两类真实写入入口、索引空闲查询、截图唯一 owner、取消/退避、generation 竞争、旧 PNG 语义、小时兜底、升级/回滚顺序以及完整部署→队列→Cron→GitHub→R2→首页黄金链路。无开放 finding；上述门槛在实现前冻结。
+
+实现 Review（revision 3，发布前）：no findings。17 项真实 SQLite 触发器/队列与 R2 合同回归、Worker 定向 tsc/ESLint/调度测试、actionlint、Wrangler dry-run 通过。本任务 diff-only check 通过（其它前端任务的 whitespace 不属于本次范围）。无现成 maintainability 命令，按 diff 和相邻数据库写入/图片网关合同审查。新增状态只为当前增量消费者服务，成功删除、失败退避，无永久 ready 副本；原 R2/截图 owner 与工作流 concurrency 继续复用。生产 EXPLAIN 证明修复查询两个分支都使用 idx_projects_public_sort；生产迁移/定时与端到端证据待交付阶段补齐。
 
 实现 Review（revision 2）：no findings。项目无 diff-only maintainability 工具，按本任务 diff 与相邻合同审查。调度复用 GitHub 实际运行状态，不复制项目查询/截图算法；Worker 无 HTTP 入口；凭据保存在 Secret 且不进入错误体/日志；失败由下一次 Cron 重试；人工与兜底并发由现有 GitHub concurrency 隔离。未触达 API Worker、后端或其它工作区前端改动。
 

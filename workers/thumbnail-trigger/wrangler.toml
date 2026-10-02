@@ -5,6 +5,11 @@ compatibility_date = "2026-10-02"
 workers_dev = false
 preview_urls = false
 
+[[d1_databases]]
+binding = "PROJECTS_DB"
+database_name = "gemigo-projects"
+database_id = "e1e28d75-d0a0-4f8e-9b5d-714454686a4f"
+
 [triggers]
 crons = ["*/2 * * * *"]
 
