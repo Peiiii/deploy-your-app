@@ -11,6 +11,7 @@ import { HtmlSourceForm } from '../components/html-source-form';
 import { ZipSourceForm } from '../components/zip-source-form';
 import { GithubSourceForm } from '../components/github-source-form';
 import { DeploymentSession } from '../components/deployment-session';
+import { UsageNotice } from '@/features/legal/components/usage-notice';
 
 const SAMPLE_HTML =
   '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hello GemiGo</title></head><body style="font-family:system-ui;text-align:center;padding:4rem"><h1>Hello GemiGo!</h1><p>My first shared page.</p></body></html>';
@@ -126,6 +127,9 @@ export const NewDeployment = () => {
               />
             </div>
           </fieldset>
+          <div className="mt-5">
+            <UsageNotice />
+          </div>
           <button
             type="button"
             onClick={() => void publish()}

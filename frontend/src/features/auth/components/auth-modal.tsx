@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Eye, EyeOff, Github } from 'lucide-react';
+import { Eye, EyeOff, Github } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/dialog';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { usePresenter } from '@/contexts/presenter-context';
 
@@ -37,16 +38,14 @@ export const AuthModal: React.FC = () => {
     error,
     passwordVisible,
     confirmPasswordVisible,
-  } =
-    useAuthStore((state) => state);
+  } = useAuthStore((state) => state);
   const presenter = usePresenter();
 
   if (!modalOpen) return null;
 
   const title = mode === 'login' ? t('common.signIn') : t('common.signUp');
   const primaryLabel = mode === 'login' ? t('common.signIn') : t('common.signUp');
-  const toggleLabel =
-    mode === 'login' ? t('auth.needAccount') : t('auth.alreadyHaveAccount');
+  const toggleLabel = mode === 'login' ? t('auth.needAccount') : t('auth.alreadyHaveAccount');
   const toggleTarget = mode === 'login' ? 'signup' : 'login';
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -59,31 +58,18 @@ export const AuthModal: React.FC = () => {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4"
-      onClick={() => presenter.auth.closeAuthModal()}
+    <Dialog
+      open={modalOpen}
+      onOpenChange={(open) => {
+        if (!open) presenter.auth.closeAuthModal();
+      }}
     >
-      <div
-        className="relative bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 dark:shadow-black/40 border border-white/20 dark:border-slate-700/50 w-full max-w-md mx-auto animate-slide-up max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Decorative gradient overlay */}
-        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-brand-500/5 via-transparent to-purple-500/5 pointer-events-none" />
+      <DialogContent closeLabel={t('common.close')} aria-describedby={undefined}>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
 
-        <div className="relative flex items-center justify-between px-6 py-5 border-b border-slate-200/50 dark:border-slate-700/50">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-            {title}
-          </h2>
-          <button
-            onClick={() => presenter.auth.closeAuthModal()}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100/50 dark:text-slate-500 dark:hover:text-slate-200 dark:hover:bg-slate-800/50 transition-all duration-200 hover:scale-110 active:scale-95"
-            aria-label={t('common.close')}
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="relative px-6 pt-6 pb-6 space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Social sign-in options */}
           <div className="space-y-3">
             <button
@@ -221,7 +207,7 @@ export const AuthModal: React.FC = () => {
             {toggleLabel}
           </button>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
-}
+};

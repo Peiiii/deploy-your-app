@@ -11,6 +11,7 @@ import { useProjectSettingsStore } from '@/features/project-settings/stores/proj
 import { useDeploymentStore } from '@/features/deployment/stores/deployment.store';
 import { RefreshCcw, Play } from 'lucide-react';
 import type { Project } from '@/types';
+import { UsageNotice } from '@/features/legal/components/usage-notice';
 
 interface ProjectSettingsDeploymentGroupProps {
   project: Project;
@@ -138,7 +139,8 @@ export const ProjectSettingsDeploymentGroup: React.FC<
         )}
       </div>
 
-      <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-800">
+      <div className="flex flex-col gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+        <UsageNotice />
         <button
           onClick={handleDeploy}
           disabled={
@@ -147,7 +149,7 @@ export const ProjectSettingsDeploymentGroup: React.FC<
             (activeSource === SourceType.HTML && !htmlContent.trim()) ||
             (activeSource === SourceType.GITHUB && !normalizeGitHubRepoUrl(repoUrlDraft))
           }
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-brand-500 text-white font-medium hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+          className="self-end inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-brand-500 text-white font-medium hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
         >
           {isDeploying ? (
             <RefreshCcw className="w-4 h-4 animate-spin" />

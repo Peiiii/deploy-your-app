@@ -34,6 +34,31 @@ export const verifyPassword = async (password: string, stored: string) => {
     different |= actual.charCodeAt(i) ^ (expected.charCodeAt(i) || 0);
   return different === 0;
 };
+export type Credential = { password_hash: string; version: number };
+export const credential = async (env: AdminEnv): Promise<Credential> =>
+  (await env.ANALYTICS_DB.prepare(
+    'SELECT password_hash, version FROM admin_account WHERE id=1'
+  ).first<Credential>()) || { password_hash: env.ADMIN_PASSWORD_HASH || '', version: 0 };
+export const initializeAccount = async (env: AdminEnv) => {
+  if (!env.ADMIN_PASSWORD_HASH) throw new Error('Admin credential is not configured');
+  await env.ANALYTICS_DB.prepare('INSERT OR IGNORE INTO admin_account VALUES (1,?,0,?)')
+    .bind(env.ADMIN_PASSWORD_HASH, Date.now())
+    .run();
+};
+export const changePassword = async (env: AdminEnv, current: Credential, password: string) => {
+  const salt = hex(crypto.getRandomValues(new Uint8Array(16)).buffer);
+  const stored = `${salt}:${await passwordHash(password, salt)}`;
+  const results = await env.ANALYTICS_DB.batch([
+    env.ANALYTICS_DB.prepare(
+      'UPDATE admin_account SET password_hash=?,version=version+1,updated_at=? WHERE id=1 AND version=? AND password_hash=?'
+    ).bind(stored, Date.now(), current.version, current.password_hash),
+    env.ANALYTICS_DB.prepare(
+      "INSERT INTO admin_audit SELECT ?,?,'password_changed','admin','密码已更新',? WHERE changes()=1"
+    ).bind(crypto.randomUUID(), env.ADMIN_USERNAME, Date.now()),
+    env.ANALYTICS_DB.prepare('DELETE FROM admin_sessions WHERE changes()>0'),
+  ]);
+  return results[0].meta.changes === 1;
+};
 const token = (request: Request) =>
   request.headers
     .get('cookie')
@@ -41,6 +66,9 @@ const token = (request: Request) =>
     .map((s) => s.trim())
     .find((s) => s.startsWith(COOKIE + '='))
     ?.slice(COOKIE.length + 1);
+// Version zero preserves existing sessions during deployment without changing their schema.
+const sessionHash = (value: string, version: number) =>
+  hash(version === 0 ? value : `${version}:${value}`);
 export const authenticated = async (request: Request, env: AdminEnv) => {
   const value = token(request);
   if (!value || !/^[a-f0-9]{64}$/.test(value)) return false;
@@ -48,14 +76,14 @@ export const authenticated = async (request: Request, env: AdminEnv) => {
     await env.ANALYTICS_DB.prepare(
       'SELECT 1 FROM admin_sessions WHERE token_hash=? AND expires_at>?'
     )
-      .bind(await hash(value), Date.now())
+      .bind(await sessionHash(value, (await credential(env)).version), Date.now())
       .first()
   );
 };
-export const createSession = async (env: AdminEnv) => {
+export const createSession = async (env: AdminEnv, version: number) => {
   const value = hex(crypto.getRandomValues(new Uint8Array(32)).buffer);
-  await env.ANALYTICS_DB.prepare('INSERT INTO admin_sessions VALUES (?,?)')
-    .bind(await hash(value), Date.now() + 12 * 3600000)
+  await env.ANALYTICS_DB.prepare('INSERT INTO admin_sessions (token_hash,expires_at) VALUES (?,?)')
+    .bind(await sessionHash(value, version), Date.now() + 12 * 3600000)
     .run();
   return `${COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=43200`;
 };
@@ -63,7 +91,7 @@ export const logout = async (request: Request, env: AdminEnv) => {
   const value = token(request);
   if (value)
     await env.ANALYTICS_DB.prepare('DELETE FROM admin_sessions WHERE token_hash=?')
-      .bind(await hash(value))
+      .bind(await sessionHash(value, (await credential(env)).version))
       .run();
   return `${COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`;
 };

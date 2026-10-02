@@ -15,6 +15,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Toast } from '@/components/toast';
 import { CrispChat } from '@/components/crisp-chat';
 import { PrivacyPolicyPage } from '@/features/legal/pages/privacy-policy';
+import { AcceptableUsePage } from '@/features/legal/pages/acceptable-use';
 import { SdkAuthBrokerPage } from '@/features/sdk-auth/pages/sdk-auth-broker';
 import {
   CliLoginPage,
@@ -89,7 +90,6 @@ const MainContent: React.FC = () => {
       className={`h-full overflow-y-auto overflow-x-hidden flex flex-col transition-all duration-300 ${sidebarOffset} ${rightPanelOffset} ${isFullscreenPanel ? 'pointer-events-none select-none' : ''}`}
     >
       <Header />
-      <ProfileNameReminder />
       <div className="flex-1">
         <AppRoutes />
       </div>
@@ -141,6 +141,7 @@ const MainLayout: React.FC = () => {
       <CrispChat />
       <AuthModal />
       <ConfirmDialog />
+      <ProfileNameReminder />
       <Toast />
 
       {/* Layout: Three siblings at root level */}
@@ -166,6 +167,10 @@ export default function App() {
 
   if (isPrivacyPolicy) {
     return <PrivacyPolicyPage />;
+  }
+
+  if (pathname === '/acceptable-use') {
+    return <AcceptableUsePage />;
   }
 
   if (isSdkAuthBroker) {

@@ -11,6 +11,7 @@
     "@gemigo/product-analytics": "workspace:*",
     "@gemigo/public-author": "workspace:*",
     "@google/genai": "^1.30.0",
+    "@radix-ui/react-dialog": "^1.1.23",
     "ahooks": "^3.9.6",
     "crisp-sdk-web": "^1.0.26",
     "i18next": "^25.7.2",

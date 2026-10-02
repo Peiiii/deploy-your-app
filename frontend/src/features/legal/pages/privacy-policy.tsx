@@ -155,6 +155,9 @@ export const PrivacyPolicyPage: React.FC = () => {
 
         <footer className="mt-12 border-t border-slate-200 pt-6 text-sm text-slate-500">
           <p>GemiGo · https://gemigo.io</p>
+          <a href="/acceptable-use" className="mt-2 inline-block text-brand-700 hover:underline">
+            {isZh ? '使用规范与举报滥用' : 'Acceptable use and abuse reporting'}
+          </a>
         </footer>
       </div>
     </div>

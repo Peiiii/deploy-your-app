@@ -4,6 +4,7 @@ import { ChevronDown, FileCode, FileArchive, Github } from 'lucide-react';
 import { SourceType } from '@/types';
 import { Popover } from '@/components/popover';
 import { AiPublishCard } from './ai-publish-card';
+import { UsageNotice } from '@/features/legal/components/usage-notice';
 
 interface HomeDeploySectionProps {
   compact: boolean;
@@ -75,6 +76,9 @@ export const HomeDeploySection = ({ compact, onQuickDeploy }: HomeDeploySectionP
             )}
           </Popover>
         </div>
+      </div>
+      <div className="mt-3">
+        <UsageNotice />
       </div>
     </section>
   );

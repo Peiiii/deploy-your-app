@@ -1,6 +1,13 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './dialog';
 import { useUIStore } from '../stores/ui.store';
 import { confirmController } from '../services/confirm-controller';
 
@@ -30,42 +37,34 @@ export const ConfirmDialog: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm mx-4">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-            {title || t('common.confirm')}
-          </h2>
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) handleSecondary();
+      }}
+    >
+      <DialogContent size="sm" closeLabel={t('common.close')}>
+        <DialogHeader>
+          <DialogTitle>{title || t('common.confirm')}</DialogTitle>
+          <DialogDescription>{message}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
           <button
+            type="button"
             onClick={handleSecondary}
-            className="p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-colors"
-            aria-label={t('common.close')}
+            className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
           >
-            <X className="w-4 h-4" />
+            {secondaryLabel}
           </button>
-        </div>
-        <div className="px-5 pt-4 pb-5 space-y-4">
-          <p className="text-sm text-slate-700 dark:text-slate-200">
-            {message}
-          </p>
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={handleSecondary}
-              className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-            >
-              {secondaryLabel}
-            </button>
-            <button
-              type="button"
-              onClick={handlePrimary}
-              className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 dark:bg-brand-500 dark:hover:bg-brand-400 transition-colors"
-            >
-              {primaryLabel}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+          <button
+            type="button"
+            onClick={handlePrimary}
+            className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 dark:bg-brand-500 dark:hover:bg-brand-400 transition-colors"
+          >
+            {primaryLabel}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
