@@ -73,3 +73,13 @@
 真实gemigo.io首页已加载本次/assets/index-CF6b3Ur3.js，紫色主题、导航选中态、原账户Header与HTML/ZIP发布区恢复。通过同一实际应用“李睿博的网站”复现并验收：1440×900下iframe/父容器均687px，原Dock恢复，右侧不再空白；main滚动1425px时Header top=0/position=sticky。没有写入任何用户业务数据。原缓存曾短暂读取旧资产，临时关闭验证tab缓存后确认新版本，结束时恢复浏览器设置。
 
 真实截图：gemigo-restored-home.jpg及gemigo-restored-preview.jpg，位于/Users/peiwang/.codex/visualizations/2026/10/02/01a0fd0c-6575-7831-a513-01159b83eb9f/。整体改版未达到用户要求，用户明确要求停止；仅恢复交付完成，原goal按暂停处理，第二批隔离草稿不再执行。
+
+## 新授权：搜索与语言控件适配修复（2026-10-03）
+
+用户截图codex-clipboard-276891b3-dc60-4d60-b67e-da3128c813bf.png显示搜索框压到内容语言按钮，并要求识别类似空间适配问题。仅执行局部bugfix/L1，不恢复已暂停的整体改版。线上修前实测：搜索框384px、父层320px，search.right=1132而language.left=1076，重叠56px；最近owner为首页SearchBar固定md:w-96。同类探索SearchBar及标题工具栏也按viewport固定宽度。
+
+skip-design依据：根因和恢复目标明确，纯CSS布局约束，无状态/数据/主题变更。最小方案为搜索宽度服从父层、首页控件空间不足自动换行；探索筛选按页面容器宽度在原标题栏/内容栏两条既有路径切换；语言按钮不收缩，换行后靠右使原菜单留在屏幕内。只给探索PageLayout实例声明container，不改变其它页面布局和右侧容器。
+
+本地当前构建frontend tsc、定向ESLint、production build、diff --check通过。真实1280px首页英文长标签：搜索320px、与语言按钮8px间隔；390px首页和探索自动换行，main.scrollWidth=clientWidth=390；手机语言菜单left16/right374。900px探索页面宽644px时筛选在内容栏；1280px打开Geeglo预览后主区域576px时筛选在内容栏，搜索254.21px、按钮289.79px、8px间隔，无重叠；宽页面保留标题栏筛选。首页预览下搜索256px并换行，主区域无横向溢出。
+
+同owner排查包括网站语言Popover、Feed内容语言展开面板、首页更多方式菜单、仪表板/个人页输入；它们没有搜索固定384px越过320px父层的同一模式。本项不冒充全站逐页面全状态验证。diff-only人工实现Review（项目无专用maintainability入口）检查CSS作用域、重复控件仅一组可见、手机长标签与菜单定位、旧样式及共享PageLayout未启用容器时保持行为，无开放finding。复盘no-increment：本次通过修正现有布局约束解决，不新建通用规则/框架/组件。

@@ -145,3 +145,19 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Use the available page width, including when a preview shares the screen. */
+.page-layout-container {
+  container-type: inline-size;
+  container-name: page-layout;
+}
+
+@container page-layout (min-width: 64rem) {
+  .explore-wide-filters {
+    display: flex;
+  }
+
+  .explore-narrow-filters {
+    display: none;
+  }
+}
