@@ -2,6 +2,7 @@ import { track } from '@/analytics/collector';
 import { APP_CONFIG } from '@/constants';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import type { User } from '@/types';
+import i18n from '@/i18n/config';
 
 const API_BASE = APP_CONFIG.API_BASE_URL.replace(/\/+$/, '');
 const DESKTOP_DEEP_LINK = 'gemigo-desktop://auth';
@@ -72,6 +73,8 @@ export class AuthManager {
   };
 
   updateHandle = async (handle: string, displayName?: string): Promise<void> => {
+    const userId = this.getCurrentUser()?.id;
+    if (!userId) throw new Error(i18n.t('profile.nameSessionChanged'));
     const trimmed = handle.trim();
     if (!trimmed && displayName === undefined) {
       return;
@@ -89,12 +92,22 @@ export class AuthManager {
         | undefined;
 
       if (!res.ok || !data?.user) {
-        const message =
-          data?.error ||
-          (res.status === 409
-            ? 'Handle 已被占用，请换一个。'
-            : '更新 Handle 失败，请稍后再试。');
+        const validationMessages: Record<string, string> = {
+          'This handle is already taken.': 'profile.handleTaken',
+          'Handle must be between 3 and 24 characters long.': 'profile.handleErrorLength',
+          'Handle can only contain lowercase letters, numbers and dashes.': 'profile.handleErrorCharset',
+          'Display name must be at most 50 characters and cannot contain an email address.': 'profile.nameError',
+        };
+        const message = res.status === 409
+          ? i18n.t('profile.handleTaken')
+          : res.status === 401
+            ? i18n.t('profile.nameSessionChanged')
+            : i18n.t(validationMessages[data?.error ?? ''] ?? 'profile.updateError');
         throw new Error(message);
+      }
+
+      if (this.getCurrentUser()?.id !== userId || data.user.id !== userId) {
+        throw new Error(i18n.t('profile.nameSessionChanged'));
       }
 
       useAuthStore.setState({
@@ -102,10 +115,17 @@ export class AuthManager {
       });
     } catch (err) {
       console.error('Failed to update handle', err);
-      if (err instanceof Error) {
+      if (err instanceof Error && [
+        i18n.t('profile.handleTaken'),
+        i18n.t('profile.updateError'),
+        i18n.t('profile.nameSessionChanged'),
+        i18n.t('profile.handleErrorLength'),
+        i18n.t('profile.handleErrorCharset'),
+        i18n.t('profile.nameError'),
+      ].includes(err.message)) {
         throw err;
       }
-      throw new Error('更新 Handle 失败，请稍后再试。');
+      throw new Error(i18n.t('profile.updateError'));
     }
   };
 

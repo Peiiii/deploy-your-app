@@ -658,6 +658,18 @@
     "clickToPin": "Click on an app card to pin it",
     "displayNameLabel": "Public display name",
     "displayNamePlaceholder": "The name you want others to see",
-    "displayNameHint": "Shown on your apps and profile in every language. Your email stays private."
+    "displayNameHint": "The name people see on your apps and profile. It doesn't need to be unique. Your email stays private.",
+    "nameReminderTitle": "Give your work a name people can recognize",
+    "nameReminderDescription": "Choose a public name to replace your default creator name. You can also do this later.",
+    "setName": "Set your name",
+    "saveName": "Save name",
+    "nameReminderLater": "Maybe later",
+    "optionalHandleLabel": "Username (optional)",
+    "handleUniquenessHint": "Your username must be unique and is used in your profile URL. You can save a display name without one.",
+    "handleFormatHint": "Use 3–24 letters, numbers or dashes. Usernames are case-insensitive.",
+    "handleTaken": "This username is already taken. Please choose another.",
+    "nameError": "Enter a name of 1–50 characters without an email address or control characters.",
+    "nameSaved": "Your public name is saved.",
+    "nameSessionChanged": "Your sign-in session changed. Please set your name again."
   }
 }
