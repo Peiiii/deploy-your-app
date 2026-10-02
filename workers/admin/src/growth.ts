@@ -234,6 +234,18 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
         ]
       )
     );
+  const sources = new Map<string, Breakdown>();
+  for (const row of web.data?.referrers || []) {
+    let host = (row.dimensions.refererHost || '').toLowerCase();
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(':')) host = '外部 IP 来源';
+    if (host.endsWith('.script.googleusercontent.com')) host = 'script.googleusercontent.com';
+    const prior = sources.get(host);
+    sources.set(host, {
+      count: (prior?.count || 0) + row.count,
+      sum: { visits: (prior?.sum.visits || 0) + row.sum.visits },
+      dimensions: { refererHost: host },
+    });
+  }
   return {
     period,
     daily,
@@ -248,7 +260,7 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
         Number(results[4].results[0][key] || 0),
       ])
     ),
-    referrers: web.data?.referrers || [],
+    referrers: [...sources.values()].sort((a, b) => b.sum.visits - a.sum.visits),
     devices: web.data?.devices || [],
     web: { fetchedAt: web.fetchedAt, stale: web.stale, error: web.error, adaptiveSampling: true },
     generatedAt: now,

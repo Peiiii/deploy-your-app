@@ -73,7 +73,7 @@ const mf = new Miniflare({
               ],
               apps: [row(period.to, 900, 200)],
               referrers: [
-                { count: 100, sum: { visits: 30 }, dimensions: { refererHost: 'example.invalid' } },
+                { count: 100, sum: { visits: 30 }, dimensions: { refererHost: '192.0.2.1' } },
               ],
               devices: [{ count: 100, sum: { visits: 30 }, dimensions: { deviceType: 'mobile' } }],
             },
@@ -147,6 +147,8 @@ try {
   assert.equal(report.current.pv, 100);
   assert.equal(report.previous.pv, 50);
   assert.equal(report.current.appsPv, 900, 'app traffic must not inflate platform PV');
+  assert.equal(report.referrers[0].dimensions.refererHost, '外部 IP 来源');
+  assert.ok(!JSON.stringify(report).includes('192.0.2.1'), 'growth never exposes raw IP hosts');
   assert.equal(report.current.visits, 30, 'visits are independent from UV');
   assert.equal(
     report.observedUv,
