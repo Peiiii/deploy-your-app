@@ -293,7 +293,7 @@ export default function Acquisition() {
             </div>
             <p>
               <a
-                href="https://search.google.com/search-console?resource_id=sc-domain%3Agemigo.io"
+                href="https://search.google.com/search-console?resource_id=https%3A%2F%2Fgemigo.io%2F"
                 target="_blank"
                 rel="noreferrer"
               >

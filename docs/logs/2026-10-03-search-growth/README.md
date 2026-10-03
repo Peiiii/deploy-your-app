@@ -59,3 +59,7 @@
 - 单次零代码对照：sitemap.xml?fetch-test=20261003返回同一有效XML，Google回执“已成功提交站点地图”，列表两条均无法抓取/0发现；不继续变换地址或重复提交。人工处置报告已尝试打开/刷新，正文未成功读取，安全报告未读取；Chrome控制与截图持续受并行切页/空白干扰，误采到的非本任务图片已丢弃，未作为证据保留。没有源码变更，未将配置已查证写成报告修复。
 - 按用户此前长期关注与当前继续托管的要求，创建当前聊天每日09:00 Asia/Shanghai的heartbeat自动化gemigo-ai，ACTIVE；自动化工具创建成功并view核对，调度配置归Codex，不复制脚本/系统cron。续办SG01/SG05和长期SEO/GEO观察；无实质变化安静，有完成/失败性质变化/需用户动作才通知。记录见[结构化官方步骤排查](artifacts/sitemap-official-checklist.json)。本轮仅补证与安排续办，Required范围未缩减，报告失败根因仍未确认，整体继续进行中。
 - 收尾真实浏览器操作明确返回Mac已锁屏且无法自动解锁；已请求用户手动解锁，保护既有登录与授权，不尝试自动解锁、改密或绕过安全。人工/安全报告仍未取得，不能把未读到正文称为Google没有处罚，也不将电脑锁屏解释为sitemap报告失败根因。文档/JSON口径、链接及diff review通过，无源码更改或新代码finding。
+
+- 用户解锁后继续：原Chrome实际站点地图列表两条仍无法抓取/0发现；人工处置报告导航/刷新、安全报告导航均未取得可读正文，不推断无处罚或安全问题。Chrome反复切换到其它任务，扩展控制不可用；已请求短暂暂停并行浏览器操作，等待协调，未重复提交sitemap或绕过生产日预算。
+- 顺链发现并修正后台搜索报表的Search Console入口：此前硬编码sc-domain:gemigo.io，而当前实际已验证资源是https://gemigo.io/前缀；直接将既有链接指向已验证资源，无新增配置或第二套状态。局部单owner bugfix，直接源码与实际已验证资源锁定原因，skip-reproduction/skip-design（L1惯例链接修正）；验收为目标URL匹配已验证资源、TypeScript与定向lint通过、构建和生产资产包含修正链接。此修正不代表sitemap报告已修复。
+- 本次局部修正的定向ESLint、admin tsc --noEmit、build:admin通过，构建JS验证新资源链接且不含旧资源链接；构建仍有既有大chunk提示。项目无自动diff-only maintainability入口，采用实际diff轻量Review：链接与Google已验证资源一致，权限和后台connected状态不变，无未关闭finding；文档/JSON差异检查通过。
