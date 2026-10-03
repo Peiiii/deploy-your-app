@@ -1,3 +1,4 @@
+import { parseBatch, type EventBatch } from '@gemigo/product-analytics';
 import type { User, PublicUser } from '../types/user';
 
 const SESSION_COOKIE_NAME = 'session_id';
@@ -115,9 +116,10 @@ export function buildOAuthStateCookie(
   provider: OAuthProvider,
   state: string,
   redirectTo: string,
+  analytics?: EventBatch,
 ): string {
   const name = getStateCookieName(provider);
-  const value = encodeURIComponent(`${state}|${redirectTo}`);
+  const value = encodeURIComponent(`${state}|${redirectTo}|${analytics ? JSON.stringify(analytics) : ''}`);
   const parts = [
     `${name}=${value}`,
     'Max-Age=600', // 10 minutes
@@ -137,17 +139,20 @@ export function clearOAuthStateCookie(provider: OAuthProvider): string {
 export function readOAuthStateCookie(
   req: Request,
   provider: OAuthProvider,
-): { state: string; redirectTo: string } | null {
+): { state: string; redirectTo: string; analytics?: EventBatch } | null {
   const cookieHeader = req.headers.get('cookie');
   if (!cookieHeader) return null;
   const name = getStateCookieName(provider);
   const cookies = cookieHeader.split(';').map((c) => c.trim());
   for (const c of cookies) {
     if (c.startsWith(`${name}=`)) {
-      const raw = decodeURIComponent(c.slice(name.length + 1));
-      const [state, redirectTo] = raw.split('|');
+      let raw: string;
+      try { raw = decodeURIComponent(c.slice(name.length + 1)); } catch { return null; }
+      const [state, redirectTo, context] = raw.split('|');
       if (!state || !redirectTo) return null;
-      return { state, redirectTo };
+      let analytics: EventBatch | undefined;
+      try { if (context) analytics = parseBatch(JSON.parse(context)); } catch { /* Invalid analytics cannot fail login. */ }
+      return { state, redirectTo, ...(analytics ? { analytics: { ...analytics, events: [] } } : {}) };
     }
   }
   return null;

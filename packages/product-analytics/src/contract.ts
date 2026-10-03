@@ -21,7 +21,7 @@ export const EVENTS = {
   auth_open: ['打开登录 / 注册', '账号', 'browser'],
   auth_submit: ['提交登录 / 注册', '账号', 'browser'],
   login_success: ['邮箱登录成功', '账号', 'server'],
-  signup_success: ['邮箱注册成功', '账号', 'server'],
+  signup_success: ['新账号注册成功', '账号', 'server'],
   oauth_start: ['发起第三方登录', '账号', 'browser'],
   reaction_click: ['点赞 / 收藏', '互动', 'browser'],
   comment_submit: ['提交评论', '互动', 'browser'],
@@ -39,6 +39,7 @@ export type ClientChannel = 'web' | 'desktop' | 'extension' | 'cli' | 'api';
 export const PAGES = [
   'home',
   'explore',
+  'guide',
   'new_project',
   'project',
   'dashboard',
@@ -98,13 +99,36 @@ export interface EventBatch {
   visitorId: string;
   sessionId: string;
   device: Device;
-  referrer: 'direct' | 'search' | 'social' | 'github' | 'other';
+  referrer: 'direct' | 'search' | 'ai' | 'social' | 'github' | 'other';
   channel: ClientChannel;
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
   events: ProductEvent[];
 }
+// Strict hostname boundaries prevent spoof domains such as chatgpt.com.evil.test.
+export const classifyReferrer = (
+  raw: string,
+  currentHost: string,
+  utmSource?: string,
+  utmMedium?: string,
+): EventBatch['referrer'] => {
+  const paid = ['cpc', 'ppc', 'paid', 'paid_search', 'paidsearch', 'paid-social', 'paid_social', 'display', 'cpm', 'sem'].includes(utmMedium || '');
+  if (paid) return 'other';
+  const aiSources = ['chatgpt', 'openai', 'perplexity', 'claude', 'gemini', 'copilot', 'deepseek', 'grok', 'chatgpt.com', 'perplexity.ai', 'claude.ai', 'gemini.google.com', 'copilot.microsoft.com', 'chat.deepseek.com', 'grok.com'];
+  if (aiSources.includes(utmSource || '')) return 'ai';
+  if (!raw) return 'direct';
+  try {
+    const host = new URL(raw).hostname.toLowerCase();
+    if (host === currentHost.toLowerCase()) return 'direct';
+    const matches = (domains: string[]) => domains.some((domain) => host === domain || host.endsWith('.' + domain));
+    if (matches(['chatgpt.com', 'chat.openai.com', 'perplexity.ai', 'claude.ai', 'gemini.google.com', 'copilot.microsoft.com', 'chat.deepseek.com', 'grok.com'])) return 'ai';
+    if (/^(www\.)?google\.(com|[a-z]{2}|com\.[a-z]{2}|co\.[a-z]{2})$/.test(host) || matches(['bing.com', 'baidu.com', 'duckduckgo.com', 'search.yahoo.com', 'search.brave.com', 'ecosia.org', 'yandex.com', 'yandex.ru', 'sogou.com', 'so.com'])) return 'search';
+    if (matches(['github.com'])) return 'github';
+    if (matches(['x.com', 'twitter.com', 'facebook.com', 't.co'])) return 'social';
+  } catch { /* Raw URLs never leave the browser. */ }
+  return 'other';
+};
 const parseAttribution = (value: unknown): string | undefined => {
   if (typeof value !== 'string') return undefined;
   const normalized = value.trim().toLowerCase();
@@ -114,6 +138,7 @@ export const normalizePage = (path: string): PageName => {
   const clean = path.split('?')[0].replace(/\/+$/, '') || '/';
   if (clean === '/') return 'home';
   if (clean === '/explore') return 'explore';
+  if (/^\/guides\/[^/]+$/.test(clean)) return 'guide';
   if (clean === '/deploy') return 'new_project';
   if (/^\/projects\/[^/]+$/.test(clean)) return 'project';
   if (clean === '/dashboard') return 'dashboard';
@@ -131,7 +156,7 @@ export const parseBatch = (value: unknown, now = Date.now()): EventBatch => {
   if (!isUuid(b.visitorId) || !isUuid(b.sessionId)) throw new Error('Invalid identifiers');
   if (!['desktop', 'mobile', 'tablet'].includes(String(b.device)))
     throw new Error('Invalid device');
-  if (!['direct', 'search', 'social', 'github', 'other'].includes(String(b.referrer)))
+  if (!['direct', 'search', 'ai', 'social', 'github', 'other'].includes(String(b.referrer)))
     throw new Error('Invalid referrer');
   const channel = b.channel === undefined ? 'web' : String(b.channel);
   if (!['web', 'desktop', 'extension', 'cli', 'api'].includes(channel))

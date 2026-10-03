@@ -1,3 +1,4 @@
+import { PublicInfo } from '@/seo/public-info';
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -28,7 +29,6 @@ export const Home: React.FC = () => {
           className={`pb-8 ${isPanelOpen ? 'w-full' : 'w-full max-w-7xl mx-auto'
             }`}
         >
-          <h1 className="sr-only">GemiGo</h1>
           <div className="p-4 md:px-8 md:py-6">
             {/* Deploy Section */}
             <HomeDeploySection
@@ -43,6 +43,7 @@ export const Home: React.FC = () => {
               compact={isPanelOpen}
               onCardClick={handleCardClick}
             />
+            <PublicInfo path="/" heading={false} />
             <footer className="mt-8 flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-200 pt-5 text-xs text-slate-600 dark:border-slate-800 dark:text-slate-400">
               <span>© GemiGo</span>
               <Link to="/acceptable-use" className="hover:underline">{t('legal.policyTitle')}</Link>

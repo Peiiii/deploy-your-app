@@ -51,9 +51,9 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
         </div>
         {!collapsed && (
           <div>
-            <h1 className="font-bold text-xl tracking-tight text-slate-900 dark:text-white leading-none font-sans">
+            <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white leading-none font-sans">
               Gemi<span className="text-brand-600 dark:text-brand-400">Go</span>
-            </h1>
+            </span>
           </div>
         )}
       </div>

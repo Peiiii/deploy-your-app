@@ -153,6 +153,7 @@ class AuthController {
       isAdmin: configService.isAdminUser(user, env),
     });
     const response = jsonResponse({ user: publicUser });
+    response.headers.set('x-gemigo-auth-result', existing ? 'login' : 'signup');
     return withSetCookie(response, buildSessionCookie(session.id));
   }
 

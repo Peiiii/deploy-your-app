@@ -1,4 +1,5 @@
 import {
+  classifyReferrer,
   DIMENSIONS,
   EVENTS,
   normalizePage,
@@ -12,7 +13,7 @@ const storage = (key: string, fallback: string, session = false) => {
   try {
     const store = session ? sessionStorage : localStorage;
     const existing = store.getItem(PREFIX + key);
-    if (existing) return existing;
+    if (existing !== null) return existing;
     store.setItem(PREFIX + key, fallback);
   } catch {
     /* Storage unavailable: memory-only identity. */
@@ -28,6 +29,7 @@ const attributionValue = (name: string) => {
 const utmSource = storage('utm_source', attributionValue('utm_source') || '', true) || undefined;
 const utmMedium = storage('utm_medium', attributionValue('utm_medium') || '', true) || undefined;
 const utmCampaign = storage('utm_campaign', attributionValue('utm_campaign') || '', true) || undefined;
+const clientChannel: EventBatch['channel'] = (navigator.userAgent || '').includes('Electron') || new URL(location.href).searchParams.get('desktop') === '1' ? 'desktop' : 'web';
 const queue: ProductEvent[] = [];
 let installed = false;
 let collectionEnabled = true;
@@ -38,30 +40,23 @@ const applyPolicy = (response: Response) => {
 };
 let lastPage = '';
 const nativeFetch = window.fetch.bind(window);
-const referrer = (): EventBatch['referrer'] => {
-  if (!document.referrer) return 'direct';
-  try {
-    const host = new URL(document.referrer).hostname;
-    if (host === location.hostname) return 'direct';
-    if (/^(www\.)?(google\.[a-z.]+|bing\.com|baidu\.com)$/.test(host)) return 'search';
-    if (host === 'github.com') return 'github';
-    if (['x.com', 'twitter.com', 'facebook.com', 't.co'].includes(host)) return 'social';
-  } catch {
-    /* No raw URL is sent. */
-  }
-  return 'other';
-};
+const firstReferrer = storage('referrer', classifyReferrer(document.referrer, location.hostname, utmSource, utmMedium), true);
+const referrer: EventBatch['referrer'] = ['direct', 'search', 'ai', 'social', 'github', 'other'].includes(firstReferrer)
+  ? firstReferrer as EventBatch['referrer'] : 'other';
 const envelope = (events: ProductEvent[]): EventBatch => ({
   visitorId,
   sessionId,
   device: innerWidth < 768 ? 'mobile' : innerWidth < 1024 ? 'tablet' : 'desktop',
-  referrer: referrer(),
-  channel: 'web',
+  referrer,
+  channel: clientChannel,
   ...(utmSource ? { utmSource } : {}),
   ...(utmMedium ? { utmMedium } : {}),
   ...(utmCampaign ? { utmCampaign } : {}),
   events,
 });
+// Only anonymous, allowlisted attribution is carried through the existing OAuth state.
+export const oauthAnalytics = (): string => collectionEnabled && navigator.doNotTrack !== '1'
+  ? '&analytics=' + encodeURIComponent(JSON.stringify(envelope([]))) : '';
 export const track = (
   name: EventName,
   options: Pick<ProductEvent, 'dimension' | 'durationMs' | 'flowId'> = {}

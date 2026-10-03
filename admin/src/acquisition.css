@@ -1,0 +1,31 @@
+.acquisition {
+  display: grid;
+  gap: 20px;
+}
+.acquisition h2 {
+  font-size: 18px;
+  margin: 0 0 12px;
+}
+.acquisition-source {
+  display: grid;
+  gap: 8px;
+}
+.acquisition-source .caption {
+  margin: 0;
+}
+.acquisition-today {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 40px;
+}
+.acquisition .filters {
+  margin: 0;
+}
+.acquisition .filters button[aria-pressed='true'] {
+  background: #ede9fe;
+  color: #5b21b6;
+  border-color: #c4b5fd;
+}
+.acquisition .metric small {
+  line-height: 1.6;
+}

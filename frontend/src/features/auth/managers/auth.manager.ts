@@ -1,4 +1,4 @@
-import { track } from '@/analytics/collector';
+import { track, oauthAnalytics } from '@/analytics/collector';
 import { APP_CONFIG } from '@/constants';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import type { User } from '@/types';
@@ -151,7 +151,7 @@ export class AuthManager {
     const redirect = getRedirectTarget();
     const url = `${API_BASE}/auth/google/start?redirect=${encodeURIComponent(
       redirect,
-    )}`;
+    )}${oauthAnalytics()}`;
     if (openDesktopOAuth(url)) return;
     window.location.href = url;
   };
@@ -161,7 +161,7 @@ export class AuthManager {
     const redirect = getRedirectTarget();
     const url = `${API_BASE}/auth/github/start?redirect=${encodeURIComponent(
       redirect,
-    )}`;
+    )}${oauthAnalytics()}`;
     if (openDesktopOAuth(url)) return;
     window.location.href = url;
   };

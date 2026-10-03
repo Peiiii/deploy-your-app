@@ -26,9 +26,9 @@ export const HomeDeploySection = ({ compact, onQuickDeploy }: HomeDeploySectionP
         className={`flex gap-3 ${compact ? 'flex-col' : 'flex-col xl:flex-row xl:items-center xl:justify-between'}`}
       >
         <div className="min-w-0">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+          <h1 className="text-lg font-bold text-slate-900 dark:text-white">
             {t('home.publishHeading')}
-          </h2>
+          </h1>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
             <p className="text-sm text-slate-600 dark:text-slate-400">
               {t('home.publishDescription')}

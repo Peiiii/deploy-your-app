@@ -3,6 +3,7 @@ import type { Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { readFileSync } from 'node:fs';
 import path from 'path';
+import { getSeo, renderSeoHead, renderSeoContent, renderSitemap, renderLlms } from './seo.mjs';
 
 const cliSkillFileName = 'skills/gemigo-cli/SKILL.md';
 const cliSkillSource = path.resolve(__dirname, '../skills/gemigo-cli/SKILL.md');
@@ -28,6 +29,22 @@ const publishCliSkill = (): Plugin => ({
   },
 });
 
+const publishSeo = (): Plugin => ({
+  name: 'publish-public-seo',
+  transformIndexHtml(html) {
+    const seo = getSeo(new URL('https://gemigo.io/'));
+    return html.replace('<!-- seo-head -->', renderSeoHead(seo))
+      .replace('<!-- seo-content -->', renderSeoContent(seo));
+  },
+  generateBundle() {
+    for (const [fileName, source] of [
+      ['seo.js', readFileSync(path.resolve(__dirname, 'seo.mjs'), 'utf8')],
+      ['sitemap.xml', renderSitemap()],
+      ['llms.txt', renderLlms()],
+    ]) this.emitFile({ type: 'asset', fileName, source });
+  },
+});
+
 export default defineConfig(({ mode }) => {
   // Load env vars from the frontend package root (frontend/.env*)
   const env = loadEnv(mode, __dirname, '');
@@ -36,7 +53,7 @@ export default defineConfig(({ mode }) => {
   return {
     // This config file itself lives in the frontend root.
     root: __dirname,
-    plugins: [react(), publishCliSkill()],
+    plugins: [react(), publishCliSkill(), publishSeo()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),

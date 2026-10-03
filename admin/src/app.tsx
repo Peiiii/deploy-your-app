@@ -6,6 +6,7 @@ import Operations from './operations';
 import AccountSecurity from './account-security';
 import Feedback from './feedback';
 import Growth from './growth';
+import Acquisition from './acquisition';
 import { destination, type Navigate } from './navigation';
 import SidebarIcon from './sidebar-icon';
 
@@ -277,6 +278,7 @@ export default function App() {
     ['projects', '应用管理'],
     ['feedback', '反馈管理'],
     ['users', '用户管理'],
+    ['seo', '搜索与 AI 获客'],
     ['deployments', '部署记录'],
     ['overview', '使用概览'],
     ['features', '功能使用'],
@@ -322,7 +324,7 @@ export default function App() {
           {nav.slice(0, 5).map(([key, label]) => navButton(key, label))}
           <details
             className="nav-details"
-            open={nav.slice(5, 11).some(([key]) => key === section) || undefined}
+            open={nav.slice(5, 12).some(([key]) => key === section) || undefined}
           >
             <summary>
               <SidebarIcon name="overview" />
@@ -340,10 +342,10 @@ export default function App() {
                 <path d="m7 10 5 5 5-5" />
               </svg>
             </summary>
-            {nav.slice(5, 11).map(([key, label]) => navButton(key, label))}
+            {nav.slice(5, 12).map(([key, label]) => navButton(key, label))}
           </details>
           <span className="nav-label section-group">系统</span>
-          {nav.slice(11).map(([key, label]) => navButton(key, label))}
+          {nav.slice(12).map(([key, label]) => navButton(key, label))}
         </nav>
         <div className="aside-bottom">
           <div className="sidebar-environment">
@@ -474,6 +476,7 @@ export default function App() {
             <Feedback selectedId={route.id} owner={route.owner} navigate={navigate} />
           )}
           {section === 'growth' && <Growth />}
+          {section === 'seo' && <Acquisition />}
           {section === 'security' && (
             <AccountSecurity
               username={username}

@@ -1,3 +1,4 @@
+import { usePageSeo } from '@/seo/use-page-seo';
 import { trackPage } from '@/analytics/collector';
 import { useEffect, useRef } from 'react';
 import { usePreviewScrollAnchor } from '@/hooks/use-preview-scroll-anchor';
@@ -152,6 +153,7 @@ const MainLayout: React.FC = () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function App() {
+  usePageSeo();
   const location = useLocation();
   const pathname = location.pathname || '/';
   const isPrivacyPolicy =

@@ -120,3 +120,41 @@ export const summarize = (rows: StoredEvent[]) => {
     generatedAt: Date.now(),
   };
 };
+
+export interface AcquisitionCounts {
+  source: 'search' | 'ai';
+  visitors: number;
+  sessions: number;
+  eligibleSessions: number;
+  registeredSessions: number;
+  registrations: number;
+  conversionRate: number | null;
+}
+export interface AcquisitionReport {
+  period: { days: number; from: string; to: string; availableFrom: string; partial: boolean };
+  summary: AcquisitionCounts[];
+  daily: {
+    day: string;
+    available: boolean;
+    registrationsAvailable: boolean;
+    sources: AcquisitionCounts[];
+  }[];
+  today: {
+    day: string;
+    available: boolean;
+    registrationsAvailable: boolean;
+    sources: AcquisitionCounts[];
+  };
+  landings: (AcquisitionCounts & { page: string })[];
+  registrationTrackingSince: string | null;
+  searchConsole: {
+    connected: boolean;
+    impressions: number | null;
+    clicks: number | null;
+    ctr: number | null;
+    averagePosition: number | null;
+  };
+  generatedAt: number;
+  reservedReads: number;
+  rowsRead: number;
+}

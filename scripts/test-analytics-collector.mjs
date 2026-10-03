@@ -2,15 +2,62 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
-const transpile = path => ts.transpileModule(fs.readFileSync(path, 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText;
+const transpile = (path) =>
+  ts.transpileModule(fs.readFileSync(path, 'utf8'), {
+    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS },
+  }).outputText;
 const contract = { exports: {} };
-vm.runInNewContext(transpile('packages/product-analytics/src/contract.ts'), { exports: contract.exports });
+vm.runInNewContext(transpile('packages/product-analytics/src/contract.ts'), {
+  exports: contract.exports,
+  URL,
+});
 const requests = [];
 let now = Date.now();
 const listeners = new Map();
 const local = new Map();
-const localStorage = { getItem: key => local.get(key) || null, setItem: (key, value) => local.set(key, value) };
-const context = { exports: {}, require: () => contract.exports, crypto, URL, Request, Headers, innerWidth: 1400, location: { origin: 'https://gemigo.io', href: 'https://gemigo.io/', hostname: 'gemigo.io', pathname: '/' }, localStorage, sessionStorage: localStorage, navigator: { locks: { request: async (_name, send) => send() } }, document: { referrer: '', visibilityState: 'hidden', addEventListener: (name, fn) => listeners.set(name, fn) }, Date: class extends Date { static now() { return now; } }, window: { fetch: async (input, init) => { requests.push({ input, init }); return new Response(null, { status: 204 }); }, addEventListener: () => {}, setInterval: (fn, ms) => { assert.equal(ms, 120000); listeners.set('interval', fn); } } };
+const localStorage = {
+  getItem: (key) => (local.has(key) ? local.get(key) : null),
+  setItem: (key, value) => local.set(key, value),
+};
+const context = {
+  exports: {},
+  require: () => contract.exports,
+  crypto,
+  URL,
+  Request,
+  Headers,
+  innerWidth: 1400,
+  location: {
+    origin: 'https://gemigo.io',
+    href: 'https://gemigo.io/',
+    hostname: 'gemigo.io',
+    pathname: '/',
+  },
+  localStorage,
+  sessionStorage: localStorage,
+  navigator: { locks: { request: async (_name, send) => send() } },
+  document: {
+    referrer: '',
+    visibilityState: 'hidden',
+    addEventListener: (name, fn) => listeners.set(name, fn),
+  },
+  Date: class extends Date {
+    static now() {
+      return now;
+    }
+  },
+  window: {
+    fetch: async (input, init) => {
+      requests.push({ input, init });
+      return new Response(null, { status: 204 });
+    },
+    addEventListener: () => {},
+    setInterval: (fn, ms) => {
+      assert.equal(ms, 120000);
+      listeners.set('interval', fn);
+    },
+  },
+};
 vm.runInNewContext(transpile('frontend/src/analytics/collector.ts'), context);
 const { track, installAnalytics } = context.exports;
 installAnalytics();
@@ -24,11 +71,75 @@ assert.equal(requests[1].init, undefined, 'never leak telemetry cross-origin');
 for (let i = 0; i < 10; i++) {
   track('theme_change');
   listeners.get('visibilitychange')();
-  await new Promise(resolve => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
   listeners.get('visibilitychange')();
-  await new Promise(resolve => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
   now += 120001;
 }
-assert.equal(requests.filter(r => r.input === '/api/v1/telemetry').length, 6, 'daily six-request ceiling including repeated unload events');
+assert.equal(
+  requests.filter((r) => r.input === '/api/v1/telemetry').length,
+  6,
+  'daily six-request ceiling including repeated unload events'
+);
 assert.equal(JSON.parse(local.get('gemigo.analytics.budget')).count, 6);
-console.log('PASS 50 actions = 0 analytics requests; piggyback batches <=20; no cross-origin headers; 120s cooldown; 6 daily fallback requests across repeated visibility events');
+console.log(
+  'PASS 50 actions = 0 analytics requests; piggyback batches <=20; no cross-origin headers; 120s cooldown; 6 daily fallback requests across repeated visibility events'
+);
+
+const sessionValues = new Map();
+const sessionStore = {
+  getItem: (key) => (sessionValues.has(key) ? sessionValues.get(key) : null),
+  setItem: (key, value) => sessionValues.set(key, value),
+};
+const loadVisit = async (referral, url, dnt = false) => {
+  const sent = [];
+  const visit = {
+    ...context,
+    exports: {},
+    sessionStorage: sessionStore,
+    location: { ...context.location, href: url },
+    navigator: { ...context.navigator, doNotTrack: dnt ? '1' : '0' },
+    document: { ...context.document, referrer: referral },
+    window: {
+      ...context.window,
+      fetch: async (_input, init) => {
+        sent.push(init);
+        return new Response(null, { status: 200 });
+      },
+    },
+  };
+  vm.runInNewContext(transpile('frontend/src/analytics/collector.ts'), visit);
+  visit.exports.installAnalytics();
+  visit.exports.trackPage();
+  await visit.window.fetch('/api/v1/me');
+  return {
+    batch: sent[0]?.headers ? JSON.parse(sent[0].headers.get('x-gemigo-events')) : null,
+    oauth: visit.exports.oauthAnalytics(),
+  };
+};
+const entry = await loadVisit('https://www.google.com/search?q=private', 'https://gemigo.io/');
+assert.equal(entry.batch.referrer, 'search');
+const returned = await loadVisit(
+  'https://gemigo.io/guides/publish-html',
+  'https://gemigo.io/?utm_source=chatgpt'
+);
+assert.equal(
+  returned.batch.referrer,
+  'search',
+  'same-tab internal navigation or OAuth return preserves first source'
+);
+assert.equal(
+  returned.batch.utmSource,
+  undefined,
+  'empty first-entry UTM cannot be replaced on reload'
+);
+const oauthContext = JSON.parse(decodeURIComponent(returned.oauth.slice('&analytics='.length)));
+assert.equal(oauthContext.referrer, 'search');
+assert.equal(oauthContext.events.length, 0);
+assert.ok(!JSON.stringify(oauthContext).includes('private'), 'no raw referral query is carried');
+const optedOut = await loadVisit('https://chatgpt.com/', 'https://gemigo.io/', true);
+assert.equal(optedOut.oauth, '');
+assert.equal(optedOut.batch, null);
+console.log(
+  'PASS first source and empty UTM survive reload/OAuth return; minimal OAuth context; no raw referral; DNT disables context and events'
+);

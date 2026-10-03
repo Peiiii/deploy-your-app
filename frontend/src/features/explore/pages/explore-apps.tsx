@@ -3,6 +3,7 @@ import { CATEGORY_LABEL_KEYS } from '@/constants/app-categories';
 import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
 import { AppLanguageFilter } from '@/features/explore/components/app-language-filter';
 import { Search, LayoutGrid, Smartphone } from 'lucide-react';
+import { PublicInfo } from '@/seo/public-info';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -280,6 +281,7 @@ export const ExploreApps: React.FC = () => {
           </>
         )}
       </div>
+      <PublicInfo path="/explore" heading={false} />
     </PageLayout>
   );
 };

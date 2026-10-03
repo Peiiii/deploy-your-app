@@ -1,6 +1,7 @@
 export const sections = [
   'dashboard',
   'growth',
+  'seo',
   'projects',
   'feedback',
   'users',

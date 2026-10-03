@@ -1,0 +1,20 @@
+export const SITE: string;
+export const PUBLIC_PATHS: string[];
+export type Seo = {
+  path: string;
+  key?: string;
+  language: string;
+  title: string;
+  description: string;
+  heading: string;
+  canonical: string;
+  indexable: boolean;
+  known: boolean;
+  structuredData: object | null;
+};
+export function localizedPath(path: string, language: string): string;
+export function getSeo(url: URL): Seo;
+export function renderSeoHead(seo: Seo): string;
+export function renderSeoContent(seo: Seo, includeHeading?: boolean): string;
+export function renderSitemap(): string;
+export function renderLlms(): string;

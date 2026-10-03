@@ -1,3 +1,4 @@
+import { parseBatch, type EventBatch } from '@gemigo/product-analytics';
 import type { ApiWorkerEnv } from '../types/env';
 import { configService } from './config.service';
 import { ConfigurationError, UnauthorizedError } from '../utils/error-handler';
@@ -59,6 +60,12 @@ class OAuthService {
     const originalRedirect =
       url.searchParams.get('redirect') || redirectBase;
 
+    let analytics: EventBatch | undefined;
+    const context = url.searchParams.get('analytics');
+    try {
+      if (context && context.length <= 1500) analytics = { ...parseBatch(JSON.parse(context)), events: [] };
+    } catch { /* Attribution is optional and does not participate in authentication. */ }
+
     const authUrl = new URL(providerConfig.authorizeUrl);
     authUrl.searchParams.set('client_id', clientId);
     authUrl.searchParams.set('redirect_uri', redirectUrl.toString());
@@ -74,7 +81,7 @@ class OAuthService {
     headers.set('Location', authUrl.toString());
     headers.append(
       'Set-Cookie',
-      buildOAuthStateCookie(provider, state, originalRedirect),
+      buildOAuthStateCookie(provider, state, originalRedirect, analytics),
     );
     return new Response(null, {
       status: 302,
@@ -160,6 +167,7 @@ class OAuthService {
       }
     }
 
+    const created = !user;
     if (!user) {
       user = await providerConfig.createUserWithProvider(
         db,
@@ -206,6 +214,7 @@ class OAuthService {
     headers.append('Set-Cookie', buildSessionCookie(session.id));
     headers.append('Set-Cookie', clearOAuthStateCookie(provider));
     headers.set('Location', redirectTarget);
+    headers.set('x-gemigo-auth-result', created ? 'signup' : 'login');
     return new Response(null, {
       status: 302,
       headers,

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { PublicInfo } from '@/seo/public-info';
 import { Home } from '@/features/home/pages/home-page';
 import { Dashboard } from '@/features/dashboard/pages/dashboard';
 import { NewDeployment } from '@/features/deployment/pages/new-deployment';
@@ -23,6 +24,9 @@ export const AppRoutes = () => (
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/deploy" element={<NewDeployment />} />
+        <Route path="/about" element={<PublicInfo />} />
+        <Route path="/guides/publish-html" element={<PublicInfo />} />
+        <Route path="/guides/publish-zip" element={<PublicInfo />} />
         <Route path="/explore" element={<ExploreApps />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/projects/:id" element={<ProjectSettings />} />

@@ -51,6 +51,8 @@ interface UIState {
 
 const getInitialLanguage = (): string => {
   if (typeof window !== 'undefined') {
+    const explicit = new URLSearchParams(window.location.search).get('lang');
+    if (explicit === 'en' || explicit === 'zh-CN') return explicit;
     try { const stored = localStorage.getItem('i18nextLng'); if (stored) return stored; } catch { /* Storage may be disabled. */ }
   }
   return 'en';
