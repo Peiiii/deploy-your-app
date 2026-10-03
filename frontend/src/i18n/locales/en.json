@@ -541,7 +541,20 @@
       "originalSound": "Original Sound",
       "interactive": "INTERACTIVE"
     },
-    "sortByRecommended": "Recommended"
+    "sortByRecommended": "Recommended",
+    "recommendation": {
+      "order": "Feed order",
+      "discover": "Discover",
+      "try": "Try recommendations",
+      "recent": "Recently published",
+      "preferences": "Recommendation preferences",
+      "explanation": "This experiment uses your activity in this feed to suggest works. You can clear your preferences or turn off saved history.",
+      "remember": "Remember recent interests",
+      "clear": "Clear my preferences",
+      "cleared": "Preferences updated",
+      "notInterested": "Not interested",
+      "excluded": "This work will be skipped in future recommendations"
+    }
   },
   "project": {
     "projectSettings": "Project Settings",

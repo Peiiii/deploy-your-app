@@ -1,3 +1,4 @@
+import { scheduledRecommendation } from './explore-recommendation/indexer';
 import { analyticsRepository } from './repositories/analytics.repository';
 import { metadataService } from './services/metadata.service';
 import { projectLanguageService } from './services/project-language.service';
@@ -41,6 +42,7 @@ const worker: ExportedHandler<ApiWorkerEnv> = {
     if (env.PROJECTS_DB) await deployService.reconcilePending(env, env.PROJECTS_DB);
     if (env.PROJECTS_DB && new Date(_event.scheduledTime).getUTCHours() === 3
       && new Date(_event.scheduledTime).getUTCMinutes() === 0) await analyticsRepository.cleanup(env.PROJECTS_DB);
+    await scheduledRecommendation(env).catch(() => console.warn('Recommendation maintenance skipped'));
     await deploymentSourceService.cleanup(env);
     await projectLanguageService.scanPending(env, env.PROJECTS_DB);
     await metadataService.translatePendingDescriptions(env, env.PROJECTS_DB);

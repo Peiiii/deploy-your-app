@@ -1,3 +1,4 @@
+import { handleFeed, handleRecommendationOperations } from './explore-recommendation/controller';
 import type { ApiWorkerEnv } from './types/env';
 import { ConfigurationError } from './utils/error-handler';
 import { createRouter, type Router } from './utils/routing';
@@ -35,6 +36,9 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     }
     return db;
   };
+
+  router.add({path:'/api/v1/explore-feed',method:'POST',handler:req=>handleFeed(req,env)});
+  router.add({path:'/api/v1/admin/explore-recommendation',method:'POST',handler:req=>handleRecommendationOperations(req,env)});
 
   // --------------------
   // Deploy routes (proxy to Node deploy service)

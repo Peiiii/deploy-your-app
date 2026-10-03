@@ -16,7 +16,7 @@ import { usePresenter } from '@/contexts/presenter-context';
 import { useAppPreviewPanel } from '@/hooks/use-app-preview-panel';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { PERFORMANCE_CONFIG } from '@/constants';
-import { ExploreFeed } from '../components/explore-feed';
+import { RecommendationFeed } from '../recommendation/recommendation-feed';
 
 
 
@@ -146,16 +146,7 @@ export const ExploreApps: React.FC = () => {
 
   if (isFeedView) {
     return (
-      <ExploreFeed
-        key={JSON.stringify(languages)}
-        error={error}
-        onRetry={presenter.explore.refresh}
-        apps={apps}
-        hasMore={hasMore}
-        isLoading={isLoading}
-        onLoadMore={presenter.explore.loadMore}
-        onToggleView={() => setViewMode('grid')}
-      />
+      <RecommendationFeed onToggleView={() => setViewMode('grid')} />
     );
   }
 

@@ -55,6 +55,9 @@ try {
       return typeof value === 'function' ? value.bind(target) : value;
     },
   });
+  // Schema caches are scoped to the exact binding, including this observation proxy.
+  await exploreService.getExploreProjects(observed, { sort:'popularity',pageSize:6 });
+  prepared.length=0; batches=0;
   const first = await exploreService.getExploreProjects(observed, { sort:'popularity',pageSize:6 });
   assert.deepEqual(first.items.map(p=>p.id), ['a','b','c','e','f','d'], 'human traffic, then favorites, likes, time, deterministic ties');
   assert.equal(first.total,206, 'legacy null-deleted row stays public; URL-derived stats do not change its stored-key ranking');
