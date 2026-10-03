@@ -1,5 +1,5 @@
 import { trackPage } from '@/analytics/collector';
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { usePreviewScrollAnchor } from '@/hooks/use-preview-scroll-anchor';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
@@ -77,7 +77,13 @@ const useAppInitialize = () => {
  */
 const MainContent: React.FC = () => {
   const scrollRef = useRef<HTMLElement>(null);
+  const { pathname } = useLocation();
   usePreviewScrollAnchor(scrollRef);
+  // Routes share this scroll container; a new page must not inherit its offset.
+  // Query changes and preview/sidebar reflow keep their existing position.
+  useLayoutEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [pathname]);
   const isFullscreenPanel = useUIStore((s) =>
     s.rightPanelContent !== null && s.rightPanelLayout === 'fullscreen');
 

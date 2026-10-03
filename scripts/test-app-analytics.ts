@@ -103,6 +103,8 @@ try {
   const expired = await authRepository.createSession(db,user.id,-60);
   const project = await projectRepository.createProjectRecord(db,{ id:crypto.randomUUID(),ownerId:user.id,
     name:'Own app',url:origin('first')+'/',repoUrl:'html:own',sourceType:SourceType.Html,lastDeployed:now.toISOString(),status:'Live',framework:'HTML',slug:'first' });
+  const secondProject = await projectRepository.createProjectRecord(db,{ id:crypto.randomUUID(),ownerId:user.id,
+    name:'Second app',url:origin('second')+'/',repoUrl:'html:second',sourceType:SourceType.Html,lastDeployed:now.toISOString(),status:'Live',framework:'HTML',slug:'second' });
   const statsUrl='http://api.local/api/v1/projects/'+project.id+'/stats?range=30d';
   assert.equal((await api.fetch(statsUrl)).status,401);
   assert.equal((await api.fetch(statsUrl,{headers:{cookie:'session_id='+otherSession.id}})).status,404);
@@ -196,6 +198,31 @@ try {
   await ui.waitForFunction(()=>{const close=document.querySelector('[aria-label="Collapse sidebar"]');return !close || close.getBoundingClientRect().right<=0;});
   assert.equal(await ui.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await ui.screenshot({path:'/tmp/gemigo-app-analytics-mobile.png',fullPage:true});
+
+  // The real shared shell resets navigation, while query-only updates retain scroll.
+  await ui.setViewportSize({width:1280,height:720});
+  await ui.goto('http://127.0.0.1:'+port+'/projects/'+project.id);
+  await ui.getByRole('button',{name:'Save metadata',exact:true}).waitFor();
+  const main = ui.locator('main');
+  await main.evaluate(element=>{element.scrollTop=200;});
+  assert.ok(await main.evaluate(element=>element.scrollTop)>100);
+  await ui.getByRole('button',{name:'General',exact:true}).click();
+  await ui.waitForURL('**?tab=general');
+  assert.ok(await main.evaluate(element=>element.scrollTop)>100,'same-page query navigation retains scroll');
+  await ui.getByRole('button',{name:'App management',exact:true}).click();
+  await ui.waitForURL('**/dashboard');
+  assert.equal(await main.evaluate(element=>element.scrollTop),0,'new page resets the shared main');
+  await ui.getByRole('link',{name:'Own app',exact:true}).click();
+  await ui.waitForURL('**/projects/'+project.id);
+  assert.equal(await main.evaluate(element=>element.scrollTop),0,'app settings starts at the top');
+  await main.evaluate(element=>{element.scrollTop=200;});
+  const expandSidebar = ui.getByRole('button',{name:'Expand sidebar',exact:true});
+  if (await expandSidebar.isVisible()) await expandSidebar.click();
+  assert.ok(await main.evaluate(element=>element.scrollTop)>100,'sidebar reflow does not reset the current page');
+  // Switch application ids through the sidebar without remounting the shell.
+  await ui.getByRole('button',{name:'Second app',exact:true}).click();
+  await ui.waitForURL('**/projects/'+secondProject.id);
+  assert.equal(await main.evaluate(element=>element.scrollTop),0,'another app resets even with the same settings component');
 
   const privateBrowser=await browser.newContext({userAgent:'Mozilla/5.0 Chrome/131.0 Safari/537.36'});
   await privateBrowser.addInitScript('Object.defineProperty(navigator, "webdriver", {get:()=>false});Object.defineProperty(navigator, "doNotTrack", {get:()=>"1"});');
