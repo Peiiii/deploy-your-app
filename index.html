@@ -168,6 +168,49 @@
       .seo-content a { color: #7c3aed; text-decoration: underline; }
       .dark .seo-content a { color: #c4b5fd; }
 
+      .seo-support {
+        max-width: none; margin: 3rem 0 0; padding: clamp(1.25rem, 3vw, 2rem);
+        border: 1px solid var(--border-main); border-radius: 1.25rem;
+        background: var(--bg-surface); color: var(--text-main);
+        font-size: .875rem; line-height: 1.75;
+      }
+      .seo-support-header {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 1.25rem; margin-bottom: 1.75rem;
+      }
+      .seo-support .seo-support-label {
+        margin: 0 0 .375rem; color: var(--text-muted); font-size: .75rem;
+        font-weight: 500; letter-spacing: .04em;
+      }
+      .seo-support h2 { margin: 0; font-size: 1.25rem; line-height: 1.4; font-weight: 650; }
+      .seo-support-actions { display: flex; flex-wrap: wrap; gap: .625rem; }
+      .seo-support-actions a {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-height: 2.75rem; padding: .5rem 1rem; border-radius: .75rem;
+        font-weight: 600; text-decoration: none; border: 1px solid var(--border-main);
+      }
+      .seo-support a.seo-support-primary { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+      .seo-support a.seo-support-primary:hover { background: #6d28d9; border-color: #6d28d9; }
+      .seo-support a.seo-support-secondary { color: var(--text-main); background: var(--bg-surface); }
+      .seo-support a.seo-support-secondary:hover { background: var(--bg-highlight); }
+      .seo-support-sections {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+        gap: 1.5rem 2rem;
+      }
+      .seo-support-sections section { min-width: 0; }
+      .seo-support-sections h3 { margin: 0 0 .5rem; font-size: .9375rem; font-weight: 600; }
+      .seo-support-sections p { margin: 0; color: var(--text-muted); overflow-wrap: anywhere; }
+      .seo-support nav {
+        gap: .25rem 1.5rem; margin: 1.5rem 0 0; padding-top: 1rem;
+        border-top: 1px solid var(--border-main);
+      }
+      .seo-content.seo-support nav a, .seo-support .seo-policies a { color: var(--text-muted); text-decoration: none; }
+      .seo-support nav a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+      .seo-support nav a:hover, .seo-support .seo-policies a:hover { color: #7c3aed; text-decoration: underline; }
+      .dark .seo-support nav a:hover, .dark .seo-support .seo-policies a:hover { color: #c4b5fd; }
+      .seo-support a:focus-visible { outline: 2px solid #8b5cf6; outline-offset: 4px; }
+      .seo-support .seo-policies { margin: .75rem 0 0; color: var(--text-muted); font-size: .75rem; }
+
       .app-bootstrap { display: none; }
       .app-booting #root { display: none; }
       .app-booting body { margin: 0; }
@@ -201,8 +244,8 @@
         @keyframes bootstrap-pulse { 50% { opacity: .3; } }
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-DasDi2gt.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CvP_PGYz.css">
+    <script type="module" crossorigin src="/assets/index-ch-jGXI0.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CJ8A7CNH.css">
   </head>
   <body>
     <div class="app-bootstrap" role="status" aria-label="Loading">
@@ -219,6 +262,6 @@
         </div>
       </div>
     </div>
-    <div id="root"><article class="seo-content"><h1>Publish and share web apps</h1><p>Publish web apps from HTML, ZIP files or GitHub. Get a shareable link, manage updates, and discover interactive tools, learning apps and games.</p><section><h2>From your content to a public link</h2><p>Paste HTML, upload a ZIP, or use a GitHub repository. GemiGo publishes web application content so you can open it in a browser and share a link.</p></section><section><h2>Interactive content you can share</h2><p>Publish a learning activity, browser game, interactive demo or web tool. These are examples of supported web content, not a promise that every app works without changes.</p></section><section><h2>What happens after publishing?</h2><p>Open the resulting website, check its behavior, and use your project settings to update the application. Public discovery is controlled separately from access to the deployed link.</p></section><nav aria-label="Publishing help"><a href="/deploy">Publish an app</a><a href="/explore">Explore apps</a><a href="/catalog">Public app catalog</a><a href="/about">About GemiGo</a><a href="/guides/publish-html">Publish HTML</a><a href="/guides/publish-zip">Publish a ZIP</a><a href="/?lang=zh-CN">中文</a></nav><p><a href="/privacy-policy">Privacy policy</a> · <a href="/acceptable-use">Acceptable use</a></p></article></div>
+    <div id="root"><article class="seo-content"><h1>Publish and share web apps</h1><p>Publish web apps from HTML, ZIP files or GitHub. Get a shareable link, manage updates, and discover interactive tools, learning apps and games.</p><section><h2>From your content to a public link</h2><p>Paste HTML, upload a ZIP, or use a GitHub repository. GemiGo publishes web application content so you can open it in a browser and share a link.</p></section><section><h2>Interactive content you can share</h2><p>Publish a learning activity, browser game, interactive demo or web tool. These are examples of supported web content, not a promise that every app works without changes.</p></section><section><h2>What happens after publishing?</h2><p>Open the resulting website, check its behavior, and use your project settings to update the application. Public discovery is controlled separately from access to the deployed link.</p></section><nav aria-label="Publishing help"><a href="/deploy">Publish an app</a><a href="/explore">Explore apps</a><a href="/catalog">Public app catalog</a><a href="/about">About GemiGo</a><a href="/guides/publish-html">Publish HTML</a><a href="/guides/publish-zip">Publish a ZIP</a><a href="/?lang=zh-CN">中文</a></nav><p class="seo-policies"><a href="/privacy-policy">Privacy policy</a> · <a href="/acceptable-use">Acceptable use</a></p></article></div>
   </body>
 </html>

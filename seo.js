@@ -372,9 +372,29 @@ export const renderSeoHead = (seo) => {
 export const renderSeoContent = (seo, includeHeading = true) => {
   if (!seo.key) return '';
   const text = copy[seo.language];
-  const href = (path, label) =>
-    `<a href="${escape(localizedPath(path, seo.language))}">${escape(label)}</a>`;
-  return `<article class="seo-content">${includeHeading ? `<h1>${escape(seo.heading)}</h1><p>${escape(seo.description)}</p>` : ''}${text.sections[seo.key].map(([heading, paragraph]) => `<section><h2>${escape(heading)}</h2><p>${escape(paragraph)}</p></section>`).join('')}${renderGuideExamples(seo.key, seo.language)}<nav aria-label="${seo.language === 'zh-CN' ? '发布帮助' : 'Publishing help'}">${href('/deploy', text.publish)}${href('/explore', text.exploreLink)}${href('/catalog', seo.language === 'zh-CN' ? '公开作品目录' : 'Public app catalog')}${href('/about', text.aboutLink)}${href('/guides/publish-html', text.htmlLink)}${href('/guides/publish-zip', text.zipLink)}${`<a href="${escape(seo.path + (seo.language === 'en' ? '?lang=zh-CN' : '?lang=en'))}">${escape(text.language)}</a>`}</nav><p><a href="/privacy-policy">${seo.language === 'zh-CN' ? '隐私政策' : 'Privacy policy'}</a> · <a href="/acceptable-use">${seo.language === 'zh-CN' ? '使用规范' : 'Acceptable use'}</a></p></article>`;
+  const chinese = seo.language === 'zh-CN';
+  const href = (path, label, className = '') =>
+    `<a${className ? ` class="${className}"` : ''} href="${escape(localizedPath(path, seo.language))}">${escape(label)}</a>`;
+  const languageLink = `<a href="${escape(seo.path + (seo.language === 'en' ? '?lang=zh-CN' : '?lang=en'))}">${escape(text.language)}</a>`;
+  const policies = `<p class="seo-policies"><a href="/privacy-policy">${chinese ? '隐私政策' : 'Privacy policy'}</a> · <a href="/acceptable-use">${chinese ? '使用规范' : 'Acceptable use'}</a></p>`;
+  const support = !includeHeading && ['home', 'explore'].includes(seo.key);
+  const sections = text.sections[seo.key]
+    .map(
+      ([heading, paragraph]) =>
+        `<section><${support ? 'h3' : 'h2'}>${escape(heading)}</${support ? 'h3' : 'h2'}><p>${escape(paragraph)}</p></section>`
+    )
+    .join('');
+  const helpLinks =
+    href('/catalog', chinese ? '公开作品目录' : 'Public app catalog') +
+    href('/about', text.aboutLink) +
+    href('/guides/publish-html', text.htmlLink) +
+    href('/guides/publish-zip', text.zipLink) +
+    languageLink;
+  const navigation = `<nav aria-label="${chinese ? '发布帮助' : 'Publishing help'}">${support ? '' : href('/deploy', text.publish) + href('/explore', text.exploreLink)}${helpLinks}</nav>`;
+  if (support) {
+    return `<article class="seo-content seo-support"><header class="seo-support-header"><div><p class="seo-support-label">GemiGo · ${chinese ? '发布帮助' : 'Publishing help'}</p><h2>${chinese ? '发布与分享，从这里开始' : 'Your next step: publish and share'}</h2></div><div class="seo-support-actions">${href('/deploy', text.publish, 'seo-support-primary')}${href('/explore', text.exploreLink, 'seo-support-secondary')}</div></header><div class="seo-support-sections">${sections}</div>${navigation}${seo.key === 'home' ? '' : policies}</article>`;
+  }
+  return `<article class="seo-content">${includeHeading ? `<h1>${escape(seo.heading)}</h1><p>${escape(seo.description)}</p>` : ''}${sections}${renderGuideExamples(seo.key, seo.language)}${navigation}${policies}</article>`;
 };
 export const renderSitemap = () =>
   `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">${PUBLIC_PATHS.flatMap((path) => ['en', 'zh-CN'].map((language) => `<url><loc>${escape(SITE + localizedPath(path, language))}</loc>${['en', 'zh-CN', 'x-default'].map((lang) => `<xhtml:link rel="alternate" hreflang="${lang}" href="${escape(SITE + localizedPath(path, lang))}"/>`).join('')}</url>`)).join('')}</urlset>`;
