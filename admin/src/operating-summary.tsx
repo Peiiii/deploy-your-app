@@ -56,14 +56,6 @@ export default function OperatingSummary({
     : '—';
   return (
     <>
-      <div className="operating-context">
-        <div>
-          <span className="eyebrow">PUBLISH · RETURN · RESOLVE</span>
-          <h2>看增长，也把问题处理完</h2>
-          <p className="muted">近 {report.days} 天（含今日 UTC） · 发布指标按创作者去重</p>
-        </div>
-        <button onClick={() => navigate('growth')}>查看流量与增长 ↗</button>
-      </div>
       <div className="metrics business-metrics">
         {[
           ['成功发布创作者', report.publishing.publishers, '所选范围内至少一次部署成功'],
@@ -82,82 +74,30 @@ export default function OperatingSummary({
           </article>
         ))}
       </div>
-      <p className="caption">
-        发布指标仅覆盖已记录的部署历史；首次与再次互斥，不等同于用户留存率。处理中尝试不计入成功率。
-      </p>
-      <div className="two-columns action-columns">
-        <article className="panel action-panel">
-          <div className="spread">
-            <h3>
-              待关注应用 <span className="queue-count">{count(report.attention.total)}</span>
-            </h3>
-            <button onClick={() => navigate('projects')}>应用管理</button>
-          </div>
-          <p className="muted">当前失败，或部署中超过 24 小时；应用原链接可能仍可访问。</p>
-          {report.attention.items.map((row) => (
-            <button
-              className="action-item"
-              key={String(row.id)}
-              onClick={() => navigate('projects', String(row.id))}
-            >
-              <div>
-                <b>{row.name || row.id}</b>
-                <small>
-                  {row.reason === 'stalled' ? '部署超过 24 小时' : '当前状态：失败'} ·{' '}
-                  {row.error_code || '未记录错误代码'}
-                </small>
-              </div>
-              <span>查看详情 →</span>
-            </button>
-          ))}
-          {!report.attention.items.length && (
-            <div className="empty">
-              <p>{report.attention.total ? '本页没有记录，请返回上一页' : '当前没有待关注应用'}</p>
-            </div>
-          )}
-          {queuePage(report.attention, busy, (page) => changePage('attention', page))}
-        </article>
-        <article className="panel action-panel">
-          <div className="spread">
-            <h3>
-              待处理反馈 <span className="queue-count">{count(report.feedback.total)}</span>
-            </h3>
-            <button onClick={() => navigate('feedback')}>反馈管理</button>
-          </div>
-          <p className="muted">优先展示最早提交、尚未处理的私密反馈。</p>
-          {report.feedback.items.map((row) => (
-            <button
-              className="action-item"
-              key={String(row.id)}
-              onClick={() => navigate('feedback', String(row.id))}
-            >
-              <div>
-                <b>{row.title}</b>
-                <small>{new Date(String(row.created_at)).toLocaleString('zh-CN')}</small>
-              </div>
-              <span>处理 →</span>
-            </button>
-          ))}
-          {!report.feedback.items.length && (
-            <div className="empty">
-              <p>{report.feedback.total ? '本页没有记录，请返回上一页' : '当前没有待处理反馈'}</p>
-            </div>
-          )}
-          {queuePage(report.feedback, busy, (page) => changePage('feedback', page))}
-        </article>
+      <div className="metrics operating-totals">
+        {[
+          ['累计用户', report.summary.users, `本期新增 ${count(report.summary.newUsers)}`],
+          [
+            '有效应用',
+            report.summary.projects,
+            `上线 ${count(report.summary.live)} · 公开上线 ${count(report.summary.public)}`,
+          ],
+          [
+            '本期已采集应用访问',
+            report.traffic.humanViews,
+            `机器人访问 ${count(report.traffic.botViews)} · 仅反映已采集流量`,
+          ],
+        ].map(([title, value, hint]) => (
+          <article className="metric" key={String(title)}>
+            <span>{title}</span>
+            <strong>{count(value)}</strong>
+            <small>{hint}</small>
+          </article>
+        ))}
       </div>
-      <div className="operating-background">
-        <span>
-          累计用户 <b>{count(report.summary.users)}</b>（本期新增 {count(report.summary.newUsers)}）
-        </span>
-        <span>
-          有效应用 <b>{count(report.summary.projects)}</b> · 上线 {count(report.summary.live)} ·
-          公开上线 {count(report.summary.public)}
-        </span>
-        <span>
-          本期已采集应用访问 <b>{count(report.traffic.humanViews)}</b> · 机器人{' '}
-          {count(report.traffic.botViews)}
-        </span>
+      <div className="operating-report-note">
+        <p className="caption">近 {report.days} 天（含今日 UTC） · 发布指标按创作者去重</p>
+        <button onClick={() => navigate('growth')}>查看流量与增长 ↗</button>
       </div>
       <div className="two-columns dashboard-columns">
         <article className="panel">
@@ -229,6 +169,70 @@ export default function OperatingSummary({
             ))}
             {!report.errors.length && <p className="muted">本期没有失败记录</p>}
           </details>
+        </article>
+      </div>
+      <p className="caption">
+        发布指标仅覆盖已记录的部署历史；首次与再次互斥，不等同于用户留存率。处理中尝试不计入成功率。
+      </p>
+      <div className="two-columns action-columns">
+        <article className="panel action-panel">
+          <div className="spread">
+            <h3>
+              待关注应用 <span className="queue-count">{count(report.attention.total)}</span>
+            </h3>
+            <button onClick={() => navigate('projects')}>应用管理</button>
+          </div>
+          <p className="muted">当前失败，或部署中超过 24 小时；应用原链接可能仍可访问。</p>
+          {report.attention.items.map((row) => (
+            <button
+              className="action-item"
+              key={String(row.id)}
+              onClick={() => navigate('projects', String(row.id))}
+            >
+              <div>
+                <b>{row.name || row.id}</b>
+                <small>
+                  {row.reason === 'stalled' ? '部署超过 24 小时' : '当前状态：失败'} ·{' '}
+                  {row.error_code || '未记录错误代码'}
+                </small>
+              </div>
+              <span>查看详情 →</span>
+            </button>
+          ))}
+          {!report.attention.items.length && (
+            <div className="empty">
+              <p>{report.attention.total ? '本页没有记录，请返回上一页' : '当前没有待关注应用'}</p>
+            </div>
+          )}
+          {queuePage(report.attention, busy, (page) => changePage('attention', page))}
+        </article>
+        <article className="panel action-panel">
+          <div className="spread">
+            <h3>
+              待处理反馈 <span className="queue-count">{count(report.feedback.total)}</span>
+            </h3>
+            <button onClick={() => navigate('feedback')}>反馈管理</button>
+          </div>
+          <p className="muted">优先展示最早提交、尚未处理的私密反馈。</p>
+          {report.feedback.items.map((row) => (
+            <button
+              className="action-item"
+              key={String(row.id)}
+              onClick={() => navigate('feedback', String(row.id))}
+            >
+              <div>
+                <b>{row.title}</b>
+                <small>{new Date(String(row.created_at)).toLocaleString('zh-CN')}</small>
+              </div>
+              <span>处理 →</span>
+            </button>
+          ))}
+          {!report.feedback.items.length && (
+            <div className="empty">
+              <p>{report.feedback.total ? '本页没有记录，请返回上一页' : '当前没有待处理反馈'}</p>
+            </div>
+          )}
+          {queuePage(report.feedback, busy, (page) => changePage('feedback', page))}
         </article>
       </div>
       <p className="caption">

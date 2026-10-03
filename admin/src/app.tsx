@@ -7,6 +7,7 @@ import AccountSecurity from './account-security';
 import Feedback from './feedback';
 import Growth from './growth';
 import { destination, type Navigate } from './navigation';
+import SidebarIcon from './sidebar-icon';
 
 type Report = Awaited<ReturnType<typeof queryAnalytics>> & { cached: boolean };
 type Budget = Awaited<ReturnType<typeof getBudget>>;
@@ -271,24 +272,25 @@ export default function App() {
       </main>
     );
   const nav = [
-    ['dashboard', '◫', '经营总览'],
-    ['growth', '↗', '增长大盘'],
-    ['projects', '▦', '应用管理'],
-    ['feedback', '☷', '反馈管理'],
-    ['users', '♙', '用户管理'],
-    ['deployments', '↗', '部署记录'],
-    ['overview', '◈', '使用概览'],
-    ['features', '◈', '功能使用'],
-    ['funnels', '⇢', '转化与路径'],
-    ['events', '≡', '事件明细'],
-    ['settings', '⚙', '采集与预算'],
-    ['security', '◇', '账号安全'],
-    ['audit', '≡', '操作记录'],
+    ['dashboard', '经营总览'],
+    ['growth', '增长大盘'],
+    ['projects', '应用管理'],
+    ['feedback', '反馈管理'],
+    ['users', '用户管理'],
+    ['deployments', '部署记录'],
+    ['overview', '使用概览'],
+    ['features', '功能使用'],
+    ['funnels', '转化与路径'],
+    ['events', '事件明细'],
+    ['settings', '采集与预算'],
+    ['security', '账号安全'],
+    ['audit', '操作记录'],
   ];
-  const navButton = (key: string, icon: string, label: string) => (
+  const navButton = (key: string, label: string) => (
     <button
       key={key}
       className={section === key ? 'active' : ''}
+      aria-current={section === key ? 'page' : undefined}
       onClick={() => {
         setSection(key);
         setError('');
@@ -297,31 +299,56 @@ export default function App() {
           void run(load);
       }}
     >
-      <span>{icon}</span>
+      <SidebarIcon name={key} />
       {label}
     </button>
   );
   return (
     <div className="shell">
       <aside>
-        <a className="brand" href="/">
-          <b>G</b> GemiGo <small>ADMIN</small>
+        <a className="brand sidebar-brand" href="/">
+          <svg width="34" height="34" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <path d="M16 16 L16 4 A12 12 0 0 1 26.3923 10 Z" fill="#a78bfa" />
+            <path d="M16 16 L28 16 A12 12 0 0 1 16 28 Z" fill="#7c3aed" />
+            <path d="M16 16 L16 28 A12 12 0 0 1 4 16 Z" fill="#5b21b6" />
+            <path d="M16 16 L4 16 A12 12 0 0 1 16 4 Z" fill="#8b5cf6" />
+          </svg>
+          <span className="sidebar-brand-label">
+            GemiGo<small>管理后台</small>
+          </span>
         </a>
         <nav>
           <span className="nav-label section-group">日常运营</span>
-          {nav.slice(0, 5).map(([key, icon, label]) => navButton(key, icon, label))}
+          {nav.slice(0, 5).map(([key, label]) => navButton(key, label))}
           <details
             className="nav-details"
             open={nav.slice(5, 11).some(([key]) => key === section) || undefined}
           >
-            <summary>诊断与分析</summary>
-            {nav.slice(5, 11).map(([key, icon, label]) => navButton(key, icon, label))}
+            <summary>
+              <SidebarIcon name="overview" />
+              <span>诊断与分析</span>
+              <svg
+                className="nav-chevron"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                aria-hidden="true"
+              >
+                <path d="m7 10 5 5 5-5" />
+              </svg>
+            </summary>
+            {nav.slice(5, 11).map(([key, label]) => navButton(key, label))}
           </details>
           <span className="nav-label section-group">系统</span>
-          {nav.slice(11).map(([key, icon, label]) => navButton(key, icon, label))}
+          {nav.slice(11).map(([key, label]) => navButton(key, label))}
         </nav>
         <div className="aside-bottom">
-          <span className="status-dot" /> 独立管理空间<p>按需查询 · 无自动轮询</p>
+          <div className="sidebar-environment">
+            <span className="status-dot" /> 独立管理空间
+          </div>
           <a href="https://gemigo.io" target="_blank" rel="noreferrer">
             打开主站 ↗
           </a>
@@ -353,7 +380,7 @@ export default function App() {
           <div className="page-title">
             <div>
               <span className="eyebrow">GEMIGO ADMINISTRATION</span>
-              <h1>{nav.find((n) => n[0] === section)?.[2]}</h1>
+              <h1>{nav.find((n) => n[0] === section)?.[1]}</h1>
               <p className="muted">
                 {section === 'dashboard'
                   ? '从整体表现到具体问题，掌握平台的每一步。'

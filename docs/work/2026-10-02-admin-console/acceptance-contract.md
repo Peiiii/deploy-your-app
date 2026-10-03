@@ -2,8 +2,8 @@
 
 - contract-id: admin-console-2026-10-02
 - parent-goal: 独立后台管理网站、大盘与实际业务管理、初始管理员账号及网页改密；追加私密反馈管理、日度增长运营大盘、CLI渠道使用与整合应用存量统计。
-- scope-revision: 6；原始要求、修订与授权见 [设计](../../designs/2026-10-02-admin-console.design.md)、[交付记录](../../logs/2026-10-02-admin-console/README.md) 与项目 AGENTS.md。
-- flow: standard；delivery-mode: major；retrospective_state: completed。
+- scope-revision: 7；原始要求、修订与授权见 [设计](../../designs/2026-10-02-admin-console.design.md)、[交付记录](../../logs/2026-10-02-admin-console/README.md) 与项目 AGENTS.md。
+- flow: standard；delivery-mode: major；retrospective_state: pending。
 
 | ID | Required | 合同 | Status | 当前证据 |
 | --- | --- | --- | --- | --- |
@@ -22,7 +22,7 @@
 | ADM-12 | true | 经营首页突出真实发布创作者与待关注应用/反馈，明确历史/时间口径，问题可直达处理入口 | passed | [整体方案](../../designs/2026-10-03-admin-operations.design.md)，Worker+D1/实际UI通过；生产7/30与canonical对账47/33/14和89/89/0；待关注23/反馈空态0；19cce8f / Worker a2fd065d |
 | ADM-13 | true | 应用详情完整追溯、作者反馈精确定位、返回保留上下文、导航整合且旧能力保持，生产生效 | passed | 同方案三条黄金链路；Worker/UI、生产桌面/手机/作者筛选/导航/后退刷新与empty/401/404；账号version6与QA清理401 |
 
-当前阶段：整体运营优化Validation/Review/生产Delivery与复盘完成，进入整体Git完成核对；open-required: 无；其余未变化证据继续有效。最终收尾须在本记录提交推送后重新 fetch，并核对本地 master、origin/master 与远程实际 SHA 一致。本文件状态以实际工具交付证据为准，不以写文档代替推送。
+当前阶段：用户纠偏首页数字/图表前置与侧边栏优化，本地渲染/Review通过，待生产视觉验收；open-required: ADM-06/12/13布局追加范围；其余未变化证据继续有效。最终收尾须在本记录提交推送后重新 fetch，并核对本地 master、origin/master 与远程实际 SHA 一致。本文件状态以实际工具交付证据为准，不以写文档代替推送。
 
 入口：https://admin.gemigo.io。初始账号 admin 和临时密码已在聊天中直接交付，并实际网页登录验证；用户随后通过账号安全自行改密，旧临时密码失效。当前密码保留，不再自动重置；本机初始凭据文件不会因网页改密自动更新。
 

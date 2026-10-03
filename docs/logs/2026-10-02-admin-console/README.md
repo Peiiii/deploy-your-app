@@ -128,3 +128,10 @@ mode=implementation Review（本轮功能diff及相邻合同）：no findings。
 独立canonical D1聚合对账：近7天发布创作者47/首次33/再次14；30天89/89/0；待关注23/open反馈0及抽样详情deployment总量匹配接口。wrangler --file SELECT返回import元统计并非查询结果，改--command参数后获得真实聚合结果通过，非产品缺陷。新首页不扫描product_events、不调用CF增长报告，未消耗/重置事件查询预算。QA只创建一个15分钟当前version绑定的独立session；已按确切hash删除并验证session401，临时凭据/私有ID文件删除，生产截图0600，用户密码/其它会话保留，本地5176测试服务停止。
 
 retrospective_decision：已验证事实归原owner `docs/tech/PRODUCT_ANALYTICS.md`（publisher口径、当前问题派生、详情与作者反馈关系、每日UV边界、导航），不新增全局规则。手机Grid缺陷已修并真实UI复验；工具脚本偶发错误当次纠正，无可复用流程增量。ADM-12/13已生产交付，用户主观信息布局偏好待反馈而非审批门。最终Git与远程实际SHA在本记录提交后fresh fetch工具结果核对。
+
+
+## 首页优先级与侧边栏视觉纠偏（scope 7）
+
+原始输入：“经营总览这里肯定是把各种图表和数据呀，数字这些排在前面呀。”随后：“另外，你这个侧边栏有点难看，要不优化一下吧。”本轮同时完成，不覆盖前一请求。展示层L1/trivial，沿既有API与导航，不增加查询或功能。布局与sidebar方案记录在原专题设计末尾；取消口号横幅，原累计3项升级数值卡；所有数字/图表在待办之前。品牌采用现有主站紫色分区标记，线条SVG图标统一13个菜单，字体/行距/分组/选中态与折叠箭头调整；aria-hidden图标、aria-current选中、原生键盘折叠与手机横向菜单保留。
+
+本地验证：admin构建（含tsc）、定向eslint、diff检查通过。实际产品Worker+D1服务器5176，Chrome1440×1050/390×844，数字4+3卡→图表→两组待办的真实坐标顺序、数字与API、7/30、全部13菜单标题/选中态、键盘折叠、异常应用详情与手机菜单均通过；无根溢出/JS错误。截图已人工查看，/tmp/gemigo-admin-polish-local-{desktop,mobile}.png，专用harness /tmp/gemigo-admin-visual-polish.cjs。变更仅呈现，不新增镜像实现测试；启动原UIfixture不可避免复用原集成检查。Review：no findings，轻量检查菜单元组变更的标题消费、CSS桌面/手机覆盖、SVG焦点/可访问名、无API/状态owner变化；无diff-only检查入口，按当前diff手工核对。待生产发布与同坐标验收。
