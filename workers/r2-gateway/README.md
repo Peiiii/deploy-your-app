@@ -6,6 +6,7 @@ This Worker serves deployed apps from a Cloudflare R2 bucket behind a wildcard d
 - Reads static assets from an R2 bucket (binding `ASSETS`)
 - Serves optimized screenshots from R2 and a temporary SVG until the GitHub capture workflow writes a real image
 - Serves legacy `__thumbnail.png` from R2, falling back to the optimized WebP object
+- Supplements missing browser-tab icons using the current page's logo (images, inline SVG with computed colors, CSS backgrounds, or short brand text), falling back to its title initial. Existing valid icons are retained. This runs on new and existing apps without changing their R2 source objects.
 - Redirects the exact `gemigo.app` hostname to `https://gemigo.io/` with HTTP 301, preserving query parameters; all apex paths enter the homepage. This branch reads no R2 objects.
 
 It is used together with the Node backend (`server`) and API Worker (`workers/api`) when `DEPLOY_TARGET = r2`.
@@ -80,6 +81,14 @@ The legacy PNG route still works independently:
 ---
 
 ## Deploy
+
+### Browser-tab icons
+
+The gateway injects a same-origin script from `/__gemigo/favicon-runtime.v1.js` and a title-based SVG when an HTML page has no icon declaration. The script checks valid author/root icons first, then nonstandard declarations, touch icons, same-origin web manifests and visible logo/brand elements. A single graphic paired with the app title in a short navigation/header group also qualifies, covering React brands with no semantic logo class. It waits up to ten seconds for dynamic DOM and slow image loads, then disconnects; manifest reads stop at 64 KiB and blank SVGs are rejected. Generated PNGs are local data URLs; cross-origin logos that cannot be exported from canvas retain their original image URL. No server-side arbitrary-URL fetch, browser job, database field or customer-source rewrite is involved.
+
+Missing `/favicon.ico` serves an SVG instead of the SPA homepage. Original icons come only from the active publication, so deleting an icon on redeploy does not resurrect its previous version. Pages with CSP metadata or response headers receive no icon script/head injection; their existing policies remain authoritative. They can still receive the root default icon if their browser requests it and the policy allows it. Smart extraction has been verified in Chromium; other browsers and exceptionally slow dynamic rendering are compatibility boundaries.
+
+Tests: `node scripts/test-app-delivery-runtime.mjs`, `./server/node_modules/.bin/tsx scripts/test-app-delivery-cache.ts`, and `node scripts/test-smart-favicon.mjs` (requires Playwright/Chromium; `PLAYWRIGHT_MODULE` and `CHROME_EXECUTABLE` can point to the installed desktop dependencies). The last test serves the actual Miniflare Worker over local HTTP without network interception, because Playwright's request routing aborts `/favicon.ico`. It checks both DOM output and Chrome's stored favicon bitmaps.
 
 From repo root:
 

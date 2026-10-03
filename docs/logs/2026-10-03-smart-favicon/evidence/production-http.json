@@ -1,0 +1,77 @@
+[
+  {
+    "url": "https://qingshui.gemigo.app/favicon.ico",
+    "method": "GET",
+    "status": 200,
+    "bytes": 277,
+    "headers": {
+      "Content-Type": "image/svg+xml; charset=utf-8",
+      "Cache-Control": "no-cache",
+      "ETag": null,
+      "X-Gemigo-Favicon": "fallback",
+      "X-Gemigo-Cache": null
+    },
+    "injected": false,
+    "svg": true
+  },
+  {
+    "url": "https://qingshui.gemigo.app/favicon.ico",
+    "method": "HEAD",
+    "status": 200,
+    "bytes": 0,
+    "headers": {
+      "Content-Type": "image/svg+xml; charset=utf-8",
+      "Cache-Control": "no-cache",
+      "ETag": null,
+      "X-Gemigo-Favicon": "fallback",
+      "X-Gemigo-Cache": null
+    },
+    "injected": false,
+    "svg": false
+  },
+  {
+    "url": "https://app-129.gemigo.app/__gemigo/favicon-runtime.v1.js",
+    "method": "GET",
+    "status": 200,
+    "bytes": 12090,
+    "headers": {
+      "Content-Type": "application/javascript; charset=utf-8",
+      "Cache-Control": "no-cache",
+      "ETag": "\"14f3e64770eac79fa8109769af86e291e13e58459dc8e38ea979161f359cdd1e\"",
+      "X-Gemigo-Favicon": null,
+      "X-Gemigo-Cache": null
+    },
+    "injected": false,
+    "svg": false
+  },
+  {
+    "url": "https://qingshui.gemigo.app/",
+    "method": "GET",
+    "status": 200,
+    "bytes": 33156,
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-cache",
+      "ETag": null,
+      "X-Gemigo-Favicon": null,
+      "X-Gemigo-Cache": "HIT"
+    },
+    "injected": true,
+    "svg": false
+  },
+  {
+    "url": "https://qingshui.gemigo.app/",
+    "method": "HEAD",
+    "status": 200,
+    "bytes": 0,
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-cache",
+      "ETag": null,
+      "X-Gemigo-Favicon": null,
+      "X-Gemigo-Cache": "HIT"
+    },
+    "injected": false,
+    "svg": false
+  }
+]

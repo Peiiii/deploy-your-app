@@ -261,6 +261,7 @@ try {
   objects.set(`${manifest.previousPrefix}/old.js`, Buffer.from('old asset'));
   Object.defineProperty(globalThis, 'HTMLRewriter', { configurable: true, value: class {
     on() { return this; }
+    onDocument() { return this; }
     transform(response: Response) { return response; }
   } });
   // This test isolates publication; dedicated gateway tests exercise cache TTLs.

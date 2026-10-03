@@ -1,0 +1,90 @@
+{
+  "version": "b2dc8ab5-0bb3-4c3f-be73-767578bb5286",
+  "environment": "Chromium headless; fixed previously reachable Cloudflare IP 104.21.14.73; no proxy",
+  "results": [
+    {
+      "slug": "qingshui",
+      "status": 200,
+      "elapsedMs": 4731,
+      "mode": "logo-image",
+      "title": "星魔王牌战争脚本",
+      "iconSource": "https://img.remit.ee/i/rQcvwh1Y3dFD",
+      "width": 1080,
+      "height": 1080,
+      "runtimeScripts": 1,
+      "errors": [],
+      "iconUrlCharacters": 35
+    },
+    {
+      "slug": "app-129",
+      "status": 200,
+      "elapsedMs": 5297,
+      "mode": "logo-svg",
+      "title": "李睿博 · 蛛韵红光 2026",
+      "iconSource": "data:image/png",
+      "width": 64,
+      "height": 64,
+      "runtimeScripts": 1,
+      "redPixels": 1249,
+      "errors": [],
+      "iconUrlCharacters": 1318
+    },
+    {
+      "slug": "2-0",
+      "status": 200,
+      "elapsedMs": 12449,
+      "mode": "name",
+      "title": "凉亭 · 动态聊天室",
+      "iconSource": "data:image/png",
+      "width": 64,
+      "height": 64,
+      "runtimeScripts": 1,
+      "errors": [],
+      "iconUrlCharacters": 2474
+    },
+    {
+      "slug": "green-men-gaze",
+      "status": 200,
+      "elapsedMs": 13150,
+      "mode": "name",
+      "title": "Green Men Gaze",
+      "iconSource": "data:image/png",
+      "width": 64,
+      "height": 64,
+      "runtimeScripts": 1,
+      "errors": [],
+      "iconUrlCharacters": 1882
+    },
+    {
+      "slug": "peiiii-os-portfolio",
+      "error": "page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://peiiii-os-portfolio.gemigo.app/\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": []
+    },
+    {
+      "slug": "geeglo",
+      "status": 200,
+      "elapsedMs": 13695,
+      "mode": "name",
+      "title": "Google",
+      "iconSource": "data:image/png",
+      "width": 64,
+      "height": 64,
+      "runtimeScripts": 1,
+      "errors": [],
+      "iconUrlCharacters": 1882
+    },
+    {
+      "slug": "voxel-world-builder",
+      "status": 200,
+      "elapsedMs": 23071,
+      "mode": "name",
+      "title": "Gemini Voxel World",
+      "iconSource": "data:image/png",
+      "width": 64,
+      "height": 64,
+      "runtimeScripts": 1,
+      "errors": [],
+      "iconUrlCharacters": 1882
+    }
+  ]
+}

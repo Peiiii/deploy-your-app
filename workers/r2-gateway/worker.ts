@@ -1,4 +1,5 @@
 import runtimeAssets from './runtime-assets.json';
+import { addSmartFavicon, faviconFallback, SMART_FAVICON_FALLBACK_PATH, SMART_FAVICON_PATH, SMART_FAVICON_RUNTIME } from './smart-favicon';
 
 type R2ObjectLike = {
   body: ReadableStream | null;
@@ -312,9 +313,9 @@ const respondWithValidation = (
   return new Response(response.body, { headers });
 };
 
-const rewriteSharedRuntime = (response: Response, rootDomain: string): Response => {
+const rewriteSharedRuntime = (response: Response, rootDomain: string, origin: string): Response => {
   let hasCsp = false;
-  return new HTMLRewriter()
+  const rewriter = new HTMLRewriter()
     .on('meta[http-equiv]', { element(element) {
       if (element.getAttribute('http-equiv')?.toLowerCase() === 'content-security-policy') hasCsp = true;
     } })
@@ -325,8 +326,8 @@ const rewriteSharedRuntime = (response: Response, rootDomain: string): Response 
       if (src && /^(?:https?:)?\/\/cdn\.tailwindcss\.com\/?$/i.test(src)) {
         element.setAttribute('src', `https://${CENTRAL_THUMBNAIL_HOST}.${rootDomain}${runtimeAssets.tailwind.path}`);
       }
-    } })
-    .transform(response);
+    } });
+  return addSmartFavicon(rewriter, response, origin).transform(response);
 };
 
 export default {
@@ -369,6 +370,14 @@ export default {
       const name = segment.toLowerCase();
       return name === '.env' || name.startsWith('.env.') || name === '.npmrc' || name === '.git' || name === 'node_modules';
     })) return new Response('Not found', { status: 404 });
+
+    if (url.pathname === SMART_FAVICON_PATH && (request.method === 'GET' || request.method === 'HEAD')) {
+      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(SMART_FAVICON_RUNTIME));
+      const etag = `"${Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')}"`;
+      const headers = new Headers({ 'content-type': 'application/javascript; charset=utf-8',
+        'cache-control': 'no-cache', 'x-content-type-options': 'nosniff', etag });
+      return respondWithValidation(request, new Response(SMART_FAVICON_RUNTIME), headers, ctx);
+    }
 
     const bucket = env.ASSETS; // R2 bucket binding configured in wrangler / dashboard
     if (!bucket) {
@@ -459,7 +468,23 @@ export default {
     let pathname = url.pathname || '/';
     if (pathname.endsWith('/')) pathname += 'index.html';
 
+    if (pathname === SMART_FAVICON_FALLBACK_PATH) {
+      const index = await readSiteObject(url, `${prefix}/index.html`, bucket, ctx, bypass, store);
+      if (!index) return new Response('Not found', { status: 404 });
+      if (index.response.body) ctx.waitUntil(index.response.body.cancel());
+      const response = faviconFallback((url.searchParams.get('name') || subdomain).slice(0, 160));
+      return respondWithValidation(request, response, response.headers, ctx);
+    }
+
     let result = await readSiteObject(url, `${prefix}${pathname}`, bucket, ctx, bypass, store);
+    if (pathname === '/favicon.ico' && (!result || result.response.headers.get('content-type')?.includes('text/html'))) {
+      if (result?.response.body) ctx.waitUntil(result.response.body.cancel());
+      const index = await readSiteObject(url, `${prefix}/index.html`, bucket, ctx, bypass, store);
+      if (!index) return new Response('Not found', { status: 404 });
+      if (index.response.body) ctx.waitUntil(index.response.body.cancel());
+      const response = faviconFallback(subdomain);
+      return respondWithValidation(request, response, response.headers, ctx);
+    }
     // Existing open tabs can still need files from the previous release.
     if (!result && previousPrefix && /\.[a-z0-9]+$/i.test(pathname) && !pathname.endsWith('.html')) {
       result = await readSiteObject(url, `${previousPrefix}${pathname}`, bucket, ctx, bypass, store);
@@ -483,10 +508,10 @@ export default {
     headers.set('server-timing', `gemigo;dur=${(performance.now() - started).toFixed(1)}`);
     if (headers.get('content-type')?.includes('text/html')) {
       const etag = headers.get('etag');
-      if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, `-hosting-${runtimeAssets.tailwind.sha256.slice(0, 8)}"`)}`);
+      if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, `-hosting-${runtimeAssets.tailwind.sha256.slice(0, 8)}-favicon-v1"`)}`);
       headers.delete('content-length');
       // Origin objects stay byte-for-byte intact; this is a delivery-only URL substitution.
-      const response = rewriteSharedRuntime(new Response(result.response.body, { headers }), rootDomain);
+      const response = rewriteSharedRuntime(new Response(result.response.body, { headers }), rootDomain, url.origin);
       return respondWithValidation(request, response, headers, ctx);
     }
     return respondWithValidation(request, result.response, headers, ctx);

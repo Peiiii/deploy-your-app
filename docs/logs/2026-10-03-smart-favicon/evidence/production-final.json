@@ -1,0 +1,84 @@
+{
+  "version": "504f2835-60d1-484e-8bde-47ad0c4c891d",
+  "environment": "Chromium headless with existing configured network proxy; no interception",
+  "results": [
+    {
+      "slug": "app-129",
+      "status": 200,
+      "title": "李睿博 · 蛛韵红光 2026",
+      "mode": "logo-svg",
+      "iconSource": "data:image/png",
+      "width": 64,
+      "height": 64,
+      "dominantColor": [
+        "231,76,60",
+        1249
+      ],
+      "errors": []
+    },
+    {
+      "slug": "qingshui",
+      "status": 200,
+      "title": "星魔王牌战争脚本",
+      "mode": "logo-image",
+      "iconSource": "https://img.remit.ee/i/rQcvwh1Y3dFD",
+      "width": 1080,
+      "height": 1080,
+      "errors": []
+    },
+    {
+      "slug": "peiiii-os-portfolio",
+      "status": 200,
+      "title": "PEIIII_OS | v2.5.0",
+      "mode": "logo-svg",
+      "iconSource": "data:image/png",
+      "width": 64,
+      "height": 64,
+      "dominantColor": [
+        "0,255,65",
+        305
+      ],
+      "errors": []
+    },
+    {
+      "slug": "2-0",
+      "status": 200,
+      "title": "凉亭 · 动态聊天室",
+      "mode": "name",
+      "iconSource": "data:image/png",
+      "width": 64,
+      "height": 64,
+      "errors": []
+    },
+    {
+      "slug": "geeglo",
+      "status": 200,
+      "title": "Google",
+      "mode": "name",
+      "iconSource": "data:image/png",
+      "width": 64,
+      "height": 64,
+      "errors": []
+    },
+    {
+      "slug": "green-men-gaze",
+      "status": 200,
+      "title": "Green Men Gaze",
+      "mode": "name",
+      "iconSource": "data:image/png",
+      "width": 64,
+      "height": 64,
+      "errors": []
+    },
+    {
+      "slug": "voxel-world-builder",
+      "status": 200,
+      "title": "Gemini Voxel World",
+      "mode": "name",
+      "iconSource": "data:image/png",
+      "width": 64,
+      "height": 64,
+      "errors": []
+    }
+  ]
+}

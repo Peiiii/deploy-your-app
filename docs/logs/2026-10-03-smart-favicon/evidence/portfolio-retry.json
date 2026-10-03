@@ -1,0 +1,18 @@
+{
+  "slug": "peiiii-os-portfolio",
+  "network": "configured proxy",
+  "status": 200,
+  "url": "https://peiiii-os-portfolio.gemigo.app/",
+  "title": "PEIIII_OS | v2.5.0",
+  "mode": "name",
+  "iconSource": "data:image/png",
+  "decoded": {
+    "width": 64,
+    "height": 64
+  },
+  "runtimeScripts": 1,
+  "rootRendered": 1,
+  "readyState": "complete",
+  "pending": [],
+  "errors": []
+}

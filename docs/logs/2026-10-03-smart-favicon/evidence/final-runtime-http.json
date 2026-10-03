@@ -1,0 +1,13 @@
+{
+  "url": "https://app-129.gemigo.app/__gemigo/favicon-runtime.v1.js",
+  "status": 200,
+  "bytes": 13587,
+  "etag": "\"e3a8d8e896338c766e6d3f8b45a2bf191dc4f6943f2564b51a1b94582809def8\"",
+  "boundedManifest": true,
+  "adjacentBrand": true,
+  "slowImageListener": true,
+  "conditionalStatus": 304,
+  "conditionalBytes": 0,
+  "headStatus": 200,
+  "headBytes": 0
+}

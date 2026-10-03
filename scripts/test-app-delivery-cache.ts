@@ -23,6 +23,7 @@ const cached = new Map<string, { bytes: ArrayBuffer; headers: Headers; expires: 
 const originalCaches = globalThis.caches;
 Object.defineProperty(globalThis, 'HTMLRewriter', { configurable: true, value: class {
   on() { return this; }
+  onDocument() { return this; }
   transform(response: Response) { return response; }
 } });
 Object.defineProperty(globalThis, 'caches', { configurable: true, value: { default: {
