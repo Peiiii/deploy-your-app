@@ -71,8 +71,8 @@
     "discovered_pages": 0,
     "interpretation": "A single independent submission of the same XML failed too; this does not isolate the root cause to the old submission record."
   },
-  "manual_actions_report": "not obtained; report body unreadable during investigation; final browser tool reports Mac locked and requires manual unlock",
-  "security_issues_report": "not obtained",
+  "manual_actions_report": "not obtained; after unlock, navigation/reload still did not yield readable report content",
+  "security_issues_report": "not obtained; after unlock, navigation did not yield readable report content",
   "root_cause": "unconfirmed",
   "scheduled_continuation": {
     "automation_id": "gemigo-ai",
@@ -81,5 +81,23 @@
     "time": "daily 09:00 Asia/Shanghai",
     "notification": "meaningful change, failure change, completion, or required user action only"
   },
-  "browser_blocker": "Mac locked; user asked to unlock manually; authorization remains valid"
+  "browser_blocker": "Mac unlocked; concurrent Chrome operations and unavailable extension control prevent reliable report inspection; coordination requested.",
+  "resumed_browser_observation": {
+    "at_utc": "2026-10-03T12:21:20.161162+00:00",
+    "unlocked": true,
+    "sitemap_list": "Both original and independent submission still show could_not_fetch; zero discovered URLs.",
+    "manual_actions_report": "Navigated and reloaded; report content unreadable. No conclusion about penalties.",
+    "security_issues_report": "Navigation attempted; report content unreadable. No conclusion about security issues.",
+    "interruption": "Chrome switched to another task repeatedly; user asked to pause other browser operations briefly."
+  },
+  "admin_property_link": {
+    "at_utc": "2026-10-03T12:25:39.887479+00:00",
+    "admin_root_status": 200,
+    "asset": "/assets/index-DD5Izc6P.js",
+    "asset_status": 200,
+    "target": "https://search.google.com/search-console?resource_id=https%3A%2F%2Fgemigo.io%2F",
+    "old_domain_target_absent": true,
+    "deployment_version": "32e82c85-3c79-4f17-a038-b37d00b04e7c",
+    "scope": "Public deployed asset verification; Google report body and production acquisition query still unverified."
+  }
 }
