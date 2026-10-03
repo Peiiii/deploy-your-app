@@ -17,6 +17,7 @@ import { analyticsRepository } from '../workers/api/src/repositories/analytics.r
 import { communityRepository } from '../workers/api/src/repositories/community.repository';
 import { communityService } from '../workers/api/src/services/community.service';
 import { projectInventory } from '../workers/admin/src/project-inventory';
+import { analyticsService } from '../workers/api/src/services/analytics.service';
 
 const require = createRequire(import.meta.url);
 const runtime = createRequire(require.resolve('wrangler/package.json'));
@@ -779,6 +780,45 @@ try {
     )
     .bind(now.slice(0, 10))
     .run();
+  const collectionStart =
+    new Date(Date.now() - 86400000).toISOString().slice(0, 10) + 'T00:00:00.000Z';
+  await db
+    .prepare('INSERT INTO project_analytics_collection (id,started_at) VALUES(1,?)')
+    .bind(collectionStart)
+    .run();
+  const appSignal = {
+    isBot: false,
+    visitorHash: 'a'.repeat(64),
+    sessionHash: 'b'.repeat(64),
+    dedupeKey: 'a'.repeat(64),
+    userAgentFamily: 'browser',
+    clientChannel: 'web',
+  };
+  await analyticsRepository.recordPageView(
+    db,
+    'ops-recovered',
+    new Date(Date.now() - 86400000),
+    appSignal
+  );
+  await analyticsRepository.recordPageView(db, 'ops-recovered', new Date(), {
+    ...appSignal,
+    dedupeKey: 'b'.repeat(64),
+  });
+  await analyticsRepository.recordPageView(db, 'ops-recovered', new Date(), {
+    ...appSignal,
+    visitorHash: '',
+    sessionHash: '',
+    dedupeKey: 'c'.repeat(64),
+  });
+  await analyticsRepository.recordPageView(db, 'ops-recovered', new Date(), {
+    ...appSignal,
+    isBot: true,
+    dedupeKey: 'd'.repeat(64),
+  });
+  await analyticsRepository.recordPageView(db, 'other-app', new Date(), {
+    ...appSignal,
+    dedupeKey: 'e'.repeat(64),
+  });
   const traceResponse = await request('projects/ops-recovered', activeCookie);
   assert.match(traceResponse.headers.get('cache-control')!, /no-store/);
   const trace = await traceResponse.json();
@@ -789,18 +829,31 @@ try {
     'ops-recovery-new',
     'latest same-time attempt follows rowid, not UUID ordering'
   );
-  assert.equal(trace.traffic.daily.length, 7);
-  assert.equal(trace.traffic.daily[6].humanViews, 12);
-  assert.equal(trace.traffic.daily[6].dailyVisitors, 2);
-  assert.equal(trace.traffic.daily[0].humanViews, 0);
+  assert.equal(trace.traffic.points.length, 7);
+  assert.equal(
+    trace.traffic.pageViews,
+    3,
+    'browser PV excludes other apps, bot signals and old server diagnostics'
+  );
+  assert.equal(trace.traffic.uniqueVisitors, 1, 'same browser across days counts once');
+  assert.equal(trace.traffic.unidentifiedViews, 1, 'missing storage counts PV, not UV');
+  assert.equal(trace.traffic.points[6].views, 2);
+  assert.equal(trace.traffic.points[6].uniqueVisitors, 1);
+  assert.equal(trace.traffic.points[0].views, null, 'unsampled history is not zero');
+  assert.deepEqual(
+    trace.traffic,
+    await analyticsService.getProjectStatsForSlug(db, 'ops-recovered', 7),
+    'admin and owner consume the same stats owner'
+  );
   assert.ok(trace.feedback.items.some((row: { id: string }) => row.id === 'feedback-ui'));
   assert.ok(!JSON.stringify(trace).includes('NEVER_EXPOSE'));
   assert.ok(!('html_content' in trace.item) && !('password_hash' in trace.item));
   const tracePage2 = await (await request('projects/app-test?page=2&days=30', activeCookie)).json();
   assert.equal(tracePage2.deployments.total, 42);
   assert.equal(tracePage2.deployments.items.length, 20);
-  assert.equal(tracePage2.traffic.daily.length, 30);
-  assert.equal(tracePage2.traffic.hasRecords, false);
+  assert.equal(tracePage2.traffic.points.length, 30);
+  assert.equal(tracePage2.traffic.pageViews, 0, 'covered empty app remains zero');
+  assert.equal(tracePage2.traffic.uniqueVisitors, 0);
   for (const route of ['projects/missing', 'projects/ops-deleted'])
     assert.equal((await request(route, activeCookie)).status, 404);
   for (const route of ['projects/app-test?days=1', 'projects/app-test?page=-1'])

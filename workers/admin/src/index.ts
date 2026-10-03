@@ -84,15 +84,12 @@ const handle = async (
   if (!(await authenticated(request, env))) return json({ error: '请登录独立管理账号' }, 401);
   if (
     request.method === 'GET' &&
-    ['/api/growth', '/api/acquisition', '/api/report', '/api/events'].includes(url.pathname)
+    (['/api/growth', '/api/acquisition', '/api/report', '/api/events'].includes(url.pathname) ||
+      url.pathname.startsWith('/api/projects/'))
   ) {
     const now = Date.now();
     if (
-      !(await allowAdminRead(
-        env.ANALYTICS_DB,
-        await hash(adminSessionToken(request) || ''),
-        now
-      ))
+      !(await allowAdminRead(env.ANALYTICS_DB, await hash(adminSessionToken(request) || ''), now))
     )
       return json({ error: '查询过于频繁，请稍后再试。' }, 429, {
         'Retry-After': String(60 - (Math.floor(now / 1000) % 60)),

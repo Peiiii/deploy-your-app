@@ -3,12 +3,15 @@ import { api } from './api';
 import type { Navigate } from './navigation';
 import { categoryLabels, languageLabel, projectLanguages } from './project-inventory-data';
 import { deploymentChannelLabel } from './deployment-channels';
+import type { ProjectStats } from '@gemigo/product-analytics';
+import TimeSeriesChart from './time-series-chart';
+import { number } from './growth-report';
 
 type Row = Record<string, string | number | null>;
 type Detail = {
   item: Row;
   deployments: { items: Row[]; total: number; page: number; limit: number };
-  traffic: { days: number; from: string; hasRecords: boolean; daily: Row[] };
+  traffic: ProjectStats;
   feedback: { items: Row[]; total: number };
 };
 const count = (value: unknown) => Number(value || 0).toLocaleString('zh-CN');
@@ -282,7 +285,7 @@ export default function ProjectDetail({
           </article>
           <article className="panel">
             <div className="spread">
-              <h3>本应用每日采集 PV / UV</h3>
+              <h3>本应用 PV / UV</h3>
               <div className="segmented">
                 {[7, 30].map((n) => (
                   <button
@@ -297,39 +300,69 @@ export default function ProjectDetail({
               </div>
             </div>
             <p className="muted">
-              {data.traffic.from}{' '}
-              至今日（UTC）。仅此应用，不含官网或其他应用。以下为已采集流量诊断；UV
-              在本应用当日去重，不能跨日或跨应用相加为期间或全部应用 UV。
+              {data.traffic.from} — {data.traffic.to}（UTC，含今日）。仅此应用，不含官网或其他应用。
+              PV 为浏览器实际页面浏览；周期 UV 在所选期间按本应用浏览器标识去重，每日 UV 不相加。
             </p>
-            {!data.traffic.hasRecords && (
-              <div className="empty">
-                <p>这段时间未采集到访问记录</p>
-                <small>可能尚未开始采集，不能据此判断无人使用。</small>
+            <div className="metrics">
+              <article className="metric">
+                <span>本应用周期 PV</span>
+                <strong>{number(data.traffic.pageViews)}</strong>
+                <small>所选期间已采集的页面浏览次数</small>
+              </article>
+              <article className="metric">
+                <span>本应用周期 UV</span>
+                <strong>{number(data.traffic.uniqueVisitors)}</strong>
+                <small>同一浏览器跨日只计一次</small>
+              </article>
+            </div>
+            {data.traffic.coverage.status !== 'complete' && (
+              <div className="notice" role="status">
+                {data.traffic.coverage.startedAt
+                  ? `采集始于 ${time(data.traffic.coverage.startedAt)}，所选期间仅部分日期有数据；未采集日期显示“—”。`
+                  : '浏览器流量采集尚未启用，PV / UV 暂不可用。'}
               </div>
             )}
-            {data.traffic.hasRecords && (
-              <div className="table-wrap traffic-daily">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>日期</th>
-                      <th>本应用采集 PV（人类）</th>
-                      <th>机器人访问</th>
-                      <th>本应用当日 UV（去重访客）</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.traffic.daily.map((row) => (
-                      <tr key={String(row.day)}>
-                        <td>{row.day}</td>
-                        <td>{count(row.humanViews)}</td>
-                        <td>{count(row.botViews)}</td>
-                        <td>{count(row.dailyVisitors)}</td>
+            <p className="footnote">
+              {number(data.traffic.unidentifiedViews)} 次浏览未取得访客标识，计入 PV，未计入 UV。
+              换设备或清除存储会产生新访客；禁 JS、DNT 或拦截上报会影响覆盖。
+            </p>
+            {data.traffic.coverage.status !== 'unavailable' && (
+              <>
+                <TimeSeriesChart
+                  title="本应用每日 PV / UV"
+                  data={data.traffic.points.map((row) => ({
+                    day: row.date,
+                    values: { pv: row.views, uv: row.uniqueVisitors },
+                  }))}
+                  series={[
+                    { key: 'pv', label: '本应用 PV', color: '#7c4fce', unit: '次' },
+                    { key: 'uv', label: '本应用当日 UV', color: '#27927e', unit: '个浏览器' },
+                  ]}
+                />
+                <div className="table-wrap traffic-daily">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>日期</th>
+                        <th>本应用 PV</th>
+                        <th>本应用当日 UV（去重访客）</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {data.traffic.points.map((row) => (
+                        <tr key={row.date}>
+                          <td>
+                            {row.date}
+                            {row.coverage === 'partial' ? '（部分采集）' : ''}
+                          </td>
+                          <td>{number(row.views)}</td>
+                          <td>{number(row.uniqueVisitors)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </article>
           <article className="panel">
