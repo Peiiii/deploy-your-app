@@ -1,0 +1,32 @@
+# Tooltip 可见名称边界修复
+
+用户明确要求：只有纯图标操作显示 Tooltip；带可见文字的入口不显示重复提示。截图为展开侧栏导航。flow=bugfix，风险 L2，retrospective_state=pending；授权按 AGENTS.md 完成提交、普通推送、master 同步、前端发布与线上验收。
+
+## 证据与用户链路
+
+本地当前源码 5297 端口、1440px Chrome 已复现：展开「探索应用」有可见文字，hover 同时出现同名 Tooltip。根因是 IconButton 无条件包裹 Tooltip，调用方的折叠状态、响应式文字隐藏没有传入；Popover 的四个实际消费者全部有可见文字。
+
+用户进入 gemigo.io，hover/键盘聚焦展开导航与语言设置、更多发布方式时不再出现重复提示；折叠侧栏后 hover/聚焦图标继续读到名称，点击导航仍正常；再次展开，已打开的提示消失且按钮焦点、尺寸、对齐不丢失。响应式视图切换、账户与反馈按钮，文字显示时不提示，文字隐藏时提示。
+
+## 冻结修复
+
+- 保留 IconButton/Tooltip 为唯一图标操作 owner。IconButton 增加 showTooltip（默认 true）；带文字调用方根据真实 collapsed 或已有 useBreakpoint 与文字同断点传入，静态文字传 false。
+- Tooltip 接收 enabled，以受控 open 拦截禁用时打开并清除旧打开状态；保留同一 Root/Trigger/按钮身份，避免条件移除 wrapper 导致焦点、ref、事件与布局重置。继续复用 Radix 延迟、Escape、Portal、定位，不自建提示系统。
+- Popover 四个已有文字触发器统一关闭 Tooltip；保留业务与可访问名称。
+- 图标加数字计数仍缺少操作名称，继续显示提示；头像缩写与「+」属于图形标识。全屏应用的进入遮罩已有 hover 提示文字，关闭额外 Tooltip。
+- frontend/README.md 是规范 owner，修订同一规范；已有 icon-actions ESLint 扩展拦截有名称却未声明 showTooltip 的 IconButton，数值计数不误报。动态文字与 CSS 状态仍由 Review 核对。
+
+抽象审计：多个现有消费者共享这一边界，新增一个布尔开关足够；文字可见性归布局调用方，Tooltip 生命周期归组件。不增加 DOM 文本探测、观察器、新 Provider 或新依赖。无传输、存储、兼容合同变化；只影响主前端操作提示，独立 admin 数据图表的数值浮层不在范围。
+
+## 验收与 Review
+
+真实源码页面覆盖展开/折叠导航、游客/账户、静态文字 Popover、桌面与窄屏视图/反馈、hover 与键盘、已打开提示时切换布局、按钮 DOM/焦点保持、点击导航与弹出菜单、原图标/图标加计数提示；类型检查、定向 lint、规则回归、生产构建。生产验收无 fixture 的展开/折叠/文字入口/图标提示与资源身份。
+
+design-review: passed。反例已纳入：只隐藏浮层 CSS 会留下 aria 描述；切换 Tooltip wrapper 会重建按钮；窗口放大不能残留已打开提示；计数不等于操作名称。plan: not-required，单批闭环。
+
+## 本地验收
+
+- frontend tsc、12 个触达 TSX 定向 ESLint、icon-actions 规则样例与全 frontend inventory、diff-check、生产构建通过。
+- 真实 Chrome 完整 `test-preview-comments-sidepanel.mjs` 通过：游客/登录导航、文字 Popover 点击/Escape/focus、卡片计数点赞、预览/密码/关闭等原图标操作；新增桌面/窄屏视图与账户、639/640px 反馈边界、管理页文字访问链接与收藏筛选，无 hover/focus/aria-describedby 重复提示。
+- 700→1440→700px 实时切换：已打开提示关闭，同一按钮仍连接且保留焦点，再次隐藏文字不会复活旧提示，重新聚焦可显示且 Escape 可关闭。
+- mode=implementation Review: no findings；项目没有独立 diff-only maintainability 脚本，按当前 diff 核对单 owner、状态清理、稳定 DOM/refs、Slot 链接语义、响应式条件与文字同源、规则数值计数和条件图标反例。acceptance-ready（本地）。

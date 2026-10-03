@@ -1,4 +1,4 @@
-import type { ComponentPropsWithRef, ReactNode } from 'react';
+import { useState, type ComponentPropsWithRef, type ReactNode } from 'react';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { Slot } from '@radix-ui/react-slot';
 
@@ -8,27 +8,34 @@ export const TooltipProvider = ({ children }: { children: ReactNode }) => (
   </TooltipPrimitive.Provider>
 );
 
-export const Tooltip = ({ children, label, side = 'top' }: {
+export const Tooltip = ({ children, label, side = 'top', enabled = true }: {
   children: ReactNode;
   label: string;
   side?: 'top' | 'right' | 'bottom' | 'left';
-}) => (
-  <TooltipPrimitive.Root>
-    <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
-    <TooltipPrimitive.Portal>
-      <TooltipPrimitive.Content
-        side={side}
-        sideOffset={6}
-        collisionPadding={8}
-        hideWhenDetached
-        className="z-[200] max-w-[min(18rem,calc(100vw-1rem))] rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-medium leading-relaxed text-white shadow-lg dark:bg-slate-100 dark:text-slate-900"
-      >
-        {label}
-        <TooltipPrimitive.Arrow className="fill-slate-900 dark:fill-slate-100" />
-      </TooltipPrimitive.Content>
-    </TooltipPrimitive.Portal>
-  </TooltipPrimitive.Root>
-);
+  enabled?: boolean;
+}) => {
+  const [open, setOpen] = useState(false);
+  // Clear an open tooltip when its action gains visible text, without
+  // replacing the trigger element or losing its focus/ref.
+  if (!enabled && open) setOpen(false);
+  return (
+    <TooltipPrimitive.Root open={enabled && open} onOpenChange={next => setOpen(enabled && next)}>
+      <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
+      <TooltipPrimitive.Portal>
+        <TooltipPrimitive.Content
+          side={side}
+          sideOffset={6}
+          collisionPadding={8}
+          hideWhenDetached
+          className="z-[200] max-w-[min(18rem,calc(100vw-1rem))] rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-medium leading-relaxed text-white shadow-lg dark:bg-slate-100 dark:text-slate-900"
+        >
+          {label}
+          <TooltipPrimitive.Arrow className="fill-slate-900 dark:fill-slate-100" />
+        </TooltipPrimitive.Content>
+      </TooltipPrimitive.Portal>
+    </TooltipPrimitive.Root>
+  );
+};
 
 const sizes = {
   xs: 'h-6 min-w-6 px-1',
@@ -39,8 +46,10 @@ const sizes = {
 };
 
 type IconButtonProps = Omit<ComponentPropsWithRef<'button'>, 'title' | 'aria-label'> & {
-  /** Required accessible action name; always displayed in the tooltip. */
+  /** Required accessible action name, including when the tooltip is disabled. */
   label: string;
+  /** Enable only while the action has no visible text name. Counts are not names. */
+  showTooltip?: boolean;
   tooltip?: string;
   size?: keyof typeof sizes;
   variant?: 'ghost' | 'plain';
@@ -50,12 +59,12 @@ type IconButtonProps = Omit<ComponentPropsWithRef<'button'>, 'title' | 'aria-lab
 
 /** Icon actions share naming, keyboard focus and tooltip behavior. */
 export const IconButton = ({
-  label, tooltip, size = 'md', variant = 'ghost', tooltipSide, asChild = false,
+  label, tooltip, showTooltip = true, size = 'md', variant = 'ghost', tooltipSide, asChild = false,
   className = '', type = 'button', children, ...props
 }: IconButtonProps) => {
   const Component = asChild ? Slot : 'button';
   return (
-    <Tooltip label={tooltip ? `${label} · ${tooltip}` : label} side={tooltipSide}>
+    <Tooltip label={tooltip ? `${label} · ${tooltip}` : label} side={tooltipSide} enabled={showTooltip}>
       <Component
         {...props}
         {...(!asChild ? { type } : {})}

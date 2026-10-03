@@ -2,9 +2,11 @@
 
 ## 操作图标
 
-所有以图标表达的操作（包括图标加计数、窄屏隐藏名称、折叠导航）必须使用 `src/components/icon-button.tsx` 的 `IconButton`。悬停和键盘聚焦显示统一 Tooltip；必填 `label` 同时作为可访问名称，使用现有 i18n 文案。禁止只补原生 `title` 或手写提示浮层。
+只有没有可见操作名称的图标入口（包括图标加计数、窄屏隐藏名称、折叠导航）在悬停和键盘聚焦时显示 Tooltip。带可见文字的按钮、展开导航、文字菜单触发器不显示重复提示；装饰图标不显示 Tooltip。纯图标操作必须使用 `src/components/icon-button.tsx` 的 `IconButton`；必填 `label` 提供可访问名称，使用现有 i18n 文案。禁止只补原生 `title` 或手写提示浮层。
 
-ESLint `gemigo-ui/icon-actions` 拦截直接使用 Lucide 图标的裸按钮、链接或可点击 div；条件图标与图标加计数同样检查。动态组件、响应式隐藏文本等语义仍须按本规范 Review。TypeScript 强制 `IconButton.label`，组件自动生成 Tooltip，禁止通过 `title` 绕过。
+ESLint `gemigo-ui/icon-actions` 拦截直接使用 Lucide 图标的裸按钮、链接或可点击 div，以及有文字名称但未控制 Tooltip 的 `IconButton`；条件图标与图标加计数同样检查。动态组件、响应式隐藏文本等语义仍须按本规范 Review。TypeScript 强制 `IconButton.label`，禁止通过 `title` 绕过。
+
+`showTooltip` 默认 true，只适用于无可见名称的图标入口。混合入口必须显式控制：静态文字用 `showTooltip={false}`；导航用 `showTooltip={collapsed}`；`hidden sm:inline` 名称用已有 `useBreakpoint().isBelow('sm')`，与文字断点一致。文字重新出现时立即关闭已打开提示，保留按钮 DOM、焦点与 ref。数字计数、头像缩写和「+」等图形标识不属于操作名称。普通文字按钮继续使用普通按钮；文字 Popover 统一关闭 Tooltip。
 
 ```tsx
 <IconButton label={t('common.close')} size="sm" onClick={onClose}>
@@ -30,4 +32,4 @@ ESLint `gemigo-ui/icon-actions` 拦截直接使用 Lucide 图标的裸按钮、�
 
 导航容器统一负责纵向排列，展开、收起及宽度动画期间始终一项一行，不依赖按钮是 `flex` 还是 `inline-flex`。展开时图标和文字左对齐；折叠时图标居中，图标保持20px、按钮40px。展开/收起控件保持圆形。
 
-替换交互组件须保留这些布局约束和 Tooltip；验证必须覆盖动画中间帧、多次往返切换，不能只核对两个最终状态。
+替换交互组件须保留这些布局约束；导航仅折叠时显示 Tooltip，展开时关闭。验证必须覆盖动画中间帧、多次往返切换，不能只核对两个最终状态。

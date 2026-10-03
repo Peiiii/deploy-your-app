@@ -55,7 +55,7 @@ export const Popover = ({
         if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) close();
       }}
     >
-      <IconButton label={triggerLabel} size="auto"
+      <IconButton label={triggerLabel} showTooltip={false} size="auto"
         ref={triggerRef}
         type="button"
         className={`group ${triggerClassName}`}

@@ -172,7 +172,7 @@ export const ExploreApps: React.FC = () => {
       actions={
         <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
           <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0">
-            <IconButton label={t('explore.feedView')} size="auto"
+            <IconButton label={t('explore.feedView')} showTooltip={isCompact} size="auto"
               onClick={() => setViewMode('feed')}
               className={`flex items-center gap-2 px-3 py-2 md:py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${isFeedView
                 ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm'
@@ -182,7 +182,7 @@ export const ExploreApps: React.FC = () => {
               <Smartphone className="w-4 h-4 md:w-3.5 md:h-3.5 shrink-0" />
               {!isCompact && <span className="hidden sm:inline">{t('explore.feedView')}</span>}
             </IconButton>
-            <IconButton label={t('explore.gridView')} size="auto"
+            <IconButton label={t('explore.gridView')} showTooltip={isCompact} size="auto"
               onClick={() => setViewMode('grid')}
               className={`flex items-center gap-2 px-3 py-2 md:py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${!isFeedView
                 ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm'

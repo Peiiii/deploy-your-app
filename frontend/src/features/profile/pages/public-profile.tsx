@@ -105,6 +105,7 @@ export function PublicProfile() {
         actions={
           <IconButton
             label={t(copied ? 'common.copied' : 'profile.copyProfileLink')}
+            showTooltip={false}
             size="auto"
             onClick={() =>
               void copyToClipboard(

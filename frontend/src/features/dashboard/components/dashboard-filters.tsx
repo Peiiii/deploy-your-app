@@ -47,6 +47,7 @@ export function DashboardFilters({ projects }: { projects: Project[] }) {
         <div className="flex flex-wrap items-center gap-2">
           <IconButton
             label={t('dashboard.favoritesOnly')}
+            showTooltip={false}
             size="auto"
             aria-pressed={showFavoritesOnly}
             onClick={() => actions.setShowFavoritesOnly(!showFavoritesOnly)}

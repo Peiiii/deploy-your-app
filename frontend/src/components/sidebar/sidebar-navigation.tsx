@@ -41,7 +41,7 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
           ? location.pathname === '/'
           : location.pathname.startsWith(item.path);
         return (
-          <IconButton label={item.label} size="auto"
+          <IconButton label={item.label} showTooltip={collapsed} size="auto"
             key={item.path}
             aria-current={isActive ? 'page' : undefined}
 

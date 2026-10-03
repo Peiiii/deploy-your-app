@@ -1,3 +1,4 @@
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { IconButton } from '@/components/icon-button';
 import {
   Inbox,
@@ -34,6 +35,7 @@ const STATUS_FILTERS: Array<FeedbackStatus | null> = [
 
 export const CommunityPage: React.FC = () => {
   const { t } = useTranslation();
+  const { isBelow } = useBreakpoint();
   const presenter = usePresenter();
   const authUser = useAuthStore((state) => state.user);
   const authLoading = useAuthStore((state) => state.isLoading);
@@ -59,7 +61,7 @@ export const CommunityPage: React.FC = () => {
       title={t('community.title')}
       actions={
         authUser ? (
-          <IconButton label={t('community.newFeedback')} size="auto"
+          <IconButton label={t('community.newFeedback')} showTooltip={isBelow('sm')} size="auto"
             type="button"
             onClick={presenter.community.openComposer}
 

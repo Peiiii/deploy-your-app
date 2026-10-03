@@ -37,6 +37,7 @@ export function ProfileLayout({ children }: { children: ReactNode }) {
           <>
             <IconButton
               label={t('profile.viewPublicProfile')}
+              showTooltip={false}
               variant="plain"
               size="auto"
               onClick={presenter.myProfile.openPublicProfile}

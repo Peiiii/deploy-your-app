@@ -8,6 +8,7 @@ import { usePresenter } from '@/contexts/presenter-context';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Bell, Github, HelpCircle, Sun, Moon, Menu, User, LogOut, ChevronDown } from 'lucide-react';
 import { Crisp } from 'crisp-sdk-web';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { URLS } from '@/constants';
 
 export const Header: React.FC = () => {
@@ -16,6 +17,7 @@ export const Header: React.FC = () => {
     const theme = useUIStore((state) => state.theme);
     const presenter = usePresenter();
     const user = useAuthStore((state) => state.user);
+    const { isBelow } = useBreakpoint();
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -100,7 +102,7 @@ export const Header: React.FC = () => {
                 </IconButton>
                 {user ? (
                     <div className="relative" ref={userMenuRef}>
-                        <IconButton label={t('ui.account')} size="auto"
+                        <IconButton label={t('ui.account')} showTooltip={isBelow('md')} size="auto"
                             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                             className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
                         >

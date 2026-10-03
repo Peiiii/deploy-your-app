@@ -178,6 +178,7 @@ export function ProjectCard({
             <IconButton
               asChild
               label={`${t('common.visit')}: ${project.name}`}
+              showTooltip={false}
               size="auto"
               className="inline-flex min-h-8 items-center justify-center gap-1.5 rounded-full px-2.5 text-xs text-slate-500 dark:text-slate-300"
             >

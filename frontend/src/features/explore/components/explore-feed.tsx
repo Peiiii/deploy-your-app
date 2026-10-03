@@ -466,7 +466,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
 
                 {/* Interaction Shield */}
                 {!isEntered && (
-                    <IconButton label={t('common.clickToEnter')} size="auto" variant="plain"
+                    <IconButton label={t('common.clickToEnter')} showTooltip={false} size="auto" variant="plain"
                         className="absolute inset-0 z-10 cursor-pointer bg-transparent flex flex-col items-center justify-center group transition-all duration-300"
                         data-event="app_visit" onClick={handleEnter}
                     >
