@@ -14,7 +14,7 @@
 - 301 的缓存时间显式设为 300 秒，便于未来变更和回退。没有动态目标、通用配置或新增服务。
 - Wrangler 保留 `*.gemigo.app/*` 路由，增加 `gemigo.app` Custom Domain；Cloudflare 管理根域名 DNS 和证书。官方依据：https://developers.cloudflare.com/workers/configuration/routing/custom-domains/ 。部署前核对现有域名与路由，遇到冲突不得覆盖其它 owner。
 - 不选择 Dashboard Redirect Rule：当前 OAuth 无 DNS/rules 写入 scope，且新增第二配置 owner；Custom Domain 与逻辑可随现有 Worker 一同维护、验证和回退。
-- 风险 L4（生产路由变更），flow=standard，task-type=small-change；design-document=required，plan=not-required（单批可闭环），retrospective_state=pending。
+- 风险 L4（生产路由变更），flow=standard，task-type=small-change；design-document=required，plan=not-required（单批可闭环），retrospective_state=completed。
 
 ## 验证与恢复
 
@@ -33,7 +33,7 @@
 | AR-01 | true | 根域名 DNS、HTTPS 可用，HTTP/HTTPS 请求进入官网 | passed | 实际 DNS 与正常连接、跟随 301 到官网 200，TLS 校验 0 |
 | AR-02 | true | 301 固定官网首页，查询参数保留，GET/HEAD 正确 | passed | 本地 runtime 和线上精确 Location、空 body 验证 |
 | AR-03 | true | 应用子域名、assets 与 www 行为保持，Secrets/R2 内容不变 | passed | 本地回归、线上两个应用/镜像 200、www 404、部署后绑定核对 |
-| AR-04 | true | 验证、实现 Review、部署和 Git 两端 master 同步完成 | not-run | 待交付 |
+| AR-04 | true | 验证、实现 Review、部署和 Git 两端 master 同步完成 | passed | 生产验收通过；实现提交 2f5a87a 已推送，fetch 后两端 0 0，actual remote SHA 与本地一致；本文收尾提交再复核同一门 |
 
 契约 Review：覆盖真实入口到官网页面，未把 dry-run 或固定 IP 成功当作普通访问成功；没有额外 UI 或用户操作，未加入无关性能、增长或品牌定位要求。
 
@@ -52,3 +52,11 @@ mode=design：no findings，design-review=passed。精确 host 判断隔离应�
 - 生产版本 `57fd03ab-3a17-4a7d-bce5-1d2c0755ef5b`，gateway Custom Domain `gemigo.app` 已 enabled；原通配路由 pattern、script、fail-open=false 保持。绑定列表与发布前一致，Secret 仅保留绑定，未读取或重写；未执行任何客户 R2 写入。
 - 正常公共 DNS 与 1.1.1.1 返回 `104.21.14.73` / `172.67.158.44`；无固定 IP 覆盖的 curl 实测 HTTP/HTTPS GET 301、0 bytes、Location=https://gemigo.io/；HTTPS query/path GET、query HEAD 精确保留参数，Cache-Control=public,max-age=300。跟随查询参数请求最终 `https://gemigo.io/?utm_source=apex-qa`，200、一次跳转、TLS verify=0。
 - 发布前后同组线上 HEAD：`geeglo`、`peiiii-os-portfolio` 200/r2；`www` 404；Tailwind 镜像 200、JavaScript、原 ETag 保持。验证范围为本任务域名入口和代表应用，不声称覆盖所有地区网络。
+- 根域名正常跟随 GET 取得官网 HTML 8411 bytes，title=`GemiGo – Deploy & Share Web Apps in One Click | Free Static Site Hosting`，实际官网内容已到达。
+- 源码提交 `2f5a87aab25d389506c787792f798089f0d0fe48` 普通推送；主工作区当前为 master，重新 fetch 后 `master...origin/master` 为 `0 0`，`ls-remote refs/heads/master` 与本地 SHA 相同。暂存区为空，其它任务原有四项改动保留，未提交。
+
+## 复盘与完成
+
+retrospective_decision=no-increment：根域名职责与部署配置已经更新到现有 gateway README/源码，没有额外可复用的方法缺口，不新增全局规则或 Skill。
+
+AR-01..04 passed；retrospective_state=completed；parent_status=ready-for-completion-check。本文收尾 commit/push 后再次核对实际远程 SHA 与主工作区同步，才完成交付。入口 https://gemigo.app/ ，无需登录或额外设置；打开后地址栏进入 gemigo.io，官网正常显示。没有需人工批准的开放项。
