@@ -18,8 +18,8 @@ export function ProfileLayout({ children }: { children: ReactNode }) {
     onSuccess: () => presenter.ui.showSuccessToast(t('profile.profileLinkCopied')),
   });
   if (!user) return null;
-  const displayName = draft.displayNameInput || user.displayName;
-  const handle = draft.handleInput || user.handle;
+  const displayName = draft.displayNameInput;
+  const handle = draft.handleInput;
   return (
     <div className="creator-profile mx-auto w-full max-w-6xl space-y-8 p-4 sm:p-6 lg:p-8 animate-fade-in">
       <CreatorHeader
@@ -37,6 +37,7 @@ export function ProfileLayout({ children }: { children: ReactNode }) {
           <>
             <IconButton
               label={t('profile.viewPublicProfile')}
+              variant="plain"
               size="auto"
               onClick={presenter.myProfile.openPublicProfile}
               className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700"

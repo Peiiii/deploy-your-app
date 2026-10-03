@@ -703,7 +703,7 @@
     "moveLinkDown": "下移",
     "dragToReorderPinned": "拖动置顶卡片可以调整顺序",
     "allApps": "所有应用",
-    "clickToPin": "点击应用卡片可以将其置顶",
+    "clickToPin": "用置顶按钮选择代表作，保存后会优先展示在公开主页。",
     "displayNameLabel": "公开昵称",
     "displayNamePlaceholder": "填写你希望大家看到的名字",
     "displayNameHint": "这是大家在作品和主页上看到的名字，可以重名；邮箱不会公开展示。",
