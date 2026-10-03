@@ -1,4 +1,30 @@
 {
+  "appAnalytics": {
+    "observed7d": "近 7 天已采集 PV",
+    "pv": "浏览量（PV）",
+    "uv": "独立访客（UV）",
+    "description": "GemiGo 内建采集的应用浏览器访问数据。",
+    "range": "时间范围",
+    "days7": "近 7 天",
+    "days30": "近 30 天",
+    "refresh": "刷新",
+    "error": "观测数据加载失败，请重试。",
+    "unavailable": "尚未开始采集，暂时没有可靠的 PV 或 UV 数据。",
+    "partial": "所选周期覆盖不完整。汇总仅包含已采集的访问，缺失历史无法补回。",
+    "complete": "所选周期已覆盖，今天的数据会持续更新。",
+    "started": "采集开始时间：{{at}}",
+    "utc": "按 UTC 自然日统计，包含今天",
+    "trend": "每日访问趋势",
+    "date": "日期（UTC）",
+    "dailyUv": "当日 UV",
+    "partialDay": "仅采集部分时段",
+    "missing": "未采集",
+    "lastVisit": "最近采集到的访问",
+    "unidentified": "有 {{count}} 次浏览无法识别浏览器，UV 仅统计已识别的浏览器。",
+    "pvDefinition": "PV 统计可见页面的打开、刷新和应用路由切换，排除已知机器人与静态资源请求。",
+    "uvDefinition": "UV 是所选周期内本应用的匿名浏览器去重数，每日 UV 不能相加得到周期 UV。清除浏览器存储或更换设备会计为新访客。",
+    "limitations": "禁用 JavaScript、存储限制、CSP、拦截插件或离线访问可能导致少计。应用预览和开发者本人访问也会计入。GemiGo 不保存访客 IP 或完整访问 URL。"
+  },
   "previewLoading": {
     "slow": "加载较慢",
     "showApp": "直接显示应用"

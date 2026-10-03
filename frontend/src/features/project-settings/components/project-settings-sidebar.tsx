@@ -19,9 +19,10 @@ export const ProjectSettingsSidebar: React.FC<ProjectSettingsSidebarProps> = ({
 
   // Subscribe to analytics from store
   const analyticsEntry = useAnalyticsStore((s) => s.byProjectId[project.id]);
-  const views7d = analyticsEntry?.stats?.views7d ?? 0;
-  const totalViews = analyticsEntry?.stats?.totalViews ?? 0;
-  const lastViewAt = analyticsEntry?.stats?.lastViewAt;
+  const stats = analyticsEntry?.stats?.range === analyticsEntry?.range ? analyticsEntry?.stats : null;
+  const pageViews = stats?.pageViews;
+  const uniqueVisitors = stats?.uniqueVisitors;
+  const lastViewAt = stats?.lastViewAt;
   const isLoading = analyticsEntry?.isLoading ?? false;
   const error = analyticsEntry?.error;
 
@@ -64,27 +65,28 @@ export const ProjectSettingsSidebar: React.FC<ProjectSettingsSidebarProps> = ({
         <h4 className="text-xs font-semibold text-slate-700 dark:text-gray-300 uppercase tracking-wider mb-2">
           {t('project.analytics')}
         </h4>
+        <p className="text-slate-500">{t(stats?.range === '30d' ? 'appAnalytics.days30' : 'appAnalytics.days7')}{stats?.coverage.status === 'partial' ? ` · ${t('appAnalytics.partialDay')}` : ''}</p>
         <div className="flex items-center justify-between py-1.5 border-b border-slate-200 dark:border-slate-800">
           <span className="text-slate-500 dark:text-gray-400">
-            {t('project.viewsLast7Days')}
+            {t('appAnalytics.pv')}
           </span>
           <span className="text-slate-900 dark:text-white font-semibold text-base">
             {isLoading ? (
               <span className="inline-block w-8 h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></span>
             ) : (
-              views7d.toLocaleString()
+              error || pageViews == null ? '—' : pageViews.toLocaleString()
             )}
           </span>
         </div>
         <div className="flex items-center justify-between py-1.5 border-b border-slate-200 dark:border-slate-800">
           <span className="text-slate-500 dark:text-gray-400">
-            {t('project.totalViews')}
+            {t('appAnalytics.uv')}
           </span>
           <span className="text-slate-900 dark:text-white font-semibold text-base">
             {isLoading ? (
               <span className="inline-block w-8 h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></span>
             ) : (
-              totalViews.toLocaleString()
+              error || uniqueVisitors == null ? '—' : uniqueVisitors.toLocaleString()
             )}
           </span>
         </div>
