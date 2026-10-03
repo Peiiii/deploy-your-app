@@ -29,7 +29,6 @@ export default function TimeSeriesChart({
   const [selection, setSelection] = useState<{
     context: string;
     index: number;
-    left: number;
     pinned: boolean;
   } | null>(null);
   const active = selection?.context === context && data[selection.index] ? selection : null;
@@ -60,13 +59,6 @@ export default function TimeSeriesChart({
     };
   }, [hasSelection]);
 
-  const tooltipLeft = (index: number) => {
-    const bounds = frame.current?.getBoundingClientRect();
-    const drawing = svg.current?.getBoundingClientRect();
-    if (!bounds || !drawing) return 8;
-    const point = drawing.left + (x(index, data.length) / 680) * drawing.width - bounds.left;
-    return Math.max(8, Math.min(point + 12, bounds.width - 232));
-  };
   const select = (index: number, pinned = false, reveal = false) => {
     if (!data.length) return;
     const next = Math.max(0, Math.min(data.length - 1, index));
@@ -74,14 +66,10 @@ export default function TimeSeriesChart({
       const point = (x(next, data.length) / 680) * svg.current.getBoundingClientRect().width;
       plot.current.scrollLeft = point - plot.current.clientWidth / 2;
     }
-    const left = tooltipLeft(next);
     setSelection((previous) =>
-      previous?.context === context &&
-      previous.index === next &&
-      previous.left === left &&
-      previous.pinned === pinned
+      previous?.context === context && previous.index === next && previous.pinned === pinned
         ? previous
-        : { context, index: next, left, pinned }
+        : { context, index: next, pinned }
     );
   };
   const nearest = (event: PointerEvent<SVGSVGElement>) => {
@@ -125,6 +113,38 @@ export default function TimeSeriesChart({
         <p className="muted">这段时间没有可用的图表数据。</p>
       ) : (
         <>
+          <div
+            id={id}
+            role={active ? 'tooltip' : undefined}
+            className="chart-tooltip"
+            aria-live={active ? 'polite' : undefined}
+            aria-atomic="true"
+          >
+            <strong>
+              {active ? data[active.index].day : '选择日期'}{' '}
+              <small>{active ? 'UTC' : '查看数值'}</small>
+            </strong>
+            <div className="chart-values">
+              {series.map((s) => {
+                const value = active ? valueAt(data[active.index], s.key) : null;
+                return (
+                  <div className="chart-tooltip-value" key={s.key}>
+                    <span>
+                      <i style={{ background: s.color }} />
+                      {s.label}
+                    </span>
+                    <b>
+                      {!active
+                        ? '—'
+                        : value === null
+                          ? '暂无数据'
+                          : `${formatted(value)} ${s.unit}`}
+                    </b>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
           <div
             ref={plot}
             className="growth-plot chart-plot"
@@ -258,32 +278,6 @@ export default function TimeSeriesChart({
               )}
             </svg>
           </div>
-          {active && (
-            <div
-              id={id}
-              role="tooltip"
-              className="chart-tooltip"
-              style={{ left: active.left }}
-              aria-live="polite"
-              aria-atomic="true"
-            >
-              <strong>
-                {data[active.index].day} <small>UTC</small>
-              </strong>
-              {series.map((s) => {
-                const value = valueAt(data[active.index], s.key);
-                return (
-                  <div className="chart-tooltip-value" key={s.key}>
-                    <span>
-                      <i style={{ background: s.color }} />
-                      {s.label}
-                    </span>
-                    <b>{value === null ? '暂无数据' : `${formatted(value)} ${s.unit}`}</b>
-                  </div>
-                );
-              })}
-            </div>
-          )}
           <p className="chart-help">悬停或点按查看数值 · 左右键切换日期 · Esc 关闭</p>
         </>
       )}

@@ -115,6 +115,12 @@ async function inspect(page, frame, index, expected, touch = false) {
     tip.x >= bounds.x && tip.x + tip.width <= bounds.x + bounds.width + 1,
     'tooltip stays within its chart, including edges'
   );
+  assert.ok(tip.y + tip.height <= box.y, 'readout does not overlap the drawing or date axis');
+  const after = await svg.boundingBox();
+  assert.ok(
+    Math.abs(after.y - box.y) < 1 && Math.abs(after.height - box.height) < 1,
+    'selecting a date does not shift or resize the drawing'
+  );
   return tooltip;
 }
 async function keyboard(page, frame, daily, field) {
@@ -152,8 +158,11 @@ try {
   assert.ok((await tooltip.innerText()).includes('成功发布创作者'));
   await tooltip.hover();
   assert.ok(await tooltip.isVisible(), 'moving into tooltip keeps it visible');
+  const selectedPlot = await home.first().locator('svg').boundingBox();
   await page.keyboard.press('Escape');
   await tooltip.waitFor({ state: 'hidden' });
+  const idlePlot = await home.first().locator('svg').boundingBox();
+  assert.ok(Math.abs(idlePlot.y - selectedPlot.y) < 1, 'closing readout preserves reserved space');
   await inspect(page, home.first(), 0, expected);
   await page.mouse.move(0, 0);
   await tooltip.waitFor({ state: 'hidden' });
@@ -282,9 +291,39 @@ try {
   );
   assert.equal(await mobile.getByRole('tooltip').count(), 0, 'touch scroll is not a tap');
   assert.ok(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await mobile.setViewportSize({ width: 320, height: 844 });
+  await mobile.getByRole('button', { name: '近 7 天', exact: true }).tap();
+  await mobile.waitForFunction(
+    () => document.querySelector('.home-trends svg')?.querySelectorAll('circle').length === 7
+  );
+  growth = await reportFor(mobile, 'growth', 7);
+  await inspect(
+    mobile,
+    mframe,
+    6,
+    growth.daily.map((d) => ({ day: d.day, values: [d.publishers] })),
+    true
+  );
+  assert.ok(
+    await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+    '320px readout and chart fit the viewport'
+  );
+  if (screenshots) await mobile.screenshot({ path: join(screenshots, 'compact-tooltip.png') });
+  await mobile.getByRole('button', { name: '刷新数据 ↻', exact: true }).waitFor();
+  const compactDiagnostics = mobile.locator('.home-diagnostics');
+  await compactDiagnostics.locator(':scope > summary').tap();
+  const compactOverview = await reportFor(mobile, 'overview', 7);
+  await inspect(
+    mobile,
+    compactDiagnostics.locator('.chart-frame'),
+    6,
+    compactOverview.daily.map((d) => ({ day: d.day, values: [d.total, d.succeeded] })),
+    true
+  );
+  if (screenshots) await mobile.screenshot({ path: join(screenshots, 'compact-bars.png') });
   assert.deepEqual(errors, []);
   console.log(
-    `PASS ${production ? 'production' : 'local'} charts: broad hover/date/values/units, tooltip hover and leave/Escape, keyboard bounds and visible selection, 7/30+metric reset, null/zero, all curve+bar consumers, real touch/tap/outside/swipe, no clipping/root overflow/JS errors.`
+    `PASS ${production ? 'production' : 'local'} charts: broad hover/date/values/units, tooltip hover and leave/Escape, keyboard bounds and visible selection, 7/30+metric reset, null/zero, all curve+bar consumers, real touch/tap/outside/swipe, readout outside drawing with stable layout, no clipping/root overflow/JS errors.`
   );
 } finally {
   await browser.close();
