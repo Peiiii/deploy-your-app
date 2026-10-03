@@ -179,3 +179,13 @@ scope9生产Delivery：功能`4e6e63d3251f0af9ef4c36f51c3918f7763db424`精确10�
 专用当前版本绑定QA session按确切hash删除→HTTP401，账号version6保持，用户密码/其它会话保留；QA会话、本地测试凭据、预算基线/预留JSON全部已删除，隔离5176服务SIGINT正常退出130。本轮成功非缓存生成预留4份growth合计254504，随后2份report合计281616，只原子归还这536120条已确证预留；共享计数有并发变化，静态基线guard首次changes0后改为对确证本任务额度按count>=credit执行扣减，未重置或覆盖共享基线，不归还无法归属的预留，最终观测共享计数705366（时点值，非固定值）。
 
 scope9 retrospective completed：唯一组件的owner/边界归原PRODUCT_ANALYTICS与专题设计，保留可复跑真实浏览器判定，不增加新图表库、平行tooltip体系或全局开发规则。ADM06/14/15全部passed，其它原证据继续有效；主观体验待用户反馈。最终记录提交后fresh fetch、核对实际远程SHA与本地master差异0 0，以工具输出作为最终Git完成证据。
+
+
+## scope10 图表读数遮挡纠偏
+
+原始输入“这种有点遮挡，感觉体验也不好啊”，附件`/var/folders/gp/ls0ngf8d1qn97_g1t48670zc0000gn/T/codex-clipboard-3019e2f8-a18f-4c87-849e-d2236640397f.png`已实际读取：10月2日11人卡片盖住曲线。根因是当前tooltip absolute top18；原不裁切/限位验证放过了曲线遮挡。skip-reproduction有直接截图+源码证据，scope10正式修复设计/Review见原专题。选择顶部文档流固定读数栏并保留闲置占位，指标齐全且无绘图区位移；单一owner和原交互保持。起始master26995f8，保护analytics脚本及未跟踪资料/tgz；当前密码保持，retrospective pending，open ADM06/15。
+
+
+scope10本地Validation通过：build:admin含tsc，定向ESLint/diff-check；现有隔离console --serve启动的真实Worker+D1原认证/管理/反馈回归保持。复用正式`scripts/test-admin-charts.mjs`并增加readout/SVG矩形不相交、进入/关闭前后SVG y与高度稳定、320px单/双指标和触摸读数，原hover/保持/Esc、键盘首末/范围/单位/null/zero、三消费者、手机滑动全部PASS。真实截图1440/390/320及compact-bars已打开复核，对照用户图片确认数值在上方栏、整段曲线和轴不受遮挡，闲置占位不冒充零。
+
+mode=implementation Review：没有项目diff-only检查入口，按本次diff核对唯一选择owner、活跃role/aria关联、占位行/小屏断行、不拦截滑动和Esc/外部关闭、旧坐标/absolute/shadow路径退场、无新增调用。无开放findings；新增验证保护用户反馈的遮挡与跳动边界，不是类名镜像测试。原数据与Worker功能证据复用，受影响展示已本地验收；acceptance-ready（本地），待后台部署与生产几何/截图/清理。

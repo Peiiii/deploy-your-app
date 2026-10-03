@@ -1554,35 +1554,38 @@ a:focus-visible {
   line-height: 1.7;
 }
 .chart-tooltip {
-  position: absolute;
-  top: 18px;
-  width: 224px;
-  max-width: calc(100% - 16px);
-  padding: 12px 14px;
-  background: #fff;
-  border: 1px solid #e4deed;
-  border-radius: 10px;
-  box-shadow: 0 8px 28px #35214d20;
-  z-index: 3;
-  pointer-events: auto;
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 16px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: #faf8fd;
+  border: 1px solid #eee9f4;
+  border-radius: 8px;
 }
 .chart-tooltip > strong {
-  display: block;
-  margin-bottom: 10px;
   color: #33273e;
   font-size: 12px;
+  line-height: 20px;
+  white-space: nowrap;
 }
 .chart-tooltip > strong small {
   color: #93849d;
   font-size: 9px;
   font-weight: 400;
 }
+.chart-values {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
 .chart-tooltip-value {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 7px;
+  min-height: 20px;
   font-size: 11px;
   line-height: 1.5;
 }
@@ -1603,4 +1606,11 @@ a:focus-visible {
   color: #30253a;
   text-align: right;
   font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .chart-tooltip {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
 }
