@@ -41,3 +41,15 @@ mode=design：用户原始目标覆盖命名和界面完整升级；真实mine�
 ## 实现 Review
 
 mode=implementation，基于本任务 diff 与相邻数据合同进行 findings-first 及主观维护性复核。项目无 diff-only maintainability 专用入口，采用手工复核；既有管理分页、统计与收藏 owner 未复制，纯筛选函数测试保护可观察排序合同，图标操作使用统一 IconButton，错误态不冒充空库、不自动无限重试，状态筛选不改变发布数据。发现320px统计标题换行会使数字错位，已统一标签最小高度并隐藏手机装饰图标，重新截图与 DOM 坐标核对。最终 no findings。审美效果留给用户在线判断，未对生产应用执行发布/删除/权限修改操作。
+
+## 线上交付
+
+实现提交 `4a974ae285f7c23e148d715babecfba2450ac66b` 普通推送到 origin/master，主工作区 master 已快进同步，无关分析脚本和未跟踪文档/包未提交。集成当时最新主线后重新执行 `pnpm check` 和筛选行为测试均通过，diff Review 无新 finding。
+
+`pnpm deploy:pages` 成功；Pages 部署 [37098087553](https://github.com/Peiiii/deploy-your-app/actions/runs/37098087553) completed/success。最终 production 资源为 `/assets/index-BKuj5GEZ.js`、`/assets/index-CNGsVJnD.css`；gemigo.io 返回的 HTML 和实际浏览器加载脚本一致。构建保留既有 Crisp 前端配置；构建仅有既有 Browserslist 数据过期和大 chunk 提示。
+
+线上 [应用管理](https://gemigo.io/dashboard) 真实登录账号验收：27 个应用、4 运行中、23 未上线；三列卡片和统计与原 API 对齐。运行中筛选显示4个，搜索“小小怪事”定位唯一应用；访问 href 与复制后剪贴板均为 `https://odd-little-lab.gemigo.app/`，管理链接键盘 Enter 进入原项目详情路由。返回后清除筛选恢复27个。未改动真实应用数据，测试视口已复原，隔离测试服务已关闭。
+
+截图：`/Users/peiwang/.codex/visualizations/2026/10/03/01a0ffe8-b91c-7242-9ef1-721cc0eb46a9/app-management-live.jpg`。剩余边界：错误/空库/分页分支以本地 fixture 覆盖，未在生产制造失败；最终视觉偏好由用户在入口判断。
+
+复盘：命名反映私有管理任务、统计范围随分页明确、手机多语言标签对齐均已落入现有组件与测试，没有需要新增知识 owner 的可复用增量，不另写复盘规则。
