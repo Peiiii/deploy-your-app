@@ -29,3 +29,5 @@ mode=design：从原始要求独立反查内建链路与入口，补充隐私/�
 Typecheck 暴露同一stats消费者还包括仪表板卡片/汇总与设置侧栏。它们一并迁移当前协议：侧栏用当前周期PV/UV并披露partial；仪表板只汇总7d当前成功数据，加载/缺数据是—，文案「近7天已采集PV」，避免缺历史伪零/误称总量。不是额外入口，属于AA3/4现有投影合同。方案受影响部分复审通过：不加views7d平行字段或旧伪总数兼容。无新的open finding。
 
 隐私原文核查发现原隐私政策仍描述「每日轮换哈希」，与新浏览器口径不符。AA2 范围内同步既有privacy-policy页面为真实按应用随机标识、35天定期清理、所有者仅汇总权限，并尊重Do Not Track。趋势按最新日期优先，避免30天历史缺口掩盖已采集当天。方案变更复审通过，无新增入口、Secrets或反作弊承诺。
+
+管理员复用补充（2026-10-04）：浏览器只读查询、周期去重及coverage投影收敛到product-analytics公共queryAppTraffic；API service保留owner校验/调用与repository采集schema，管理员详情复用同一报告。ProjectStats协议和浏览器采集不变，管理员不会从每日UV相加生成周期UV。

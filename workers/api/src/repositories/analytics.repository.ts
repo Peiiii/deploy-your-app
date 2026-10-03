@@ -11,7 +11,6 @@ export interface PageViewSignal {
   clientChannel: string;
 }
 
-export type BrowserStatsRow = { date: string; views: number; unique_visitors: number; unidentified_views: number; last_view_at?: string };
 type ViewsBySlugRow = { slug: string; views: number };
 
 const schemaDatabases = new WeakSet<D1Database>();
@@ -138,29 +137,6 @@ class AnalyticsRepository {
       signal.referrerHost ?? '',signal.utmSource ?? '',signal.utmMedium ?? '',signal.utmCampaign ?? '',
       signal.clientChannel).run();
     return result.meta.changes > 0;
-  };
-
-  getCollectionStart = async (db: D1Database): Promise<string | null> => {
-    await this.ensureSchema(db);
-    const row = await db.prepare('SELECT started_at FROM project_analytics_collection WHERE id=1')
-      .first<{ started_at: string }>();
-    return row?.started_at ?? null;
-  };
-
-  getBrowserStatsForSlugs = async (db: D1Database, slugs: string[], from: string, to: string) => {
-    await this.ensureSchema(db);
-    const [daily, summary] = await db.batch([
-      db.prepare(`SELECT slug,substr(viewed_at,1,10) AS date,COUNT(*) AS views,
-        COUNT(DISTINCT NULLIF(visitor_hash,'')) AS unique_visitors,
-        SUM(visitor_hash='') AS unidentified_views,MAX(viewed_at) AS last_view_at
-        FROM project_page_views WHERE slug IN (SELECT value FROM json_each(?)) AND viewed_at>=? AND viewed_at<=? AND is_bot=0
-        GROUP BY slug,date ORDER BY date`).bind(JSON.stringify(slugs),from,to),
-      db.prepare(`SELECT slug,COUNT(*) AS views,COUNT(DISTINCT NULLIF(visitor_hash,'')) AS unique_visitors,
-        COALESCE(SUM(visitor_hash=''),0) AS unidentified_views,MAX(viewed_at) AS last_view_at
-        FROM project_page_views WHERE slug IN (SELECT value FROM json_each(?)) AND viewed_at>=? AND viewed_at<=? AND is_bot=0
-        GROUP BY slug`).bind(JSON.stringify(slugs),from,to),
-    ]);
-    return { daily: daily.results as (BrowserStatsRow & { slug: string })[], summary: summary.results as (BrowserStatsRow & { slug: string })[] };
   };
 
   getViewsBySlugSince = async (

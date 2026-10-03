@@ -3,3 +3,4 @@ export * from './repository';
 export * from './budget';
 export * from './report';
 export { querySqlReport as queryAnalytics } from './sql-report';
+export * from './app-traffic';

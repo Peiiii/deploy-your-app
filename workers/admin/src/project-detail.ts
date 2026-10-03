@@ -1,5 +1,6 @@
 import { AdminInputError, channelSql, projectChannel } from './operations';
 import { languageListSql } from './project-inventory';
+import { queryAppTraffic, appTrafficSlug, recordReads } from '@gemigo/product-analytics';
 
 export const projectDetail = async (db: D1Database, id: string, url: URL) => {
   const days = Number(url.searchParams.get('days') || 7);
@@ -24,7 +25,6 @@ export const projectDetail = async (db: D1Database, id: string, url: URL) => {
     .bind(id)
     .first<Record<string, unknown>>();
   if (!item) throw new AdminInputError('应用不存在或已删除', 404);
-  const from = new Date(Date.now() - (days - 1) * 86400000).toISOString().slice(0, 10);
   const results = await db.batch<Record<string, unknown>>([
     db.prepare('SELECT COUNT(*) AS total FROM deployment_attempts WHERE project_id=?').bind(id),
     db
@@ -36,12 +36,6 @@ export const projectDetail = async (db: D1Database, id: string, url: URL) => {
       .bind(id, (page - 1) * 20),
     db
       .prepare(
-        `SELECT date AS day,human_views AS humanViews,bot_views AS botViews,unique_visitors AS dailyVisitors
-      FROM project_daily_stats WHERE slug=? AND date>=? ORDER BY date`
-      )
-      .bind(item.slug || '', from),
-    db
-      .prepare(
         'SELECT id,title,status,created_at FROM community_feedback_posts WHERE user_id=? AND deleted_at IS NULL ORDER BY created_at DESC,id LIMIT 6'
       )
       .bind(item.owner_id || ''),
@@ -51,7 +45,17 @@ export const projectDetail = async (db: D1Database, id: string, url: URL) => {
       )
       .bind(item.owner_id || ''),
   ]);
-  const rows = new Map(results[2].results.map((row) => [String(row.day), row]));
+  const slug = appTrafficSlug({
+    id: String(item.id),
+    slug: String(item.slug || ''),
+    url: String(item.url || ''),
+  });
+  const traffic = await queryAppTraffic(db, [slug], days);
+  await recordReads(
+    db,
+    `analysis_reads:${new Date().toISOString().slice(0, 10)}`,
+    traffic.rowsRead
+  );
   return {
     item,
     deployments: {
@@ -60,15 +64,7 @@ export const projectDetail = async (db: D1Database, id: string, url: URL) => {
       page,
       limit: 20,
     },
-    traffic: {
-      days,
-      from,
-      hasRecords: results[2].results.length > 0,
-      daily: Array.from({ length: days }, (_, i) => {
-        const day = new Date(Date.parse(from) + i * 86400000).toISOString().slice(0, 10);
-        return rows.get(day) || { day, humanViews: 0, botViews: 0, dailyVisitors: 0 };
-      }),
-    },
-    feedback: { items: results[3].results, total: Number(results[4].results[0].total) },
+    traffic: traffic.stats[slug],
+    feedback: { items: results[2].results, total: Number(results[3].results[0].total) },
   };
 };

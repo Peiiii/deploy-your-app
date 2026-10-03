@@ -95,3 +95,19 @@ GAV06 Required：经营首页直接显示每日新增注册用户曲线，7/30�
 仅修正标题、CSV列名、图表标签和来源说明。保留单应用D1诊断与CF RUM headline的区别，不把全应用PV/UV改造成单应用值、不显示虚构全应用UV。范围L1展示/文案，flow=bugfix，skip-reproduction：直接源码证明“产品观测UV”“应用PV”标签对象不明确；替代验证为admin构建/tsc、targeted lint、真实隐藏浏览器渲染与原采集隔离回归。Design Review：来源/消费者和去重范围一致，不改变指标或查询成本，无finding；plan:not-required，revision5 design-review:passed。GAV07 Required：标题/CSV对象明确、单应用仅本应用数据，跨对象UV不可相加；passed。admin构建/tsc与targeted lint通过，assembled Worker+D1应用详情隔离回归通过；隐藏IAB使用生产聚合快照渲染官网UV/全部应用PV及真实下载7行CSV，列名已区分，数据未改。单应用标签沿原同slug查询，未新增请求。实现Review实际diff检查：无新状态/SQL/预算、类型和CSV字段顺序一致、诊断来源与日去重范围保持；无finding。旧GAV04生产登录缺口保持。
 
 修订5复盘：已在原PRODUCT_ANALYTICS知识owner明确三种展示对象与跨对象去重边界，复用既有数据隔离回归，无新增全局方法规则。当前修订可交付；上一修订GAV04生产搜索/事件登录验收缺口继续披露，不将其标为通过。
+
+
+## 官网与应用均提供PV/UV（修订6，进行中）
+
+用户纠偏：“不仅是要区分，而且都要有”。仅标签的修订5不满足新增有效目标。官网已有CF真人PV及官网浏览器观测周期UV；应用所有者已有浏览器确认PV/跨日UV，但管理员详情仍读历史daily诊断。生产project_page_views与collection起点已有，不新增采集、身份或数据库。当前独立开发切片：管理员应用详情近7/30天同时有本应用浏览器PV、周期UV、每日PV/UV、未识别身份访问数与真实采集覆盖，日期缺历史为null而非0，同应用同浏览器跨日只计一次，另应用不混入。
+
+复用事实owner：browser随机UUID按应用origin保存，gateway用slug+UUID HMAC；不能由现有哈希跨应用识别同人。已向用户异步明确“每应用都有即可”还是“还需跨应用去重总UV”，后者为待定方案，不能把应用UV相加或COUNT app-scoped哈希宣称跨应用独立人数。原官网与全应用CF流量headline继续分别展示。
+
+当前切片设计：将既有analyticsService的浏览器查询/覆盖投影收敛至product-analytics公共queryAppTraffic，API service保留owner/slug解析并复用，admin detail复用同一读取owner。schema/collector/migration/retention保持API repository owner；不在管理员读取里ensure/create schema，不新增订阅或跨应用追踪。传入days/slugs/collection起点/now，API保留原ProjectStats形状。admin详情去除旧daily诊断查询消费者，显示新browser结果，统计实际reads，详情读取纳入原分钟保护。只引入两真实消费者共同需要的窄查询，删除旧同语义查询/投影重复。新文件在packages/product-analytics/src现有查询职责内，项目无planned-path脚本。单批plan:not-required。
+
+方案Review：两消费者同UTC含今日7/30窗口、日期coverage与COUNT DISTINCT保持原合同，历史缺口不伪造；跨应用去重不会由代码默默决定，依赖用户答复。无当前切片finding，revision6 per-app design-review:passed。GAV08 Required：官网PVUV和管理员每个应用周期/每日PVUV可用、跨日去重及应用隔离、缺历史/禁存储明确，原接口owner可回归；not-run。GAV09 全应用UV定义/实现待用户澄清，不以修订5取代。
+
+
+修订6当前切片验证：product-analytics/admin/admin-worker/API tsc与admin构建、targeted ESLint通过；API dry-run成功。assembled Worker+D1回归覆盖其他应用/机器人/旧服务器诊断排除、同浏览器跨日周期UV=1而每天UV=1、无存储PV计入UV不计、缺历史null、覆盖内空应用0、admin与原owner服务结果完全一致。隐藏IAB走真实本地管理员登录→应用详情，7/30均显示周期PV3/UV1、7/30行明细、历史—、1个未识别浏览量；真实查询及页面消费通过，不冒充生产会话。
+
+实现Review：公共查询同时替换旧API查询/覆盖投影和admin旧daily消费，无平行口径；复用slug解析避免旧url应用错误归属；无schema/采集/Secret变更，详情分钟保护与实际reads诊断保持正常使用不设日量。实际diff无finding。生产发布与鉴权后的线上详情尚待执行；全应用跨应用UV澄清仍pending，不以没有答复推断新识别授权。
