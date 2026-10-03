@@ -1258,7 +1258,7 @@ a:focus-visible {
   font-size: 18px;
 }
 .inventory-distribution {
-  max-height: 280px;
+  max-height: 360px;
   overflow-y: auto;
 }
 .inventory-distribution-row {

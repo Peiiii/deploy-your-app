@@ -187,12 +187,28 @@ class ProjectsController {
     return jsonResponse(project);
   }
 
+  /** GET /api/v1/projects/address-availability */
+  async checkAddressAvailability(request: Request, env: ApiWorkerEnv, db: D1Database): Promise<Response> {
+    const url = new URL(request.url);
+    const slug = validateRequiredString(url.searchParams.get('slug'), 'slug');
+    const projectId = url.searchParams.get('projectId') || undefined;
+    if (projectId) {
+      const user = await this.requireAuth(request, db, 'inspect a project address');
+      await this.requireProjectOwner(db, projectId, user.id, 'inspect its address');
+    }
+    const result = await projectService.checkAddressAvailability(db, slug, projectId);
+    const response = jsonResponse({ ...result, domain: configService.getAppsRootDomain(env) });
+    response.headers.set('Cache-Control', 'no-store');
+    return response;
+  }
+
   /** POST /api/v1/projects/draft */
   async createDraftProject(request: Request, env: ApiWorkerEnv, db: D1Database): Promise<Response> {
     const user = await this.requireAuth(request, db, 'create a project');
     const body = await readJson(request);
     const project = await projectService.createDraftProject(env, db, {
       name: validateOptionalString(body.name),
+      ...(body.slug !== undefined ? { slug: validateRequiredString(body.slug, 'slug') } : {}),
       ownerId: user.id,
       isPublic: true,
     });

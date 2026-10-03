@@ -101,3 +101,9 @@ CLI 生产交付完成：功能提交 c87f4da；admin Worker `6270fc65-43a0-42b5
 验证：实际Worker+D1中10个有效项目覆盖三类可见性、4已知语言、多语去重、失效JSON/source/非数组、删除、不读翻译locale、空库存；组合筛选/全局快照保持、Other与unknown语言过滤及原认证/管理/反馈回归通过。新分类聚合避免GROUP BY name误绑定projects.name，改为真实表达式，新增跨项目类别/语言合计判定。tsc、targeted eslint、build及diff检查通过；本地实际Chrome在1440/390宽验证库存、分类/语言/公开/状态筛选、清空及未知语言，无JS错误和根溢出。
 
 实现 Review：无项目diff-only维护脚本，采用findings-first；核对原输入、owner、聚合与筛选同表达式、参数白名单/绑定、JSON坏数据恢复、distinct项目、多语言分母、公开null与Live区分、字段白名单和权限/原分页。旧功能完整保留，onlyprojects新增三条元数据聚合，无全量个人/源码返回；no findings。适用验证有效，进入授权admin部署与生产验收，ADM-11待线上证据。
+
+应用统计生产验收通过：0cdc93f已进入主线；最终Worker `21987f53-0c22-43f8-8b87-fcce0cfeed3a`，CSS `index-Dv-lPOHG.css` / JS `index-D1BRugUc.js`。真实浏览器聚合与独立D1查询逐项一致：752个未删除应用，公开721/非公开31/未记录0，上线609，其中公开Live且地址非空566；已记录界面语言506，未确认246。主分类Other194/Education177/Creative115/Productivity112/Development79/Games75，总和752。语言zh291/th198/en14/fa2/uk1；无翻译locale污染。Education+zh+public+Live组合18条，列表字段均匹配；清空、全局统计保持、未确认过滤246、桌面手机无根溢出/JS错误通过。
+
+UI复核发现280px分布区需要滚动才看得到第六类Games和未确认语言，修正为360px并重新构建/发布；真实线上断言当前六条分类和六条语言全部显示，无裁切，390px布局保持。只扩大现有区块可见高度，未拓展模块或数据范围；实现Review该finding已关闭，旧SQL/交互证据未受影响。最终布局截图 `/tmp/gemigo-inventory-production-desktop.png` 和 mobile.png，聚合证据 `/tmp/gemigo-inventory-production-verified.json`；不含用户身份的聚合截图。
+
+两次独立版本绑定15分钟QA session逐一删除并401复验，未修改密码或客户资源，无增长报表请求/预算重置。复盘：原PRODUCT_ANALYTICS事实条目更新库存与筛选口径；统计owner与过滤共用表达式、JSON坏数据与别名冲突由实际D1回归保护，无全局规则增量。retrospective_state=completed，retrospective_decision=更新原事实owner且验证有效。ADM-11 passed；scope5最小完整结果满足，收尾精确提交所有本任务文件并普通推送、fetch核对两端及实际远程master。

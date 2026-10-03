@@ -18,7 +18,7 @@ export const useHomeExploreFeed = () => {
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('recommended');
-  const [isLoadingExplore, setIsLoadingExplore] = useState(false);
+  const [isLoadingExplore, setIsLoadingExplore] = useState(true);
   const [exploreError, setExploreError] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [page, setPage] = useState(1);

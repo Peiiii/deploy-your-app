@@ -1,3 +1,4 @@
+import { ProjectAddressError } from '../project-address';
 import type { IProjectProvider } from '../interfaces';
 import type { Project, PaginatedResponse } from '../../types';
 import { SourceType } from '../../types';
@@ -56,17 +57,28 @@ export class IndexedDBProjectProvider implements IProjectProvider {
     return response.items.find((p) => p.repoUrl === repoUrl) ?? null;
   }
 
+  async checkAddressAvailability(slug: string, projectId?: string) {
+    const projects = await db.getAll<Project>('projects');
+    const available = !projects.some((project) => project.id !== projectId && project.slug === slug);
+    let suggestion = `${slug.slice(0, 57)}-1`;
+    for (let suffix = 2; projects.some((project) => project.slug === suggestion); suffix++) suggestion = `${slug.slice(0, 57)}-${suffix}`;
+    return { available, domain: 'gemigo.app', ...(!available ? { suggestion } : {}) };
+  }
+
   async createDraftProject(
     name?: string,
+    slug?: string,
   ): Promise<Project> {
     const now = new Date().toISOString();
     const resolvedName =
       name && name.trim().length > 0
         ? name.trim()
         : `app-${crypto.randomUUID().slice(0, 6)}`;
+    if (slug && !(await this.checkAddressAvailability(slug)).available) throw new ProjectAddressError('ADDRESS_TAKEN');
     const newProject: Project = {
       id: crypto.randomUUID(),
       name: resolvedName,
+      slug,
       repoUrl: `draft:${crypto.randomUUID()}`,
       sourceType: undefined,
       lastDeployed: now,

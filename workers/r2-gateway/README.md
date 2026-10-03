@@ -69,7 +69,7 @@ bucket_name = "gemigo-apps"
 
 3. **Screenshot capture**
 
-The [Cloudflare trigger](../thumbnail-trigger/README.md) invokes `.github/workflows/capture-thumbnails.yml` every two minutes when no capture is active. The GitHub workflow reads recent public apps from D1, checks missing thumbnails, captures real pages in Chromium, and writes `apps/<slug>/thumbnail.webp` to R2. GitHub schedule is a best-effort fallback, and manual recovery remains available. The gateway reports `202` on a pending HEAD request and `200` once a cover exists.
+The [Cloudflare trigger](../thumbnail-trigger/README.md) checks the indexed D1 queue every two minutes and invokes `.github/workflows/capture-thumbnails.yml` only when work is due and no automatic capture is active. The workflow captures missing covers for queued public apps in Chromium and conditionally writes `apps/<slug>/thumbnail.webp` to R2. Historical catalog repair is manual through `.github/workflows/repair-thumbnails.yml`; it runs independently and uses the same capture/upload implementation. There is no scheduled catalog scan. The gateway reports `202` on a pending HEAD request and `200` once a cover exists.
 
 The legacy PNG route still works independently:
 

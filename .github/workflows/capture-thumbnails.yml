@@ -1,15 +1,12 @@
 name: Capture missing app thumbnails
 
 on:
-  # Hourly bounded repair; normal dispatch processes only queued work.
-  schedule:
-    - cron: '17 * * * *'
   workflow_dispatch:
     inputs:
       reconcile:
         description: Check the latest 50 public apps for lost/missing covers
         type: boolean
-        default: true
+        default: false
 
 concurrency:
   group: capture-missing-app-thumbnails
@@ -37,7 +34,7 @@ jobs:
       - name: Check for missing thumbnails
         id: check
         env:
-          RECONCILE: ${{ github.event_name == 'schedule' || inputs.reconcile }}
+          RECONCILE: ${{ inputs.reconcile }}
         run: |
           if [ "$RECONCILE" = "true" ]; then
             python scripts/capture-missing-thumbnails.py --check-only --reconcile

@@ -1,3 +1,4 @@
+import { addressTakenError, addressLockedError } from '../utils/project-address';
 import { parseAppLanguage, type AppLanguage } from '../utils/app-language';
 import {
   type CreateProjectRecordInput,
@@ -487,8 +488,10 @@ class ProjectRepository {
           last_success_at, last_deployed, status,
           url, description, default_locale, localized_metadata, framework, category, tags, deploy_target, provider_url,
           cloudflare_project_name, html_content, owner_id, is_public, is_deleted, is_extension_supported
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
-        RETURNING *`,
+        ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?
+        WHERE ? IS NULL OR NOT EXISTS (
+          SELECT 1 FROM projects WHERE slug = ? AND (is_deleted = 0 OR is_deleted IS NULL)
+        ) RETURNING *`,
       )
       .bind(
         input.id,
@@ -516,11 +519,13 @@ class ProjectRepository {
         input.ownerId ?? null,
         input.isPublic === undefined ? 1 : input.isPublic ? 1 : 0,
         input.isExtensionSupported ? 1 : 0,
+        input.slug ?? null,
+        input.slug ?? null,
       )
       .first<ProjectRow>();
 
     if (!row) {
-      throw new Error('Failed to insert project.');
+      throw addressTakenError();
     }
 
     return this.mapRowToProject(row);
@@ -812,12 +817,25 @@ class ProjectRepository {
     }
 
     params.push(id);
+    const slugGuard = patch.slug !== undefined
+      ? ` AND NOT EXISTS (SELECT 1 FROM projects WHERE slug = ? AND id <> ? AND (is_deleted = 0 OR is_deleted IS NULL))
+          AND (slug = ? OR slug IS NULL OR slug = '' OR
+            (status NOT IN ('Live', 'Building') AND (url IS NULL OR url = '') AND last_success_at IS NULL))`
+      : '';
+    if (patch.slug !== undefined) params.push(patch.slug, id, patch.slug);
     const row = await db
       .prepare(
-        `UPDATE projects SET ${statements.join(', ')} WHERE id = ? RETURNING *`,
+        `UPDATE projects SET ${statements.join(', ')} WHERE id = ?${slugGuard} RETURNING *`,
       )
       .bind(...params)
       .first<ProjectRow>();
+    if (!row && patch.slug !== undefined) {
+      const current = await this.getProjectById(db, id);
+      if (current) {
+        if (current.slug && current.slug !== patch.slug && (current.url || current.lastSuccessAt || current.status === 'Live' || current.status === 'Building')) throw addressLockedError();
+        throw addressTakenError();
+      }
+    }
     return row ? this.mapRowToProject(row) : null;
   }
 
@@ -997,16 +1015,13 @@ class ProjectRepository {
         `SELECT id FROM projects
          WHERE slug = ?
          AND (is_deleted = 0 OR is_deleted IS NULL)
+         AND (? IS NULL OR id <> ?)
          LIMIT 1`,
       )
-      .bind(slug)
+      .bind(slug, excludeProjectId ?? null, excludeProjectId ?? null)
       .first<{ id: string }>();
 
     if (existingProject) {
-      // If excluding this project ID, treat it as available
-      if (excludeProjectId && existingProject.id === excludeProjectId) {
-        return false;
-      }
       return true;
     }
 

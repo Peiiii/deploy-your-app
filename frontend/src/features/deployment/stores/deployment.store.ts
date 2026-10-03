@@ -11,6 +11,9 @@ interface DeploymentState {
   repoUrl: string;
   zipFile: File | null;
   projectName: string;
+  publicationSlug: string | null;
+  addressSeed: string;
+  publicationAddressError: string | null;
   apiKey: string;
   deploymentStatus: DeploymentStatus;
   logs: BuildLog[];
@@ -26,6 +29,7 @@ interface DeploymentState {
     setRepoUrl: (url: string) => void;
     setZipFile: (file: File | null) => void;
     setProjectName: (name: string) => void;
+    setPublicationSlug: (slug: string | null) => void;
     setApiKey: (key: string) => void;
     setDeploymentStatus: (status: DeploymentStatus) => void;
     addLog: (log: BuildLog) => void;
@@ -44,6 +48,9 @@ export const useDeploymentStore = create<DeploymentState>((set) => ({
   repoUrl: '',
   zipFile: null,
   projectName: '',
+  publicationSlug: null,
+  addressSeed: `app-${crypto.randomUUID().slice(0, 8)}`,
+  publicationAddressError: null,
   apiKey: process.env.API_KEY || '',
   deploymentStatus: DeploymentStatus.IDLE,
   logs: [],
@@ -53,11 +60,12 @@ export const useDeploymentStore = create<DeploymentState>((set) => ({
     setActiveProjectId: (activeProjectId) => set({ activeProjectId }),
     setIsPublishingNewProject: (isPublishingNewProject) => set({ isPublishingNewProject }),
     setStep: (step) => set({ step }),
-    setSourceType: (sourceType) => set({ sourceType }),
-    setHtmlContent: (htmlContent) => set({ htmlContent }),
-    setRepoUrl: (repoUrl) => set({ repoUrl }),
-    setZipFile: (zipFile) => set({ zipFile }),
-    setProjectName: (projectName) => set({ projectName }),
+    setSourceType: (sourceType) => set((state) => ({ sourceType, publicationAddressError: state.publicationSlug === null ? null : state.publicationAddressError })),
+    setHtmlContent: (htmlContent) => set((state) => ({ htmlContent, publicationAddressError: state.publicationSlug === null ? null : state.publicationAddressError })),
+    setRepoUrl: (repoUrl) => set((state) => ({ repoUrl, publicationAddressError: state.publicationSlug === null ? null : state.publicationAddressError })),
+    setZipFile: (zipFile) => set((state) => ({ zipFile, publicationAddressError: state.publicationSlug === null ? null : state.publicationAddressError })),
+    setProjectName: (projectName) => set((state) => ({ projectName, publicationAddressError: state.publicationSlug === null ? null : state.publicationAddressError })),
+    setPublicationSlug: (publicationSlug) => set({ publicationSlug, publicationAddressError: null }),
     setApiKey: (apiKey) => set({ apiKey }),
     setDeploymentStatus: (deploymentStatus) => set({ deploymentStatus }),
     addLog: (log) => set((state) => ({ logs: [...state.logs, log] })),
@@ -71,6 +79,9 @@ export const useDeploymentStore = create<DeploymentState>((set) => ({
       repoUrl: '',
       zipFile: null,
       projectName: '',
+      publicationSlug: null,
+      addressSeed: `app-${crypto.randomUUID().slice(0, 8)}`,
+      publicationAddressError: null,
       apiKey: process.env.API_KEY || '',
       deploymentStatus: DeploymentStatus.IDLE,
       logs: [],
