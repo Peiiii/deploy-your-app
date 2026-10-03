@@ -104,6 +104,7 @@ class ProjectService {
     db: D1Database,
     input: CreateProjectInput,
   ): Promise<Project> {
+    await projectRepository.assertProjectCreationAllowed(db, input.ownerId);
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
     const normalizedSourceType = input.sourceType ?? SourceType.GitHub;
@@ -180,6 +181,7 @@ class ProjectService {
     db: D1Database,
     input?: { name?: string; slug?: string; ownerId?: string; isPublic?: boolean },
   ): Promise<Project> {
+    await projectRepository.assertProjectCreationAllowed(db, input?.ownerId);
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
     const seedName =

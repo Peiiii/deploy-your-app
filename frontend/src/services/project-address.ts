@@ -15,11 +15,3 @@ export class ProjectAddressError extends Error {
     this.name = 'ProjectAddressError';
   }
 }
-
-export async function throwProjectRequestError(response: Response, fallback: string): Promise<never> {
-  const body = await response.json().catch(() => null) as { code?: string } | null;
-  if (body?.code === 'ADDRESS_TAKEN' || body?.code === 'INVALID_ADDRESS' || body?.code === 'ADDRESS_LOCKED') {
-    throw new ProjectAddressError(body.code);
-  }
-  throw new Error(fallback);
-}

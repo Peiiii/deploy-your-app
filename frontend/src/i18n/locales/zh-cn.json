@@ -348,6 +348,7 @@
     "optionalNameHint": "例如：旅行账本",
     "nameExplanation": "支持中文，可随时改名；留空时自动取名。",
     "publicationAddress": "发布地址",
+    "dailyProjectLimit": "今天新增应用已达 {{limit}} 个（含草稿）。你仍可更新已有应用，明天北京时间零点恢复新增额度。",
     "generateAddress": "AI 生成",
     "generatingAddress": "生成中…",
     "addressGenerationFailed": "AI 暂时无法生成，可以重试或直接填写地址。",

@@ -1,4 +1,6 @@
 import { addressTakenError, addressLockedError } from '../utils/project-address';
+import { DailyProjectLimitError } from '../utils/error-handler';
+import { DAILY_PROJECT_LIMIT, projectCreationWindow } from '../utils/project-creation-limit';
 import { parseAppLanguage, type AppLanguage } from '../utils/app-language';
 import {
   type CreateProjectRecordInput,
@@ -365,6 +367,9 @@ class ProjectRepository {
       )
       .run();
 
+    await db.prepare(`CREATE INDEX IF NOT EXISTS idx_projects_owner_created
+      ON projects(owner_id, created_at)`).run();
+
     // Tombstone table to remember which slugs have ever been used, so that
     // future projects cannot reuse them even after hard deletion.
     await db
@@ -475,11 +480,29 @@ class ProjectRepository {
     };
   }
 
+  async assertProjectCreationAllowed(
+    db: D1Database,
+    ownerId?: string,
+    window = projectCreationWindow(),
+  ): Promise<void> {
+    if (!ownerId) return;
+    await this.ensureSchema(db);
+    const row = await db.prepare(`SELECT COUNT(*) AS count FROM projects
+      WHERE owner_id = ? AND created_at >= ? AND created_at < ?`)
+      .bind(ownerId, window.startAt, window.resetAt).first<{ count: number }>();
+    if ((row?.count ?? 0) >= DAILY_PROJECT_LIMIT) {
+      throw new DailyProjectLimitError(DAILY_PROJECT_LIMIT, window.resetAt);
+    }
+  }
+
   async createProjectRecord(
     db: D1Database,
     input: CreateProjectRecordInput,
   ): Promise<Project> {
     await this.ensureSchema(db);
+    const window = projectCreationWindow();
+    // Stamp user creations at this write boundary, after any metadata work.
+    const createdAt = input.ownerId ? window.createdAt : input.createdAt ?? input.lastDeployed;
     const localizedMetadata = normalizeProjectLocalization(input.localization);
     const row = await db
       .prepare(
@@ -489,9 +512,12 @@ class ProjectRepository {
           url, description, default_locale, localized_metadata, framework, category, tags, deploy_target, provider_url,
           cloudflare_project_name, html_content, owner_id, is_public, is_deleted, is_extension_supported
         ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?
-        WHERE ? IS NULL OR NOT EXISTS (
+        WHERE (? IS NULL OR NOT EXISTS (
           SELECT 1 FROM projects WHERE slug = ? AND (is_deleted = 0 OR is_deleted IS NULL)
-        ) RETURNING *`,
+        )) AND (? IS NULL OR (
+          SELECT COUNT(*) FROM projects
+          WHERE owner_id = ? AND created_at >= ? AND created_at < ?
+        ) < ?) RETURNING *`,
       )
       .bind(
         input.id,
@@ -500,8 +526,8 @@ class ProjectRepository {
         input.sourceType ?? null,
         input.slug ?? null,
         input.analysisId ?? null,
-        input.createdAt ?? input.lastDeployed,
-        input.updatedAt ?? input.createdAt ?? input.lastDeployed,
+        createdAt,
+        input.updatedAt ?? createdAt,
         input.lastSuccessAt ?? null,
         input.lastDeployed,
         input.status,
@@ -521,10 +547,16 @@ class ProjectRepository {
         input.isExtensionSupported ? 1 : 0,
         input.slug ?? null,
         input.slug ?? null,
+        input.ownerId ?? null,
+        input.ownerId ?? null,
+        window.startAt,
+        window.resetAt,
+        DAILY_PROJECT_LIMIT,
       )
       .first<ProjectRow>();
 
     if (!row) {
+      await this.assertProjectCreationAllowed(db, input.ownerId, window);
       throw addressTakenError();
     }
 
