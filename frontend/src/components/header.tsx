@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -58,55 +59,50 @@ export const Header: React.FC = () => {
     return (
         <header className="h-16 shrink-0 border-b border-app-border bg-app-bg/50 backdrop-blur sticky top-0 z-40 flex items-center justify-between px-4 md:px-8">
             <div className="flex items-center gap-3">
-                <button
+                <IconButton label={t('ui.toggleMenu')} size="auto"
                     onClick={presenter.ui.toggleSidebar}
                     className="md:hidden p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 rounded-lg transition-all"
-                    title={t('ui.toggleMenu')}
                 >
                     <Menu className="w-5 h-5" />
-                </button>
+                </IconButton>
 
             </div>
             <div className="flex items-center gap-2 md:gap-4">
-                <button
+                <IconButton label={t('ui.toggleTheme')} size="auto"
                     onClick={presenter.ui.toggleTheme}
                     className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all"
-                    title={t('ui.toggleTheme')}
                 >
                     {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                </button>
+                </IconButton>
                 <LanguageSwitcher />
                 <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden md:block" />
-                <a
-                    href={URLS.GITHUB_REPOSITORY}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all"
-                    title={t('ui.openSourceOnGitHub')}
-                    aria-label={t('ui.openSourceOnGitHub')}
-                >
-                    <Github className="w-5 h-5" />
-                </a>
-                <button
+                <IconButton asChild size="auto" label={t('ui.openSourceOnGitHub')}>
+                    <a
+                        href={URLS.GITHUB_REPOSITORY}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all"
+                    >
+                        <Github className="w-5 h-5" />
+                    </a>
+                </IconButton>
+                <IconButton label={t('ui.help')} size="auto"
                     data-event="help_open" onClick={handleOpenChat}
                     className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all hidden md:block"
-                    title={t('ui.help')}
                 >
                     <HelpCircle className="w-5 h-5" />
-                </button>
-                <button
+                </IconButton>
+                <IconButton label={t('ui.notifications')} size="auto"
                     className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all relative hidden md:block"
-                    title={t('ui.notifications')}
                 >
                     <Bell className="w-5 h-5" />
                     <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 dark:bg-red-400 rounded-full border-2 border-app-bg dark:border-slate-900" />
-                </button>
+                </IconButton>
                 {user ? (
                     <div className="relative" ref={userMenuRef}>
-                        <button
+                        <IconButton label={t('ui.account')} size="auto"
                             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                             className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
-                            title={user.email || user.displayName || t('ui.account')}
                         >
                             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-500 to-purple-600 border border-slate-200 dark:border-white/10 flex items-center justify-center text-xs font-semibold text-white">
                                 {(user.displayName || user.email || 'U').toUpperCase().charAt(0)}
@@ -115,7 +111,7 @@ export const Header: React.FC = () => {
                                 {user.displayName || user.email || t('ui.account')}
                             </span>
                             <ChevronDown className={`w-4 h-4 text-slate-400 dark:text-slate-500 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
-                        </button>
+                        </IconButton>
 
                         {isUserMenuOpen && (
                             <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-50 overflow-hidden py-1">

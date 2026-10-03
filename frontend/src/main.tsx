@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import './index.css';
 import './i18n/config';
 import App from './app';
+import { TooltipProvider } from './components/icon-button';
 import { cleanupDevServiceWorker } from './utils/dev-sw-cleanup';
 
 installAnalytics();
@@ -16,7 +17,7 @@ if (import.meta.env.DEV) {
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <TooltipProvider><App /></TooltipProvider>
     </BrowserRouter>
   </StrictMode>,
 );

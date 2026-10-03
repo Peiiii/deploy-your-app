@@ -12,6 +12,7 @@
     "commentAuthor": "用户"
   },
   "common": {
+    "clear": "清空搜索",
     "signIn": "登录",
     "signOut": "退出",
     "signUp": "注册",

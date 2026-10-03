@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -45,10 +46,9 @@ export const SidebarProjectItem: React.FC<SidebarProjectItemProps> = ({
       >
         <span className="truncate block">{project.name}</span>
       </button>
-      <button
+      <IconButton label={isPinned ? t('navigation.unpinProject') : t('navigation.pinProject')} size="auto"
         onClick={(e) => onTogglePin(e, project.id)}
         className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-slate-300 dark:hover:bg-slate-700"
-        title={isPinned ? t('navigation.unpinProject') : t('navigation.pinProject')}
       >
         <Pin
           className={`w-3 h-3 transition-colors ${isPinned
@@ -57,7 +57,7 @@ export const SidebarProjectItem: React.FC<SidebarProjectItemProps> = ({
             }`}
           fill={isPinned ? 'currentColor' : 'none'}
         />
-      </button>
+      </IconButton>
     </div>
   );
 };

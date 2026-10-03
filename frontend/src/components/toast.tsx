@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Info, AlertTriangle, X } from 'lucide-react';
@@ -35,14 +36,13 @@ export const Toast: React.FC = () => {
     <div className={`${baseClasses} ${colorClasses}`}>
       <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" />
       <div className="flex-1">{toast.message}</div>
-      <button
+      <IconButton label={t('common.close')} size="auto"
         type="button"
         onClick={clearToast}
         className="ml-2 text-current opacity-60 hover:opacity-100"
-        aria-label={t('common.close')}
       >
         <X className="w-3 h-3" />
-      </button>
+      </IconButton>
     </div>
   );
 };

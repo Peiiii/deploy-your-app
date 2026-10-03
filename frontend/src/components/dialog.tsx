@@ -1,6 +1,7 @@
 import { useRef, type ComponentProps } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+import { IconButton } from './icon-button';
 
 export const Dialog = DialogPrimitive.Root;
 
@@ -58,13 +59,14 @@ export const DialogContent = ({
         {...props}
       >
         {children}
-        <DialogPrimitive.Close
-          disabled={!dismissible}
-          aria-label={closeLabel}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:pointer-events-none disabled:opacity-40 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-        </DialogPrimitive.Close>
+        <IconButton asChild label={closeLabel} size="auto">
+          <DialogPrimitive.Close
+            disabled={!dismissible}
+            className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-40 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </DialogPrimitive.Close>
+        </IconButton>
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
   );

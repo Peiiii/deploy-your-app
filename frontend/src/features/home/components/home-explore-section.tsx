@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import { CATEGORY_LABEL_KEYS } from '@/constants/app-categories';
 import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
 import { AppLanguageFilter } from '@/features/explore/components/app-language-filter';
@@ -54,7 +55,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
         className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all shadow-sm"
       />
       {localValue && (
-        <button
+        <IconButton label={t('common.clear')} size="auto"
           onClick={() => {
             setLocalValue('');
             onChange('');
@@ -62,7 +63,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
           className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
         >
           <X className="h-4 w-4" />
-        </button>
+        </IconButton>
       )}
     </div>
   );

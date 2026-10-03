@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import { getProjectDescription } from '@/utils/project';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -163,22 +164,21 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
               >
                 {t('common.visit')} <ExternalLink className="w-3 h-3" />
               </a>
-              <button
+              <IconButton label={
+                  isCopied(project.id) ? t('common.copied') : t('common.copyUrl')
+                } size="auto"
                 onClick={(e) => {
                   e.stopPropagation();
                   onCopyUrl(project.url!, project.id);
                 }}
                 className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-                title={
-                  isCopied(project.id) ? t('common.copied') : t('common.copyUrl')
-                }
               >
                 {isCopied(project.id) ? (
                   <Check className="w-3.5 h-3.5 text-emerald-500" />
                 ) : (
                   <Copy className="w-3.5 h-3.5" />
                 )}
-              </button>
+              </IconButton>
             </>
           ) : (
             <span className="text-slate-400 dark:text-gray-600 text-xs italic">

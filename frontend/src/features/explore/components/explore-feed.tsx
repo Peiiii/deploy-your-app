@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import { getProjectDescription } from '@/utils/project';
 import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
 import { AppLanguageFilter } from '@/features/explore/components/app-language-filter';
@@ -135,12 +136,12 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
             >
                 {/* Left Side - Back Button */}
                 <div className="flex-1">
-                    <button
+                    <IconButton label={t('explore.feed.exitFullscreen')} size="auto"
                         onClick={onToggleView}
                         className="p-2 -ml-2 text-white hover:text-white/80 transition-all active:scale-95 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
                     >
                         <ChevronLeft className="w-8 h-8" />
-                    </button>
+                    </IconButton>
                 </div>
 
                 {/* Center - Empty/Spacing */}
@@ -148,13 +149,12 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
 
                 {/* Right Side - Close Button */}
                 <div className="flex-1 flex justify-end">
-                    <button
+                    <IconButton label={t('explore.feed.exitFullscreen')} size="auto"
                         onClick={onToggleView}
                         className="p-2 text-white hover:text-white/80 transition-all active:scale-95 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
-                        title={t('explore.feed.exitFullscreen')}
                     >
                         <X className="w-7 h-7" />
-                    </button>
+                    </IconButton>
                 </div>
             </div>
 
@@ -430,13 +430,12 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                             <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                             <span className="text-white/60 text-[10px] font-medium uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{t('explore.feed.interactive')}</span>
                         </div>
-                        <button
+                        <IconButton label={t('common.exit')} size="auto"
                             className="w-10 h-10 flex items-center justify-center text-white/80 hover:text-white transition-all active:scale-90 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
                             onClick={handleExit}
-                            title={t('common.exit')}
                         >
                             <X className="w-8 h-8 md:w-7 md:h-7" />
-                        </button>
+                        </IconButton>
                     </div>
                 </div>
             )}
@@ -473,7 +472,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
 
                 {/* Interaction Shield */}
                 {!isEntered && (
-                    <div
+                    <IconButton label={t('common.clickToEnter')} size="auto"
                         className="absolute inset-0 z-10 cursor-pointer bg-transparent flex flex-col items-center justify-center group transition-all duration-300"
                         data-event="app_visit" onClick={handleEnter}
                     >
@@ -487,7 +486,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                                 </p>
                             </>
                         )}
-                    </div>
+                    </IconButton>
                 )}
 
                 {/* TikTok-style UI Overlay (Info remains visible or fades partially) */}
@@ -519,43 +518,43 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                             <div className={`w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-gradient-to-tr ${authorColor} flex items-center justify-center text-xl shadow-xl text-white font-bold`}>
                                 {getAuthorInitial(authorName, app.author.anonymousCode)}
                             </div>
-                            <button className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-5 h-5 bg-[#ff0050] text-white rounded-full flex items-center justify-center font-bold text-lg border-2 border-white shadow-lg hover:scale-110 transition-transform">
+                            <IconButton label={t('profile.viewPublicProfile')} size="auto" className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-5 h-5 bg-[#ff0050] text-white rounded-full flex items-center justify-center font-bold text-lg border-2 border-white shadow-lg hover:scale-110 transition-transform">
                                 +
-                            </button>
+                            </IconButton>
                         </div>
                     )}
 
                     <div className="flex flex-col items-center gap-1">
-                        <div
+                        <IconButton label={t('previewActions.like')} size="lg"
                             className="p-2 transition-transform active:scale-90 cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                             onClick={() => presenter.reaction.toggleLike(app.id)}
                         >
                             <Heart className={`w-8 h-8 text-white transition-colors ${isLiked ? 'fill-[#ff0050] text-[#ff0050]' : 'fill-white/20'}`} />
-                        </div>
+                        </IconButton>
                         <span className="text-white text-xs font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                             {likesCount > 1000 ? `${(likesCount / 1000).toFixed(1)}k` : likesCount}
                         </span>
                     </div>
 
                     <div className="flex flex-col items-center gap-1">
-                        <div
+                        <IconButton label={t('previewActions.comments')} size="lg"
                             className="p-2 transition-transform active:scale-90 cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                             onClick={openComments}
                         >
                             <MessageCircle className="w-8 h-8 text-white fill-white/20" />
-                        </div>
+                        </IconButton>
                         <span className="text-white text-xs font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                             {commentsTotal}
                         </span>
                     </div>
 
                     <div className="flex flex-col items-center gap-1">
-                        <div
+                        <IconButton label={t('previewActions.favorite')} size="lg"
                             className="p-2 transition-transform active:scale-90 cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                             onClick={() => presenter.reaction.toggleFavorite(app.id)}
                         >
                             <Star className={`w-8 h-8 text-white transition-colors ${isFavorited ? 'fill-yellow-400 text-yellow-400' : 'fill-white/20'}`} />
-                        </div>
+                        </IconButton>
                         <span className="text-white text-xs font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                             {favoritesCount > 1000 ? `${(favoritesCount / 1000).toFixed(1)}k` : favoritesCount}
                         </span>
@@ -590,12 +589,12 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                         <div className="flex items-center justify-between p-4 border-b border-white/5">
                             <div className="w-8" />
                             <h4 className="text-white font-bold text-sm">{t('explore.feed.commentsCount', { count: commentsTotal })}</h4>
-                            <button
+                            <IconButton label={t('common.close')} size="auto"
                                 onClick={closeComments}
                                 className="w-8 h-8 flex items-center justify-center text-white/60 hover:text-white"
                             >
                                 <X className="w-5 h-5" />
-                            </button>
+                            </IconButton>
                         </div>
 
                         {/* Comment List */}

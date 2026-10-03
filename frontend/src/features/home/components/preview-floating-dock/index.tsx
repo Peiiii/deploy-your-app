@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import React, { useId, useRef, useState } from 'react';
 import { ExternalLink, Heart, MessageCircle, Star, Settings, Maximize2, Minimize2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +24,9 @@ interface PreviewFloatingDockProps {
     isFullscreen: boolean;
     onToggleFullscreen: () => void;
     onOpenComments: () => void;
+    commentsOpen: boolean;
+    commentsPanelId: string;
+    commentsButtonRef: React.RefObject<HTMLButtonElement | null>;
     onOpenSettings: () => void;
     settingsPending: boolean;
     dockOptions?: Omit<UseFloatingDockOptions, 'onDragStart' | 'onDragEnd'>;
@@ -51,6 +55,9 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
     onToggleFullscreen,
     dockOptions,
     onOpenComments,
+    commentsOpen,
+    commentsPanelId,
+    commentsButtonRef,
     onOpenSettings,
     settingsPending,
     expandPolicy = 'auto',
@@ -95,14 +102,14 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
                 : false;
 
     const expanded = pinnedOpen || shouldAutoExpand;
-    const actionClass = 'flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-brand-50 hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-800';
+    const actionClass = 'rounded-md text-slate-500 transition-colors hover:bg-brand-50 hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-800';
 
     return (
         <div
             ref={nodeRef}
             onMouseDown={onMouseDown}
             style={style}
-            className={`
+          className={`
                 absolute z-50 select-none
                 ${isDragging ? 'cursor-grabbing' : 'transition-[left,top] duration-500 linear cursor-grab'}
             `}
@@ -120,12 +127,12 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
             `}>
 
                 {/* 1. Main Icon (Always Visible) - Serves as Handle */}
-                <button
+                <IconButton label={t('previewActions.actions')} size="auto" tooltipSide="right"
                     type="button"
-                    aria-label={t('previewActions.actions')}
-                    aria-expanded={expanded}
-                    aria-controls={actionAreaId}
-                    title={t('previewActions.actions')}
+
+                  aria-expanded={expanded}
+                  aria-controls={actionAreaId}
+
                     onPointerDown={event => { pointerStart.current = { x: event.clientX, y: event.clientY }; }}
                     onClick={event => {
                         const start = pointerStart.current;
@@ -134,10 +141,10 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
                             setPinnedOpen(value => !value);
                         }
                     }}
-                    className="w-10 h-10 flex items-center justify-center flex-shrink-0 relative z-20 cursor-grab focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500"
+                  className="w-10 h-10 flex items-center justify-center flex-shrink-0 relative z-20 cursor-grab focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500"
                 >
                     <BrandLogo className="w-5 h-5" />
-                </button>
+                </IconButton>
 
                 {/* 2. Expanded Action Area */}
                 <div id={actionAreaId} className={`
@@ -151,60 +158,53 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
                     {/* Divider */}
                     <div className="w-3 h-px bg-slate-200 dark:bg-slate-700"></div>
 
-                    <button type="button" onMouseDown={e => e.stopPropagation()} onClick={() => toggleReaction('like')}
-                        disabled={reactionPending || reactions?.isLoading} aria-label={t('previewActions.like')} title={`${t('previewActions.like')} · ${reactions?.likesCount ?? 0}`} aria-pressed={reactions?.likedByCurrentUser ?? false} className={actionClass}>
+                    <IconButton tooltip={String(reactions?.likesCount ?? 0)} label={t('previewActions.like')} size="sm" tooltipSide="right" type="button" onMouseDown={e => e.stopPropagation()} onClick={() => toggleReaction('like')}
+                        disabled={reactionPending || reactions?.isLoading} aria-pressed={reactions?.likedByCurrentUser ?? false} className={actionClass}>
                         <Heart className={`w-4 h-4 ${reactions?.likedByCurrentUser ? 'fill-rose-500 text-rose-500' : ''}`} />
-                    </button>
-                    <button type="button" onMouseDown={e => e.stopPropagation()} onClick={() => toggleReaction('favorite')}
-                        disabled={reactionPending || reactions?.isLoading} aria-label={t('previewActions.favorite')} title={`${t('previewActions.favorite')} · ${reactions?.favoritesCount ?? 0}`} aria-pressed={reactions?.favoritedByCurrentUser ?? false} className={actionClass}>
+                    </IconButton>
+                    <IconButton tooltip={String(reactions?.favoritesCount ?? 0)} label={t('previewActions.favorite')} size="sm" tooltipSide="right" type="button" onMouseDown={e => e.stopPropagation()} onClick={() => toggleReaction('favorite')}
+                        disabled={reactionPending || reactions?.isLoading} aria-pressed={reactions?.favoritedByCurrentUser ?? false} className={actionClass}>
                         <Star className={`w-4 h-4 ${reactions?.favoritedByCurrentUser ? 'fill-amber-400 text-amber-500' : ''}`} />
-                    </button>
-                    <button type="button" onMouseDown={e => e.stopPropagation()} onClick={onOpenComments} aria-label={t('previewActions.comments')} title={t('previewActions.comments')} className={actionClass}>
+                    </IconButton>
+                    <IconButton label={t('previewActions.comments')} size="sm" tooltipSide="right" ref={commentsButtonRef} type="button" onMouseDown={e => e.stopPropagation()} onClick={onOpenComments} aria-expanded={commentsOpen} aria-controls={commentsPanelId} className={`${actionClass} ${commentsOpen ? 'bg-brand-50 !text-brand-600 dark:bg-slate-800 dark:!text-brand-400' : ''}`}>
                         <MessageCircle className="w-4 h-4" />
-                    </button>
+                    </IconButton>
                     {isOwner && <>
                         <div className="w-3 h-px bg-slate-200 dark:bg-slate-700" />
-                        <button type="button" onMouseDown={e => e.stopPropagation()} onClick={onOpenSettings} disabled={settingsPending} aria-busy={settingsPending} aria-label={t('previewActions.settings')} title={t('previewActions.settings')} className={actionClass}>
+                        <IconButton label={t('previewActions.settings')} size="sm" tooltipSide="right" type="button" onMouseDown={e => e.stopPropagation()} onClick={onOpenSettings} disabled={settingsPending} aria-busy={settingsPending} className={actionClass}>
                             <Settings className="w-4 h-4" />
-                        </button>
+                        </IconButton>
                     </>}
                     <div className="w-3 h-px bg-slate-200 dark:bg-slate-700" />
                     {/* Browsing */}
                     {app.url && (
-                        <button
+                        <IconButton label={t('common.openInNewTab')} size="sm" tooltipSide="right"
                             onMouseDown={(e) => e.stopPropagation()}
                             data-event="app_visit" onClick={() => onOpenInNewTab(app.url!)}
-                            className={actionClass}
-                            aria-label={t('common.openInNewTab')} title={t('common.openInNewTab')}
+                          className={actionClass}
                         >
                             <ExternalLink className="w-3.5 h-3.5" />
-                        </button>
+                        </IconButton>
                     )}
-                    <button
+                    <IconButton label={isFullscreen ? t('common.exitFullscreen') : t('common.fullscreen')} size="sm" tooltipSide="right"
                         onMouseDown={(e) => e.stopPropagation()}
                         onClick={onToggleFullscreen}
-                        className={actionClass}
-                        aria-label={isFullscreen ? t('common.exitFullscreen') : t('common.fullscreen')}
-                        title={
-                            isFullscreen
-                                ? t('common.exitFullscreen')
-                                : t('common.fullscreen')
-                        }
+                      className={actionClass}
+
                     >
                         {isFullscreen ? (
                             <Minimize2 className="w-3.5 h-3.5" />
                         ) : (
                             <Maximize2 className="w-3.5 h-3.5" />
                         )}
-                    </button>
-                    <button
+                    </IconButton>
+                    <IconButton label={t('common.close')} size="sm" tooltipSide="right"
                         onMouseDown={(e) => e.stopPropagation()}
                         onClick={onClose}
-                        className={`${actionClass} hover:!bg-red-50 hover:!text-red-600`}
-                        aria-label={t('common.close')} title={t('common.close')}
+                      className={`${actionClass} hover:!bg-red-50 hover:!text-red-600`}
                     >
                         <X className="w-3.5 h-3.5" />
-                    </button>
+                    </IconButton>
                 </div>
             </div>
         </div>

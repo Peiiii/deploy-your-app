@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, X, ArrowUp, ArrowDown } from 'lucide-react';
@@ -92,33 +93,30 @@ export const ProfileAboutStats: React.FC = () => {
                                         placeholder={t('profile.linkUrlPlaceholder')}
                                         className="flex-1 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/60 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                     />
-                                    <button
+                                    <IconButton label={t('profile.removeLink')} size="auto"
                                         type="button"
                                         onClick={() => actions.removeLink(index)}
                                         className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                                        title={t('profile.removeLink')}
                                     >
                                         <X className="w-4 h-4" />
-                                    </button>
+                                    </IconButton>
                                     <div className="flex flex-col gap-1">
-                                        <button
+                                        <IconButton label={t('profile.moveLinkUp', 'Move up')} size="auto"
                                             type="button"
                                             onClick={() => actions.moveLink(index, 'up')}
                                             className="inline-flex items-center justify-center w-7 h-4 rounded border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-40"
                                             disabled={index === 0}
-                                            title={t('profile.moveLinkUp', 'Move up')}
                                         >
                                             <ArrowUp className="w-3 h-3" />
-                                        </button>
-                                        <button
+                                        </IconButton>
+                                        <IconButton label={t('profile.moveLinkDown', 'Move down')} size="auto"
                                             type="button"
                                             onClick={() => actions.moveLink(index, 'down')}
                                             className="inline-flex items-center justify-center w-7 h-4 rounded border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-40"
                                             disabled={index === links.length - 1}
-                                            title={t('profile.moveLinkDown', 'Move down')}
                                         >
                                             <ArrowDown className="w-3 h-3" />
-                                        </button>
+                                        </IconButton>
                                     </div>
                                 </div>
                             ))}

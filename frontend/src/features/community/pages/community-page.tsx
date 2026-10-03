@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import {
   Inbox,
   LockKeyhole,
@@ -58,15 +59,15 @@ export const CommunityPage: React.FC = () => {
       title={t('community.title')}
       actions={
         authUser ? (
-          <button
+          <IconButton label={t('community.newFeedback')} size="auto"
             type="button"
             onClick={presenter.community.openComposer}
-            aria-label={t('community.newFeedback')}
+
             className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/20 transition hover:bg-brand-700"
           >
             <MessageSquarePlus className="h-4 w-4" />
             <span className="hidden sm:inline">{t('community.newFeedback')}</span>
-          </button>
+          </IconButton>
         ) : undefined
       }
     >

@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import { Loader2, LockKeyhole, Send, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usePresenter } from '@/contexts/presenter-context';
@@ -30,14 +31,13 @@ export const FeedbackComposer: React.FC = () => {
             {t('community.composer.privacy')}
           </p>
         </div>
-        <button
+        <IconButton label={t('common.close')} size="auto"
           type="button"
           onClick={() => actions.setComposerOpen(false)}
           className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
-          aria-label={t('common.close')}
         >
           <X className="h-5 w-5" />
-        </button>
+        </IconButton>
       </div>
 
       <div className="space-y-5 p-5 md:p-7">

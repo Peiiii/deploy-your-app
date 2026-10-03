@@ -17,8 +17,7 @@ export const LanguageSwitcher: React.FC = () => {
   };
   return (
     <Popover
-      triggerAriaLabel="语言设置 / Language settings"
-      triggerTitle="语言设置 / Language settings"
+      triggerLabel="语言设置 / Language settings"
       triggerClassName="min-h-9 px-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full flex items-center gap-1.5 border border-slate-200 dark:border-slate-700"
       trigger={
         <>

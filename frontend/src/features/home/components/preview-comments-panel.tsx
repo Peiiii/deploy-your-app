@@ -1,18 +1,22 @@
+import { IconButton } from '@/components/icon-button';
 import { useEffect, useState } from 'react';
 import { useStore } from 'zustand';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/dialog';
+import { X } from 'lucide-react';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { PreviewCommentsManager } from '../managers/preview-comments.manager';
 
 interface PreviewCommentsPanelProps {
   projectId: string;
+  panelId: string;
+  open: boolean;
+  isFullscreen: boolean;
   appName: string;
   onClose: () => void;
 }
 
-export const PreviewCommentsPanel = ({ projectId, appName, onClose }: PreviewCommentsPanelProps) => {
+export const PreviewCommentsPanel = ({ projectId, panelId, open, isFullscreen, appName, onClose }: PreviewCommentsPanelProps) => {
   const { t } = useTranslation();
   const presenter = usePresenter();
   const userId = useAuthStore(s => s.user?.id);
@@ -23,19 +27,29 @@ export const PreviewCommentsPanel = ({ projectId, appName, onClose }: PreviewCom
   }));
   const state = useStore(manager.store);
 
+  useEffect(() => manager.invalidate, [manager, userId]);
+
   useEffect(() => {
-    void manager.load();
-    return manager.invalidate;
-  }, [manager, userId]);
+    if (open && manager.store.getState().page === 0) void manager.load();
+  }, [manager, open, userId]);
 
   return (
-    <Dialog open onOpenChange={open => { if (!open) onClose(); }}>
-      <DialogContent closeLabel={t('common.close')} onEscapeKeyDown={event => event.stopPropagation()}>
-        <DialogHeader>
-          <DialogTitle>{t('previewActions.comments')} · {state.total}</DialogTitle>
-          <DialogDescription>{appName}</DialogDescription>
-        </DialogHeader>
-        <div className="max-h-[45dvh] space-y-4 overflow-y-auto" aria-busy={state.loading}>
+    <aside
+      id={panelId}
+      aria-labelledby={`${panelId}-title`}
+      data-preview-comments={open ? 'open' : 'closed'}
+      className={`flex h-full min-h-0 min-w-0 flex-col border-r border-slate-200 bg-white text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 ${isFullscreen ? 'pl-10' : ''}`}
+    >
+        <header className="flex shrink-0 items-start justify-between gap-2 border-b border-slate-100 px-4 py-4 dark:border-slate-800">
+          <div className="min-w-0">
+            <h2 id={`${panelId}-title`} className="text-sm font-semibold">{t('previewActions.comments')} <span className="ml-1 text-xs font-normal text-slate-400">{state.total}</span></h2>
+            <p className="mt-1 truncate text-xs text-slate-500" title={appName}>{appName}</p>
+          </div>
+          <IconButton label={t('common.close')} size="auto" type="button" onClick={onClose} className="shrink-0 rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-slate-800 dark:hover:text-slate-200">
+            <X className="h-4 w-4" aria-hidden="true" />
+          </IconButton>
+        </header>
+        <div className="app-scrollbar min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4" aria-busy={state.loading}>
           {state.error && (
             <div role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950/30">
               {t('previewActions.commentError')}
@@ -60,7 +74,7 @@ export const PreviewCommentsPanel = ({ projectId, appName, onClose }: PreviewCom
           {state.loading && <p role="status" className="py-3 text-center text-sm text-slate-400">{t('common.loading')}</p>}
           {!state.loading && state.items.length < state.total && <button type="button" disabled={state.submitting || !!state.deletingId} onClick={() => manager.load(true)} className="w-full py-2 text-sm text-brand-600">{t('explore.loadMore')}</button>}
         </div>
-        <form data-submit-event="comment_submit" onSubmit={event => { event.preventDefault(); void manager.submit(); }} className="mt-4 space-y-2 border-t border-slate-200 pt-4 dark:border-slate-700">
+        <form data-submit-event="comment_submit" onSubmit={event => { event.preventDefault(); void manager.submit(); }} className="shrink-0 space-y-2 border-t border-slate-200 p-4 dark:border-slate-700">
           {state.replyTo && <div className="flex items-center justify-between gap-2 text-xs text-slate-500">
             <span>{t('previewActions.replyingTo', { name: state.replyTo.author.handle || state.replyTo.author.displayName || t('previewActions.commentAuthor') })}</span>
             <button type="button" onClick={() => manager.reply(null)}>{t('common.cancel')}</button>
@@ -68,7 +82,6 @@ export const PreviewCommentsPanel = ({ projectId, appName, onClose }: PreviewCom
           <textarea aria-label={t('explore.feed.addComment')} placeholder={t('explore.feed.addComment')} value={state.draft} onChange={event => manager.setDraft(event.target.value)} maxLength={500} rows={3} disabled={state.submitting} className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-800" />
           <button type="submit" disabled={!state.draft.trim() || state.loading || state.submitting || !!state.deletingId} className="w-full rounded-xl bg-brand-600 py-2 text-sm font-medium text-white disabled:opacity-40">{state.submitting ? t('common.pleaseWait') : t('explore.feed.send')}</button>
         </form>
-      </DialogContent>
-    </Dialog>
+    </aside>
   );
 };

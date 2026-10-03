@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import React, { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Share2, Check, Copy } from 'lucide-react';
@@ -45,15 +46,15 @@ export const ProfileLayout: React.FC<ProfileLayoutProps> = ({ children }) => {
 
                         {/* Actions (Right) */}
                         <div className="flex items-center gap-2">
-                            <button
+                            <IconButton label={t('profile.viewPublicProfile')} size="auto"
                                 type="button"
                                 onClick={presenter.myProfile.openPublicProfile}
                                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors bg-white dark:bg-slate-800 shadow-sm"
                             >
                                 <Share2 className="w-3.5 h-3.5" />
                                 <span className="hidden sm:inline">{t('profile.viewPublicProfile')}</span>
-                            </button>
-                            <button
+                            </IconButton>
+                            <IconButton label={t(copied ? 'common.copied' : 'profile.copyProfileLink')} size="auto"
                                 type="button"
                                 onClick={() => presenter.myProfile.copyPublicUrl(copyToClipboard)}
                                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors bg-white dark:bg-slate-800 shadow-sm"
@@ -64,7 +65,7 @@ export const ProfileLayout: React.FC<ProfileLayoutProps> = ({ children }) => {
                                     <Copy className="w-3.5 h-3.5" />
                                 )}
                                 <span className="hidden sm:inline">{t('profile.copyProfileLink')}</span>
-                            </button>
+                            </IconButton>
                         </div>
                     </div>
                 </div>

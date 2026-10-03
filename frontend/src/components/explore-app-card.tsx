@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import { getCategoryLabelKey } from '@/constants/app-categories';
 import { appLanguageLabel } from '@/features/explore/stores/language-preference';
 import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
@@ -250,7 +251,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
               {languageLabel}
             </span>
           )}
-          <button
+          <IconButton label={t('previewActions.like')} size="auto"
             onClick={(e) => {
               e.stopPropagation();
               presenter.reaction.toggleLike(app.id);
@@ -263,7 +264,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
             {reactionEntry?.likesCount > 0 && (
               <span className="text-[11px] font-medium">{reactionEntry.likesCount}</span>
             )}
-          </button>
+          </IconButton>
         </div>
       </div>
     </div>

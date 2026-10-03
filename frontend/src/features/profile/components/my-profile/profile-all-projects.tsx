@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import { getProjectDescription } from '@/utils/project';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -58,14 +59,13 @@ export const ProfileAllProjects: React.FC = () => {
                                 </div>
                             )}
                         </div>
-                        <button
+                        <IconButton label={t('navigation.pinProject')} size="auto"
                             type="button"
                             onClick={() => actions.togglePinned(project.id)}
                             className="flex items-center gap-1 flex-shrink-0 hover:opacity-80 transition-opacity"
-                            title={t('profile.pinnedApps')}
                         >
                             <PinOff className="w-4 h-4 text-slate-400" />
-                        </button>
+                        </IconButton>
                     </div>
                 ))}
             </div>

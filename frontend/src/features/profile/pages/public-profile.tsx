@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import { getProjectDescription } from '@/utils/project';
 import React from 'react';
 import { getAuthorName, getAuthorColor, getAuthorInitial } from '@/utils/author';
@@ -146,7 +147,7 @@ export const PublicProfile: React.FC = () => {
         </div>
         <div className="flex items-center justify-between text-xs pt-1">
           <div className="flex items-center gap-2">
-            <button
+            <IconButton label={t('previewActions.favorite')} size="auto"
               type="button"
               onClick={() => presenter.publicProfile.toggleFavorite(project.id)}
               className="inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -158,8 +159,8 @@ export const PublicProfile: React.FC = () => {
                   }`}
               />
               <span>{favorites.toLocaleString()}</span>
-            </button>
-            <button
+            </IconButton>
+            <IconButton label={t('previewActions.like')} size="auto"
               type="button"
               onClick={() => presenter.publicProfile.toggleLike(project.id)}
               className="inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -169,7 +170,7 @@ export const PublicProfile: React.FC = () => {
                   }`}
               />
               <span>{likes.toLocaleString()}</span>
-            </button>
+            </IconButton>
           </div>
           <div className="inline-flex items-center gap-1 text-slate-400">
             <Zap className="w-3 h-3" />

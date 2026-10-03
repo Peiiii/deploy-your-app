@@ -1,10 +1,10 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { IconButton } from './icon-button';
 
 interface PopoverProps {
   trigger: ReactNode;
   triggerClassName: string;
-  triggerTitle?: string;
-  triggerAriaLabel?: string;
+  triggerLabel: string;
   className?: string;
   panelClassName: string;
   children: ReactNode | ((close: () => void) => ReactNode);
@@ -13,8 +13,7 @@ interface PopoverProps {
 export const Popover = ({
   trigger,
   triggerClassName,
-  triggerTitle,
-  triggerAriaLabel,
+  triggerLabel,
   className = 'relative',
   panelClassName,
   children,
@@ -56,18 +55,16 @@ export const Popover = ({
         if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) close();
       }}
     >
-      <button
+      <IconButton label={triggerLabel} size="auto"
         ref={triggerRef}
         type="button"
         className={`group ${triggerClassName}`}
-        title={triggerTitle}
-        aria-label={triggerAriaLabel}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={() => setOpen((value) => !value)}
       >
         {trigger}
-      </button>
+      </IconButton>
       {open && (
         <div id={panelId} className={panelClassName}>
           {typeof children === 'function' ? children(close) : children}

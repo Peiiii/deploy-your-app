@@ -52,6 +52,7 @@ export const HomeDeploySection = ({ compact, onQuickDeploy }: HomeDeploySectionP
             {t('home.publishZip')}
           </button>
           <Popover
+            triggerLabel={t('home.moreWays')}
             className="sm:relative"
             triggerClassName="flex items-center gap-1 px-2 py-2.5 text-sm text-slate-600 dark:text-slate-300"
             trigger={

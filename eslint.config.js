@@ -4,6 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 import { defineConfig, globalIgnores } from 'eslint/config';
+import iconActions from './frontend/eslint/icon-actions.mjs';
 
 export default defineConfig([
   // Ignore compiled / generated artifacts and cloned user builds.
@@ -26,6 +27,11 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+  },
+  {
+    files: ['frontend/src/**/*.tsx'],
+    plugins: { 'gemigo-ui': { rules: { 'icon-actions': iconActions } } },
+    rules: { 'gemigo-ui/icon-actions': 'error' },
   },
   {
     files: ['desktop/src/**/*.{ts,tsx}'],

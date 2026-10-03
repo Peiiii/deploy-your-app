@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff, Github } from 'lucide-react';
@@ -127,14 +128,13 @@ export const AuthModal: React.FC = () => {
                 placeholder={mode === 'login' ? t('auth.passwordPlaceholder') : t('auth.passwordPlaceholderSignup')}
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               />
-              <button
+              <IconButton label={passwordVisible ? t('auth.hidePassword') : t('auth.showPassword')} size="auto"
                 type="button"
                 onClick={() => presenter.auth.togglePasswordVisible()}
                 className="absolute inset-y-0 right-0 px-4 flex items-center text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors"
-                aria-label={passwordVisible ? t('auth.hidePassword') : t('auth.showPassword')}
               >
                 {passwordVisible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
+              </IconButton>
             </div>
           </div>
 
@@ -154,22 +154,21 @@ export const AuthModal: React.FC = () => {
                   placeholder={t('auth.confirmPasswordPlaceholder')}
                   autoComplete="new-password"
                 />
-                <button
+                <IconButton label={
+                    confirmPasswordVisible ? t('auth.hidePassword') : t('auth.showPassword')
+                  } size="auto"
                   type="button"
                   onClick={() =>
                     presenter.auth.toggleConfirmPasswordVisible()
                   }
                   className="absolute inset-y-0 right-0 px-4 flex items-center text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors"
-                  aria-label={
-                    confirmPasswordVisible ? t('auth.hidePassword') : t('auth.showPassword')
-                  }
                 >
                   {confirmPasswordVisible ? (
                     <EyeOff className="w-5 h-5" />
                   ) : (
                     <Eye className="w-5 h-5" />
                   )}
-                </button>
+                </IconButton>
               </div>
             </div>
           )}

@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -40,11 +41,11 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
           ? location.pathname === '/'
           : location.pathname.startsWith(item.path);
         return (
-          <button
+          <IconButton label={item.label} size="auto"
             key={item.path}
             aria-current={isActive ? 'page' : undefined}
-            aria-label={item.label}
-            title={collapsed ? item.label : undefined}
+
+
             data-event="navigation_click"
             onClick={() => {
               navigate(item.path);
@@ -65,7 +66,7 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
             {isActive && !collapsed && (
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-brand-600 dark:bg-brand-400 rounded-r-full" />
             )}
-          </button>
+          </IconButton>
         );
       })}
     </div>

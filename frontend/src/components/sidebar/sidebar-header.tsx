@@ -1,3 +1,4 @@
+import { IconButton } from '@/components/icon-button';
 import React from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -29,13 +30,13 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
   return (
     <>
       <div className={`transition-all duration-300 flex items-center gap-3 relative ${collapsed ? 'p-0 w-full justify-center py-6' : 'p-6 pb-6'}`}>
-        <button
+        <IconButton label={t('ui.collapseSidebar')} size="auto"
           onClick={() => setSidebarOpen(false)}
-          aria-label={t('ui.collapseSidebar')}
+
           className="md:hidden absolute top-4 right-4 p-1 text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white"
         >
           <X className="w-5 h-5" />
-        </button>
+        </IconButton>
         {/* Precise 30 Logo (Purple) */}
         {/* Precise 30 Logo (Purple) - Optimized for Collapsed State */}
         <div className={`relative flex items-center justify-center transition-all duration-300 ${collapsed ? 'w-10 h-10' : 'w-10 h-10'}`}>
@@ -57,17 +58,16 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
         )}
       </div>
 
-      <button
+      <IconButton label={collapsed ? t('ui.expandSidebar') : t('ui.collapseSidebar')} size="auto"
         onClick={onToggleCollapsed}
         className="hidden md:flex absolute top-4 -right-3 w-6 h-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full items-center justify-center shadow-md hover:shadow-lg transition-all z-50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-        aria-label={collapsed ? t('ui.expandSidebar') : t('ui.collapseSidebar')}
       >
         {collapsed ? (
           <ChevronRight className="w-4 h-4" />
         ) : (
           <ChevronLeft className="w-4 h-4" />
         )}
-      </button>
+      </IconButton>
 
     </>
   );

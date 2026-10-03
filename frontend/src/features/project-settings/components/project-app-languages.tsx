@@ -87,6 +87,7 @@ export function ProjectAppLanguages({ project }: { project: Project }) {
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Popover
+            triggerLabel={t('languages.more')}
           trigger={t('languages.more')}
           triggerClassName="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm text-slate-700 dark:text-slate-200"
           panelClassName="absolute bottom-full left-0 mb-2 w-56 max-h-64 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl z-50 p-1"

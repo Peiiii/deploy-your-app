@@ -12,6 +12,7 @@
     "commentAuthor": "User"
   },
   "common": {
+    "clear": "Clear search",
     "signIn": "Sign in",
     "signOut": "Sign out",
     "signUp": "Sign up",
