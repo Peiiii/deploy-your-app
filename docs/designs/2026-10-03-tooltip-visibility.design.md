@@ -1,6 +1,6 @@
 # Tooltip 可见名称边界修复
 
-用户明确要求：只有纯图标操作显示 Tooltip；带可见文字的入口不显示重复提示。截图为展开侧栏导航。flow=bugfix，风险 L2，retrospective_state=pending；授权按 AGENTS.md 完成提交、普通推送、master 同步、前端发布与线上验收。
+用户明确要求：只有纯图标操作显示 Tooltip；带可见文字的入口不显示重复提示。截图为展开侧栏导航。flow=bugfix，风险 L2，retrospective_state=completed；授权按 AGENTS.md 完成提交、普通推送、master 同步、前端发布与线上验收。
 
 ## 证据与用户链路
 
@@ -30,3 +30,11 @@ design-review: passed。反例已纳入：只隐藏浮层 CSS 会留下 aria 描
 - 真实 Chrome 完整 `test-preview-comments-sidepanel.mjs` 通过：游客/登录导航、文字 Popover 点击/Escape/focus、卡片计数点赞、预览/密码/关闭等原图标操作；新增桌面/窄屏视图与账户、639/640px 反馈边界、管理页文字访问链接与收藏筛选，无 hover/focus/aria-describedby 重复提示。
 - 700→1440→700px 实时切换：已打开提示关闭，同一按钮仍连接且保留焦点，再次隐藏文字不会复活旧提示，重新聚焦可显示且 Escape 可关闭。
 - mode=implementation Review: no findings；项目没有独立 diff-only maintainability 脚本，按当前 diff 核对单 owner、状态清理、稳定 DOM/refs、Slot 链接语义、响应式条件与文字同源、规则数值计数和条件图标反例。acceptance-ready（本地）。
+
+## 线上交付与复盘
+
+- 源码提交 `325af714e2728ddf97e1873b4a166d2083adf7d0` 普通推送进入 master，主工作区在 master；重新 fetch 核对两端 `0 0`，实际远程 SHA 与本地一致。本任务之外的草稿未提交。
+- 标准 `pnpm deploy:pages` Published，Pages `02e40cab6baef7783a72bdcae80586170849adbc` built，上一版本 `5089e4913db33296da23643ef0e617b0508104aa` 可恢复。
+- 无 HTTP fixture 的真实 https://gemigo.io/ 验收通过，实际加载 `index-DEMOk9Rv.js` / `index-DMr0dao2.css`：展开导航、更多方式、语言设置与内容筛选、桌面视图切换无重复提示；折叠导航键盘名称/Escape、导航点击及 active 状态、窄屏图标与放大后焦点保持正确。线上登录用户的个人页/反馈/管理页分支未实际登录操作，其定向行为由完整源码页面 + HTTP fixture 证明。
+- 用户入口：刷新首页，hover 展开导航无 Tooltip；折叠侧栏后 hover/键盘聚焦图标显示名称，再展开关闭提示。AI 先验已通过，体验可由用户继续反馈。
+- retrospective_decision=updated-existing-owner：修订原 `frontend/README.md` 并扩展现有 icon-actions lint 与浏览器回归，补上迁移时文字可见性边界；不新增通用 Skill 或平行规范。此前预览操作设计的无条件 Tooltip 描述由本修订的可见名称边界替代。
