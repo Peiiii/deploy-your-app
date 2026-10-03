@@ -1,9 +1,9 @@
 /** Delivery-only Google Fonts acceleration; no customer source writes or open proxy. */
-export const FONT_PREFIX = '/__gemigo/google-fonts/';
+export const FONT_PREFIX = '/__gemigo/google-fonts/v2/';
 export const FONT_CSS_MARKER = '__gemigo_fonts';
 const UPSTREAM_TIMEOUT_MS = 2500;
 const MAX_DOCUMENT_BYTES = 1024 * 1024;
-const CSS_UA = 'Mozilla/5.0 Chrome/120.0.0.0 Safari/537.36';
+const CSS_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 function fontUrl(value: string, origin: string): string | null {
   if (!/^(?:https?:)?\/\/(?:fonts\.googleapis\.com|fonts\.gstatic\.com)\//i.test(value)) return null;
