@@ -513,7 +513,7 @@ export default {
     headers.set('server-timing', `gemigo;dur=${(performance.now() - started).toFixed(1)}`);
     if (headers.get('content-type')?.includes('text/html')) {
       const etag = headers.get('etag');
-      if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, `-hosting-${runtimeAssets.tailwind.sha256.slice(0, 8)}-favicon-v2-fonts-v1"`)}`);
+      if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, `-hosting-${runtimeAssets.tailwind.sha256.slice(0, 8)}-favicon-v2-fonts-v2"`)}`);
       headers.delete('content-length');
       // Origin objects stay byte-for-byte intact; this is a delivery-only URL substitution.
       const fonts = await rewriteFontHtml(new Response(result.response.body, { headers }), url.href, `https://${CENTRAL_THUMBNAIL_HOST}.${rootDomain}`);
@@ -525,7 +525,7 @@ export default {
       const document = await readSmallDocument(result.response);
       if (document.text !== undefined) {
         const etag = headers.get('etag');
-        if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, '-fonts-v1"')}`);
+        if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, '-fonts-v2"')}`);
         headers.delete('content-length');
         const css = rewriteFontCss(document.text, `https://${CENTRAL_THUMBNAIL_HOST}.${rootDomain}`, url.href);
         return respondWithValidation(request, new Response(css), headers, ctx);

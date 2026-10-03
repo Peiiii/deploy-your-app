@@ -17,7 +17,7 @@ const mf=new Miniflare({modules:true,script:built.outputFiles[0].text,compatibil
   if(url.hostname==='fonts.googleapis.com') return new Response('@font-face{font-family:DM;src:url(https://fonts.gstatic.com/s/dmmono/v1/file.woff2);font-display:swap}',{headers:{'content-type':'text/css'}});
   return new Response(new Uint8Array([119,79,70,50]),{headers:{'content-type':'font/woff2'}});
 }});
-const root='https://assets.gemigo.app/__gemigo/google-fonts/';
+const root='https://assets.gemigo.app/__gemigo/google-fonts/v2/';
 try{
  const bucket=await mf.getR2Bucket('ASSETS');
  const html='<html><head><link rel="stylesheet" href="//fonts.googleapis.com/css2?family=DM+Mono&amp;display=swap"><link rel="stylesheet" href="styles/main.css"><link integrity="sha256-x" rel="stylesheet" href="https://fonts.googleapis.com/css?family=DM"><style>@import url(\'https://fonts.googleapis.com/css2?family=Noto+Serif+SC\');/* url(https://fonts.googleapis.com/css?family=Ignore) */ .x:after{content:"url(https://fonts.googleapis.com/css?family=Example)"}</style></head><body>Demo</body></html>';
