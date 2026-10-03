@@ -11,9 +11,10 @@ export async function refund(repo: PointsRepository, receipt: PointsReceipt, all
     throw new AppError('此服务需要平台核查后退款。', 409, 'REFUND_REVIEW_REQUIRED');
   const queries = [
     repo.statement(
-      "INSERT INTO points_assertions(id,ok) SELECT ?,CASE WHEN EXISTS(SELECT 1 FROM points_receipts WHERE id=? AND status IN('granted','unknown','reserved')) THEN 1 ELSE 0 END",
+      "INSERT INTO points_assertions(id,ok) SELECT ?,CASE WHEN EXISTS(SELECT 1 FROM points_receipts WHERE id=? AND status=? AND status IN('granted','unknown','reserved')) THEN 1 ELSE 0 END",
       id,
-      id
+      id,
+      receipt.status
     ),
   ];
   if (item.delivery === 'grant') {
@@ -123,16 +124,17 @@ export async function runAi(env: ApiWorkerEnv, repo: PointsRepository, receipt: 
       .first<{ payload: string }>();
     const input = JSON.parse(row?.payload || '{}') as { topic: string };
     // Fixed service: no client-selected model, URL, secret or unbounded prompt.
-    const result = (await env.RECOMMENDATION_AI.run('@cf/meta/llama-3.1-8b-instruct-fp8', {
+    const result = (await env.RECOMMENDATION_AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
       messages: [
         {
           role: 'system',
           content:
-            '你是一名知识讲解员，用中文在200字以内解释一个科学或历史概念。不提供医疗、法律或投资建议。',
+            '你是一名严谨的知识讲解员，用中文在200字以内解释一个科学或历史概念。先检查问题前提，依据公认知识说明原因，不编造事实。不确定时明确说明，不提供医疗、法律或投资建议。只输出简短解说。',
         },
         { role: 'user', content: input.topic },
       ],
-      max_tokens: 256,
+      max_tokens: 512,
+      temperature: 0.2,
     })) as { response?: string };
     if (!result?.response) {
       await repo
@@ -147,7 +149,8 @@ export async function runAi(env: ApiWorkerEnv, repo: PointsRepository, receipt: 
     }
     await repo
       .statement(
-        "UPDATE points_receipts SET status='granted',result=?,updated_at=? WHERE id=? AND status='running'",
+        // Keep a late response from the original executor, but never revive a released charge.
+        "UPDATE points_receipts SET status='granted',result=?,error=NULL,updated_at=? WHERE id=? AND status IN('running','unknown')",
         JSON.stringify({ text: result.response }),
         Date.now(),
         receipt.id

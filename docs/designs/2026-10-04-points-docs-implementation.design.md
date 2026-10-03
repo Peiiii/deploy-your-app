@@ -14,7 +14,7 @@
 
 收费项绑定 project.id 与 owner_id，保存价格、repeatable/durable/term、权益键、units、periodSeconds、delivery=grant/ai、enabled。价格不可原地改写，作者新建项再停用旧项。批次分配表插入 trigger 原子减批次余额并检查非负。收据创建→分配→即时授予→granted 的 D1 batch 为一个事务；finalize trigger 验证分配总数=价格，任何 CHECK/UNIQUE 失败回滚。durable grant 同用户/项目/权益键唯一；repeatable 的额度按原收据保存并用唯一核销键核销；term 保存上次到期与新到期，延长与扣点同事务。
 
-收据生命周期 prepared→granted 或 reserved→running→granted/released/unknown；AI jobId=receiptId，最多一个执行者 CAS，Worker interruption 的 running 标记 unknown 并不盲重试。明确 upstream error 释放，网络异常/超时 unknown 保留点数；平台操作员核查并释放或写回持久结果。每日全局 AI 执行上限和固定输出上限避免体验点变成无限模型预算；未配置服务时收费项不可用。退款恢复原批次，回冲作者收入；只有未核销额度/永久权益/尚无后续购买的按期权益可自动退款，复杂已消费状态由平台核查。每次现金结算需来自 paid allocation；trial 的金额恒 0，禁止把试点消费计为真钱。
+收据生命周期 prepared→granted 或 reserved→running→granted/released/unknown；AI jobId=receiptId，最多一个执行者 CAS，Worker interruption 的 running 标记 unknown 并不盲重试；原执行者稍后返回结果仍可持久化为 granted，已核查 released 的收据不能复活。明确未交付结果或预算拒绝时释放，网络异常/超时 unknown 保留点数；平台操作员核查未交付后释放；结果只由受控执行者写回。每日全局 AI 执行上限和固定输出上限避免体验点变成无限模型预算；未配置服务时收费项不可用。退款恢复原批次，回冲作者收入；只有未核销额度/永久权益/尚无后续购买的按期权益可自动退款，复杂已消费状态由平台核查。每次现金结算需来自 paid allocation；trial 的金额恒 0，禁止把试点消费计为真钱。
 
 ## 身份、接口与恢复
 
@@ -22,13 +22,13 @@ API `/points` 管平台 session；mutation 强制同平台 Origin；新 SDK `/sd
 
 SDK purchase 在用户 gesture 同步开窗口，后台生成短期 intent 绑定用户、项目、收费项、请求 ID、state、origin；平台确认按已存快照购买。requestId 保持幂等；receipt 查询为权威，postMessage 校验 origin/source/state。关窗返回 cancelled 仅代表 UI退出，不撤销已确认交易；再次查询原 requestId 恢复。弹窗被拦时返回可操作平台确认链接，用户可复制打开并按原请求查询，不偷用无来源回跳。
 
-公开 points API：items、purchase、receipt(requestId)、grants、consume(grantId,requestId)、subscribe、subscriptions/cancel。错误明确余额不足、已拥有、pending、priceDisabled、sourceMismatch。订阅周期 receipt 使用 subscriptionId+dueAt 唯一键；cron 只处理已明确授权的版本，扣款前检查 active，余额不足 inactive，恢复需用户重新授权。取消前本周期已提交交易不撤销。
+公开 SDK points API：items、purchase、receipt(requestId)、grants、consume(grantId,requestId)。续费授权仅在平台确认页显式选择，subscriptions/cancel 为平台登录接口，应用不能静默订阅。错误明确余额不足、已拥有、pending、priceDisabled、sourceMismatch。订阅周期 receipt 使用 subscriptionId+dueAt 唯一键；cron 只处理已明确授权的版本，扣款前检查 active，余额不足 inactive，恢复需用户重新授权。取消前本周期已提交交易不撤销。
 
 ## 文档与样例部署
 
 独立 `workers/docs` 使用 Workers 静态 assets 与 custom_domain=docs.gemigo.io，根目录 `developer-docs` 内容；本项目现有 SDK 指南引用到文档站，而不是平行维护另一份 API。构建脚本从源 Markdown 生成导航 HTML、llms.txt 与原 Markdown，复制真实 SDK 构建产物、现有 CLI Skill、新 app Skill和示例源码。使用一个确定的 Markdown 渲染依赖，不开发 Markdown parser。静态页提供暗色/移动布局和本地标题搜索。无需云 CMS 或新 Docs 账号。
 
-示例应用需真实项目登记与当前 gemigo.app origin；通过现有授权部署 API/CLI 发布，不直接改他人作品。示例项目 ID/收费项 ID 注入受控配置，无用户密钥。固定模型 @cf/meta/llama-3.1-8b-instruct-fp8 受控 API 必须禁用客户端 arbitrary upstream/model，现有免费 AI 代理消费者不改。
+示例应用需真实项目登记与当前 gemigo.app origin；通过现有授权部署 API/CLI 发布，不直接改他人作品。示例项目 ID/收费项 ID 注入受控配置，无用户密钥。固定模型 @cf/meta/llama-3.3-70b-instruct-fp8-fast 受控 API 必须禁用客户端 arbitrary upstream/model，现有免费 AI 代理消费者不改。
 
 ## 测试矩阵与评审
 

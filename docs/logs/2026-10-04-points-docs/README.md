@@ -27,6 +27,32 @@
 - 实现 Review：从用户原始要求核对平台自定义扣费、统一来源、续费、SDK 和示例。已修复项目生命周期、term 退款续费、并发 AI 输入与核销恢复 finding；对当前无现金钱包/权益/受控 AI/文档站发布候选无剩余代码 finding。现金准入、充值回调/对账/作者到账仍是 PD-04 阻塞，不作整体验收通过。仓库没有独立 diff-only maintainability 脚本，按完整 findings-first 与主观 owner 复核；余额/来源/权益以 D1 为唯一 owner，没有客户端授予或测试成功替代生产。
 - 完整 `pnpm check`（lint、全仓 tsc、domain registry）通过，API Worker dry-run bundle 通过；D1 集成补充既有 Cloud KV 与旧 token、app/user 隔离、补贴耗尽和未经开通的实付来源拒绝，全部通过。lint 精确排除新增 docs 构建目录及 Worker 编译产物，未忽略源文件。npm `whoami` 返回 401；先发布 docs 域名固定 SDK 资源，npm registry 未发布须如实保留。
 
+## 线上验收证据
+
+可独立使用的点数、SDK/Skill、文档站与两应用源码已发布。整体未完成：PD-04 无获准商户渠道，充值/支付回调对账/真钱退款/作者到账尚未实现和验收；PD-07 第二应用的最后浏览器消费验证因 Mac 锁屏待解锁。原合同 Required 未减少。
+
+- 实际入口：[文档](https://docs.gemigo.io)、[钱包](https://gemigo.io/wallet)、[知识实验室](https://knowledge-lab.gemigo.app/)、[创意实验室](https://creative-lab.gemigo.app/)。两示例是正式项目，使用生产账号与正式 v0.3.0 SDK；没有客户端假余额/假订单。
+- 文档站七页、原 Markdown、Skill、SDK 资源、可安装 tgz、搜索文件和真实404线上核对。实际从公开 URL npm 安装 SDK 后核对 default import、版本、类型和依赖通过；npm registry 401，未声称 registry 发布成功。[截图](artifacts/docs-live.png)。
+- 钱包一次领取20点，重复领取余额不增。所有线上验收收据 paid_minor=0、creator_minor=0，来源 trial。充值按钮和 API 明确不可用，没有把体验消费伪造成作者收入。
+- 知识示例真实浏览器登录，取消初次确认不扣点；重开同一意图购买2点提示（f24cc83f-e343-4ece-bd15-222d4f471f54），核销一份后额度0；4点永久题库（d04e2185-69fc-48fa-9294-ff2996399813）跨刷新恢复，再点击解锁仍同收据且不二扣。
+- 按期5点（ca914bf1-8fe1-4fae-bbe7-4655f7aeebee），默认未勾选续费，验收时显式勾选。钱包实际取消 subscription 40d6b236-2e08-4745-91b9-acd0f3fa54c6，active=0；已付权益仍显示至2026-11-03。没有伪称真实等待30天；到期、余额不足停续费、重复cron和退款停止续费用实际 D1/受控时间证明。
+- 实际 Workers AI 服务先预留3点，看到 running，再从平台恢复 granted 结果。首个模型科学解说存在错误，已更换固定模型 @cf/meta/llama-3.3-70b-instruct-fp8-fast（[官方参数](https://developers.cloudflare.com/workers-ai/models/llama-3.3-70b-instruct-fp8-fast/)），512输出上限、temperature=0.2；第二真实请求 63669394-4172-4444-ad94-ec2025ab8580 已持久化、恢复并核对瑞利散射解释。AI 内容仍可能有误，页面明确需核实。
+- 实际浏览器发现确认窗口等待超过 SDK 超时后，示例在尚无收据时丢弃原请求。已修复保留 UUID＋原主题，复用原意图，输入变化不另建收费；对真实 HTML 脚本故障回放通过。旧 AI 收据仍可按 last-ai 恢复，没有重新执行旧服务。
+- 作者页面实际创建收费项 4cbc6e7b-bc77-47a6-8170-ada7c49968d3 并停用；第二份2点提示 e25f849c-7e60-4965-acea-225e511787b2 未核销，作者点击退款成功，额度1→0，原余额4→6。随后第二 AI 扣3，生产余额3。最新脱敏快照：[production-evidence.json](artifacts/production-evidence.json)。
+- 实际 D1 测试覆盖事务/trigger 回滚、20路并发不透支、来源补贴耗尽、原价幂等、跨应用/用户/Origin/收费项隔离、未开通 paid 拒绝、按次重复核销、永久竞购、term 延长和退款栈、到期、续费不足、取消和删除项目停续费、过期确认拒绝。受控上游仅用于明确失败/unknown/CAS/迟到结果及已释放不复活竞争，不能替代上述真实 Workers AI 调用。
+- 最后实现 Review 修复作者销售接口暴露买家全局ID和AI输入/结果，SDK items 仅公开收费项字段；normalized topic 在重试前校验；缺AI绑定不扣；过时管理员释放不能退款已交付结果；原执行者迟到结果可保存，已释放收据不复活。补充实际 D1 与源码回放验证，当前可独立发布范围无剩余代码 finding。
+- 完整 pnpm check、SDK/CLI/前端/docs构建、API部署 bundle、SEO Pages runtime 通过。用户界面证据来自实际点击，服务异常测试明确区分受控故障；静态源码中的免费/付费展示不能保护客户端源代码或秘密，文档说明真正受保护资源需受信服务端检查权益。
+
+## 部署与 Git
+
+- 生产 D1 additive migration 0006：23命令成功，旧部署/用户数据保留；生产 before bookmark 0000499a-00000ee8-000050f9-418804ca4e5bcf51e39bf30c906e01e6，after 0000499a-00000f10-000050f9-69b6ed7b6094da5f31ea2bfb4f831307。没有写入 paid 充值或更换 Secrets。
+- Pages 项目 gemigo 生产分支 gh-pages；deploy:pages 发布 gh-pages e72cc6b，Production 2f134b90-14dd-482e-bb40-38503c53a233。实际 gemigo.io/wallet HTTP200/noindex 和 index-BnSsYbi1.js 已核对。向 master 产生的 Preview 不作生产证据。
+- docs Worker：9520c5fc-5fee-403f-898f-396f5611651e。知识示例更新在原项目 5d87699b-bd26-4b16-8a50-45f3126721af，deployment f3c34751-c4c6-4895-ba27-b4201e85fdde SUCCESS；线上应用脚本与源码相同，完整HTML仅含网关既有favicon/analytics注入。创意原项目 51ce4e3c-197f-4ee5-b136-d1885b3b8e81，deployment abce4dcf-2204-4309-b457-80d9a2ee7374 SUCCESS。
+- SDK v0.3.0 UMD线上字节与构建一致、CORS=*，SHA256 ffb9eac3eda8be9f74da58bbf10e18e2dce806562c1631e444db0b4d6caa3401。本次后续客户端改动未改该版本SDK字节。
+- 本任务精确提交并普通推送，合入同期admin已交付变更；主区未提交 analytics脚本、两份文档和tgz均按内容哈希核对保留。最后代码/API版本与最终 Git同步收尾记录见当前状态及生产快照。
+
 ## 交付汇总与复盘
 
-进行中；尚未交付，不宣称真钱充值或作者到账。
+整体 blocked，继续条件：[支付开通条件与材料草稿](../../designs/2026-10-04-payment-onboarding.design.md)及 Mac解锁后的第二示例浏览器验收。支付需要实际获准渠道、商户、经济参数及后续代码/真实交易验收，不能描述成只需填一个Key。
+
+retrospective_decision：updated-existing-owner。已核实 Pages 的 production分支，修正原 TECHNICAL_ARCHITECTURE.md 中 GitHub Pages 描述，链接唯一命令owner与本次证据；超时/迟到/终态竞争的高影响错误已经落为实际源码/D1回归。没有新增全局开发规则。父目标仍未完成，retrospective_state=decision-recorded，不能由子模块部署成功推断整体验收完成。

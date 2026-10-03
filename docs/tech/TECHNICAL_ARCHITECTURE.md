@@ -75,7 +75,7 @@
 | 构建 | Vite (rolldown-vite) | 极速构建 |
 | 国际化 | i18next | 多语言 |
 | AI | @google/genai | Gemini 集成 |
-| 部署 | GitHub Pages | 静态托管 |
+| 部署 | Cloudflare Pages | GitHub `gh-pages` 分支触发生产构建 |
 
 ### 目录结构
 
@@ -314,6 +314,8 @@ pnpm build                  # 构建全部
 pnpm build:frontend         # 构建前端
 
 # 部署
-pnpm deploy:pages           # 部署前端到 GitHub Pages
+pnpm deploy:pages           # 构建并推送 gh-pages，触发 Cloudflare Pages 生产部署
 pnpm deploy:workers         # 部署所有 Workers
 ```
+
+2026-10-04 已核对 Cloudflare Pages 项目 `gemigo` 的生产分支为 `gh-pages`。向 `master` 发布的 Pages deployment 是 Preview，不能据此认定 `gemigo.io` 已更新。前端发布后核对生产 deployment 的分支及实际域名资源版本；命令 owner 为根 `package.json` 的 `deploy:pages`。本次证据见 [点数与文档站交付记录](../logs/2026-10-04-points-docs/README.md)。

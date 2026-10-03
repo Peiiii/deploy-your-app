@@ -251,7 +251,8 @@ export function PointsConfirmPage() {
                 {data.receipt ? (
                   <>
                     <p role="status">
-                      交易状态：{data.receipt.status}。结果保存在平台，可以返回应用查询。
+                      交易状态：{data.receipt.status}
+                      。交易记录已保存，可以返回应用查询进度、权益或结果。
                     </p>
                     <a className={button} href={data.intent.origin}>
                       返回应用

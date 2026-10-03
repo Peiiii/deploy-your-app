@@ -65,4 +65,4 @@ const receipt = await gemigo.points.receipt({requestId});
 if (receipt?.status === 'granted') showText(receipt.result.text);
 ```
 
-模型由平台指定，最多输出 256 tokens，有全局日预算。结果持久化后结算；明确无结果释放点数，调用不确定时等待平台核查。应用不能传入任意模型、上游 URL 或密钥。
+模型由平台指定，最多输出 512 tokens，有全局日预算。结果持久化后结算；明确无结果释放点数，调用不确定时等待平台核查。应用不能传入任意模型、上游 URL 或密钥。解说由 AI 生成，可能存在错误，需要核实。

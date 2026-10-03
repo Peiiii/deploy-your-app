@@ -3,13 +3,14 @@ import { sdkAuthRepository } from '../workers/api/src/repositories/sdk-auth.repo
 import { sdkCloudService } from '../workers/api/src/services/sdk-cloud.service';
 import { sdkAuthService } from '../workers/api/src/services/sdk-auth.service';
 import assert from 'node:assert/strict';
+import { createContext, runInContext } from 'node:vm';
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { PointsRepository } from '../workers/api/src/points/repository';
 import { refund, processPointsScheduled, runAi } from '../workers/api/src/points/service';
 import { pointsController } from '../workers/api/src/points/controller';
 import type { ApiWorkerEnv } from '../workers/api/src/types/env';
-import type { PointsItem } from '../workers/api/src/points/types';
+import type { PointsItem, PointsReceipt } from '../workers/api/src/points/types';
 const require = createRequire(import.meta.url);
 const wranglerRequire = createRequire(require.resolve('wrangler/package.json'));
 const { Miniflare } = wranglerRequire('miniflare');
@@ -180,6 +181,31 @@ try {
   await assert.rejects(repo.purchase('subscriber', item, 'deleted-app', null));
   assert.equal(await repo.receipt('subscriber', 'app-a', 'deleted-app'), null);
   await db.prepare("UPDATE projects SET is_deleted=0 WHERE id='app-a'").run();
+  await db.prepare("UPDATE points_terms SET expires_at=0 WHERE user_id='subscriber'").run();
+  const expiredTerms = (await repo.grants('subscriber', 'app-a')).terms;
+  assert.equal(expiredTerms[0].expires_at, 0);
+  await db.prepare("UPDATE points_subscriptions SET active=1 WHERE id='sub'").run();
+  const renewal = (await db
+    .prepare("SELECT * FROM points_receipts WHERE user_id='subscriber'")
+    .first()) as unknown as PointsReceipt;
+  await refund(repo, renewal);
+  assert.equal((await repo.balance('subscriber'))!.balance, 20);
+  assert.equal(
+    (await db.prepare("SELECT active FROM points_subscriptions WHERE id='sub'").first()).active,
+    0,
+    'term refund stops future renewals'
+  );
+  await db
+    .prepare("INSERT INTO points_subscriptions VALUES('poor-sub','no-balance','app-a','member',1,0,0)")
+    .run();
+  await processPointsScheduled(env);
+  assert.equal(
+    (await db.prepare("SELECT active FROM points_subscriptions WHERE id='poor-sub'").first()).active,
+    0,
+    'insufficient balance stops authorized renewal'
+  );
+  assert.equal((await repo.balance('no-balance'))!.balance, 0);
+  assert.equal(await repo.receipt('no-balance', 'app-a', 'renew:poor-sub:0'), null);
   await repo.claim('ai-user');
   const ai = await register({ ...item, id: 'explain', delivery: 'ai', price: 3 });
   const reserved = await repo.purchase('ai-user', ai, 'ai-1', JSON.stringify({ topic: '彩虹' }));
@@ -195,6 +221,12 @@ try {
   } as unknown as ApiWorkerEnv;
   await Promise.all([runAi(aiEnv, repo, reserved), runAi(aiEnv, repo, reserved)]);
   assert.equal(calls, 1);
+  await assert.rejects(refund(repo, { ...reserved, status: 'unknown' }, true), /已使用|核查/);
+  assert.equal(
+    (await repo.balance('ai-user'))!.balance,
+    17,
+    'stale release cannot refund a delivered AI result'
+  );
   assert.equal((await repo.receipt('ai-user', 'app-a', 'ai-1'))!.status, 'granted');
   assert.match((await repo.receipt('ai-user', 'app-a', 'ai-1'))!.result!, /彩虹/);
   const unknown = await repo.purchase('ai-user', ai, 'ai-2', JSON.stringify({ topic: '天文' }));
@@ -220,6 +252,42 @@ try {
   );
   assert.equal((await repo.receipt('ai-user', 'app-a', 'ai-3'))!.status, 'released');
   assert.equal((await repo.balance('ai-user'))!.balance, 17);
+  // The maintenance timeout cannot discard a response from the original executor.
+  // A verified operator release, however, must never be resurrected by that response.
+  await repo.claim('late-ai-user');
+  for (const releaseFirst of [false, true]) {
+    const request = 'late-ai-' + releaseFirst;
+    const late = await repo.purchase('late-ai-user', ai, request, JSON.stringify({ topic: '光' }));
+    let started!: () => void;
+    let complete!: (value: { response: string }) => void;
+    const startedPromise = new Promise<void>((resolve) => (started = resolve));
+    const responsePromise = new Promise<{ response: string }>((resolve) => (complete = resolve));
+    const execution = runAi(
+      {
+        ...env,
+        RECOMMENDATION_AI: {
+          run: () => {
+            started();
+            return responsePromise;
+          },
+        },
+      } as unknown as ApiWorkerEnv,
+      repo,
+      late
+    );
+    await startedPromise;
+    await db.prepare('UPDATE points_receipts SET updated_at=0 WHERE id=?').bind(late.id).run();
+    await processPointsScheduled(env);
+    assert.equal((await repo.receipt('late-ai-user', 'app-a', request))!.status, 'unknown');
+    if (releaseFirst) await refund(repo, { ...late, status: 'unknown' }, true);
+    complete({ response: '原执行者返回的可恢复解说。' });
+    await execution;
+    const recovered = (await repo.receipt('late-ai-user', 'app-a', request))!;
+    assert.equal(recovered.status, releaseFirst ? 'released' : 'granted');
+    assert.equal(!!recovered.result, !releaseFirst);
+    if (!releaseFirst) assert.equal(recovered.error, null);
+    assert.equal((await repo.balance('late-ai-user'))!.balance, 17);
+  }
   await assert.rejects(
     pointsController(
       new Request('https://gemigo.io/api/v1/points/claim', {
@@ -327,6 +395,90 @@ try {
   );
   const again = await pointsController(sdkReq('/receipt?requestId=api-purchase'), env, db);
   assert.equal(((await again.json()) as { status: string }).status, 'granted');
+  const noServiceIntent = (await (
+    await pointsController(
+      sdkReq('/intents', {
+        itemId: 'explain',
+        requestId: 'missing-ai',
+        state: 'ai-state',
+        topic: ' 天空 ',
+      }),
+      env,
+      db
+    )
+  ).json()) as { id: string };
+  const normalizedRetry = (await (
+    await pointsController(
+      sdkReq('/intents', {
+        itemId: 'explain',
+        requestId: 'missing-ai',
+        state: 'retry-state',
+        topic: '天空',
+      }),
+      env,
+      db
+    )
+  ).json()) as { id: string };
+  assert.equal(normalizedRetry.id, noServiceIntent.id);
+  await assert.rejects(
+    pointsController(
+      sdkReq('/intents', {
+        itemId: 'explain',
+        requestId: 'missing-ai',
+        state: 'conflict',
+        topic: '另一主题',
+      }),
+      env,
+      db
+    ),
+    /另一服务输入/
+  );
+  await assert.rejects(
+    pointsController(platformReq('/intents/' + noServiceIntent.id + '/confirm', {}), env, db),
+    /服务暂不可用/
+  );
+  assert.equal(await repo.receipt('real-api-user', 'app-a', 'missing-ai'), null);
+  assert.equal((await repo.balance('real-api-user'))!.balance, 18);
+  const expiredIntent = (await (
+    await pointsController(
+      sdkReq('/intents', { itemId: 'hint', requestId: 'expired-confirm', state: 'expired-state' }),
+      env,
+      db
+    )
+  ).json()) as { id: string };
+  await db.prepare('UPDATE points_intents SET expires_at=0 WHERE id=?').bind(expiredIntent.id).run();
+  await assert.rejects(
+    pointsController(platformReq('/intents/' + expiredIntent.id + '/confirm', {}), env, db),
+    /已过期/
+  );
+  assert.equal(await repo.receipt('real-api-user', 'app-a', 'expired-confirm'), null);
+  assert.equal((await repo.balance('real-api-user'))!.balance, 18);
+  await authRepository.createUser(db, { id: 'author', email: 'author-test@example.invalid' });
+  const authorSession = await authRepository.createSession(db, 'author');
+  const authorView = (await (
+    await pointsController(
+      new Request('https://gemigo.io/api/v1/points/projects/app-a', {
+        headers: { cookie: 'session_id=' + authorSession.id },
+      }),
+      env,
+      db
+    )
+  ).json()) as { sales: Record<string, unknown>[] };
+  assert.ok(authorView.sales.length > 0);
+  for (const row of authorView.sales) {
+    assert.ok(!('user_id' in row));
+    assert.ok(!('payload' in row));
+    assert.ok(!('result' in row));
+  }
+  const publicItems = (await (await pointsController(sdkReq('/items'), env, db)).json()) as Record<
+    string,
+    unknown
+  >[];
+  assert.ok(publicItems.length > 0);
+  assert.ok(
+    publicItems.every((row) => !('author_id' in row)),
+    'SDK exposes only published item fields'
+  );
   await assert.rejects(pointsController(platformReq('/recharge', {}), env, db), /商户/);
   await sdkCloudService.kvSet(sdkReq('/unused'), env, db, {
     key: 'progress',
@@ -369,6 +521,83 @@ try {
   await assert.rejects(repo.purchase('cash-user', item, 'cash-attempt', null), /真实收费/);
   assert.equal((await repo.balance('cash-user'))!.balance, 20);
   assert.equal(await repo.receipt('cash-user', 'app-a', 'cash-attempt'), null);
+  // Replay the actual example's observed popup-timeout boundary; this UI adapter is
+  // fault injection only, not evidence of production AI execution.
+  const pendingStorage = new Map([
+    ['purchase:explain', 'pending-request'],
+    ['pending-ai-topic', '原问题'],
+  ]);
+  const uiNodes = new Map<
+    string,
+    {
+      textContent: string;
+      value: string;
+      hidden: boolean;
+      replaceChildren: () => void;
+      append: () => void;
+    }
+  >();
+  const node = (id: string) => {
+    if (!uiNodes.has(id))
+      uiNodes.set(id, {
+        textContent: '',
+        value: '',
+        hidden: false,
+        replaceChildren: () => {},
+        append: () => {},
+      });
+    return uiNodes.get(id)!;
+  };
+  let examplePurchases = 0;
+  let exampleTerms: Record<string, unknown>[] = [];
+  const exampleContext = createContext({
+    document: { getElementById: node, querySelectorAll: () => [], createElement: () => ({}) },
+    localStorage: {
+      getItem: (key: string) => pendingStorage.get(key) || null,
+      setItem: (key: string, value: string) => pendingStorage.set(key, value),
+      removeItem: (key: string) => pendingStorage.delete(key),
+    },
+    crypto,
+    gemigo: {
+      auth: { getAccessToken: () => null },
+      points: {
+        items: async () => [{ id: 'ai-item', entitlement: 'explain' }],
+        grants: async () => ({ durable: [], terms: exampleTerms, quotas: [] }),
+        receipt: async () => null,
+        purchase: async (input: { requestId: string }) => {
+          examplePurchases++;
+          assert.equal(input.requestId, 'pending-request');
+          return {
+            status: 'pending',
+            confirmationUrl: 'https://gemigo.io/points/confirm?intent=bound',
+          };
+        },
+      },
+    },
+  });
+  const exampleSource = readFileSync('examples/knowledge-lab/index.html', 'utf8').match(
+    /<script>([\s\S]*?)<\/script>/
+  )![1];
+  runInContext(exampleSource, exampleContext);
+  await runInContext('recoverAi()', exampleContext);
+  assert.equal(
+    pendingStorage.get('purchase:explain'),
+    'pending-request',
+    'unconfirmed timeout must not discard request'
+  );
+  assert.equal(node('topic').value, '原问题');
+  await runInContext('restore()', exampleContext);
+  await runInContext("buy('explain','新问题')", exampleContext);
+  assert.equal(examplePurchases, 0, 'different input cannot create another pending charge');
+  await runInContext("buy('explain','原问题')", exampleContext);
+  assert.equal(examplePurchases, 1);
+  assert.equal(pendingStorage.get('purchase:explain'), 'pending-request');
+  exampleTerms = expiredTerms;
+  await runInContext('restore()', exampleContext);
+  assert.equal(node('member-content').hidden, true, 'actual sample hides expired term rights');
+  console.log(
+    'PASS: actual example timeout recovery preserves request and input; retries reopen original intent'
+  );
   console.log(
     'PASS: Cloud legacy + points tokens, app/user storage isolation, operator access, global subsidy exhaustion, unapproved paid sources rejected'
   );
