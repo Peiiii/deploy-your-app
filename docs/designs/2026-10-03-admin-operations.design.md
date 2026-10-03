@@ -60,3 +60,22 @@ mode=design；2026-10-03：从原始用户要求和既有入口独立走查上�
 验收：实际Worker+D1覆盖跨期/每日重复owner、无owner、首次与再次、今天排除、零样本、队列期末/删除应用、CLI成功去重、缺失CF/旧缓存/预算；原全量admin测试与类型/lint；真实浏览器7/30、快速切换、刷新、失败重试、队列翻页不重查增长、原增长页/CSV和详情、390px滚动；生产同API数值/日期核对与QA会话清理、普通推送并master同步。
 
 mode=design Review：从用户接受的排序与增量反查主链路，旧后台能力保持，三个核心增量有实际入口；当前/前期队列独立期末与统计时间明确，零/缺失/失败恢复可观察。抽象审计仅复用既有Chart和Report，无平行事实/存储/生命周期；新增文件位于现有admin/src职责域，项目无planned-path preflight。无findings，design-review:passed（scope8）。
+
+
+## 2026-10-03 图表交互修复（scope9，Design Ready）
+
+原始输入：用户报告图表hover无法看到反馈/点数字，要求参考最佳实践优化并考虑统一可复用组件。flow=bugfix（reproduce），L2共享前端交互，发布L4；design-document:required，plan:not-required，retrospective pending。调查命中growth-chart仅3.5px圆点原生SVG title、app事件柱与operating-summary部署柱原生title，无统一命中/数字状态。修前真实Chrome绘图区hover及键盘均无自定义数值提示。
+
+黄金链路：原账号登录→首页趋势图任意绘图区横移→自动选最近日期、参考线/高亮与日期+指标+单位卡→鼠标移入数值卡保持→Esc关闭→增长大盘同样查看7/30与零/缺失→首页展开部署诊断查看两指标→使用概览事件/访客查看→手机点日期并横滚30日；键盘Tab聚焦图、左右/Home/End选日并自动带到视口、Esc关闭，离焦退出。不改统计口径、接口、账号、权限或报表缓存。
+
+候选：各图独立加提示会留下三套状态/命中；引入图表库能提供很多未使用能力，但现有三处简单日序列无需新增依赖或替换业务报表。采用admin/src/time-series-chart.tsx为日期序列交互与渲染唯一owner，GrowthChart保留既有标题/脚注外壳并适配单指标；部署诊断与事件Trend映射数据到同组件的分组柱模式（明确总尝试含成功，不是堆叠相加）。折线保留缺失断线与零值点，柱零值不伪造最小非零高度。SVG绘图区全宽最近日期命中，参考线/高亮；HTML数值卡在滚动区之外，局部容器内横向限位、不被裁切。日期显示完整UTC日，单位由调用方提供，多指标同日统一显示，缺失写“暂无数据”。小图/30日/手机保留横向滚动。
+
+交互状态仅本图局部选日，日期范围/指标改变时旧选择失效，刷新同日数据更新；鼠标离开图和数值卡且无键盘焦点时关闭，数值卡可hover且不自动计时隐藏。触摸点选保留，外部点按关闭；滑动/取消不拦截页面与横滚，拖动不当点击。键盘焦点显示最近日，方向/Home/End受范围约束，选日自动横滚到可见，Esc不移动焦点也能关闭（hover也支持文档Esc）。SVG保留图像描述；操作区提供键盘说明与aria-describedby，提示role=tooltip/只读不抢焦点，键盘选日有可读数值。
+
+参考主源：[W3C WCAG 1.4.13](https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html)的可关闭、可hover、持续；[WAI tooltip pattern](https://www.w3.org/WAI/ARIA/apg/patterns/tooltip/)的Escape/焦点描述（APG该模式仍为work in progress，不声明完整无障碍认证）。只参考上游原则，不采用未安装图表库。
+
+架构审计：三个实际消费者共享最近日期/触摸/键盘/缺失/限位边界，新增一个组件有当前收益；保留业务报表owner和GrowthChart外壳，删除两处title-only柱图及退场无消费者旧bar CSS。无registry/context/tooltip全站框架/新依赖。项目无planned-path preflight，新增路径核对同admin/src组件域。模式line/bar仅局部消费，非公开持久协议。
+
+验收：真实Chrome修前/修后同入口，hover点间、首/末日、数值/单位精确、move进tooltip、Escape/leave/焦点、7/30与指标切换清旧值、零与null、不破坏滑动；3个消费者与多指标非相加、390px真实触摸/横滚/键盘带到视口、无根溢出/JS错误；admin tsc/build/lint/diff Review，生产真实三入口验收、保护密码/QA会话与查询预留、精确提交普通推送/master同步。
+
+mode=design Review：用户目标覆盖所有已查日趋势，三处消费者路径完整；仅最近日期选择不新增跨图同步、tooltip无交互控件，不把缺失解释零；横滚和触摸拖动区分/键盘自动可见/切换失效已纳入。本方案无开放findings，design-review:passed（scope9），随后实现。
