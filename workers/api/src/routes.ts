@@ -171,6 +171,12 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   });
 
   router.add({
+    path: '/api/v1/projects/address-availability',
+    method: 'GET',
+    handler: (req) => projectsController.checkAddressAvailability(req, env, requireDb()),
+  });
+
+  router.add({
     path: '/api/v1/projects/draft',
     method: 'POST',
     handler: (req) =>

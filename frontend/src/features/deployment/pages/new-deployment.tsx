@@ -1,3 +1,7 @@
+import { usePublicationAddress } from '../hooks/use-publication-address';
+import { ProjectAddressError } from '@/services/project-address';
+import { getPublicationSlug, isValidPublicationSlug } from '../managers/publication-details';
+import { PublicationIdentityFields } from '../components/publication-identity-fields';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
@@ -20,6 +24,8 @@ export const NewDeployment = () => {
   const { t } = useTranslation();
   const presenter = usePresenter();
   const state = useDeploymentStore();
+  const slug = getPublicationSlug(state);
+  const address = usePublicationAddress(slug, state.newProjectId, state.publicationAddressError);
   const user = useAuthStore((s) => s.user);
   const authLoading = useAuthStore((s) => s.isLoading);
   const [params, setParams] = useSearchParams();
@@ -52,6 +58,7 @@ export const NewDeployment = () => {
     try {
       await presenter.deployment.publishNewProject();
     } catch (error) {
+      if (error instanceof ProjectAddressError) return;
       presenter.ui.showErrorToast(
         error instanceof Error ? error.message : t('deployment.projectCreateFailed')
       );
@@ -120,27 +127,12 @@ export const NewDeployment = () => {
                 onRepoUrlChange={presenter.deployment.setRepoUrl}
               />
             )}
-            <div>
-              <label
-                htmlFor="publication-name"
-                className="block text-sm font-medium text-slate-900 dark:text-white"
-              >
-                {t('deployment.optionalName')}
-              </label>
-              <input
-                id="publication-name"
-                value={state.projectName}
-                onChange={(e) => presenter.deployment.setProjectName(e.target.value)}
-                placeholder={t('deployment.optionalNameHint')}
-                maxLength={80}
-                className="mt-2 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 px-3 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
-              />
-            </div>
+            <PublicationIdentityFields address={address} />
           </fieldset>
           <button
             type="button"
             onClick={() => void publish()}
-            disabled={busy || !valid || authLoading}
+            disabled={busy || !valid || authLoading || !isValidPublicationSlug(slug) || address.status === 'taken' || Boolean(state.publicationAddressError)}
             className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 disabled:opacity-50"
           >
             {busy ? (

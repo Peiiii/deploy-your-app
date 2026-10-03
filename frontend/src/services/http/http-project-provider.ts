@@ -1,3 +1,4 @@
+import { throwProjectRequestError, type ProjectAddressAvailability } from '../project-address';
 import type { IProjectProvider, DeploymentDiagnostic } from '../interfaces';
 import type {
   Project,
@@ -41,15 +42,23 @@ export class HttpProjectProvider implements IProjectProvider {
     return data.project ?? null;
   }
 
+  async checkAddressAvailability(slug: string, projectId?: string, signal?: AbortSignal): Promise<ProjectAddressAvailability> {
+    const params = new URLSearchParams({ slug, ...(projectId ? { projectId } : {}) });
+    const response = await fetch(`${this.baseUrl}${API_ROUTES.PROJECTS}/address-availability?${params}`, { signal, credentials: 'include' });
+    if (!response.ok) throw new Error('Failed to check publication address');
+    return response.json();
+  }
+
   async createDraftProject(
     name?: string,
+    slug?: string,
   ): Promise<Project> {
     const response = await fetch(`${this.baseUrl}${API_ROUTES.PROJECTS}/draft`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(name ? { name } : {}),
+      body: JSON.stringify({ ...(name ? { name } : {}), ...(slug !== undefined ? { slug } : {}) }),
     });
-    if (!response.ok) throw new Error('Failed to create draft project');
+    if (!response.ok) await throwProjectRequestError(response, 'Failed to create draft project');
     return response.json();
   }
 
@@ -99,7 +108,7 @@ export class HttpProjectProvider implements IProjectProvider {
         body: JSON.stringify(patch),
       },
     );
-    if (!response.ok) throw new Error('Failed to update project');
+    if (!response.ok) await throwProjectRequestError(response, 'Failed to update project');
     return response.json();
   }
 
