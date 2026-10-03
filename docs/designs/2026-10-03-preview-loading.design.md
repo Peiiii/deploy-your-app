@@ -28,7 +28,7 @@ contract-id=preview-loading；parent-goal=线上点开应用时有品牌反馈�
 | PL2 | true | 10秒慢等待、重试、直接显示、新标签、关闭/切换可用；旧请求隔离 | passed |
 | PL3 | true | 评论/全屏不重载应用；暗色、窄桌面、reduced-motion，中英文可读且无溢出；手机保持新标签 | passed |
 | PL4 | true | 悬停连接提示有界、不加载应用文档；frontend tsc/定向lint/build与真实浏览器回归通过 | passed |
-| PL5 | true | 本任务精确提交、origin/master和主工作区master同步；线上新资产与真实入口验收 | stale |
+| PL5 | true | 本任务精确提交、origin/master和主工作区master同步；线上新资产与真实入口验收 | passed |
 | PL6 | true | 单缺口开合、没有眼睛，身体固定且小；无分离扇形/双缝 | passed |
 
 黄金链路：默认 gemigo.io 首页 → 点开应用 → 看到精灵和应用名称 → 网页出现后实际操作 → 展开评论/全屏保持网页进度 → 关闭返回浏览。慢网络：同一入口 → 等待提示变化 → 重试或直接显示/新标签 → 可以继续或关闭。
@@ -66,7 +66,7 @@ contract-id=preview-loading，scope-revision=2；PL1/PL3/PL4/PL5 受本修订视
 
 补充方案 Review：移除两枚眼睛圆点，SVG 与静态品牌更一致，不影响单嘴裁剪/光点/加载状态；PL6 同时验证无额外五官，design-review=passed。
 
-修订2开发验收：PL1/PL3/PL4/PL6=passed，PL2 继续有效，PL5 等待新部署。最终无眼睛版本 production build index-BFUTbLjP.js / index-DDECKSYj.css；frontend tsc、定向 ESLint、diff-check 及原完整 production preview 回归通过。/tmp/preview-mouth-{0,150,300,450,599}.png 逐张核对：整体圆形一直连通、只有右侧嘴部缺口、合嘴形成完整圆形，中间帧没有分離舌片，眼睛已删除。减少动态效果的静态小开口由同一 CSS 基础裁剪提供。实现 Review no findings：一个整体绘制组拥有裁剪，保留原紫色四象限与光点，不引入 JS 动画或生命周期变化；没有项目 diff-only maintainability 自动入口，按这4个文件的 diff 审查。已有浏览器回归更新观测到的新动画属性，未增加仅镜像源码的视觉单元测试。
+修订2开发验收：PL1/PL3/PL4/PL6=passed，PL2 继续有效，PL5 等待新部署。最终无眼睛版本 production build index-BFUTbLjP.js / index-DDECKSYj.css；frontend tsc、定向 ESLint、diff-check 及原完整 production preview 回归通过。/tmp/preview-mouth-{0,150,300,450,599}.png 逐张核对：整体圆形一直连通、只有右侧嘴部缺口、合嘴形成完整圆形，中间帧没有分离舌片，眼睛已删除。减少动态效果的静态小开口由同一 CSS 基础裁剪提供。实现 Review no findings：一个整体绘制组拥有裁剪，保留原紫色四象限与光点，不引入 JS 动画或生命周期变化；没有项目 diff-only maintainability 自动入口，按这4个文件的 diff 审查。已有浏览器回归更新观测到的新动画属性，未增加仅镜像源码的视觉单元测试。
 
 ## 修订 3：等待反馈轻量化（当前有效，实现前）
 
@@ -75,3 +75,12 @@ contract-id=preview-loading，scope-revision=2；PL1/PL3/PL4/PL5 受本修订视
 scope-revision=3；修订2视觉尺寸/信息量证据转 stale。PL1 调整为常规等待只有小动效、无名称/说明文本且完成立即揭示应用；PL6 保留单缺口/无眼睛且符号小；PL2 异步状态逻辑不变，PL3/PL4/PL5 随新视觉/产物重验。实现前 design-review=passed：用户的轻量偏好直接可落实，无新组件/owner/状态；辅助技术与慢等待退出仍完整。原黄金链路只改变等待的视觉信息量，不改变进入应用/评论/全屏/手机链路。当前 plan=not-required、retrospective_state=pending。
 
 修订3开发验收及实现 Review：PL1/PL2/PL3/PL4/PL6 passed；当前 production preview localhost:5196 的完整浏览器回归、frontend tsc、定向 ESLint、build 与 diff-check 通过。新增验证只匹配用户可观察标准（80×40以内、普通等待无标题文案且辅助技术仍能读状态），原慢等待/退出/新标签及旧请求隔离回归继续有效。亮/暗/窄桌面等待截图已复核：只有约22.5px身体和三枚小光点，10秒前没有文字，慢等待操作为小型低强调文本按钮。构建 index-CZMeDsWc.js / index-B3KwzcsA.css。diff-only Review no findings，用户三次反馈全部在同一组件/样式路径落实，无新增抽象/依赖或应用重载；发布前再次 fetch 整合最新 master（其它任务的 favicon/发布交付记录不属本任务变更）。
+
+
+修订3上线与收尾：既有 pnpm deploy:pages 发布成功；源码包含 670ca14（单缺口/去眼睛）、8d749ab（轻量等待）与最新主线整合73d2620，gh-pages=32e0858c75eb26f26b5f13252cabb844b85cf2f2，前一版f215ff8b630296db2b4289df6699ca0937b6eab2保留作回退依据。默认gemigo.io及实际Chrome均消费index-CZMeDsWc.js/index-B3KwzcsA.css；线上与本地JS SHA256=186aa8747ebe2945817ee531d7c1a7aa90575e906c352d42d5c24b65e47e54d4、CSS SHA256=36f2689e1a17c139d4a9e24468e39e9bec1ac746b523bf834ef84b970ec751f6。
+
+线上真实首页再次打开element：实测SVG不超过80×40、只有三枚光点圆形（无眼睛）、统一polygon嘴部裁剪、无h2/可见等待文案；截图 /tmp/preview-loading-production.png 已核对。实际元素周期表加载后点击氢详情成功；评论/全屏保留iframe，手机真实新窗口访问element.gemigo.app。无HTTPmock/状态注入，仅400ms网络延迟方便观察中间反馈。PL1–PL6当前passed，production证据/tmp/preview-loading-production-evidence.json。
+
+源码精确提交并普通推送；主工作区master快进到73d2620、rev-list=0 0；其它任务analytics脚本及未跟踪文件保留，无暂存或草稿混入。收尾记录继续精确提交并重新fetch/实际远端SHA核对。两次非快进推送按正常merge整合其它任务主线，没有强推；一次提前开始的Pages命令在推送未就绪时停止，确认远端gh-pages仍是原版本后才执行本次成功发布。
+
+retrospective_decision=no-increment：用户反馈已纠正同一视觉owner的形状、五官与注意力强度，必要事实及证据保留在本设计，无通用流程/技能新增价值。retrospective_state=completed，用户视觉偏好仍待反馈。仅前端发布，无Secrets或后台部署；最终diff-only Review no findings。
