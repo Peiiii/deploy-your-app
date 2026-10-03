@@ -24,11 +24,12 @@ contract-id=preview-loading；parent-goal=线上点开应用时有品牌反馈�
 
 | ID | Required | 可观察判定 | 状态 |
 | --- | --- | --- | --- |
-| PL1 | true | 真实首页卡片打开慢应用立即有名称/精灵，无初始白屏，load 后可操作且无最低停留 | passed |
+| PL1 | true | 真实首页卡片打开慢应用立即有小动效且无可见文字，load 后可操作且无最低停留 | passed |
 | PL2 | true | 10秒慢等待、重试、直接显示、新标签、关闭/切换可用；旧请求隔离 | passed |
 | PL3 | true | 评论/全屏不重载应用；暗色、窄桌面、reduced-motion，中英文可读且无溢出；手机保持新标签 | passed |
 | PL4 | true | 悬停连接提示有界、不加载应用文档；frontend tsc/定向lint/build与真实浏览器回归通过 | passed |
-| PL5 | true | 本任务精确提交、origin/master和主工作区master同步；线上新资产与真实入口验收 | passed |
+| PL5 | true | 本任务精确提交、origin/master和主工作区master同步；线上新资产与真实入口验收 | stale |
+| PL6 | true | 单缺口开合、没有眼睛，身体固定且小；无分离扇形/双缝 | passed |
 
 黄金链路：默认 gemigo.io 首页 → 点开应用 → 看到精灵和应用名称 → 网页出现后实际操作 → 展开评论/全屏保持网页进度 → 关闭返回浏览。慢网络：同一入口 → 等待提示变化 → 重试或直接显示/新标签 → 可以继续或关闭。
 
@@ -66,3 +67,11 @@ contract-id=preview-loading，scope-revision=2；PL1/PL3/PL4/PL5 受本修订视
 补充方案 Review：移除两枚眼睛圆点，SVG 与静态品牌更一致，不影响单嘴裁剪/光点/加载状态；PL6 同时验证无额外五官，design-review=passed。
 
 修订2开发验收：PL1/PL3/PL4/PL6=passed，PL2 继续有效，PL5 等待新部署。最终无眼睛版本 production build index-BFUTbLjP.js / index-DDECKSYj.css；frontend tsc、定向 ESLint、diff-check 及原完整 production preview 回归通过。/tmp/preview-mouth-{0,150,300,450,599}.png 逐张核对：整体圆形一直连通、只有右侧嘴部缺口、合嘴形成完整圆形，中间帧没有分離舌片，眼睛已删除。减少动态效果的静态小开口由同一 CSS 基础裁剪提供。实现 Review no findings：一个整体绘制组拥有裁剪，保留原紫色四象限与光点，不引入 JS 动画或生命周期变化；没有项目 diff-only maintainability 自动入口，按这4个文件的 diff 审查。已有浏览器回归更新观测到的新动画属性，未增加仅镜像源码的视觉单元测试。
+
+## 修订 3：等待反馈轻量化（当前有效，实现前）
+
+用户继续纠正：角色太大、信息太多，等待应尽量不消耗注意力；文字可不展示，或仅有加载提示。完整交付继续授权，无需再次审批。选择无可见文字的常规等待：SVG 从176×96降为80×40，身体实际直径约22.5px；去掉应用名称、陪伴文案与中心大范围渐变，眼睛继续删除，嘴部采用修订2单缺口。辅助技术保留不可见“加载中”状态；iframe 仍有应用名称。10秒后才出现一行“加载较慢”和低强调的小型重试/直接显示/新窗口操作，保留用户逃离等待的能力。
+
+scope-revision=3；修订2视觉尺寸/信息量证据转 stale。PL1 调整为常规等待只有小动效、无名称/说明文本且完成立即揭示应用；PL6 保留单缺口/无眼睛且符号小；PL2 异步状态逻辑不变，PL3/PL4/PL5 随新视觉/产物重验。实现前 design-review=passed：用户的轻量偏好直接可落实，无新组件/owner/状态；辅助技术与慢等待退出仍完整。原黄金链路只改变等待的视觉信息量，不改变进入应用/评论/全屏/手机链路。当前 plan=not-required、retrospective_state=pending。
+
+修订3开发验收及实现 Review：PL1/PL2/PL3/PL4/PL6 passed；当前 production preview localhost:5196 的完整浏览器回归、frontend tsc、定向 ESLint、build 与 diff-check 通过。新增验证只匹配用户可观察标准（80×40以内、普通等待无标题文案且辅助技术仍能读状态），原慢等待/退出/新标签及旧请求隔离回归继续有效。亮/暗/窄桌面等待截图已复核：只有约22.5px身体和三枚小光点，10秒前没有文字，慢等待操作为小型低强调文本按钮。构建 index-CZMeDsWc.js / index-B3KwzcsA.css。diff-only Review no findings，用户三次反馈全部在同一组件/样式路径落实，无新增抽象/依赖或应用重载；发布前再次 fetch 整合最新 master（其它任务的 favicon/发布交付记录不属本任务变更）。

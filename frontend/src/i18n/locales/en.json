@@ -1,9 +1,6 @@
 {
   "previewLoading": {
-    "opening": "Opening app",
-    "companion": "A little companion while you wait",
-    "slow": "Taking a little longer",
-    "slowHint": "Keep waiting, or try one of the options below.",
+    "slow": "Taking longer",
     "showApp": "Show app now"
   },
   "previewActions": {

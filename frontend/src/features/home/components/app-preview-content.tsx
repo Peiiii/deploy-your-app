@@ -51,8 +51,8 @@ export function AppPreviewContent({ name, url, onOpenInNewTab }: AppPreviewConte
                 }}
             />
             {waiting && (
-                <div ref={loadingRef} className="absolute inset-0 flex flex-col items-center justify-center overflow-y-auto bg-[radial-gradient(ellipse_at_center,_#ede9fe_0%,_transparent_65%)] px-6 py-16 dark:bg-[radial-gradient(ellipse_at_center,_#2e2049_0%,_transparent_65%)]">
-                    <svg viewBox="0 0 112 64" className="preview-sprite mb-5 h-24 w-44 shrink-0" aria-hidden="true">
+                <div ref={loadingRef} className="absolute inset-0 flex flex-col items-center justify-center overflow-y-auto px-6 py-16">
+                    <svg viewBox="0 0 112 64" className="preview-sprite h-10 w-20 shrink-0" aria-hidden="true">
                         <g transform="translate(16 8) scale(1.5)">
                             <g className="preview-sprite-jaw">
                                 <path d="M16 16 L16 4 A12 12 0 0 1 28 16 Z" fill="#a78bfa" />
@@ -65,24 +65,18 @@ export function AppPreviewContent({ name, url, onOpenInNewTab }: AppPreviewConte
                             <circle key={index} className="preview-sprite-dot" cx="102" cy="32" r="2.5" fill="#a78bfa" style={{ animationDelay: `${index * -0.6}s` }} />
                         ))}
                     </svg>
-                    <h2 className="mb-2 max-w-full break-words text-center text-xl font-semibold text-slate-800 dark:text-slate-100">{name}</h2>
-                    <div role="status" className="text-center">
-                        <p className="text-sm font-medium text-brand-600 dark:text-brand-300">
-                            {t(status === 'slow' ? 'previewLoading.slow' : 'previewLoading.opening')}
-                        </p>
-                        <p className="mt-2 max-w-xs text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                            {t(status === 'slow' ? 'previewLoading.slowHint' : 'previewLoading.companion')}
-                        </p>
+                    <div role="status" className={status === 'slow' ? 'mt-2 text-center text-xs text-slate-500 dark:text-slate-400' : 'sr-only'}>
+                        {t(status === 'slow' ? 'previewLoading.slow' : 'common.loading')}
                     </div>
                     {status === 'slow' && (
-                        <div className="mt-5 flex max-w-full flex-wrap justify-center gap-2">
-                            <button type="button" onClick={() => { setStatus('loading'); setAttempt(current => current + 1); }} className="rounded-lg bg-brand-600 px-4 py-2 text-xs font-medium text-white hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
+                        <div className="mt-2 flex max-w-full flex-wrap justify-center gap-1">
+                            <button type="button" onClick={() => { setStatus('loading'); setAttempt(current => current + 1); }} className="rounded-md px-2 py-2 text-xs text-slate-500 hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-slate-400 dark:hover:bg-white/10">
                                 {t('common.retry')}
                             </button>
-                            <button type="button" onClick={reveal} className="rounded-lg px-3 py-2 text-xs font-medium text-slate-600 hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-slate-300 dark:hover:bg-white/10">
+                            <button type="button" onClick={reveal} className="rounded-md px-2 py-2 text-xs text-slate-500 hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-slate-400 dark:hover:bg-white/10">
                                 {t('previewLoading.showApp')}
                             </button>
-                            <button type="button" onClick={() => onOpenInNewTab(url)} className="rounded-lg px-3 py-2 text-xs font-medium text-slate-600 hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-slate-300 dark:hover:bg-white/10">
+                            <button type="button" onClick={() => onOpenInNewTab(url)} className="rounded-md px-2 py-2 text-xs text-slate-500 hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-slate-400 dark:hover:bg-white/10">
                                 {t('common.openInNewTab')}
                             </button>
                         </div>

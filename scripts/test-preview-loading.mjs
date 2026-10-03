@@ -62,7 +62,11 @@ try {
     await a.click();
     await state('loading').waitFor();
     await waitRequests(1);
-    assert.match(await page.getByRole('status').innerText(), /正在打开应用/);
+    assert.match(await page.getByRole('status').innerText(), /加载中/);
+    assert.equal(await state('loading').locator('h2').count(), 0, 'Normal waiting has no title or companion copy');
+    assert.equal(await page.getByRole('status').evaluate(element => getComputedStyle(element).position), 'absolute', 'Loading text is only announced to assistive technology');
+    const spriteSize = await page.locator('.preview-sprite').boundingBox();
+    assert.ok(spriteSize.width <= 80 && spriteSize.height <= 40, 'Loading animation stays compact');
     const frame = page.locator('iframe');
     const identity = await frame.elementHandle();
     assert.equal(await frame.getAttribute('inert'), '');
@@ -156,7 +160,7 @@ try {
     await page.route('https://preview-loading-*.gemigo.test/**', route => new Promise(resolve => pending.push({ route, resolve })));
     await a.click();
     await state('loading').waitFor();
-    assert.match(await page.getByRole('status').innerText(), /Opening app/);
+    assert.match(await page.getByRole('status').innerText(), /Loading/);
     await page.getByRole('button', { name: 'Close', exact: true }).click();
     await page.setViewportSize({ width: 390, height: 844 });
     const mobilePopupPromise = page.waitForEvent('popup');
