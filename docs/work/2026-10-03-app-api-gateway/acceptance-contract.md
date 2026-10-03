@@ -1,6 +1,6 @@
 # Active acceptance contract
 
-contract-id: gemigo-app-api-gateway-20261003 / revision: 1 / scope-revision: 1
+contract-id: gemigo-app-api-gateway-20261003 / revision: 2 / scope-revision: 1
 parent-goal: 应用作者保存自己的 Secrets 与连接，访客通过平台安全、可限制和撤销地消费文字/实时语音；小伴在线可用。
 来源：../../logs/2026-10-03-app-api-gateway/README.md 与用户确认的设计。
 
@@ -13,8 +13,10 @@ parent-goal: 应用作者保存自己的 Secrets 与连接，访客通过平台�
 | GW-05 | true | 登录用户额度、公开匿名限制、应用总额度及并发在并行调用下不超发 | passed | cloudflare-access-quotas.json及SQL17项检查。 |
 | GW-06 | true | 停用/轮换/删除停止新请求并中断活动流和语音，过期/重复票据拒绝，故障占用可收敛 | passed | SSE停用中止/Secret删除WS中止/轮换ticket失效；过期租约按SQL有效时间排除，input cancel测试。 |
 | GW-07 | true | 小伴完整 Qwen 五轮、打断、静音/恢复、挂断与再次开始；保留 DeepSeek 文字模式 | passed | browser-voice-gateway.json与cloudflare-realtime-gateway.json；录音样本输入，原生界面控件与重新开始、实际DeepSeek文字回复。 |
-| GW-08 | true | 静态包、日志、API 响应无 Secret；加密可轮换，真实错误给出可行动提示 | passed | AES-GCM/AAD/keyring与metadata检查；真实403/429/上游错误；静态包和证据42文件无两种真实Key。 |
-| GW-09 | true | 精确提交/推送、主区 master 与远程一致，迁移和服务发布回滚入口可用，GemiGo 设置及小伴线上验收 | not-run | — |
-| GW-10 | true | 实际用户确认应用语音可听见；手机 iOS/Android 链路按真实设备留证，外部设备缺失明确报告 | unverified | 应用物理声音需用户确认；没有实际iOS/Android设备证据。此前仅系统样本用户确认，不替代应用。 |
+| GW-08 | true | 静态包、日志、API 响应无 Secret；加密可轮换，真实错误给出可行动提示 | passed | AES-GCM/AAD/keyring与metadata检查；真实403/429/上游错误；静态包、文档和证据124文件及ZIP成员无两种真实Key。 |
+| GW-09 | true | 精确提交/推送、主区 master 与远程一致，迁移和服务发布恢复入口可用，GemiGo 设置及小伴线上验收 | passed | production-delivery.md / production-assets.json / production-app-deployment.json / production-text-smoke.json / production-realtime.json / production-browser-voice.json；首次DO迁移用保留DO的恢复包，真实stage已验。最终主线同步另按交付记录核对。 |
+| GW-10 | true | 实际用户确认应用语音可听见；手机 iOS/Android 链路按真实设备留证，外部设备缺失明确报告 | unverified | 应用物理声音、真实浏览器登录弹窗需用户确认；IAB未显示弹窗，真实Chrome被机器锁屏阻断，测试身份由真实SDK授权API取得并注入临时session，已恢复。没有实际iOS/Android设备证据。此前仅系统样本用户确认，不替代应用。 |
 
 不提供支付/自定义后端 runtime，为用户明确边界。不得以工作量或局部测试通过缩减 Required。主观声音与设备缺失保持未验证，不假报完成。
+
+revision 2 仅更新实际线上证据及恢复限制，scope-revision 保持1。线上录音样本完成10次ASR/10次回复，音频3290880字节、播放峰值0.5468、两个AudioContext运行并在挂断后关闭，WS关闭。用户尚未确认实际可听。

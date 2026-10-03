@@ -1,0 +1,8 @@
+{
+  "gateway-config.js": "664e7b26fc0cf786a87bcda51dfeaad7a6ba5682e07770480602fb589421f75c",
+  "app.js": "24d2aa3fe9ddf84ac78837730e0ca71ba687366131efe4b6d50408ffc8a31f9e",
+  "audio.js": "c9bc6487cf56a267cfd44307ae812facf38532248cdb418e282d97d313e4aba4",
+  "gateway.js": "f177c656ec5304ceb0662e550961a6b9fea7d4e92ea145239c150b9cba4e38cc",
+  "vendor/gemigo-app-sdk.umd.js": "bc7282a5d5b851398dd839af64a81f7c747378e04725d83c24df2f8e5332eb4b",
+  "frontendAsset": "9663d60a1cfeda881f29f6b4977374cf31b07610c220ec19fe1431215f1b298f"
+}

@@ -1,0 +1,15 @@
+{
+  "projectId": "942b8507-260c-4b85-a579-177314eafe2c",
+  "deploymentId": "56744d13-4b65-482f-b2e4-e32c000b5855",
+  "zipSha256": "df4fc8b6d0ab49e85284f18c59dd8c04cefe31907e9f9388c0e897020a76c197",
+  "result": {
+    "type": "status",
+    "status": "SUCCESS",
+    "stage": "complete",
+    "buildMode": "static",
+    "projectMetadata": {
+      "url": "https://xiaoban-voice.gemigo.app/"
+    }
+  },
+  "deploymentStream": "remained open; final result verified through existing reconcile endpoint"
+}
