@@ -62,6 +62,21 @@ try {
   assert.equal(afterRename.url, 'https://published-address.gemigo.app/');
   assert.equal(afterRename.slug, 'published-address');
   assert.equal((await json(await request(`/projects/${published.id}`, 'PATCH', { slug: 'changed-address' }), 400)).code, 'ADDRESS_LOCKED');
+  await database.prepare(`WITH RECURSIVE n(value) AS (SELECT 0 UNION ALL SELECT value+1 FROM n WHERE value<1000)
+    INSERT INTO projects (id,name,repo_url,slug,last_deployed,status,is_deleted)
+    SELECT 'busy-'||value,'Busy','fixture',CASE WHEN value=0 THEN 'busy' ELSE 'busy-'||value END,'2026-10-03','Draft',0 FROM n`).run();
+  const start = performance.now();
+  assert.deepEqual(await json(await request('/projects/address-availability?slug=busy')), { available: false, domain: 'gemigo.app', suggestion: 'busy-1001' });
+  assert.ok(performance.now()-start < 2000, '1000 collisions must complete without serial D1 calls');
+  await database.prepare("UPDATE projects SET is_deleted=1 WHERE slug='busy-42'").run();
+  assert.equal((await json(await request('/projects/address-availability?slug=busy'))).suggestion, 'busy-42', 'Reuse the first numeric gap');
+  await database.prepare("UPDATE projects SET slug='busy-1-extra' WHERE slug='busy-1'").run();
+  assert.equal((await json(await request('/projects/address-availability?slug=busy'))).suggestion, 'busy-1', 'Only exact numeric candidates occupy a suffix');
+  const longSlug = 'a'.repeat(56) + '-longer';
+  await json(await request('/projects/draft', 'POST', { name: 'Long', slug: longSlug }));
+  const longResult = await json(await request(`/projects/address-availability?slug=${longSlug}`));
+  assert.equal(longResult.suggestion, 'a'.repeat(56), 'Trim trailing separator after shortening suggestion base');
+  console.log('PASS: 1000 occupied addresses, first free numeric gap, deleted/non-numeric variants and 63-character suggestions.');
   console.log('PASS: assembled Worker/D1 HTTP address validation, exact draft address, legacy compatibility, availability/auth, name independence, concurrent create/update conflicts and published address protection.');
 } finally {
   await mf.dispose();

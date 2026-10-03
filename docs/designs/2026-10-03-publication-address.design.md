@@ -19,10 +19,11 @@ project.repository INSERT SELECT WHERE NOT EXISTS / UPDATE WHERE NOT EXISTS 在�
 contract-id=publication-address-2026-10-03；parent-goal=用户发布前能理解、看到并选择最终地址，保留现有流程与品牌，线上可用。
 | ID | Required | 标准 | 状态 | 证据 |
 | --- | --- | --- | --- | --- |
-| PA-1 | true | 名称/地址常显、中文/英文/空名建议、手动地址不随名称变、宽窄屏/主题布局 | not-run | 待验 |
-| PA-2 | true | 格式/占用/检查失败/过期响应正确反馈，可用建议明确采用 | not-run | 待验 |
+| PA-1 | true | 名称/地址常显、中文/英文/空名建议、手动地址不随名称变、宽窄屏/主题布局 | passed | 真实HTTPS生产桌面与预览手机/暗色渲染；中文输入、手动地址、来源切换保持；桌面两列/手机堆叠 |
+| PA-2 | true | 格式/占用/检查失败/过期响应正确反馈，可用建议明确采用 | passed | 生产app占用、采用建议/编辑；预览无API显示失败重试；hook可控时钟验证防抖/取消/8秒超时/过期结果/重试 |
 | PA-3 | true | draft 精确保存地址、并发冲突不静默换址、名称修改不改链接、已发布地址保护 | passed | test-publication-address.mjs：真实 Worker/Miniflare/D1 HTTP、同时创建/更新只有一方成功 |
 | PA-4 | true | HTML/ZIP/GitHub、登录、失败重试复用草稿，原发布链保留 | passed | test-homepage-publishing.mjs + deployment-metadata/completion 回归；登录与线上发布待 PA-5 复核 |
+| PA-6 | true | 常用重名地址 app 检查不随重名数量逐次往返；线上连续3次全部<8秒且中位数<3秒；前端请求8秒后转失败/重试，修改地址取消旧结果 | not-run | 修前同一生产接口：app 39.573秒、19.877秒；未占用地址3.524秒 |
 | PA-5 | true | Worker先于前端上线，线上页面与API当前版本可用，提交推送且本地master=远端实际SHA | not-run | 待验 |
 
 验证：前端/Worker tsc、定向 lint/build、现有发布回归；真实 Miniflare+D1 HTTP 精确合同与并发排他，线上公开预检与私有QA草稿/名称修改/清理。真实线上 UI 渲染检查桌面/手机及地址编辑；先前本地浏览器动作受安全策略阻止，不绕过，使用允许的 HTTPS 线上入口；无法取得的视觉证据如实报告。外观最终由用户判断。只部署受影响 gemigo-api 与网站 Pages，不部署 Node/其它 Worker；保留 Secrets。
@@ -34,3 +35,19 @@ contract-id=publication-address-2026-10-03；parent-goal=用户发布前能理�
 复用原名称解析并移至 publication-details，地址建议/验证同源；store 保存本次随机种子、手动地址与提交错误。Worker 排他写入同时防止发布状态竞态导致的改址，允许旧的缺失 slug 补全。前端/Worker tsc、定向 ESLint、diff 检查、frontend build、Worker dry-run 均通过；仅既有 Browserslist 与 chunk 大小提示。
 
 实现 Review：对提交前 diff 与新增文件按真实输入、异步检查过期、草稿/失败重试、显式地址冲突、原子写入及已发布链接保护审查。关闭两项内部发现：英文名称恰好为默认名时仍应生成可读地址；已经确认占用时主按钮应禁用。项目没有 diff-only maintainability 入口，执行人工 findings-first 检查，无未关闭源码 findings。线上视觉与用户链验收仍待发布候选检查。
+
+## 地址检查性能修复（2026-10-03 用户反馈）
+flow=bugfix；L3 查询与前端等待边界、L4 部署；不改变精确发布与地址预留合同。实测 app 的建议为 app-141，旧路径先查 app 再连续查询 app-1…app-141，单请求约20–40秒。属于局部等待合同缺口，复用原设计与 repository/service/hook；旧用户使用的草稿自动取名也复用相同分配 owner。
+
+用户链：进入部署页，填写 app → 短暂检查后显示地址已占用与可点击建议 → 点击建议 → 显示可用，继续原发布链；网络异常时最多8秒转“检查暂时失败”并可重试，名称和内容保持，修改地址丢弃旧结果。正常请求不等超时，8秒只作为异常上限；300ms防抖保留。
+
+选择一次查询取精确请求地址、规范化建议基名和有限长度数字候选的已有 slug，再在服务内用 Set 选择第一个空闲数字后缀（原1…10000策略）。保持数字空洞复用、删除排除与当前项目排除；63字符地址的建议基名最多57字符并经原 slugify 规范化，避免截断在连字符上。放弃只加超时（未解决正常慢）、改随机/最大序号（无必要改变现有建议语义）、递归SQL（增加维护复杂度）。无新表、索引、缓存或预留，无额外公开协议。所有占用判断和建议使用同一查询快照；写时原子排他仍最终保护并发。
+
+验证冻结：真实 Worker+D1 装配大量重名（1000条）、数字空洞、删除/排除、63字符和非数字后缀；生产同一 app 接口3次连续样本达到PA-6，另检查未占用分支；前端取消/超时/重试用可控时钟的 hook 边界验证，并真实生产界面检查重名提示和采用建议。
+
+补充方案 Review(mode=design)：passed。常见重名、前缀截断、并发预检、取消和超时均有可执行边界；Set 只存查询快照，未引入长驻缓存；恢复复用已有重试按钮，不产生第二状态 owner。未关闭 findings：无。plan=not-required。
+
+### 性能修复源码验证与实现 Review
+真实 Worker/Miniflare+D1 HTTP 全合同回归通过，新增1000重名、删除空洞、非数字变体与63字符地址；前端实际 hook 外部边界用可控时钟验证8秒超时、晚响应、重试和取消。前端/Worker tsc、定向ESLint、frontend build、diff检查通过。实测D1 GLOB对长模式有限制，查询改为substr前缀匹配，63字符原触发已重验通过。
+
+mode=implementation：no findings。人工diff-only核对单查询快照与排除规则、原确定性后缀策略、前端超时abort/过期/cleanup、原子最终写入合同；无项目维护性脚本。不改变公开响应字段、不制造缓存/预留，未受影响发布与改名线上证据继续有效；线上性能与最终主线同步在PA-5/6待部署核验。

@@ -156,10 +156,12 @@ class ProjectService {
 
   async checkAddressAvailability(db: D1Database, slug: string, excludeProjectId?: string) {
     validateProjectAddress(slug);
-    const available = !(await projectRepository.slugExists(db, slug, excludeProjectId));
+    const base = slugify(slug.slice(0, 57));
+    const occupied = await projectRepository.getOccupiedSlugs(db, base, excludeProjectId, slug);
+    const available = !occupied.has(slug);
     return {
       available,
-      ...(!available ? { suggestion: await this.ensureUniqueSlug(db, slug.slice(0, 57), excludeProjectId) } : {}),
+      ...(!available ? { suggestion: this.allocateSlug(base, occupied) } : {}),
     };
   }
 
@@ -381,18 +383,15 @@ class ProjectService {
   ): Promise<string> {
     const normalized = slugify(baseSlug);
 
-    // Try base slug first
-    if (!(await projectRepository.slugExists(db, normalized, excludeProjectId))) {
-      return normalized;
-    }
+    const occupied = await projectRepository.getOccupiedSlugs(db, normalized, excludeProjectId);
+    return this.allocateSlug(normalized, occupied);
+  }
 
-    // Deterministic suffix strategy: foo -> foo-1 -> foo-2 -> ...
-    // Keep incrementing until we find an available slug.
+  private allocateSlug(normalized: string, occupied: Set<string>): string {
+    if (!occupied.has(normalized)) return normalized;
     for (let suffix = 1; suffix <= 10000; suffix++) {
       const candidate = `${normalized}-${suffix}`;
-      if (!(await projectRepository.slugExists(db, candidate, excludeProjectId))) {
-        return candidate;
-      }
+      if (!occupied.has(candidate)) return candidate;
     }
 
     throw new Error(

@@ -12,13 +12,18 @@ export function usePublicationAddress(slug: string, projectId: string | null, su
   useEffect(() => {
     if (!valid) return;
     const controller = new AbortController();
+    let deadline: number | undefined;
     const timer = window.setTimeout(() => {
+      deadline = window.setTimeout(() => {
+        setResult({ key, failed: true });
+        controller.abort();
+      }, 8000);
       void project.checkAddressAvailability(slug, projectId ?? undefined, controller.signal).then(
         (data) => { if (!controller.signal.aborted) setResult({ key, data }); },
         () => { if (!controller.signal.aborted) setResult({ key, failed: true }); }
-      );
+      ).finally(() => window.clearTimeout(deadline));
     }, 300);
-    return () => { window.clearTimeout(timer); controller.abort(); };
+    return () => { window.clearTimeout(timer); window.clearTimeout(deadline); controller.abort(); };
   }, [project, slug, projectId, key, valid]);
   const current = result?.key === key ? result : undefined;
   const status = !valid ? 'invalid' : current?.failed ? 'error' : !current?.data ? 'checking' : current.data.available ? 'available' : 'taken';
