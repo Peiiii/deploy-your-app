@@ -19,3 +19,9 @@ design-review: passed。对照原图核对覆盖源、列表筛选仍可访问�
 - 前端 tsc、文件定向 ESLint、生产构建、diff-only Review；发布后检查生产资源身份及同一用户链路。
 
 本任务不包含并行 Tooltip 修复或其它界面设计。
+
+## 开发验证与 Review
+
+当前源码 localhost:5307 连接生产公开 API，实际浏览 qingshui、进入 iframe、连续滚到 33store 并进入，通过：语言悬浮按钮始终不存在，前一个 iframe 退出，后一个 iframe 正常显示。1512px 桌面和390px窄屏截图直接检查通过。退出应用→滚回顶部→退出视频流→打开列表内容语言→选择英语，持久化为 zh/en→再次进入视频流，仍无浮层且语言选择保留。
+
+前端 tsc 通过（先按项目 tsc -b 构建 public-author/product-analytics 声明，避免把未生成声明造成的 D1 类型缺失误当源码错误）；文件 ESLint 零告警、生产构建、diff-check 通过。只有既有 Browserslist/bundle 提示。项目没有独立 diff-only maintainability 入口；人工 diff-only Review 核对6行删除与相邻页面/语言store/退出和空状态恢复路径：no findings，implementation-review=passed。未新增状态或数据合同。
