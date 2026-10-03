@@ -529,6 +529,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                                 {getProjectDescription(app, i18n.resolvedLanguage || i18n.language)}
                             </p>
                         )}
+                        {dismissed && <p role="status" className="text-xs text-white/80">{t('explore.recommendation.excluded')}</p>}
                     </div>
                 </div>
 
@@ -597,11 +598,9 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                 </div>
 
                 {onFeedback && <IconButton label={t(dismissed ? 'explore.recommendation.excluded' : 'explore.recommendation.notInterested')} size="auto" onClick={() => { onFeedback(app.id, 'dismiss'); setDismissed(true); }}
-                    className="absolute bottom-24 left-4 z-40 rounded-full bg-black/50 p-2 text-white/80 hover:text-white">
+                    className="absolute bottom-4 right-4 z-40 rounded-full bg-black/50 p-2 text-white/80 hover:text-white">
                     <Ban className={`w-5 h-5 ${dismissed ? 'text-brand-300' : ''}`} />
                 </IconButton>}
-
-                {dismissed && <p role="status" className="absolute bottom-16 left-4 right-20 text-xs text-white/80">{t('explore.recommendation.excluded')}</p>}
 
                 {/* Comment Drawer */}
                 <div
