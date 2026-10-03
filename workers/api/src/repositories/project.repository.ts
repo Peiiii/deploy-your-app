@@ -1004,6 +1004,26 @@ class ProjectRepository {
     return row ? this.mapRowToProject(row) : null;
   }
 
+  async getOccupiedSlugs(
+    db: D1Database,
+    baseSlug: string,
+    excludeProjectId?: string,
+    requestedSlug = baseSlug,
+  ): Promise<Set<string>> {
+    await this.ensureSchema(db);
+    // Read the whole numeric candidate range once instead of a D1 round trip per suffix.
+    const { results } = await db.prepare(
+      `SELECT DISTINCT slug FROM projects
+       WHERE (slug = ? OR slug = ? OR (substr(slug, 1, ?) = ? AND substr(slug, ?, 1) BETWEEN '0' AND '9' AND length(slug) <= ?))
+       AND (is_deleted = 0 OR is_deleted IS NULL)
+       AND (? IS NULL OR id <> ?)`,
+    ).bind(
+      requestedSlug, baseSlug, baseSlug.length + 1, `${baseSlug}-`, baseSlug.length + 2, baseSlug.length + 6,
+      excludeProjectId ?? null, excludeProjectId ?? null,
+    ).all<{ slug: string }>();
+    return new Set(results.map((row) => row.slug));
+  }
+
   async slugExists(
     db: D1Database,
     slug: string,

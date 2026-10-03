@@ -326,3 +326,62 @@ assert.equal(
 console.log(
   'PASS: recommendations, GitHub validation, publication concurrency, failure/retry, exact project identity, HTTP failures and scrolling boundary.'
 );
+
+// Drive the real hook through its external request/timer boundary.
+{
+  let now = 0, nextTimer = 0, stateIndex = 0, previousDeps, cleanup;
+  const states = [], timers = new Map(), requests = [];
+  const project = { checkAddressAvailability(slug, id, signal) {
+    return new Promise((resolve, reject) => requests.push({ slug, signal, resolve, reject }));
+  } };
+  const window = {
+    setTimeout(fn, delay) { const id = ++nextTimer; timers.set(id, { fn, at: now+delay }); return id; },
+    clearTimeout(id) { timers.delete(id); },
+  };
+  function advance(ms) {
+    const end = now+ms;
+    while (true) {
+      const due = [...timers].filter(([, timer]) => timer.at<=end).sort((a,b) => a[1].at-b[1].at)[0];
+      if (!due) break;
+      now = due[1].at; timers.delete(due[0]); due[1].fn();
+    }
+    now = end;
+  }
+  const react = {
+    useState(initial) {
+      const index = stateIndex++;
+      if (!(index in states)) states[index] = initial;
+      return [states[index], value => { states[index] = typeof value==='function' ? value(states[index]) : value; }];
+    },
+    useEffect(effect, deps) {
+      if (!previousDeps || deps.some((dep,i) => !Object.is(dep,previousDeps[i]))) {
+        cleanup?.(); previousDeps = deps; cleanup = effect();
+      }
+    },
+  };
+  const { usePublicationAddress } = load('features/deployment/hooks/use-publication-address.ts', {
+    react, '@/contexts/presenter-context': { usePresenter: () => ({ project }) },
+    '../managers/publication-details': { isValidPublicationSlug: slug => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) },
+  }, { window, AbortController });
+  const render = (slug='app') => { stateIndex=0; return usePublicationAddress(slug,null,null); };
+  assert.equal(render().status, 'checking');
+  advance(299); assert.equal(requests.length,0);
+  advance(1); advance(7999); assert.equal(render().status,'checking');
+  advance(1); assert.equal(render().status,'error'); assert.equal(requests[0].signal.aborted,true);
+  requests[0].resolve({ available:true, domain:'gemigo.app' });
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(render().status,'error','Late timeout responses cannot turn green');
+  render().retry(); assert.equal(render().status,'checking'); advance(300);
+  requests[1].resolve({ available:false,domain:'gemigo.app',suggestion:'app-141' });
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(render().suggestion,'app-141'); assert.equal(render().status,'taken');
+  render('other'); advance(300); render('latest'); assert.equal(requests[2].signal.aborted,true);
+  requests[2].resolve({available:true,domain:'gemigo.app'});
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(render('latest').status,'checking','Changing the address discards the old response');
+  advance(300); requests[3].resolve({available:true,domain:'gemigo.app'});
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(render('latest').status,'available');
+  cleanup(); assert.equal(timers.size,0,'Unmount clears debounce and deadline');
+  console.log('PASS: address check debounce, 8-second timeout, late response, retry and cancellation.');
+}
