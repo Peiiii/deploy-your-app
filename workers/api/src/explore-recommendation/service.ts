@@ -136,7 +136,8 @@ export async function feedRequest(
         db
           .prepare(
             `INSERT OR IGNORE INTO explore_rec_events(id,subject,session,batch_id,project_id,action,duration_ms,variant,experiment,algorithm,created_at)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?)`
+        SELECT ?,?,?,?,?,?,?,?,?,?,?
+        WHERE EXISTS(SELECT 1 FROM explore_rec_batches WHERE id=? AND subject=? AND expires_at>?)`
           )
           .bind(
             event.id,
@@ -149,12 +150,15 @@ export async function feedRequest(
             batch.variant,
             batch.experiment,
             batch.algorithm,
+            Date.now(),
+            batch.id,
+            identity.subject,
             Date.now()
           )
       );
     }
-    if (statements.length) await db.batch(statements);
-    return { ...base, accepted: statements.length };
+    const saved = statements.length ? await db.batch(statements) : [];
+    return { ...base, accepted: saved.reduce((sum, result) => sum + (result.meta.changes || 0), 0) };
   }
   if (input.action && input.action !== 'feed') throw new ValidationError('Invalid action');
   const digest = await crypto.subtle.digest(

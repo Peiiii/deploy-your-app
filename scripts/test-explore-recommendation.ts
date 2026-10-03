@@ -247,6 +247,26 @@ try {
   });
   assert.notEqual(forged.token, first.token);
   assert.notEqual(JSON.parse(atob(forged.token.split('.')[0])).subject, identity.subject);
+  // Clear can land after batch lookup but before a delayed event write.
+  const delayedDb = new Proxy(db, {
+    get(target, key) {
+      if (key === 'batch')
+        return async (statements: Parameters<typeof db.batch>[0]) => {
+          await feedRequest(request, env, { token: fresh.token, action: 'reset' });
+          return target.batch(statements);
+        };
+      const value = Reflect.get(target, key);
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+  });
+  const late = await feedRequest(request, { ...env, PROJECTS_DB: delayedDb }, {
+    token: fresh.token,
+    action: 'events',
+    session: 'test-session',
+    events: [{ id: 'late-event', batch: fresh.batch, projectId: fresh.items[0].id, action: 'open' }],
+  });
+  assert.equal(late.accepted, 0, 'cleared batch cannot restore preferences from an in-flight event');
+  assert.equal((await db.prepare('SELECT COUNT(*) AS n FROM explore_rec_events WHERE id=?').bind('late-event').first()).n, 0);
   await feedRequest(request, env, { token: first.token, action: 'reset' });
   assert.equal(
     (
