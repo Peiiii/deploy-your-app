@@ -151,3 +151,10 @@ scope8本地验证与实现Review：增长owner新增当前/上一期及每日�
 真实本地Chrome：`/tmp/gemigo-admin-home-growth-ui.cjs`，1440×1050及390×844，7/30卡片与growth数据相符、图表前置、3类流量切换、原增长/CSV/详情、队列翻页不重查增长；额外HTTP429初载/刷新失败与重试、零注册/上期为0、CF缺失—/断线、快速7→30→7晚到响应隔离通过。截图`/tmp/gemigo-admin-home-local-{desktop,mobile}.png`已实际查看，核心卡对比字色与图表基线调整后构建/复验有效，无根溢出或JS错误。
 
 mode=implementation Review：项目无diff-only maintainability入口，按当前diff完成findings-first与主观结构复核。检查原始接受的三个核心增量、时间/分母/零与缺失、共享cache schema、请求取消与队列分页、原导航与管理能力及认证边界；无开放findings。新增Report/Chart仅服务两页既有共享变化点，GrowthSummary独立请求避免队列重复查询，无新持久化/框架/留存模型。Validation acceptance-ready（本地），Delivery待推送/部署/生产数值与QA清理，ADM14尚未最终passed。
+
+
+scope8生产Delivery：功能commit `ce8585262af0d7e9d91b2d54255735c2e3bbf9c8`精确14文件提交、普通推送后主工作区master/跟踪/远程实际SHA一致，diff0 0。复用已验证构建（CSS index-w7nygbMG / JS index-CtO7NwmX），执行admin-worker已有deploy入口，Worker `ceea3dd5-fe90-41c1-b4d7-e11c15a51073`已在admin.gemigo.io生效，无迁移/Secrets变更。并发应用分析/字体任务普通合并纳入主线，已核对它们未触达本批admin运行代码，保护各自代码和WIP。
+
+真实生产Chrome完整7/30：页面收到的growth报表与独立D1聚合核对当前/前期发布人数、首次人数、注册/创建/发布队列；CF真人访问正常、每日值与期间PV相符、四卡比较/日期/今日分开、3类流量选择、图表优先、两队列独立、原增长/每日CSV/异常详情可用，1440×1050和390×844无根溢出或JS错误。实际查看`/tmp/gemigo-admin-home-prod-{desktop,mobile}.png`，发布50、新注册26、激活20/26=76.9%、应用PV1880只是该次7日完整窗口快照，非固定实时值。
+
+验收工具恢复：首轮独立APIRequest请求网络超时，初始真实页面增长已成功；改为消费页面实际收到的JSON响应，避免额外接口请求，成功复验。最初Wrangler --file只返回导入汇总，不能拿它当SELECT结果；随后使用--command取得10个实际聚合结果集，断言shape后对账。没有将工具异常误判产品问题，未改生产代码。首轮已知成功生成预留62682单独归还后共享基线223652，最终仅生成一份非缓存30日64422，再精确归还并保留基线及并发用量；缓存7日不重复归账。两次版本绑定短时QA会话各自精确删除后session HTTP401，当前密码版本未变，其它会话保留，临时凭据/聚合JSON清理、生产截图0600。复盘更新原事实/方案/验收owner，无通用流程增量。最终记录提交后fresh fetch并再次核对主线SHA及0 0。
