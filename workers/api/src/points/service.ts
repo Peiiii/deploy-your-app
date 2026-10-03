@@ -11,9 +11,10 @@ export async function refund(repo: PointsRepository, receipt: PointsReceipt, all
     throw new AppError('此服务需要平台核查后退款。', 409, 'REFUND_REVIEW_REQUIRED');
   const queries = [
     repo.statement(
-      "INSERT INTO points_assertions(id,ok) SELECT ?,CASE WHEN EXISTS(SELECT 1 FROM points_receipts WHERE id=? AND status IN('granted','unknown','reserved')) THEN 1 ELSE 0 END",
+      "INSERT INTO points_assertions(id,ok) SELECT ?,CASE WHEN EXISTS(SELECT 1 FROM points_receipts WHERE id=? AND status=? AND status IN('granted','unknown','reserved')) THEN 1 ELSE 0 END",
       id,
-      id
+      id,
+      receipt.status
     ),
   ];
   if (item.delivery === 'grant') {

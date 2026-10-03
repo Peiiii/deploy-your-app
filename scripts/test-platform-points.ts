@@ -195,6 +195,12 @@ try {
   } as unknown as ApiWorkerEnv;
   await Promise.all([runAi(aiEnv, repo, reserved), runAi(aiEnv, repo, reserved)]);
   assert.equal(calls, 1);
+  await assert.rejects(refund(repo, { ...reserved, status: 'unknown' }, true), /已使用|核查/);
+  assert.equal(
+    (await repo.balance('ai-user'))!.balance,
+    17,
+    'stale release cannot refund a delivered AI result'
+  );
   assert.equal((await repo.receipt('ai-user', 'app-a', 'ai-1'))!.status, 'granted');
   assert.match((await repo.receipt('ai-user', 'app-a', 'ai-1'))!.result!, /彩虹/);
   const unknown = await repo.purchase('ai-user', ai, 'ai-2', JSON.stringify({ topic: '天文' }));
@@ -327,6 +333,24 @@ try {
   );
   const again = await pointsController(sdkReq('/receipt?requestId=api-purchase'), env, db);
   assert.equal(((await again.json()) as { status: string }).status, 'granted');
+  const noServiceIntent = (await (
+    await pointsController(
+      sdkReq('/intents', {
+        itemId: 'explain',
+        requestId: 'missing-ai',
+        state: 'ai-state',
+        topic: '天空',
+      }),
+      env,
+      db
+    )
+  ).json()) as { id: string };
+  await assert.rejects(
+    pointsController(platformReq('/intents/' + noServiceIntent.id + '/confirm', {}), env, db),
+    /服务暂不可用/
+  );
+  assert.equal(await repo.receipt('real-api-user', 'app-a', 'missing-ai'), null);
+  assert.equal((await repo.balance('real-api-user'))!.balance, 18);
   await assert.rejects(pointsController(platformReq('/recharge', {}), env, db), /商户/);
   await sdkCloudService.kvSet(sdkReq('/unused'), env, db, {
     key: 'progress',

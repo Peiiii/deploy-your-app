@@ -343,6 +343,8 @@ export async function pointsController(
     if (request.method === 'POST' && intentMatch[2]) {
       if (!receipt && (intent.expires_at <= Date.now() || !item.enabled))
         throw new AppError('消费意图已过期或收费项已停用，请重新发起。', 409, 'INTENT_EXPIRED');
+      if (!receipt && item.delivery === 'ai' && !env.RECOMMENDATION_AI)
+        throw new AppError('AI 服务暂不可用，未扣点。', 503, 'SERVICE_UNAVAILABLE');
       const payload = await repo
         .statement('SELECT payload FROM points_intent_payloads WHERE id=?', intent.id)
         .first<{ payload: string }>();
