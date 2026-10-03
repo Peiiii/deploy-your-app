@@ -1,12 +1,14 @@
-"""Process pending public-app covers; optionally repair the latest 50 apps."""
+"""Process queued covers, or manually repair historical public-app covers."""
 
 import argparse
 import base64
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import ExitStack
 from datetime import datetime, timedelta, timezone
 import io
 import json
 import os
+from pathlib import Path
 import re
 import sys
 import urllib.request
@@ -15,6 +17,7 @@ CACHE_CONTROL = "public, max-age=86400, s-maxage=86400, stale-while-revalidate=6
 SLUG = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 MAX_IMAGES_PER_RUN = 20
 MAX_BYTES = 300 * 1024
+REPAIR_PAGE_SIZE = 100
 ELIGIBLE = """is_public = 1 AND status = 'Live'
     AND (is_deleted = 0 OR is_deleted IS NULL)
     AND COALESCE(TRIM(url), '') != '' AND COALESCE(TRIM(slug), '') != ''"""
@@ -59,7 +62,7 @@ def job_current(job):
 
 
 def safe_error(error):
-    status = getattr(error, "response", {}).get("ResponseMetadata", {}).get("HTTPStatusCode")
+    status = getattr(error, "status", None) or getattr(error, "response", {}).get("ResponseMetadata", {}).get("HTTPStatusCode")
     return f"HTTP {status}" if status else type(error).__name__
 
 
@@ -138,13 +141,19 @@ def reconcile_recent(s3):
         raise RuntimeError("All repair readiness checks failed")
 
 
+class AppHTTPError(RuntimeError):
+    def __init__(self, status):
+        super().__init__(f"App returned HTTP {status}")
+        self.status = status
+
+
 def capture(page, slug):
     from PIL import Image
 
     target = f"https://{slug}.gemigo.app/"
     response = page.goto(target, wait_until="domcontentloaded", timeout=15000)
     if response is None or response.status >= 400:
-        raise RuntimeError(f"App returned HTTP {response.status if response else 'unknown'}")
+        raise AppHTTPError(response.status if response else 'unknown')
     page.wait_for_timeout(1200)
     cdp = page.context.new_cdp_session(page)
     screenshot = cdp.send(
@@ -161,13 +170,41 @@ def capture(page, slug):
     raise RuntimeError("Screenshot is over 300 KiB after compression")
 
 
-def run_once(check_only=False, reconcile=False):
+def capture_and_store(s3, page, slug, is_current):
+    """One conditional writer shared by queued and manual captures."""
+    from botocore.exceptions import ClientError
+
+    if not is_current():
+        return "changed"
+    image = capture(page, slug)
+    if not is_current():
+        return "changed"
+    if thumbnail_ready(s3, slug):
+        return "existing"
+    try:
+        s3.put_object(
+            Bucket=os.environ["R2_BUCKET_NAME"], Key=f"apps/{slug}/thumbnail.webp",
+            Body=image, ContentType="image/webp", CacheControl=CACHE_CONTROL,
+            IfNoneMatch="*",
+        )
+    except ClientError as error:
+        if error.response.get("ResponseMetadata", {}).get("HTTPStatusCode") != 412:
+            raise
+        return "existing"
+    print(f"saved {slug}: {len(image)} bytes", flush=True)
+    return "saved"
+
+
+def require_configuration():
     required = ("CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_D1_DATABASE_ID", "CLOUDFLARE_D1_API_TOKEN",
                 "R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET_NAME")
     missing = [name for name in required if not os.environ.get(name)]
     if missing:
         raise RuntimeError(f"Missing configuration: {', '.join(missing)}")
 
+
+def run_once(check_only=False, reconcile=False):
+    require_configuration()
     s3 = r2_client() if reconcile else None
     if reconcile:
         reconcile_recent(s3)
@@ -197,7 +234,6 @@ def run_once(check_only=False, reconcile=False):
     if not pending:
         return failed
 
-    from botocore.exceptions import ClientError
     from playwright.sync_api import sync_playwright
 
     saved = 0
@@ -208,28 +244,12 @@ def run_once(check_only=False, reconcile=False):
                 slug = job["slug"]
                 page = browser.new_page(viewport={"width": 960, "height": 540})
                 try:
-                    if not job_current(job):
-                        continue
-                    image = capture(page, slug)
-                    if not job_current(job):
+                    result = capture_and_store(s3, page, slug, lambda: job_current(job))
+                    if result == "changed":
                         print(f"skipped {slug}: task changed during capture", flush=True)
                         continue
-                    if thumbnail_ready(s3, slug):
-                        complete_job(job)
-                        continue
-                    try:
-                        s3.put_object(
-                            Bucket=os.environ["R2_BUCKET_NAME"], Key=f"apps/{slug}/thumbnail.webp",
-                            Body=image, ContentType="image/webp", CacheControl=CACHE_CONTROL,
-                            IfNoneMatch="*",
-                        )
-                    except ClientError as error:
-                        if error.response.get("ResponseMetadata", {}).get("HTTPStatusCode") != 412:
-                            raise
-                        print(f"skipped {slug}: cover already saved", flush=True)
-                    else:
+                    if result == "saved":
                         saved += 1
-                        print(f"saved {slug}: {len(image)} bytes", flush=True)
                     complete_job(job)
                 except Exception as error:
                     defer_job(job, error)
@@ -242,11 +262,101 @@ def run_once(check_only=False, reconcile=False):
     return failed
 
 
+def project_current(project):
+    return bool(query_d1(f"""SELECT id FROM projects
+        WHERE id = ? AND slug = ? AND url = ? AND last_deployed IS ? AND {ELIGIBLE}""",
+        (project["id"], project["slug"], project["url"], project["last_deployed"])))
+
+
+def write_repair_report(report, path):
+    if path:
+        target = Path(path)
+        temporary = target.with_suffix(target.suffix + ".tmp")
+        temporary.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        temporary.replace(target)
+
+
+def repair_all(start_after="", max_projects=1000, report_path=None):
+    """Finite manual scan; never creates or changes automatic queue jobs."""
+    if max_projects < 1:
+        raise ValueError("max-projects must be positive")
+    require_configuration()
+    from playwright.sync_api import sync_playwright
+
+    report = {"checked": 0, "saved": 0, "existing": 0, "changed": 0, "failed": 0,
+              "complete": False, "next_cursor": start_after, "results": []}
+    browser = None
+    try:
+        upper = query_d1("SELECT MAX(id) AS upper_id FROM projects")[0]["upper_id"]
+        s3 = r2_client() if upper else None
+        with sync_playwright() as playwright, ExitStack() as resources:
+            cursor = start_after
+            while upper and report["checked"] < max_projects:
+                limit = min(REPAIR_PAGE_SIZE, max_projects - report["checked"])
+                projects = query_d1(f"""SELECT id, slug, url, last_deployed FROM projects
+                    WHERE id > ? AND id <= ? AND {ELIGIBLE} ORDER BY id LIMIT ?""",
+                    (cursor, upper, limit + 1))
+                has_more = len(projects) > limit
+                projects = projects[:limit]
+                readiness = check_covers(s3, [project["slug"] for project in projects])
+                for project, ready in zip(projects, readiness):
+                    slug = project["slug"]
+                    entry = {"slug": slug}
+                    page = None
+                    try:
+                        if isinstance(ready, Exception):
+                            raise ready
+                        result = "existing"
+                        if not ready:
+                            if browser is None:
+                                browser = playwright.chromium.launch()
+                                resources.callback(browser.close)
+                            page = browser.new_page(viewport={"width": 960, "height": 540})
+                            result = capture_and_store(s3, page, slug, lambda: project_current(project))
+                        report[result] += 1
+                        entry["status"] = result
+                    except Exception as error:
+                        report["failed"] += 1
+                        entry.update(status="failed", error=safe_error(error))
+                    finally:
+                        if page is not None:
+                            page.close()
+                    report["checked"] += 1
+                    cursor = project["id"]
+                    report["next_cursor"] = cursor
+                    report["results"].append(entry)
+                    write_repair_report(report, report_path)
+                    print(f"repair {slug}: {entry['status']} {entry.get('error', '')} start_after={cursor}", flush=True)
+                if not has_more:
+                    report["complete"] = True
+                    break
+            if not upper:
+                report["complete"] = True
+    except Exception as error:
+        report["error"] = safe_error(error)
+        raise
+    finally:
+        write_repair_report(report, report_path)
+        print("repair-summary " + json.dumps({k: v for k, v in report.items() if k != "results"}), flush=True)
+    return report
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check-only", action="store_true")
     parser.add_argument("--reconcile", action="store_true")
+    parser.add_argument("--repair-all", action="store_true")
+    parser.add_argument("--start-after", default="")
+    parser.add_argument("--max-projects", type=int, default=1000)
+    parser.add_argument("--report")
     args = parser.parse_args()
+    if args.repair_all:
+        if args.check_only or args.reconcile:
+            parser.error("--repair-all cannot be combined with queue flags")
+        report = repair_all(args.start_after, args.max_projects, args.report)
+        if report["failed"] or not report["complete"]:
+            raise RuntimeError("Manual repair has failures or more pages; inspect the report")
+        return
     if run_once(check_only=args.check_only, reconcile=args.reconcile):
         raise RuntimeError("Thumbnail capture completed with failures")
 

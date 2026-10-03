@@ -2,10 +2,12 @@
 import contextlib
 import importlib.util
 import io
+import json
 import os
 from pathlib import Path
 import sqlite3
 import sys
+import tempfile
 import types
 import unittest
 from unittest.mock import MagicMock, patch
@@ -45,7 +47,8 @@ class QueueTests(unittest.TestCase):
         self.screenshot = self.enterContext(patch.object(capture, "capture", return_value=b"webp"))
         self.browser = MagicMock()
         playwright = MagicMock()
-        playwright.__enter__.return_value.chromium.launch.return_value = self.browser
+        self.launch = playwright.__enter__.return_value.chromium.launch
+        self.launch.return_value = self.browser
         self.enterContext(patch.dict(sys.modules, {
             "botocore.exceptions": types.SimpleNamespace(ClientError=ClientError),
             "playwright.sync_api": types.SimpleNamespace(sync_playwright=lambda: playwright),
@@ -181,7 +184,7 @@ class QueueTests(unittest.TestCase):
         plan = self.query("EXPLAIN QUERY PLAN SELECT project_id FROM thumbnail_jobs WHERE next_attempt_at <= ? ORDER BY next_attempt_at, project_id LIMIT 1", (capture.now_iso(),))
         self.assertTrue(any("idx_thumbnail_jobs_due" in row["detail"] for row in plan))
 
-    def test_hourly_repair_bounded_and_does_not_reset_backoff(self):
+    def test_manual_recent_repair_bounded_and_does_not_reset_backoff(self):
         for i in range(80):
             self.insert(f"app-{i}")
         old = self.jobs()[0]
@@ -198,7 +201,7 @@ class QueueTests(unittest.TestCase):
         self.assertEqual(self.jobs(), [])
         self.screenshot.assert_not_called()
 
-    def test_hourly_repair_rechecks_visibility_before_enqueue(self):
+    def test_manual_recent_repair_rechecks_visibility_before_enqueue(self):
         self.insert()
         self.db.execute("DELETE FROM thumbnail_jobs")
         def became_private(*_):
@@ -207,6 +210,118 @@ class QueueTests(unittest.TestCase):
         with patch.object(capture, "check_covers", side_effect=became_private):
             capture.reconcile_recent(self.s3)
         self.assertEqual(self.jobs(), [])
+
+
+    def test_full_repair_pages_all_projects_and_leaves_queue_untouched(self):
+        for i in range(215):
+            self.insert(f"app-{i:03}")
+        self.insert("private", public=0)
+        self.insert("deleted", deleted=1)
+        self.insert("failed", status="Failed")
+        before = self.jobs()
+        report = capture.repair_all()
+        self.assertTrue(report["complete"])
+        self.assertEqual(report["checked"], 215)
+        self.assertEqual(report["saved"], 215)
+        self.assertEqual(len({r["slug"] for r in report["results"]}), 215)
+        self.assertEqual(self.jobs(), before)
+        self.assertTrue(all(c.kwargs["IfNoneMatch"] == "*" for c in self.s3.put_object.call_args_list))
+        self.browser.close.assert_called_once()
+
+    def test_full_repair_existing_covers_never_start_browser(self):
+        self.insert()
+        self.ready.return_value = True
+        report = capture.repair_all()
+        self.assertEqual(report["existing"], 1)
+        self.launch.assert_not_called()
+        self.screenshot.assert_not_called()
+        self.s3.put_object.assert_not_called()
+
+    def test_full_repair_limit_and_resume_have_no_skipped_or_duplicate_projects(self):
+        for i in range(111):
+            self.insert(f"app-{i:03}")
+        self.ready.return_value = True
+        first = capture.repair_all(max_projects=100)
+        self.assertFalse(first["complete"])
+        self.assertEqual(first["checked"], 100)
+        second = capture.repair_all(start_after=first["next_cursor"], max_projects=100)
+        self.assertTrue(second["complete"])
+        self.assertEqual(second["checked"], 11)
+        combined = first["results"] + second["results"]
+        self.assertEqual(len({r["slug"] for r in combined}), 111)
+
+    def test_full_repair_empty_and_invalid_limit(self):
+        report = capture.repair_all()
+        self.assertTrue(report["complete"])
+        self.assertEqual(report["checked"], 0)
+        self.client.assert_not_called()
+        self.launch.assert_not_called()
+        with self.assertRaises(ValueError):
+            capture.repair_all(max_projects=0)
+
+    def test_full_repair_failure_isolated_and_report_persisted(self):
+        self.insert("broken")
+        self.insert("new-app")
+        self.screenshot.side_effect = [capture.AppHTTPError(404), b"webp"]
+        before = self.jobs()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "report.json"
+            report = capture.repair_all(report_path=path)
+            self.assertEqual(json.loads(path.read_text()), report)
+        self.assertEqual(report["failed"], 1)
+        self.assertEqual(report["saved"], 1)
+        self.assertEqual(report["results"][0], {"slug": "broken", "status": "failed", "error": "HTTP 404"})
+        self.assertEqual(self.jobs(), before)
+
+    def test_full_repair_readiness_error_does_not_hide_other_missing_covers(self):
+        self.insert("broken")
+        self.insert("new-app")
+        self.ready.side_effect = lambda s3, slug: (_ for _ in ()).throw(ClientError(403)) if slug == "broken" else False
+        report = capture.repair_all()
+        self.assertEqual(report["failed"], 1)
+        self.assertEqual(report["saved"], 1)
+        self.assertEqual(report["results"][0]["error"], "HTTP 403")
+
+    def test_full_repair_changed_projects_never_upload_old_screenshot(self):
+        for column, value in (("is_public", 0), ("slug", "changed"), ("url", "https://changed"),
+                              ("last_deployed", "2026-10-03T12:00:00Z"), ("is_deleted", 1)):
+            with self.subTest(column=column):
+                self.db.execute("DELETE FROM projects")
+                self.insert()
+                self.s3.put_object.reset_mock()
+                def change(*_):
+                    self.db.execute(f"UPDATE projects SET {column}=?", (value,))
+                    return b"webp"
+                self.screenshot.side_effect = change
+                report = capture.repair_all()
+                self.assertEqual(report["changed"], 1)
+                self.s3.put_object.assert_not_called()
+
+    def test_full_repair_concurrent_cover_is_preserved(self):
+        self.insert()
+        self.ready.side_effect = [False, True]
+        report = capture.repair_all()
+        self.assertEqual(report["existing"], 1)
+        self.s3.put_object.assert_not_called()
+        self.ready.side_effect = None
+        self.ready.return_value = False
+        self.s3.put_object.side_effect = ClientError(412)
+        report = capture.repair_all()
+        self.assertEqual(report["existing"], 1)
+        self.assertEqual(report["failed"], 0)
+
+    def test_full_repair_infrastructure_failure_retains_resume_report(self):
+        self.insert()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "report.json"
+            with patch.object(capture, "check_covers", side_effect=RuntimeError("secret body")):
+                with self.assertRaises(RuntimeError):
+                    capture.repair_all(report_path=path)
+            report = json.loads(path.read_text())
+        self.assertFalse(report["complete"])
+        self.assertEqual(report["error"], "RuntimeError")
+        self.assertEqual(report["next_cursor"], "")
+        self.assertNotIn("secret body", json.dumps(report))
 
 
 class R2Tests(unittest.TestCase):
