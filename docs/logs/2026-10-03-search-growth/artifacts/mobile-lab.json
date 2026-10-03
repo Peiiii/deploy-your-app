@@ -1,0 +1,39 @@
+{
+  "measuredAt": "2026-10-03T09:05:13.470Z",
+  "environment": "Chrome, 390×844, current machine/network, warm reloads, no CPU/network throttling; small lab sample, not field CWV",
+  "samples": [
+    {
+      "url": "https://gemigo.io/guides/publish-html?lang=zh-CN",
+      "width": 390,
+      "ttfbMs": 496.09999990463257,
+      "requestWaitMs": 490.40000009536743,
+      "domContentLoadedMs": 794.5999999046326,
+      "fcpMs": 832,
+      "lcpMs": 832,
+      "cls": 0.003665945025078917,
+      "overflow": false
+    },
+    {
+      "url": "https://gemigo.io/guides/publish-html?lang=zh-CN",
+      "width": 390,
+      "ttfbMs": 248.2999997138977,
+      "requestWaitMs": 246.09999990463257,
+      "domContentLoadedMs": 509,
+      "fcpMs": 548,
+      "lcpMs": 548,
+      "cls": 0.003665945025078917,
+      "overflow": false
+    },
+    {
+      "url": "https://gemigo.io/guides/publish-html?lang=zh-CN",
+      "width": 390,
+      "ttfbMs": 290.5,
+      "requestWaitMs": 286.2999997138977,
+      "domContentLoadedMs": 792.2000002861023,
+      "fcpMs": 844,
+      "lcpMs": 844,
+      "cls": 0.003665945025078917,
+      "overflow": false
+    }
+  ]
+}

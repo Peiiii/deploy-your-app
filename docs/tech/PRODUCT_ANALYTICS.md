@@ -37,9 +37,11 @@ INSERT OR IGNORE INTO analytics_settings (key,value)
 VALUES ('acquisition_registration_start', strftime('%Y-%m-%dT%H:%M:%fZ','now'));
 ```
 
-缺失明细日期和历史注册在界面/CSV显示空缺；零分母转化率null。报表缓存15分钟、无轮询，计数后以本固定两次cohort查询的观测事件32倍预留，保持百万日额度；代表全转化200会话/600事件真实D1两次读取11602行。实际生产验证见 [SEO/GEO记录](../logs/2026-10-03-seo-geo/README.md)。注册口径起点不是产品分析全部历史的起点。
+缺失明细日期和历史注册在界面/CSV显示空缺；零分母转化率null。报表缓存15分钟、无轮询，缓存namespace为acquisition-v2；计数后以固定两次cohort查询的观测事件48倍加1000行预留，保持百万日额度；代表全转化200会话/600事件真实D1两次读取12410行。实际生产验证见 [SEO/GEO记录](../logs/2026-10-03-seo-geo/README.md)。注册口径起点不是产品分析全部历史的起点。
 
-Search Console展示/点击/CTR/排名尚未连接，返回null，不能用主站采样事件代替。Google搜索的AI概览不能从referrer单独识别；真正引用需站长平台来源证据。公开产品事实、指南、metadata、sitemap和可选llms目录共用`frontend/seo.mjs`，Pages原始HTML与React可见文案同owner；不承诺即时收录、排名或AI引用提升。
+新增成功发布会话：可测来源入口→API确认的新注册→同会话服务端deployment_accepted→同flow的deployment_attempts为succeeded且web渠道，尝试开始不早于注册、完成早于观察截止。同一会话最多计一次；不新增用户ID，不用浏览器部署成功事件替代。期间截至各自完整UTC日末；今日及按入口日期的日cohort截至查询时点，日行不能累加代替期间。可测分母为0时publishedSessions为null，有分母且无成功才为0；不能表示跨会话新客激活或长期留存。权威为同一gemigo-projects实例中的事件和不可变尝试，不新增数据库绑定。
+
+Search Console展示/点击/CTR/排名尚未通过API接入后台，返回null，不能用主站采样事件代替。站点所有权验证与后台API连接是两个状态，验证成功不能自动把connected改为true。Google搜索的AI概览不能从referrer单独识别；真正引用需站长平台来源证据。公开静态产品事实和metadata由`frontend/seo.mjs`维护，指南示例由`frontend/guide-examples.mjs`维护，安全公开作品/作者/目录投影由`frontend/public-seo.mjs`维护；Pages原始HTML与React复用对应owner；不承诺即时收录、排名或AI引用提升。
 
 维护验证：`pnpm test:seo`覆盖真实Pages/D1/组装API注册链路；`pnpm test:analytics`保护原采集预算与协议。发布顺序为API兼容新来源/注册→首次设置起点→admin→Pages；后续升级保留起点及现有Secrets。
 

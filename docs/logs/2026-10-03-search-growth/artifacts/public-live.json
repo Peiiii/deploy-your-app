@@ -1,0 +1,94 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "titles": 1,
+    "h1s": 1,
+    "noindex": false,
+    "canonical": "https://gemigo.io/",
+    "appLinks": 12
+  },
+  {
+    "path": "/explore",
+    "status": 200,
+    "titles": 1,
+    "h1s": 1,
+    "noindex": false,
+    "canonical": "https://gemigo.io/explore",
+    "appLinks": 12
+  },
+  {
+    "path": "/about",
+    "status": 200,
+    "titles": 1,
+    "h1s": 1,
+    "noindex": false,
+    "canonical": "https://gemigo.io/about"
+  },
+  {
+    "path": "/guides/publish-html",
+    "status": 200,
+    "titles": 1,
+    "h1s": 1,
+    "noindex": false,
+    "canonical": "https://gemigo.io/guides/publish-html"
+  },
+  {
+    "path": "/guides/publish-zip",
+    "status": 200,
+    "titles": 1,
+    "h1s": 1,
+    "noindex": false,
+    "canonical": "https://gemigo.io/guides/publish-zip"
+  },
+  {
+    "path": "/catalog",
+    "status": 200,
+    "titles": 1,
+    "h1s": 1,
+    "noindex": false,
+    "canonical": "https://gemigo.io/catalog",
+    "appLinks": 12
+  },
+  {
+    "path": "/catalog?page=2",
+    "status": 200,
+    "titles": 1,
+    "h1s": 1,
+    "noindex": false,
+    "canonical": "https://gemigo.io/catalog?page=2",
+    "appLinks": 12
+  },
+  {
+    "path": "/u/bluecatdkz5",
+    "status": 200,
+    "titles": 1,
+    "h1s": 1,
+    "noindex": false,
+    "canonical": "https://gemigo.io/u/bluecatdkz5"
+  },
+  {
+    "path": "/app/b36bca6a-fbfb-40ba-8bd9-420549fde50b",
+    "status": 200,
+    "titles": 1,
+    "h1s": 1,
+    "noindex": false,
+    "canonical": "https://gemigo.io/app/b36bca6a-fbfb-40ba-8bd9-420549fde50b"
+  },
+  {
+    "path": "/dashboard",
+    "status": 200,
+    "titles": 1,
+    "h1s": 0,
+    "noindex": true,
+    "canonical": "https://gemigo.io/dashboard"
+  },
+  {
+    "path": "/app/seo-nonexistent",
+    "status": 404,
+    "titles": 1,
+    "h1s": 1,
+    "noindex": true,
+    "canonical": "https://gemigo.io/app/seo-nonexistent"
+  }
+]

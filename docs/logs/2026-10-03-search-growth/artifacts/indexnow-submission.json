@@ -1,0 +1,20 @@
+{
+  "endpoint": "https://api.indexnow.org/indexnow",
+  "status": 202,
+  "urlCount": 12,
+  "urls": [
+    "https://gemigo.io/",
+    "https://gemigo.io/?lang=zh-CN",
+    "https://gemigo.io/explore",
+    "https://gemigo.io/explore?lang=zh-CN",
+    "https://gemigo.io/about",
+    "https://gemigo.io/about?lang=zh-CN",
+    "https://gemigo.io/guides/publish-html",
+    "https://gemigo.io/guides/publish-html?lang=zh-CN",
+    "https://gemigo.io/guides/publish-zip",
+    "https://gemigo.io/guides/publish-zip?lang=zh-CN",
+    "https://gemigo.io/catalog",
+    "https://gemigo.io/catalog?lang=zh-CN"
+  ],
+  "meaning": "Receipt/key validation status only, not proof of indexing or AI citation."
+}
