@@ -27,7 +27,8 @@ export async function indexPending(env: ApiWorkerEnv, requested = 16) {
       .prepare(
         `INSERT INTO explore_rec_features(project_id,revision,model,content,vector,retry_at,updated_at)
       VALUES(?,?,?,? ,NULL,?,?) ON CONFLICT(project_id) DO UPDATE SET retry_at=excluded.retry_at
-      WHERE explore_rec_features.retry_at<? RETURNING project_id`
+      WHERE explore_rec_features.retry_at<? AND (explore_rec_features.vector IS NULL OR
+        explore_rec_features.model<>excluded.model OR explore_rec_features.revision<>excluded.revision) RETURNING project_id`
       )
       .bind(
         project.id,

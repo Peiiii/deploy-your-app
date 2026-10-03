@@ -6,7 +6,12 @@ import { recommendationReport } from '../workers/api/src/explore-recommendation/
 import { projectRepository } from '../workers/api/src/repositories/project.repository';
 import { feedRequest } from '../workers/api/src/explore-recommendation/service';
 import { handleRecommendationOperations } from '../workers/api/src/explore-recommendation/controller';
-import { settings, getBatch } from '../workers/api/src/explore-recommendation/repository';
+import {
+  settings,
+  getBatch,
+  features,
+  invalidateFeatures,
+} from '../workers/api/src/explore-recommendation/repository';
 import {
   budgetedModel,
   packVector,
@@ -102,6 +107,7 @@ try {
   const indexBefore = calls;
   assert.equal((await indexPending(env, 32)).indexed, 32);
   assert.equal(calls, indexBefore + 1);
+  await features(db);
   for (const p of catalog)
     await db
       .prepare(`INSERT OR REPLACE INTO explore_rec_features VALUES(?,?,?,?,?,0,?)`)
@@ -118,6 +124,14 @@ try {
         Date.now()
       )
       .run();
+  const indexedElsewhere = calls;
+  assert.equal(
+    (await indexPending(env, 32)).indexed,
+    0,
+    'stale feature cache cannot duplicate already completed index jobs'
+  );
+  assert.equal(calls, indexedElsewhere);
+  invalidateFeatures();
   const first = await feedRequest(request, env, {
     session: 'test-session',
     action: 'feed',
