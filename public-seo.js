@@ -27,7 +27,6 @@ export const publicProjects = (items, language) =>
       const locale = p.localization?.locales?.[language] || p.localization?.locales?.[code];
       const generated = p.localization?.generatedDescriptions;
       return {
-        path: typeof p.id === 'string' && p.id ? '/app/' + encodeURIComponent(p.id) : null,
         name: String(locale?.name || p.name || 'App'),
         description: String(
           locale?.description ||
@@ -40,7 +39,7 @@ export const publicProjects = (items, language) =>
       };
     });
 export const renderPublicProjects = (projects, language, heading = true) =>
-  `<section class="seo-content">${heading ? `<h2>${language === 'zh-CN' ? '公开作品' : 'Public apps'}</h2>` : ''}${projects.map((p) => `<article><h3><a href="${escape(p.path ? localizedPath(p.path, language) : p.url)}" rel="ugc noopener noreferrer" >${escape(p.name)}</a></h3><p>${escape(p.description)}</p><a href="${escape(p.url)}" target="_blank" rel="ugc noopener noreferrer">${language === 'zh-CN' ? '访问网站' : 'Visit website'}</a>${p.author ? `<a href="${escape(localizedPath(p.author.path, language))}">${escape(p.author.label)}</a>` : ''}</article>`).join('')}<a href="${localizedPath('/catalog', language)}">${language === 'zh-CN' ? '浏览全部公开作品' : 'Browse all public apps'}</a></section>`;
+  `<section class="seo-content">${heading ? `<h2>${language === 'zh-CN' ? '公开作品' : 'Public apps'}</h2>` : ''}${projects.map((p) => `<article><h3><a href="${escape(p.url)}" rel="ugc noopener noreferrer" >${escape(p.name)}</a></h3><p>${escape(p.description)}</p><a href="${escape(p.url)}" target="_blank" rel="ugc noopener noreferrer">${language === 'zh-CN' ? '访问网站' : 'Visit website'}</a>${p.author ? `<a href="${escape(localizedPath(p.author.path, language))}">${escape(p.author.label)}</a>` : ''}</article>`).join('')}<a href="${localizedPath('/catalog', language)}">${language === 'zh-CN' ? '浏览全部公开作品' : 'Browse all public apps'}</a></section>`;
 export const profileSeo = (base, data) => {
   const identity = author(data?.publicAuthor);
   const projects = publicProjects(data?.projects, base.language);
@@ -112,56 +111,18 @@ export const catalogSeo = (url, data) => {
     content: `<main><article class="seo-content"><h1>${escape(title)}</h1><p>${escape(seo.description)}</p></article>${renderPublicProjects(projects, base.language, false)}<nav class="seo-content" aria-label="${base.language === 'zh-CN' ? '目录分页' : 'Catalog pages'}">${navigation}</nav></main>`,
   };
 };
-export const appSeo = (base, app) => {
-  const [project] = publicProjects([{ ...app, isPublic: true, status: 'Live' }], base.language);
-  if (!project || !app?.id)
-    return {
-      seo: { ...base, known: false },
-      status: 404,
-      content:
-        '<main class="seo-content"><h1>App not found</h1><a href="/catalog">GemiGo</a></main>',
-    };
-  const path = '/app/' + encodeURIComponent(app.id);
-  const title = `${project.name} | GemiGo`;
-  const canonical = SITE + localizedPath(path, base.language);
-  const seo = {
-    ...base,
-    path,
-    known: true,
-    indexable: true,
-    title,
-    heading: project.name,
-    description: project.description.slice(0, 300),
-    canonical,
-    structuredData: {
-      '@context': 'https://schema.org',
-      '@type': 'WebPage',
-      url: canonical,
-      name: title,
-      description: project.description,
-    },
-  };
-  return {
-    seo,
-    status: 200,
-    content: `<main><article class="seo-content"><h1>${escape(project.name)}</h1><p>${escape(project.description)}</p><a href="${escape(project.url)}" target="_blank" rel="ugc noopener noreferrer">${base.language === 'zh-CN' ? '访问网站' : 'Visit website'}</a>${project.author ? `<p><a href="${localizedPath(project.author.path, base.language)}">${escape(project.author.label)}</a></p>` : ''}<nav><a href="${localizedPath('/catalog', base.language)}">${base.language === 'zh-CN' ? '更多公开作品' : 'More public apps'}</a></nav></article></main>`,
-  };
-};
 export const loadPublicSeo = async (url, backend, fetcher = fetch) => {
   const base = getSeo(url);
-  const app = /^\/app\/([^/]+)$/.exec(base.path);
   const profile = /^\/u\/([^/]+)$/.exec(base.path);
-  if (!app && !profile && !['/', '/explore', '/catalog'].includes(base.path)) return null;
+  if (!profile && !['/', '/explore', '/catalog'].includes(base.path)) return null;
   if (!backend) throw new Error('Public backend unavailable');
   const endpoint = new URL(
-    app
-      ? '/api/v1/apps/' + encodeURIComponent(decodeURIComponent(app[1]))
-      : profile
-        ? '/api/v1/users/' + encodeURIComponent(decodeURIComponent(profile[1])) + '/profile'
-        : '/api/v1/projects/explore',
+    profile
+      ? '/api/v1/users/' + encodeURIComponent(decodeURIComponent(profile[1])) + '/profile'
+      : '/api/v1/projects/explore',
     backend
   );
-  if (!profile && !app) {
+  if (!profile) {
     endpoint.searchParams.set('pageSize', '12');
     endpoint.searchParams.set(
       'page',
@@ -179,15 +140,14 @@ export const loadPublicSeo = async (url, backend, fetcher = fetch) => {
     headers: { Accept: 'application/json' },
     signal: AbortSignal.timeout(5000),
   });
-  if ((profile || app) && response.status === 404)
+  if (profile && response.status === 404)
     return {
       seo: { ...base, known: false },
       status: 404,
-      content: `<main class="seo-content"><h1>${app ? 'App' : 'Profile'} not found</h1><a href="/catalog">GemiGo</a></main>`,
+      content: `<main class="seo-content"><h1>Profile not found</h1><a href="/catalog">GemiGo</a></main>`,
     };
   if (!response.ok) throw new Error('Public backend unavailable');
   const data = await response.json();
-  if (app) return appSeo(base, data.app);
   if (profile) return profileSeo(base, data);
   if (base.path === '/catalog') return catalogSeo(url, data);
   return {
