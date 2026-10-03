@@ -98,6 +98,7 @@ export function SdkAuthBrokerPage() {
         appId: query.appId,
         scopes: query.scopes,
         codeChallenge: query.pkceChallenge,
+        openerOrigin: query.openerOrigin || undefined,
       });
 
       postToOpener({

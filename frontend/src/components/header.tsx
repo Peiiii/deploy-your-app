@@ -60,7 +60,7 @@ export const Header: React.FC = () => {
 
     return (
         <header className="h-16 shrink-0 border-b border-app-border bg-app-bg/50 backdrop-blur sticky top-0 z-40 flex items-center justify-between px-4 md:px-8">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3"><a className="text-sm text-app-muted" href="https://docs.gemigo.io">开发文档</a><button className="text-sm text-app-muted" onClick={()=>navigate('/wallet')}>点数钱包</button>
                 <IconButton tooltipSide="bottom" label={t('ui.toggleMenu')} size="auto"
                     onClick={presenter.ui.toggleSidebar}
                     className="md:hidden p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 rounded-lg transition-all"

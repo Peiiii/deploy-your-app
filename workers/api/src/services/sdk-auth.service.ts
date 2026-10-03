@@ -1,3 +1,4 @@
+import { verifiedProject } from '../points/identity';
 import { sdkAuthRepository } from '../repositories/sdk-auth.repository';
 import {
   UnauthorizedError,
@@ -121,6 +122,7 @@ class SdkAuthService {
       appId: unknown;
       scopes: unknown;
       codeChallenge: unknown;
+      openerOrigin?: unknown;
     },
   ): Promise<SdkAuthorizeResponse> {
     const sessionId = getSessionIdFromRequest(request);
@@ -132,6 +134,11 @@ class SdkAuthService {
     const appId = requireAppId(input.appId);
     const requestedScopes = parseScopes(input.scopes);
     const codeChallenge = requireCodeChallenge(input.codeChallenge);
+    if (requestedScopes.includes('points:use')) {
+      if (typeof input.openerOrigin !== 'string') throw new ValidationError('openerOrigin required for points');
+      await verifiedProject(db, appId, input.openerOrigin);
+      if (request.headers.get('origin') !== new URL(env.AUTH_REDIRECT_BASE || 'https://gemigo.io').origin) throw new ValidationError('Invalid platform origin');
+    }
 
     // V0: minimal scopes; allow additional strings but keep bounded.
     if (requestedScopes.length === 0) {

@@ -4,6 +4,7 @@ export async function sdkAuthorize(input: {
   appId: string;
   scopes: string[];
   codeChallenge: string;
+  openerOrigin?: string;
 }): Promise<{ code: string; expiresIn: number }> {
   const res = await fetch(`${APP_CONFIG.API_BASE_URL}/sdk/authorize`, {
     method: 'POST',

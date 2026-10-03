@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>知识实验室 · GemiGo</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #eef3f9;
+        color: #192841;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        line-height: 1.6;
+      }
+      main {
+        max-width: 850px;
+        margin: auto;
+        padding: 28px 20px;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+      h1 {
+        font-size: 38px;
+        line-height: 1.2;
+      }
+      section {
+        background: white;
+        padding: 25px;
+        border-radius: 18px;
+        margin: 18px 0;
+        box-shadow: 0 8px 25px #1b39530a;
+      }
+      button,
+      a.action {
+        background: #455ed8;
+        color: white;
+        border: 0;
+        border-radius: 9px;
+        padding: 10px 16px;
+        font-size: 15px;
+        cursor: pointer;
+        display: inline-block;
+        text-decoration: none;
+        margin: 4px;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: wait;
+      }
+      .secondary {
+        background: #edf0fc;
+        color: #34458c;
+      }
+      .muted {
+        color: #64758c;
+        font-size: 14px;
+      }
+      #status {
+        padding: 12px;
+        border-left: 3px solid #455ed8;
+        white-space: pre-wrap;
+      }
+      #answer {
+        font-weight: 600;
+      }
+      .grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      textarea {
+        width: 100%;
+        font: inherit;
+        padding: 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+      }
+      pre {
+        white-space: pre-wrap;
+      }
+      a {
+        color: #455ed8;
+      }
+      @media (max-width: 500px) {
+        h1 {
+          font-size: 29px;
+        }
+        header {
+          align-items: start;
+          flex-direction: column;
+        }
+        section {
+          padding: 18px;
+        }
+      }
+    </style>
+    <script src="https://docs.gemigo.io/sdk/0.3.0/gemigo-app-sdk.umd.js"></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <strong>GemiGo · 知识实验室</strong>
+        <div>
+          <button id="login">登录 / 重新授权</button
+          ><a href="https://gemigo.io/wallet" target="_blank">点数钱包 ↗</a>
+        </div>
+      </header>
+      <h1>好奇心，从一个问题开始。</h1>
+      <p>免费探索科学；需要提示、进阶练习或 AI 解说时，由你选择消费点数。</p>
+      <p id="status" role="status">登录后可领取平台体验点，示例使用正式点数接口。</p>
+      <div id="confirm-link"></div>
+      <section>
+        <span class="muted">免费问题 · 01</span>
+        <h2>彩虹的颜色来自什么？</h2>
+        <div class="grid">
+          <button class="secondary" data-answer="wrong">云中的颜料</button
+          ><button class="secondary" data-answer="right">光的折射与色散</button
+          ><button class="secondary" data-answer="wrong">太阳表面的颜色</button>
+        </div>
+        <p id="answer"></p>
+        <button id="buy-hint">购买提示</button
+        ><button class="secondary" id="use-hint">使用已购提示</button>
+        <p id="hint"></p>
+      </section>
+      <section>
+        <span class="muted">持续解锁</span>
+        <h2>进阶题库</h2>
+        <p>一次解锁，刷新或换设备登录后保留。</p>
+        <button id="unlock">解锁进阶题库</button>
+        <div id="advanced" hidden>
+          <h3>为什么月球总以同一面朝向地球？</h3>
+          <p>月球的自转周期与公转周期相同，称为潮汐锁定。</p>
+          <h3>为什么冬季北半球日照更短？</h3>
+          <p>地球自转轴倾斜，使太阳照射角度和昼长随季节变化。</p>
+        </div>
+      </section>
+      <section>
+        <h2>按期练习</h2>
+        <p>购买 30 天专题练习；在平台确认页可自选自动续费。</p>
+        <button id="member">开通按期练习</button>
+        <div id="member-content" hidden>
+          <p>今日挑战：用自己的话解释“地球自转轴倾斜”与四季的关系。</p>
+          <textarea placeholder="写下你的观察（本地保存）" id="journal"></textarea>
+        </div>
+        <p class="muted" id="expiry"></p>
+      </section>
+      <section>
+        <h2>问一个科学问题</h2>
+        <p>平台受控 AI 解说，结果保存后完成消费。</p>
+        <textarea id="topic" maxlength="160">为什么天空是蓝色的？</textarea
+        ><button id="explain">获取 AI 解说</button
+        ><button class="secondary" id="recover">恢复上次 AI 任务</button>
+        <pre id="ai-result"></pre>
+      </section>
+      <p class="muted">
+        体验点无现金价值。<a href="https://docs.gemigo.io/examples">源码与接入文档</a> ·
+        <a href="https://creative-lab.gemigo.app">去创意实验室使用同一个钱包 →</a>
+      </p>
+    </main>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      let items = [],
+        grants = null;
+      let busy = false;
+      const tell = (text) => ($('status').textContent = text);
+      async function restore() {
+        items = await gemigo.points.items();
+        grants = await gemigo.points.grants();
+        $('advanced').hidden = !grants.durable.some((g) => g.entitlement === 'advanced');
+        const term = grants.terms.find(
+          (g) => g.entitlement === 'member' && g.expires_at > Date.now()
+        );
+        $('member-content').hidden = !term;
+        $('expiry').textContent = term
+          ? '有效期至 ' + new Date(term.expires_at).toLocaleString()
+          : '';
+        const hints = grants.quotas
+          .filter((g) => g.entitlement === 'hint')
+          .reduce((s, g) => s + g.remaining, 0);
+        $('use-hint').textContent = '使用已购提示（' + hints + '）';
+      }
+      async function buy(key, topic) {
+        if (busy) return;
+        busy = true;
+        try {
+          const item = items.find((i) => i.entitlement === key);
+          if (!item) throw new Error('该收费项未启用，请联系作者。');
+          if (key === 'explain' && localStorage.getItem('purchase:explain')) {
+            await recoverAi();
+            throw new Error('已有未结束的 AI 请求，请先恢复原任务，勿以新问题重复购买。');
+          }
+          const storage = 'purchase:' + key;
+          let requestId = localStorage.getItem(storage);
+          if (!requestId) {
+            requestId = crypto.randomUUID();
+            localStorage.setItem(storage, requestId);
+          }
+          const result = await gemigo.points.purchase({ itemId: item.id, requestId, topic });
+          $('confirm-link').replaceChildren();
+          if (result.status === 'pending' && result.confirmationUrl) {
+            const a = document.createElement('a');
+            a.href = result.confirmationUrl;
+            a.target = '_blank';
+            a.textContent = '打开平台确认窗口';
+            $('confirm-link').append(a);
+          }
+          if (
+            result.status === 'granted' ||
+            result.status === 'released' ||
+            result.status === 'refunded'
+          ) {
+            localStorage.removeItem(storage);
+            tell(result.status === 'granted' ? '消费完成，权益已恢复。' : '点数已回补。');
+          } else if (result.status === 'cancelled') {
+            tell('已退出确认。可继续使用免费功能或恢复同一请求。');
+          } else tell('任务状态：' + result.status + '，请查询原任务，勿重复购买。');
+          await restore();
+          if (key === 'explain') await recoverAi(requestId);
+        } catch (error) {
+          tell(error.message);
+        } finally {
+          busy = false;
+        }
+      }
+      async function recoverAi(
+        requestId = localStorage.getItem('purchase:explain') || localStorage.getItem('last-ai')
+      ) {
+        if (!requestId) return;
+        tell('正在查询原 AI 任务…');
+        localStorage.setItem('last-ai', requestId);
+        const receipt = await gemigo.points.receipt({ requestId });
+        if (receipt?.status === 'granted') {
+          $('ai-result').textContent = receipt.result.text;
+          localStorage.removeItem('purchase:explain');
+          tell('AI 结果已从平台恢复。');
+        } else {
+          if (receipt?.status === 'released' || receipt?.status === 'refunded')
+            localStorage.removeItem('purchase:explain');
+          if (!receipt) {
+            localStorage.removeItem('purchase:explain');
+            tell('上次 AI 请求尚未确认，可重新选择问题；原请求没有扣点。');
+            return;
+          }
+          tell('AI 任务状态：' + receipt.status + (receipt.error ? ' · ' + receipt.error : ''));
+        }
+      }
+      $('login').onclick = async () => {
+        try {
+          await gemigo.auth.login({ scopes: ['identity:basic', 'points:use'] });
+          await restore();
+          tell('已登录。打开点数钱包领取体验点，然后选择需要的功能。');
+        } catch (error) {
+          tell(error.message);
+        }
+      };
+      $('buy-hint').onclick = () => buy('hint');
+      $('unlock').onclick = () => buy('advanced');
+      $('member').onclick = () => buy('member');
+      $('explain').onclick = () => buy('explain', $('topic').value);
+      $('recover').onclick = () => recoverAi().catch((e) => tell(e.message));
+      $('use-hint').onclick = async () => {
+        try {
+          await restore();
+          let pending = JSON.parse(localStorage.getItem('pending-hint') || 'null');
+          if (!pending) {
+            const grant = grants.quotas.find((g) => g.entitlement === 'hint' && g.remaining > 0);
+            if (!grant) {
+              tell('先购买提示额度。');
+              return;
+            }
+            pending = { grantId: grant.receipt_id, requestId: crypto.randomUUID() };
+            localStorage.setItem('pending-hint', JSON.stringify(pending));
+          }
+          await gemigo.points.consume(pending);
+          $('hint').textContent = '提示：不同波长的光在水滴中发生不同程度的偏折。';
+          localStorage.removeItem('pending-hint');
+          await restore();
+          tell('提示已核销，本次不再扣钱包点数。');
+        } catch (error) {
+          tell(error.message);
+        }
+      };
+      for (const b of document.querySelectorAll('[data-answer]'))
+        b.onclick = () =>
+          ($('answer').textContent =
+            b.dataset.answer === 'right'
+              ? '回答正确！光进入水滴后发生折射、反射与色散。'
+              : '再想一想：白光包含不同颜色的光。');
+      $('journal').value = localStorage.getItem('journal') || '';
+      $('journal').oninput = () => localStorage.setItem('journal', $('journal').value);
+      if (gemigo.auth.getAccessToken())
+        restore()
+          .then(() => tell('已恢复登录与权益。'))
+          .catch((e) => tell(e.message));
+    </script>
+  </body>
+</html>

@@ -11,6 +11,8 @@ export default defineConfig([
   globalIgnores([
     'dist',
     'server/dist',
+    'developer-docs/dist',
+    'workers/**/dist',
     'packages/**/dist',
     'data',
     'data/builds',

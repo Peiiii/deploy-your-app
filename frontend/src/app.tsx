@@ -1,3 +1,4 @@
+import { PointsConfirmPage } from '@/features/points/points-pages';
 import { usePageSeo } from '@/seo/use-page-seo';
 import { trackPage } from '@/analytics/collector';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -183,6 +184,7 @@ export default function App() {
   const isPrivacyPolicy =
     pathname === '/privacy-policy' || pathname === '/privacy';
   const isSdkAuthBroker = pathname === '/sdk/broker';
+  const isPointsConfirm = pathname === '/points/confirm';
   const isCliLogin = pathname === '/cli/login';
   const isCliLoginSuccess = pathname === '/cli/login/success';
 
@@ -194,14 +196,14 @@ export default function App() {
     return <AcceptableUsePage />;
   }
 
-  if (isSdkAuthBroker) {
+  if (isSdkAuthBroker || isPointsConfirm) {
     return (
       <PresenterProvider>
         <div className="min-h-screen bg-black text-white">
           <AuthModal />
           <ConfirmDialog />
           <Toast />
-          <SdkAuthBrokerPage />
+          {isPointsConfirm ? <PointsConfirmPage /> : <SdkAuthBrokerPage />}
         </div>
       </PresenterProvider>
     );

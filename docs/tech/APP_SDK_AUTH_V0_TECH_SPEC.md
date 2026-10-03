@@ -57,6 +57,7 @@
 
 | Host | 用途 | 归属/实现 | 备注 |
 |---|---|---|---|
+| `docs.gemigo.io` | 开发者文档、固定版本 SDK、Skill 与示例源码 | Worker 静态资源 | 新增点数入口与支付状态以文档站为准 |
 | `gemigo.io` | 平台 Web（含 broker UI） | Pages/静态站点 | broker 建议固定在 `https://gemigo.io/sdk/broker` |
 | `admin.gemigo.io` | 独立产品分析管理站 | `workers/admin` + `admin` 静态构建 | 独立账号及 host-only 会话，不接受主站登录；无自动轮询 |
 | `api.gemigo.io` | 平台 API（含 App SDK Auth） | `workers/api`（Cloudflare Worker） | **规划 canonical API（尚未启用）**：`https://api.gemigo.io/api/v1`（现阶段请用 `https://gemigo.io/api/v1`，见 4.3） |

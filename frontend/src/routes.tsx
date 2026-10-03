@@ -1,3 +1,4 @@
+import { WalletPage } from '@/features/points/points-pages';
 import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { PublicCatalog } from '@/seo/public-catalog';
@@ -23,6 +24,7 @@ const AdminRedirect = () => {
 export const AppRoutes = () => (
     <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/wallet" element={<WalletPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/deploy" element={<NewDeployment />} />
         <Route path="/about" element={<PublicInfo />} />

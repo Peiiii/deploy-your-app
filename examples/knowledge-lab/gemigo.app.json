@@ -1,0 +1,19 @@
+{
+  "$schema": "https://gemigo.io/schema/gemigo.app.schema.json",
+  "sourceDir": ".",
+  "visibility": "public",
+  "category": "education",
+  "tags": [
+    "sdk",
+    "points",
+    "example"
+  ],
+  "defaultLocale": "en",
+  "locales": {
+    "en": {
+      "name": "知识实验室",
+      "description": "免费科学探索，使用 GemiGo 正式 SDK 的提示额度、一次解锁、按期权益与受控 AI。"
+    }
+  },
+  "slug": "knowledge-lab"
+}

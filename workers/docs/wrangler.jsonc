@@ -1,0 +1,12 @@
+{
+  "name": "gemigo-docs",
+  "compatibility_date": "2026-09-18",
+  "account_id": "adb27b39051202962038992eeaf8f6bb",
+  "workers_dev": false,
+  "routes": [{ "pattern": "docs.gemigo.io", "custom_domain": true }],
+  "assets": {
+    "directory": "../../developer-docs/dist",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash",
+  },
+}

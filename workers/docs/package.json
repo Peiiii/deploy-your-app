@@ -1,0 +1,11 @@
+{
+  "name": "@gemigo/docs-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.53.0"
+  }
+}

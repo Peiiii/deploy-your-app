@@ -814,3 +814,10 @@ interface WidgetHandle {
   }
 }
 ```
+
+
+## 统一点数（SDK 0.3.0）
+
+`gemigo.points` 提供 items、purchase、receipt、grants 和 consume；仅当前托管浏览器应用可使用，登录需 points:use。详细合同与恢复示例见 [点数教程](https://docs.gemigo.io/points)。
+
+平台钱包与体验点使用真实后台；真钱充值/作者结算尚未开通，不能把体验点等同真实收入。

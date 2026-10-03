@@ -256,7 +256,7 @@ export const webAuth: AuthAPI = {
       };
 
       const onMessage = (event: MessageEvent) => {
-        if (event.origin !== new URL(platformOrigin).origin) return;
+        if (event.origin !== new URL(platformOrigin).origin || event.source !== popup) return;
         const data = event.data as any;
         if (!data || typeof data !== 'object') return;
         if (data.state !== state) return;

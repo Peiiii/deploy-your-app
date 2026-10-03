@@ -1,3 +1,5 @@
+import { pointsController } from './points/controller';
+import { processPointsScheduled } from './points/service';
 import { scheduledRecommendation } from './explore-recommendation/indexer';
 import { analyticsRepository } from './repositories/analytics.repository';
 import { metadataService } from './services/metadata.service';
@@ -15,6 +17,7 @@ import { buildApiRouter } from './routes';
 async function handleRequest(
   request: Request,
   env: ApiWorkerEnv,
+  ctx: ExecutionContext,
 ): Promise<Response> {
   const url = new URL(request.url);
   const pathname = normalizePath(url.pathname);
@@ -27,6 +30,7 @@ async function handleRequest(
   const router = buildApiRouter(env, url);
 
   try {
+    if (pathname.startsWith('/api/v1/points') || pathname.startsWith('/api/v1/sdk/points')) return await pointsController(request, env, env.PROJECTS_DB, ctx);
     const match = await router.match(pathname, method);
     if (!match) {
       return jsonResponse({ error: 'Not Found' }, 404);
@@ -39,6 +43,7 @@ async function handleRequest(
 
 const worker: ExportedHandler<ApiWorkerEnv> = {
   async scheduled(_event, env) {
+    await processPointsScheduled(env).catch(() => console.warn('Points maintenance failed'));
     if (env.PROJECTS_DB) await deployService.reconcilePending(env, env.PROJECTS_DB);
     if (env.PROJECTS_DB && new Date(_event.scheduledTime).getUTCHours() === 3
       && new Date(_event.scheduledTime).getUTCMinutes() === 0) await analyticsRepository.cleanup(env.PROJECTS_DB);
@@ -53,7 +58,7 @@ const worker: ExportedHandler<ApiWorkerEnv> = {
       const batch = await readTelemetry(request as Request);
       let response = telemetryRequest
         ? new Response(null, { status: request.method === 'POST' && batch ? 204 : 400 })
-        : await handleRequest(request, env);
+        : await handleRequest(request, env, ctx);
       if (batch && env.ANALYTICS_DB) {
         // A telemetry/config failure never fails the underlying business request.
         const settings = await getSettings(env.ANALYTICS_DB).catch(() => null);

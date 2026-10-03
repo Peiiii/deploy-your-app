@@ -1,3 +1,5 @@
+export type { PointsAPI, PointsItem, PointsReceipt, PointsGrants, PointsPurchaseResult } from './points';
+import type { PointsAPI } from './points';
 /**
  * GemiGo SDK Types
  *
@@ -216,6 +218,9 @@ export interface GemigoSDK {
 
   /** Gemigo Cloud (hosted backend) */
   cloud: CloudAPI;
+
+  /** Unified platform points, trusted purchase and app-scoped grants. */
+  points: PointsAPI;
 
   /**
    * Send system notification

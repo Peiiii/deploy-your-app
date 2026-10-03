@@ -8,6 +8,7 @@ class SdkAuthController {
     const body = await readJson(request);
     const result = await sdkAuthService.authorize(request, env, db, {
       appId: body.appId,
+      openerOrigin: body.openerOrigin,
       scopes: body.scopes,
       codeChallenge: body.codeChallenge,
     });

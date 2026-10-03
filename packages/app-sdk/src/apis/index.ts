@@ -1,3 +1,4 @@
+import { webPoints } from '../web/points';
 /**
  * APIs Module
  *
@@ -158,6 +159,7 @@ export const { sdk, childMethods } = createSDK<GemigoSDK, ChildMethods>({
     SDKError,
     auth: webAuth,
     cloud: webCloud,
+    points: webPoints,
     ai: aiAPI,
     clipboard: clipboardAPI,
     dialog: dialogAPI,

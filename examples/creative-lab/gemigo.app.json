@@ -1,0 +1,19 @@
+{
+  "$schema": "https://gemigo.io/schema/gemigo.app.schema.json",
+  "sourceDir": ".",
+  "visibility": "public",
+  "category": "creative",
+  "tags": [
+    "sdk",
+    "points",
+    "example"
+  ],
+  "defaultLocale": "en",
+  "locales": {
+    "en": {
+      "name": "创意实验室",
+      "description": "探索色彩与配色工具，通过 GemiGo 正式 SDK 使用跨应用统一点数和一次解锁。"
+    }
+  },
+  "slug": "creative-lab"
+}
