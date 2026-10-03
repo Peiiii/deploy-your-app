@@ -64,3 +64,9 @@
 - 顺链发现并修正后台搜索报表的Search Console入口：此前硬编码sc-domain:gemigo.io，而当前实际已验证资源是https://gemigo.io/前缀；直接将既有链接指向已验证资源，无新增配置或第二套状态。局部单owner bugfix，直接源码与实际已验证资源锁定原因，skip-reproduction/skip-design（L1惯例链接修正）；验收为目标URL匹配已验证资源、TypeScript与定向lint通过、构建和生产资产包含修正链接。此修正不代表sitemap报告已修复。
 - 本次局部修正的定向ESLint、admin tsc --noEmit、build:admin通过，构建JS验证新资源链接且不含旧资源链接；构建仍有既有大chunk提示。项目无自动diff-only maintainability入口，采用实际diff轻量Review：链接与Google已验证资源一致，权限和后台connected状态不变，无未关闭finding；文档/JSON差异检查通过。
 - 链接修正09ceaac经合并并行内容研究主线后普通推送，8417f21已同步主工作区master，两端0 0、实际远端SHA核对一致。admin版本32e82c85-3c79-4f17-a038-b37d00b04e7c部署成功；线上根页面及index-DD5Izc6P.js均200，编译产物含已验证URL前缀链接、不含旧domain链接，见现有[结构化证据](artifacts/sitemap-official-checklist.json)。未读取Google报告正文或绕过D1日预算；SG01/SG05继续partial。
+
+- 用户询问后台“今日分析查询预算已用完……重试”及“自己的后台信息为何超预算”。确认应用内共享reads日桶百万上限、三类报表保守两阶段预留，成功或二阶段拒绝均未归还未用额度；不是Cloudflare账单/套餐或Google限制。修前真实D1回归在“unused preflight estimate is released”断言失败，完成复现。补充最近设计SG05读取生命周期并完成design Review，通过后修改共享budget owner及三个现有消费者，不抬高额度、不清零历史、不修改登录/采集限流。
+- 修后实际D1：600事件/30日grossReservation161900，记账13211（聚合实际12410）；二阶段拒绝的count预留40100仅记账1301；重复结算、并发预留、未知usage、固定日桶隔离及耗尽不扫描均通过。原注册鉴权、成功发布归因、成长和基础分析回归通过；受影响tsc与定向ESLint通过。当前生产仅诊断单个reads桶，实际读取1行、0写入；2026-10-03桶974608，未篡改历史或在不足预算下反复生成报表。
+- 实现Review(mode=implementation)：项目无自动diff-only maintainability入口，按实际diff检查共享预留owner、闭包一次结算、固定日桶、原子条件扣回、未知失败保留及三调用者覆盖，无未关闭finding；源码类型/定向lint、admin构建及适用真实D1回归通过。100行管理余量不是云套餐定价；生产窗口尚无新成功聚合，SG05保持partial。
+- 0540f19读取结算修正普通推送后合并并行探索推荐主线，7532581已同步主工作区master，两端0 0、实际远端SHA一致；未发布并行实验/API变更。admin部署版本5f448740-7e56-4b39-ac72-b7a08fee40e8，线上根页面和index-DvMDtNpe.js均200且与已测试本地build字节一致，含预算错误重试隐藏条件；未登录acquisition仍401。生产有效会话下新成功响应/截图尚未获得，当前剩余额度不足，Required SG05仍partial，每日09:00自动续办原验收不变。
+- 局部复盘：保守预留必须在已完成且读取量已知的阶段释放余量；不根据未知历史或错误提示清零共享桶。方法由真实D1回归保护，事实维护现有PRODUCT_ANALYTICS owner，无新增上游全局规则或并行状态。

@@ -1,4 +1,4 @@
-import { reserve } from '@gemigo/product-analytics';
+import { reserveReads, readBudgetMessage } from '@gemigo/product-analytics';
 import type { AdminEnv } from './auth';
 import { AdminInputError } from './operations';
 
@@ -133,8 +133,8 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
   const period = growthPeriod(Number(url.searchParams.get('days') || 7), now);
   const db = env.ANALYTICS_DB;
   const bucket = `reads:${day(now)}`;
-  if (!(await reserve(db, bucket, 10000, 1000000)))
-    throw new AdminInputError('今日分析查询预算已用完，请查看缓存或明天重试', 429);
+  const countReservation = await reserveReads(db, bucket, 10000);
+  if (!countReservation) throw new AdminInputError(readBudgetMessage(now), 429);
   const end = day(Date.parse(period.today) + DAY);
   // Count first, as the shared report owner does; reserve for observed rows rather
   // than spending the entire daily allowance on hypothetical collection capacity.
@@ -148,6 +148,7 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
     .bind(Math.max(Date.parse(period.previousFrom), Date.parse(period.rawFrom)), Date.parse(end))
     .all<{ users: number; projects: number; attempts: number; events: number }>();
   const rows = size.results[0];
+  await countReservation.settle(size.meta.rows_read);
   const queryAllowance = Math.max(
     10000,
     rows.events * 4 +
@@ -156,8 +157,8 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
       Math.max(0, size.meta.rows_read - 10000)
   );
   const reservedReads = 10000 + queryAllowance;
-  if (!(await reserve(db, bucket, queryAllowance, 1000000)))
-    throw new AdminInputError('今日分析查询预算已用完，请查看缓存或明天重试', 429);
+  const queryReservation = await reserveReads(db, bucket, queryAllowance);
+  if (!queryReservation) throw new AdminInputError(readBudgetMessage(now), 429);
   const registrationCohort = (from: string, to: string) =>
     db
       .prepare(
@@ -247,6 +248,7 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
       registrationCohort(period.previousFrom, period.from),
     ]),
   ]);
+  await queryReservation.settle(results.reduce((sum, result) => sum + result.meta.rows_read, 0));
   const maps = results
     .slice(0, 4)
     .map((result) => new Map(result.results.map((row) => [String(row.day), row])));
