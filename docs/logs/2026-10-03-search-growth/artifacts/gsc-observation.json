@@ -30,9 +30,11 @@
     "interpretation": "Live fetch success is not sitemap parsing success or page indexing.",
     "resubmission_after_live_test": "success; report still shows could_not_fetch",
     "diagnostic": "sitemap-fetch-diagnostic.json",
-    "root_cause": "unconfirmed"
+    "root_cause": "unconfirmed",
+    "independent_submission": "sitemap-official-checklist.json"
   },
   "performance": "processing; UI asks to return in about one day",
   "indexing": "processing; unavailable",
-  "backend_search_console_api_connected": false
+  "backend_search_console_api_connected": false,
+  "manual_actions": "not obtained"
 }

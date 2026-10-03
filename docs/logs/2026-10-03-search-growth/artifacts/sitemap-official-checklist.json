@@ -1,0 +1,85 @@
+{
+  "observed_at_utc": "2026-10-03T11:54:24.609795+00:00",
+  "official_troubleshooting": "https://support.google.com/webmasters/answer/7451001?hl=en",
+  "window_utc": {
+    "start": "2026-10-02T12:00:00Z",
+    "end": "2026-10-03T11:41:54Z"
+  },
+  "verified_googlebot": {
+    "robots_txt": [
+      {
+        "count": 1,
+        "minute_utc": "2026-10-03T10:30:00Z",
+        "status": 200,
+        "content_type_name": "txt",
+        "crawler": "Googlebot",
+        "verified_bot_category": "Search Engine Crawler"
+      },
+      {
+        "count": 1,
+        "minute_utc": "2026-10-03T02:40:00Z",
+        "status": 200,
+        "content_type_name": "txt",
+        "crawler": "Googlebot",
+        "verified_bot_category": "Search Engine Crawler"
+      }
+    ],
+    "sitemap_xml": [
+      {
+        "count": 1,
+        "minute_utc": "2026-10-03T11:17:00Z",
+        "status": 200,
+        "content_type_name": "xml",
+        "crawler": "Googlebot",
+        "verified_bot_category": "Search Engine Crawler"
+      },
+      {
+        "count": 1,
+        "minute_utc": "2026-10-03T10:35:00Z",
+        "status": 200,
+        "content_type_name": "xml",
+        "crawler": "Googlebot",
+        "verified_bot_category": "Search Engine Crawler"
+      },
+      {
+        "count": 1,
+        "minute_utc": "2026-10-03T11:24:00Z",
+        "status": 200,
+        "content_type_name": "xml",
+        "crawler": "Googlebot",
+        "verified_bot_category": "Search Engine Crawler"
+      },
+      {
+        "count": 1,
+        "minute_utc": "2026-10-03T10:46:00Z",
+        "status": 200,
+        "content_type_name": "xml",
+        "crawler": "Googlebot",
+        "verified_bot_category": "Search Engine Crawler"
+      }
+    ]
+  },
+  "coverage": "Adaptive sampled records, not all requests. Query string field is unavailable to this credential, so specific submissions cannot be matched to these requests.",
+  "independent_submission": {
+    "url": "https://gemigo.io/sitemap.xml?fetch-test=20261003",
+    "content_sha256": "7f517f36eecb3606bde81f60a67dcb9b4eada5149e1d8c2b48f447703de57378",
+    "public_probe_status": 200,
+    "public_probe_content_type": "application/xml",
+    "public_probe_urls": 10,
+    "gsc_submission_receipt": "已成功提交站点地图",
+    "gsc_report_status": "could_not_fetch",
+    "discovered_pages": 0,
+    "interpretation": "A single independent submission of the same XML failed too; this does not isolate the root cause to the old submission record."
+  },
+  "manual_actions_report": "not obtained; report body unreadable during investigation; final browser tool reports Mac locked and requires manual unlock",
+  "security_issues_report": "not obtained",
+  "root_cause": "unconfirmed",
+  "scheduled_continuation": {
+    "automation_id": "gemigo-ai",
+    "kind": "heartbeat",
+    "status": "ACTIVE",
+    "time": "daily 09:00 Asia/Shanghai",
+    "notification": "meaningful change, failure change, completion, or required user action only"
+  },
+  "browser_blocker": "Mac locked; user asked to unlock manually; authorization remains valid"
+}

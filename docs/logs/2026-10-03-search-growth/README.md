@@ -54,3 +54,8 @@
 
 - 用户追问“为什么我看到的都是无法抓取”后，明确纠正状态：GSC报告失败仍未关闭，实时测试成功只证明检索。复查四种UA均200、无跳转、application/xml/3277字节、10个url，XML解析有效。Google实际测试页面的[原文](artifacts/gsc-live-xml-source.jpg)是sitemap XML；详情AX明确内容类型application/xml、HTTP响应200 OK。Cloudflare限定host/path与已验证Search Engine Crawler，识别Googlebot在10:35和10:46 UTC各一次200/XML，区别于本任务模拟UA探测；[结构化诊断](artifacts/sitemap-fetch-diagnostic.json)。适应性抽样记录不证明每次请求，成功HTTP也不证明Google已解析。安全事件本轮窗口未查到记录，但现有Token无权读取具体安全设置（403），未据此关闭或修改防护。报告未给更细原因，根因保持unconfirmed，不认定必然是延迟、低抓取需求或防火墙；没有盲改源码、继续重复提交或触发D1预算。SG01保持partial。
 - 本批仅增补诊断证据和现有状态owner，JSON口径、文档链接、diff-only检查通过；人工Review确认模拟UA与已验证爬虫分开，报告与实时测试分开，无未关闭文档finding。适用范围不含源码/部署，未重跑已通过且未受影响的源码测试。精确提交并普通推送后同步主工作区，保留当前并行WIP；整体Required仍SG01/SG05未闭合。
+
+- 用户再次要求继续处理常规sitemap操作。按[Google官方排错](https://support.google.com/webmasters/answer/7451001?hl=en)核对资源前缀与精确URL、格式、robots和真实抓取；扩展Cloudflare窗口至2026-10-02 12:00—10-03 11:41:54 UTC，已验证Googlebot robots两次200/文本、sitemap四次200/XML（含19:17、19:24 Asia/Shanghai新请求）。历史普通Python UA两次sitemap403，其中09:01 UTC安全事件source=bic，但不是Google请求，未关闭防护或认定为根因。Wrangler既有OAuth过期按owner刷新后重试，未新授权；query字段无权读取，删除该维度后取得记录，不匹配具体提交。
+- 单次零代码对照：sitemap.xml?fetch-test=20261003返回同一有效XML，Google回执“已成功提交站点地图”，列表两条均无法抓取/0发现；不继续变换地址或重复提交。人工处置报告已尝试打开/刷新，正文未成功读取，安全报告未读取；Chrome控制与截图持续受并行切页/空白干扰，误采到的非本任务图片已丢弃，未作为证据保留。没有源码变更，未将配置已查证写成报告修复。
+- 按用户此前长期关注与当前继续托管的要求，创建当前聊天每日09:00 Asia/Shanghai的heartbeat自动化gemigo-ai，ACTIVE；自动化工具创建成功并view核对，调度配置归Codex，不复制脚本/系统cron。续办SG01/SG05和长期SEO/GEO观察；无实质变化安静，有完成/失败性质变化/需用户动作才通知。记录见[结构化官方步骤排查](artifacts/sitemap-official-checklist.json)。本轮仅补证与安排续办，Required范围未缩减，报告失败根因仍未确认，整体继续进行中。
+- 收尾真实浏览器操作明确返回Mac已锁屏且无法自动解锁；已请求用户手动解锁，保护既有登录与授权，不尝试自动解锁、改密或绕过安全。人工/安全报告仍未取得，不能把未读到正文称为Google没有处罚，也不将电脑锁屏解释为sitemap报告失败根因。文档/JSON口径、链接及diff review通过，无源码更改或新代码finding。
