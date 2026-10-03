@@ -1,9 +1,16 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { api } from './api';
 import { deploymentChannels, deploymentChannelLabel } from './deployment-channels';
+import ProjectInventory from './project-inventory';
+import {
+  categoryLabels,
+  languageLabel,
+  projectLanguages,
+  type Inventory,
+} from './project-inventory-data';
 
 type Row = Record<string, string | number | null>;
-type List = { items: Row[]; total: number; page: number; limit: number };
+type List = { items: Row[]; total: number; page: number; limit: number; inventory?: Inventory };
 type Overview = {
   days: number;
   from: string;
@@ -77,6 +84,9 @@ export default function Operations({ section }: { section: string }) {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [channel, setChannel] = useState('');
+  const [category, setCategory] = useState('');
+  const [language, setLanguage] = useState('');
+  const [visibility, setVisibility] = useState('');
   const [query, setQuery] = useState('page=1');
   const [revision, setRevision] = useState(0);
   const [data, setData] = useState<List | Overview | null>(null);
@@ -121,7 +131,17 @@ export default function Operations({ section }: { section: string }) {
     setBusy(true);
     setError('');
     setPending(null);
-    setQuery(new URLSearchParams({ q: search, status, channel, page: '1' }).toString());
+    setQuery(
+      new URLSearchParams({
+        q: search,
+        status,
+        channel,
+        category,
+        language,
+        visibility,
+        page: '1',
+      }).toString()
+    );
     setRevision((value) => value + 1);
   };
   const manage = async () => {
@@ -334,6 +354,7 @@ export default function Operations({ section }: { section: string }) {
           </p>
         </>
       )}
+      {section === 'projects' && list?.inventory && <ProjectInventory data={list.inventory} />}
       {section !== 'dashboard' && (
         <article className="panel">
           {section !== 'audit' && (
@@ -391,9 +412,75 @@ export default function Operations({ section }: { section: string }) {
                   </select>
                 </label>
               )}
+              {section === 'projects' && (
+                <>
+                  <label>
+                    分类
+                    <select
+                      aria-label="分类"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                    >
+                      <option value="">全部分类</option>
+                      {Object.entries(categoryLabels).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    应用语言
+                    <select
+                      aria-label="应用语言"
+                      value={language}
+                      onChange={(e) => setLanguage(e.target.value)}
+                    >
+                      <option value="">全部语言</option>
+                      {list?.inventory?.languages.map(({ name }) => (
+                        <option key={name} value={name}>
+                          {languageLabel(name)}
+                        </option>
+                      ))}
+                      <option value="und">未确认</option>
+                    </select>
+                  </label>
+                  <label>
+                    公开设置
+                    <select
+                      aria-label="公开设置"
+                      value={visibility}
+                      onChange={(e) => setVisibility(e.target.value)}
+                    >
+                      <option value="">全部设置</option>
+                      <option value="public">公开</option>
+                      <option value="private">非公开</option>
+                      <option value="unrecorded">未记录</option>
+                    </select>
+                  </label>
+                </>
+              )}
               <button className="primary" disabled={busy}>
                 搜索
               </button>
+              {section === 'projects' && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => {
+                    setSearch('');
+                    setStatus('');
+                    setChannel('');
+                    setCategory('');
+                    setLanguage('');
+                    setVisibility('');
+                    setQuery('page=1');
+                    refresh();
+                  }}
+                >
+                  清空筛选
+                </button>
+              )}
             </form>
           )}
           {pending && (
@@ -431,6 +518,7 @@ export default function Operations({ section }: { section: string }) {
                         : section === 'projects'
                           ? [
                               '应用',
+                              '分类 / 界面语言',
                               '所属用户',
                               '状态',
                               '首次 / 最近部署渠道',
@@ -478,6 +566,15 @@ export default function Operations({ section }: { section: string }) {
                               <small className="cell-sub">{row.slug || row.id}</small>
                             </td>
                             <td>
+                              {categoryLabels[String(row.category)] ||
+                                row.category ||
+                                '其他 / 未分类'}
+                              <small className="cell-sub">
+                                {projectLanguages(row.languages).map(languageLabel).join('、') ||
+                                  '语言未确认'}
+                              </small>
+                            </td>
+                            <td>
                               {row.owner_name || row.owner_email || '未关联用户'}
                               <small className="cell-sub">{row.owner_email}</small>
                             </td>
@@ -488,7 +585,13 @@ export default function Operations({ section }: { section: string }) {
                                 最近：{deploymentChannelLabel(row.latest_channel)}
                               </small>
                             </td>
-                            <td>{(row.is_public ?? 1) ? '公开' : '非公开'}</td>
+                            <td>
+                              {row.is_public === 1
+                                ? '公开'
+                                : row.is_public === 0
+                                  ? '非公开'
+                                  : '未记录'}
+                            </td>
                             <td className="nowrap">{date(row.last_deployed)}</td>
                             <td className="table-actions">
                               {safeUrl(row.url) && (
