@@ -2,7 +2,7 @@
 export const SMART_FAVICON_RUNTIME = String.raw`(() => {
   'use strict';
   const platform = 'link[data-gemigo-favicon]';
-  const deadline = Date.now() + 10000;
+  let deadline = 0;
   const seen = new WeakSet();
   const invalid = new Set();
   let observer, timer, running = false, dirty = false, stopped = false, rootChecked = false, rootOriginal = false;
@@ -124,7 +124,7 @@ export const SMART_FAVICON_RUNTIME = String.raw`(() => {
   const originalRoot = async () => {
     if (rootChecked) return rootOriginal; rootChecked = true;
     const url = new URL('/favicon.ico', location.origin).href;
-    const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 1500);
+    const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), Math.min(1500, Math.max(1, deadline - Date.now())));
     try {
       const response = await fetch(url, { signal: controller.signal });
       rootOriginal = response.ok && !response.headers.has('x-gemigo-favicon') && !/text\/html/.test(response.headers.get('content-type') || '');
@@ -153,7 +153,7 @@ export const SMART_FAVICON_RUNTIME = String.raw`(() => {
       seen.add(manifest);
       const url = new URL(manifest.href, document.baseURI);
       if (url.origin !== location.origin) return false;
-      const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 1500);
+      const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), Math.min(1500, Math.max(1, deadline - Date.now())));
       try {
         const response = await fetch(url, { signal: controller.signal });
         if (!response.ok) { if (response.body) await response.body.cancel(); return false; }
@@ -223,6 +223,7 @@ export const SMART_FAVICON_RUNTIME = String.raw`(() => {
   };
   const imageLoaded = event => { if (event.target instanceof HTMLImageElement) schedule(); };
   const start = () => {
+    deadline = Date.now() + 10000;
     observer = new MutationObserver(schedule);
     document.addEventListener('load', imageLoaded, true);
     observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src','class','href','rel','style'] });
@@ -271,6 +272,6 @@ export const addSmartFavicon = (rewriter: HTMLRewriter, response: Response, orig
       });
     } })
     .onDocument({ end(end) {
-      if (!restricted) end.append(`<script defer src="${origin}${SMART_FAVICON_PATH}" data-gemigo-favicon-runtime></script>`, { html: true });
+      if (!restricted) end.append(`<script async src="${origin}${SMART_FAVICON_PATH}" data-gemigo-favicon-runtime></script>`, { html: true });
     } });
 };

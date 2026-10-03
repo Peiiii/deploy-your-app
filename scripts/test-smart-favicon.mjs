@@ -17,12 +17,15 @@ const mf = new Miniflare({ modules: true, script: built.outputFiles[0].text,
   compatibilityDate: '2026-09-18', r2Buckets: ['ASSETS'],
   bindings: { APPS_ROOT_DOMAIN: 'gemigo.test', ANALYTICS_ENABLED: 'false' } });
 const profile = mkdtempSync(path.join(tmpdir(), 'gemigo-smart-favicon-test-'));
-let context, externalBytes;
+let context, externalBytes, delayedRuntimeSent = false;
 const server = createServer(async (request, outgoing) => {
   try {
     if (request.headers.host.startsWith('images.')) {
       if (request.url === '/slow-logo') await new Promise(resolve => setTimeout(resolve, 4200));
       outgoing.writeHead(200, { 'content-type': 'application/octet-stream' }); outgoing.end(externalBytes); return;
+    }
+    if (request.headers.host.startsWith('async-runtime.') && request.url === '/__gemigo/favicon-runtime.v1.js') {
+      await new Promise(resolve => setTimeout(resolve, 3500)); delayedRuntimeSent = true;
     }
     const response = await mf.dispatchFetch('http://' + request.headers.host + request.url, {
       method: request.method, headers: request.headers,
@@ -57,6 +60,7 @@ const cases = [
   ['large-manifest', html('<img alt="logo" width="64" height="64" src="/logo.svg">').replace('</head>', '<link rel="manifest" href="/manifest.json"></head>'), 'logo-image'],
   ['slow-image', html('<img width="64" height="64" alt="logo" src="' + origin('images') + '/slow-logo">'), 'logo-image'],
   ['adjacent-brand', html('<nav><div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2"><path d="M12 19h8 M4 17l6-6-6-6"/></svg><span>Test App v2.5.0</span></div><div><svg width="12" height="12" viewBox="0 0 24 24"><path d="M0 0h24v24H0z"/></svg>SYSTEM NORMAL</div></nav>'), 'logo-svg'],
+  ['async-runtime', html('<h1>App loaded</h1>'), 'name'],
 ];
 try {
   const bucket = await mf.getR2Bucket('ASSETS');
@@ -106,6 +110,7 @@ try {
     const page = await context.newPage();
     page.on('pageerror', error => browserErrors.push({ slug, message: error.message }));
     await page.goto(origin(slug) + '/', { waitUntil: 'domcontentloaded' });
+    if (slug === 'async-runtime') assert.equal(delayedRuntimeSent, false, 'the app reaches DOMContentLoaded before the delayed icon script response');
     await page.waitForFunction(mode => document.documentElement.dataset.gemigoFavicon === mode, expected, { timeout: 10000 });
     if (slug === 'svg') {
       const pixel = await page.evaluate(async () => {

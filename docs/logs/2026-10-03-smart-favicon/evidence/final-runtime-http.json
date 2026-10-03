@@ -1,13 +1,20 @@
 {
+  "version": "606b4d3e-bc97-4c09-9a52-7c325b99dd9d",
   "url": "https://app-129.gemigo.app/__gemigo/favicon-runtime.v1.js",
   "status": 200,
-  "bytes": 13587,
-  "etag": "\"e3a8d8e896338c766e6d3f8b45a2bf191dc4f6943f2564b51a1b94582809def8\"",
-  "boundedManifest": true,
-  "adjacentBrand": true,
-  "slowImageListener": true,
+  "bytes": 13695,
+  "etag": "W/\"c0acbe49f1a3305ec9dfdf15b42bb7e5f0ebebe272edffd44250812fcc8e8a5a\"",
+  "deadlineStartsAtScan": true,
   "conditionalStatus": 304,
   "conditionalBytes": 0,
   "headStatus": 200,
-  "headBytes": 0
+  "headBytes": 0,
+  "asyncHTML": true,
+  "htmlStatus": 200,
+  "htmlCache": "MISS",
+  "fallbackStatus": 200,
+  "fallbackType": "image/svg+xml; charset=utf-8",
+  "fallbackBytes": 277,
+  "fallbackHeadStatus": 200,
+  "fallbackHeadBytes": 0
 }

@@ -14,7 +14,7 @@
 
 选择 gateway 的 HTMLRewriter 加同源轻量浏览器脚本。候选是构建期提取、截图作业提取、页面运行期提取；运行期能直接取得 React DOM、CSS 颜色和真实图片解码结果，也不新增浏览器作业/数据库/客户产物状态。代价是每次页面访问会运行一个有界识别器，以及严格 CSP 页面不能执行补充脚本。
 
-- gateway 保持 R2 客户对象原样；为缺 favicon 的 head 补同源名称 SVG，并在无 CSP 的 HTML 尾部加入 defer 脚本。脚本端点明确返回 JavaScript；缺失 `/favicon.ico` 明确返回 SVG，绝不进入 SPA HTML fallback。真实根 favicon 优先当前发布，不借用上一发布文件。
+- gateway 保持 R2 客户对象原样；为缺 favicon 的 head 补同源名称 SVG，并在无 CSP 的 HTML 尾部加入 async 脚本，不等待它下载即可触发应用 DOMContentLoaded；识别 10 秒预算从页面就绪后的扫描启动计算。脚本端点明确返回 JavaScript；缺失 `/favicon.ico` 明确返回 SVG，绝不进入 SPA HTML fallback。真实根 favicon 优先当前发布，不借用上一发布文件。
 - 有 CSP 响应头或 meta 时不注入脚本或改写 head，保持策略；未声明图标的页面仍可通过浏览器原有 `/favicon.ico` 请求取得同源默认图标。严格 CSP 下的智能提取作为已知兼容边界披露，不放宽客户策略。
 - 运行期先验证作者声明的 icon、根 favicon，再检查非标准 favicon、touch icon、manifest 与有明确 logo/brand 语义的图片、SVG、单字/emoji 标识。实际解码确认可用，保留作者有效 icon；不把 favicon 标签缺失解释为 logo 缺失。
 - 识别结合语义、导航/页头位置、尺寸及宽高比；排除操作按钮、装饰、大幅横版文字 logo、追踪像素。最多检查有限候选，MutationObserver 只等待 10 秒内的动态标识，选定后停止。没有可靠候选使用名称图标。

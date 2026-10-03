@@ -1,5 +1,5 @@
 {
-  "version": "504f2835-60d1-484e-8bde-47ad0c4c891d",
+  "version": "606b4d3e-bc97-4c09-9a52-7c325b99dd9d",
   "environment": "Chromium headless with existing configured network proxy; no interception",
   "results": [
     {
@@ -10,9 +10,10 @@
       "iconSource": "data:image/png",
       "width": 64,
       "height": 64,
+      "asyncScript": true,
       "dominantColor": [
         "231,76,60",
-        1249
+        1059
       ],
       "errors": []
     },
@@ -24,6 +25,7 @@
       "iconSource": "https://img.remit.ee/i/rQcvwh1Y3dFD",
       "width": 1080,
       "height": 1080,
+      "asyncScript": true,
       "errors": []
     },
     {
@@ -34,9 +36,10 @@
       "iconSource": "data:image/png",
       "width": 64,
       "height": 64,
+      "asyncScript": true,
       "dominantColor": [
         "0,255,65",
-        305
+        251
       ],
       "errors": []
     },
@@ -48,16 +51,11 @@
       "iconSource": "data:image/png",
       "width": 64,
       "height": 64,
-      "errors": []
-    },
-    {
-      "slug": "geeglo",
-      "status": 200,
-      "title": "Google",
-      "mode": "name",
-      "iconSource": "data:image/png",
-      "width": 64,
-      "height": 64,
+      "asyncScript": true,
+      "dominantColor": [
+        "99,102,241",
+        3102
+      ],
       "errors": []
     },
     {
@@ -68,6 +66,26 @@
       "iconSource": "data:image/png",
       "width": 64,
       "height": 64,
+      "asyncScript": true,
+      "dominantColor": [
+        "99,102,241",
+        3509
+      ],
+      "errors": []
+    },
+    {
+      "slug": "geeglo",
+      "status": 200,
+      "title": "Google",
+      "mode": "name",
+      "iconSource": "data:image/png",
+      "width": 64,
+      "height": 64,
+      "asyncScript": true,
+      "dominantColor": [
+        "99,102,241",
+        3509
+      ],
       "errors": []
     },
     {
@@ -78,6 +96,11 @@
       "iconSource": "data:image/png",
       "width": 64,
       "height": 64,
+      "asyncScript": true,
+      "dominantColor": [
+        "99,102,241",
+        3509
+      ],
       "errors": []
     }
   ]
