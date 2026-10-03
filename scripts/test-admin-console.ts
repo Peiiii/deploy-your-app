@@ -165,6 +165,7 @@ try {
     'growth',
     'users',
     'projects',
+    'projects/app-test',
     'deployments',
     'audit',
     'feedback',
@@ -649,6 +650,117 @@ try {
     title: 'Feedback UI fixture',
     content: 'Please investigate this private bug.\nSecond line.',
     category: 'bug',
+  });
+  // Operational journeys: recorded first/repeat publishers, current issues and scoped application trace.
+  const ago = (days: number) => new Date(Date.now() - days * 86400000).toISOString();
+  for (const [id, status, deleted] of [
+    ['ops-stalled', 'Building', 0],
+    ['ops-no-history', 'Building', 0],
+    ['ops-recovered', 'Live', 0],
+    ['ops-recent', 'Building', 0],
+    ['ops-deleted', 'Failed', 1],
+    ...Array.from({ length: 7 }, (_, i) => [`ops-failed-${i}`, 'Failed', 0]),
+  ] as [string, string, number][]) {
+    await db
+      .prepare(
+        `INSERT INTO projects (id,name,slug,repo_url,status,is_deleted,owner_id,created_at,updated_at,last_deployed,is_public)
+      VALUES (?,?,?,'',?,?,'user-test',?,?,?,0)`
+      )
+      .bind(id, id, id, status, deleted, ago(3), ago(2), ago(2))
+      .run();
+  }
+  for (const [id, project, owner, status, started] of [
+    ['ops-past', 'ops-recovered', 'publisher-repeat', 'succeeded', ago(40)],
+    ['ops-now', 'ops-recovered', 'publisher-repeat', 'succeeded', now],
+    ['ops-again', 'ops-recovered', 'publisher-repeat', 'succeeded', now],
+    ['ops-first', 'ops-recovered', 'publisher-first', 'succeeded', now],
+    ['ops-first-earlier', 'ops-recovered', 'publisher-first', 'succeeded', ago(10)],
+    ['ops-fail-only', 'ops-failed-0', 'publisher-failed', 'failed', now],
+    ['ops-stalled-attempt', 'ops-stalled', 'user-test', 'accepted', ago(2)],
+    ['ops-recent-attempt', 'ops-recent', 'user-test', 'started', now],
+    ['ops-recovery-old', 'ops-recovered', 'user-test', 'failed', ago(2)],
+    ['ops-recovery-new', 'ops-recovered', 'user-test', 'succeeded', now],
+  ]) {
+    await db
+      .prepare(
+        `INSERT INTO deployment_attempts (id,project_id,owner_id,source_type,client_channel,status,started_at,error_code)
+      VALUES (?,?,?,'html','cli',?,?,'ops_fixture')`
+      )
+      .bind(id, project, owner, status, started)
+      .run();
+  }
+  const ops = await (await request('overview', activeCookie)).json();
+  assert.deepEqual(ops.publishing, { publishers: 3, firstPublishers: 1, repeatPublishers: 2 });
+  const monthOps = await (await request('overview?days=30', activeCookie)).json();
+  assert.deepEqual(monthOps.publishing, { publishers: 3, firstPublishers: 2, repeatPublishers: 1 });
+  assert.equal(ops.attention.total, 10); // 7 current failures + inventory-json + 2 stale projects
+  assert.equal(ops.attention.items.length, 6);
+  assert.equal(ops.attention.items[0].reason, 'stalled');
+  assert.ok(
+    !ops.attention.items.some((row: { id: string }) =>
+      ['ops-recovered', 'ops-deleted', 'ops-recent', 'app-test'].includes(row.id)
+    )
+  );
+  const opsPage2 = await (await request('overview?actionPage=2', activeCookie)).json();
+  assert.equal(opsPage2.attention.items.length, 4);
+  assert.equal(opsPage2.feedback.page, 1, 'independent queue pagination');
+  assert.equal((await request('overview?actionPage=0', activeCookie)).status, 400);
+  assert.equal((await request('overview?feedbackPage=1.5', activeCookie)).status, 400);
+  await db
+    .prepare(
+      `INSERT INTO project_daily_stats (slug,date,views,human_views,bot_views,unique_visitors)
+    VALUES ('ops-recovered',?,12,12,3,2)`
+    )
+    .bind(now.slice(0, 10))
+    .run();
+  const traceResponse = await request('projects/ops-recovered', activeCookie);
+  assert.match(traceResponse.headers.get('cache-control')!, /no-store/);
+  const trace = await traceResponse.json();
+  assert.equal(trace.item.id, 'ops-recovered');
+  assert.equal(trace.item.latest_channel, 'cli');
+  assert.equal(
+    trace.deployments.items[0].id,
+    'ops-recovery-new',
+    'latest same-time attempt follows rowid, not UUID ordering'
+  );
+  assert.equal(trace.traffic.daily.length, 7);
+  assert.equal(trace.traffic.daily[6].humanViews, 12);
+  assert.equal(trace.traffic.daily[6].dailyVisitors, 2);
+  assert.equal(trace.traffic.daily[0].humanViews, 0);
+  assert.ok(trace.feedback.items.some((row: { id: string }) => row.id === 'feedback-ui'));
+  assert.ok(!JSON.stringify(trace).includes('NEVER_EXPOSE'));
+  assert.ok(!('html_content' in trace.item) && !('password_hash' in trace.item));
+  const tracePage2 = await (await request('projects/app-test?page=2&days=30', activeCookie)).json();
+  assert.equal(tracePage2.deployments.total, 42);
+  assert.equal(tracePage2.deployments.items.length, 20);
+  assert.equal(tracePage2.traffic.daily.length, 30);
+  assert.equal(tracePage2.traffic.hasRecords, false);
+  for (const route of ['projects/missing', 'projects/ops-deleted'])
+    assert.equal((await request(route, activeCookie)).status, 404);
+  for (const route of ['projects/app-test?days=1', 'projects/app-test?page=-1'])
+    assert.equal((await request(route, activeCookie)).status, 400);
+  const authorFeedback = await (await request('feedback?owner=user-test', activeCookie)).json();
+  assert.ok(authorFeedback.items.every((row: { user_id: string }) => row.user_id === 'user-test'));
+  assert.equal((await (await request('feedback?owner=nonexistent', activeCookie)).json()).total, 0);
+  assert.equal((await request(`feedback?owner=${'x'.repeat(201)}`, activeCookie)).status, 400);
+  await request('feedback/manage', activeCookie, {
+    id: 'feedback-ui',
+    action: 'status',
+    expected: 'open',
+    status: 'planned',
+  });
+  const after = await (await request('overview', activeCookie)).json();
+  assert.equal(
+    after.feedback.total,
+    ops.feedback.total - 1,
+    'pending feedback uses canonical status, no parallel task state'
+  );
+  assert.ok(!after.feedback.items.some((row: { id: string }) => row.id === 'feedback-ui'));
+  await request('feedback/manage', activeCookie, {
+    id: 'feedback-ui',
+    action: 'status',
+    expected: 'planned',
+    status: 'open',
   });
   console.log(
     'PASS assembled Worker + real D1: independent auth, bootstrap, dashboard, search, pagination, field isolation, origin, CAS mutations + audit, session revocation, password validation/persistence/rotation/race, retained analytics; canonical feedback filters/pagination/status CAS/idempotent concurrent reply/team projection/privacy/soft deletion.'

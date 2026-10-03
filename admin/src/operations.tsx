@@ -1,5 +1,8 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { api } from './api';
+import OperatingSummary, { type Overview } from './operating-summary';
+import ProjectDetail from './project-detail';
+import type { Navigate } from './navigation';
 import { deploymentChannels, deploymentChannelLabel } from './deployment-channels';
 import ProjectInventory from './project-inventory';
 import {
@@ -11,17 +14,6 @@ import {
 
 type Row = Record<string, string | number | null>;
 type List = { items: Row[]; total: number; page: number; limit: number; inventory?: Inventory };
-type Overview = {
-  days: number;
-  from: string;
-  generatedAt: number;
-  summary: Row;
-  deployments: Row;
-  daily: Row[];
-  sources: Row[];
-  errors: Row[];
-  traffic: Row;
-};
 const count = (value: unknown) => Number(value || 0).toLocaleString('zh-CN');
 const date = (value: unknown) =>
   value ? new Date(String(value)).toLocaleString('zh-CN', { hour12: false }) : '—';
@@ -79,8 +71,18 @@ const Pagination = ({
     </button>
   </div>
 );
-export default function Operations({ section }: { section: string }) {
+export default function Operations({
+  section,
+  projectId,
+  navigate,
+}: {
+  section: string;
+  projectId: string;
+  navigate: Navigate;
+}) {
   const [days, setDays] = useState(7);
+  const [actionPage, setActionPage] = useState(1);
+  const [feedbackPage, setFeedbackPage] = useState(1);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [channel, setChannel] = useState('');
@@ -94,13 +96,13 @@ export default function Operations({ section }: { section: string }) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [pending, setPending] = useState<Row | null>(null);
-  const trend = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (trend.current) trend.current.scrollLeft = trend.current.scrollWidth;
-  }, [data]);
   useEffect(() => {
     let active = true;
-    api<List | Overview>(section === 'dashboard' ? `overview?days=${days}` : `${section}?${query}`)
+    api<List | Overview>(
+      section === 'dashboard'
+        ? `overview?days=${days}&actionPage=${actionPage}&feedbackPage=${feedbackPage}`
+        : `${section}?${query}`
+    )
       .then((value) => {
         if (active) setData(value);
       })
@@ -113,7 +115,7 @@ export default function Operations({ section }: { section: string }) {
     return () => {
       active = false;
     };
-  }, [section, days, query, revision]);
+  }, [section, days, query, revision, actionPage, feedbackPage]);
   const refresh = () => {
     setBusy(true);
     setError('');
@@ -175,7 +177,19 @@ export default function Operations({ section }: { section: string }) {
   };
   const report = section === 'dashboard' ? (data as Overview | null) : null;
   const list = section !== 'dashboard' ? (data as List | null) : null;
-  const max = Math.max(1, ...(report?.daily.map((row) => Number(row.total)) || []));
+  if (section === 'projects' && projectId)
+    return (
+      <ProjectDetail
+        key={projectId}
+        id={projectId}
+        updated={refresh}
+        navigate={navigate}
+        back={() => {
+          navigate('projects');
+          refresh();
+        }}
+      />
+    );
   return (
     <>
       <div className="operations-toolbar">
@@ -224,135 +238,17 @@ export default function Operations({ section }: { section: string }) {
         </article>
       )}
       {report && (
-        <>
-          <div className="metrics business-metrics">
-            {[
-              [
-                '注册用户',
-                report.summary.users,
-                `近 ${report.days} 天新增 ${count(report.summary.newUsers)}`,
-              ],
-              [
-                '有效应用',
-                report.summary.projects,
-                `${count(report.summary.live)} 已上线 · ${count(report.summary.public)} 公开展示`,
-              ],
-              [
-                '部署尝试',
-                report.deployments.total,
-                `${count(report.deployments.pending)} 处理中 · ${count(report.deployments.failed)} 失败/拒绝`,
-              ],
-              [
-                '真人应用访问',
-                report.traffic.humanViews,
-                `已识别机器人访问 ${count(report.traffic.botViews)}`,
-              ],
-            ].map(([title, value, hint]) => (
-              <article className="metric" key={String(title)}>
-                <span>{title}</span>
-                <strong>{count(value)}</strong>
-                <small>{hint}</small>
-              </article>
-            ))}
-          </div>
-          <div className="two-columns dashboard-columns">
-            <article className="panel">
-              <div className="spread">
-                <h3>部署趋势</h3>
-                <span className="legend">紫色：全部 · 绿色：成功</span>
-              </div>
-              {Number(report.deployments.total) > 0 ? (
-                <div
-                  ref={trend}
-                  className="trend business-trend"
-                  role="img"
-                  aria-label="每日部署趋势"
-                >
-                  {report.daily.map((row) => (
-                    <div className="bar-column" key={String(row.day)}>
-                      <span>{count(row.total)}</span>
-                      <div
-                        className="bar"
-                        title={`${row.day}：${row.total} 次，成功 ${row.succeeded}`}
-                        style={{ height: `${Math.max(3, (Number(row.total) / max) * 160)}px` }}
-                      >
-                        <i
-                          style={{
-                            height: `${Number(row.total) ? (Number(row.succeeded) / Number(row.total)) * 100 : 0}%`,
-                          }}
-                        />
-                      </div>
-                      <small>{String(row.day).slice(5)}</small>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="empty">
-                  <p>这段时间没有部署记录</p>
-                </div>
-              )}
-              <p className="footnote">
-                {report.days === 30 && '左右滑动图表查看全部日期。'}
-                开始日期在所选范围内的部署尝试；未结束的尝试单独计为处理中。
-              </p>
-            </article>
-            <article className="panel success-panel">
-              <span className="eyebrow">DEPLOYMENT HEALTH</span>
-              <h3>部署成功率</h3>
-              <strong className="success-value">
-                {Number(report.deployments.succeeded) + Number(report.deployments.failed) > 0
-                  ? `${((Number(report.deployments.succeeded) / (Number(report.deployments.succeeded) + Number(report.deployments.failed))) * 100).toFixed(1)}%`
-                  : '—'}
-              </strong>
-              <p className="muted">成功 / 已结束尝试（含拒绝），不包含处理中。</p>
-              <div className="result-grid">
-                <div>
-                  <strong>{count(report.deployments.succeeded)}</strong>
-                  <span>成功</span>
-                </div>
-                <div>
-                  <strong>{count(report.deployments.failed)}</strong>
-                  <span>失败 / 拒绝</span>
-                </div>
-                <div>
-                  <strong>{count(report.summary.building)}</strong>
-                  <span>当前部署中应用</span>
-                </div>
-              </div>
-            </article>
-            <article className="panel">
-              <h3>部署来源</h3>
-              {report.sources.length ? (
-                report.sources.map((row) => (
-                  <div className="row" key={String(row.name)}>
-                    <span>{row.name || '未记录来源'}</span>
-                    <strong>{count(row.total)} 次</strong>
-                  </div>
-                ))
-              ) : (
-                <p className="muted">暂无来源数据</p>
-              )}
-            </article>
-            <article className="panel">
-              <h3>需要关注的失败原因</h3>
-              {report.errors.length ? (
-                report.errors.map((row) => (
-                  <div className="row" key={String(row.name)}>
-                    <code>{row.name === 'unknown' ? '未记录错误代码' : row.name}</code>
-                    <strong>{count(row.total)} 次</strong>
-                  </div>
-                ))
-              ) : (
-                <p className="muted">当前范围内没有失败记录</p>
-              )}
-            </article>
-          </div>
-          <p className="caption">
-            范围：{report.from} 至今日（UTC） · 更新于{' '}
-            {new Date(report.generatedAt).toLocaleString('zh-CN')}
-            。用户和应用为当前累计；部署和访问为所选范围。真人识别为现有流量规则的分类结果。
-          </p>
-        </>
+        <OperatingSummary
+          report={report}
+          navigate={navigate}
+          busy={busy}
+          changePage={(queue, page) => {
+            setBusy(true);
+            setError('');
+            if (queue === 'attention') setActionPage(page);
+            else setFeedbackPage(page);
+          }}
+        />
       )}
       {section === 'projects' && list?.inventory && <ProjectInventory data={list.inventory} />}
       {section !== 'dashboard' && (
@@ -594,6 +490,9 @@ export default function Operations({ section }: { section: string }) {
                             </td>
                             <td className="nowrap">{date(row.last_deployed)}</td>
                             <td className="table-actions">
+                              <button onClick={() => navigate('projects', String(row.id))}>
+                                详情
+                              </button>
                               {safeUrl(row.url) && (
                                 <a
                                   className="text-button"

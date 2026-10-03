@@ -1,3 +1,4 @@
+import { projectDetail } from './project-detail';
 import {
   cleanupAnalytics,
   dayKey,
@@ -132,6 +133,14 @@ const handle = async (
         env.ANALYTICS_DB,
         url,
         decodeURIComponent(url.pathname.slice('/api/feedback/'.length))
+      )
+    );
+  if (url.pathname.startsWith('/api/projects/') && request.method === 'GET')
+    return json(
+      await projectDetail(
+        env.ANALYTICS_DB,
+        decodeURIComponent(url.pathname.slice('/api/projects/'.length)),
+        url
       )
     );
   const kind = url.pathname.slice('/api/'.length);

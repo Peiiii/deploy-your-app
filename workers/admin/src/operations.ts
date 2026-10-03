@@ -16,9 +16,9 @@ export class AdminInputError extends Error {
   }
 }
 const active = '(p.is_deleted=0 OR p.is_deleted IS NULL)';
-const channelSql = (field: string) =>
+export const channelSql = (field: string) =>
   `CASE WHEN ${field} IN ('web','cli','desktop','extension','api') THEN ${field} ELSE 'unknown' END`;
-const projectChannel = (order: 'ASC' | 'DESC') =>
+export const projectChannel = (order: 'ASC' | 'DESC') =>
   `(SELECT ${channelSql('a.client_channel')} FROM deployment_attempts a WHERE a.project_id=p.id ORDER BY a.started_at ${order},a.rowid ${order} LIMIT 1)`;
 const audit = (env: AdminEnv, action: string, target: string, detail: string, condition = '') =>
   env.ANALYTICS_DB.prepare(`INSERT INTO admin_audit SELECT ?,?,?,?,?,? ${condition}`).bind(
@@ -34,6 +34,22 @@ export const overview = async (db: D1Database, url: URL) => {
   const days = Number(url.searchParams.get('days') || 7);
   if (![7, 30].includes(days)) throw new AdminInputError('请选择近 7 天或 30 天');
   const from = new Date(Date.now() - (days - 1) * 86400000).toISOString().slice(0, 10);
+  const actionPage = Number(url.searchParams.get('actionPage') || 1);
+  const feedbackPage = Number(url.searchParams.get('feedbackPage') || 1);
+  if (
+    !Number.isInteger(actionPage) ||
+    actionPage < 1 ||
+    actionPage > 10000 ||
+    !Number.isInteger(feedbackPage) ||
+    feedbackPage < 1 ||
+    feedbackPage > 10000
+  )
+    throw new AdminInputError('待关注分页参数无效');
+  const stale = new Date(Date.now() - 86400000).toISOString();
+  const latest = `(SELECT a.rowid FROM deployment_attempts a WHERE a.project_id=p.id ORDER BY a.started_at DESC,a.rowid DESC LIMIT 1)`;
+  const actionSource = `projects p LEFT JOIN deployment_attempts a ON a.rowid=${latest}`;
+  const stalled = `(p.status='Building' AND ((a.status IN ('started','accepted') AND a.started_at<?) OR (a.id IS NULL AND COALESCE(p.updated_at,p.last_deployed,p.created_at)<?)))`;
+  const needsAttention = `${active} AND (p.status='Failed' OR ${stalled})`;
   const results = await db.batch<Record<string, unknown>>([
     db
       .prepare(
@@ -76,6 +92,37 @@ export const overview = async (db: D1Database, url: URL) => {
         'SELECT SUM(human_views) AS humanViews,SUM(bot_views) AS botViews FROM project_daily_stats WHERE date>=?'
       )
       .bind(from),
+    db
+      .prepare(
+        `WITH first_success AS (
+      SELECT owner_id,MIN(started_at) AS first_at FROM deployment_attempts
+      WHERE status='succeeded' AND owner_id IS NOT NULL AND TRIM(owner_id)!='' GROUP BY owner_id
+    ), publishers AS (
+      SELECT DISTINCT owner_id FROM deployment_attempts WHERE status='succeeded' AND started_at>=?
+        AND owner_id IS NOT NULL AND TRIM(owner_id)!=''
+    ) SELECT COUNT(*) AS publishers,COALESCE(SUM(f.first_at>=?),0) AS firstPublishers,
+      COALESCE(SUM(f.first_at<?),0) AS repeatPublishers FROM publishers p JOIN first_success f ON f.owner_id=p.owner_id`
+      )
+      .bind(from, from, from),
+    db
+      .prepare(`SELECT COUNT(*) AS total FROM ${actionSource} WHERE ${needsAttention}`)
+      .bind(stale, stale),
+    db
+      .prepare(
+        `SELECT p.id,p.name,p.status,a.error_code,a.started_at,
+      CASE WHEN ${stalled} THEN 'stalled' ELSE 'failed' END AS reason
+      FROM ${actionSource} WHERE ${needsAttention}
+      ORDER BY CASE WHEN p.status='Building' THEN 0 ELSE 1 END,COALESCE(a.started_at,p.created_at),p.id LIMIT 6 OFFSET ?`
+      )
+      .bind(stale, stale, stale, stale, (actionPage - 1) * 6),
+    db.prepare(
+      "SELECT COUNT(*) AS total FROM community_feedback_posts WHERE deleted_at IS NULL AND status='open'"
+    ),
+    db
+      .prepare(
+        "SELECT id,title,created_at FROM community_feedback_posts WHERE deleted_at IS NULL AND status='open' ORDER BY created_at,id LIMIT 6 OFFSET ?"
+      )
+      .bind((feedbackPage - 1) * 6),
   ]);
   const perDay = new Map(results[2].results.map((row) => [String(row.day), row]));
   const daily = Array.from({ length: days }, (_, index) => {
@@ -92,6 +139,19 @@ export const overview = async (db: D1Database, url: URL) => {
     sources: results[3].results,
     errors: results[4].results,
     traffic: results[5].results[0],
+    publishing: results[6].results[0],
+    attention: {
+      items: results[8].results,
+      total: Number(results[7].results[0].total),
+      page: actionPage,
+      limit: 6,
+    },
+    feedback: {
+      items: results[10].results,
+      total: Number(results[9].results[0].total),
+      page: feedbackPage,
+      limit: 6,
+    },
   };
 };
 

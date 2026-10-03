@@ -107,3 +107,14 @@ CLI 生产交付完成：功能提交 c87f4da；admin Worker `6270fc65-43a0-42b5
 UI复核发现280px分布区需要滚动才看得到第六类Games和未确认语言，修正为360px并重新构建/发布；真实线上断言当前六条分类和六条语言全部显示，无裁切，390px布局保持。只扩大现有区块可见高度，未拓展模块或数据范围；实现Review该finding已关闭，旧SQL/交互证据未受影响。最终布局截图 `/tmp/gemigo-inventory-production-desktop.png` 和 mobile.png，聚合证据 `/tmp/gemigo-inventory-production-verified.json`；不含用户身份的聚合截图。
 
 两次独立版本绑定15分钟QA session逐一删除并401复验，未修改密码或客户资源，无增长报表请求/预算重置。复盘：原PRODUCT_ANALYTICS事实条目更新库存与筛选口径；统计owner与过滤共用表达式、JSON坏数据与别名冲突由实际D1回归保护，无全局规则增量。retrospective_state=completed，retrospective_decision=更新原事实owner且验证有效。ADM-11 passed；scope5最小完整结果满足，收尾精确提交所有本任务文件并普通推送、fetch核对两端及实际远程master。
+
+
+## 2026-10-03 整体运营优化（scope 6）
+
+原始最新输入：“OK, 那你就整体设计一个方案，然后优化一下吧。”前置讨论已授权经营判断、待办处理与应用追溯的收敛；用户特别要求避免无限扩展。采用[专题方案](../../designs/2026-10-03-admin-operations.design.md)，Design Review无findings。现有旧后台和增长/CLI/库存继续保留，本轮默认生产完成。当前密码保持；其它任务未提交文件按起始status隔离。项目无planned-path preflight，目标路径核对在admin/src与workers/admin/src现有域内，详情单组件与单投影各有实际消费者，无目录/跨package迁移。
+
+实现与AI验证：收敛原经营渲染到operating-summary，应用详情为单UI/单D1投影，root hash是唯一页面选择owner，列表查询留在Operations；原管理/CAS/反馈写入复用。`pnpm test:admin`通过真实Worker+D1新增7/30首次/再次、最新rowid、恢复应用不列异常、无历史超时、删除排除、独立队列分页、详情7/30日流量零填充、部署20条分页、作者精确筛选和pending反馈canonical变化；原增长/CLI/账号恢复回归保持。admin构建、admin Worker tsc、定向eslint、diff检查通过。
+
+真实Chrome本地完整界面：登录→两个待关注队列独立翻页→异常详情/无历史→返回；应用搜索→详情42条历史翻到第3页2条→公开性确认取消/确认写入→返回保留搜索；实际日访问7/30切换→hash刷新→作者反馈/解除筛选→首页feedback-ui讨论→planned→首页pending减1；折叠菜单部署/账号安全与404。桌面1440×1050/手机390×844根不溢出、无JS错误，已查看截图。手机Grid默认min-content曾撑宽，改显式minmax(0,1fr)，导航flex收缩造成折叠标题挤压也修复；复验通过。Playwright harness的按钮含图标可访问名需正则后缀、page.setViewportSize与wait响应注册先于操作，属于当次工具纠偏，无新全局规则。UI脚本在/tmp/gemigo-admin-operations-ui.cjs，截图/tmp/gemigo-admin-ops-home-{desktop,mobile}.png。没有把预制fixture当作生产证据，生产验收仍待完成。
+
+mode=implementation Review（本轮功能diff及相邻合同）：no findings。检查数据owner、列白名单/鉴权/no-store/CAS与审计、异步取消、删除/旧数据/每日UV、队列计数分页同谓词及旧能力导航对账。项目无diff-only维护检查，按findings-first与主观职责复核；详情与首页组件各有真实消费者，不引入新状态表/路由框架/无消费者抽象。先修复手机溢出与详情切换清除旧数据（key id）、公开性成功同步列表；反馈提示按selected绑定，作者切换清空筛选，之后重验。acceptance-ready：ADM-12/13本地功能满足，最终生产交付仍待。

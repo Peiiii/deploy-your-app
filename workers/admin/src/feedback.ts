@@ -37,15 +37,21 @@ export const listFeedback = async (db: D1Database, url: URL) => {
   const page = pageOf(url);
   const q = (url.searchParams.get('q') || '').trim();
   const status = url.searchParams.get('status') || '';
+  const owner = url.searchParams.get('owner') || '';
   const category = url.searchParams.get('category') || '';
   if (
     q.length > 100 ||
+    owner.length > 200 ||
     (status && !statuses.includes(status)) ||
     (category && !categories.includes(category))
   )
     throw new AdminInputError('反馈筛选参数无效');
   let where = 'p.deleted_at IS NULL';
   const values: (string | number)[] = [];
+  if (owner) {
+    where += ' AND p.user_id=?';
+    values.push(owner);
+  }
   if (q) {
     where +=
       ' AND (p.title LIKE ? OR p.content LIKE ? OR u.email LIKE ? OR u.display_name LIKE ? OR u.handle LIKE ? OR p.id=?)';

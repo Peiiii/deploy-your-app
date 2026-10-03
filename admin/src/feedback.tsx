@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { api } from './api';
+import type { Navigate } from './navigation';
 
 type Post = {
   id: string;
@@ -47,14 +48,22 @@ const categories: Record<string, string> = {
 const time = (value: string) => new Date(value).toLocaleString('zh-CN', { hour12: false });
 const author = (post: Post) => post.display_name || post.handle || post.email || post.user_id;
 
-export default function Feedback() {
+export default function Feedback({
+  selectedId,
+  owner,
+  navigate,
+}: {
+  selectedId: string;
+  owner: string;
+  navigate: Navigate;
+}) {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [category, setCategory] = useState('');
-  const [query, setQuery] = useState('page=1');
+  const [query, setQuery] = useState(() => new URLSearchParams({ page: '1', owner }).toString());
   const [revision, setRevision] = useState(0);
   const [list, setList] = useState<List | null>(null);
-  const [selected, setSelected] = useState('');
+  const selected = selectedId;
   const [commentPage, setCommentPage] = useState(1);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [nextStatus, setNextStatus] = useState('');
@@ -65,6 +74,23 @@ export default function Feedback() {
   const [writing, setWriting] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [noticeFor, setNoticeFor] = useState(selected);
+  useEffect(() => {
+    setDetail(null);
+    setCommentPage(1);
+    setDraft('');
+    setReplyId(crypto.randomUUID());
+    setConfirmDelete(false);
+    setError('');
+    setLoading(true);
+  }, [selected]);
+  useEffect(() => {
+    setSearch('');
+    setStatus('');
+    setCategory('');
+    setQuery(new URLSearchParams({ page: '1', owner }).toString());
+    setLoading(true);
+  }, [owner]);
   useEffect(() => {
     let active = true;
     const route = selected
@@ -94,7 +120,7 @@ export default function Feedback() {
     setRevision((n) => n + 1);
   };
   const open = (id: string) => {
-    setSelected(id);
+    navigate('feedback', id, owner);
     setDetail(null);
     setCommentPage(1);
     setDraft('');
@@ -109,7 +135,7 @@ export default function Feedback() {
     setLoading(true);
     setError('');
     setNotice('');
-    setQuery(new URLSearchParams({ q: search, status, category, page: '1' }).toString());
+    setQuery(new URLSearchParams({ q: search, status, category, page: '1', owner }).toString());
     setRevision((n) => n + 1);
   };
   const page = (number: number) => {
@@ -125,6 +151,7 @@ export default function Feedback() {
   const manage = async (action: 'status' | 'reply' | 'delete') => {
     if (!detail || writing) return;
     setWriting(true);
+    setNoticeFor(action === 'delete' ? '' : selected);
     setError('');
     setNotice('');
     try {
@@ -195,7 +222,7 @@ export default function Feedback() {
           </button>
         </div>
       )}
-      {notice && (
+      {notice && noticeFor === selected && (
         <div className="notice" role="status">
           {notice}
         </div>
@@ -204,6 +231,12 @@ export default function Feedback() {
         <p className="muted" role="status">
           正在加载反馈…
         </p>
+      )}
+      {!selected && owner && (
+        <div className="notice">
+          正在查看指定创作者的反馈{' '}
+          <button onClick={() => navigate('feedback')}>查看全部反馈</button>
+        </div>
       )}
       {!selected && (
         <>

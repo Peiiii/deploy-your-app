@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { EVENTS, type queryAnalytics, type getBudget } from '@gemigo/product-analytics';
 import './style.css';
 import { api } from './api';
@@ -6,6 +6,7 @@ import Operations from './operations';
 import AccountSecurity from './account-security';
 import Feedback from './feedback';
 import Growth from './growth';
+import { destination, type Navigate } from './navigation';
 
 type Report = Awaited<ReturnType<typeof queryAnalytics>> & { cached: boolean };
 type Budget = Awaited<ReturnType<typeof getBudget>>;
@@ -88,7 +89,19 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [section, setSection] = useState('dashboard');
+  const [route, setRoute] = useState(destination);
+  const section = route.section;
+  const navigate: Navigate = (next, id = '', owner = '') => {
+    const hash = `${next}/${encodeURIComponent(id)}/${owner ? new URLSearchParams({ owner }) : ''}`;
+    window.location.hash = hash;
+    setRoute(destination());
+  };
+  const setSection = (next: string) => navigate(next);
+  useEffect(() => {
+    const change = () => setRoute(destination());
+    window.addEventListener('hashchange', change);
+    return () => window.removeEventListener('hashchange', change);
+  }, []);
   const [from, setFrom] = useState(dateAgo(6));
   const [to, setTo] = useState(today());
   const [device, setDevice] = useState('all');
@@ -260,10 +273,10 @@ export default function App() {
   const nav = [
     ['dashboard', '◫', '经营总览'],
     ['growth', '↗', '增长大盘'],
-    ['users', '♙', '用户管理'],
     ['projects', '▦', '应用管理'],
-    ['deployments', '↗', '部署记录'],
     ['feedback', '☷', '反馈管理'],
+    ['users', '♙', '用户管理'],
+    ['deployments', '↗', '部署记录'],
     ['overview', '◈', '使用概览'],
     ['features', '◈', '功能使用'],
     ['funnels', '⇢', '转化与路径'],
@@ -272,6 +285,22 @@ export default function App() {
     ['security', '◇', '账号安全'],
     ['audit', '≡', '操作记录'],
   ];
+  const navButton = (key: string, icon: string, label: string) => (
+    <button
+      key={key}
+      className={section === key ? 'active' : ''}
+      onClick={() => {
+        setSection(key);
+        setError('');
+        setNotice('');
+        if (['overview', 'features', 'funnels', 'events', 'settings'].includes(key) && !report)
+          void run(load);
+      }}
+    >
+      <span>{icon}</span>
+      {label}
+    </button>
+  );
   return (
     <div className="shell">
       <aside>
@@ -279,32 +308,17 @@ export default function App() {
           <b>G</b> GemiGo <small>ADMIN</small>
         </a>
         <nav>
-          {nav.map(([key, icon, label], index) => (
-            <Fragment key={key}>
-              {[0, 6, 10].includes(index) && (
-                <span className="nav-label section-group">
-                  {index === 0 ? '运营管理' : index === 6 ? '产品分析' : '系统设置'}
-                </span>
-              )}
-              <button
-                key={key}
-                className={section === key ? 'active' : ''}
-                onClick={() => {
-                  setSection(key);
-                  setError('');
-                  setNotice('');
-                  if (
-                    ['overview', 'features', 'funnels', 'events', 'settings'].includes(key) &&
-                    !report
-                  )
-                    void run(load);
-                }}
-              >
-                <span>{icon}</span>
-                {label}
-              </button>
-            </Fragment>
-          ))}
+          <span className="nav-label section-group">日常运营</span>
+          {nav.slice(0, 5).map(([key, icon, label]) => navButton(key, icon, label))}
+          <details
+            className="nav-details"
+            open={nav.slice(5, 11).some(([key]) => key === section) || undefined}
+          >
+            <summary>诊断与分析</summary>
+            {nav.slice(5, 11).map(([key, icon, label]) => navButton(key, icon, label))}
+          </details>
+          <span className="nav-label section-group">系统</span>
+          {nav.slice(11).map(([key, icon, label]) => navButton(key, icon, label))}
         </nav>
         <div className="aside-bottom">
           <span className="status-dot" /> 独立管理空间<p>按需查询 · 无自动轮询</p>
@@ -427,9 +441,11 @@ export default function App() {
             </p>
           )}
           {['dashboard', 'users', 'projects', 'deployments', 'audit'].includes(section) && (
-            <Operations key={section} section={section} />
+            <Operations key={section} section={section} projectId={route.id} navigate={navigate} />
           )}
-          {section === 'feedback' && <Feedback />}
+          {section === 'feedback' && (
+            <Feedback selectedId={route.id} owner={route.owner} navigate={navigate} />
+          )}
           {section === 'growth' && <Growth />}
           {section === 'security' && (
             <AccountSecurity

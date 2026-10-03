@@ -2,8 +2,8 @@
 
 - contract-id: admin-console-2026-10-02
 - parent-goal: 独立后台管理网站、大盘与实际业务管理、初始管理员账号及网页改密；追加私密反馈管理、日度增长运营大盘、CLI渠道使用与整合应用存量统计。
-- scope-revision: 5；原始要求、修订与授权见 [设计](../../designs/2026-10-02-admin-console.design.md)、[交付记录](../../logs/2026-10-02-admin-console/README.md) 与项目 AGENTS.md。
-- flow: standard；delivery-mode: major；retrospective_state: completed。
+- scope-revision: 6；原始要求、修订与授权见 [设计](../../designs/2026-10-02-admin-console.design.md)、[交付记录](../../logs/2026-10-02-admin-console/README.md) 与项目 AGENTS.md。
+- flow: standard；delivery-mode: major；retrospective_state: pending。
 
 | ID | Required | 合同 | Status | 当前证据 |
 | --- | --- | --- | --- | --- |
@@ -19,7 +19,10 @@
 | ADM-10 | true | CLI统一含Skill，7/30使用量/占比/用户/成功率与日曲线，应用首次/最近渠道及部署渠道筛选 | passed | 实际Worker+D1跨日去重/边界/分页；生产7/30与canonical渠道一致、CSV11列、应用与部署CLI筛选、桌面/手机及QA清理通过；c87f4da / Worker 6270fc65 |
 | ADM-11 | true | 应用管理整合类别/实际UI语言/公开性存量统计与列表筛选，缺失明确、不无限扩展模块 | passed | Worker+D1真实库存/缺失/多语去重/组合筛选/空态；生产752聚合对账、桌面手机完整6类/语言及筛选、QA清理通过；0cdc93f / Worker21987f53 |
 
-当前阶段：应用库存追加范围验证/Review/生产Delivery与复盘完成，进入整体完成核对；open-required: 无；其余未变化证据继续有效。最终收尾须在本记录提交推送后重新 fetch，并核对本地 master、origin/master 与远程实际 SHA 一致。本文件状态以实际工具交付证据为准，不以写文档代替推送。
+| ADM-12 | true | 经营首页突出真实发布创作者与待关注应用/反馈，明确历史/时间口径，问题可直达处理入口 | pending | [整体方案](../../designs/2026-10-03-admin-operations.design.md)，方案Review通过；Worker+D1/真实UI通过，待生产交付 |
+| ADM-13 | true | 应用详情完整追溯、作者反馈精确定位、返回保留上下文、导航整合且旧能力保持，生产生效 | pending | 同方案三条黄金链路；Worker/UI/手机/原能力通过，待生产验收 |
+
+当前阶段：整体运营优化Validation/implementation Review通过，进入Delivery；open-required: ADM-12、ADM-13；其余未变化证据继续有效。最终收尾须在本记录提交推送后重新 fetch，并核对本地 master、origin/master 与远程实际 SHA 一致。本文件状态以实际工具交付证据为准，不以写文档代替推送。
 
 入口：https://admin.gemigo.io。初始账号 admin 和临时密码已在聊天中直接交付，并实际网页登录验证；用户随后通过账号安全自行改密，旧临时密码失效。当前密码保留，不再自动重置；本机初始凭据文件不会因网页改密自动更新。
 
