@@ -111,8 +111,10 @@ const { DeploymentExecutor } = load('features/deployment/managers/deployment-exe
 }, { FileReader: class {
   readAsDataURL(file) { this.result = `data:application/zip;base64,${file.base64}`; this.onload(); }
 } });
+const authStore = load('features/auth/stores/auth.store.ts', { zustand: frontendRequire('zustand') }).useAuthStore;
 const generationDeadlines = new Map(); let nextGenerationTimer = 0;
 const { DeploymentManager } = load('features/deployment/managers/deployment.manager.ts', {
+  '@/features/auth/stores/auth.store': { useAuthStore: authStore },
   '@/types': types,
   '../stores/deployment.store': { useDeploymentStore: store },
   '@/utils/project': projectUtils,
@@ -423,4 +425,89 @@ console.log(
   requests[6].resolve({slug:'after-exit',domain:'gemigo.app'}); await leaving;
   assert.equal(getPublicationSlug(store.getState()),'travel-journal'); assert.equal(generationDeadlines.size,0);
   console.log('PASS: actual generation manager: success/name preservation, failure, 15-second timeout, late result, manual edit, rename, source change and exit cancellation.');
+}
+
+{
+  authStore.setState({ user: { id: 'recent-owner' }, isLoading: false });
+  manager.initializeNewPublication(SourceType.HTML);
+  actions.setHtmlContent('<title>My existing work</title><h1>Changed</h1>');
+  actions.setProjectName('New draft name');
+  actions.setPublicationSlug('draft-address');
+  actions.setNewProjectId('already-saved-draft');
+  const oldApp = { id: 'original-app', ownerId: 'recent-owner', name: 'Original', slug: 'original-address', url: 'https://original-address.gemigo.app/' };
+  assert.equal(manager.prepareExistingUpdate({ ...oldApp, ownerId: 'someone-else' }), false);
+  actions.setDeploymentStatus(DeploymentStatus.BUILDING);
+  assert.equal(manager.prepareExistingUpdate(oldApp), false, 'Cannot navigate away from an active publication');
+  actions.setDeploymentStatus(DeploymentStatus.IDLE);
+  assert.equal(manager.prepareExistingUpdate(oldApp), true);
+  assert.equal(store.getState().newProjectId, null, 'Update does not retain the new-project identity');
+  const input = manager.getPendingUpdateContent(oldApp.id);
+  assert.equal(input.htmlContent, '<title>My existing work</title><h1>Changed</h1>');
+  assert.equal(Object.hasOwn(input, 'projectName'), false);
+  assert.equal(Object.hasOwn(input, 'publicationSlug'), false, 'Import cannot replace the old app address');
+  assert.equal(manager.getPendingUpdateContent('another-app'), null);
+  manager.resumeNewPublication(SourceType.ZIP);
+  assert.equal(store.getState().sourceType, SourceType.HTML);
+  assert.equal(store.getState().newProjectId, 'already-saved-draft');
+  assert.equal(store.getState().publicationSlug, 'draft-address');
+  assert.equal(store.getState().projectName, 'New draft name');
+  manager.initializeNewPublication(SourceType.ZIP);
+  const zipFile = { name: 'my-app.zip' };
+  actions.setZipFile(zipFile);
+  assert.equal(manager.prepareExistingUpdate(oldApp), true);
+  assert.equal(manager.getPendingUpdateContent(oldApp.id).zipFile, zipFile);
+  manager.resumeNewPublication(SourceType.HTML);
+  assert.equal(store.getState().zipFile, zipFile, 'File survives same-session navigation');
+  manager.initializeNewPublication(SourceType.GITHUB);
+  actions.setRepoUrl('https://github.com/owner/repo');
+  manager.prepareExistingUpdate(oldApp);
+  assert.equal(manager.getPendingUpdateContent(oldApp.id).repoUrl, 'https://github.com/owner/repo');
+  authStore.setState({ user: null });
+  authStore.setState({ user: { id: 'recent-owner' } });
+  assert.equal(manager.getPendingUpdateContent(oldApp.id), null, 'Logout permanently discards the navigation snapshot');
+  manager.resumeNewPublication(SourceType.HTML);
+  assert.equal(store.getState().htmlContent, '');
+
+  const actualProjectStore = load('stores/project.store.ts', { zustand: frontendRequire('zustand') }).useProjectStore;
+  const { ProjectManager } = load('managers/project.manager.ts', {
+    '../stores/project.store': { useProjectStore: actualProjectStore },
+    '@/features/auth/stores/auth.store': { useAuthStore: authStore },
+    '@/analytics/collector': { track() {} },
+    '../types': types,
+  });
+  const pending = [];
+  const privateProvider = { getProjects(page, pageSize) {
+    assert.equal(page, 1); assert.equal(pageSize, 6);
+    return new Promise((resolve, reject) => pending.push({ resolve, reject }));
+  } };
+  const privateManager = new ProjectManager(privateProvider);
+  actualProjectStore.setState({ projects: [{ id: 'dashboard-item' }, { ...oldApp, url: undefined, status: 'Building' }], pagination: { page: 2, pageSize: 50, total: 101, hasMore: true } });
+  const first = privateManager.loadRecentProjects('recent-owner');
+  const second = privateManager.loadRecentProjects('recent-owner');
+  pending[1].resolve({ items: [oldApp, { ...oldApp, id: 'foreign', ownerId: 'other' }] });
+  await second;
+  pending[0].resolve({ items: [{ ...oldApp, id: 'stale' }] });
+  await first;
+  assert.equal(actualProjectStore.getState().recentProjects[0].id, 'original-app');
+  assert.equal(actualProjectStore.getState().recentProjects.length, 1);
+  assert.equal(actualProjectStore.getState().projects[0].id, 'dashboard-item');
+  assert.equal(actualProjectStore.getState().projects[1].url, oldApp.url, 'Recent metadata refreshes already cached entities without replacing list membership');
+  assert.equal(actualProjectStore.getState().pagination.page, 2, 'Recent query does not corrupt dashboard pagination');
+  const late = privateManager.loadRecentProjects('recent-owner');
+  authStore.setState({ user: { id: 'other' } });
+  const newAccount = privateManager.loadRecentProjects('other');
+  pending[3].resolve({ items: [] });
+  await newAccount;
+  pending[2].resolve({ items: [oldApp] });
+  await late;
+  assert.equal(actualProjectStore.getState().recentProjects.length, 0);
+  assert.equal(actualProjectStore.getState().recentOwnerId, 'other');
+  const failure = privateManager.loadRecentProjects('other');
+  pending[4].reject(new Error('Offline'));
+  await failure;
+  assert.equal(actualProjectStore.getState().recentError, true);
+  assert.equal(actualProjectStore.getState().recentLoading, false);
+  await privateManager.loadRecentProjects(null);
+  assert.equal(actualProjectStore.getState().recentOwnerId, null);
+  console.log('PASS: existing app update navigation, HTML/ZIP/GitHub transfer, draft identity recovery, busy/ownership guards, logout reset and bounded recent requests with stale-response/account isolation.');
 }

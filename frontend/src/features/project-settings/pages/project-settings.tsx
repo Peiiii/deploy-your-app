@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ProjectSettingsCard } from '@/features/project-settings/components/project-settings-card';
@@ -13,7 +13,10 @@ export const ProjectSettings: React.FC = () => {
   const presenter = usePresenter();
   const projects = useProjectStore((s) => s.projects);
   const user = useAuthStore((s) => s.user);
+  const authLoading = useAuthStore((s) => s.isLoading);
   const navigate = useNavigate();
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
   const params = useParams<{ id: string }>();
   const projectId = params.id ?? null;
 
@@ -21,17 +24,18 @@ export const ProjectSettings: React.FC = () => {
   const error = useProjectSettingsStore((s) => s.error);
 
   const project = useMemo(
-    () => projects.find((p) => p.id === projectId) || null,
-    [projects, projectId],
+    () => projects.find((p) => p.id === projectId && p.ownerId === user?.id) || null,
+    [projects, projectId, user?.id],
   );
 
-  // Load projects if not available yet
   useEffect(() => {
-    if (!projectId) return;
-    if (!project && projects.length === 0) {
-      presenter.project.loadProjects();
-    }
-  }, [projectId, project, projects.length, presenter.project]);
+    if (!projectId || !user || project) return;
+    let current = true;
+    void presenter.project.ensureProjectLoaded(projectId, user.id).catch(() => {
+      if (current) setLoadError(projectId);
+    });
+    return () => { current = false; };
+  }, [projectId, user, project, presenter.project, retry]);
 
   // Initialize form when project changes
   useEffect(() => {
@@ -70,6 +74,14 @@ export const ProjectSettings: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  if (!user && !authLoading) {
+    return <div className="p-8 text-center"><button type="button" className="rounded-lg bg-brand-600 px-4 py-2 text-white" onClick={() => presenter.auth.openAuthModal('login')}>{t('deployment.loginToUpdate')}</button></div>;
+  }
+
+  if (!project && loadError === projectId) {
+    return <div role="alert" className="space-y-3 p-8 text-center text-sm text-slate-500"><p>{t('deployment.updateLoadError')}</p><button type="button" className="text-brand-600" onClick={() => { setLoadError(null); setRetry(value => value + 1); }}>{t('common.retry')}</button></div>;
   }
 
   if (!project) {

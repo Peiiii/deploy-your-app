@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DeploymentSourceTabs } from '@/features/deployment/components/deployment-source-tabs';
 import { ProjectSettingsRepoSection } from './project-settings-repo-section';
@@ -33,14 +34,12 @@ export const ProjectSettingsDeploymentGroup: React.FC<
   // Local state for inputs
   const [zipFile, setZipFile] = useState<File | null>(null);
 
-  // Sync with project updates for HTML content
+  // Keep local edits until the target project changes (the parent keys this form by project ID).
   const [htmlContent, setHtmlContent] = useState(project.htmlContent || '');
-  useEffect(() => {
-    queueMicrotask(() => {
-      if (project.htmlContent) setHtmlContent(project.htmlContent);
-    });
-  }, [project]);
+  const pendingContent = presenter.deployment.getPendingUpdateContent(project.id);
+  const [imported, setImported] = useState(false);
 
+  const isDeployingHtml = useProjectSettingsStore((s) => s.isDeployingHtml);
   const isRedeploying = useProjectSettingsStore((s) => s.isRedeploying);
   const zipUploading = useProjectSettingsStore((s) => s.zipUploading);
   const htmlUploading = useProjectSettingsStore((s) => s.htmlUploading);
@@ -48,6 +47,7 @@ export const ProjectSettingsDeploymentGroup: React.FC<
   const repoUrlDraft = useProjectSettingsStore((s) => s.repoUrlDraft);
 
   const isDeploying =
+    isDeployingHtml ||
     isRedeploying ||
     zipUploading ||
     htmlUploading ||
@@ -103,9 +103,25 @@ export const ProjectSettingsDeploymentGroup: React.FC<
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold text-slate-900 dark:text-white">
-          {t('project.deploymentManagement')}
+          {t(project.url ? 'deployment.updateAppHeading' : 'deployment.continueAppHeading')}
         </h2>
       </div>
+
+      <p className="text-sm text-slate-500 dark:text-slate-400">
+        {t(project.url ? 'deployment.updateKeepsAddress' : 'deployment.continueAppDescription')}
+        {project.url && <span className="mt-1 block break-all font-medium text-slate-700 dark:text-slate-200">{project.url}</span>}
+      </p>
+      {pendingContent && !imported && <div className="space-y-2 rounded-xl bg-brand-50 p-4 text-sm dark:bg-brand-950/30">
+        <p className="text-slate-600 dark:text-slate-300">{t('deployment.savedContentNotice')}</p>
+        <button type="button" disabled={isDeploying} className="rounded-md font-medium text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-50 dark:text-brand-300" onClick={() => {
+          setActiveSource(pendingContent.sourceType);
+          setHtmlContent(pendingContent.htmlContent);
+          setZipFile(pendingContent.zipFile);
+          if (pendingContent.sourceType === SourceType.GITHUB) useProjectSettingsStore.getState().actions.setRepoUrlDraft(pendingContent.repoUrl);
+          setImported(true);
+        }}>{t('deployment.useSavedContent')}</button>
+      </div>}
+      {pendingContent && <Link to="/deploy" className="inline-block rounded-md text-xs text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{t('deployment.returnToCreation')}</Link>}
 
       <DeploymentSourceTabs
         activeSource={activeSource}
@@ -156,7 +172,7 @@ export const ProjectSettingsDeploymentGroup: React.FC<
           ) : (
             <Play className="w-4 h-4 fill-current" />
           )}
-          {isDeploying ? t('common.deploying') : t('common.deploy')}
+          {isDeploying ? t('common.deploying') : t(project.url ? 'deployment.publishUpdate' : 'common.deploy')}
         </button>
       </div>
     </div>

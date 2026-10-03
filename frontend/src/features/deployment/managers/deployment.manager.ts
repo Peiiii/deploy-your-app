@@ -1,3 +1,4 @@
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { ProjectAddressError } from '@/services/project-address';
 import { getPublicationSlug, isValidPublicationSlug } from './publication-details';
 import type { Project } from '@/types';
@@ -22,6 +23,11 @@ export class DeploymentManager {
   private deploymentExecutor: DeploymentExecutor;
   private projectCreator: ProjectCreator;
   private storeActions: DeploymentStoreActions;
+  private savedPublication: {
+    ownerId: string;
+    targetId: string;
+    draft: Pick<ReturnType<typeof useDeploymentStore.getState>, 'newProjectId' | 'sourceType' | 'htmlContent' | 'zipFile' | 'repoUrl' | 'projectName' | 'publicationSlug' | 'addressSeed' | 'publicationAddressError'>;
+  } | null = null;
   private addressGeneration?: AbortController;
 
   constructor(
@@ -31,6 +37,9 @@ export class DeploymentManager {
     this.projectCreator = new ProjectCreator(projectManager);
     this.storeActions = new DeploymentStoreActions();
     this.deploymentExecutor = new DeploymentExecutor(provider, projectManager);
+    useAuthStore.subscribe((state, previous) => {
+      if (state.user?.id !== previous.user?.id) this.savedPublication = null;
+    });
   }
 
   // ============================================================
@@ -55,6 +64,44 @@ export class DeploymentManager {
     return this.deploymentExecutor.deployProject(project, options);
   };
 
+  prepareExistingUpdate = (project: Project): boolean => {
+    const ownerId = useAuthStore.getState().user?.id;
+    const state = useDeploymentStore.getState();
+    if (!ownerId || project.ownerId !== ownerId || state.isPublishingNewProject ||
+      state.deploymentStatus === DeploymentStatus.BUILDING || state.deploymentStatus === DeploymentStatus.DEPLOYING) return false;
+    this.cancelAddressGeneration();
+    const draft = {
+      newProjectId: state.newProjectId, sourceType: state.sourceType,
+      htmlContent: state.htmlContent, zipFile: state.zipFile, repoUrl: state.repoUrl,
+      projectName: state.projectName, publicationSlug: state.publicationSlug,
+      addressSeed: state.addressSeed, publicationAddressError: state.publicationAddressError,
+    };
+    this.savedPublication = { ownerId, targetId: project.id, draft };
+    state.actions.reset();
+    return true;
+  };
+
+  getPendingUpdateContent = (projectId: string) => {
+    const saved = this.savedPublication;
+    if (!saved || saved.ownerId !== useAuthStore.getState().user?.id || saved.targetId !== projectId) return null;
+    const draft = saved.draft;
+    const hasContent = draft.sourceType === SourceType.HTML ? !!draft.htmlContent.trim()
+      : draft.sourceType === SourceType.ZIP ? !!draft.zipFile : !!normalizeGitHubRepoUrl(draft.repoUrl);
+    return hasContent ? { sourceType: draft.sourceType, htmlContent: draft.htmlContent, zipFile: draft.zipFile, repoUrl: draft.repoUrl } : null;
+  };
+
+  resumeNewPublication = (source: SourceType) => {
+    const saved = this.savedPublication;
+    if (saved && saved.ownerId === useAuthStore.getState().user?.id) {
+      const state = useDeploymentStore.getState();
+      if (state.deploymentStatus === DeploymentStatus.BUILDING || state.deploymentStatus === DeploymentStatus.DEPLOYING) return;
+      state.actions.reset();
+      useDeploymentStore.setState(saved.draft);
+      return;
+    }
+    this.initializeNewPublication(source);
+  };
+
   initializeNewPublication = (source: SourceType) => {
     const state = useDeploymentStore.getState();
     if (
@@ -64,6 +111,7 @@ export class DeploymentManager {
     )
       return;
     this.cancelAddressGeneration();
+    this.savedPublication = null;
     state.actions.reset();
     state.actions.setSourceType(source);
   };

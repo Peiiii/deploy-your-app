@@ -6,10 +6,34 @@ import { SourceType, type DeploymentMetadata, type Project } from '../types';
 
 export class ProjectManager {
   private provider: IProjectProvider;
+  private recentRequest = 0;
 
   constructor(provider: IProjectProvider) {
     this.provider = provider;
   }
+
+  loadRecentProjects = async (ownerId: string | null): Promise<void> => {
+    const request = ++this.recentRequest;
+    useProjectStore.setState(state => ({
+      recentOwnerId: ownerId,
+      recentProjects: state.recentOwnerId === ownerId ? state.recentProjects : [],
+      recentLoading: !!ownerId,
+      recentError: false,
+    }));
+    if (!ownerId) return;
+    const isCurrent = () => request === this.recentRequest && useAuthStore.getState().user?.id === ownerId;
+    try {
+      const response = await this.provider.getProjects(1, 6);
+      if (!isCurrent()) return;
+      const recentProjects = response.items.filter(project => project.ownerId === ownerId);
+      useProjectStore.setState(state => ({
+        recentProjects, recentLoading: false,
+        projects: state.projects.map(project => recentProjects.find(recent => recent.id === project.id) ?? project),
+      }));
+    } catch {
+      if (isCurrent()) useProjectStore.setState({ recentError: true, recentLoading: false });
+    }
+  };
 
   ensureProjectLoaded = async (projectId: string, ownerId: string): Promise<void> => {
     if (useProjectStore.getState().projects.some(project => project.id === projectId && project.ownerId === ownerId)) return;

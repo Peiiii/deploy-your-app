@@ -18,6 +18,7 @@ export const SettingsDeploymentTab: React.FC<SettingsDeploymentTabProps> = ({
             {/* Deployment Management Controls */}
             <div className="glass-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
                 <ProjectSettingsDeploymentGroup
+                    key={project.id}
                     project={project}
                     canDeployFromGitHub={canDeployFromGitHub}
                 />

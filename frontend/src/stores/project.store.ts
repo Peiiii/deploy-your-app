@@ -3,6 +3,10 @@ import type { Project, PaginatedResponse } from '../types';
 
 interface ProjectState {
   projects: Project[];
+  recentProjects: Project[];
+  recentOwnerId: string | null;
+  recentLoading: boolean;
+  recentError: boolean;
   pagination: {
     page: number;
     pageSize: number;
@@ -23,6 +27,10 @@ interface ProjectState {
 
 export const useProjectStore = create<ProjectState>((set) => ({
   projects: [], // Empty initially
+  recentProjects: [],
+  recentOwnerId: null,
+  recentLoading: false,
+  recentError: false,
   pagination: {
     page: 0,
     pageSize: 50,
@@ -58,6 +66,10 @@ export const useProjectStore = create<ProjectState>((set) => ({
     setLoadError: (loadError) => set({ loadError }),
     reset: () => set({
       projects: [],
+      recentProjects: [],
+      recentOwnerId: null,
+      recentLoading: false,
+      recentError: false,
       pagination: { page: 0, pageSize: 50, total: 0, hasMore: false },
       isLoading: false,
       hasLoaded: false,

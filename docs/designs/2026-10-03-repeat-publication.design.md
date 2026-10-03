@@ -1,6 +1,6 @@
 # 同一作品重复发布：方案比较与推荐
 
-日期：2026-10-03（Asia/Shanghai）。范围：用户要求结合技术综合考虑、多方案比较并给出最佳建议，并补充“创建/上传页右侧展示最近应用、点击进入该应用更新界面”的想法；本轮交付调查结论和推荐设计，不实现产品、不修改生产数据。推荐未等同于用户已选择完整方案。
+日期：2026-10-03（Asia/Shanghai）。范围：用户要求结合技术综合考虑、多方案比较并给出最佳建议，并补充“创建/上传页右侧展示最近应用、点击进入该应用更新界面”的想法；初始讨论交付调查结论和推荐设计；用户随后明确要求全托管落地，本文末尾记录首期实现范围与验收。完整治理路线仍是后续推荐，不冒充首期已实现。
 
 ## 问题与有效证据
 
@@ -146,3 +146,25 @@ mode=design：已按四条候选、用户补充的最近应用侧栏、移动端
 这份文档可作为路线决策依据；**不标记整体 Implementation Ready**。实施前仍须固化：特征表及 attempt 的精确传播/补偿 SQL、创建幂等与组管理 API/权限和并发写边界、前端刷新恢复存储位置、CLI 绑定文件和参数传播、真实 D1 代表查询性能基线。近似阈值没有实测，仅允许提示；ZIP 发布前近似检测未设计为首版能力。上述内容不能靠上线后观察代替实现前 Review。
 
 设计交付验证只覆盖事实与合同/内容/diff review，不跑产品测试，不宣称线上重复问题已经修复。
+
+## 2026-10-03 实施授权与首期冻结
+
+用户明确要求“那你优化呀……不是全托管模式吗”，本轮落实其最新提出的创建页最近应用快捷更新方案，按已有全托管授权上线。flow=standard；UI 行为 L2、生产交付 L4；plan=not-required，单批完成；retrospective_state=pending。
+
+实现范围：创建页桌面右栏/手机编辑器前最近本人应用；复用 scope=mine 分页接口、独立最近列表状态不覆盖 dashboard；点击导航到既有 deployments tab；明确更新目标/网址/动作；保留当前会话创建草稿，更新页显式导入 HTML/ZIP/GitHub 内容，返回恢复；身份变化清空草稿，忙碌时禁止切换；修复分页外项目与未登录/读取失败状态。创建输入和旧项目地址/名称严格分开；更新页共享表单与既有部署 executor，不创建项目。不在本批执行历史分组、指纹策略或 CLI 新版发布；这些是路线建议，不冒充首期完成结果。
+
+状态：最近列表字段归既有 project.store，loadRecentProjects 归 ProjectManager 并按 owner/request 序列隔离；创建页导航快照归长生命周期 DeploymentManager，内存仅存本次表单/已有草稿 ID，File 不承诺跨刷新恢复，账号切换清空；NewDeployment 挂载调用恢复入口，明确“再发布一个”才重置。更新页按 projectId 重挂输入控件避免跨项目残留；内容导入只传来源字段，不传名称/slug。ProjectSettings 通过既有 ensureProjectLoaded 加载本人目标，错误可重试，不无限 spinner。
+
+contract-id=recent-app-update-entry-2026-10-03；parent-goal=用户从创建页认出旧应用并进入更新，保留网址和已输入内容，不重复新建。
+
+| ID | Required | 验收 | 状态 |
+| --- | --- | --- | --- |
+| RU-1 | true | 桌面右侧最近六项/手机上传前紧凑可展开入口，缩略图/名/网址/时间，查看全部；无应用/未登录不展示空管理面板；中英文和主题，无横向溢出 | not-run |
+| RU-2 | true | 仅本人有界查询，加载失败局部重试；不改全量分页；换账号/过期返回无串号 | not-run |
+| RU-3 | true | 点击进入目标更新页，显示保留网址，更新操作复用原 projectId；分页外/直接链接加载及读取失败明确；HTML/ZIP/GitHub 原更新能力保留 | not-run |
+| RU-4 | true | 已输入创建内容可主动导入更新，原名/网址不改；返回创建恢复，明确再发布重置；File 当前会话保留，忙时禁切换，身份变化清空 | not-run |
+| RU-5 | true | 定向类型/lint/行为证据与实现 Review，前端部署及线上创建→更新→同网址内容改变/项目数量不增；精确提交推送、本地master与实际远端一致 | not-run |
+
+方案 Review(mode=design)：独立按最新原话核对首期链路，已关闭侧栏请求覆盖 dashboard、分页外目标无限等待、来源跨项目残留、NewDeployment 重挂清空草稿和已有 ZIP File 导入丢失等风险；通过，适用上述首期范围，不扩展到内容特征/展示组未固化设计。复用源表单、ProjectManager、DeploymentManager；新增 recent-applications.tsx 仅负责呈现与导航连接，既有目录无 planned-path/maintainability 专用检查入口，按职责与 diff review 核对。
+
+实现 Review(mode=implementation)：已完成 diff-only 职责、状态归属、复用边界和失败路径审查，无未关闭 findings。定向 frontend TypeScript、ESLint（零 warning）、`git diff --check`、`test-homepage-publishing.mjs` 和生产构建通过；原地址 AI 建议并发/取消测试保持通过。浏览器本地完整产品＋生产 API 验证旧目标明确、内容显式导入及创建草稿恢复。生产部署/线上黄金链路证据待补充，不以本地通过代替 RU-5。
