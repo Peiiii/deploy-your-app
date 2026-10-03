@@ -46,3 +46,7 @@
 - GSC验证待提交画面：[ready截图](artifacts/gsc-verification-ready.jpg)。当前只准备完成，尚未验证；用户仅确认可以占用Chrome，新的站点所有权动作确认尚未收到，因此没有将该回答扩大解释为授权。保留原Chrome验证dialog，代理已退出的登录页面不是后续入口。
 
 - 并行主线aec2660按用户要求撤回creator feedback MVP及其后续/app SEO依赖，已合并保留该撤回，不恢复功能。此前“已有作品详情可收录”及原public-live.json中的app200只是历史，当前作品锚点直接指向部署网址。方案相关部分明确superseded；SG03范围未缩减。当前pnpm check和pnpm test:seo通过（含当前/app404/no旧锚点、公开权限和成功归因）；[新生产证据](artifacts/public-after-withdrawal.json)证明主线撤回已线上生效：首页/发现/目录分页/具名作者200、一title/h1、无失效app锚点；撤回app404/noindex。未修改并行任务的源码。
+
+- 2026-10-03本轮续办：用户明确回复“确认”授权Google站点所有权动作。原Chrome重新添加相同https://gemigo.io/前缀后，Google显示“已自动完成所有权验证”，方法HTML文件；随后进入该资源，效果/索引/体验均“正在处理数据，请过1天左右再来查看”。sitemap.xml提交显示[成功回执](artifacts/gsc-sitemap-submitted.jpg)，列表与详情随后显示无法抓取/无法读取，未称抓取或收录成功。10:35 UTC公开HTTP200/application/xml/3277字节，Googlebot UA同样200；robots允许根路径并声明同一sitemap。按[Google官方排错说明](https://support.google.com/webmasters/answer/7451001?hl=en)启动真实URL检查，仍在检索中；普通UA检查不能替代Google抓取结果。
+- Google实时测试18:39:25完成，智能手机版：是否允许抓取=是、网页抓取=成功、是否允许编入索引=是；[结果截图](artifacts/gsc-live-fetch.jpg)和[结构化记录](artifacts/gsc-observation.json)。XML无需请求页面索引；未点击该动作。sitemap报告解析状态仍需复查，Live测试通过不等于已解析/已收录。
+- Bing在原Chrome打开站长平台、拒绝可选Cookies、选择Google登录后，账号选择页持续空白，刷新一次未恢复；未出现可操作授权/条款，未取得站点权限。原Chrome native控制也间歇无法捕获窗口。未尝试改密/绕过安全。SG01保持partial，SG05日预算不足仍未闭合。仅更新事实文档及证据，不改生产源码、不重复触发预算查询；diff-only检查通过，无文档Review finding。

@@ -1,0 +1,32 @@
+{
+  "property": "https://gemigo.io/",
+  "observed_date": "2026-10-03",
+  "ownership": {
+    "status": "verified",
+    "method": "HTML file",
+    "ui_message": "已自动完成所有权验证"
+  },
+  "sitemap": {
+    "url": "https://gemigo.io/sitemap.xml",
+    "submission": "success",
+    "report_status": "could_not_fetch",
+    "live_test": {
+      "displayed_at": "2026-10-03 18:39:25 Asia/Shanghai",
+      "user_agent": "Google 检查工具智能手机版",
+      "crawl_allowed": true,
+      "page_fetch": "successful",
+      "indexing_allowed": true
+    },
+    "http_probe": {
+      "observed_at_utc": "2026-10-03 10:35",
+      "status": 200,
+      "content_type": "application/xml",
+      "bytes": 3277,
+      "googlebot_ua_status": 200
+    },
+    "interpretation": "Live fetch success is not sitemap parsing success or page indexing."
+  },
+  "performance": "processing; UI asks to return in about one day",
+  "indexing": "processing; unavailable",
+  "backend_search_console_api_connected": false
+}

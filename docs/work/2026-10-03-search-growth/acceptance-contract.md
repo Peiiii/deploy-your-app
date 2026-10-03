@@ -16,7 +16,7 @@ SG06：适用检查、实现 Review、生产部署验收和主工作区 master �
 
 | ID | Required | Status | 当前证据 | 失效原因 |
 | --- | --- | --- | --- | --- |
-| SG01 | true | blocked | 验证文件已上线200；IndexNow收到12URL并返回202；GSC原Chrome已登录 | Mac锁定；Google所有权验证、sitemap提交、Bing站点权限与实际报表尚未完成。202不是收录证明 |
+| SG01 | true | partial | Google前缀资源已通过HTML文件自动验证；[sitemap提交成功](../../logs/2026-10-03-search-growth/artifacts/gsc-sitemap-submitted.jpg)；[Google实时抓取成功](../../logs/2026-10-03-search-growth/artifacts/gsc-observation.json)；IndexNow12URL返回202 | Google sitemap报告仍显示无法抓取，效果/收录报告处理中；Bing权限未取得。提交不是抓取/收录证明 |
 | SG02 | true | passed | 中英文指南、HTML/ZIP样例已上线；生产ZIP根目录/资源匹配；指南手机UI与线上样例正确/错误答案、换题重置均已验收，见[截图](../../logs/2026-10-03-search-growth/artifacts/sample-interaction.jpg) | — |
 | SG03 | true | passed | [当前主线生产原始HTML](../../logs/2026-10-03-search-growth/artifacts/public-after-withdrawal.json)、真实目录分页UI、权限回归；app详情已按主线撤回，作品链接指向部署网址 | — |
 | SG04 | true | passed | [固定问题与回答来源](../../logs/2026-10-03-search-growth/artifacts/geo-observation.md) | 只有1条有效非品牌样本；品牌登录墙不计失败，不外推整体引用率 |
