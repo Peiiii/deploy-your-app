@@ -1,6 +1,6 @@
 # 后台经营与处理链路优化
 
-状态：Implemented / production verified（Worker ceea3dd5，scope8增长判断已线上验证，scope7侧栏保持；交付详见原日志）；design-document: required；plan: not-required（同一后台 Worker/UI、单批交付）。上位设计：[独立后台](2026-10-02-admin-console.design.md)。当前合同 scope-revision 8 / ADM-12、ADM-13、ADM-14。原始输入：用户要求整体设计并优化；前序明确增长与运营价值、CLI含Skill、库存整合且不要无限拓展。当前产品方向以 2026-10-03 direction thought 为准，教育/学习与游戏是探索重点，保留所有应用类别。
+状态：Implemented / production verified（Worker 8e225b64，scope9统一图表交互已线上验证，scope8增长判断与scope7侧栏保持；交付详见原日志）；design-document: required；plan: not-required（同一后台 Worker/UI、单批交付）。上位设计：[独立后台](2026-10-02-admin-console.design.md)。当前合同 scope-revision 9 / ADM-12、ADM-13、ADM-14、ADM-15。原始输入：用户要求整体设计并优化；前序明确增长与运营价值、CLI含Skill、库存整合且不要无限拓展。当前产品方向以 2026-10-03 direction thought 为准，教育/学习与游戏是探索重点，保留所有应用类别。
 
 ## 选择与用户价值
 
@@ -62,9 +62,9 @@ mode=design；2026-10-03：从原始用户要求和既有入口独立走查上�
 mode=design Review：从用户接受的排序与增量反查主链路，旧后台能力保持，三个核心增量有实际入口；当前/前期队列独立期末与统计时间明确，零/缺失/失败恢复可观察。抽象审计仅复用既有Chart和Report，无平行事实/存储/生命周期；新增文件位于现有admin/src职责域，项目无planned-path preflight。无findings，design-review:passed（scope8）。
 
 
-## 2026-10-03 图表交互修复（scope9，Design Ready）
+## 2026-10-03 图表交互修复（scope9，Implemented / production verified）
 
-原始输入：用户报告图表hover无法看到反馈/点数字，要求参考最佳实践优化并考虑统一可复用组件。flow=bugfix（reproduce），L2共享前端交互，发布L4；design-document:required，plan:not-required，retrospective pending。调查命中growth-chart仅3.5px圆点原生SVG title、app事件柱与operating-summary部署柱原生title，无统一命中/数字状态。修前真实Chrome绘图区hover及键盘均无自定义数值提示。
+原始输入：用户报告图表hover无法看到反馈/点数字，要求参考最佳实践优化并考虑统一可复用组件。flow=bugfix（reproduce），L2共享前端交互，发布L4；design-document:required，plan:not-required，retrospective completed（见原日志）。调查命中growth-chart仅3.5px圆点原生SVG title、app事件柱与operating-summary部署柱原生title，无统一命中/数字状态。修前真实Chrome绘图区hover及键盘均无自定义数值提示。
 
 黄金链路：原账号登录→首页趋势图任意绘图区横移→自动选最近日期、参考线/高亮与日期+指标+单位卡→鼠标移入数值卡保持→Esc关闭→增长大盘同样查看7/30与零/缺失→首页展开部署诊断查看两指标→使用概览事件/访客查看→手机点日期并横滚30日；键盘Tab聚焦图、左右/Home/End选日并自动带到视口、Esc关闭，离焦退出。不改统计口径、接口、账号、权限或报表缓存。
 
@@ -79,3 +79,6 @@ mode=design Review：从用户接受的排序与增量反查主链路，旧后�
 验收：真实Chrome修前/修后同入口，hover点间、首/末日、数值/单位精确、move进tooltip、Escape/leave/焦点、7/30与指标切换清旧值、零与null、不破坏滑动；3个消费者与多指标非相加、390px真实触摸/横滚/键盘带到视口、无根溢出/JS错误；admin tsc/build/lint/diff Review，生产真实三入口验收、保护密码/QA会话与查询预留、精确提交普通推送/master同步。
 
 mode=design Review：用户目标覆盖所有已查日趋势，三处消费者路径完整；仅最近日期选择不新增跨图同步、tooltip无交互控件，不把缺失解释零；横滚和触摸拖动区分/键盘自动可见/切换失效已纳入。本方案无开放findings，design-review:passed（scope9），随后实现。
+
+
+scope9交付：`4e6e63d`统一组件与三个业务消费者已部署Worker `8e225b64-ab82-441b-ace8-36d3e62057fa`。本地和生产真实Chrome1440×1050/390×844验证hover最近日期/数值单位/保持/关闭、键盘/7与30日切换、折线/分组柱与手机点选和滑动；生产使用概览以真实一天报表核对事件/访客柱，既有7日报表最终也正常加载。统计接口、预算合同、认证与密码未修改；原事实owner与可复跑验收脚本已更新，无全局规则增量。

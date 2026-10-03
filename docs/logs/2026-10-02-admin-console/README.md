@@ -168,3 +168,14 @@ scope8生产Delivery：功能commit `ce8585262af0d7e9d91b2d54255735c2e3bbf9c8`�
 scope9本地Validation：修前真实Chrome在绘图区中间hover与ArrowLeft均tooltip0；修后相同入口出现日期、数字单位与参考线。`pnpm build:admin`（含admin tsc）、定向ESLint、diff-check通过；组装Worker+D1原管理/认证/反馈/详情测试复用本轮隔离服务启动证据，Worker未修改。新增可复跑`scripts/test-admin-charts.mjs`，使用PLAYWRIGHT_MODULE可选运行时模块、现有console --serve和临时本地凭据，正式页面三消费者，不注入DOM或组件专用页。真实浏览器测试通过全部首页/增长4曲线/部署诊断双指标/原事件和访客：最近日期hover、边缘限位、数值卡hover/离开/Esc、键盘首末/边界与焦点保持、7/30与指标切换失效、零/留存期null、390px真实触摸点选/外部关闭与CDP横滑、无根溢出/JS错误。初次脚本嵌套summary严格匹配报错已限定直接summary，非产品缺陷。截图`/tmp/gemigo-admin-charts-local/{desktop,mobile}-tooltip.png`已实际查看。
 
 scope9 mode=implementation Review：从用户hover读数字目标反查三套旧渲染，全部迁移到同一组件，title-only路径及旧bar CSS退场；无追加图表库/全局tooltip框架/新请求。项目无diff-only maintainability入口，定向diff与主观结构审查覆盖局部选择生命周期、context失效、null/zero、横滚坐标/限位、touch cancel、Esc监听注销、aria关联、分组柱总数含成功不可相加、共享UI回归。无开放findings，acceptance-ready（本地），待精确提交/普通推送/部署与生产三入口及清理证据。
+
+
+scope9生产Delivery：功能`4e6e63d3251f0af9ef4c36f51c3918f7763db424`精确10文件提交、普通推送和主工作区master同步后，发布既有admin-worker入口，Worker `8e225b64-ab82-441b-ace8-36d3e62057fa`；CSS `index-CX91wG5W.css` / JS `index-CK77t8WR.js`。只修改admin展示与交互，无Worker源码/迁移/Secrets/权限或统计口径变化。后续并发主线保持本功能提交祖先，保护其它前端与研究/analytics WIP。
+
+最终`scripts/test-admin-charts.mjs`真实Chrome本地与生产均PASS：首页两条曲线、增长四条、部署双指标柱、使用概览事件/观测访客柱；hover绘图区最近日期与接口值/单位、卡片hover保持/leave/Esc、键盘首末/左右边界/焦点、范围和指标切换清选择、手机真实点选/外部关闭/30日横滑。零与null由本地真实数据明确覆盖，生产30日UV缺失也显示“暂无数据”；1440×1050与390×844无根溢出/JS错误，tooltip不被横滚区裁切。生产使用概览最终7日报表与缩小到当天的真实报表均HTTP200，柱图数值断言用一天报表，不声称覆盖未查看的所有历史数据；之前某次该报表未进入可见状态，未保存错误体，不据此归因产品缺陷。最终桌面/手机截图`/tmp/gemigo-admin-charts-prod/{desktop,mobile}-tooltip.png`已实际查看并设0600。
+
+验收脚本纠偏：页面渲染可能先于Node侧response.json完成，因此保留读取Promise并在对账前await；overview独立完成7/30请求才展开诊断，避免合理范围更新清除tooltip时断言旧状态。保存已有生成预留记录供中断后复跑，生产使用概览另用一天范围避免依赖大范围查询额度；仅测试同步/真实入口处理，没有改变产品。脚本syntax/lint及diff Review通过，产品build/tsc证据不因测试脚本变更失效；无新增开放findings。
+
+专用当前版本绑定QA session按确切hash删除→HTTP401，账号version6保持，用户密码/其它会话保留；QA会话、本地测试凭据、预算基线/预留JSON全部已删除，隔离5176服务SIGINT正常退出130。本轮成功非缓存生成预留4份growth合计254504，随后2份report合计281616，只原子归还这536120条已确证预留；共享计数有并发变化，静态基线guard首次changes0后改为对确证本任务额度按count>=credit执行扣减，未重置或覆盖共享基线，不归还无法归属的预留，最终观测共享计数705366（时点值，非固定值）。
+
+scope9 retrospective completed：唯一组件的owner/边界归原PRODUCT_ANALYTICS与专题设计，保留可复跑真实浏览器判定，不增加新图表库、平行tooltip体系或全局开发规则。ADM06/14/15全部passed，其它原证据继续有效；主观体验待用户反馈。最终记录提交后fresh fetch、核对实际远程SHA与本地master差异0 0，以工具输出作为最终Git完成证据。
