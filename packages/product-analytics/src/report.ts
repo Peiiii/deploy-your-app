@@ -123,6 +123,7 @@ export const summarize = (rows: StoredEvent[]) => {
 
 export interface AcquisitionCounts {
   source: 'search' | 'ai';
+  publishedSessions: number | null;
   visitors: number;
   sessions: number;
   eligibleSessions: number;

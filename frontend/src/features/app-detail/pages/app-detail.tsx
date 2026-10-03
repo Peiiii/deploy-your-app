@@ -1,3 +1,4 @@
+import { usePublicAppSeo } from '@/seo/use-page-seo';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useStore } from 'zustand';
@@ -26,6 +27,7 @@ function AppDetailLoader({ id }: { id: string }) {
   const { t } = useTranslation();
   const [manager] = useState(() => new AppDetailManager(id));
   const state = useStore(manager.store);
+  usePublicAppSeo(state.app, state.error);
   useEffect(() => {
     useUIStore.getState().actions.closeRightPanel();
     void manager.load();

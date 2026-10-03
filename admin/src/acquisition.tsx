@@ -29,6 +29,11 @@ const metrics = (row: Counts) => [
     `${number(row.eligibleSessions)} 个上线后入口会话中完成注册`,
   ],
   ['注册转化率', rate(row.conversionRate), '新注册会话 ÷ 上线后入口会话'],
+  [
+    '同会话成功发布',
+    row.publishedSessions === null ? '—' : number(row.publishedSessions),
+    '注册后发布，按服务端成功记录核验',
+  ],
 ];
 const csvCell = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '""') + '"';
 const acquisitionCsv = (report: Report) =>
@@ -43,6 +48,7 @@ const acquisitionCsv = (report: Report) =>
       '新注册会话',
       '新账号数',
       '注册转化率',
+      '同会话注册后成功发布',
       '范围',
     ],
     ...[
@@ -61,8 +67,9 @@ const acquisitionCsv = (report: Report) =>
               day.registrationsAvailable ? row.registeredSessions : null,
               day.registrationsAvailable ? row.registrations : null,
               row.conversionRate,
+              row.publishedSessions,
             ]
-          : [null, null, null, null, null, null]),
+          : [null, null, null, null, null, null, null]),
         day.range,
       ])
     ),
@@ -153,6 +160,9 @@ export default function Acquisition() {
             ，包含邮箱、Google 和 GitHub
             新账号；重登和已有账号加密码不算注册。转化率只使用上线后入口会话，旧注册事件不混入。
           </p>
+          <p className="muted">
+            成功发布仅覆盖同一观测会话中注册后发起、并在统计截止前由服务端确认成功的发布；不覆盖跨会话或跨设备归因，不以浏览器提示代替成功记录。
+          </p>
           {report.summary.map((row) => (
             <section key={row.source} className="acquisition-source">
               <h2>{sourceName(row.source)}</h2>
@@ -180,6 +190,10 @@ export default function Acquisition() {
           )}
           <article className="panel">
             <h2>每日入口趋势</h2>
+            <p className="muted">
+              每日按入口日期归组，结果观察截至本次查询；完整日汇总截至今日 UTC
+              零点，转化结果不可直接将每日数据相加。
+            </p>
             <div className="table-wrap">
               <table>
                 <thead>

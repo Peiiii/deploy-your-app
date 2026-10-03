@@ -51,7 +51,7 @@
     "test:deployment-metadata:http": "./server/node_modules/.bin/tsx scripts/test-deployment-metadata-http.ts",
     "test:thumbnail-performance": "./server/node_modules/.bin/tsx scripts/test-thumbnail-performance.ts",
     "backfill:project-metadata": "./server/node_modules/.bin/tsx scripts/backfill-project-metadata.ts",
-    "test:seo": "pnpm build:frontend && node scripts/test-seo-pages.mjs && ./server/node_modules/.bin/tsx scripts/test-acquisition.ts && ./server/node_modules/.bin/tsx scripts/test-acquisition-auth.ts"
+    "test:seo": "pnpm build:frontend && node scripts/test-seo-pages.mjs && ./server/node_modules/.bin/tsx scripts/test-acquisition.ts && ./server/node_modules/.bin/tsx scripts/test-acquisition-auth.ts && ./server/node_modules/.bin/tsx scripts/test-acquisition-publication.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

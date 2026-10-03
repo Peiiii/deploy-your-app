@@ -1,3 +1,4 @@
+import { renderGuideExamples } from './guide-examples.mjs';
 // Public product facts and metadata. Shared by Pages, the build and React.
 export const SITE = 'https://gemigo.io';
 export const PUBLIC_PATHS = [
@@ -288,7 +289,7 @@ export const getSeo = (url) => {
       '/cli/login',
       '/cli/login/success',
     ].includes(path) ||
-    /^\/(projects|u|app)\/[^/]+$/.test(path);
+    path === '/catalog' || /^\/(projects|u|app)\/[^/]+$/.test(path);
   const structuredData = key
     ? {
         '@context': 'https://schema.org',
@@ -343,10 +344,11 @@ export const renderSeoHead = (seo) => {
     `<link data-seo rel="${rel}" href="${escape(href)}" ${extra}>`;
   return (
     `<title data-seo>${escape(seo.title)}</title>` +
+    tag('gemigo:route', seo.path) +
     tag('description', seo.description) +
     tag('robots', seo.indexable ? 'index, follow, max-image-preview:large' : 'noindex, follow') +
     link('canonical', seo.canonical) +
-    (seo.indexable
+    (seo.indexable && seo.key
       ? ['en', 'zh-CN', 'x-default']
           .map((lang) =>
             link('alternate', SITE + localizedPath(seo.path, lang), `hreflang="${lang}"`)
@@ -372,7 +374,7 @@ export const renderSeoContent = (seo, includeHeading = true) => {
   const text = copy[seo.language];
   const href = (path, label) =>
     `<a href="${escape(localizedPath(path, seo.language))}">${escape(label)}</a>`;
-  return `<article class="seo-content">${includeHeading ? `<h1>${escape(seo.heading)}</h1><p>${escape(seo.description)}</p>` : ''}${text.sections[seo.key].map(([heading, paragraph]) => `<section><h2>${escape(heading)}</h2><p>${escape(paragraph)}</p></section>`).join('')}<nav aria-label="${seo.language === 'zh-CN' ? '发布帮助' : 'Publishing help'}">${href('/deploy', text.publish)}${href('/explore', text.exploreLink)}${href('/about', text.aboutLink)}${href('/guides/publish-html', text.htmlLink)}${href('/guides/publish-zip', text.zipLink)}${`<a href="${escape(seo.path + (seo.language === 'en' ? '?lang=zh-CN' : '?lang=en'))}">${escape(text.language)}</a>`}</nav><p><a href="/privacy-policy">${seo.language === 'zh-CN' ? '隐私政策' : 'Privacy policy'}</a> · <a href="/acceptable-use">${seo.language === 'zh-CN' ? '使用规范' : 'Acceptable use'}</a></p></article>`;
+  return `<article class="seo-content">${includeHeading ? `<h1>${escape(seo.heading)}</h1><p>${escape(seo.description)}</p>` : ''}${text.sections[seo.key].map(([heading, paragraph]) => `<section><h2>${escape(heading)}</h2><p>${escape(paragraph)}</p></section>`).join('')}${renderGuideExamples(seo.key, seo.language)}<nav aria-label="${seo.language === 'zh-CN' ? '发布帮助' : 'Publishing help'}">${href('/deploy', text.publish)}${href('/explore', text.exploreLink)}${href('/catalog', seo.language === 'zh-CN' ? '公开作品目录' : 'Public app catalog')}${href('/about', text.aboutLink)}${href('/guides/publish-html', text.htmlLink)}${href('/guides/publish-zip', text.zipLink)}${`<a href="${escape(seo.path + (seo.language === 'en' ? '?lang=zh-CN' : '?lang=en'))}">${escape(text.language)}</a>`}</nav><p><a href="/privacy-policy">${seo.language === 'zh-CN' ? '隐私政策' : 'Privacy policy'}</a> · <a href="/acceptable-use">${seo.language === 'zh-CN' ? '使用规范' : 'Acceptable use'}</a></p></article>`;
 };
 export const renderSitemap = () =>
   `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">${PUBLIC_PATHS.flatMap((path) => ['en', 'zh-CN'].map((language) => `<url><loc>${escape(SITE + localizedPath(path, language))}</loc>${['en', 'zh-CN', 'x-default'].map((lang) => `<xhtml:link rel="alternate" hreflang="${lang}" href="${escape(SITE + localizedPath(path, lang))}"/>`).join('')}</url>`)).join('')}</urlset>`;

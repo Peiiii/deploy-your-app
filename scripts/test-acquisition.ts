@@ -62,6 +62,7 @@ try {
       .split(';')
       .filter((sql) => sql.trim()))
       await db.prepare(sql).run();
+  await db.prepare('CREATE TABLE deployment_attempts(flow_id TEXT PRIMARY KEY,status TEXT,client_channel TEXT,started_at TEXT,finished_at TEXT)').run();
   await db
     .prepare("INSERT INTO analytics_settings VALUES ('acquisition_registration_start', ?)")
     .bind('2026-10-03T00:00:00Z')
@@ -181,7 +182,7 @@ try {
     [100, 100]
   );
   assert.ok(
-    scale.rowsRead < 600 * 32 + 100,
+    scale.rowsRead < 600 * 48 + 1000,
     'two fully converting passes fit the query reservation'
   );
   console.log('Representative D1 read amplification:', scale.rowsRead, 'rows / 600 events');

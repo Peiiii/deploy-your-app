@@ -14,6 +14,18 @@ const bundle = await build({
   platform: 'browser',
 });
 const index = readFileSync('frontend/dist/index.html', 'utf8');
+let unavailable = false;
+const project = {
+  id: 'public',
+  name: 'Science <app>',
+  description: 'A browser activity',
+  status: 'Live',
+  isPublic: true,
+  url: 'https://science.gemigo.app/',
+  publicAuthor: { kind: 'profile', label: 'Alice', handle: 'alice' },
+  htmlContent: 'PRIVATE_SOURCE',
+  ownerEmail: 'private@example.test',
+};
 const mf = new Miniflare({
   modules: true,
   script: bundle.outputFiles[0].text,
@@ -34,6 +46,10 @@ const mf = new Miniflare({
         return new Response(readFileSync('frontend/dist/llms.txt'), {
           headers: { 'Content-Type': 'text/plain' },
         });
+      if (['/google0dd0feb10e3c1fd1.html', '/examples/addition.html'].includes(path))
+        return new Response(readFileSync('frontend/dist' + path), {
+          headers: { 'Content-Type': 'text/html' },
+        });
       if (path === '/favicon.svg')
         return new Response('<svg/>', { headers: { 'Content-Type': 'image/svg+xml' } });
       // Exercise explicit route fallback; an asset miss can also return the SPA HTML.
@@ -44,6 +60,38 @@ const mf = new Miniflare({
   },
   outboundService: async (request) => {
     assert.equal(new URL(request.url).origin, 'https://backend.test');
+    const url = new URL(request.url);
+    if (url.pathname === '/api/v1/projects/explore') {
+      assert.equal(request.headers.get('cookie'), null, 'SSR never forwards credentials');
+      return unavailable
+        ? new Response('down', { status: 503 })
+        : Response.json({
+            items:
+              Number(url.searchParams.get('page')) === 4
+                ? []
+                : [
+                    project,
+                    { ...project, name: 'HIDDEN', isPublic: false },
+                    { ...project, name: 'OFFLINE', status: 'Failed' },
+                  ],
+            total: 25,
+          });
+    }
+    if (url.pathname.startsWith('/api/v1/apps/')) {
+      if (url.pathname.endsWith('/private')) return new Response('missing', { status: 404 });
+      if (url.pathname.endsWith('/broken')) return new Response('down', { status: 503 });
+      return Response.json({ app: project });
+    }
+    if (url.pathname.includes('/profile')) {
+      if (url.pathname.includes('/missing/')) return new Response('missing', { status: 404 });
+      if (url.pathname.includes('/broken/')) return new Response('down', { status: 500 });
+      return Response.json({
+        publicAuthor: url.pathname.includes('/creator/') ? null : project.publicAuthor,
+        profile: { bio: 'Maker <script>bad</script>' },
+        projects: [project],
+        user: { email: 'private@example.test' },
+      });
+    }
     assert.equal(request.headers.get('x-forwarded-host'), 'gemigo.io');
     return new Response('data: event\n\n', { headers: { 'Content-Type': 'text/event-stream' } });
   },
@@ -74,7 +122,7 @@ try {
         'rewritten response must not keep template ETag'
       );
     }
-  for (const path of ['/dashboard', '/deploy', '/u/creator', '/app/public-work', '/privacy-policy', '/cli/login']) {
+  for (const path of ['/dashboard', '/deploy', '/u/creator', '/privacy-policy', '/cli/login']) {
     const response = await mf.dispatchFetch('https://gemigo.io' + path);
     assert.equal(response.status, 200);
     assert.equal(response.headers.get('x-robots-tag'), 'noindex, follow');
@@ -101,6 +149,57 @@ try {
     (await mf.dispatchFetch('https://gemigo.io/favicon.svg')).headers.get('content-type'),
     'image/svg+xml'
   );
+  for (const path of ['/', '/explore', '/catalog']) {
+    const response = await mf.dispatchFetch('https://gemigo.io' + path, {
+      headers: { Cookie: 'session_id=private' },
+    });
+    const html = await response.text();
+    assert.ok(html.includes('href="https://science.gemigo.app/"') && html.includes('/u/alice'));
+    assert.ok(html.includes('Science &lt;app&gt;'));
+    assert.ok(
+      !html.includes('PRIVATE_SOURCE') &&
+        !html.includes('private@example.test') &&
+        !html.includes('HIDDEN') &&
+        !html.includes('OFFLINE')
+    );
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+  }
+  const catalog = await (await mf.dispatchFetch('https://gemigo.io/catalog?page=2')).text();
+  assert.ok(
+    catalog.includes('href="https://gemigo.io/catalog?page=2"') &&
+      catalog.includes('/catalog?page=3')
+  );
+  assert.equal((await mf.dispatchFetch('https://gemigo.io/catalog?page=4')).status, 404);
+  const appResponse = await mf.dispatchFetch('https://gemigo.io/app/public');
+  assert.equal(appResponse.status, 200);
+  assert.equal(appResponse.headers.has('x-robots-tag'), false);
+  const appHtml = await appResponse.text();
+  assert.ok(
+    appHtml.includes('Science &lt;app&gt; | GemiGo') &&
+      appHtml.includes('href="https://gemigo.io/app/public"')
+  );
+  assert.ok(!appHtml.includes('PRIVATE_SOURCE') && !appHtml.includes('private@example.test'));
+  assert.equal((await mf.dispatchFetch('https://gemigo.io/app/private')).status, 404);
+  assert.equal((await mf.dispatchFetch('https://gemigo.io/app/broken')).status, 503);
+  const profileResponse = await mf.dispatchFetch('https://gemigo.io/u/alice');
+  const profile = await profileResponse.text();
+  assert.equal(profileResponse.headers.has('x-robots-tag'), false);
+  assert.ok(
+    profile.includes('Alice · Public apps | GemiGo') && profile.includes('Maker &lt;script&gt;')
+  );
+  assert.equal(
+    (await mf.dispatchFetch('https://gemigo.io/u/old-id', { redirect: 'manual' })).status,
+    308
+  );
+  assert.equal((await mf.dispatchFetch('https://gemigo.io/u/missing')).status, 404);
+  assert.equal((await mf.dispatchFetch('https://gemigo.io/u/broken')).status, 503);
+  unavailable = true;
+  assert.equal((await mf.dispatchFetch('https://gemigo.io/catalog')).status, 503);
+  unavailable = false;
+  const verification = await mf.dispatchFetch('https://gemigo.io/google0dd0feb10e3c1fd1.html');
+  assert.equal(await verification.text(), 'google-site-verification: google0dd0feb10e3c1fd1.html');
+  const example = await mf.dispatchFetch('https://gemigo.io/examples/addition.html');
+  assert.ok((await example.text()).includes('document.getElementById'));
   const head = await mf.dispatchFetch('https://gemigo.io/about', { method: 'HEAD' });
   assert.equal(head.status, 200);
   assert.equal(await head.text(), '');

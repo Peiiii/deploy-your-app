@@ -33,15 +33,31 @@ const publishSeo = (): Plugin => ({
   name: 'publish-public-seo',
   transformIndexHtml(html) {
     const seo = getSeo(new URL('https://gemigo.io/'));
-    return html.replace('<!-- seo-head -->', renderSeoHead(seo))
+    return html
+      .replace('<!-- seo-head -->', renderSeoHead(seo))
       .replace('<!-- seo-content -->', renderSeoContent(seo));
   },
   generateBundle() {
     for (const [fileName, source] of [
-      ['seo.js', readFileSync(path.resolve(__dirname, 'seo.mjs'), 'utf8')],
+      [
+        'seo.js',
+        readFileSync(path.resolve(__dirname, 'seo.mjs'), 'utf8').replace(
+          "'./guide-examples.mjs'",
+          "'./guide-examples.js'"
+        ),
+      ],
+      [
+        'public-seo.js',
+        readFileSync(path.resolve(__dirname, 'public-seo.mjs'), 'utf8').replace(
+          "'./seo.mjs'",
+          "'./seo.js'"
+        ),
+      ],
+      ['guide-examples.js', readFileSync(path.resolve(__dirname, 'guide-examples.mjs'), 'utf8')],
       ['sitemap.xml', renderSitemap()],
       ['llms.txt', renderLlms()],
-    ]) this.emitFile({ type: 'asset', fileName, source });
+    ])
+      this.emitFile({ type: 'asset', fileName, source });
   },
 });
 

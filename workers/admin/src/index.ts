@@ -108,12 +108,17 @@ const handle = async (
   if (url.pathname === '/api/acquisition' && request.method === 'GET') {
     const days = Number(url.searchParams.get('days') || 7);
     if (![7, 30].includes(days)) throw new AdminInputError('请选择近 7 天或 30 天');
-    const cache = await caches.open('gemigo-acquisition-v1');
+    const cache = await caches.open('gemigo-acquisition-v2');
     const key = new Request(`${url.origin}/__acquisition-cache/${dayKey()}/${days}`);
     const cached = await cache.match(key);
     if (cached) return json({ ...((await cached.json()) as object), cached: true });
     const report = await queryAcquisition(env.ANALYTICS_DB, days);
-    ctx.waitUntil(cache.put(key, new Response(JSON.stringify(report), { headers: { 'Cache-Control': 'max-age=900' } })));
+    ctx.waitUntil(
+      cache.put(
+        key,
+        new Response(JSON.stringify(report), { headers: { 'Cache-Control': 'max-age=900' } })
+      )
+    );
     return json({ ...report, cached: false });
   }
   if (url.pathname === '/api/growth' && request.method === 'GET') {
