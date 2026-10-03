@@ -213,7 +213,7 @@ export default function Operations({
           </div>
         )}
         <span className="muted">
-          {section === 'dashboard' ? '业务数据库 · UTC 日期' : '实时查询 · 每页 20 条'}
+          {section === 'dashboard' ? '经营数据 · UTC 日期' : '实时查询 · 每页 20 条'}
         </span>
         <button disabled={busy} onClick={refresh}>
           {busy ? '加载中…' : '刷新数据 ↻'}
@@ -240,6 +240,8 @@ export default function Operations({
       {report && (
         <OperatingSummary
           report={report}
+          revision={revision}
+          days={days}
           navigate={navigate}
           busy={busy}
           changePage={(queue, page) => {

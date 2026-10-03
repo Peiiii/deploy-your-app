@@ -107,7 +107,7 @@ const handle = async (
   if (url.pathname === '/api/growth' && request.method === 'GET') {
     const days = Number(url.searchParams.get('days') || 7);
     if (![7, 30].includes(days)) throw new AdminInputError('请选择近 7 天或 30 天');
-    const cache = await caches.open('gemigo-growth-v3');
+    const cache = await caches.open('gemigo-growth-v4');
     const key = new Request(`${url.origin}/__growth-cache/${dayKey()}/${days}`);
     const cached = await cache.match(key);
     if (cached) return json({ ...((await cached.json()) as object), cached: true });

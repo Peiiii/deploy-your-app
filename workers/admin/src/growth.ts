@@ -151,12 +151,22 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
   const queryAllowance = Math.max(
     10000,
     rows.events * 4 +
-      (rows.users + rows.projects + rows.attempts) * 10 +
+      (rows.users + rows.projects) * 12 +
+      rows.attempts * 18 +
       Math.max(0, size.meta.rows_read - 10000)
   );
   const reservedReads = 10000 + queryAllowance;
   if (!(await reserve(db, bucket, queryAllowance, 1000000)))
     throw new AdminInputError('今日分析查询预算已用完，请查看缓存或明天重试', 429);
+  const registrationCohort = (from: string, to: string) =>
+    db
+      .prepare(
+        `SELECT COUNT(*) AS registered,
+        SUM(EXISTS(SELECT 1 FROM projects p WHERE p.owner_id=u.id AND COALESCE(p.is_deleted,0)=0 AND p.created_at<?)) AS activated,
+        SUM(EXISTS(SELECT 1 FROM deployment_attempts d JOIN projects p ON p.id=d.project_id WHERE d.owner_id=u.id AND p.owner_id=u.id AND COALESCE(p.is_deleted,0)=0 AND d.status='succeeded' AND d.started_at<?)) AS deployed
+        FROM users u WHERE u.created_at>=? AND u.created_at<?`
+      )
+      .bind(to, to, from, to);
   const [web, results] = await Promise.all([
     webAnalytics(env, period, now),
     db.batch<Row>([
@@ -185,14 +195,7 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
           Math.max(Date.parse(period.previousFrom), Date.parse(period.rawFrom)),
           Date.parse(end)
         ),
-      db
-        .prepare(
-          `SELECT COUNT(*) AS registered,
-        SUM(EXISTS(SELECT 1 FROM projects p WHERE p.owner_id=u.id AND COALESCE(p.is_deleted,0)=0 AND p.created_at<?)) AS activated,
-        SUM(EXISTS(SELECT 1 FROM deployment_attempts d JOIN projects p ON p.id=d.project_id WHERE d.owner_id=u.id AND p.owner_id=u.id AND COALESCE(p.is_deleted,0)=0 AND d.status='succeeded' AND d.started_at<?)) AS deployed
-        FROM users u WHERE u.created_at>=? AND u.created_at<?`
-        )
-        .bind(period.today, period.today, period.from, period.today),
+      registrationCohort(period.from, period.today),
       db
         .prepare(
           "SELECT COUNT(DISTINCT visitor_id) AS uv FROM product_events WHERE name='page_view' AND client_channel='web' AND is_admin=0 AND at>=? AND at<?"
@@ -206,15 +209,50 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
           `SELECT CASE WHEN started_at>=? THEN 'current' ELSE 'previous' END AS period,
         ${channelSql} AS channel,COUNT(*) AS attempts,SUM(status='succeeded') AS succeeded,
         SUM(status IN ('failed','rejected')) AS failed,SUM(status IN ('started','accepted')) AS pending,
-        COUNT(DISTINCT project_id) AS projects,COUNT(DISTINCT owner_id) AS users
+        COUNT(DISTINCT project_id) AS projects,COUNT(DISTINCT owner_id) AS users,
+        COUNT(DISTINCT CASE WHEN status='succeeded' AND TRIM(owner_id)!='' THEN owner_id END) AS successfulUsers
         FROM deployment_attempts WHERE started_at>=? AND started_at<? GROUP BY period,channel`
         )
         .bind(period.from, period.previousFrom, period.today),
+      db
+        .prepare(
+          `WITH first_success AS (
+        SELECT owner_id,MIN(started_at) AS first_at FROM deployment_attempts
+        WHERE status='succeeded' AND owner_id IS NOT NULL AND TRIM(owner_id)!='' GROUP BY owner_id
+      ), publishers AS (
+        SELECT DISTINCT owner_id,CASE WHEN started_at>=? THEN 'current' ELSE 'previous' END AS period
+        FROM deployment_attempts WHERE status='succeeded' AND started_at>=? AND started_at<?
+          AND owner_id IS NOT NULL AND TRIM(owner_id)!=''
+      ) SELECT p.period,COUNT(*) AS publishers,
+        SUM(f.first_at>=CASE WHEN p.period='current' THEN ? ELSE ? END) AS firstPublishers,
+        SUM(f.first_at<CASE WHEN p.period='current' THEN ? ELSE ? END) AS repeatPublishers
+        FROM publishers p JOIN first_success f ON f.owner_id=p.owner_id GROUP BY p.period`
+        )
+        .bind(
+          period.from,
+          period.previousFrom,
+          period.today,
+          period.from,
+          period.previousFrom,
+          period.from,
+          period.previousFrom
+        ),
+      db
+        .prepare(
+          `SELECT substr(started_at,1,10) AS day,COUNT(DISTINCT owner_id) AS publishers
+        FROM deployment_attempts WHERE status='succeeded' AND started_at>=? AND started_at<?
+          AND owner_id IS NOT NULL AND TRIM(owner_id)!='' GROUP BY day`
+        )
+        .bind(period.previousFrom, end),
+      registrationCohort(period.previousFrom, period.from),
     ]),
   ]);
   const maps = results
     .slice(0, 4)
     .map((result) => new Map(result.results.map((row) => [String(row.day), row])));
+  const publishers = new Map(
+    results[8].results.map((row) => [String(row.day), Number(row.publishers)])
+  );
   const platform = new Map((web.data?.platform || []).map((row) => [row.dimensions.date, row]));
   const apps = new Map((web.data?.apps || []).map((row) => [row.dimensions.date, row]));
   const all = Array.from({ length: period.days * 2 + 1 }, (_, i) => {
@@ -227,6 +265,7 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
       appsPv: hasWeb ? apps.get(date)?.count || 0 : null,
       uv: date >= period.rawFrom ? Number(maps[3].get(date)?.uv || 0) : null,
       observedPv: date >= period.rawFrom ? Number(maps[3].get(date)?.observedPv || 0) : null,
+      publishers: publishers.get(date) || 0,
       registrations: Number(maps[0].get(date)?.registrations || 0),
       projects: Number(maps[1].get(date)?.projects || 0),
       attempts: Number(maps[2].get(date)?.attempts || 0),
@@ -284,14 +323,39 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
         Number(results[4].results[0][key] || 0),
       ])
     ),
+    previousCohort: Object.fromEntries(
+      ['registered', 'activated', 'deployed'].map((key) => [
+        key,
+        Number(results[9].results[0][key] || 0),
+      ])
+    ),
+    publishing: Object.fromEntries(
+      ['current', 'previous'].map((window) => {
+        const row = results[7].results.find((item) => item.period === window);
+        return [
+          window,
+          Object.fromEntries(
+            ['publishers', 'firstPublishers', 'repeatPublishers'].map((key) => [
+              key,
+              Number(row?.[key] || 0),
+            ])
+          ),
+        ];
+      })
+    ),
     channels: channels.map((channel) => {
       const metrics = (window: string) => {
         const row = results[6].results.find((r) => r.channel === channel && r.period === window);
         return Object.fromEntries(
-          ['attempts', 'succeeded', 'failed', 'pending', 'projects', 'users'].map((key) => [
-            key,
-            Number(row?.[key] || 0),
-          ])
+          [
+            'attempts',
+            'succeeded',
+            'failed',
+            'pending',
+            'projects',
+            'users',
+            'successfulUsers',
+          ].map((key) => [key, Number(row?.[key] || 0)])
         );
       };
       return { channel, current: metrics('current'), previous: metrics('previous') };

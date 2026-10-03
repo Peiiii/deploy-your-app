@@ -162,6 +162,18 @@ try {
   assert.equal(report.current.registrations, 1);
   assert.equal(report.current.succeeded, 1);
   assert.deepEqual(report.cohort, { registered: 1, activated: 1, deployed: 1 });
+  assert.deepEqual(report.previousCohort, { registered: 0, activated: 0, deployed: 0 });
+  assert.deepEqual(report.publishing.current, {
+    publishers: 1,
+    firstPublishers: 1,
+    repeatPublishers: 0,
+  });
+  assert.deepEqual(report.publishing.previous, {
+    publishers: 0,
+    firstPublishers: 0,
+    repeatPublishers: 0,
+  });
+  assert.equal(report.daily.at(-1).publishers, 1);
   assert.equal(report.today.pv, 7, 'incomplete day must not enter period totals');
   assert.equal(report.web.adaptiveSampling, true);
   const again = await get();
@@ -200,6 +212,7 @@ try {
     pending: 1,
     projects: 1,
     users: 1,
+    successfulUsers: 1,
   });
   assert.deepEqual(cli.previous, {
     attempts: 1,
@@ -208,6 +221,7 @@ try {
     pending: 0,
     projects: 1,
     users: 1,
+    successfulUsers: 1,
   });
   assert.equal(
     usage.channels.find((row: { channel: string }) => row.channel === 'unknown').current.attempts,
@@ -225,6 +239,70 @@ try {
     0
   );
   assert.ok(!JSON.stringify(usage).includes('new-user'), 'channel reach is aggregate only');
+  // Equal full periods, per-day vs period reach, absent owners and cohort end boundaries.
+  await db
+    .prepare('INSERT INTO users (id,email,created_at,updated_at) VALUES (?,?,?,?)')
+    .bind('prior-user', 'prior@example.invalid', timestamp(8), timestamp(8))
+    .run();
+  await db
+    .prepare(
+      `INSERT INTO projects (id,name,repo_url,owner_id,status,is_deleted,last_deployed,created_at)
+    VALUES ('prior-app','Prior app','','prior-user','Live',0,?,?)`
+    )
+    .bind(timestamp(1), timestamp(8))
+    .run();
+  for (const [id, ago, owner, project] of [
+    ['old-prior', 9, 'old-user', 'new-app'],
+    ['old-current', 2, 'old-user', 'new-app'],
+    ['old-current-dup', 2, 'old-user', 'new-app'],
+    ['old-current-other-day', 1, 'old-user', 'new-app'],
+    ['prior-user-late-activation', 1, 'prior-user', 'prior-app'],
+    ['today-only', 0, 'today-creator', 'new-app'],
+    ['blank-owner', 1, '   ', 'new-app'],
+    ['empty-owner', 1, '', 'new-app'],
+  ] as const)
+    await db
+      .prepare(
+        `INSERT INTO deployment_attempts
+    (id,project_id,owner_id,source_type,client_channel,status,started_at)
+    VALUES (?,?,?,'html','web','succeeded',?)`
+      )
+      .bind(id, project, owner, timestamp(ago))
+      .run();
+  const compared = await get();
+  assert.deepEqual(compared.publishing.current, {
+    publishers: 3,
+    firstPublishers: 1,
+    repeatPublishers: 2,
+  });
+  assert.deepEqual(compared.publishing.previous, {
+    publishers: 2,
+    firstPublishers: 2,
+    repeatPublishers: 0,
+  });
+  assert.equal(
+    compared.daily.at(-1).publishers,
+    3,
+    'daily owners deduped, missing owners excluded'
+  );
+  assert.equal(
+    compared.daily.at(-2).publishers,
+    1,
+    'same-day repeat attempts do not inflate creator reach'
+  );
+  assert.equal(compared.today.publishers, 1, 'today-only owner stays outside compared reach');
+  assert.deepEqual(
+    compared.previousCohort,
+    { registered: 1, activated: 1, deployed: 0 },
+    'late success excluded at previous period end'
+  );
+  await db.prepare("UPDATE projects SET is_deleted=1 WHERE id='prior-app'").run();
+  assert.deepEqual(
+    (await get()).previousCohort,
+    { registered: 1, activated: 0, deployed: 0 },
+    'deleted apps do not count as activation'
+  );
+  await db.prepare("UPDATE projects SET is_deleted=0 WHERE id='prior-app'").run();
   const month = await get(30);
   assert.equal(month.daily.length, 30);
   assert.equal(month.daily[0].uv, null, 'partially retained date must not look like measured zero');

@@ -1386,7 +1386,7 @@ a:focus-visible {
   font-size: 12px;
 }
 .operating-totals {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .operating-report-note {
   display: flex;
@@ -1487,9 +1487,6 @@ a:focus-visible {
   .operating-totals {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .operating-totals .metric:last-child {
-    grid-column: 1 / -1;
-  }
   .operating-report-note {
     flex-direction: column;
     align-items: start;
@@ -1520,4 +1517,70 @@ a:focus-visible {
     white-space: nowrap;
     padding: 10px 12px;
   }
+}
+
+.home-primary-metrics .metric p {
+  margin: 8px 0;
+  font-size: 12px;
+  color: #61527b;
+  line-height: 1.6;
+}
+.home-trends {
+  align-items: stretch;
+}
+.home-traffic {
+  position: relative;
+  min-width: 0;
+}
+.home-traffic-tabs {
+  position: absolute;
+  top: 52px;
+  left: 24px;
+  gap: 4px;
+  z-index: 1;
+}
+.home-traffic-tabs button {
+  padding: 6px 8px;
+  font-size: 11px;
+}
+.home-traffic .growth-chart .spread,
+.home-trends > .growth-chart .spread {
+  padding-bottom: 34px;
+}
+.home-traffic .growth-chart {
+  height: 100%;
+}
+.home-analysis {
+  margin-top: 20px;
+  margin-bottom: 16px;
+}
+.home-analysis .growth-step strong small {
+  color: #7f8394;
+  font-weight: 400;
+}
+.home-diagnostics {
+  margin-bottom: 24px;
+}
+.home-diagnostics > summary {
+  cursor: pointer;
+  color: #696477;
+  font-size: 13px;
+}
+.home-diagnostics .dashboard-columns {
+  margin-top: 20px;
+}
+@media (max-width: 700px) {
+  .home-traffic-tabs {
+    top: 52px;
+    left: 18px;
+    right: auto;
+  }
+  .home-traffic .growth-chart .spread,
+  .home-trends > .growth-chart .spread {
+    padding-bottom: 38px;
+  }
+}
+
+.home-primary-metrics .metric:first-child p {
+  color: #e5dcef;
 }
