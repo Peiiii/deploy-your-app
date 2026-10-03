@@ -94,28 +94,59 @@ const reportFor = async (page, endpoint, days) => {
   assert.ok(report, `actual ${endpoint} response captured${days ? ` for ${days} days` : ''}`);
   return report;
 };
-async function inspect(page, frame, index, expected, touch = false) {
+async function inspect(page, frame, index, expected, touch = false, bar = false) {
   await frame.scrollIntoViewIfNeeded();
   const svg = frame.locator('svg');
+  await svg.waitFor({ state: 'visible' });
   const box = await svg.boundingBox();
-  const x = box.x + ((45 + (index / Math.max(1, expected.length - 1)) * 600) / 680) * box.width;
+  const axis = await svg.locator('path[stroke="#ddd9e5"]').boundingBox();
+  assert.ok(axis, 'native category axis is rendered');
+  const x =
+    axis.x +
+    (bar ? (index + 0.5) / expected.length : index / Math.max(1, expected.length - 1)) * axis.width;
+  const hitX = Math.min(axis.x + axis.width - 2, Math.max(axis.x + 2, x));
   const y = box.y + box.height * 0.72;
-  if (touch) await page.touchscreen.tap(x, y);
-  else await page.mouse.move(x, y);
+  if (touch) await page.touchscreen.tap(hitX, y);
+  else await page.mouse.move(hitX, y);
   const tooltip = frame.getByRole('tooltip');
   await tooltip.waitFor();
   const text = await tooltip.innerText();
   assert.ok(text.includes(expected[index].day), text);
   for (const value of expected[index].values)
     assert.ok(text.includes(value === null ? '暂无数据' : formatted(value)), text);
-  assert.equal(await frame.locator('.chart-reference').count(), 1);
+  assert.ok(
+    (await svg.textContent()).includes(expected[index].day),
+    'crosshair date label identifies the selected day'
+  );
   const tip = await tooltip.boundingBox(),
     bounds = await frame.boundingBox();
   assert.ok(
     tip.x >= bounds.x && tip.x + tip.width <= bounds.x + bounds.width + 1,
     'tooltip stays within its chart, including edges'
   );
-  assert.ok(tip.y + tip.height <= box.y, 'readout does not overlap the drawing or date axis');
+  assert.ok(tip.y + tip.height <= box.y + box.height - 32, 'tooltip leaves the date labels clear');
+  if (!bar && expected[index].values[0] !== null) {
+    const points = await svg.locator('path').evaluateAll((paths) =>
+      paths
+        .filter((path) => path.getAttribute('d')?.startsWith('M1 0A1'))
+        .map((path) => {
+          const box = path.getBoundingClientRect();
+          return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+        })
+    );
+    const point = points.find((point) => Math.abs(point.x - x) < 3);
+    if (point)
+      assert.ok(
+        !(
+          point.x >= tip.x &&
+          point.x <= tip.x + tip.width &&
+          point.y >= tip.y &&
+          point.y <= tip.y + tip.height
+        ),
+        'floating tooltip leaves the selected native data point clear'
+      );
+  }
+
   const after = await svg.boundingBox();
   assert.ok(
     Math.abs(after.y - box.y) < 1 && Math.abs(after.height - box.height) < 1,
@@ -162,7 +193,7 @@ try {
   await page.keyboard.press('Escape');
   await tooltip.waitFor({ state: 'hidden' });
   const idlePlot = await home.first().locator('svg').boundingBox();
-  assert.ok(Math.abs(idlePlot.y - selectedPlot.y) < 1, 'closing readout preserves reserved space');
+  assert.ok(Math.abs(idlePlot.y - selectedPlot.y) < 1, 'closing tooltip does not move the plot');
   await inspect(page, home.first(), 0, expected);
   await page.mouse.move(0, 0);
   await tooltip.waitFor({ state: 'hidden' });
@@ -184,15 +215,21 @@ try {
   );
   assert.ok((await home.nth(1).getByRole('tooltip').innerText()).includes('浏览器标识'));
   await page.getByRole('button', { name: '近 30 天', exact: true }).click();
-  await page.waitForFunction(
-    () => document.querySelector('.home-trends svg')?.querySelectorAll('circle').length === 30
+  await page.waitForFunction(() =>
+    document
+      .querySelector('.home-trends .chart-plot')
+      ?.getAttribute('aria-label')
+      ?.includes('30个日期')
   );
   growth = await reportFor(page, 'growth', 30);
   await keyboard(page, home.nth(1), growth.daily, 'uv');
   const previousDay = growth.daily.at(-1).day;
   await page.getByRole('button', { name: '近 7 天', exact: true }).click();
-  await page.waitForFunction(
-    () => document.querySelector('.home-trends svg')?.querySelectorAll('circle').length === 7
+  await page.waitForFunction(() =>
+    document
+      .querySelector('.home-trends .chart-plot')
+      ?.getAttribute('aria-label')
+      ?.includes('7个日期')
   );
   assert.equal(await page.getByRole('tooltip').count(), 0, 'range switch dismisses old selection');
   await page.getByRole('button', { name: '刷新数据 ↻', exact: true }).waitFor();
@@ -204,7 +241,9 @@ try {
     page,
     diagnostics.locator('.chart-frame'),
     6,
-    overview.daily.map((d) => ({ day: d.day, values: [d.total, d.succeeded] }))
+    overview.daily.map((d) => ({ day: d.day, values: [d.total, d.succeeded] })),
+    false,
+    true
   );
   const diagnosticText = await diagnostics.getByRole('tooltip').innerText();
   assert.ok(diagnosticText.includes('全部尝试') && diagnosticText.includes('成功尝试'));
@@ -252,7 +291,9 @@ try {
       page,
       page.locator('.chart-frame'),
       analytics.daily.length - 1,
-      analytics.daily.map((d) => ({ day: d.day, values: [d.events, d.visitors] }))
+      analytics.daily.map((d) => ({ day: d.day, values: [d.events, d.visitors] })),
+      false,
+      true
     );
   const { page: mobile, context } = await open(true);
   const mframe = mobile.locator('.home-trends .chart-frame').first();
@@ -264,13 +305,18 @@ try {
   await mobile.getByRole('heading', { name: '经营总览', exact: true }).tap();
   await mframe.getByRole('tooltip').waitFor({ state: 'hidden' });
   await mobile.getByRole('button', { name: '近 30 天', exact: true }).tap();
-  await mobile.waitForFunction(
-    () => document.querySelector('.home-trends svg')?.querySelectorAll('circle').length === 30
+  await mobile.waitForFunction(() =>
+    document
+      .querySelector('.home-trends .chart-plot')
+      ?.getAttribute('aria-label')
+      ?.includes('30个日期')
   );
   await mframe.scrollIntoViewIfNeeded();
   const scroll = mframe.locator('.chart-plot');
-  const before = await scroll.evaluate((e) => e.scrollLeft);
-  assert.ok(before > 0);
+  assert.ok(
+    await scroll.evaluate((e) => e.scrollWidth <= e.clientWidth),
+    'the complete 30-day chart fits the mobile viewport'
+  );
   const box = await scroll.boundingBox(),
     cdp = await context.newCDPSession(mobile);
   const start = box.x + 50,
@@ -285,16 +331,31 @@ try {
       touchPoints: [{ x: start + step * 20, y }],
     });
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-  await mobile.waitForFunction(
-    (before) => document.querySelector('.home-trends .chart-plot').scrollLeft < before,
-    before
-  );
-  assert.equal(await mobile.getByRole('tooltip').count(), 0, 'touch scroll is not a tap');
+  await mframe.getByRole('tooltip').waitFor({ state: 'hidden' });
+  const beforePan = await mobile.evaluate(() => scrollY);
+  await cdp.send('Input.dispatchTouchEvent', {
+    type: 'touchStart',
+    touchPoints: [{ x: start, y }],
+  });
+  for (let step = 1; step <= 6; step++) {
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x: start, y: y - step * 20 }],
+    });
+    await mobile.waitForTimeout(20);
+  }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await mobile.waitForFunction((previous) => scrollY > previous + 20, beforePan);
+  await mframe.getByRole('tooltip').waitFor({ state: 'hidden' });
+
   assert.ok(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await mobile.setViewportSize({ width: 320, height: 844 });
   await mobile.getByRole('button', { name: '近 7 天', exact: true }).tap();
-  await mobile.waitForFunction(
-    () => document.querySelector('.home-trends svg')?.querySelectorAll('circle').length === 7
+  await mobile.waitForFunction(() =>
+    document
+      .querySelector('.home-trends .chart-plot')
+      ?.getAttribute('aria-label')
+      ?.includes('7个日期')
   );
   growth = await reportFor(mobile, 'growth', 7);
   await inspect(
@@ -306,7 +367,7 @@ try {
   );
   assert.ok(
     await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
-    '320px readout and chart fit the viewport'
+    '320px tooltip and chart fit the viewport'
   );
   if (screenshots) await mobile.screenshot({ path: join(screenshots, 'compact-tooltip.png') });
   await mobile.getByRole('button', { name: '刷新数据 ↻', exact: true }).waitFor();
@@ -318,12 +379,13 @@ try {
     compactDiagnostics.locator('.chart-frame'),
     6,
     compactOverview.daily.map((d) => ({ day: d.day, values: [d.total, d.succeeded] })),
+    true,
     true
   );
   if (screenshots) await mobile.screenshot({ path: join(screenshots, 'compact-bars.png') });
   assert.deepEqual(errors, []);
   console.log(
-    `PASS ${production ? 'production' : 'local'} charts: broad hover/date/values/units, tooltip hover and leave/Escape, keyboard bounds and visible selection, 7/30+metric reset, null/zero, all curve+bar consumers, real touch/tap/outside/swipe, readout outside drawing with stable layout, no clipping/root overflow/JS errors.`
+    `PASS ${production ? 'production' : 'local'} charts: broad hover/date/values/units, tooltip hover and leave/Escape, keyboard bounds and visible selection, 7/30+metric reset, null/zero, all curve+bar consumers, real touch/tap/outside/swipe, native crosshairs and compact floating tooltips, responsive full-period charts with stable layout, no clipping/root overflow/JS errors.`
   );
 } finally {
   await browser.close();

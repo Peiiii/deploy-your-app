@@ -1,6 +1,6 @@
 # 后台经营与处理链路优化
 
-状态：Implemented / production verified（Worker b8c2f370，scope10固定读数栏已线上验证，scope8增长判断与scope7侧栏保持；交付详见原日志）；design-document: required；plan: not-required（同一后台 Worker/UI、单批交付）。上位设计：[独立后台](2026-10-02-admin-console.design.md)。当前合同 scope-revision 10 / ADM-12、ADM-13、ADM-14、ADM-15。原始输入：用户要求整体设计并优化；前序明确增长与运营价值、CLI含Skill、库存整合且不要无限拓展。当前产品方向以 2026-10-03 direction thought 为准，教育/学习与游戏是探索重点，保留所有应用类别。
+状态：scope11金融图表返工已实现，正在真实页面验证及交付；scope10固定读数栏按用户反馈退场，scope8增长判断与scope7侧栏保持（交付详见原日志）；design-document: required；plan: not-required（同一后台 Worker/UI、单批交付）。上位设计：[独立后台](2026-10-02-admin-console.design.md)。当前合同 scope-revision 11 / ADM-12、ADM-13、ADM-14、ADM-15。原始输入：用户要求整体设计并优化；前序明确增长与运营价值、CLI含Skill、库存整合且不要无限拓展。当前产品方向以 2026-10-03 direction thought 为准，教育/学习与游戏是探索重点，保留所有应用类别。
 
 ## 选择与用户价值
 
@@ -96,3 +96,23 @@ mode=design Review：截图原目标是同时读数与看趋势，顶部静态�
 
 
 scope10交付：`f966b5e` / Worker `b8c2f370-8e3a-43a8-b1cd-1e4752ea3d86`；1440/390/320实际Chrome和截图已验证读数与绘图区分离、进入/退出无位移、单/双指标与原hover/键盘/touch完整。对照用户附件，真实10月2日11人读数移到栏内，整条曲线及轴可见；事实owner更新与本地/生产几何验证保留。无进一步高价值范围内缺口，停止本批视觉迭代；美感仍可由用户反馈，不冒充主观验收。
+
+
+## 金融图表交互返工（scope11，Design Ready）
+
+用户明确认为scope10固定栏“交互很怪”，要求参考顶级图表库并指出交易/股票软件。scope10体验方案失效，scope9自绘浮层与scope10占位条均退场；完整目标是自然查看日期与数字、趋势仍清楚、鼠标/键盘/手机通用，而不是机械保证整张SVG永无浮层。flow=bugfix，L2 UI/L4发布；skip-reproduction基于用户实际线上评价和现行固定栏源码，原图表统计、账号与处理路径继续保持，ADM06/15 stale。plan:not-required，retrospective pending。
+
+主源核对：TradingView官方[tooltips](https://tradingview.github.io/lightweight-charts/tutorials/how_to/tooltips)区分跟数据点/光标的紧凑浮层，[crosshair](https://tradingview.github.io/lightweight-charts/tutorials/customization/crosshair)说明磁吸读数；[Highcharts Stock](https://www.highcharts.com/docs/stock/understanding-highcharts-stock)和[tooltip](https://www.highcharts.com/docs/chart-concepts/tooltip)说明准线与同日多指标；[Apache ECharts axis](https://echarts.apache.org/handbook/en/concepts/axis/)以及官方TooltipView源码有axis tooltip、edge flip、enterable和公开定位回调；[Recharts Tooltip](https://recharts.github.io/en-US/api/Tooltip/)支持偏移/越界/portal。不是所有库只允许一种提示位置，固定栏也不是必须，但本产品用户已明确不接受该形态。
+
+候选：继续自绘SVG+新定位仍会自维护命中/坐标/自适应与触摸；TradingView Lightweight Charts金融时间序列成熟，但内置无tooltip且现有并排两指标柱仍需额外定制；Recharts声明式适合React，但本批Home/End/缺失日期可编程检查的完整输入适配不如ECharts公开dispatchAction直接；采用Apache ECharts6.1.0模块化core/Line/Bar/Grid/Tooltip/SVG。最小真实Chrome实验已验证原生axis hover可命中null日期与0、axis crosshair随动，showTip(seriesIndex,dataIndex)不能定位null点；改用公开坐标showTip(x,y)后首个缺失日也能读取。该实验只证明机制，正式页面与生产仍必须验收。
+
+黄金链路：现有账号进入首页→直接看到干净趋势，无永久占位读数栏→横移时最近日期竖线/点高亮，横向准线与坐标轴标签辅助读数，紧凑浮层随选择更新→首末日期自动换侧，当前数据点与日期标签保持可见→移入提示保持/Esc关闭→7/30/指标切换清旧值，零和缺失语义保持→增长4曲线/并排部署和事件双指标同样看→手机点选/拖动检查并保留页面纵滚，外部关闭；Tab与左右/Home/End通过原生showTip坐标动作逐日，缺失日期也可到达。
+
+TimeSeriesChart继续是三个消费者的唯一业务适配owner，输入API不变；ECharts负责坐标轴、图形、最近日期命中、准线、高亮、tooltip DOM及生命周期。只适配指标单位/完整UTC日期/null、键盘与外部关闭；定位走ECharts公开position回调，优先当前点侧方，空间不足翻转或上下避让，使用实际内容尺寸与chart边界，不再持久化left或自绘图形。浮层约单行/双行，透明淡阴影，不挡当前选点和日期轴；去掉永久栏与重复操作脚注。7/30全期按可用宽度响应显示，保留所有日期可读，时间轴自动省略部分刻度但不省略数据；原强制480px SVG横滚路径退场，用户仍可读取完整时间窗与触摸逐日检查，页面纵滚保持。此为用户授权的交互替换，不删除指标/日期可达性。ResizeObserver负责resize，effect创建/清理instance及listener，业务快照变化替换后旧选择清空；无新后台查询/权限/SDK/存储或通用插件体系。
+
+验收先复用正式页面和实际响应：null/0/多指标的数字单位、所有首末日/邻日/plot中间命中、准线/axis label、紧凑提示内外hover/关闭/键盘、范围和metric失效；几何判定改为当前点/日期标签清楚、边缘在画布内、图形显示/关闭不移动、闲置无占位栏；1440/390/320全期及点选/滑动/纵滚无根溢出/JS错误。实际看截图/对照附件与官方交互示例，不凭类名或“用了库”宣布体验达标；静态types/build/lint、diff Review及最终生产/QA/Git闭环保持。记录模块化后的真实bundle变化，不为此新增加载框架。
+
+mode=design Review：用户当前指定金融图表常见交互已覆盖，旧读数/缺失/键盘链路逐项保留；缺失日不能用series点动作的反例已试验并选择坐标动作。所有数据仍可访问，响应时间轴替代强制横滚但原指标不减；库负责坐标而非两套图形平行运行，组件仅必要业务适配，初始化/resize/dispose明确。无新状态表或未安装未来图形能力；no findings，design-review:passed（scope11）。
+
+
+scope11依赖落地补充（Design Review passed）：首个模块化构建gzip265.25KiB，对比原86.82KiB多178.43KiB；登录页不需要图表运行时。采用一个现有React.lazy/Suspense边界：time-series-chart为唯一消费入口/业务输入类型/固定高度加载反馈，time-series-plot为ECharts实例与图形交互owner；模块只在实际图表挂载时加载，不建新loader框架或三个入口各自懒加载。目标目录admin/src现有组件域，无planned-path preflight；新文件有当前3消费者且隔离已测第三方运行时成本。原SVG/定位逻辑完全退场，无并行引擎。单批实现/验证与原验收保持，no findings。

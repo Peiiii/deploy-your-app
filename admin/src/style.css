@@ -1179,15 +1179,6 @@ a:focus-visible {
   min-width: 0;
   margin-bottom: 0;
 }
-.growth-plot {
-  overflow-x: auto;
-  margin: 16px 0;
-}
-.growth-plot svg {
-  display: block;
-  width: 100%;
-  min-width: 480px;
-}
 .growth-metrics .metric:first-child {
   background: #312345;
   color: #fff;
@@ -1533,72 +1524,50 @@ a:focus-visible {
 }
 
 .chart-frame {
-  position: relative;
   min-width: 0;
 }
 .chart-plot {
-  touch-action: pan-x pan-y;
-}
-.chart-plot svg {
-  cursor: crosshair;
+  height: 232px;
+  width: 100%;
+  min-width: 0;
+  margin: 12px 0;
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
 }
 .chart-plot:focus-visible {
   outline: 2px solid #9171d3;
   outline-offset: 3px;
   border-radius: 6px;
 }
-.chart-help {
-  margin: 6px 0 12px;
-  color: #858095;
-  font-size: 10px;
-  line-height: 1.7;
-}
 .chart-tooltip {
-  display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
-  align-items: center;
-  gap: 8px 16px;
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  background: #faf8fd;
-  border: 1px solid #eee9f4;
-  border-radius: 8px;
+  width: max-content;
+  font-size: 12px;
+  line-height: 18px;
 }
 .chart-tooltip > strong {
-  color: #33273e;
-  font-size: 12px;
-  line-height: 20px;
-  white-space: nowrap;
-}
-.chart-tooltip > strong small {
-  color: #93849d;
-  font-size: 9px;
-  font-weight: 400;
-}
-.chart-values {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
+  display: block;
+  margin-bottom: 6px;
+  color: #665b73;
+  font-size: 11px;
+  font-weight: 500;
 }
 .chart-tooltip-value {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 20px;
-  font-size: 11px;
-  line-height: 1.5;
+  margin-top: 3px;
 }
 .chart-tooltip-value span {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   min-width: 0;
   color: #776b80;
 }
 .chart-tooltip-value i {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   flex: none;
 }
@@ -1606,11 +1575,12 @@ a:focus-visible {
   color: #30253a;
   text-align: right;
   font-weight: 600;
+  min-width: 0;
 }
 
-@media (max-width: 600px) {
-  .chart-tooltip {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 6px;
-  }
+.chart-loading {
+  display: grid;
+  place-items: center;
+  color: #898397;
+  font-size: 12px;
 }

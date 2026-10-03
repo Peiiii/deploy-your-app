@@ -196,3 +196,18 @@ scope10生产Delivery：精确7文件功能提交`f966b5e`已普通推送并主�
 实际查看`/tmp/gemigo-admin-charts-docked-prod/{desktop,mobile}-tooltip.png`及compact-bars.png，对照用户附图同一10月2日11人状态：数值位于上方细栏，曲线与日期轴完整可见，双指标320px均完整无裁切；截图0600。scope10质量模型为同时读数/看趋势、稳定几何、小屏完整信息与原操作保持，全部获得运行和视觉证据；不以无溢出替代曲线无遮挡，也不声称用户主观美感验收。
 
 专用QA session精确删除后HTTP401，当前密码版本6与其他会话保持；本轮3份成功非缓存报表预留合计155248按已记录响应原子归还，共享时点计数668270，其它/无法归属额度保留，不清零共享预算。QA、本地凭据、预算JSON全部删除；隔离5176服务确认owned进程后SIGINT退出130。无迁移/Secrets或业务资源写入。最终实现Review无新增findings，原组件owner不变；retrospective completed：更新原事实/设计与真实运行断言，没有新通用规则。ADM06/15 passed，最后记录提交/推送后重新fetch核对本地master、origin/master及远程实际SHA。
+
+
+## scope11 金融图表参考与原生交互返工（调查中）
+
+用户继续纠偏：“说实话，这个体验感觉很怪，这个交互很怪，能不能参考最佳实践来优化呀？那些顶级的图表库，他们都不这样子的吧”；补充“尤其……交易软件……股票……他们很擅长这些东西”。因此scope10固定读数栏不再作为体验有效方案，ADM06/15重新stale；沿原目标重新调查最佳实践，不将零遮挡机械解释为永久工具栏。已查TradingView Lightweight Charts官方tooltips/crosshair指南、Highcharts Stock/tooltip主源、Recharts Tooltip及Apache ECharts源代码，来源和最终取舍待补。当前固定栏版本f966b5e/b8c2f370已部署但用户明确不满意，当前目标仍是自然读数、有效避让/边缘、桌面手机与原缺失/键盘。近期主线f4168fa已fresh fetch实际远端与本地0 0；保护AI体系升级与analytics及未跟踪资料并发WIP，密码保持。下一步最小实际库实验确认null日期/键盘/触摸边界，再冻结方案与Review；retrospective pending。
+
+
+scope11正式方案/Review见原专题：ECharts6.1.0为图形/坐标/准线/tooltip owner，当前TimeSeriesChart只适配业务字段/单位/null与keyboard/outside。已在独立Chrome最小实验验证原生null/zero与public坐标showTip缺失日，series点动作缺失日失败已纳入反例；原强制小屏横滚以全期自适应替代，所有日期仍可逐日查看。Design Review无findings后进入Implementation，正式产品/生产验证待完成；不是将临时页当用户验收入口。
+
+
+scope11 Implementation/Validation：ECharts6.1.0模块化原生SVG接入所有原消费者，旧自绘坐标/图形/永久读数栏退出。真实页面首轮暴露进入enterable提示后Escape不隐藏；核对库hideLater/keepShow公共行为后，用先清检查再公开setOption解除enterable/立即hide，下次检查恢复，无私有字段或异步延时补丁。手机native touchend会合成检查，拖动完成适配在touchend后清提示；触屏脚本改按实际可见性判定（库关闭时保留隐藏DOM），不以节点仍存在误判固定提示。原生坐标轴外边距并非旧SVG常量，测试按实际轴线边界输入、避开浏览器像素舍入边界，不改变日期/数值判定。320px双柱截图发现浏览器整块tap高亮，局部CSS取消后真实截图复验清楚。
+
+最终本地`scripts/test-admin-charts.mjs`PASS：1440×1050、390×844、320×844，真实Worker+D1页面及实际返回数字，首末日/广域命中、完整UTC/语义单位、null/0/双指标、crosshair日期标签、tooltip内hover/Esc/离开、Tab左右HomeEnd/边界、7/30及指标旧检查清空、全部首页/增长/部署诊断/使用趋势、触屏tap/外部/横向拖动不固定/真实纵滑页面滚动；浮层边缘受限/日期标签与选中原生点清楚、画布不跳动/无根溢出/JS错误。已查看正式四张桌面/390/320单柱截图并与用户大浮层附件和官方示例方向对照；主观美感待用户反馈。最终admin tsc/build、targeted ESLint及diff-check通过；CSS index-BTkLWYWm，main index-qIkwd6ea gzip85.62KiB，lazy time-series-plot-CXYMWjwj gzip180.98KiB；原main86.82KiB，登录不下载图表引擎。第三方独立chunk>500kB提示保留，未抬阈值掩盖成本。
+
+mode=implementation Review：项目无diff-only maintainability入口，按实际diff与原用户输入完成findings-first和owner结构复核。检查业务数据/单位/null、安全DOM文本、原生公开API输入、跨范围/快照旧实例清理、native enterable强制关闭与触摸取消、容器resize/事件注销、lazy单边界/原登录包成本和lockfile唯一依赖增量。没有第二套SVG图形/定位状态、后台请求/统计/权限/存储变化，旧强制横滚按设计用全期响应替换且所有日期可达；原数据/管理/账号合同保持有效，无开放findings。Validation acceptance-ready（本地），ADM06/15待真实生产，Delivery准备精确提交/普通推送/既有admin部署。
