@@ -52,3 +52,17 @@ PL5=passed：默认线上首页使用真实 API 找到「element」(939bbb9f-f25
 主工作区本地 master 当时有另一任务独有提交 34a219e（smart favicon），保留其归属后普通合并已交付主线并推送，master/远端实际 SHA=f6b783909f51157a8cde034fa95561c5f537583e，fetch 后 rev-list=0 0。同步前只有两份 locale WIP 与本任务触达文件重叠，精确 stash+备份→合并→apply --index，JSON 去除新 previewLoading 后与原草稿完全相等；原暂存区为空，恢复后仍为空，其它 WIP 未进入提交。恢复验证后删除临时 stash；本收尾记录另精确提交并同步。
 
 最终 implementation Review no findings；有效证据覆盖 PL1–PL5。retrospective_decision=no-increment：这次局部浏览器加载状态已在既有 owner 与回归中闭环，iframe load 的可观测边界和用户逃离入口已经记录到本设计，无需新增通用规则或平行状态机制。retrospective_state=completed。交付入口为默认 gemigo.io，AI 功能/上线验收通过，主观动效偏好仍待用户反馈，不声称用户验收通过。
+
+## 修订 2：嘴部为一个连续缺口（实现前）
+
+2026-10-03 用户反馈扇形两边都有缝，像舌头，希望圆形缺口一张一合。bugfix；SVG/CSS 单 owner、局部视觉 L1，发布 L4。根因直接可核对：旧实现只转动第一块60°扇形，转至27°时，其起点从-90°变-63°，留下-90°至-63°的额外缝隙，而末端与下方扇区还有独立缝隙。skip-reproduction（直接几何证据 + 修后逐帧真实渲染）；不声称已有修前浏览器帧基线。plan=not-required，retrospective_state=pending；旧视觉通过结论不能替代用户新标准。
+
+唯一修复路径：四个静态完整紫色象限组成圆形，整个圆形共用一个向右的扇形缺口裁剪；只连续改变上下两条嘴边角度，开到约62°、合到0°，身体保持完整。根据用户追加“眼睛不一定需要”的偏好去掉眼睛，仅保留品牌四象限、光点和既有加载生命周期；reduced-motion 固定小开口。复用 preview-sprite-jaw 动效 owner，不新增组件、JS 动画循环或逐帧 React 状态。CSS clip-path polygon + fill-box 用整体绘制范围定位，依据 [MDN clip-path](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/clip-path)。
+
+contract-id=preview-loading，scope-revision=2；PL1/PL3/PL4/PL5 受本修订视觉/产物影响转 stale，PL2 状态逻辑证据继续有效；新增 PL6 Required=true / not-run：一张一合全过程始终只有一个嘴部缺口，无分离扇形/双缝，身体固定且没有额外眼睛，合嘴接近完整圆形，减少动态效果保留静态小开口。验收沿首页真实点击，在张开、收合和中间帧检查实际浏览器像素；同一回归更新嘴部检测为 clip-path 而非旋转，保留现有等待和退出矩阵。
+
+实施前 design-review=passed：用户修正与连续整体模型对齐；静态四象限+单一裁剪不能产生独立舌片，没有新增依赖/状态/错误边界；局部修改复用原组件/样式/脚本及设计，无新路径。实际渲染而非类名断言证明缺口外观，随后线上新资产验收；no findings。
+
+补充方案 Review：移除两枚眼睛圆点，SVG 与静态品牌更一致，不影响单嘴裁剪/光点/加载状态；PL6 同时验证无额外五官，design-review=passed。
+
+修订2开发验收：PL1/PL3/PL4/PL6=passed，PL2 继续有效，PL5 等待新部署。最终无眼睛版本 production build index-BFUTbLjP.js / index-DDECKSYj.css；frontend tsc、定向 ESLint、diff-check 及原完整 production preview 回归通过。/tmp/preview-mouth-{0,150,300,450,599}.png 逐张核对：整体圆形一直连通、只有右侧嘴部缺口、合嘴形成完整圆形，中间帧没有分離舌片，眼睛已删除。减少动态效果的静态小开口由同一 CSS 基础裁剪提供。实现 Review no findings：一个整体绘制组拥有裁剪，保留原紫色四象限与光点，不引入 JS 动画或生命周期变化；没有项目 diff-only maintainability 自动入口，按这4个文件的 diff 审查。已有浏览器回归更新观测到的新动画属性，未增加仅镜像源码的视觉单元测试。

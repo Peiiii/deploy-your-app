@@ -184,7 +184,8 @@ body {
 }
 
 .preview-sprite-jaw {
-  transform-origin: 16px 16px;
+  /* Cut one mouth out of the whole body, so no sector can detach. */
+  clip-path: polygon(50% 50%, 100% 35%, 100% 0%, 0% 0%, 0% 100%, 100% 100%, 100% 65%) fill-box;
   animation: preview-chomp 600ms ease-in-out infinite;
 }
 
@@ -193,8 +194,8 @@ body {
 }
 
 @keyframes preview-chomp {
-  0%, 100% { transform: rotate(-8deg); }
-  50% { transform: rotate(27deg); }
+  0%, 100% { clip-path: polygon(50% 50%, 100% 20%, 100% 0%, 0% 0%, 0% 100%, 100% 100%, 100% 80%) fill-box; }
+  50% { clip-path: polygon(50% 50%, 100% 50%, 100% 0%, 0% 0%, 0% 100%, 100% 100%, 100% 50%) fill-box; }
 }
 
 @keyframes preview-snack {

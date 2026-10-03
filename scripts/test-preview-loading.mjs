@@ -68,9 +68,9 @@ try {
     assert.equal(await frame.getAttribute('inert'), '');
     assert.equal(await frame.evaluate(element => getComputedStyle(element).opacity), '0');
     await page.screenshot({ path: join(screenshots, 'preview-loading-light.png') });
-    const jawStart = await page.locator('.preview-sprite-jaw').evaluate(element => getComputedStyle(element).transform);
+    const jawStart = await page.locator('.preview-sprite-jaw').evaluate(element => getComputedStyle(element).clipPath);
     await page.waitForTimeout(170);
-    assert.notEqual(await page.locator('.preview-sprite-jaw').evaluate(element => getComputedStyle(element).transform), jawStart, 'Mouth actually animates');
+    assert.notEqual(await page.locator('.preview-sprite-jaw').evaluate(element => getComputedStyle(element).clipPath), jawStart, 'The single mouth opening actually animates');
 
     await page.getByRole('button', { name: '评论', exact: true }).click();
     await page.getByRole('button', { name: '全屏', exact: true }).click();
