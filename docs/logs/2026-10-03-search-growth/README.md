@@ -38,3 +38,9 @@
 - 复盘处置：当前父目标未完整验收，返回相应验证/平台环节。仅原地更新PRODUCT_ANALYTICS指标事实和长期track；Pages clean-URL事实已由实际回归fixture保护，没有新增上游全局规则/第二套任务状态，也未配置自动巡检。
 
 - 最终Git收尾：本批仅提交任务文档/证据，普通推送origin/master，再从主工作区fetch与快进。验收以本地master...origin/master为0 0且ls-remote实际SHA一致为准；无关analyze.sh改动和三个未跟踪产物保留。最终Pages生产分支77654ae，源码a787429；本批仅文档不重部署。未闭合SG01/02/05，整体仍进行中。
+
+- 2026-10-03续办：Mac已解锁；Chrome原窗口先发生用户操作冲突，用户确认可暂时独占操作。内置浏览器线上examples/addition.html实际验证2+3输入5正确、4错误、换题清空并聚焦、新题6+2输入8正确；[截图](artifacts/sample-interaction.jpg)，SG02关闭。原Chrome已定位GSC验证dialog；上传准备完成，因浏览器安全规则要求新访问权在动作时确认，已提交准确确认问题，等待回答。
+
+- 续办SG05：原Chrome已有有效admin会话。重新加载当前线上/#seo，实际收到“今日分析查询预算已用完，请缩小范围或明天重试”；不是登录失败。最新admin HTML和272094字节主JS含publishedSessions字段，内置浏览器无会话时正确显示独立登录页。已保存[后台受限截图](artifacts/admin-query-budget.jpg)。该一次7日请求在聚合预留失败前成功countAllowance40100，收尾仅原子扣回这次40100；未成功生成聚合，不虚构新计数，不重设管理员密码。浏览器DevTools仅查看控制台，验收后已关闭。
+
+- GSC验证待提交画面：[ready截图](artifacts/gsc-verification-ready.jpg)。当前只准备完成，尚未验证；用户仅确认可以占用Chrome，新的站点所有权动作确认尚未收到，因此没有将该回答扩大解释为授权。保留原Chrome验证dialog，代理已退出的登录页面不是后续入口。
