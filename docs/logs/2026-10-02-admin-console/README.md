@@ -118,3 +118,13 @@ UI复核发现280px分布区需要滚动才看得到第六类Games和未确认�
 真实Chrome本地完整界面：登录→两个待关注队列独立翻页→异常详情/无历史→返回；应用搜索→详情42条历史翻到第3页2条→公开性确认取消/确认写入→返回保留搜索；实际日访问7/30切换→hash刷新→作者反馈/解除筛选→首页feedback-ui讨论→planned→首页pending减1；折叠菜单部署/账号安全与404。桌面1440×1050/手机390×844根不溢出、无JS错误，已查看截图。手机Grid默认min-content曾撑宽，改显式minmax(0,1fr)，导航flex收缩造成折叠标题挤压也修复；复验通过。Playwright harness的按钮含图标可访问名需正则后缀、page.setViewportSize与wait响应注册先于操作，属于当次工具纠偏，无新全局规则。UI脚本在/tmp/gemigo-admin-operations-ui.cjs，截图/tmp/gemigo-admin-ops-home-{desktop,mobile}.png。没有把预制fixture当作生产证据，生产验收仍待完成。
 
 mode=implementation Review（本轮功能diff及相邻合同）：no findings。检查数据owner、列白名单/鉴权/no-store/CAS与审计、异步取消、删除/旧数据/每日UV、队列计数分页同谓词及旧能力导航对账。项目无diff-only维护检查，按findings-first与主观职责复核；详情与首页组件各有真实消费者，不引入新状态表/路由框架/无消费者抽象。先修复手机溢出与详情切换清除旧数据（key id）、公开性成功同步列表；反馈提示按selected绑定，作者切换清空筛选，之后重验。acceptance-ready：ADM-12/13本地功能满足，最终生产交付仍待。
+
+补充真实UI恢复证据：/tmp/gemigo-admin-ops-recovery-ui.cjs 从搜索结果进入详情→浏览器后退仍保留查询→前进恢复详情；模拟503→重试恢复，390px独立context根不溢出，通过。
+
+生产Delivery：功能精确提交`19cce8f`，普通推送首次遇并发主线拒绝，fetch后普通merge集成creator-profile（无后台文件冲突）再push`1c8b10a`。同步前16个其它WIP文件哈希快照，merge后全部内容不变；后续其它任务继续改动保留。仅发布gemigo-admin，Worker `a2fd065d-db1f-4563-a12e-b3937da86b37`，资源`index-B7-cUx1x.css`/`index-Ct1Z0CC9.js`。无需DB迁移，账号version仍6，当前密码保持。
+
+生产实际入口`https://admin.gemigo.io/`：真实Chrome独立cookie会话、1440×1050与390×844，7/30首页、独立队列翻页、当前问题详情（含无历史/采集为空）、7/30详情、作者精确反馈、搜索返回/浏览器前后退/刷新恢复、折叠部署与安全、匿名详情401/不存在404、根不溢出/无JS错误通过。生产此刻open反馈0，所以验证了空态与准确计数，未改变真实客户反馈；pending非空→讨论→planned→首页减1由本轮真实Worker+D1+本地完整界面证明，既有生产作者私密处理证据继续有效。生产详情抽样的旧应用无部署历史、流量无记录，空态不是零流量推断；历史与日表非空分支由D1fixture及已有部署/渠道生产证据覆盖。UI harness PASS字符串中的“pending discussion”是条件分支描述，本次实际未进入，以上精确范围为准。
+
+独立canonical D1聚合对账：近7天发布创作者47/首次33/再次14；30天89/89/0；待关注23/open反馈0及抽样详情deployment总量匹配接口。wrangler --file SELECT返回import元统计并非查询结果，改--command参数后获得真实聚合结果通过，非产品缺陷。新首页不扫描product_events、不调用CF增长报告，未消耗/重置事件查询预算。QA只创建一个15分钟当前version绑定的独立session；已按确切hash删除并验证session401，临时凭据/私有ID文件删除，生产截图0600，用户密码/其它会话保留，本地5176测试服务停止。
+
+retrospective_decision：已验证事实归原owner `docs/tech/PRODUCT_ANALYTICS.md`（publisher口径、当前问题派生、详情与作者反馈关系、每日UV边界、导航），不新增全局规则。手机Grid缺陷已修并真实UI复验；工具脚本偶发错误当次纠正，无可复用流程增量。ADM-12/13已生产交付，用户主观信息布局偏好待反馈而非审批门。最终Git与远程实际SHA在本记录提交后fresh fetch工具结果核对。

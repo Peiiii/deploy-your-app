@@ -1,6 +1,6 @@
 # 后台经营与处理链路优化
 
-状态：Design Ready；design-document: required；plan: not-required（同一后台 Worker/UI、单批交付）。上位设计：[独立后台](2026-10-02-admin-console.design.md)。当前合同 scope-revision 6 / ADM-12、ADM-13。原始输入：用户要求整体设计并优化；前序明确增长与运营价值、CLI含Skill、库存整合且不要无限拓展。当前产品方向以 2026-10-03 direction thought 为准，教育/学习与游戏是探索重点，保留所有应用类别。
+状态：Implemented / production verified（Worker a2fd065d，交付详见原日志）；design-document: required；plan: not-required（同一后台 Worker/UI、单批交付）。上位设计：[独立后台](2026-10-02-admin-console.design.md)。当前合同 scope-revision 6 / ADM-12、ADM-13。原始输入：用户要求整体设计并优化；前序明确增长与运营价值、CLI含Skill、库存整合且不要无限拓展。当前产品方向以 2026-10-03 direction thought 为准，教育/学习与游戏是探索重点，保留所有应用类别。
 
 ## 选择与用户价值
 
