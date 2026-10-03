@@ -1,0 +1,56 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { realpathSync } from 'node:fs';
+const require = createRequire(realpathSync(new URL('../workers/r2-gateway/node_modules/wrangler/package.json', import.meta.url)));
+const { Miniflare } = require('miniflare'); const { build } = require('esbuild');
+const built = await build({entryPoints:['workers/r2-gateway/worker.ts'],bundle:true,write:false,format:'esm',platform:'browser',target:'es2022'});
+const upstream=[];
+const mf=new Miniflare({modules:true,script:built.outputFiles[0].text,compatibilityDate:'2026-09-18',r2Buckets:['ASSETS'],bindings:{APPS_ROOT_DOMAIN:'gemigo.app',ANALYTICS_ENABLED:'false'},outboundService:async req=>{
+  upstream.push({url:req.url,headers:Object.fromEntries(req.headers)});
+  const url=new URL(req.url);
+  if(url.searchParams.has('slow')) await new Promise(r=>setTimeout(r,4500));
+  if(url.searchParams.has('fail')) return new Response('unavailable',{status:502});
+  if(url.searchParams.has('redirect')) return new Response(null,{status:302,headers:{location:'http://127.0.0.1/private'}});
+  if(url.searchParams.has('oversize')) return new Response('x',{headers:{'content-type':'text/css','content-length':String(6*1024*1024)}});
+  if(url.searchParams.has('wrong')) return new Response('<script>bad</script>',{headers:{'content-type':'text/html'}});
+  if(url.searchParams.has('cookie')) return new Response('css',{headers:{'content-type':'text/css','set-cookie':'secret=1'}});
+  if(url.hostname==='fonts.googleapis.com') return new Response('@font-face{font-family:DM;src:url(https://fonts.gstatic.com/s/dmmono/v1/file.woff2);font-display:swap}',{headers:{'content-type':'text/css'}});
+  return new Response(new Uint8Array([119,79,70,50]),{headers:{'content-type':'font/woff2'}});
+}});
+const root='https://assets.gemigo.app/__gemigo/google-fonts/v2/';
+try{
+ const bucket=await mf.getR2Bucket('ASSETS');
+ const html='<html><head><link rel="stylesheet" href="//fonts.googleapis.com/css2?family=DM+Mono&amp;display=swap"><link rel="stylesheet" href="styles/main.css"><link integrity="sha256-x" rel="stylesheet" href="https://fonts.googleapis.com/css?family=DM"><style>@import url(\'https://fonts.googleapis.com/css2?family=Noto+Serif+SC\');/* url(https://fonts.googleapis.com/css?family=Ignore) */ .x:after{content:"url(https://fonts.googleapis.com/css?family=Example)"}</style></head><body>Demo</body></html>';
+ await bucket.put('apps/demo/current/index.html',html,{httpMetadata:{contentType:'text/html'}});
+ let response=await mf.dispatchFetch('https://demo.gemigo.app/');const text=await response.text();
+ assert.ok(text.includes(root+'css2?family=DM+Mono&amp;display=swap')); assert.ok(text.includes(root+'css2?family=Noto+Serif+SC'));
+ assert.ok(text.includes('https://demo.gemigo.app/styles/main.css?__gemigo_fonts=v1')); assert.ok(text.includes('integrity="sha256-x" rel="stylesheet" href="https://fonts.googleapis.com/css?family=DM"'));
+ assert.ok(text.includes('/* url(https://fonts.googleapis.com/css?family=Ignore) */'));assert.ok(text.includes('content:"url(https://fonts.googleapis.com/css?family=Example)"'));
+ assert.equal(await(await bucket.get('apps/demo/current/index.html')).text(),html);
+ const csp=html.replace('</head>','<meta content="font-src https://fonts.gstatic.com" http-equiv="Content-Security-Policy"></head>');
+ await bucket.put('apps/csp/current/index.html',csp,{httpMetadata:{contentType:'text/html'}});
+ assert.equal(await(await mf.dispatchFetch('https://csp.gemigo.app/')).text(),csp);
+ const css='@import "./nested.css"; @import url(other.css); @import url(https://fonts.googleapis.com/css?family=DM); .a{background:url(../image.png)} /* @import url("comment.css") */';
+ await bucket.put('apps/demo/current/styles/main.css',css,{httpMetadata:{contentType:'text/css'}});
+ assert.equal(await(await mf.dispatchFetch('https://demo.gemigo.app/styles/main.css')).text(),css);
+ response=await mf.dispatchFetch('https://demo.gemigo.app/styles/main.css?__gemigo_fonts=v1');const modified=await response.text();
+ assert.ok(modified.includes('https://demo.gemigo.app/styles/nested.css?__gemigo_fonts=v1'));assert.ok(modified.includes('https://demo.gemigo.app/styles/other.css?__gemigo_fonts=v1'));assert.ok(modified.includes(root+'css?family=DM'));
+ assert.ok(modified.includes('url(../image.png)'));assert.ok(modified.includes('/* @import url("comment.css") */'));
+ assert.equal((await mf.dispatchFetch('https://demo.gemigo.app/styles/main.css?__gemigo_fonts=v1',{headers:{'if-none-match':response.headers.get('etag')}})).status,304);
+ response=await mf.dispatchFetch(root+'css2?family=DM+Mono',{headers:{cookie:'secret=1',authorization:'Bearer secret','user-agent':'private'}});
+ assert.equal(response.status,200);assert.equal(response.headers.get('x-gemigo-font-cache'),'MISS');assert.ok((await response.text()).includes(root+'file/s/dmmono/v1/file.woff2'));
+ assert.ok(upstream.at(-1).url.includes('display=swap'));assert.equal(upstream.at(-1).headers.cookie,undefined);assert.equal(upstream.at(-1).headers.authorization,undefined);assert.ok(upstream.at(-1).headers['user-agent'].includes('Chrome/120'));
+ await new Promise(r=>setTimeout(r,30));
+ response=await mf.dispatchFetch(root+'css2?family=DM+Mono');assert.equal(response.headers.get('x-gemigo-font-cache'),'HIT'); const etag=response.headers.get('etag');await response.text();
+ response=await mf.dispatchFetch(root+'css2?family=DM+Mono',{headers:{'if-none-match':etag}});assert.equal(response.status,304);assert.equal(await response.text(),'');
+ response=await mf.dispatchFetch(root+'css2?family=Other');assert.equal(response.headers.get('x-gemigo-font-cache'),'MISS');await response.text();
+ response=await mf.dispatchFetch(root+'css2?family=DM+Mono',{method:'HEAD'});assert.equal(await response.text(),'');
+ response=await mf.dispatchFetch(root+'file/s/dmmono/v1/file.woff2');assert.equal(response.headers.get('access-control-allow-origin'),'*');assert.ok(response.headers.get('cache-control').includes('immutable'));assert.equal((await response.arrayBuffer()).byteLength,4);
+ const slowStart=Date.now();response=await mf.dispatchFetch(root+'css2?family=DM&slow=1');assert.equal(response.headers.get('x-gemigo-font-cache'),'FALLBACK');assert.ok(Date.now()-slowStart<3500);await response.text();
+ for(const branch of ['fail','redirect','oversize','wrong','cookie']){response=await mf.dispatchFetch(root+'css2?family=DM&'+branch+'=1');assert.equal(response.status,200);assert.equal(response.headers.get('x-gemigo-font-cache'),'FALLBACK');assert.equal(response.headers.get('cache-control'),'no-store');await response.text();}
+ response=await mf.dispatchFetch(root+'file/s/dmmono/v1/file.woff2?fail=1');assert.equal(response.status,503);await response.text();
+ response=await mf.dispatchFetch(root+'css2?family=DM+Mono',{headers:{'cache-control':'no-store'}});assert.equal(response.headers.get('x-gemigo-font-cache'),'BYPASS');await response.text();
+ for(const path of ['https://evil.example/','file/s/a.html','file/s/a%2f..%2fb.woff2','css3']) assert.equal((await mf.dispatchFetch(root+path)).status,404);
+ assert.equal((await mf.dispatchFetch(root+'css2',{method:'POST'})).status,405);
+ console.log('PASS Google Fonts assembled Worker: HTML/CSS/import/source/CSP/SRI/relative URLs; fixed upstream, credentials, CORS, cache/query/HEAD/304/no-store, error/redirect/type/size.');
+}finally{await mf.dispose();}

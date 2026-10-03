@@ -1,4 +1,5 @@
 import { addAppAnalytics, APP_ANALYTICS_SCRIPT, APP_ANALYTICS_BEACON, APP_ANALYTICS_RUNTIME } from './app-analytics';
+import { FONT_PREFIX, FONT_CSS_MARKER, serveGoogleFont, rewriteFontHtml, rewriteFontCss, readSmallDocument } from './google-fonts';
 import runtimeAssets from './runtime-assets.json';
 import { addSmartFavicon, faviconFallback, SMART_FAVICON_FALLBACK_PATH, SMART_FAVICON_PATH, SMART_FAVICON_RUNTIME } from './smart-favicon';
 
@@ -411,6 +412,10 @@ export default {
       }
     }
 
+    if (subdomain === CENTRAL_THUMBNAIL_HOST && url.pathname.startsWith(FONT_PREFIX)) {
+      return serveGoogleFont(request, ctx);
+    }
+
     const cacheableMethod = request.method === 'GET' || request.method === 'HEAD';
     const requestCacheControl = request.headers.get('cache-control') ?? '';
     const noStore = /(?:^|,)\s*no-store\b/i.test(requestCacheControl);
@@ -518,11 +523,24 @@ export default {
     headers.set('server-timing', `gemigo;dur=${(performance.now() - started).toFixed(1)}`);
     if (headers.get('content-type')?.includes('text/html')) {
       const etag = headers.get('etag');
-      if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, `-hosting-${runtimeAssets.tailwind.sha256.slice(0, 8)}-favicon-v2${analyticsEnabled ? "-analytics-v2" : ""}"`)}`);
+      if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, `-hosting-${runtimeAssets.tailwind.sha256.slice(0, 8)}-favicon-v2-fonts-v2${analyticsEnabled ? "-analytics-v2" : ""}"`)}`);
       headers.delete('content-length');
       // Origin objects stay byte-for-byte intact; this is a delivery-only URL substitution.
-      const response = rewriteSharedRuntime(new Response(result.response.body, { headers }), rootDomain, url.origin, analyticsEnabled);
+      const fonts = await rewriteFontHtml(new Response(result.response.body, { headers }), url.href, `https://${CENTRAL_THUMBNAIL_HOST}.${rootDomain}`);
+      const response = rewriteSharedRuntime(fonts, rootDomain, url.origin, analyticsEnabled);
       return respondWithValidation(request, response, headers, ctx);
+    }
+    if (headers.get('content-type')?.includes('text/css') && url.searchParams.get(FONT_CSS_MARKER) === 'v1'
+      && !headers.has('content-security-policy') && !headers.has('content-security-policy-report-only')) {
+      const document = await readSmallDocument(result.response);
+      if (document.text !== undefined) {
+        const etag = headers.get('etag');
+        if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, '-fonts-v2"')}`);
+        headers.delete('content-length');
+        const css = rewriteFontCss(document.text, `https://${CENTRAL_THUMBNAIL_HOST}.${rootDomain}`, url.href);
+        return respondWithValidation(request, new Response(css), headers, ctx);
+      }
+      return respondWithValidation(request, document.response, headers, ctx);
     }
     return respondWithValidation(request, result.response, headers, ctx);
   },

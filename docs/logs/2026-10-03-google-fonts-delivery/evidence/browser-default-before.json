@@ -1,0 +1,25 @@
+{
+  "elapsed": 31489,
+  "events": [
+    {
+      "url": "https://app-n4p3.gemigo.app/",
+      "error": "net::ERR_TIMED_OUT"
+    },
+    {
+      "navigation": "page.goto: net::ERR_TIMED_OUT at https://app-n4p3.gemigo.app/\nCall log:\n\u001b[2m  - navigating to \"https://app-n4p3.gemigo.app/\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    }
+  ],
+  "paint": [
+    {
+      "name": "first-paint",
+      "ms": 30516
+    },
+    {
+      "name": "first-contentful-paint",
+      "ms": 30516
+    }
+  ],
+  "resources": [],
+  "ready": "complete",
+  "images": []
+}
