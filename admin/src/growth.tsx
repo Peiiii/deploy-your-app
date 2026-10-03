@@ -39,12 +39,12 @@ export default function Growth() {
         'UTC日期',
         '官网真人PV',
         '官网访问次数',
-        '产品观测UV',
+        '官网观测UV',
         '新增注册',
         '新增有效应用',
         '部署尝试',
         '成功部署',
-        '应用真人PV',
+        '全部应用真人PV',
         'CLI部署尝试',
         '网页部署尝试',
       ],
@@ -127,10 +127,10 @@ export default function Growth() {
                 foot: `访问次数 ${number(report.current.visits)} · Cloudflare RUM`,
               },
               {
-                label: '产品观测 UV',
+                label: '官网观测 UV',
                 value: report.observedUv,
                 hint: report.uvPartial ? '部分日期明细已过留存期' : '所选期间按浏览器标识去重',
-                foot: '已采集页面访客，不等于自然人数',
+                foot: '仅官网已采集页面，不含应用访客；不等于自然人数',
               },
               {
                 label: '新增注册',
@@ -156,10 +156,10 @@ export default function Growth() {
           <div className="growth-live">
             <span className="pill">今日 UTC · 进行中</span>
             <span>
-              PV <strong>{number(report.today.pv)}</strong>
+              官网 PV <strong>{number(report.today.pv)}</strong>
             </span>
             <span>
-              观测 UV <strong>{number(report.today.uv)}</strong>
+              官网观测 UV <strong>{number(report.today.uv)}</strong>
             </span>
             <span>
               注册 <strong>{number(report.today.registrations)}</strong>
@@ -183,9 +183,9 @@ export default function Growth() {
             <Chart
               daily={report.daily}
               metric="uv"
-              title="产品观测 UV 增长曲线"
+              title="官网观测 UV 增长曲线"
               color="#27927e"
-              hint="每天按浏览器标识去重；受采集预算、DNT 和拦截影响。缺失留存日断线显示，每日 UV 不相加作为期间 UV。"
+              hint="仅官网页面，按浏览器标识每日去重，不含应用访客；受采集预算、DNT 和拦截影响。每日 UV 不相加作为期间 UV。"
             />
             <Chart
               daily={report.daily}
@@ -263,8 +263,9 @@ export default function Growth() {
                 ))}
               </div>
               <p className="footnote">
-                应用网站真人 PV：{number(report.current.appsPv)}
-                ，与官网流量分开统计。可以结合设备差异检查手机端转化体验。
+                全部应用真人 PV：{number(report.current.appsPv)}
+                ，不含官网。单个应用的采集 PV / 当日 UV 请到应用管理详情查看；各应用 UV
+                不能直接相加为全部应用 UV。
               </p>
             </article>
           </div>
@@ -366,12 +367,12 @@ export default function Growth() {
                       '日期',
                       '官网 PV',
                       '访问次数',
-                      '观测 UV',
+                      '官网观测 UV',
                       '新增注册',
                       '新增应用',
                       '部署尝试',
                       '成功部署',
-                      '应用 PV',
+                      '全部应用 PV',
                       'CLI 尝试',
                       '网页尝试',
                     ].map((label) => (

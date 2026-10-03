@@ -86,3 +86,12 @@ GAV06 Required：经营首页直接显示每日新增注册用户曲线，7/30�
 实现Review（修订4）：新增图表复用report.daily，无新请求/生命周期，保留原趋势；tsc/admin构建与targeted ESLint通过，真实渲染7/30和明细正确。两个遗漏的旧5分钟说明已统一为15分钟，修正文案后重验构建/静态检查。无未关闭代码finding。仅GAV04上述真实登录验收边界未通过，parent-goal未关闭。
 
 复盘判断：产品成本防护误用了预留扫描量作为正常读取拒绝条件；已在原PRODUCT_ANALYTICS owner更正事实并用真实D1回归保护百万旧桶下正常操作、冷热并发成本及cookie不能绕过暴力限流。无新增通用流程规则；当前结果尚有线上验收缺口，retrospective_state保持pending，交回Validation，不以已发布代替整体完成。
+
+
+## 官网与应用流量明确分开（修订5）
+
+用户明确官网PV/UV与每个应用自己的PV/UV是不同对象，必须区分。现有producer已独立：growth官网PV来自platform Web Analytics site、官网观测UV来自web page_view匿名浏览器去重；全部应用PV来自另一个apps site；单应用详情按slug查询project_daily_stats的human_views及当日unique_visitors。无需新采集或SQL。用户链路：经营页查看明确标注的官网/全部应用趋势 → 应用管理进入某应用 → 只看该应用的采集PV和当日UV；不把官网观测UV当应用UV，不把各应用或各日UV相加为全平台或期间UV。
+
+仅修正标题、CSV列名、图表标签和来源说明。保留单应用D1诊断与CF RUM headline的区别，不把全应用PV/UV改造成单应用值、不显示虚构全应用UV。范围L1展示/文案，flow=bugfix，skip-reproduction：直接源码证明“产品观测UV”“应用PV”标签对象不明确；替代验证为admin构建/tsc、targeted lint、真实隐藏浏览器渲染与原采集隔离回归。Design Review：来源/消费者和去重范围一致，不改变指标或查询成本，无finding；plan:not-required，revision5 design-review:passed。GAV07 Required：标题/CSV对象明确、单应用仅本应用数据，跨对象UV不可相加；passed。admin构建/tsc与targeted lint通过，assembled Worker+D1应用详情隔离回归通过；隐藏IAB使用生产聚合快照渲染官网UV/全部应用PV及真实下载7行CSV，列名已区分，数据未改。单应用标签沿原同slug查询，未新增请求。实现Review实际diff检查：无新状态/SQL/预算、类型和CSV字段顺序一致、诊断来源与日去重范围保持；无finding。旧GAV04生产登录缺口保持。
+
+修订5复盘：已在原PRODUCT_ANALYTICS知识owner明确三种展示对象与跨对象去重边界，复用既有数据隔离回归，无新增全局方法规则。当前修订可交付；上一修订GAV04生产搜索/事件登录验收缺口继续披露，不将其标为通过。

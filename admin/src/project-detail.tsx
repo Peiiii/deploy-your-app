@@ -282,7 +282,7 @@ export default function ProjectDetail({
           </article>
           <article className="panel">
             <div className="spread">
-              <h3>每日应用访问</h3>
+              <h3>本应用每日采集 PV / UV</h3>
               <div className="segmented">
                 {[7, 30].map((n) => (
                   <button
@@ -297,8 +297,9 @@ export default function ProjectDetail({
               </div>
             </div>
             <p className="muted">
-              {data.traffic.from} 至今日（UTC）。仅反映已采集流量；每日访客分别去重，不跨日累加为
-              UV。
+              {data.traffic.from}{' '}
+              至今日（UTC）。仅此应用，不含官网或其他应用。以下为已采集流量诊断；UV
+              在本应用当日去重，不能跨日或跨应用相加为期间或全部应用 UV。
             </p>
             {!data.traffic.hasRecords && (
               <div className="empty">
@@ -312,9 +313,9 @@ export default function ProjectDetail({
                   <thead>
                     <tr>
                       <th>日期</th>
-                      <th>人类访问</th>
+                      <th>本应用采集 PV（人类）</th>
                       <th>机器人访问</th>
-                      <th>当日去重访客</th>
+                      <th>本应用当日 UV（去重访客）</th>
                     </tr>
                   </thead>
                   <tbody>

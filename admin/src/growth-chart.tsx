@@ -4,7 +4,7 @@ import TimeSeriesChart from './time-series-chart';
 const metrics = {
   pv: { label: '官网真人 PV', unit: '次' },
   uv: { label: '官网观测 UV', unit: '个浏览器标识' },
-  appsPv: { label: '应用真人 PV', unit: '次' },
+  appsPv: { label: '全部应用真人 PV', unit: '次' },
   publishers: { label: '成功发布创作者', unit: '人' },
   registrations: { label: '新增注册', unit: '人' },
   cliAttempts: { label: 'CLI 部署尝试', unit: '次' },

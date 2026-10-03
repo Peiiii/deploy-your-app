@@ -52,9 +52,10 @@ export default function GrowthSummary({
   // Never label an earlier range as the newly selected period.
   const report = snapshot?.period.days === days ? snapshot : null;
   const reload = () => setRetry((value) => value + 1);
-  const titles = { appsPv: '应用真人 PV 趋势', pv: '官网真人 PV 趋势', uv: '官网产品观测 UV 趋势' };
+  const titles = { appsPv: '全部应用真人 PV 趋势', pv: '官网真人 PV 趋势', uv: '官网观测 UV 趋势' };
   const hints = {
-    appsPv: '应用网站真人页面浏览 · Cloudflare RUM · bot=0 · 自适应采样。',
+    appsPv:
+      '所有已发布应用的真人页面浏览汇总，不含官网；单个应用数据在应用管理详情查看。Cloudflare RUM · 自适应采样。',
     pv: '官网真人页面浏览，与应用网站分开统计 · Cloudflare RUM · bot=0。',
     uv: '官网已采集页面按浏览器标识每日去重，受采集覆盖和留存期影响；不等于应用 UV 或自然人数。',
   };
@@ -128,7 +129,7 @@ export default function GrowthSummary({
                 hint: `${number(report.cohort.deployed)} / ${number(report.cohort.registered)} 位本期注册用户成功发布`,
               },
               {
-                title: '应用真人 PV',
+                title: '全部应用真人 PV',
                 value: number(report.current.appsPv),
                 comparison: change(report.current.appsPv, report.previous.appsPv),
                 hint: 'Cloudflare RUM · 自适应采样',
@@ -151,7 +152,7 @@ export default function GrowthSummary({
               注册 <strong>{number(report.today.registrations)}</strong>
             </span>
             <span>
-              应用 PV <strong>{number(report.today.appsPv)}</strong>
+              全部应用 PV <strong>{number(report.today.appsPv)}</strong>
             </span>
             <small>未完成日不参与上方比较</small>
           </div>
@@ -179,7 +180,7 @@ export default function GrowthSummary({
                     aria-pressed={traffic === metric}
                     onClick={() => setTraffic(metric)}
                   >
-                    {{ appsPv: '应用 PV', pv: '官网 PV', uv: '官网观测 UV' }[metric]}
+                    {{ appsPv: '全部应用 PV', pv: '官网 PV', uv: '官网观测 UV' }[metric]}
                   </button>
                 ))}
               </div>
