@@ -7,7 +7,7 @@ import { track } from '@/analytics/collector';
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heart, MessageCircle, Star, Share2, Play, X, ChevronLeft } from 'lucide-react';
+import { ThumbsUp, MessageCircle, Star, Share2, Play, X, ChevronLeft } from 'lucide-react';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
@@ -529,7 +529,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                             className="p-2 transition-transform active:scale-90 cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                             onClick={() => presenter.reaction.toggleLike(app.id)}
                         >
-                            <Heart className={`w-8 h-8 text-white transition-colors ${isLiked ? 'fill-[#ff0050] text-[#ff0050]' : 'fill-white/20'}`} />
+                            <ThumbsUp className={`w-8 h-8 text-white transition-colors ${isLiked ? 'fill-[#ff0050] text-[#ff0050]' : 'fill-white/20'}`} />
                         </IconButton>
                         <span className="text-white text-xs font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                             {likesCount > 1000 ? `${(likesCount / 1000).toFixed(1)}k` : likesCount}

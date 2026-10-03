@@ -1,6 +1,6 @@
 import { IconButton } from '@/components/icon-button';
 import React, { useId, useRef, useState } from 'react';
-import { ExternalLink, Heart, MessageCircle, Star, Settings, Maximize2, Minimize2, X } from 'lucide-react';
+import { ExternalLink, ThumbsUp, MessageCircle, Star, Settings, Maximize2, Minimize2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 import { useFloatingDock, type UseFloatingDockOptions } from './use-floating-dock';
@@ -160,7 +160,7 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
 
                     <IconButton tooltip={String(reactions?.likesCount ?? 0)} label={t('previewActions.like')} size="sm" tooltipSide="right" type="button" onMouseDown={e => e.stopPropagation()} onClick={() => toggleReaction('like')}
                         disabled={reactionPending || reactions?.isLoading} aria-pressed={reactions?.likedByCurrentUser ?? false} className={actionClass}>
-                        <Heart className={`w-4 h-4 ${reactions?.likedByCurrentUser ? 'fill-rose-500 text-rose-500' : ''}`} />
+                        <ThumbsUp className={`w-4 h-4 ${reactions?.likedByCurrentUser ? 'fill-rose-500 text-rose-500' : ''}`} />
                     </IconButton>
                     <IconButton tooltip={String(reactions?.favoritesCount ?? 0)} label={t('previewActions.favorite')} size="sm" tooltipSide="right" type="button" onMouseDown={e => e.stopPropagation()} onClick={() => toggleReaction('favorite')}
                         disabled={reactionPending || reactions?.isLoading} aria-pressed={reactions?.favoritedByCurrentUser ?? false} className={actionClass}>

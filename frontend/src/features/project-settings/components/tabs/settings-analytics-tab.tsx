@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { BarChart3, Clock, Eye, Heart, Star } from 'lucide-react';
+import { BarChart3, Clock, Eye, ThumbsUp, Star } from 'lucide-react';
 import { useAnalyticsStore } from '@/stores/analytics.store';
 import { useReactionStore } from '@/stores/reaction.store';
 import type { Project } from '@/types';
@@ -65,7 +65,7 @@ export const SettingsAnalyticsTab: React.FC<SettingsAnalyticsTabProps> = ({
                     {/* Card: Total Likes */}
                     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-5">
                         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-2">
-                            <Heart className="w-4 h-4" />
+                            <ThumbsUp className="w-4 h-4" />
                             <span>{t('project.totalLikes', 'Total Likes')}</span>
                         </div>
                         <div className="text-3xl font-bold text-slate-900 dark:text-white">

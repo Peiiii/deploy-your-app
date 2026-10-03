@@ -9,7 +9,7 @@ import { getAuthorColor, getAuthorInitial, getAuthorName } from '../utils/author
 import { PERFORMANCE_CONFIG } from '../constants';
 import { getScrollParent } from '../utils/scroll';
 import { useProjectThumbnail } from '../hooks/use-project-thumbnail';
-import { Heart, Play } from 'lucide-react';
+import { ThumbsUp, Play } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -258,7 +258,7 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
             }}
             className="flex shrink-0 items-center gap-1 text-slate-400 hover:text-brand-500 transition-colors group/like"
           >
-            <Heart
+            <ThumbsUp
               className={`w-3.5 h-3.5 transition-transform group-hover/like:scale-110 ${reactionEntry?.likedByCurrentUser ? 'fill-brand-500 text-brand-500' : ''}`}
             />
             {reactionEntry?.likesCount > 0 && (

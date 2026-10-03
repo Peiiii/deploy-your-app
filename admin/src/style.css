@@ -1249,3 +1249,35 @@ a:focus-visible {
 .growth-console td {
   white-space: nowrap;
 }
+
+.project-inventory {
+  margin-bottom: 24px;
+  min-width: 0;
+}
+.project-inventory h2 {
+  font-size: 18px;
+}
+.inventory-distribution {
+  max-height: 280px;
+  overflow-y: auto;
+}
+.inventory-distribution-row {
+  margin: 18px 0;
+}
+.inventory-distribution-row small {
+  color: #8b8fa4;
+  font-weight: 400;
+  margin-left: 10px;
+}
+.inventory-distribution-row .track {
+  height: 5px;
+  background: #efedf6;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 9px;
+}
+.inventory-distribution-row .track i {
+  display: block;
+  height: 100%;
+  background: #8d65cf;
+}

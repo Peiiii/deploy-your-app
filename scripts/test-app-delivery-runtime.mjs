@@ -8,6 +8,22 @@ const assets = JSON.parse(readFileSync(new URL('../workers/r2-gateway/runtime-as
 const built = await build({ entryPoints: ['workers/r2-gateway/worker.ts'], bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022' });
 const mf = new Miniflare({ modules: true, script: built.outputFiles[0].text, compatibilityDate: '2026-09-18', r2Buckets: ['ASSETS'], bindings: { APPS_ROOT_DOMAIN: 'gemigo.app', ANALYTICS_ENABLED: 'false' } });
 try {
+  for (const method of ['GET', 'HEAD']) {
+    for (const protocol of ['http', 'https']) {
+      const response = await mf.dispatchFetch(`${protocol}://gemigo.app/unused/path?utm_source=app&next=https%3A%2F%2Fevil.example`, { method, redirect: 'manual' });
+      assert.equal(response.status, 301);
+      assert.equal(response.headers.get('location'), 'https://gemigo.io/?utm_source=app&next=https%3A%2F%2Fevil.example');
+      assert.equal(response.headers.get('cache-control'), 'public, max-age=300');
+      assert.equal(await response.text(), '');
+    }
+  }
+  const apex = await mf.dispatchFetch('https://gemigo.app/', { redirect: 'manual' });
+  assert.equal(apex.headers.get('location'), 'https://gemigo.io/');
+  for (const host of ['www.gemigo.app', 'gemigo.app.evil.example', 'evilgemigo.app']) {
+    const response = await mf.dispatchFetch(`https://${host}/`, { redirect: 'manual' });
+    assert.equal(response.status, 404);
+    assert.equal(response.headers.has('location'), false);
+  }
   const bucket = await mf.getR2Bucket('ASSETS');
   const html = '<html><head><script defer crossorigin="anonymous" integrity="unchanged" src="https://cdn.tailwindcss.com"></script><script src="//cdn.tailwindcss.com/"></script><script src="https://cdn.tailwindcss.com?plugins=forms"></script><script src="https://cdn.tailwindcss.com/3.4.17"></script><script src="https://cdn.tailwindcss.com.evil.test"></script><script crossorigin="use-credentials" src="https://cdn.tailwindcss.com"></script></head><body>Source stays unchanged</body></html>';
   await bucket.put('apps/demo/current/index.html', html, { httpMetadata: { contentType: 'text/html' } });
@@ -46,5 +62,5 @@ try {
   assert.equal(response.headers.get('x-gemigo-cache'), 'BYPASS');
   assert.equal(await response.text(), 'window.tailwind={};');
   assert.equal((await mf.dispatchFetch('https://other.gemigo.app'+assets.tailwind.path)).status,404);
-  console.log('PASS real Worker runtime: HTMLRewriter exact root, CSP/plugin/version/credentials/SRI preservation, unchanged R2 source, delivery ETag, runtime CORS/cache/304/HEAD/tenant boundary');
+  console.log('PASS real Worker runtime: exact apex HTTP/HTTPS 301/GET/HEAD/query/fixed target and subdomain isolation; HTMLRewriter, unchanged R2 source, ETag, runtime CORS/cache/304/HEAD');
 } finally { await mf.dispose(); }

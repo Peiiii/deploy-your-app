@@ -69,3 +69,17 @@ producer 已确认：CLI createProject/startDeployment发送 clientChannel='cli'
 增长仍以started_at落日/最终status计算；distinct owner/project按整个期间每渠道去重，不相加日去重或跨渠道去重冒充总人数。CLI占比=CLI尝试/全部尝试；成功率=成功/(成功+失败+拒绝)，进行中不当失败。当前与上一等长期间都有CLI总尝试；每日统计与CSV同源。渠道白名单过滤未知请求400，空CLI为0且零分母为—。新查询沿原预算保守预留；更新增长cache namespace使旧schema不误读；生产验证记录基线与精确任务reservation后清理。
 
 设计 Review(mode=design)：按原输入和最终澄清核对应用级来源与使用率真实入口。关闭反例：ZIP并非CLI、最近内容类型并非部署渠道、日用户相加重复、pending降低成功率、CLI证明AI生成。采用上述已有历史投影，无协议/迁移/CLI升级，原命令与登录不变。抽象审计保留growth/operations两个窄owner和已有UI，拒绝新BI/采集框架；no findings，design-review passed。验收：实际Worker+D1包含跨日重复用户/应用、跨渠道、失败/进行中/未知/无尝试/同时间顺序、7/30与前期、筛选组合与分页，CSV及真实生产桌面手机链路；不操作客户应用。
+
+## 2026-10-03 补充：整合应用存量统计
+
+用户追加：查看APP类别、不同语言及公开数量；缺失则补充，并自行整合模块，“不要不停的无限拓展”。现状：project.category、app_language、is_public已存在；经营总览仅有公开Live可访问数量，应用列表无类别/语言统计。新增ADM-11，standard/L4，plan not-required，retrospective pending。既有整体目标已完成，此次独立追加不重新创建目标或扩大原账号/反馈/增长功能。
+
+黄金链路：独立登录→应用管理→在同一页面顶部查看全部未删除应用的公开/非公开/未记录、上线状态、主分类分布和已确认界面语言分布→按公开设置、分类、语言与原搜索/状态/最近渠道组合筛选→看对应应用分类/语言及分页→清空筛选恢复全量；刷新更新。手机保留同一模块、卡片/内部横滚，加载/错误/空态沿原列表，统计注明当前存量且不随列表筛选变化。经营总览继续只做摘要；增长大盘继续只管时间增长与CLI，不新增侧栏页面。
+
+owner复用projects当前元数据；不回推AI来源、不改分类/语言/公开属性，不新增采集/迁移或历史存量曲线。public=1、private=0、null=未记录分别计数；公开上线且地址非空继续沿原总览条件，不能把未上线公开应用当公开上线，也不把null冒充私密。主分类沿现有发现目录Education/Games/Productivity/Creative/Development/Other投影，未知/空值归其他，不把教学game标签重复计算为另一个主分类。分类过滤与分布使用同一表达式。显示原category字段供诊断。
+
+语言仅从source=author/detected的有效app_language.languages数组读取，存储为owner归一的2/3位小写主语言码（排除und，zxx表示无语言文字）；JSON失效/非数组/空值/无效code为未确认，不读localized_metadata或default_locale，不根据介绍推断。一个应用多语言按每个语言计一次（distinct project_id）；已确认/未确认覆盖率按应用去重，语言占比以全部有效应用为分母，和可能>100%。数组最多沿owner8项，重复码去重。应用列表返回有效语言数组JSON投影，不返回任意metadata/source。筛选und匹配无有效语言，其他精确主语言。
+
+技术：在原projects列表响应中附当前库存聚合（公开/状态、主分类、语言三条SQL），UI应用库存组件与已有列表共用页面/刷新，无新BI、导航、泛CRUD框架。查询仅当前projects，有界返回分类与2/3位语言，不读流量明细或调外部服务。普通分页仍20；查询参数白名单与绑定值，组合筛选count与items同where；库存与列表均排除删除。
+
+设计Review(mode=design)：已反查用户要求及限制。关闭反例：所有公开和公开Live混淆、null冒充private、listing翻译等于UI语言、多语言相加冒充应用总数、分类发现game交叉归属重复、统计随筛选不明。统计与管理集中一页，无新模块扩散；no findings，design-review passed。验收：实际Worker+D1删除/公开0/1/null、Live/未上线、未知类别、重复多语言/未确认/畸形JSON、翻译字段不污染、过滤组合与分页、空库存；真实Chrome桌面手机交互与生产聚合对账。用户主观布局偏好待反馈，不新增批准门。

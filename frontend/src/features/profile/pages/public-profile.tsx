@@ -14,7 +14,7 @@ import {
   getEffectiveLabel,
 } from '@/utils/profile-links';
 import {
-  Heart,
+  ThumbsUp,
   Star,
   Zap,
   ExternalLink,
@@ -165,7 +165,7 @@ export const PublicProfile: React.FC = () => {
               onClick={() => presenter.publicProfile.toggleLike(project.id)}
               className="inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
             >
-              <Heart
+              <ThumbsUp
                 className={`w-3 h-3 ${liked ? 'fill-pink-500 text-pink-500' : 'text-slate-400'
                   }`}
               />

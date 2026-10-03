@@ -16,6 +16,7 @@ import { deploymentRepository } from '../workers/api/src/repositories/deployment
 import { analyticsRepository } from '../workers/api/src/repositories/analytics.repository';
 import { communityRepository } from '../workers/api/src/repositories/community.repository';
 import { communityService } from '../workers/api/src/services/community.service';
+import { projectInventory } from '../workers/admin/src/project-inventory';
 
 const require = createRequire(import.meta.url);
 const runtime = createRequire(require.resolve('wrangler/package.json'));
@@ -104,6 +105,23 @@ try {
     limit: 20,
   });
   const now = new Date().toISOString();
+  assert.deepEqual(
+    await projectInventory(db),
+    {
+      summary: {
+        total: 0,
+        public: 0,
+        private: 0,
+        visibilityUnknown: 0,
+        live: 0,
+        publicLive: 0,
+        languageKnown: 0,
+      },
+      categories: [],
+      languages: [],
+    },
+    'empty inventory is measured zero, not null or NaN'
+  );
   await db
     .prepare(
       'INSERT INTO users (id,email,display_name,password_hash,created_at,updated_at) VALUES (?,?,?,?,?,?)'
@@ -252,6 +270,128 @@ try {
     'projects?channel=bad',
     'deployments?channel=bad',
     'deployments?channel=unrecorded',
+  ])
+    assert.equal((await request(path, cookie)).status, 400);
+  for (const [id, category, language, visibility, status] of [
+    [
+      'inventory-multi',
+      'Education',
+      JSON.stringify({ source: 'author', languages: ['zh', 'en', 'zh'] }),
+      1,
+      'Live',
+    ],
+    ['inventory-en', 'Games', JSON.stringify({ source: 'detected', languages: ['en'] }), 0, 'Live'],
+    [
+      'inventory-zh',
+      'Education',
+      JSON.stringify({ source: 'author', languages: ['zh'] }),
+      1,
+      'Building',
+    ],
+    ['inventory-json', 'Legacy', '{broken', null, 'Failed'],
+    [
+      'inventory-object',
+      'Creative',
+      JSON.stringify({ source: 'author', languages: { en: true } }),
+      0,
+      'Live',
+    ],
+    [
+      'inventory-source',
+      null,
+      JSON.stringify({ source: 'translation', languages: ['en'] }),
+      1,
+      'Live',
+    ],
+    [
+      'inventory-neutral',
+      'Creative',
+      JSON.stringify({ source: 'author', languages: ['zxx'] }),
+      0,
+      'Live',
+    ],
+    [
+      'inventory-deleted',
+      'Education',
+      JSON.stringify({ source: 'author', languages: ['fr'] }),
+      1,
+      'Live',
+    ],
+  ] as const) {
+    await db
+      .prepare(
+        `INSERT INTO projects (id,name,repo_url,owner_id,created_at,last_deployed,category,app_language,is_public,status,is_deleted,url,default_locale,localized_metadata)
+      VALUES (?,?,'','user-test',?,?,?,?,?,?,?,?,'en','{"defaultLocale":"en","locales":{"en":{"name":"Translated"}}}')`
+      )
+      .bind(
+        id,
+        id,
+        now,
+        now,
+        category,
+        language,
+        visibility,
+        status,
+        Number(id === 'inventory-deleted'),
+        id === 'inventory-multi' ? 'https://example.invalid' : ''
+      )
+      .run();
+  }
+  const inventoryResponse = await (await request('projects', cookie)).json();
+  const inventory = inventoryResponse.inventory;
+  assert.deepEqual(inventory.summary, {
+    total: 10,
+    public: 4,
+    private: 3,
+    visibilityUnknown: 3,
+    live: 8,
+    publicLive: 2,
+    languageKnown: 4,
+  });
+  assert.equal(
+    inventory.categories.reduce((n: number, row: { total: number }) => n + row.total, 0),
+    10
+  );
+  assert.equal(inventory.languages.find((row: { name: string }) => row.name === 'zh').total, 2);
+  assert.equal(
+    inventory.categories.find((row: { name: string }) => row.name === 'Education').total,
+    2
+  );
+  assert.equal(inventory.categories.find((row: { name: string }) => row.name === 'Other').total, 5);
+  assert.equal(
+    inventory.categories.length,
+    4,
+    'one group per primary category, not per application name'
+  );
+  assert.equal(
+    inventory.languages.find((row: { name: string }) => row.name === 'en').total,
+    2,
+    'translation locale must not imply UI language'
+  );
+  assert.equal(inventory.languages.find((row: { name: string }) => row.name === 'zxx').total, 1);
+  assert.ok(
+    !inventory.languages.some((row: { name: string }) => row.name === 'fr'),
+    'deleted apps excluded'
+  );
+  const combined = await (
+    await request('projects?category=Education&language=zh&visibility=public&status=Live', cookie)
+  ).json();
+  assert.equal(combined.total, 1);
+  assert.equal(combined.items[0].id, 'inventory-multi');
+  assert.deepEqual(JSON.parse(combined.items[0].languages), ['en', 'zh']);
+  assert.deepEqual(
+    combined.inventory,
+    inventory,
+    'snapshot stays global while the table is filtered'
+  );
+  assert.equal((await (await request('projects?language=und', cookie)).json()).total, 6);
+  assert.equal((await (await request('projects?visibility=unrecorded', cookie)).json()).total, 3);
+  assert.equal((await (await request('projects?category=Other', cookie)).json()).total, 5);
+  for (const path of [
+    'projects?category=bad',
+    'projects?language=zh-CN',
+    'projects?visibility=bad',
+    'users?language=zh',
   ])
     assert.equal((await request(path, cookie)).status, 400);
   assert.equal(

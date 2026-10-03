@@ -91,3 +91,13 @@ CLI 生产交付完成：功能提交 c87f4da；admin Worker `6270fc65-43a0-42b5
 本次QA记录共享日预算基线，30日报告 witnessed noncached `reservedReads=55502` 退回；7日刷新命中缓存不重复归账。第一次7日脚本在读取响应前使用了Playwright Response不支持的clone，修正验收脚本后通过；其已占用额度未有保存的非缓存响应证明，因此保守保留55254，不清零或冒认其它用量。专用15分钟QA session已删除，生产session401复验；不产生或删除客户资源，不更改现有管理员密码。当前CLI线上真实入口和Required ADM-10通过。
 
 复盘完成：原事实owner PRODUCT_ANALYTICS增加CLI统计口径、应用历史投影及查询筛选；用户澄清不拆Skill，复用既有部署记录实现闭环，没有新协议、事件状态或CLI升级。一次验收脚本API误用仅修正当次脚本，不升级全局规则。retrospective_state=completed；retrospective_decision=原owner事实更新且有D1/生产证据，无额外体系资产。最后重新fetch核对主工作区master、origin/master及远端实际SHA和任务提交祖先，保护其它任务工作区。
+
+### 2026-10-03 应用统计整合（scope revision 5 / ADM-11）
+
+原始输入：用户希望查看APP类别、不同语言、公开数量等统计，缺少则补充，并自行整合模块，“不要不停的无限拓展”。事实：当前项目表已有category/app_language/is_public，但后台仅有公开上线摘要。方案沿应用管理单页补当前未删除库存，分类/语言/公开设置组合筛选和列表列；经营总览/增长/CLI分工保持，不新增导航、采集、历史曲线、AI重分类或产品语言检测。
+
+实现owner：workers/admin/src/project-inventory.ts集中库存及语言安全SQL投影（畸形JSON、空/非数组、source、重复码、最多8码、删除）；operations列表和过滤直接共用表达式。UI库存与原列表共用响应/刷新；语言显示助手被库存和列表直接消费，数据与组件按Fast Refresh要求分离；无通用BI/CRUD机制。全局统计不因列表筛选变化，missing单独显示，public和publicLive区分，多语言计数不冒充应用总数。
+
+验证：实际Worker+D1中10个有效项目覆盖三类可见性、4已知语言、多语去重、失效JSON/source/非数组、删除、不读翻译locale、空库存；组合筛选/全局快照保持、Other与unknown语言过滤及原认证/管理/反馈回归通过。新分类聚合避免GROUP BY name误绑定projects.name，改为真实表达式，新增跨项目类别/语言合计判定。tsc、targeted eslint、build及diff检查通过；本地实际Chrome在1440/390宽验证库存、分类/语言/公开/状态筛选、清空及未知语言，无JS错误和根溢出。
+
+实现 Review：无项目diff-only维护脚本，采用findings-first；核对原输入、owner、聚合与筛选同表达式、参数白名单/绑定、JSON坏数据恢复、distinct项目、多语言分母、公开null与Live区分、字段白名单和权限/原分页。旧功能完整保留，onlyprojects新增三条元数据聚合，无全量个人/源码返回；no findings。适用验证有效，进入授权admin部署与生产验收，ADM-11待线上证据。

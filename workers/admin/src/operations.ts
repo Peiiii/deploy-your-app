@@ -1,4 +1,11 @@
 import type { AdminEnv } from './auth';
+import {
+  categorySql,
+  languageExistsSql,
+  languageListSql,
+  languageMatchSql,
+  projectInventory,
+} from './project-inventory';
 
 export class AdminInputError extends Error {
   constructor(
@@ -93,6 +100,19 @@ export const listOperations = async (db: D1Database, kind: string, url: URL) => 
   const search = (url.searchParams.get('q') || '').trim();
   const status = url.searchParams.get('status') || '';
   const channel = url.searchParams.get('channel') || '';
+  const category = url.searchParams.get('category') || '';
+  const language = url.searchParams.get('language') || '';
+  const visibility = url.searchParams.get('visibility') || '';
+  if ((category || language || visibility) && kind !== 'projects')
+    throw new AdminInputError('应用筛选无效');
+  if (
+    category &&
+    !['Education', 'Games', 'Productivity', 'Creative', 'Development', 'Other'].includes(category)
+  )
+    throw new AdminInputError('应用分类无效');
+  if (language && !/^[a-z]{2,3}$/.test(language)) throw new AdminInputError('应用语言无效');
+  if (visibility && !['public', 'private', 'unrecorded'].includes(visibility))
+    throw new AdminInputError('公开设置无效');
   if (
     channel &&
     (!['projects', 'deployments'].includes(kind) ||
@@ -122,6 +142,7 @@ export const listOperations = async (db: D1Database, kind: string, url: URL) => 
     order = 'COALESCE(p.created_at,p.last_deployed) DESC,p.id';
     fields = `p.id,p.name,p.slug,p.status,p.url,p.is_public,p.owner_id,u.email AS owner_email,
       u.display_name AS owner_name,p.source_type,p.created_at,p.last_deployed,
+      p.category,${languageListSql} AS languages,
       ${projectChannel('ASC')} AS first_channel,${projectChannel('DESC')} AS latest_channel`;
     if (search) {
       where += ' AND (p.name LIKE ? OR p.slug LIKE ? OR u.email LIKE ? OR p.owner_id=?)';
@@ -137,6 +158,19 @@ export const listOperations = async (db: D1Database, kind: string, url: URL) => 
       where += ` AND COALESCE(${projectChannel('DESC')},'unrecorded')=?`;
       params.push(channel);
     }
+    if (category) {
+      where += ` AND ${categorySql}=?`;
+      params.push(category);
+    }
+    if (language) {
+      where += ` AND ${language === 'und' ? `NOT ${languageExistsSql}` : languageMatchSql}`;
+      if (language !== 'und') params.push(language);
+    }
+    if (visibility)
+      where +=
+        visibility === 'unrecorded'
+          ? ' AND (p.is_public IS NULL OR p.is_public NOT IN (0,1))'
+          : ` AND p.is_public=${visibility === 'public' ? 1 : 0}`;
   } else if (kind === 'deployments') {
     from = 'deployment_attempts a LEFT JOIN projects p ON p.id=a.project_id';
     where = '1=1';
@@ -173,7 +207,13 @@ export const listOperations = async (db: D1Database, kind: string, url: URL) => 
         (page - 1) * limit
       ),
   ]);
-  return { items: rows[1].results, total: Number(rows[0].results[0].total), page, limit };
+  return {
+    items: rows[1].results,
+    total: Number(rows[0].results[0].total),
+    page,
+    limit,
+    ...(kind === 'projects' ? { inventory: await projectInventory(db) } : {}),
+  };
 };
 
 export const manageOperation = async (env: AdminEnv, input: Record<string, unknown>) => {

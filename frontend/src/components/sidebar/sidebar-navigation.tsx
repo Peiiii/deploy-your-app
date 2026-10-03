@@ -24,7 +24,6 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
   const navItems: NavItem[] = [
     { path: '/', label: t('navigation.home'), icon: Home },
     { path: '/explore', label: t('navigation.exploreApps'), icon: Sparkles },
-    { path: '/community', label: t('navigation.community'), icon: MessagesSquare },
     { path: '/deploy', label: t('navigation.deployApp'), icon: Package },
     ...(authUser
       ? [
@@ -32,6 +31,7 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
         { path: '/me', label: t('navigation.profile'), icon: User },
       ]
       : []),
+    { path: '/community', label: t('navigation.community'), icon: MessagesSquare },
   ];
 
   return (
