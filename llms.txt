@@ -1,0 +1,18 @@
+# GemiGo
+
+> Publish and share existing web apps from HTML, ZIP files or GitHub repositories.
+
+GemiGo publishes browser applications. Ready-built static files are published directly; supported source projects with a build script build before publishing static output. Hosting a frontend does not automatically run an arbitrary backend or database. Public discovery is separate from access to the deployed URL. Never publish secrets in browser code.
+
+## Product information and guides
+- [Publish and share web apps](https://gemigo.io/): Publish web apps from HTML, ZIP files or GitHub. Get a shareable link, manage updates, and discover interactive tools, learning apps and games.
+- [Discover apps made by the community](https://gemigo.io/explore): Explore publicly shared GemiGo apps, including learning tools, games and interactive demos. Preview an app, visit its website and meet its creator.
+- [What is GemiGo?](https://gemigo.io/about): Learn what GemiGo does, how HTML, ZIP and GitHub publishing work, and the boundaries of public sharing and application hosting.
+- [How to publish an HTML app](https://gemigo.io/guides/publish-html): A practical guide to publishing HTML with GemiGo: paste your code, publish the app, check the public link, and update it when your content changes.
+- [How to publish a ZIP web app](https://gemigo.io/guides/publish-zip): Publish a web app from a ZIP file with GemiGo. Learn the difference between a ready-built static site and source code that needs a build step.
+
+## Policies
+- [Privacy](https://gemigo.io/privacy-policy)
+- [Acceptable use](https://gemigo.io/acceptable-use)
+
+Chinese versions of public information use ?lang=zh-CN. This file is an optional summary of the linked human-readable pages, not a search ranking or AI citation guarantee.
