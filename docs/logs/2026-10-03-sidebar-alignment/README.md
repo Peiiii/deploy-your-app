@@ -22,3 +22,10 @@
 - 线上浏览器实际消费 `index-C_aJZNDd.js` / `index-CEqJScMf.css`；登录用户六项导航全部 flex-start、图标左边距 16px，账户入口 flex-start。收起后六项均 center、40px宽/20px图标/10px边距，再展开恢复左对齐；截图 `/tmp/gemigo-sidebar-alignment-fixed.png`。
 - 用户可刷新 https://gemigo.io/ 查看侧栏，切换展开/折叠核对对齐。未改变数据操作，原 tooltip/点击代码保留；主观体验仍由用户确认。
 - retrospective_state=completed，retrospective_decision=no-increment：单次组件迁移漏验已修复并用真实渲染证明，无需增加共享流程或全局规则。本记录只保留用户要求的归因证据。
+
+## 追加：展开/收起按钮形状
+
+- 用户补充截图要求核对原来的圆形按钮。`git show f0cd5da -- frontend/src/components/sidebar/sidebar-header.tsx` 证明同一会话/提交把原生 button 改为 IconButton，调用方的 `rounded-full` 未删除；共享组件的 `rounded-md` 因 CSS 生成顺序覆盖它。线上修前 24×24px，computed borderRadius=6px。
+- 局部恢复圆形：该调用方使用 `!rounded-full`，不依赖 className 字符串顺序。按钮尺寸、箭头、阴影、事件和 Tooltip 不变。
+- frontend 类型检查、header 定向 ESLint、diff check、生产构建通过；人工 diff Review no findings。独立本地地址实际渲染：展开/折叠均 24×24px、borderRadius=9999px，切换正常、键盘 Tooltip 正确，截图确认圆形；L1 bugfix，skip-design 依据同上。
+- 追加形状修复待上线，retrospective_state=pending。

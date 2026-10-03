@@ -60,7 +60,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
 
       <IconButton label={collapsed ? t('ui.expandSidebar') : t('ui.collapseSidebar')} size="auto"
         onClick={onToggleCollapsed}
-        className="hidden md:flex absolute top-4 -right-3 w-6 h-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full items-center justify-center shadow-md hover:shadow-lg transition-all z-50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+        className="hidden md:flex absolute top-4 -right-3 w-6 h-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 !rounded-full items-center justify-center shadow-md hover:shadow-lg transition-all z-50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
       >
         {collapsed ? (
           <ChevronRight className="w-4 h-4" />
