@@ -2,7 +2,7 @@
 
 用户 2026-10-03：「它 HTML 里面其实配了某些图标……没有按照标准的格式协议去配置……本质上咱们是可以改代码的嘛」。要求技术方案后追加：「算了，没事儿，你搞吧，直接授权给你，你直接搞吧。」授权实现与项目全托管交付；无需再次确认。保护现有其它任务改动。
 
-flow=standard；当前阶段=delivery；retrospective_state=pending。
+flow=standard；当前阶段=completed；retrospective_state=completed。
 active-contract=smart-favicon-20261003；scope-revision=1；parent-goal=让托管应用自动使用已有可信标识作为浏览器标签页图标，并为缺标识应用提供名称图标。
 设计：[smart-favicon](../../designs/2026-10-03-smart-favicon.design.md)，design-review=passed。
 
@@ -16,7 +16,7 @@ active-contract=smart-favicon-20261003；scope-revision=1；parent-goal=让托�
 | AF-04 | true | 无可靠候选时有名称图标，缺失 favicon 请求不返回 HTML | passed | 真实 HTTP GET/HEAD SVG、未知站 404；name 用例 |
 | AF-05 | true | 新旧应用均生效，重新发布跟随当前页面，无旧图标污染 | passed | 本地真实发布 pointer/reload 与删除根图标不复用 previous；最终线上 7/7 现存应用无需重新部署即生效 |
 | AF-06 | true | CSP/既有 runtime/缓存/304/HEAD/原 R2 内容不退化，识别有界 | passed | 原 4 份 gateway/publication 回归、严格 tsc/lint、late 11s 不再更新、CSP 原文/R2 原文不变；async helper 不延迟应用 DOMContentLoaded |
-| AF-07 | true | 生产 gateway 发布及入口验收、精确提交推送、master 两端同步 | not-run | 待交付 |
+| AF-07 | true | 生产 gateway 发布及入口验收、精确提交推送、master 两端同步 | passed | 生产版本 606b4d3e；代码提交 34a219e / 6567c8d 已普通推送；fresh fetch 后 master...origin/master 为 0 0，实际远端 SHA 与本地主线相同 |
 
 不新增产品设置界面、图标任务队列、AI 图像生成或 SDK 合同，这些均不服务本次页面标识补齐。严格 CSP 的智能识别和外部图片资源失效是可观察兼容边界；不降低作者策略。
 
@@ -40,4 +40,8 @@ active-contract=smart-favicon-20261003；scope-revision=1；parent-goal=让托�
 
 ## 收尾
 
-实现 Review 与 diff-only maintainability 复核 no findings；最终 tsc、targeted ESLint 与 diff --check 通过。等待精确提交推送及主工作区 master 实际远端 SHA 核对；复盘随后完成。
+实现 Review 与 diff-only maintainability 复核 no findings；最终 async/预算变更重新通过 20 场景、严格 tsc、targeted ESLint、gateway/cache 回归和 diff --check。未变化的其它发布回归复用前述有效证据。
+
+代码交付：`34a219e` 为功能实现，`6567c8d` 为异步加载及最终线上证据。后者普通推送成功；收尾 fresh fetch 后主工作区 `master`、`origin/master` 与 `git ls-remote origin refs/heads/master` 的实际 SHA 均为 `6567c8d0dee03bf1057d408fdf1900eb05346804`，left-right count 为 `0 0`，两个任务提交均为主线祖先。并发其它任务的 admin/分析脚本/未跟踪文件保持原工作区状态，未纳入本任务提交。此日志收尾更新随后同样精确提交与普通推送，并再次核对主线同步。
+
+retrospective_decision=updated-existing-owner：已在 gateway README 补齐智能 favicon 的真实运行边界、async 不推迟 DOMContentLoaded、Chromium/Playwright 真实 HTTP 验证方法。证据是 3.5 秒 helper 延迟回归与 Chrome favicon 数据库；唯一长期事实落点为现有 gateway README，方案仍归现有 design。无需增加全局 Skill/流程规则或新知识文件。parent_status=ready-for-completion-check；所有 Required ID 当前 passed，目标及可用线上入口齐全，完成开发交付；用户尚未反馈体验，不把未回复记录为人工验收通过。
