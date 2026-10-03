@@ -20,16 +20,17 @@
 
 ## 验收合同与方案 Review
 
-contract-id=preview-loading；parent-goal=线上点开应用时有品牌反馈、完成即进入应用、慢等待有可用出口；scope-revision=1。
+contract-id=preview-loading；parent-goal=线上点开应用时有品牌反馈、完成即进入应用、慢等待有可用出口；scope-revision=4（当前行为见修订4，修订1–3为历史证据）。
 
 | ID | Required | 可观察判定 | 状态 |
 | --- | --- | --- | --- |
-| PL1 | true | 真实首页卡片打开慢应用立即有小动效且无可见文字，load 后可操作且无最低停留 | passed |
-| PL2 | true | 10秒慢等待、重试、直接显示、新标签、关闭/切换可用；旧请求隔离 | passed |
+| PL1 | true | 真实首页卡片打开立即有小动效且无可见文字，iframe 始终可见可操作，load 只移除反馈 | passed |
+| PL2 | true | 10秒非阻塞慢提示、重试、收起提示、新标签、关闭/切换可用；旧请求隔离 | passed |
 | PL3 | true | 评论/全屏不重载应用；暗色、窄桌面、reduced-motion，中英文可读且无溢出；手机保持新标签 | passed |
 | PL4 | true | 悬停连接提示有界、不加载应用文档；frontend tsc/定向lint/build与真实浏览器回归通过 | passed |
 | PL5 | true | 本任务精确提交、origin/master和主工作区master同步；线上新资产与真实入口验收 | passed |
 | PL6 | true | 单缺口开合、没有眼睛，身体固定且小；无分离扇形/双缝 | passed |
+| PL7 | true | 正文可用但非关键图片挂起时，load 前可见且按钮立即能点，首次/重复打开均无需等待 | passed |
 
 黄金链路：默认 gemigo.io 首页 → 点开应用 → 看到精灵和应用名称 → 网页出现后实际操作 → 展开评论/全屏保持网页进度 → 关闭返回浏览。慢网络：同一入口 → 等待提示变化 → 重试或直接显示/新标签 → 可以继续或关闭。
 
@@ -68,7 +69,7 @@ contract-id=preview-loading，scope-revision=2；PL1/PL3/PL4/PL5 受本修订视
 
 修订2开发验收：PL1/PL3/PL4/PL6=passed，PL2 继续有效，PL5 等待新部署。最终无眼睛版本 production build index-BFUTbLjP.js / index-DDECKSYj.css；frontend tsc、定向 ESLint、diff-check 及原完整 production preview 回归通过。/tmp/preview-mouth-{0,150,300,450,599}.png 逐张核对：整体圆形一直连通、只有右侧嘴部缺口、合嘴形成完整圆形，中间帧没有分离舌片，眼睛已删除。减少动态效果的静态小开口由同一 CSS 基础裁剪提供。实现 Review no findings：一个整体绘制组拥有裁剪，保留原紫色四象限与光点，不引入 JS 动画或生命周期变化；没有项目 diff-only maintainability 自动入口，按这4个文件的 diff 审查。已有浏览器回归更新观测到的新动画属性，未增加仅镜像源码的视觉单元测试。
 
-## 修订 3：等待反馈轻量化（当前有效，实现前）
+## 修订 3：等待反馈轻量化（历史）
 
 用户继续纠正：角色太大、信息太多，等待应尽量不消耗注意力；文字可不展示，或仅有加载提示。完整交付继续授权，无需再次审批。选择无可见文字的常规等待：SVG 从176×96降为80×40，身体实际直径约22.5px；去掉应用名称、陪伴文案与中心大范围渐变，眼睛继续删除，嘴部采用修订2单缺口。辅助技术保留不可见“加载中”状态；iframe 仍有应用名称。10秒后才出现一行“加载较慢”和低强调的小型重试/直接显示/新窗口操作，保留用户逃离等待的能力。
 
@@ -84,3 +85,21 @@ scope-revision=3；修订2视觉尺寸/信息量证据转 stale。PL1 调整为�
 源码精确提交并普通推送；主工作区master快进到73d2620、rev-list=0 0；其它任务analytics脚本及未跟踪文件保留，无暂存或草稿混入。收尾记录继续精确提交并重新fetch/实际远端SHA核对。两次非快进推送按正常merge整合其它任务主线，没有强推；一次提前开始的Pages命令在推送未就绪时停止，确认远端gh-pages仍是原版本后才执行本次成功发布。
 
 retrospective_decision=no-increment：用户反馈已纠正同一视觉owner的形状、五官与注意力强度，必要事实及证据保留在本设计，无通用流程/技能新增价值。retrospective_state=completed，用户视觉偏好仍待反馈。仅前端发布，无Secrets或后台部署；最终diff-only Review no findings。
+
+
+## 修订 4：应用渲染和操作零额外等待（当前有效）
+
+用户怀疑加载反馈导致变慢，并明确“千万不要增加延时”。bugfix / L2，发布 L4；plan=not-required，retrospective_state=pending。根因复现：完整产品首页卡片打开一个正文/按钮立即返回但图片请求被挂起的跨源网页，DOM 已有可用按钮，旧实现仍为 opacity=0、inert，点击超时；不是网络下载被动画拖慢，而是额外的展示/交互门槛。证据 /tmp/test-preview-no-delay.mjs 修前退出1。此前 load 才揭示与150ms淡入的验收不能满足新硬约束。
+
+唯一修复路径：iframe 从挂载开始始终正常可见、可聚焦、可操作，删除 opacity/inert/aria-hidden 门槛与淡入。小精灵作为指针事件穿透的底层背景置于 iframe 下方；浏览器实际绘制网页时自然覆盖反馈，load 只负责移除背景提示，不决定网页可用性。不加入最低播放时间、延迟显示、就绪轮询或跨源注入协议。初始空白 iframe 透明可显示底层精灵、正文白背景绘制后覆盖，Chrome实际截图 /tmp/preview-behind-wait.png 与 ready.png 已核对。
+
+10秒保留为非阻塞慢提示，放底部小面积区域，只有操作按钮承接点击，其余区域穿透；不再盖住整页或中心正文。原“直接显示应用”改为“收起提示”，仅撤去背景/慢提示并保留焦点交接。重试仍重建 iframe，评论/全屏仍保留节点，旧导航隔离不变。正常状态继续没有可见文案、80×40符号和无眼睛单嘴；透明网页可能短暂透出背景反馈，load 后消失，这是通用跨源背景方案的边界，不为此加入内容探测或等待。
+
+contract-id=preview-loading，scope-revision=4；parent-goal=首页预览等待有轻量反馈，应用内容一绘制就可见可操作，完全不额外等待。PL1 更正为立即显示正常 iframe、背景反馈不阻挡网页，load 仅清理；PL2 直接显示更正为收起提示；PL1–PL5 受行为/构建影响 stale，PL6 视觉未变保留已通过证据。新增 PL7 Required=true / not-run：正文可用但非关键图片仍待下载时，实际按钮能在 load 前点击，iframe 无透明度过渡/隐藏/交互锁；快应用无需播放完整周期。固定条件为相同产品入口、相同受控 HTTP 文档、挂起同一图片请求，修前失败/修后成功，不宣称整体网络提速百分比。真实线上入口同时验证正常应用操作和加载途中 frame 没有门槛。
+
+实施前 mode=design Review：no findings，design-review=passed。反查用户硬约束，应用渲染不再依赖状态或动画；背景反馈不能挡 pointer/keyboard，底部慢提示不阻挡正文主体；快/慢/重试/切换/评论/全屏/主题/减少动态效果/手机继续由同一 owner 回归。只有现有组件、两份 locale、原脚本与本设计变更，无新增路径、状态服务或依赖。MDN [load](https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event) 支持全部依赖资源完成晚于文档可交互的边界；验证不把 load 当首次可用信号。
+
+
+修订4开发验证：同一个 /tmp/test-preview-no-delay.mjs 修前 opacity=0/inert/不可点击，修后 opacity=1/无inert/可点击，退出0；原 scripts/test-preview-loading.mjs 新增真实卡片到跨源应用的挂起图片回归，连续3次打开在 load 前计数按钮均可操作，10秒慢提示后继续可点。保留完整快应用/慢导航/重试/旧请求隔离/评论全屏节点保留/中英文/主题/减少动态效果/手机回归，全部通过。frontend tsc、组件定向 ESLint、production build、diff-check passed；构建 index-v9NcXinQ.js/index-CvP_PGYz.css。实际截图位于系统 tmpdir（/var/folders/gp/ls0ngf8d1qn97_g1t48670zc0000gn/T/preview-{loading-light,loading-slow,loading-narrow,ready-before-load}.png），已复核：初始小精灵可见、正文绘制后覆盖精灵、慢提示在底部小区域，亮暗/窄桌面无溢出。
+
+implementation Review：no findings。项目无 diff-only maintainability 自动入口，按5文件diff与相邻 iframe/key/ref/焦点/计时边界审查：状态不参与应用可见性或可操作性、无淡入/最短周期、背景穿透；10秒仅决定小型辅助操作、条件计时避免已结束反馈回流。未引入协议、资源预加载、跨源脚本或运行依赖。PL1–PL4/PL6/PL7 current passed，PL5 等待本次源码同步和线上新资产验收；网络本身的总耗时改善未测量，不声称提速比例。

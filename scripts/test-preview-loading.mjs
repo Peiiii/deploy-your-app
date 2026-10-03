@@ -69,8 +69,9 @@ try {
     assert.ok(spriteSize.width <= 80 && spriteSize.height <= 40, 'Loading animation stays compact');
     const frame = page.locator('iframe');
     const identity = await frame.elementHandle();
-    assert.equal(await frame.getAttribute('inert'), '');
-    assert.equal(await frame.evaluate(element => getComputedStyle(element).opacity), '0');
+    assert.equal(await frame.getAttribute('inert'), null);
+    assert.equal(await frame.evaluate(element => getComputedStyle(element).opacity), '1');
+    assert.equal(await frame.evaluate(element => getComputedStyle(element).transitionDuration), '0s');
     await page.screenshot({ path: join(screenshots, 'preview-loading-light.png') });
     const jawStart = await page.locator('.preview-sprite-jaw').evaluate(element => getComputedStyle(element).clipPath);
     await page.waitForTimeout(170);
@@ -126,7 +127,7 @@ try {
     await state('slow').waitFor();
     await page.screenshot({ path: join(screenshots, 'preview-loading-narrow.png') });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-    await page.getByRole('button', { name: '直接显示应用', exact: true }).click();
+    await page.getByRole('button', { name: '收起提示', exact: true }).click();
     await state('visible').waitFor();
     assert.equal(await frame.evaluate(element => document.activeElement === element), true, 'Reveal keeps keyboard focus usable');
     pending[2].resolve();
@@ -145,6 +146,39 @@ try {
     await state('visible').waitFor();
     await page.getByRole('button', { name: '关闭', exact: true }).click();
     await frame.waitFor({ state: 'detached' });
+
+    // An app can already be usable while a noncritical resource holds load open.
+    await page.unroute(appPattern);
+    let releaseImage;
+    await page.route(appPattern, async route => {
+        if (route.request().url().endsWith('/slow-image.png')) {
+            await new Promise(resolve => releaseImage = resolve);
+            return route.fulfill({ status: 404, body: '' });
+        }
+        return route.fulfill({ contentType: 'text/html', body: '<body style="background:white;padding:24px"><button id="ready" onclick="this.textContent=String(Number(this.textContent)+1)">0</button><img src="/slow-image.png"></body>' });
+    });
+    // Repeat opening the same app to cover both first use and returning visits.
+    for (let visit = 0; visit < 3; visit++) {
+        await a.click();
+        const ready = page.frameLocator('iframe').locator('#ready');
+        await ready.waitFor();
+        assert.equal(await state('loading').count(), 1, 'Resource still pending: load has not fired');
+        await ready.click({ timeout: 1500 });
+        assert.equal(await ready.innerText(), '1', 'App works before the last image finishes');
+        assert.equal(await frame.evaluate(element => getComputedStyle(element).opacity), '1');
+        assert.equal(await frame.getAttribute('aria-hidden'), null);
+        assert.equal(await frame.getAttribute('inert'), null);
+        if (visit === 0) {
+            await page.screenshot({ path: join(screenshots, 'preview-ready-before-load.png') });
+            await page.clock.fastForward(10_001);
+            await state('slow').waitFor();
+            await ready.click();
+            assert.equal(await ready.innerText(), '2', 'Slow hint also leaves the app usable');
+        }
+        releaseImage();
+        await state('visible').waitFor();
+        await page.getByRole('button', { name: '关闭', exact: true }).click();
+    }
 
     // A fast app has no artificial minimum hold. Fulfill on navigation immediately.
     await page.unroute('https://preview-loading-*.gemigo.test/**');
@@ -171,7 +205,7 @@ try {
     assert.equal(await page.locator('iframe').count(), 0, 'Mobile still opens a new tab');
     await mobilePopup.close();
     assert.deepEqual(errors, []);
-    console.log('PASS: immediate feedback, animation, load reveal, slow/retry/show/new-tab, stale navigation, layout preservation, reduced motion, responsive UI, languages, bounded preconnect and mobile.');
+    console.log('PASS: immediate feedback, animation, usable before load (3 visits), nonblocking slow/retry/dismiss/new-tab, stale navigation, layout preservation, reduced motion, responsive UI, languages, bounded preconnect and mobile.');
 } finally {
     await browser.close();
 }

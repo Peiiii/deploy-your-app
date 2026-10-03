@@ -14,7 +14,7 @@ export function AppPreviewContent({ name, url, onOpenInNewTab }: AppPreviewConte
     const [attempt, setAttempt] = useState(0);
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const loadingRef = useRef<HTMLDivElement>(null);
-    const focusOnReveal = useRef(false);
+    const focusOnDismiss = useRef(false);
     const waiting = status !== 'visible';
 
     useEffect(() => {
@@ -24,34 +24,21 @@ export function AppPreviewContent({ name, url, onOpenInNewTab }: AppPreviewConte
     }, [status, attempt]);
 
     useEffect(() => {
-        if (!waiting && focusOnReveal.current) {
+        if (!waiting && focusOnDismiss.current) {
             iframeRef.current?.focus({ preventScroll: true });
-            focusOnReveal.current = false;
+            focusOnDismiss.current = false;
         }
     }, [waiting]);
 
-    const reveal = () => {
-        focusOnReveal.current = loadingRef.current?.contains(document.activeElement) ?? false;
+    const dismissFeedback = () => {
+        focusOnDismiss.current = loadingRef.current?.contains(document.activeElement) ?? false;
         setStatus('visible');
     };
 
     return (
         <div className="absolute inset-0 bg-[#f8f6ff] dark:bg-[#141020]" data-preview-state={status}>
-            <iframe
-                key={attempt}
-                ref={iframeRef}
-                src={url}
-                className={`h-full w-full select-none border-0 transition-opacity duration-150 motion-reduce:transition-none ${waiting ? 'opacity-0' : 'opacity-100'}`}
-                title={name}
-                aria-hidden={waiting}
-                inert={waiting}
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
-                onLoad={event => {
-                    if (event.currentTarget === iframeRef.current) reveal();
-                }}
-            />
             {waiting && (
-                <div ref={loadingRef} className="absolute inset-0 flex flex-col items-center justify-center overflow-y-auto px-6 py-16">
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                     <svg viewBox="0 0 112 64" className="preview-sprite h-10 w-20 shrink-0" aria-hidden="true">
                         <g transform="translate(16 8) scale(1.5)">
                             <g className="preview-sprite-jaw">
@@ -65,15 +52,31 @@ export function AppPreviewContent({ name, url, onOpenInNewTab }: AppPreviewConte
                             <circle key={index} className="preview-sprite-dot" cx="102" cy="32" r="2.5" fill="#a78bfa" style={{ animationDelay: `${index * -0.6}s` }} />
                         ))}
                     </svg>
-                    <div role="status" className={status === 'slow' ? 'mt-2 text-center text-xs text-slate-500 dark:text-slate-400' : 'sr-only'}>
+                </div>
+            )}
+            {/* Never gate app paint or interaction on load; feedback sits underneath. */}
+            <iframe
+                key={attempt}
+                ref={iframeRef}
+                src={url}
+                className="relative h-full w-full select-none border-0"
+                title={name}
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+                onLoad={event => {
+                    if (event.currentTarget === iframeRef.current) dismissFeedback();
+                }}
+            />
+            {waiting && (
+                <div ref={loadingRef} className="pointer-events-none absolute inset-x-3 bottom-3 flex flex-col items-center">
+                    <div role="status" className={status === 'slow' ? 'rounded-md bg-white/90 px-2 py-1 text-center text-xs text-slate-500 dark:bg-slate-900/90 dark:text-slate-400' : 'sr-only'}>
                         {t(status === 'slow' ? 'previewLoading.slow' : 'common.loading')}
                     </div>
                     {status === 'slow' && (
-                        <div className="mt-2 flex max-w-full flex-wrap justify-center gap-1">
+                        <div className="pointer-events-auto mt-1 flex max-w-full flex-wrap justify-center gap-1 rounded-md bg-white/90 dark:bg-slate-900/90">
                             <button type="button" onClick={() => { setStatus('loading'); setAttempt(current => current + 1); }} className="rounded-md px-2 py-2 text-xs text-slate-500 hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-slate-400 dark:hover:bg-white/10">
                                 {t('common.retry')}
                             </button>
-                            <button type="button" onClick={reveal} className="rounded-md px-2 py-2 text-xs text-slate-500 hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-slate-400 dark:hover:bg-white/10">
+                            <button type="button" onClick={dismissFeedback} className="rounded-md px-2 py-2 text-xs text-slate-500 hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-slate-400 dark:hover:bg-white/10">
                                 {t('previewLoading.showApp')}
                             </button>
                             <button type="button" onClick={() => onOpenInNewTab(url)} className="rounded-md px-2 py-2 text-xs text-slate-500 hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-slate-400 dark:hover:bg-white/10">

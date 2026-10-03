@@ -27,7 +27,7 @@
   },
   "previewLoading": {
     "slow": "Taking longer",
-    "showApp": "Show app now"
+    "showApp": "Hide loading hint"
   },
   "previewActions": {
     "actions": "App actions",

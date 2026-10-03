@@ -27,7 +27,7 @@
   },
   "previewLoading": {
     "slow": "加载较慢",
-    "showApp": "直接显示应用"
+    "showApp": "收起提示"
   },
   "previewActions": {
     "actions": "应用操作",
