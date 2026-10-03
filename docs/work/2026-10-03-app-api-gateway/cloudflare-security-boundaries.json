@@ -1,0 +1,8 @@
+{
+  "privateDNS": 400,
+  "redirectRejected": 302,
+  "otherOwnerRead": 403,
+  "otherOwnerWrite": 403,
+  "metadataOnly": true,
+  "ticketsHaveNoStore": null
+}

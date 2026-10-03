@@ -1,0 +1,33 @@
+{
+  "environment": "local static frontend + actual staging Cloudflare gateway",
+  "input": "repeated recorded speech fixture",
+  "audioBytes": 4876800,
+  "completed": 10,
+  "transcriptions": 10,
+  "sent": {
+    "session.update": 1,
+    "input_audio_buffer.append": 810,
+    "response.cancel": 1
+  },
+  "contexts": [
+    {
+      "state": "closed",
+      "sampleRate": 48000
+    },
+    {
+      "state": "closed",
+      "sampleRate": 16000
+    }
+  ],
+  "errors": [],
+  "controls": [
+    "manual interrupt sent response.cancel",
+    "mic muted and restored in UI",
+    "speaker disabled and restored in UI",
+    "hangup closed both application AudioContexts"
+  ],
+  "physicalAudibility": "requires user confirmation",
+  "reconnect": "second call reached listening and continued ASR/audio",
+  "secretDeletion": "owner DELETE QWEN_KEY succeeded while second call active; browser socket closed and UI returned idle",
+  "browserOverridesRestored": true
+}

@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "rounds": 5,
+  "audioBytes": 3164160,
+  "elapsedMs": 30998,
+  "events": {
+    "session.created": 1,
+    "session.updated": 1,
+    "response.created": 5,
+    "response.output_item.added": 5,
+    "conversation.item.created": 5,
+    "response.content_part.added": 5,
+    "response.audio_transcript.delta": 224,
+    "response.audio.delta": 207,
+    "response.audio_transcript.done": 5,
+    "response.audio.done": 5,
+    "response.content_part.done": 5,
+    "response.output_item.done": 5,
+    "response.done": 5
+  }
+}

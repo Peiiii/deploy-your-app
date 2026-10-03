@@ -10,6 +10,7 @@ import { SettingsDeploymentTab } from '@/features/project-settings/components/ta
 import { SettingsDisplayTab } from '@/features/project-settings/components/tabs/settings-display-tab';
 import { SettingsAnalyticsTab } from '@/features/project-settings/components/tabs/settings-analytics-tab';
 import { SettingsCloudDbTab } from '@/features/project-settings/components/tabs/settings-cloud-db-tab';
+import { SettingsApiConnectionsTab } from './tabs/settings-api-connections-tab';
 import type { Project } from '@/types';
 
 interface ProjectSettingsCardProps {
@@ -19,7 +20,7 @@ interface ProjectSettingsCardProps {
   onDeleteProject: () => void;
 }
 
-type TabId = 'general' | 'deployments' | 'display' | 'analytics' | 'cloud-db' | 'points';
+type TabId = 'general' | 'deployments' | 'display' | 'analytics' | 'cloud-db' | 'points' | 'api-connections';
 
 export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
   project,
@@ -32,7 +33,7 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
   const initialTab = (searchParams.get('tab') as TabId) || 'general';
 
   // Validate tab to ensure it's a valid TabId, fallback to general
-  const validTab = ['general', 'deployments', 'display', 'analytics', 'cloud-db', 'points'].includes(initialTab)
+  const validTab = ['general', 'deployments', 'display', 'analytics', 'cloud-db', 'points', 'api-connections'].includes(initialTab)
     ? initialTab
     : 'general';
 
@@ -41,7 +42,7 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
   // Sync state with URL if URL changes externally (e.g. back button)
   React.useEffect(() => {
     const currentTab = searchParams.get('tab') as TabId;
-    if (currentTab && ['general', 'deployments', 'display', 'analytics', 'cloud-db', 'points'].includes(currentTab)) {
+    if (currentTab && ['general', 'deployments', 'display', 'analytics', 'cloud-db', 'points', 'api-connections'].includes(currentTab)) {
       setActiveTabState(currentTab);
     }
   }, [searchParams]);
@@ -61,6 +62,7 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
     { id: 'general', label: t('project.general', 'General') },
     { id: 'deployments', label: t('project.deployments', 'Deployments') },
     { id: 'display', label: t('project.display', 'Display') },
+    { id: 'api-connections', label: t('apiConnections.title') },
     { id: 'cloud-db', label: t('project.cloudDb', 'Cloud DB') },
     { id: 'points', label: '点数与收益' },
     { id: 'analytics', label: t('project.analytics', 'Analytics') },
@@ -101,6 +103,8 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
       }
 
       {activeTab === 'display' && <SettingsDisplayTab project={project} />}
+
+      {activeTab === 'api-connections' && <SettingsApiConnectionsTab key={project.id} project={project} />}
 
       {activeTab === 'cloud-db' && <SettingsCloudDbTab project={project} />}
 

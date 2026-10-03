@@ -1,0 +1,9 @@
+{
+  "wrongOrigin": 403,
+  "credentialEcho": true,
+  "ticketReplay": true,
+  "deepseekJSON": true,
+  "deepseekSSE": true,
+  "disableStopsSSE": true,
+  "disabledTicket": 403
+}

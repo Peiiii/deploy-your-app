@@ -19,6 +19,7 @@ const order = [
   'index',
   'getting-started',
   'auth-cloud',
+  'api-connections',
   'points',
   'wallet',
   'examples',

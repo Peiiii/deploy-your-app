@@ -1,0 +1,8 @@
+{
+  "text-json": true,
+  "text-sse": true,
+  "text-qwen-json": true,
+  "text-qwen-sse": true,
+  "canonicalTicketURLs": true,
+  "ticketsNoStore": true
+}

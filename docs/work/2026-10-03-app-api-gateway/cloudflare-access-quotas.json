@@ -1,0 +1,10 @@
+{
+  "loginRejectsAnonymous": 401,
+  "otherAppToken": 403,
+  "matchingAppToken": 200,
+  "userDailySharedAcrossConnections": 429,
+  "parallelTickets": 8,
+  "acceptedTickets": 1,
+  "maxAppConcurrency": 2,
+  "rotationRevokesTickets": true
+}

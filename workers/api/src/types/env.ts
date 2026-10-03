@@ -1,4 +1,7 @@
 export interface ApiWorkerEnv {
+  APP_GATEWAY?: DurableObjectNamespace;
+  APP_SECRETS_KEYS?: string;
+  APP_GATEWAY_PUBLIC_ORIGIN?: string;
   RECOMMENDATION_AI?: Ai;
   /** Signs scoped anonymous feed identities and authenticates module-only operations. */
   RECOMMENDATION_SECRET?: string;

@@ -1,6 +1,7 @@
 name = "gemigo-api"
 main = "src/index.ts"
 compatibility_date = "2026-09-18"
+compatibility_flags = ["global_fetch_strictly_public"]
 
 # Uncomment and set your Cloudflare account ID once known.
 account_id = "adb27b39051202962038992eeaf8f6bb"
@@ -53,3 +54,12 @@ crons = ["*/2 * * * *"]
 [[services]]
 binding = "APP_CONTENT"
 service = "gemigo-screenshot-service"
+
+# Application-scoped in-flight calls, revocation and transport lifecycle.
+[[durable_objects.bindings]]
+name = "APP_GATEWAY"
+class_name = "AppGateway"
+
+[[migrations]]
+tag = "app-gateway-v1"
+new_sqlite_classes = ["AppGateway"]

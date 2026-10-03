@@ -1,5 +1,6 @@
 import { pointsController } from './points/controller';
 import { processPointsScheduled } from './points/service';
+export { AppGateway } from './app-gateway/object';
 import { scheduledRecommendation } from './explore-recommendation/indexer';
 import { analyticsRepository } from './repositories/analytics.repository';
 import { metadataService } from './services/metadata.service';
@@ -63,7 +64,7 @@ const worker: ExportedHandler<ApiWorkerEnv> = {
         // A telemetry/config failure never fails the underlying business request.
         const settings = await getSettings(env.ANALYTICS_DB).catch(() => null);
         if (settings) {
-          response = new Response(response.body, response);
+          if (response.status !== 101) response = new Response(response.body, response);
           response.headers.set('x-gemigo-collection', settings.enabled ? '1' : '0');
           if (settings.enabled) ctx.waitUntil(storeTelemetry(request, response, env, batch).catch(() => console.warn('Telemetry write skipped')));
         }

@@ -1,3 +1,4 @@
+import { appGatewayController } from './app-gateway/controller';
 import { handleFeed, handleRecommendationOperations } from './explore-recommendation/controller';
 import type { ApiWorkerEnv } from './types/env';
 import { ConfigurationError } from './utils/error-handler';
@@ -36,6 +37,13 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
     }
     return db;
   };
+
+  router.add({ path: '/api/v1/projects/:id/api-connections', method: 'GET', handler: (req, p) => appGatewayController.manage(req, env, p.id, 'settings') });
+  for (const method of ['PUT', 'DELETE'] as const) router.add({ path: '/api/v1/projects/:id/secrets/:name', method, handler: (req, p) => appGatewayController.manage(req, env, p.id, 'secrets', p.name) });
+  router.add({ path: '/api/v1/projects/:id/api-connections/:name', method: 'PUT', handler: (req, p) => appGatewayController.manage(req, env, p.id, 'connections', p.name) });
+  router.add({ path: '/api/v1/projects/:id/api-connections/:name/test', method: 'POST', handler: (req, p) => appGatewayController.manage(req, env, p.id, 'test', p.name) });
+  router.add({ path: '/api/v1/apps/:id/connections/:name/tickets', method: 'POST', handler: (req, p) => appGatewayController.tickets(req, env, p.id, p.name) });
+  for (const method of ['GET', 'POST'] as const) router.add({ path: '/api/v1/gateway/:id/:name', method, handler: (req, p) => appGatewayController.invoke(req, env, p.id, p.name) });
 
   router.add({path:'/api/v1/explore-feed',method:'POST',handler:req=>handleFeed(req,env)});
   router.add({path:'/api/v1/admin/explore-recommendation',method:'POST',handler:req=>handleRecommendationOperations(req,env)});
