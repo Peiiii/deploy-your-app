@@ -14,7 +14,7 @@ interface PreviewCommentsPanelProps {
   open: boolean;
   isFullscreen: boolean;
   appName: string;
-  onClose?: () => void;
+  onClose: () => void;
 }
 
 export const PreviewCommentsPanel = ({ projectId, panelId, open, isFullscreen, appName, onClose }: PreviewCommentsPanelProps) => {
@@ -46,9 +46,9 @@ export const PreviewCommentsPanel = ({ projectId, panelId, open, isFullscreen, a
             <h2 id={`${panelId}-title`} className="text-sm font-semibold">{t('previewActions.comments')} <span className="ml-1 text-xs font-normal text-slate-400">{state.total}</span></h2>
             <p className="mt-1 truncate text-xs text-slate-500" title={appName}>{appName}</p>
           </div>
-          {onClose && <IconButton label={t('common.close')} size="auto" type="button" onClick={onClose} className="shrink-0 rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-slate-800 dark:hover:text-slate-200">
+          <IconButton label={t('common.close')} size="auto" type="button" onClick={onClose} className="shrink-0 rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:hover:bg-slate-800 dark:hover:text-slate-200">
             <X className="h-4 w-4" aria-hidden="true" />
-          </IconButton>}
+          </IconButton>
         </header>
         <div className="app-scrollbar min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4" aria-busy={state.loading}>
           {state.error && (

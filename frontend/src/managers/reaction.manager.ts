@@ -87,7 +87,7 @@ export class ReactionManager {
     }
   };
 
-  toggleLike = async (projectId: string): Promise<boolean> => {
+  toggleLike = async (projectId: string): Promise<void> => {
     track('reaction_click', { dimension: 'like' });
     const { byProjectId, actions } = useReactionStore.getState();
     const entry = byProjectId[projectId];
@@ -104,19 +104,14 @@ export class ReactionManager {
     try {
       const reactions = await this.provider.setLike(projectId, nextLiked);
       actions.setReactions(projectId, reactions);
-      return true;
     } catch (error) {
       console.error('Failed to toggle like', error);
-      actions.patchReactions(projectId, {
-        likedByCurrentUser: currentlyLiked,
-        likesCount: entry?.likesCount ?? 0,
-      });
+      // Roll back to previous server-synced state by reloading.
       await this.loadReactionsForProject(projectId);
-      return false;
     }
   };
 
-  toggleFavorite = async (projectId: string): Promise<boolean> => {
+  toggleFavorite = async (projectId: string): Promise<void> => {
     track('reaction_click', { dimension: 'favorite' });
     const { byProjectId, actions } = useReactionStore.getState();
     const entry = byProjectId[projectId];
@@ -133,12 +128,9 @@ export class ReactionManager {
         nextFavorited,
       );
       actions.setReactions(projectId, reactions);
-      return true;
     } catch (error) {
       console.error('Failed to toggle favorite', error);
-      actions.patchReactions(projectId, { favoritedByCurrentUser: currentlyFavorited });
       await this.loadReactionsForProject(projectId);
-      return false;
     }
   };
 

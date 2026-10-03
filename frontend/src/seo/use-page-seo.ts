@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useUIStore } from '@/stores/ui.store';
 import { usePublicCatalogStore } from './public-catalog.store';
 import { usePublicProfileStore } from '@/features/profile/stores/public-profile.store';
-import { profileSeo, appSeo } from '../../public-seo.mjs';
+import { profileSeo } from '../../public-seo.mjs';
 import { getSeo, renderSeoHead } from '../../seo.mjs';
 
 export const usePageSeo = () => {
@@ -19,8 +19,7 @@ export const usePageSeo = () => {
     if (
       initial.indexable ||
       url.pathname === '/catalog' ||
-      url.pathname.startsWith('/u/') ||
-      url.pathname.startsWith('/app/')
+      url.pathname.startsWith('/u/')
     ) {
       if (language === 'zh-CN') url.searchParams.set('lang', 'zh-CN');
       else url.searchParams.delete('lang');
@@ -29,7 +28,6 @@ export const usePageSeo = () => {
         return;
       }
     }
-    if (url.pathname.startsWith('/app/')) return;
     let seo = getSeo(url);
     if (url.pathname === '/catalog') {
       if (catalog.url === url.href && catalog.result) seo = catalog.result.seo;
@@ -70,20 +68,4 @@ const writeSeo = (seo: ReturnType<typeof getSeo>) => {
   const template = document.createElement('template');
   template.innerHTML = renderSeoHead(seo);
   document.head.append(template.content);
-};
-export const usePublicAppSeo = (app: unknown, error: unknown) => {
-  const location = useLocation();
-  const language = useUIStore((s) => s.language);
-  useEffect(() => {
-    const url = new URL(location.pathname + location.search, 'https://gemigo.io');
-    if (language === 'zh-CN') url.searchParams.set('lang', language);
-    else url.searchParams.delete('lang');
-    if (app) writeSeo(appSeo(getSeo(url), app).seo);
-    else if (
-      error ||
-      document.head.querySelector('meta[name="gemigo:route"]')?.getAttribute('content') !==
-        url.pathname
-    )
-      writeSeo(getSeo(url));
-  }, [app, error, location.pathname, location.search, language]);
 };

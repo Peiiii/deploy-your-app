@@ -13,7 +13,7 @@ import { useProjectThumbnail } from '../hooks/use-project-thumbnail';
 import { ThumbsUp, Play } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { usePresenter } from '../contexts/presenter-context';
 import { useReactionStore } from '../stores/reaction.store';
 import {
@@ -254,7 +254,6 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
               {languageLabel}
             </span>
           )}
-          <Link to={`/app/${encodeURIComponent(app.id)}`} onClick={event => event.stopPropagation()} className="shrink-0 rounded-lg px-1.5 py-1 text-[11px] font-medium text-brand-600 hover:bg-brand-50 dark:text-brand-400">{t('appDetail.view')}</Link>
           <IconButton label={t('previewActions.like')} size="sm"
             aria-pressed={reactionEntry?.likedByCurrentUser ?? false}
             onClick={(e) => {

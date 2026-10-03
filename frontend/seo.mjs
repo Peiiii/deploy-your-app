@@ -289,7 +289,7 @@ export const getSeo = (url) => {
       '/cli/login',
       '/cli/login/success',
     ].includes(path) ||
-    path === '/catalog' || /^\/(projects|u|app)\/[^/]+$/.test(path);
+    path === '/catalog' || /^\/(projects|u)\/[^/]+$/.test(path);
   const structuredData = key
     ? {
         '@context': 'https://schema.org',

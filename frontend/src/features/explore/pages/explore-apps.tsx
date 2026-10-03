@@ -209,7 +209,7 @@ export const ExploreApps: React.FC = () => {
         </div>
 
         <p className="hidden md:block text-slate-500 dark:text-gray-400 text-left">
-          {t('explore.discoverApps')}
+          {t('explore.discoverApps')} {t('explore.spendCreditsSupportCreators')}
         </p>
 
         <CategoryFilterBar

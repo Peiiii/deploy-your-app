@@ -30,10 +30,6 @@ import { deploymentRepository } from '../repositories/deployment.repository';
  * Auth logic is centralized in requireAuth() to reduce duplication.
  */
 class ProjectsController {
-  async getPublicApp(db: D1Database, id: string): Promise<Response> {
-    return jsonResponse({ app: await exploreService.getPublicApp(db, id) });
-  }
-
   // ─────────────────────────────────────────────────────────────
   // Auth helper
   // ─────────────────────────────────────────────────────────────

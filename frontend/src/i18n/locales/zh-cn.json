@@ -863,28 +863,5 @@
     "reportEvidence": "请提供应用的完整网址、疑似违规的具体说明、发现时间及必要证据。不必下载或转发违法材料，请勿提交密码、密钥或无关个人信息。",
     "reportPrivacy": "反馈仅你和 GemiGo 团队可见；可在“我的反馈”中查看回复或补充说明。",
     "reportAction": "前往私密反馈（需登录）"
-  },
-  "appDetail": {
-    "share": "复制作品链接",
-    "view": "作品页",
-    "copyError": "复制失败，请打开作品页并复制地址。",
-    "unavailable": "这个作品暂时无法访问",
-    "unavailableHint": "作品可能已设为私有或已下线。",
-    "loadError": "作品加载失败",
-    "retryHint": "请稍后重试。",
-    "reactionError": "未能保存，请重试。",
-    "experience": "在线体验",
-    "start": "开始体验",
-    "manageFeedback": "管理作品反馈",
-    "createTitle": "你也有一个想法？",
-    "createHint": "发布你的 HTML 或 ZIP，把作品分享给更多人。",
-    "create": "发布一个作品",
-    "feedbackTab": "分享与反馈",
-    "shareTitle": "邀请大家体验你的作品",
-    "shareHint": "分享包含介绍、在线体验和评论的作品页。介绍可以在「通用」中修改。",
-    "notShareable": "项目公开且上线后，才能分享作品页。",
-    "editIntro": "编辑介绍与公开设置",
-    "viewAnalytics": "查看 PV / UV",
-    "feedbackHint": "这里与作品页、预览中的评论同步。回复使用者的问题，也为下一次改进收集建议。"
   }
 }

@@ -1,6 +1,5 @@
 import type { Seo } from './seo.mjs';
 export type PublicProject = {
-  path: string | null;
   name: string;
   description: string;
   url: string;
@@ -20,5 +19,3 @@ export function loadPublicSeo(
   backend: string,
   fetcher?: typeof fetch
 ): Promise<PublicSeoResult | null>;
-
-export function appSeo(base: Seo, data: unknown): PublicSeoResult;

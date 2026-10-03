@@ -2,41 +2,11 @@ import type { D1Database } from '@cloudflare/workers-types';
 import type { Project } from '../types/project';
 import { projectRepository } from '../repositories/project.repository';
 import { publicAuthorService } from './public-author.service';
-import { NotFoundError } from '../utils/error-handler';
 
 /**
  * Service for handling public explore/discovery features.
  */
 export class ExploreService {
-    async getPublicApp(db: D1Database, id: string) {
-        const project = await projectRepository.getProjectById(db, id);
-        if (!project || project.isPublic === false || project.isDeleted || project.status !== 'Live') {
-            throw new NotFoundError('App not found');
-        }
-        try {
-            const url = new URL(project.url || '');
-            if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) {
-                throw new Error('Invalid app URL');
-            }
-        } catch {
-            throw new NotFoundError('App not found');
-        }
-        const [enriched] = await publicAuthorService.enrichProjects(db, [project]);
-        // Deliberate public projection: never serialize source or deployment internals.
-        return {
-            id: project.id,
-            ownerId: project.ownerId,
-            name: project.name,
-            description: project.description,
-            localization: project.localization,
-            category: project.category,
-            tags: project.tags,
-            appLanguage: project.appLanguage,
-            url: project.url,
-            publicAuthor: enriched.publicAuthor,
-        };
-    }
-
     /**
      * Public explore feed: returns a paginated list of projects visible on
      * marketing / explore surfaces, with backend-side filtering / sorting.
