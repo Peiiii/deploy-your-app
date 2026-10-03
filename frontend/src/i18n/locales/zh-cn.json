@@ -410,7 +410,7 @@
     "signInToViewProjects": "登录以管理你的应用",
     "dashboardPrivate": "登录后可查看你的应用、发布状态和访问数据。",
     "myProjects": "我的应用",
-    "manageLiveApps": "查看发布状态和访问数据，管理你创建的每个应用。",
+    "manageLiveApps": "查看、预览和管理你创建的应用。",
     "activeProjects": "正在运行",
     "runningOnEdge": "已上线的应用",
     "totalViews": "近 7 天访问",
@@ -474,7 +474,16 @@
       "Building": "发布中",
       "Failed": "发布失败",
       "Offline": "未上线"
-    }
+    },
+    "viewMode": "应用展示方式",
+    "gridView": "卡片视图",
+    "listView": "列表视图",
+    "previewApp": "预览应用",
+    "statsUnavailable": "访问统计暂不可用",
+    "summaryApps": "{{count}} 个应用",
+    "summaryRunning": "{{count}} 个运行中",
+    "summaryVisits": "7 天采集 {{value}} 次浏览",
+    "matchingApps": "找到 {{count}} 个应用"
   },
   "explore": {
     "exploreApps": "探索应用",

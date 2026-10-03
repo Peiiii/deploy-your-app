@@ -3,8 +3,10 @@ import type { Project } from '@/types';
 
 type SortOption = 'name' | 'recent' | 'status';
 type SortDirection = 'asc' | 'desc';
+type ManagementView = 'grid' | 'list';
 
 interface DashboardState {
+  viewMode: ManagementView;
   // Filter/Sort state
   showFavoritesOnly: boolean;
   searchQuery: string;
@@ -13,6 +15,7 @@ interface DashboardState {
   statusFilter: Project['status'] | null;
 
   actions: {
+    setViewMode: (view: ManagementView) => void;
     setShowFavoritesOnly: (value: boolean) => void;
     setSearchQuery: (query: string) => void;
     setStatusFilter: (status: Project['status'] | null) => void;
@@ -25,6 +28,7 @@ interface DashboardState {
 }
 
 const initialState = {
+  viewMode: 'grid' as ManagementView,
   showFavoritesOnly: false,
   searchQuery: '',
   sortBy: 'recent' as SortOption,
@@ -36,6 +40,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
   ...initialState,
 
   actions: {
+    setViewMode: (viewMode) => set({ viewMode }),
     setShowFavoritesOnly: (value) => set({ showFavoritesOnly: value }),
     setSearchQuery: (query) => set({ searchQuery: query }),
     setStatusFilter: (statusFilter) => set({ statusFilter }),
@@ -53,8 +58,8 @@ export const useDashboardStore = create<DashboardState>((set) => ({
         return { sortBy: option, sortDirection: 'desc' };
       }),
 
-    reset: () => set(initialState),
+    reset: () => set((state) => ({ ...initialState, viewMode: state.viewMode })),
   },
 }));
 
-export type { SortOption, SortDirection };
+export type { SortOption, SortDirection, ManagementView };
