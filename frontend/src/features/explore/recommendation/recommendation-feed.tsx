@@ -52,7 +52,7 @@ export function RecommendationFeed({ onToggleView }: { onToggleView: () => void 
         <option value="recent">{t('explore.recommendation.recent')}</option>
       </select>
       <details className="relative text-xs mt-1">
-        <summary className="cursor-pointer text-white/80">
+        <summary className="cursor-pointer inline-block rounded-full bg-black/60 px-2 py-1 text-white">
           {t('explore.recommendation.preferences')}
         </summary>
         <div className="absolute top-full left-1/2 -translate-x-1/2 w-64 max-w-[75vw] bg-slate-900 border border-white/20 rounded-xl p-3 shadow-lg text-left">
