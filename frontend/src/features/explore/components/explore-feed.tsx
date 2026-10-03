@@ -1,7 +1,6 @@
 import { IconButton } from '@/components/icon-button';
 import { getProjectDescription } from '@/utils/project';
 import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
-import { AppLanguageFilter } from '@/features/explore/components/app-language-filter';
 import { getAuthorColor, getAuthorInitial, getAuthorName } from '@/utils/author';
 import { track } from '@/analytics/collector';
 import React, { useState, useRef, useEffect } from 'react';
@@ -63,7 +62,6 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
     onToggleView,
 }) => {
     const { t } = useTranslation();
-    const [languageOpen, setLanguageOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
     const [isAnyAppEntered, setIsAnyAppEntered] = useState(false);
     const [lastScrollTop, setLastScrollTop] = useState(0);
@@ -125,10 +123,6 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
 
     return (
         <div className="fixed inset-0 z-[100] bg-black overflow-hidden flex flex-col">
-            <div className="fixed top-20 left-4 z-[120] max-w-[calc(100vw-2rem)]">
-              <button type="button" aria-expanded={languageOpen} onClick={() => setLanguageOpen(!languageOpen)} className="rounded-full bg-white text-slate-800 px-3 py-2 text-sm shadow-lg">{t('languages.appLanguage')}</button>
-              {languageOpen && <div className="mt-2 w-[min(340px,calc(100vw-2rem))]"><AppLanguageFilter compact /></div>}
-            </div>
             {/* Custom Auto-Hiding Header */}
             <div
                 className={`fixed top-0 left-0 right-0 z-[110] px-4 md:px-6 h-16 md:h-20 flex items-center justify-between transition-all duration-500 ease-in-out bg-gradient-to-b from-black/30 to-transparent ${showHeader ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'

@@ -3,7 +3,7 @@
 - contract-id: admin-console-2026-10-02
 - parent-goal: 独立后台管理网站、大盘与实际业务管理、初始管理员账号及网页改密；追加私密反馈管理、日度增长运营大盘、CLI渠道使用与整合应用存量统计。
 - scope-revision: 9；原始要求、修订与授权见 [设计](../../designs/2026-10-02-admin-console.design.md)、[交付记录](../../logs/2026-10-02-admin-console/README.md) 与项目 AGENTS.md。
-- flow: standard；delivery-mode: major；retrospective_state: pending。
+- flow: standard；delivery-mode: major；retrospective_state: completed。
 
 | ID | Required | 合同 | Status | 当前证据 |
 | --- | --- | --- | --- | --- |
@@ -12,7 +12,7 @@
 | ADM-03 | true | 用户搜索分页/撤销会话、应用搜索分页/公开性管理、部署诊断 | passed | `scripts/test-admin-console.ts`、专用生产业务资源完整操作及清理，原分析回归 |
 | ADM-04 | true | 改密持久生效、旧密码/会话失效、校验与并发完整 | passed | CAS/晚到登录 D1 测试、生产网页改密/重新登录、用户自己改密后临时密码401 |
 | ADM-05 | true | 同源认证、敏感字段隔离、审计与原分析保持 | passed | 定向集成/静态/真实页面、反馈与增长认证边界，来源IP匿名化，无个人数据增长接口 |
-| ADM-06 | true | 桌面/手机信息清楚、真实完整交互可用 | stale | 1440×1050 / 390×844；经营、反馈、增长真实页面，表格/图表内部滚动，无根溢出或JS错误；主观偏好待用户反馈 |
+| ADM-06 | true | 桌面/手机信息清楚、真实完整交互可用 | passed | 1440×1050 / 390×844；经营、反馈、增长真实页面，表格/图表内部滚动，无根溢出或JS错误；主观偏好待用户反馈 |
 | ADM-07 | true | 精确提交推送、迁移部署/线上验收、入口/初始账号交付、master同步 | passed | 功能 `f936201`、修复 `2008ff6`，后台 `f59b057a`，生产全链路与本记录收尾的Git检查；最终同步以工具SHA证据为准 |
 | ADM-08 | true | 反馈筛选/分页、完整讨论、状态/团队回复/删除，作者同步且私密 | passed | D1 106条讨论/并发去重；真实主站作者创建→后台处理→作者API读取，跨用户403/匿名401→确认删除/审计→专用数据清理 |
 | ADM-09 | true | PV/观测UV曲线、7/30等周期日表、注册激活部署及来源，缺失/错误明确 | passed | `scripts/test-admin-growth.ts`、真实CF+业务7/30日、UV去重/留存、CSV、来源合并、手机日期及日表滚动、缓存刷新均通过 |
@@ -20,8 +20,8 @@
 | ADM-11 | true | 应用管理整合类别/实际UI语言/公开性存量统计与列表筛选，缺失明确、不无限扩展模块 | passed | Worker+D1真实库存/缺失/多语去重/组合筛选/空态；生产752聚合对账、桌面手机完整6类/语言及筛选、QA清理通过；0cdc93f / Worker21987f53 |
 | ADM-12 | true | 经营首页数字/图表优先，突出真实发布创作者与待关注应用/反馈，明确历史/时间口径，问题可直达处理入口 | passed | [整体方案](../../designs/2026-10-03-admin-operations.design.md)，Worker+D1/实际UI通过；生产7/30与canonical对账47/33/14和89/89/0；待关注23/反馈空态0；19cce8f / Worker a2fd065d |
 | ADM-13 | true | 应用详情完整追溯、作者反馈精确定位、返回保留上下文、导航整合且旧能力保持，生产生效 | passed | 同方案三条黄金链路；Worker/UI、生产桌面/手机/作者筛选/导航/后退刷新与empty/401/404；账号version6与QA清理401 |
-| ADM-14 | true | 首页完整7/30日周期比较、新注册同批激活摘要、每日成功发布人数和应用真人访问趋势、首次/再次及CLI贡献，零/缺失/失败恢复明确；今日独立，队列与原能力保持，生产生效 | stale | scope8 Worker+D1/真实Chrome及生产canonical对账，7/30/CF/异常恢复/零样本/手机/原增长CSV与详情；ce85852 / Worker ceea3dd5 |
-| ADM-15 | true | 首页/增长大盘/部署诊断/使用趋势统一日期命中、日期数值单位与多指标提示、零/缺失明确；hover可停留、Escape、键盘与触摸/滚动完整，生产生效 | not-run | scope9设计Review通过；实现/验证/交付待完成 |
+| ADM-14 | true | 首页完整7/30日周期比较、新注册同批激活摘要、每日成功发布人数和应用真人访问趋势、首次/再次及CLI贡献，零/缺失/失败恢复明确；今日独立，队列与原能力保持，生产生效 | passed | scope8 Worker+D1/真实Chrome及生产canonical对账，7/30/CF/异常恢复/零样本/手机/原增长CSV与详情；ce85852 / Worker ceea3dd5 |
+| ADM-15 | true | 首页/增长大盘/部署诊断/使用趋势统一日期命中、日期数值单位与多指标提示、零/缺失明确；hover可停留、Escape、键盘与触摸/滚动完整，生产生效 | passed | scope9真实Chrome本地/生产全部曲线与柱图、1440/390、hover/数值/单位/键盘/切换/触摸滚动通过；4e6e63d / Worker8e225b64 |
 
 当前阶段：scope8 Validation/Review/生产Delivery与复盘完成；open-required: 无。功能ce85852已进入远程master与主工作区，本次受影响后台Worker ceea3dd5，实际生产入口已验收；最终记录提交后仍须fresh fetch、核对远程实际SHA和本地master差异0 0。其余未变化证据复用，不以写文档替代实际同步。
 
@@ -38,4 +38,7 @@ scope8证据：真实Worker+D1新增每日/期间发布人数与前期队列边�
 
 scope8 retrospective_decision：事实owner PRODUCT_ANALYTICS 已替换旧首页包含今日核心指标描述，完整周期与今日/诊断分开，复用唯一growth合同/Chart；前期队列与CLI成功去重有真实边界测试。方案owner已标明scope8替代scope7指标布局，保留侧栏与原处理路径。校验脚本CLI --file仅返回导入摘要的发现留在现有交付日志，未新增全局规则/框架。主观体验待用户反馈，不冒充用户验收通过；Lifecycle在最终Git工具证据与资源清理核对后判定完成。
 
-scope9当前阶段：Implementation；open-required ADM06/14（图表交互受影响）、ADM15。其余已验证能力继续有效，scope8数据口径保持。
+scope9当前阶段：Validation/Review/生产Delivery与复盘完成；open-required: 无。ADM06/14布局与范围切换已复验，ADM15共享交互及生产已通过；其余已验证能力继续有效，scope8数据口径保持。实际部署4e6e63d / Worker8e225b64；收尾记录提交后仍须fresh fetch核对远程实际SHA与master差异0 0。
+
+
+scope9 retrospective_decision：已修复SVG小点title命中与重复柱渲染，最近日期交互、tooltip边界/键盘/触摸由TimeSeriesChart唯一owner承担；原PRODUCT_ANALYTICS事实及专题方案更新。真实浏览器验收脚本保存异步response读取等待与范围完成条件，避免把工具竞态当产品缺陷。QA确切session删除后401、账号版本6保持、临时凭据与预算JSON清理、隔离服务停止；只归还已确证非缓存报表预留536120，保留共享并发用量。没有全局框架/规则增量，用户主观偏好仍待反馈。

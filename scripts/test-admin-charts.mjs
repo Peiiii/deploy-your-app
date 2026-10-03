@@ -1,12 +1,19 @@
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base = process.env.ADMIN_URL || 'http://localhost:5176';
 const production = new URL(base).protocol === 'https:';
 const screenshots = process.env.ADMIN_CHART_SCREENSHOT_DIR;
 if (screenshots) mkdirSync(screenshots, { recursive: true });
-const reservations = new Map();
+const reservationFile = process.env.ADMIN_QA_RESERVATIONS_FILE;
+const savedReservations =
+  production && reservationFile && existsSync(reservationFile)
+    ? JSON.parse(readFileSync(reservationFile, 'utf8'))
+    : [];
+const reservations = new Map(
+  savedReservations.map((report) => [`${report.path}:${report.generatedAt}`, report])
+);
 const errors = [];
 const browser = await chromium.launch({
   headless: true,
@@ -34,30 +41,32 @@ async function open(mobile = false) {
   }
   const page = await context.newPage();
   page.reports = [];
+  page.reportReads = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  page.on('response', async (response) => {
+  page.on('response', (response) => {
     if (!/\/api\/(growth|report|overview)\?/.test(response.url()) || response.status() !== 200)
       return;
-    try {
-      const data = await response.json();
-      page.reports.push({ url: response.url(), data });
-      if (production && !data.cached && data.reservedReads) {
-        const path = new URL(response.url()).pathname;
-        reservations.set(`${path}:${data.generatedAt}`, {
-          path,
-          generatedAt: data.generatedAt,
-          reservedReads: data.reservedReads,
-        });
-        if (process.env.ADMIN_QA_RESERVATIONS_FILE)
-          writeFileSync(
-            process.env.ADMIN_QA_RESERVATIONS_FILE,
-            JSON.stringify([...reservations.values()]),
-            { mode: 0o600 }
-          );
+    const read = (async () => {
+      try {
+        const data = await response.json();
+        page.reports.push({ url: response.url(), data });
+        if (production && !data.cached && data.reservedReads) {
+          const path = new URL(response.url()).pathname;
+          reservations.set(`${path}:${data.generatedAt}`, {
+            path,
+            generatedAt: data.generatedAt,
+            reservedReads: data.reservedReads,
+          });
+          if (reservationFile)
+            writeFileSync(reservationFile, JSON.stringify([...reservations.values()]), {
+              mode: 0o600,
+            });
+        }
+      } catch {
+        /* Page teardown can interrupt an unrelated pending response. */
       }
-    } catch {
-      /* Page teardown can interrupt an unrelated pending response. */
-    }
+    })();
+    page.reportReads.push(read);
   });
   await page.goto(base);
   if (!production) {
@@ -73,13 +82,18 @@ async function open(mobile = false) {
   await page.locator('.home-trends .chart-frame').first().waitFor();
   return { page, context };
 }
-const reportFor = (page, endpoint, days) =>
-  page.reports
+const reportFor = async (page, endpoint, days) => {
+  await Promise.all(page.reportReads);
+  const report = page.reports
     .filter(
       (r) =>
-        new URL(r.url).pathname === `/api/${endpoint}` && (!days || r.data.period?.days === days)
+        new URL(r.url).pathname === `/api/${endpoint}` &&
+        (!days || (r.data.period?.days ?? r.data.days) === days)
     )
     .at(-1)?.data;
+  assert.ok(report, `actual ${endpoint} response captured${days ? ` for ${days} days` : ''}`);
+  return report;
+};
 async function inspect(page, frame, index, expected, touch = false) {
   await frame.scrollIntoViewIfNeeded();
   const svg = frame.locator('svg');
@@ -132,7 +146,7 @@ async function keyboard(page, frame, daily, field) {
 try {
   const { page } = await open();
   const home = page.locator('.home-trends .chart-frame');
-  let growth = reportFor(page, 'growth', 7);
+  let growth = await reportFor(page, 'growth', 7);
   const expected = growth.daily.map((d) => ({ day: d.day, values: [d.publishers] }));
   const tooltip = await inspect(page, home.first(), 3, expected);
   assert.ok((await tooltip.innerText()).includes('成功发布创作者'));
@@ -164,7 +178,7 @@ try {
   await page.waitForFunction(
     () => document.querySelector('.home-trends svg')?.querySelectorAll('circle').length === 30
   );
-  growth = reportFor(page, 'growth', 30);
+  growth = await reportFor(page, 'growth', 30);
   await keyboard(page, home.nth(1), growth.daily, 'uv');
   const previousDay = growth.daily.at(-1).day;
   await page.getByRole('button', { name: '近 7 天', exact: true }).click();
@@ -172,9 +186,11 @@ try {
     () => document.querySelector('.home-trends svg')?.querySelectorAll('circle').length === 7
   );
   assert.equal(await page.getByRole('tooltip').count(), 0, 'range switch dismisses old selection');
+  await page.getByRole('button', { name: '刷新数据 ↻', exact: true }).waitFor();
   const diagnostics = page.locator('.home-diagnostics');
   await diagnostics.locator(':scope > summary').click();
-  const overview = reportFor(page, 'overview');
+  const overview = await reportFor(page, 'overview', 7);
+  assert.equal(overview.days, 7, 'diagnostics must finish its own range request');
   await inspect(
     page,
     diagnostics.locator('.chart-frame'),
@@ -185,7 +201,7 @@ try {
   assert.ok(diagnosticText.includes('全部尝试') && diagnosticText.includes('成功尝试'));
   await page.locator('aside nav').getByRole('button', { name: '增长大盘', exact: true }).click();
   await page.locator('.growth-console .chart-frame').first().waitFor();
-  growth = reportFor(page, 'growth', 7);
+  growth = await reportFor(page, 'growth', 7);
   for (const [index, metric] of ['pv', 'uv', 'registrations', 'cliAttempts'].entries()) {
     const frame = page.locator('.growth-console .chart-frame').nth(index);
     await inspect(
@@ -197,9 +213,31 @@ try {
     await page.keyboard.press('Escape');
   }
   await page.locator('.nav-details summary').click();
+  const firstReport = page.waitForResponse(
+    (response) => new URL(response.url()).pathname === '/api/report'
+  );
   await page.locator('aside nav').getByRole('button', { name: '使用概览', exact: true }).click();
+  const initialReport = await firstReport;
+  await initialReport.finished();
+  await page.getByRole('button', { name: '应用筛选 / 刷新', exact: true }).waitFor();
+  if (production) {
+    // Verify the existing bars on one real UTC day without requiring a costly seven-day report.
+    await page
+      .getByLabel('开始日期（UTC）', { exact: true })
+      .fill(new Date().toISOString().slice(0, 10));
+    const narrowedReport = page.waitForResponse(
+      (response) => new URL(response.url()).pathname === '/api/report'
+    );
+    await page.getByRole('button', { name: '应用筛选 / 刷新', exact: true }).click();
+    const response = await narrowedReport;
+    assert.equal(
+      response.status(),
+      200,
+      'one-day production report loads within the shared budget'
+    );
+  }
   await page.getByRole('heading', { name: '使用趋势', exact: true }).waitFor();
-  const analytics = reportFor(page, 'report');
+  const analytics = await reportFor(page, 'report');
   if (analytics.daily.length)
     await inspect(
       page,
@@ -209,7 +247,7 @@ try {
     );
   const { page: mobile, context } = await open(true);
   const mframe = mobile.locator('.home-trends .chart-frame').first();
-  growth = reportFor(mobile, 'growth', 7);
+  growth = await reportFor(mobile, 'growth', 7);
   const last = growth.daily.map((d) => ({ day: d.day, values: [d.publishers] }));
   await inspect(mobile, mframe, 6, last, true);
   assert.ok((await mframe.getByRole('tooltip').innerText()).includes(previousDay));
