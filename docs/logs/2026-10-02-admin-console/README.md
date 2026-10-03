@@ -139,3 +139,15 @@ retrospective_decision：已验证事实归原owner `docs/tech/PRODUCT_ANALYTICS
 生产scope7：`576ea8b`已普通推送，`pnpm deploy:admin`发布Worker `6bcb6b20-ace9-4c8e-93ef-766bac16013d`；资源`index-DhXpLOv7.css`/`index-2aRrHl_6.js`。/tmp/gemigo-admin-visual-polish.cjs --production从实际admin.gemigo.io验证4个发布指标+3个累计卡→图表→两组待办的真实布局坐标，7/30/数字与接口、13个SVG与选中、键盘诊断折叠、各日常入口/部署/安全/审计、异常详情，独立1440×1050与390×844 context无溢出/JS错误，已查看截图。原产品分析/增长导航完整13项在本地真实Worker UI验证，生产不重复触发昂贵product_events/CF报告。本轮无后端/API/账号变更，QA当前version绑定session按确切hash删除→session401，临时凭据删除；截图0600；本地测试服务停止。原生产能力证据保持有效。主观美感交用户反馈，不视为用户已验收。
 
 scope7 retrospective_decision：明确偏好是经营总览数据/图表优先，已在原设计修订优先级与本轮证据，替换原背景文字布局；纯视觉调整无新通用流程增量，不增加规则/镜像测试。复盘完成，最后提交记录后fresh fetch核对本地master/跟踪与远程实际SHA，保留所有无关WIP。
+
+
+## 2026-10-03 首页增长判断（scope8）
+
+原始输入：用户“首页你觉得还有哪些信息值得关注，以及你觉得重要性的一些排序之类的。”在AI排序与建议后确认“可以，那你来优化一下吧”。采纳周期对比、新人激活摘要、发布人数与应用访问趋势，结合首次/再次和CLI贡献，不无限扩展。方案与Design Review见经营专题scope8。当前密码保护；起始master4a974ae，无关WIP为analytics分析脚本、interview-prep、education-game计划及tgz，全部保留。当前阶段Implementation，retrospective pending，open ADM14及受影响ADM09/10/12。
+
+
+scope8本地验证与实现Review：增长owner新增当前/上一期及每日成功发布创作者去重、前期注册队列与渠道successfulUsers；共享报表合同与原Chart供两页使用，缓存namespace v4，预留按新增扫描规模调整。overview的原包含今日诊断与实时队列保持。`pnpm build:admin`、admin Worker tsc、定向ESLint及diff-check通过；原admin assembled Worker+D1/反馈/认证/详情回归通过，增长测试覆盖重复owner、空/空白owner、当天排除、跨期首次/再次、CLI成功去重、各自队列期末与删除应用、CF缓存/缺失/预算；恢复测试通过。最初NULL owner fixture被真实NOT NULL约束拒绝，改为空/空白合法边界后通过，无修改生产schema。
+
+真实本地Chrome：`/tmp/gemigo-admin-home-growth-ui.cjs`，1440×1050及390×844，7/30卡片与growth数据相符、图表前置、3类流量切换、原增长/CSV/详情、队列翻页不重查增长；额外HTTP429初载/刷新失败与重试、零注册/上期为0、CF缺失—/断线、快速7→30→7晚到响应隔离通过。截图`/tmp/gemigo-admin-home-local-{desktop,mobile}.png`已实际查看，核心卡对比字色与图表基线调整后构建/复验有效，无根溢出或JS错误。
+
+mode=implementation Review：项目无diff-only maintainability入口，按当前diff完成findings-first与主观结构复核。检查原始接受的三个核心增量、时间/分母/零与缺失、共享cache schema、请求取消与队列分页、原导航与管理能力及认证边界；无开放findings。新增Report/Chart仅服务两页既有共享变化点，GrowthSummary独立请求避免队列重复查询，无新持久化/框架/留存模型。Validation acceptance-ready（本地），Delivery待推送/部署/生产数值与QA清理，ADM14尚未最终passed。
