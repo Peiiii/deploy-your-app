@@ -26,6 +26,23 @@
 
 数据从上线后积累，不能回填历史。匿名浏览器标识不等于自然人；会话对应浏览器标签页。身份状态是服务器接收批次时的状态。部署完成/失败是浏览器观测，不把缺失结果当失败。Do Not Track、拦截器、关闭页面、队列容量、每日预算都会影响覆盖率。当前版本不做全站精确计费统计。
 
+## 搜索与 AI 获客
+
+入口：<https://admin.gemigo.io/#seo>，复用独立管理账号。`workers/admin/src/acquisition.ts` 投影既有 `product_events`，7/30完整UTC日及今日分开；期间访客按匿名浏览器去重，入口按窗口内每会话首个page_view，有序注册只计同会话入口后的真实新账号。付费UTM、管理员及非web渠道排除。匿名首次来源由原collector会话保存，允许search/ai类别，不存原始来源URL；AI引荐不等于模型引用。
+
+真实邮箱、Google、GitHub新账号由API确认后生成带provider维度的`signup_success`；重登、已有OAuth账号加密码不计。旧无维度注册事件不混入新转化。启用起点由`analytics_settings.acquisition_registration_start`唯一维护，API升级后首次插入当前UTC时间，后续不覆盖，不猜测或回填历史。无配置时注册/转化显示不可测；上线前入口不进入注册分母。启用命令：
+
+```sql
+INSERT OR IGNORE INTO analytics_settings (key,value)
+VALUES ('acquisition_registration_start', strftime('%Y-%m-%dT%H:%M:%fZ','now'));
+```
+
+缺失明细日期和历史注册在界面/CSV显示空缺；零分母转化率null。报表缓存15分钟、无轮询，计数后以本固定两次cohort查询的观测事件32倍预留，保持百万日额度；代表全转化200会话/600事件真实D1两次读取11602行。实际生产验证见 [SEO/GEO记录](../logs/2026-10-03-seo-geo/README.md)。注册口径起点不是产品分析全部历史的起点。
+
+Search Console展示/点击/CTR/排名尚未连接，返回null，不能用主站采样事件代替。Google搜索的AI概览不能从referrer单独识别；真正引用需站长平台来源证据。公开产品事实、指南、metadata、sitemap和可选llms目录共用`frontend/seo.mjs`，Pages原始HTML与React可见文案同owner；不承诺即时收录、排名或AI引用提升。
+
+维护验证：`pnpm test:seo`覆盖真实Pages/D1/组装API注册链路；`pnpm test:analytics`保护原采集预算与协议。发布顺序为API兼容新来源/注册→首次设置起点→admin→Pages；后续升级保留起点及现有Secrets。
+
 ## 免费额度设计
 
 1. 事件只进入内存队列，最大 100 条；优先捎带现有同源 API 请求，每批最多 20 条。
