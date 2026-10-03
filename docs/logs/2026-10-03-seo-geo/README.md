@@ -22,3 +22,5 @@ Findings：无未关闭问题。审核原目标→公开原始内容→可见指
 2026-09-26—10-02完整UTC日，部署前旧事件搜索类别有18次page_view、8会话、8匿名访客；这不是经过新首次入口cohort重算的指标。CF RUM bot=0观测 Google 6 visits、百度1 visit；visits不命名UV，Google登录域和Google Sites不算搜索。真实注册新口径从生产 API 上线后 `analytics_settings.acquisition_registration_start` 首次设置时开始，无历史回填。
 
 生产部署与远程/主工作区同步证据在上线后补充。
+
+线上返工：7日生产报告可用，30日按原64倍通用漏斗读预留在已有413582用量下触发429。返回Implementation，追加真实D1全转化200会话/600事件fixture，两次读取11602行，调整本投影系数32保留余量；百万日限制及原通用报表不改。失败计数阶段预留132100可精确归账，未执行的主查询不计预留。公共HTTP验收最初使用不存在的`/auth/me`收到404，按真实路由改为`/api/v1/me`验证；非产品异常。

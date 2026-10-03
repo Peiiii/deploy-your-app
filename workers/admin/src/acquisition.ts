@@ -74,7 +74,10 @@ export const queryAcquisition = async (
     .prepare('SELECT COUNT(*) AS total FROM product_events WHERE at>=? AND at<?')
     .bind(availableStart, end)
     .first<{ total: number }>();
-  const queryAllowance = (count?.total || 0) * 64 + 100;
+  // Two indexed cohort passes with materialized intermediates. The converting
+  // 600-event fixture reads <20 rows/event; 32 keeps headroom without reserving
+  // the general-purpose multi-funnel report's 64x for this bounded projection.
+  const queryAllowance = (count?.total || 0) * 32 + 100;
   if (!(await reserve(db, bucket, queryAllowance, 1000000)))
     throw new AdminInputError('今日分析查询预算已用完，请缩小范围或明天重试', 429);
   const results = await db

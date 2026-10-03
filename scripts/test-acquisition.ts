@@ -162,6 +162,29 @@ try {
   const empty = await queryAcquisition(db, 7, now);
   assert.equal(empty.summary[0].conversionRate, null);
   assert.equal(empty.landings.length, 0);
+  // Representative upper-bound mix: every entry is eligible and converts,
+  // with repeated page views, forcing the indexed session join and each grouping.
+  await db
+    .prepare("INSERT INTO analytics_settings VALUES ('acquisition_registration_start', ?)")
+    .bind('2026-10-03T00:00:00Z')
+    .run();
+  for (let i = 0; i < 200; i++) {
+    const session = `scale-${i}`;
+    const source = i % 2 ? 'ai' : 'search';
+    await add('page_view', session, source, at, { visitor: `browser-${i % 80}` });
+    await add('page_view', session, source, at + 1, { page: 'guide' });
+    await add('signup_success', session, source, at + 2, { dimension: 'email' });
+  }
+  const scale = await queryAcquisition(db, 30, now);
+  assert.deepEqual(
+    scale.summary.map((row) => row.registeredSessions),
+    [100, 100]
+  );
+  assert.ok(
+    scale.rowsRead < 600 * 32 + 100,
+    'two fully converting passes fit the query reservation'
+  );
+  console.log('Representative D1 read amplification:', scale.rowsRead, 'rows / 600 events');
   console.log(
     'PASS acquisition: strict source domains, paid exclusion, AI parser, guide redaction; real D1 cohort order, multiple registrations, duplicate browser dedup, excluded admin/CLI/direct/history, UTC/today, retention gaps, zero denominator and reserved reads'
   );

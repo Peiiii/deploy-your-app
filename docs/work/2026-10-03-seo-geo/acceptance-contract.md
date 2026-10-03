@@ -8,10 +8,10 @@
 
 | ID | Required | 约定 | Status | 证据 |
 | --- | --- | --- | --- | --- |
-| SG-01 | true | 公开入口有真实原始HTML、有效metadata/互链/sitemap，未知与私有页不误索引，旧API/发布入口保持 | passed-local | ../logs/2026-10-03-seo-geo/README.md |
-| SG-02 | true | GEO产品事实与指南可直接阅读，与人类可见内容一致，不造评分或引用 | passed-local | ../logs/2026-10-03-seo-geo/README.md |
-| SG-03 | true | 搜索/AI匿名首次来源保存，真实新账号注册含邮箱/OAuth，无重登及加密码误计 | passed-local | ../logs/2026-10-03-seo-geo/README.md |
-| SG-04 | true | 后台可读搜索/AI访问和同队列有序注册转化、daily/入口/CSV、空错误态及覆盖边界 | passed-local | ../logs/2026-10-03-seo-geo/README.md |
+| SG-01 | true | 公开入口有真实原始HTML、有效metadata/互链/sitemap，未知与私有页不误索引，旧API/发布入口保持 | passed-local | ../../logs/2026-10-03-seo-geo/README.md |
+| SG-02 | true | GEO产品事实与指南可直接阅读，与人类可见内容一致，不造评分或引用 | passed-local | ../../logs/2026-10-03-seo-geo/README.md |
+| SG-03 | true | 搜索/AI匿名首次来源保存，真实新账号注册含邮箱/OAuth，无重登及加密码误计 | passed-local | ../../logs/2026-10-03-seo-geo/README.md |
+| SG-04 | true | 后台可读搜索/AI访问和同队列有序注册转化、daily/入口/CSV、空错误态及覆盖边界 | passed-local | ../../logs/2026-10-03-seo-geo/README.md |
 | SG-05 | true | 精确提交推送、主workspace与实际远程master同步、受影响目标部署及线上验收 | not-run | |
 | SG-06 | false | Search Console 展示、点击、CTR、排名：有可用账号则接入；无连接明确缺失 | unavailable (optional) | 已查账号页面，未取得验证站点/数据；指标明确缺失 |
 
