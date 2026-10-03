@@ -46,3 +46,7 @@ mode=design Review SG05：从已确认用户目标和 acquisition/analytics/depl
 ### SG03 主线能力更新
 
 并发主线 a648bbf 新增 /app/:id 和匿名 /api/v1/apps/:id 的权限过滤、公开投影及 AppDetailManager。复用该已交付 owner，不新增作品详情模型。publicProjects 保留公开项目的 /app/:id 内链，目录/作者链接到该页面，另提供实际部署网站链接。Pages 匿名调用该详情 API，取得存在的公开 app 才索引和生成 WebPage 元数据；404/非公开内容保留404，网络失败503。React 从 AppDetailManager 同一已加载 app 调用共享 SEO hook，global hook 让出该路由，避免重复请求或元数据相互覆盖。用户内容转义，不展示源码/内部 ownerId。mode=design Review：新主线权威 owner 与黄金链路一致，详情失败/撤销边界可测，新增路径均有当前消费者；design-review: passed。
+
+## 主线撤回后的当前入口（2026-10-03）
+
+并行任务按用户要求在aec2660撤回creator feedback MVP，包含/app详情及依赖API。之前复用/app的集成方案在此部分被替代；本任务保留主线撤回，不恢复该功能。公开目录/首页/发现/作者投影直接指向应用部署网址，作者仍指向/u/handle；符合SG03真实公开作品和作者链接合同，未降低Required标准。已有隐私/分页/失败边界保持；不另造替代详情页。回归以当前源码的pnpm check、pnpm test:seo和线上无失效/app锚点、撤回URL404/noindex为证据。

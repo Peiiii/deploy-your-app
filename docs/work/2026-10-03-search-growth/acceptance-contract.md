@@ -18,7 +18,7 @@ SG06：适用检查、实现 Review、生产部署验收和主工作区 master �
 | --- | --- | --- | --- | --- |
 | SG01 | true | blocked | 验证文件已上线200；IndexNow收到12URL并返回202；GSC原Chrome已登录 | Mac锁定；Google所有权验证、sitemap提交、Bing站点权限与实际报表尚未完成。202不是收录证明 |
 | SG02 | true | passed | 中英文指南、HTML/ZIP样例已上线；生产ZIP根目录/资源匹配；指南手机UI与线上样例正确/错误答案、换题重置均已验收，见[截图](../../logs/2026-10-03-search-growth/artifacts/sample-interaction.jpg) | — |
-| SG03 | true | passed | [生产原始HTML](../../logs/2026-10-03-search-growth/artifacts/public-live.json)、真实目录分页UI、Worker/D1权限回归 | — |
+| SG03 | true | passed | [当前主线生产原始HTML](../../logs/2026-10-03-search-growth/artifacts/public-after-withdrawal.json)、真实目录分页UI、权限回归；app详情已按主线撤回，作品链接指向部署网址 | — |
 | SG04 | true | passed | [固定问题与回答来源](../../logs/2026-10-03-search-growth/artifacts/geo-observation.md) | 只有1条有效非品牌样本；品牌登录墙不计失败，不外推整体引用率 |
 | SG05 | true | partial | 实际D1测试证明有序成功/去重/截止/预算；admin部署；[手机实验](../../logs/2026-10-03-search-growth/artifacts/mobile-lab.json) | 生产查询预算不足；原Chrome有效admin会话已确认，最新线上页面正确显示预算不足；成功响应及新字段实际数值仍未验收；无INP/真实用户CWV |
 | SG06 | true | passed | check、test:seo、test:admin、public app测试通过；Pages/admin上线；证据精确提交与普通推送后核对主区同步和实际远端SHA，见执行日志 | 不替代SG01/02/05的未完成验收 |

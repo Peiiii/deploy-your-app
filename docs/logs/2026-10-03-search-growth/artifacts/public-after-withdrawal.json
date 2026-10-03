@@ -1,0 +1,60 @@
+{
+  "measuredAt": "2026-10-03T09:53:56.799483+00:00",
+  "sourceContext": "After main aec2660 withdrew app detail MVP; public links point to deployed sites. Supersedes app-detail entries in public-live.json, which remain historical.",
+  "pages": [
+    {
+      "path": "/",
+      "status": 200,
+      "titles": 1,
+      "h1": 1,
+      "withdrawnAppAnchors": 0,
+      "deployedSiteAnchors": 24,
+      "noindex": false
+    },
+    {
+      "path": "/explore",
+      "status": 200,
+      "titles": 1,
+      "h1": 1,
+      "withdrawnAppAnchors": 0,
+      "deployedSiteAnchors": 24,
+      "noindex": false
+    },
+    {
+      "path": "/catalog",
+      "status": 200,
+      "titles": 1,
+      "h1": 1,
+      "withdrawnAppAnchors": 0,
+      "deployedSiteAnchors": 24,
+      "noindex": false
+    },
+    {
+      "path": "/catalog?page=2",
+      "status": 200,
+      "titles": 1,
+      "h1": 1,
+      "withdrawnAppAnchors": 0,
+      "deployedSiteAnchors": 24,
+      "noindex": false
+    },
+    {
+      "path": "/u/bluecatdkz5",
+      "status": 200,
+      "titles": 1,
+      "h1": 1,
+      "withdrawnAppAnchors": 0,
+      "deployedSiteAnchors": 2,
+      "noindex": false
+    },
+    {
+      "path": "/app/b36bca6a-fbfb-40ba-8bd9-420549fde50b",
+      "status": 404,
+      "titles": 1,
+      "h1": 1,
+      "withdrawnAppAnchors": 0,
+      "deployedSiteAnchors": 0,
+      "noindex": true
+    }
+  ]
+}
