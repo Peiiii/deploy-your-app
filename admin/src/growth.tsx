@@ -404,7 +404,7 @@ export default function Growth() {
             </div>
           </article>
           <p className="footnote">
-            真人流量缓存 30 分钟，整份大盘缓存 5 分钟；不会自动轮询。UV 明细保留 30
+            真人流量缓存 30 分钟，整份大盘缓存 15 分钟；不会自动轮询。UV 明细保留 30
             天，采集停止或预算用尽会影响覆盖。访问次数由 Cloudflare 的外部或直接进入页面定义，与 UV
             分别统计。
             {report.web.fetchedAt
