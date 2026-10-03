@@ -1,0 +1,29 @@
+{
+  "fixture": {
+    "total": 20,
+    "private": 20,
+    "deleted": 1
+  },
+  "results": [
+    {
+      "path": "/projects/draft",
+      "status": 429,
+      "body": {
+        "error": "You have reached today's limit of 20 new apps (including drafts). You can still update existing apps. New app creation resumes at 00:00 Beijing time.",
+        "code": "DAILY_PROJECT_LIMIT",
+        "limit": 20,
+        "resetAt": "2026-10-03T16:00:00.000Z"
+      }
+    },
+    {
+      "path": "/projects",
+      "status": 429,
+      "body": {
+        "error": "You have reached today's limit of 20 new apps (including drafts). You can still update existing apps. New app creation resumes at 00:00 Beijing time.",
+        "code": "DAILY_PROJECT_LIMIT",
+        "limit": 20,
+        "resetAt": "2026-10-03T16:00:00.000Z"
+      }
+    }
+  ]
+}

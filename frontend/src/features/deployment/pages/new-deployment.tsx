@@ -1,6 +1,7 @@
 import { RecentApplications } from '../components/recent-applications';
 import { usePublicationAddress } from '../hooks/use-publication-address';
 import { ProjectAddressError } from '@/services/project-address';
+import { ProjectCreationLimitError } from '@/services/project-request-error';
 import { getPublicationSlug, isValidPublicationSlug } from '../managers/publication-details';
 import { PublicationIdentityFields } from '../components/publication-identity-fields';
 import { useEffect, useState } from 'react';
@@ -62,7 +63,9 @@ export const NewDeployment = () => {
     } catch (error) {
       if (error instanceof ProjectAddressError) return;
       presenter.ui.showErrorToast(
-        error instanceof Error ? error.message : t('deployment.projectCreateFailed')
+        error instanceof ProjectCreationLimitError
+          ? t('deployment.dailyProjectLimit', { limit: error.limit })
+          : error instanceof Error ? error.message : t('deployment.projectCreateFailed')
       );
     }
   };

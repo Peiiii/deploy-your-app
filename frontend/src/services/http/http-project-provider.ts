@@ -1,4 +1,5 @@
-import { throwProjectRequestError, type ProjectAddressSuggestion, type ProjectAddressAvailability } from '../project-address';
+import type { ProjectAddressSuggestion, ProjectAddressAvailability } from '../project-address';
+import { throwProjectRequestError } from '../project-request-error';
 import type { IProjectProvider, DeploymentDiagnostic } from '../interfaces';
 import type {
   Project,
@@ -91,7 +92,7 @@ export class HttpProjectProvider implements IProjectProvider {
         ...(options?.metadata ? { metadata: options.metadata } : {}),
       }),
     });
-    if (!response.ok) throw new Error("Failed to create project");
+    if (!response.ok) await throwProjectRequestError(response, 'Failed to create project');
     return response.json();
   }
 

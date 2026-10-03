@@ -1,5 +1,6 @@
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { ProjectAddressError } from '@/services/project-address';
+import { ProjectCreationLimitError } from '@/services/project-request-error';
 import { getPublicationSlug, isValidPublicationSlug } from './publication-details';
 import type { Project } from '@/types';
 import { DeploymentStatus, SourceType } from '@/types';
@@ -160,6 +161,7 @@ export class DeploymentManager {
         useDeploymentStore.setState({ publicationAddressError: error.code });
         throw error;
       }
+      if (error instanceof ProjectCreationLimitError) throw error;
       state.actions.setDeploymentStatus(DeploymentStatus.FAILED);
       state.actions.addLog({
         timestamp: new Date().toISOString(),

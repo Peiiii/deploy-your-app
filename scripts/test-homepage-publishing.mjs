@@ -96,6 +96,7 @@ const deploymentDependency = {
 const projectStore = { projects: [] };
 const publicationDetails = load('features/deployment/managers/publication-details.ts', { '@/types': types });
 const addressErrors = load('services/project-address.ts');
+const requestErrors = load('services/project-request-error.ts', { './project-address': addressErrors });
 const { DeploymentStoreActions } = load(
   'features/deployment/managers/deployment-store-actions.ts',
   { ...deploymentDependency, '@/analytics/collector': { track() {} } }
@@ -123,10 +124,12 @@ const { DeploymentManager } = load('features/deployment/managers/deployment.mana
   './deployment-executor': { DeploymentExecutor },
   './publication-details': publicationDetails,
   '@/services/project-address': addressErrors,
+  '@/services/project-request-error': requestErrors,
 }, { AbortController, setTimeout(fn, delay) { const id = ++nextGenerationTimer; generationDeadlines.set(id,{fn,delay}); return id; }, clearTimeout(id) { generationDeadlines.delete(id); } });
 let creates = 0,
   calls = 0,
   failCreate = false,
+  failQuota = false,
   failSave = false,
   failDeploy = false,
   releaseCreate;
@@ -135,6 +138,7 @@ const projectManager = {
   async loadProjects() {},
   async createDraftProject(name, slug) {
     creates++;
+    if (failQuota) throw new requestErrors.ProjectCreationLimitError('Daily limit reached', 20, '2026-10-03T16:00:00Z');
     if (delayedCreation)
       await new Promise((resolve) => {
         releaseCreate = resolve;
@@ -511,3 +515,27 @@ console.log(
   assert.equal(actualProjectStore.getState().recentOwnerId, null);
   console.log('PASS: existing app update navigation, HTML/ZIP/GitHub transfer, draft identity recovery, busy/ownership guards, logout reset and bounded recent requests with stale-response/account isolation.');
 }
+
+manager.initializeNewPublication(SourceType.HTML);
+actions.setHtmlContent('<h1>Keep my content at quota</h1>');
+actions.setProjectName('Keep my name');
+manager.setPublicationSlug('keep-my-address');
+failQuota = true;
+const quotaDeployCalls = calls;
+await assert.rejects(manager.publishNewProject(), requestErrors.ProjectCreationLimitError);
+assert.equal(store.getState().htmlContent, '<h1>Keep my content at quota</h1>');
+assert.equal(store.getState().projectName, 'Keep my name');
+assert.equal(getPublicationSlug(store.getState()), 'keep-my-address');
+assert.equal(store.getState().newProjectId, null);
+assert.equal(store.getState().isPublishingNewProject, false);
+assert.equal(store.getState().deploymentStatus, DeploymentStatus.IDLE);
+assert.equal(calls, quotaDeployCalls, 'Quota rejection never starts a deployment');
+const existingDraft = projectStore.projects[0];
+actions.setNewProjectId(existingDraft.id);
+manager.setPublicationSlug(existingDraft.slug);
+const quotaCreateCalls = creates;
+await manager.publishNewProject();
+assert.equal(creates, quotaCreateCalls, 'Existing draft retry bypasses creation quota');
+assert.equal(calls, quotaDeployCalls + 1);
+assert.equal(store.getState().newProjectId, existingDraft.id);
+console.log('PASS: quota keeps content, name and address, releases busy state, and allows existing draft deployment.');

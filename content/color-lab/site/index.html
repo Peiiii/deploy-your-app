@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f5f0" />
+    <meta
+      name="description"
+      content="移动三束光，发现屏幕颜色的秘密。一个可以自由混光、挑战调色、分享配方的互动科学小实验。GemiGo 原创内容。"
+    />
+    <title>光与颜色实验室 · Color Lab</title>
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="光与颜色实验室首页">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M16 3 30 27H2Z" fill="none" stroke="currentColor" stroke-width="1.7" />
+            <path
+              d="m16 3 2 24M2 27l16-7 12 7"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.2"
+            />
+          </svg>
+          <span>COLOR<span class="brand-light">LAB</span><small>光与颜色实验室</small></span>
+        </a>
+        <div class="top-actions">
+          <button class="text-button" id="help-open" type="button">
+            怎么玩 <span aria-hidden="true">?</span>
+          </button>
+          <button class="share-button" id="share" type="button">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M10 13V2m0 0L6 6m4-4 4 4M4 10v7h12v-7" /></svg
+            ><span>分享配方</span>
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <section class="intro" aria-labelledby="page-title">
+          <div>
+            <div class="eyebrow"><span></span> GEMIGO 原创 · 互动科学</div>
+            <h1 id="page-title">
+              三束光。<br /><span class="title-muted">万千种可能。</span
+              ><span class="title-spark" aria-hidden="true">✳</span>
+            </h1>
+          </div>
+          <div class="intro-aside">
+            <p>不妨从一抹黄色开始。<br />移动滑杆，看看光会怎样相遇。</p>
+            <div class="mini-spectrum" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+          </div>
+        </section>
+
+        <div class="workspace-header">
+          <div class="mode-switch" role="tablist" aria-label="实验模式">
+            <button
+              id="mode-explore"
+              role="tab"
+              aria-selected="true"
+              aria-controls="workspace"
+              type="button"
+            >
+              <span aria-hidden="true">◎</span> 自由混光
+            </button>
+            <button
+              id="mode-challenge"
+              role="tab"
+              aria-selected="false"
+              aria-controls="workspace"
+              type="button"
+            >
+              <span aria-hidden="true">◇</span> 颜色挑战 <span class="count">5</span>
+            </button>
+          </div>
+          <span class="workspace-note" id="workspace-note">试一试，关掉一束光。</span>
+        </div>
+
+        <section class="workspace" id="workspace" aria-label="混光工作台">
+          <div class="experiment">
+            <div class="stage-top">
+              <span class="stage-label">THE LIGHT STUDIO</span
+              ><span class="live-label"><i></i> 实时混光</span>
+            </div>
+            <div
+              class="light-stage"
+              id="light-stage"
+              role="img"
+              aria-label="红光、绿光和蓝光重叠形成白色"
+            >
+              <div class="stage-grid" aria-hidden="true"></div>
+              <div class="lights" aria-hidden="true">
+                <div class="light-disc red" id="red-disc"></div>
+                <div class="light-disc green" id="green-disc"></div>
+                <div class="light-disc blue" id="blue-disc"></div>
+              </div>
+              <span class="light-letter letter-r" aria-hidden="true">R</span
+              ><span class="light-letter letter-g" aria-hidden="true">G</span
+              ><span class="light-letter letter-b" aria-hidden="true">B</span>
+              <span class="center-mark" aria-hidden="true">+</span>
+            </div>
+            <div class="stage-bottom">
+              <span>光的重叠处，会出现新颜色。</span
+              ><span class="stage-coordinate">RGB / ADDITIVE</span>
+            </div>
+          </div>
+
+          <div class="console">
+            <section class="mix-result" id="mix-result" aria-label="当前混合色">
+              <div class="section-kicker">你的混光配方</div>
+              <div class="result-line">
+                <div class="result-swatch" id="result-swatch"></div>
+                <div>
+                  <h2 id="color-name">白色</h2>
+                  <code id="hex-value">#FFFFFF</code>
+                </div>
+                <button
+                  class="copy-button"
+                  id="copy-color"
+                  type="button"
+                  aria-label="复制当前颜色代码"
+                >
+                  <svg viewBox="0 0 20 20" aria-hidden="true">
+                    <rect x="7" y="7" width="9" height="10" rx="2" />
+                    <path d="M12 7V3H3v9h4" />
+                  </svg>
+                </button>
+              </div>
+            </section>
+
+            <section class="challenge-head" id="challenge-head" hidden aria-label="当前挑战">
+              <div class="challenge-title-line">
+                <span class="section-kicker" id="level-label">挑战 01 / 05</span
+                ><span id="attempt-label">还没提交</span>
+              </div>
+              <div class="comparison">
+                <div>
+                  <div class="color-chip target" id="target-swatch"></div>
+                  <span>目标颜色 <b id="target-name">阳光黄</b></span>
+                </div>
+                <div>
+                  <div class="color-chip" id="challenge-mix"></div>
+                  <span>你的颜色 <b id="score-label">试着靠近</b></span>
+                </div>
+              </div>
+              <div class="level-dots" id="level-dots" aria-label="挑战进度"></div>
+            </section>
+
+            <div class="sliders" id="sliders">
+              <div class="channel red-channel">
+                <div class="channel-heading">
+                  <label for="red"><i></i> 红光 <span>R</span></label
+                  ><output id="red-output" for="red">100</output>
+                </div>
+                <input
+                  id="red"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value="100"
+                  aria-valuetext="红光通道值 100"
+                />
+                <div class="range-markers" aria-hidden="true"><span>0</span><span>100</span></div>
+              </div>
+              <div class="channel green-channel">
+                <div class="channel-heading">
+                  <label for="green"><i></i> 绿光 <span>G</span></label
+                  ><output id="green-output" for="green">100</output>
+                </div>
+                <input
+                  id="green"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value="100"
+                  aria-valuetext="绿光通道值 100"
+                />
+                <div class="range-markers" aria-hidden="true"><span>0</span><span>100</span></div>
+              </div>
+              <div class="channel blue-channel">
+                <div class="channel-heading">
+                  <label for="blue"><i></i> 蓝光 <span>B</span></label
+                  ><output id="blue-output" for="blue">100</output>
+                </div>
+                <input
+                  id="blue"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value="100"
+                  aria-valuetext="蓝光通道值 100"
+                />
+                <div class="range-markers" aria-hidden="true"><span>0</span><span>100</span></div>
+              </div>
+            </div>
+
+            <div id="explore-actions">
+              <div class="presets" aria-label="混光预设">
+                <button type="button" data-preset="100,100,0">
+                  <i style="--chip: #ffff00"></i>黄</button
+                ><button type="button" data-preset="0,100,100">
+                  <i style="--chip: #00ffff"></i>青</button
+                ><button type="button" data-preset="100,0,100">
+                  <i style="--chip: #ff00ff"></i>品红</button
+                ><button type="button" data-preset="100,100,100">
+                  <i style="--chip: #ffffff"></i>白
+                </button>
+              </div>
+              <div class="explore-tools">
+                <button type="button" id="random-color">
+                  来点意外 <span aria-hidden="true">↗</span></button
+                ><button type="button" id="reset">重置</button>
+              </div>
+            </div>
+            <div id="challenge-actions" hidden>
+              <div class="feedback" id="challenge-feedback" role="status">
+                第一关：试着用两束光，调出黄色。
+              </div>
+              <button class="primary-button" id="submit-mix" type="button">
+                提交配方 <span aria-hidden="true">→</span>
+              </button>
+              <button class="secondary-button" id="next-level" type="button" hidden>
+                下一种颜色 <span aria-hidden="true">→</span>
+              </button>
+            </div>
+            <p class="channel-note">0–100 表示屏幕色彩通道值。</p>
+          </div>
+        </section>
+
+        <section class="completion" id="completion" hidden aria-labelledby="completion-title">
+          <span class="completion-symbol" aria-hidden="true">✳</span>
+          <div>
+            <div class="eyebrow">五种颜色，都是你调出来的。</div>
+            <h2 id="completion-title">你已经掌握了光的配方。</h2>
+            <p id="completion-text"></p>
+            <div class="earned-colors" id="earned-colors" aria-label="完成的颜色"></div>
+          </div>
+          <button class="primary-button" id="restart" type="button">
+            再来一轮 <span aria-hidden="true">↗</span>
+          </button>
+        </section>
+
+        <section class="discovery" aria-labelledby="discovery-title">
+          <div class="discovery-heading">
+            <span class="section-kicker">A LITTLE DISCOVERY</span>
+            <h2 id="discovery-title">原来，光会这样混。</h2>
+            <p>一边动手，一边发现屏幕里的秘密。</p>
+          </div>
+          <div class="discovery-card live-discovery">
+            <div class="discovery-icon" aria-hidden="true"><i></i><i></i></div>
+            <span class="card-index">01 / 你正在看到</span>
+            <h3 id="discovery-name">三束光，汇成白色。</h3>
+            <p id="discovery-copy">
+              红、绿、蓝通道都开到最大，重叠处就是白色。把蓝光调到 0，看看剩下的两束光会发生什么。
+            </p>
+          </div>
+          <div class="discovery-card">
+            <div class="discovery-icon pixel-icon" aria-hidden="true"><i></i><i></i><i></i></div>
+            <span class="card-index">02 / 屏幕的秘密</span>
+            <h3>小小像素，藏着三原色。</h3>
+            <p>
+              屏幕用红、绿、蓝三个通道组合颜色。改变配方，就能得到不同的颜色。这里展示的是屏幕 RGB
+              模型。
+            </p>
+          </div>
+          <div class="discovery-card">
+            <div class="discovery-icon paint-icon" aria-hidden="true">≠</div>
+            <span class="card-index">03 / 别和颜料搞混</span>
+            <h3>光的混色，和画画不同。</h3>
+            <p>
+              光是加色混合：红光加绿光可以得到黄光。颜料会吸收部分光，不能用这里的配方推算画笔的混色。
+            </p>
+          </div>
+        </section>
+        <section class="bottom-invite">
+          <span>已经认识三束光了？</span
+          ><button id="invite-challenge" type="button">
+            试试凭眼睛调出五种颜色 <span aria-hidden="true">↗</span>
+          </button>
+        </section>
+      </main>
+
+      <footer>
+        <div><strong>GemiGo</strong><span>为好奇心留一点空间。</span></div>
+        <div class="footer-links">
+          <a href="https://gemigo.io/explore?lang=zh-CN" target="_blank" rel="noopener noreferrer"
+            >发现更多作品 ↗</a
+          ><button id="sources-open" type="button">知识来源</button><span>平台原创 · 2026</span>
+        </div>
+      </footer>
+    </div>
+
+    <dialog id="help-dialog" aria-labelledby="help-title">
+      <div class="dialog-top">
+        <span class="section-kicker">START EXPLORING</span
+        ><button
+          type="button"
+          data-close="help-dialog"
+          class="dialog-close"
+          aria-label="关闭玩法说明"
+        >
+          ×
+        </button>
+      </div>
+      <h2 id="help-title">先动一束光。</h2>
+      <ol>
+        <li>
+          <strong>自由混光</strong
+          ><br />移动红、绿、蓝滑杆，观察重叠区域。黄色、青色、品红色预设可以帮助你发现规律。
+        </li>
+        <li>
+          <strong>颜色挑战</strong
+          ><br />看目标色，用三束光调出接近的颜色，再提交。每个通道与目标相差不超过 6，就能过关。
+        </li>
+        <li>
+          <strong>分享配方</strong><br />把当前配方链接发给朋友。打开链接即可还原颜色，接着玩。
+        </li>
+      </ol>
+      <p class="dialog-note">
+        挑战的“色值接近度”比较 RGB 通道数值，不是专业感知色差。屏幕和观看环境也会影响你看到的颜色。
+      </p>
+      <button class="primary-button" type="button" data-close="help-dialog">
+        知道了，开始玩 →
+      </button>
+    </dialog>
+    <dialog id="sources-dialog" aria-labelledby="sources-title">
+      <div class="dialog-top">
+        <span class="section-kicker">LEARN A LITTLE MORE</span
+        ><button
+          type="button"
+          data-close="sources-dialog"
+          class="dialog-close"
+          aria-label="关闭知识来源"
+        >
+          ×
+        </button>
+      </div>
+      <h2 id="sources-title">探索有出处。</h2>
+      <p>内容与图形由 GemiGo 原创。科学说明参考以下公开资料：</p>
+      <ul class="source-list">
+        <li>
+          <a
+            href="https://annex.exploratorium.edu/xref/phenomena/color_mixing_%28additive%29.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Exploratorium · 加色混合 ↗</a
+          >
+        </li>
+        <li>
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Glossary/RGB"
+            target="_blank"
+            rel="noopener noreferrer"
+            >MDN · RGB 色彩模型 ↗</a
+          >
+        </li>
+        <li>
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Glossary/Color_space"
+            target="_blank"
+            rel="noopener noreferrer"
+            >MDN · 色彩空间 ↗</a
+          >
+        </li>
+      </ul>
+      <p class="dialog-note">本作品是屏幕 RGB 的简化可视化，不模拟真实光谱或颜料。</p>
+    </dialog>
+    <dialog id="share-dialog" aria-labelledby="share-title">
+      <div class="dialog-top">
+        <span class="section-kicker">YOUR COLOR RECIPE</span
+        ><button
+          type="button"
+          data-close="share-dialog"
+          class="dialog-close"
+          aria-label="关闭分享链接"
+        >
+          ×
+        </button>
+      </div>
+      <h2 id="share-title">把这束光分享出去。</h2>
+      <p>打开链接，就能看到你现在的混光配方。</p>
+      <label for="share-url">配方链接</label><input id="share-url" readonly type="text" /><button
+        class="primary-button"
+        id="copy-share"
+        type="button"
+      >
+        复制链接 →
+      </button>
+      <p class="dialog-note" id="share-note">也可以选中上面的链接，手动复制。</p>
+    </dialog>
+    <div class="toast" id="toast" role="status" hidden></div>
+    <noscript><div class="noscript">请开启 JavaScript，体验这个互动混光实验。</div></noscript>
+  </body>
+</html>

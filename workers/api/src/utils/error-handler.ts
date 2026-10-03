@@ -53,6 +53,12 @@ export class RateLimitError extends AppError {
   }
 }
 
+export class DailyProjectLimitError extends AppError {
+  constructor(public readonly limit: number, public readonly resetAt: string) {
+    super(`You have reached today's limit of ${limit} new apps (including drafts). You can still update existing apps. New app creation resumes at 00:00 Beijing time.`, 429, 'DAILY_PROJECT_LIMIT');
+  }
+}
+
 export function handleError(error: unknown): Response {
   if (error instanceof AppError) {
     console.error(`[${error.name}] ${error.message}`, {
@@ -63,6 +69,7 @@ export function handleError(error: unknown): Response {
       {
         error: error.message,
         code: error.code,
+        ...(error instanceof DailyProjectLimitError ? { limit: error.limit, resetAt: error.resetAt } : {}),
       },
       error.statusCode,
     );

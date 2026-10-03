@@ -1,0 +1,19 @@
+{
+  "$schema": "https://gemigo.io/schema/gemigo.app.schema.json",
+  "sourceDir": "./site",
+  "visibility": "public",
+  "category": "Education",
+  "tags": ["science", "color", "interactive", "learning"],
+  "defaultLocale": "zh-CN",
+  "locales": {
+    "zh-CN": {
+      "name": "光与颜色实验室 · Color Lab",
+      "description": "GemiGo 原创互动科学作品。自由混合三束光，完成五关颜色挑战，把你的配方分享给朋友。"
+    },
+    "en": {
+      "name": "Color Lab · Light & Color",
+      "description": "An original GemiGo interactive science experience with additive light mixing and five color-matching challenges. Chinese interface."
+    }
+  },
+  "slug": "color-lab"
+}
