@@ -31,3 +31,13 @@ scripts/test-page-bootstrap.mjs 使用本次production build及真实Chrome逐�
 diff-only人工可维护性/implementation Review: no findings。项目无独立自动入口；核对启动标记发生在首paint之前、App layout effect只首commit运行、加载失败事件覆盖Vite生产输出（不依赖被Vite去掉的script id）、noJS默认正文、SEO owner未复制、持久化键只读、占位不干扰业务/认证。implementation-review=passed。
 
 生产首次验收发现CSS未下载时侧栏占位受content-box影响为65px，完整CSS加载后才64px。启动关键CSS补上border-box，保证布局不依赖外部样式；重验首屏及原Pages合同后再发布，原首屏无文字闪跳证据仍有效。无产品行为/状态扩大。
+
+## 最终生产验收与复盘
+
+修复b575eb5及关键CSS补正403205f已进入master，按既有pnpm deploy:pages发布成功。最终源码e7314b4（保留并行1d2ab5d方向Tooltip修复），gh-pages=3847c7bcae2c4e991dca07163e0f24fe6efc72d8；前版30aa3130d090deb76216340788850e4c3be4e6e0保留作为回退记录。发布初期默认域名仍返回旧HTML，未把这一传播阶段冒充验收通过；确认新关键CSS与模块后才跑最终生产测试。
+
+同一 scripts/test-page-bootstrap.mjs 对 https://gemigo.io 的真实生产HTTP/JS运行全部通过：延迟模块的每个初始正文帧均不可见、加载占位可见、正常commit后消失；1440/390宽度、已存折叠状态、reduce-motion、进入视频流不复活占位、模块失败/拒绝Storage恢复正文、无JS正文均通过。真实Chrome刷新加载index-psoaocd4.js HTTP200，SHA256=655210e7ed3051f453940c8f562d55f2bbe865af4fa2f5591b4ea0b9b56ddedf，与本地最终构建逐字一致。首屏不再闪“发现社区创作的应用”文字页；测试没有扩大为修复用户嵌入应用自身的加载行为。
+
+主工作区master保留并核对并行已提交的2321bd2 Tooltip生产记录，安全普通merge+push；所有规则、其它脚本和文档WIP保留且不stage。最终再次fetch/actual远端SHA/0 0复核，明确修复已进入主线。仅前端发布，无Secrets/后台修改。最终CSS补正diff-only Review仍no findings。
+
+retrospective_decision=updated-existing-owner：在本设计保存真实首paint基线、引入提交与生产逐帧回归证据；无需新增通用流程规则。retrospective_state=completed。
