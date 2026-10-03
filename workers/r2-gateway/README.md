@@ -102,3 +102,11 @@ After deploy:
 - Visiting `https://<some-existing-slug>.gemigo.app/` should serve the app.
 - Visiting `https://gemigo.app/` should redirect to the homepage at `https://gemigo.io/`.
 - `https://<slug>.gemigo.app/__thumbnail.png` should return a PNG or WebP when a cover is available.
+
+### Google Fonts delivery
+
+Small HTML pages (up to 1 MiB) receive delivery-only URL substitutions for Google Fonts stylesheet links, inline CSS imports and `fonts.gstatic.com` files. Same-origin `.css` stylesheet links receive `__gemigo_fonts=v1`; only those marked CSS responses and their same-origin CSS imports are transformed. Other relative resource paths retain their original directory. Original R2 objects, publication and rollback remain unchanged.
+
+The fixed `assets.gemigo.app/__gemigo/google-fonts/css[2]` and `file/s/...` endpoints allow GET/HEAD only, never forward visitor credentials, and refuse upstream redirects and incorrect or oversized content. CSS uses a fixed modern Chrome UA for WOFF2 and a one-day cache; versioned font files have a one-year cache. Both upstream connection and body reads share a 2.5-second deadline. CSS failure returns an uncached empty stylesheet so the author's fallback fonts can render; file failure returns uncached 503. `x-gemigo-font-cache` reports HIT, MISS, BYPASS or FALLBACK. No new service or R2 writes are involved; Worker requests and cold upstream subrequests still cost resources.
+
+CSP policies are detected across the complete buffered HTML before substitutions. Restricted pages, SRI/use-credentials links, documents over the size limit, escaped CSS URL tokens and dynamically inserted links retain their original references. This is a bounded font optimization, not an arbitrary API proxy or a guarantee about every mainland carrier route. Tests: `node scripts/test-google-fonts.mjs` and existing app-delivery regression tests.
