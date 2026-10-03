@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Addition practice · 加法练习</title>
+<style>body{font:18px/1.6 system-ui,sans-serif;max-width:34rem;margin:3rem auto;padding:1rem;background:#f5f3ff;color:#292044}main{background:white;padding:2rem;border-radius:1rem}input,button{font:inherit;padding:.6rem;margin:.3rem 0}input{width:6rem}button{cursor:pointer}#feedback{min-height:2rem}</style>
+</head>
+<body><main>
+<h1>Addition practice / 加法练习</h1>
+<p>A small browser activity. No account, network request or external library is needed.<br>一个可离线运行的小练习，不需要账号、网络请求或外部库。</p>
+<form id="exercise"><label for="answer"><span id="question">2 + 3</span> = </label><input id="answer" type="number" inputmode="numeric" required><button type="submit">Check / 检查</button></form>
+<p id="feedback" role="status" aria-live="polite"></p>
+<button id="next" type="button">New question / 换一道题</button>
+</main><script>
+let a = 2, b = 3;
+const answer = document.getElementById('answer');
+const feedback = document.getElementById('feedback');
+document.getElementById('exercise').addEventListener('submit', event => {
+  event.preventDefault();
+  feedback.textContent = Number(answer.value) === a + b ? 'Correct! / 答对了！' : 'Try again. / 再试一次。';
+});
+document.getElementById('next').addEventListener('click', () => {
+  a = Math.floor(Math.random() * 10); b = Math.floor(Math.random() * 10);
+  document.getElementById('question').textContent = `${a} + ${b}`;
+  answer.value = ''; feedback.textContent = ''; answer.focus();
+});
+</script></body></html>
