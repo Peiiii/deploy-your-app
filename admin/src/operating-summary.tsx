@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
 import GrowthSummary from './growth-summary';
+import TimeSeriesChart from './time-series-chart';
 import type { Navigate } from './navigation';
 
 type Row = Record<string, string | number | null>;
@@ -50,11 +50,6 @@ export default function OperatingSummary({
   busy: boolean;
   changePage: (queue: 'attention' | 'feedback', page: number) => void;
 }) {
-  const trend = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (trend.current) trend.current.scrollLeft = trend.current.scrollWidth;
-  }, [report]);
-  const max = Math.max(1, ...report.daily.map((row) => Number(row.total)));
   return (
     <>
       <GrowthSummary days={days} revision={revision} navigate={navigate} />
@@ -86,36 +81,18 @@ export default function OperatingSummary({
               <h3>每日部署趋势</h3>
               <span className="legend">紫色：全部 · 绿色：成功</span>
             </div>
-            {Number(report.deployments.total) > 0 ? (
-              <div
-                ref={trend}
-                className="trend business-trend"
-                role="img"
-                aria-label="每日部署趋势"
-              >
-                {report.daily.map((row) => (
-                  <div className="bar-column" key={String(row.day)}>
-                    <span>{count(row.total)}</span>
-                    <div
-                      className="bar"
-                      title={`${row.day}：${row.total} 次，成功 ${row.succeeded}`}
-                      style={{ height: `${Math.max(3, (Number(row.total) / max) * 160)}px` }}
-                    >
-                      <i
-                        style={{
-                          height: `${Number(row.total) ? (Number(row.succeeded) / Number(row.total)) * 100 : 0}%`,
-                        }}
-                      />
-                    </div>
-                    <small>{String(row.day).slice(5)}</small>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="empty">
-                <p>这段时间没有部署记录</p>
-              </div>
-            )}
+            <TimeSeriesChart
+              title="每日部署趋势"
+              kind="bar"
+              data={report.daily.map((row) => ({
+                day: String(row.day),
+                values: { total: Number(row.total), succeeded: Number(row.succeeded) },
+              }))}
+              series={[
+                { key: 'total', label: '全部尝试', color: '#7c4fce', unit: '次' },
+                { key: 'succeeded', label: '成功尝试', color: '#27927e', unit: '次' },
+              ]}
+            />
             <p className="footnote">
               按尝试开始日统计，未结束尝试单独计为处理中。30 天图表可左右滚动。
             </p>

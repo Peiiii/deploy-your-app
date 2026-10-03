@@ -8,6 +8,7 @@ import Feedback from './feedback';
 import Growth from './growth';
 import { destination, type Navigate } from './navigation';
 import SidebarIcon from './sidebar-icon';
+import TimeSeriesChart from './time-series-chart';
 
 type Report = Awaited<ReturnType<typeof queryAnalytics>> & { cached: boolean };
 type Budget = Awaited<ReturnType<typeof getBudget>>;
@@ -33,26 +34,23 @@ const Empty = ({ text = '这段时间还没有采集到数据' }: { text?: strin
     <small>数据从上线后开始积累；不补造历史记录。</small>
   </div>
 );
-const Trend = ({ report }: { report: Report }) => {
-  const max = Math.max(1, ...report.daily.map((d) => d.events));
-  return report.daily.length ? (
-    <div className="trend" role="img" aria-label="每日事件趋势">
-      {report.daily.map((d) => (
-        <div className="bar-column" key={d.day}>
-          <span>{number(d.events)}</span>
-          <div
-            className="bar"
-            style={{ height: `${Math.max(3, (d.events / max) * 130)}px` }}
-            title={`${d.day} · ${d.events} 事件 · ${d.visitors} 访客`}
-          />
-          <small>{d.day.slice(5)}</small>
-        </div>
-      ))}
-    </div>
+const Trend = ({ report }: { report: Report }) =>
+  report.daily.length ? (
+    <TimeSeriesChart
+      title="每日事件趋势"
+      kind="bar"
+      data={report.daily.map((row) => ({
+        day: row.day,
+        values: { events: row.events, visitors: row.visitors },
+      }))}
+      series={[
+        { key: 'events', label: '记录事件', color: '#7c4fce', unit: '次' },
+        { key: 'visitors', label: '观测访客', color: '#27927e', unit: '个浏览器标识' },
+      ]}
+    />
   ) : (
     <Empty />
   );
-};
 const Funnel = ({ title, steps }: { title: string; steps: Report['funnels']['creation'] }) => (
   <article className="panel">
     <h3>{title}</h3>
@@ -506,7 +504,7 @@ export default function App() {
               <article className="panel">
                 <div className="spread">
                   <h3>使用趋势</h3>
-                  <span className="legend">● 每日事件</span>
+                  <span className="legend">紫色：事件 · 绿色：观测访客</span>
                 </div>
                 <Trend report={report} />
               </article>
