@@ -254,7 +254,8 @@ export async function feedRequest(
           RANK_MODEL,
           budget,
           () => rankModel(env, candidates.query, contents),
-          1200
+          // Leave room for budget settlement, current visibility checks and transport.
+          900
         );
         if (result) {
           selected = result.order.map((index) => selected[index]);

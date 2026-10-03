@@ -163,3 +163,5 @@ Server-Timing实查：API近请求者执行，而D1主库在APAC/NRT；每次数
 采用现有API Worker的placement.region=aws:ap-northeast-1，让执行接近东京D1；Cloudflare映射最近节点并管理故障转移。不是把D1迁到AWS，也不移动数据库或增加服务。影响面是API执行位置，推荐分流/排序/状态仍仅探索流；原目录、认证、发布代理等接口业务合同不变，需要生产读接口和原目录回归。配置可移除后普通部署恢复；cron不受fetch placement影响。没有套餐升级。官方依据：[Placement](https://developers.cloudflare.com/workers/configuration/placement/)。已核对当前Wrangler支持region targeted字段。
 
 该必要基础设施修正按现有全托管授权自主决定，避免为实验另建微服务/额外数据库；design-review mode=design对执行位置变更复审通过，既有业务回归与重新测量仍是Required，没有降低500ms/1.8s门槛。位置只改变调用网络耗时，不改变其它入口采用的排序逻辑。退出推荐时可独立评估是否保留已改善通用API的placement，不把它绑定为推荐必需数据状态。
+
+生产复验主路径20次Chrome真实请求Worker p95=122ms、客户端p95≈1.04s。可选bge调用包含1次超时回退端到端1.827s，按既有最多1.2s上限进一步收紧为900ms，留出费用结算、权限再核对与传输时间；不降低端到端1.8s验收。该调整不扩展行为或设计边界，原失败样本保留并重验。
