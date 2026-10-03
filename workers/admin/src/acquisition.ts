@@ -1,4 +1,9 @@
-import { reserve, type AcquisitionCounts, type AcquisitionReport } from '@gemigo/product-analytics';
+import {
+  reserveReads,
+  readBudgetMessage,
+  type AcquisitionCounts,
+  type AcquisitionReport,
+} from '@gemigo/product-analytics';
 import { AdminInputError } from './operations';
 
 const DAY = 86400000;
@@ -71,23 +76,24 @@ export const queryAcquisition = async (
   const end = todayStart + DAY;
   const bucket = `reads:${date(now)}`;
   const countAllowance = (days + 3) * 4000 + 100;
-  if (!(await reserve(db, bucket, countAllowance, 1000000)))
-    throw new AdminInputError('今日分析查询预算已用完，请明天重试', 429);
+  const countReservation = await reserveReads(db, bucket, countAllowance);
+  if (!countReservation) throw new AdminInputError(readBudgetMessage(now), 429);
   const tracking = await db
     .prepare('SELECT value FROM analytics_settings WHERE key=?')
     .bind(TRACKING_SETTING)
-    .first<{ value: string }>();
-  const trackingTime = tracking ? Date.parse(tracking.value) : NaN;
+    .all<{ value: string }>();
+  const trackingTime = tracking.results[0] ? Date.parse(tracking.results[0].value) : NaN;
   const trackingStart = Number.isFinite(trackingTime) ? trackingTime : end;
   const count = await db
     .prepare('SELECT COUNT(*) AS total FROM product_events WHERE at>=? AND at<?')
     .bind(availableStart, end)
-    .first<{ total: number }>();
+    .all<{ total: number }>();
+  await countReservation.settle(tracking.meta.rows_read + count.meta.rows_read);
   // Two bounded cohort passes. Publication uses indexed session and unique flow
   // joins in the same D1; 48 rows/event plus 1000 gives lookup headroom.
-  const queryAllowance = (count?.total || 0) * 48 + 1000;
-  if (!(await reserve(db, bucket, queryAllowance, 1000000)))
-    throw new AdminInputError('今日分析查询预算已用完，请缩小范围或明天重试', 429);
+  const queryAllowance = (count.results[0]?.total || 0) * 48 + 1000;
+  const queryReservation = await reserveReads(db, bucket, queryAllowance);
+  if (!queryReservation) throw new AdminInputError(readBudgetMessage(now), 429);
   const results = await db
     .prepare(acquisitionSql)
     .bind(availableStart, end, trackingStart, now + 1)
@@ -115,6 +121,7 @@ export const queryAcquisition = async (
     .prepare(acquisitionSql)
     .bind(availableStart, todayStart, trackingStart, todayStart)
     .all<{ report: string }>();
+  await queryReservation.settle(results.meta.rows_read + periodResults.meta.rows_read);
   const period = JSON.parse(periodResults.results[0].report) as typeof raw;
   return {
     period: {

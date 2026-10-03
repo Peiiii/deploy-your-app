@@ -1,5 +1,5 @@
 import { EVENTS } from './contract';
-import { dayKey, reserve } from './budget';
+import { dayKey, reserveReads, readBudgetMessage } from './budget';
 import { filterSql, type AnalyticsFilter } from './repository';
 import type { summarize } from './report';
 
@@ -11,15 +11,17 @@ export const querySqlReport = async (
 ): Promise<Report & { rowsRead: number; reservedReads: number }> => {
   const { where, values } = filterSql(filter);
   const countAllowance = (Math.ceil((filter.to - filter.from) / 86400000) + 2) * 4000 + 100;
-  if (!(await reserve(db, `reads:${dayKey()}`, countAllowance, 1000000)))
-    throw new Error('今日分析查询预算已用完，请明天重试或查看已缓存报表。');
+  const bucket = `reads:${dayKey()}`;
+  const countReservation = await reserveReads(db, bucket, countAllowance);
+  if (!countReservation) throw new Error(readBudgetMessage());
   const count = await db
     .prepare(`SELECT COUNT(*) total FROM product_events WHERE ${where}`)
     .bind(...values)
-    .first<{ total: number }>();
-  const allowance = (count?.total || 0) * 64 + 100;
-  if (!(await reserve(db, `reads:${dayKey()}`, allowance, 1000000)))
-    throw new Error('所选范围超过今日剩余查询预算，请缩小日期范围。');
+    .all<{ total: number }>();
+  await countReservation.settle(count.meta.rows_read);
+  const allowance = (count.results[0]?.total || 0) * 64 + 100;
+  const queryReservation = await reserveReads(db, bucket, allowance);
+  if (!queryReservation) throw new Error(readBudgetMessage());
   const base = `WITH f AS MATERIALIZED (SELECT * FROM product_events WHERE ${where}),
     starts AS (SELECT DISTINCT flow_id FROM f WHERE name='deployment_start' AND flow_id IS NOT NULL),
     c0 AS (SELECT session_id,MIN(at) at FROM f WHERE name='project_create_click' GROUP BY session_id),
@@ -44,6 +46,7 @@ export const querySqlReport = async (
     .prepare(base)
     .bind(...values)
     .all<{ report: string }>();
+  await queryReservation.settle(result.meta.rows_read);
   const raw = JSON.parse(result.results[0].report) as Report & {
     creation: number[];
     discovery: number[];

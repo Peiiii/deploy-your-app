@@ -37,7 +37,7 @@ INSERT OR IGNORE INTO analytics_settings (key,value)
 VALUES ('acquisition_registration_start', strftime('%Y-%m-%dT%H:%M:%fZ','now'));
 ```
 
-缺失明细日期和历史注册在界面/CSV显示空缺；零分母转化率null。报表缓存15分钟、无轮询，缓存namespace为acquisition-v2；计数后以固定两次cohort查询的观测事件48倍加1000行预留，保持百万日额度；代表全转化200会话/600事件真实D1两次读取12410行。实际生产验证见 [SEO/GEO记录](../logs/2026-10-03-seo-geo/README.md)。注册口径起点不是产品分析全部历史的起点。
+缺失明细日期和历史注册在界面/CSV显示空缺；零分母转化率null。报表缓存15分钟、无轮询，缓存namespace为acquisition-v2；计数后以固定两次cohort查询的观测事件48倍加1000行预留，保持百万日额度；代表全转化200会话/600事件真实D1两次读取12410行。实际生产验证见 [SEO/GEO记录](../logs/2026-10-03-seo-geo/README.md)。三个读取报表（搜索获客、成长、基础分析）复用budget owner的阶段预留结算：成功取得D1实际rows_read后归还未用额度，并为管理语句保留100行余量；每个阶段只结算一次，失败未知阶段不退款。每日百万上限为应用内共享成本保护，不是Cloudflare套餐或账单；reservedReads仍表示查询的原始估算预留上界，日桶记账会扣除实际归还额。预算不足显示下一次北京时间08:00的具体日期，搜索报表不提供无效重试。注册口径起点不是产品分析全部历史的起点。
 
 新增成功发布会话：可测来源入口→API确认的新注册→同会话服务端deployment_accepted→同flow的deployment_attempts为succeeded且web渠道，尝试开始不早于注册、完成早于观察截止。同一会话最多计一次；不新增用户ID，不用浏览器部署成功事件替代。期间截至各自完整UTC日末；今日及按入口日期的日cohort截至查询时点，日行不能累加代替期间。可测分母为0时publishedSessions为null，有分母且无成功才为0；不能表示跨会话新客激活或长期留存。权威为同一gemigo-projects实例中的事件和不可变尝试，不新增数据库绑定。
 

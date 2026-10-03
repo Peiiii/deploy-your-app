@@ -137,7 +137,9 @@ export default function Acquisition() {
       {state.error && (
         <div className="error" role="alert">
           {state.error}
-          <button onClick={() => reload(days)}>重试</button>
+          {!state.error.startsWith('今日分析查询预算') && (
+            <button onClick={() => reload(days)}>重试</button>
+          )}
         </div>
       )}
       {report && (
