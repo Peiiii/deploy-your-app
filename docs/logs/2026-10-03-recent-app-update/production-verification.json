@@ -1,0 +1,21 @@
+{
+  "projectCountAfterUpdate": 1,
+  "identityPreserved": true,
+  "id": "d1a89bd4-638c-4caf-bb2e-35617aeb3efe",
+  "name": "发布更新验收",
+  "slug": "qa-recent-update-629de3f1",
+  "url": "https://qa-recent-update-629de3f1.gemigo.app/",
+  "isPublic": false,
+  "lastSuccessAt": "2026-10-03T04:37:02.984Z",
+  "deployment": {
+    "status": "succeeded",
+    "stage": "complete",
+    "buildMode": "static",
+    "errorCode": null,
+    "errorMessage": null,
+    "startedAt": "2026-10-03T04:37:00.384Z",
+    "finishedAt": "2026-10-03T04:37:03.107Z"
+  },
+  "testProjectCleanup": "soft-deleted",
+  "projectCountAfterCleanup": 0
+}
