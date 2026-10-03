@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "activeStreamStopped": true,
+  "deletedAppRejected": true,
+  "rows": [
+    {
+      "secrets": 0,
+      "connections": 0,
+      "tickets": 0
+    }
+  ]
+}

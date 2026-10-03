@@ -23,6 +23,7 @@ import { getSessionIdFromRequest } from '../utils/auth';
 import { authRepository } from '../repositories/auth.repository';
 import { configService } from '../services/config.service';
 import { normalizeProjectLocalization } from '../utils/project-localization';
+import { appGatewayController } from '../app-gateway/controller';
 import { deploymentRepository } from '../repositories/deployment.repository';
 
 /**
@@ -335,8 +336,10 @@ class ProjectsController {
   }
 
   /** DELETE /api/v1/projects/:id */
-  async deleteProject(request: Request, _env: ApiWorkerEnv, db: D1Database, id: string): Promise<Response> {
+  async deleteProject(request: Request, env: ApiWorkerEnv, db: D1Database, id: string): Promise<Response> {
     const user = await this.requireAuth(request, db, 'delete a project');
+    await this.requireProjectOwner(db, id, user.id, 'delete a project');
+    if (env.APP_GATEWAY) return appGatewayController.deleteProject(env, id, user.id);
     const deleted = await projectService.deleteProject(db, id, user.id);
     if (!deleted) throw new NotFoundError('Project not found');
     return new Response(null, { status: 204 });

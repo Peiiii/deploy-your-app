@@ -249,5 +249,13 @@ await assert.rejects(
   /too large/
 );
 check('slow uploads abort on revocation or deadline, and input is bounded before accumulation');
+const remainingB = await b.list();
+await a.purge();
+assert.deepEqual(await a.list(), { secrets: [], connections: [] });
+assert.equal((await a.usage()).requests, 0);
+assert.deepEqual(await b.list(), remainingB);
+check(
+  'project deletion purges its ciphertext, connections and tickets without touching other apps'
+);
 sqlite.close();
 console.log(`${checks} gateway invariant checks passed.`);

@@ -1,3 +1,4 @@
+import { projectService } from '../services/project.service';
 import type { ApiWorkerEnv } from '../types/env';
 import { AppError, ForbiddenError, NotFoundError, ValidationError } from '../utils/error-handler';
 import { gatewayJson } from './response';
@@ -15,6 +16,7 @@ interface ActiveCall {
 
 /** One project owns all its in-flight calls, revocation and transport lifecycle. */
 export class AppGateway {
+  private deleted = false;
   private active = new Map<string, ActiveCall>();
   constructor(
     private state: DurableObjectState,
@@ -28,6 +30,36 @@ export class AppGateway {
       const repo = new GatewayRepository(this.env.PROJECTS_DB, projectId);
       const [operation, rawName] = new URL(request.url).pathname.slice(1).split('/');
       const name = rawName ? connectionName(decodeURIComponent(rawName)) : '';
+      if (operation === 'delete-project' && request.method === 'DELETE') {
+        return await this.state.blockConcurrencyWhile(async () => {
+          const project = await projectService.getProjectById(this.env.PROJECTS_DB, projectId);
+          if (!project || project.ownerId !== request.headers.get('x-owner-id'))
+            throw new NotFoundError('Project not found.');
+          this.deleted = true;
+          this.stopCalls(() => true);
+          try {
+            // Fail closed during deletion; retries can finish an interrupted cleanup.
+            await this.state.storage.put('deleted', true);
+            await repo.purge();
+            if (
+              !(await projectService.deleteProject(
+                this.env.PROJECTS_DB,
+                projectId,
+                project.ownerId
+              ))
+            )
+              throw new NotFoundError('Project not found.');
+            return new Response(null, { status: 204 });
+          } catch (error) {
+            this.deleted = false;
+            await this.state.storage.delete('deleted');
+            throw error;
+          }
+        });
+      }
+      if (this.deleted || (await this.state.storage.get('deleted')))
+        throw new NotFoundError('Project was deleted.');
+
       if (operation === 'settings' && request.method === 'GET')
         return gatewayJson({ ...(await repo.list()), usage: await repo.usage() });
       if (operation === 'secrets') {
@@ -109,7 +141,7 @@ export class AppGateway {
         throw new ForbiddenError('Connection settings changed. Please reconnect.');
       const config: ConnectionConfig = JSON.parse(connection.config);
       const secret = await repo.secret(config.secretName);
-      if (!config.enabled || !secret || secret.version !== lease.secret_version)
+      if (this.deleted || !config.enabled || !secret || secret.version !== lease.secret_version)
         throw new ForbiddenError('Connection or Secret was revoked.');
       this.active.set(lease.id, { connection: name, secret: config.secretName, stop });
       const deadline = Math.min(
@@ -127,7 +159,7 @@ export class AppGateway {
       if (/[\r\n]/.test(key))
         throw new ValidationError('This Secret cannot be used in an HTTP authentication header.');
       await checkPublicDns(config.baseUrl);
-      if (closed) throw new ForbiddenError('Connection was revoked.');
+      if (closed || this.deleted) throw new ForbiddenError('Connection was revoked.');
       const headers = new Headers({ [config.authHeader]: config.authPrefix + key });
       if (config.protocol === 'qwen-realtime') {
         if (request.headers.get('upgrade') !== 'websocket')

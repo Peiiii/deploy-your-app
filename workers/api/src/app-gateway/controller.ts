@@ -34,6 +34,15 @@ function safeError(error: unknown): Response {
 }
 
 export const appGatewayController = {
+  async deleteProject(env: ApiWorkerEnv, projectId: string, ownerId: string): Promise<Response> {
+    return object(env, projectId).fetch(
+      new Request('https://gateway.internal/delete-project', {
+        method: 'DELETE',
+        headers: { 'x-project-id': projectId, 'x-owner-id': ownerId },
+      })
+    );
+  },
+
   async manage(
     req: Request,
     env: ApiWorkerEnv,

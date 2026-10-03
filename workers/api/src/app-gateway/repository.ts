@@ -36,6 +36,14 @@ export class GatewayRepository {
     readonly projectId: string
   ) {}
 
+  async purge(): Promise<void> {
+    await this.db.batch(
+      ['app_gateway_leases', 'app_connections', 'app_secrets'].map((table) =>
+        this.db.prepare(`DELETE FROM ${table} WHERE project_id = ?`).bind(this.projectId)
+      )
+    );
+  }
+
   async list(): Promise<{
     secrets: { name: string; version: number; updatedAt: number }[];
     connections: (ConnectionConfig & { revision: number; updatedAt: number })[];
