@@ -105,17 +105,21 @@ export class ProjectManager {
     }
   };
 
+  checkAddressAvailability = (slug: string, projectId?: string, signal?: AbortSignal) =>
+    this.provider.checkAddressAvailability(slug, projectId, signal);
+
   createDraftProject = async (
     name?: string,
+    slug?: string,
   ): Promise<Project | undefined> => {
     try {
       track('project_create_click');
-      const project = await this.provider.createDraftProject(name);
+      const project = await this.provider.createDraftProject(name, slug);
       useProjectStore.getState().actions.addProject(project);
       return project;
     } catch (error) {
       console.error('Failed to create draft project', error);
-      return undefined;
+      throw error;
     }
   };
 

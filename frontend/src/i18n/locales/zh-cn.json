@@ -296,8 +296,28 @@
         "description": "填写公开 GitHub 仓库的地址，从仓库获取项目内容。"
       }
     },
-    "optionalName": "项目名称（可选）",
-    "optionalNameHint": "不填写时，使用网页标题或文件名",
+    "optionalName": "应用名称（可选）",
+    "optionalNameHint": "例如：旅行账本",
+    "nameExplanation": "支持中文，可随时改名；留空时自动取名。",
+    "publicationAddress": "发布地址",
+    "editAddress": "修改",
+    "finishAddressEdit": "完成",
+    "addressPrefix": "地址前缀",
+    "addressExplanation": "发布后地址固定，修改名称不会改变链接。",
+    "automaticAddress": "自动生成",
+    "useSuggestedAddress": "使用 {{address}}",
+    "addressStatus": {
+      "invalid": "使用 1–63 位小写字母、数字或连字符，首尾须为字母或数字。",
+      "checking": "正在检查地址…",
+      "available": "地址可用，发布时确认。",
+      "taken": "这个地址已被使用，请换一个。",
+      "error": "暂时无法检查，发布时会再次确认。"
+    },
+    "addressErrors": {
+      "ADDRESS_TAKEN": "这个地址刚被使用，请换一个后再发布。",
+      "INVALID_ADDRESS": "请填写有效地址：1–63 位小写字母、数字或连字符，首尾不能是连字符。",
+      "ADDRESS_LOCKED": "此应用已开始发布，地址不能再修改。"
+    },
     "publish": "发布并获取链接",
     "publishAnother": "再发布一个",
     "invalidGithubRepo": "请输入有效的 GitHub 仓库地址，例如 https://github.com/用户名/仓库名",

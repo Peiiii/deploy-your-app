@@ -1,3 +1,4 @@
+import type { ProjectAddressAvailability } from './project-address';
 import type {
   Project,
   BuildLog,
@@ -27,8 +28,10 @@ export interface IProjectProvider {
   getLatestDeployment(id: string): Promise<DeploymentDiagnostic | null>;
   getProjects(page?: number, pageSize?: number): Promise<PaginatedResponse<Project>>;
   findProjectByRepoUrl(repoUrl: string): Promise<Project | null>;
+  checkAddressAvailability(slug: string, projectId?: string, signal?: AbortSignal): Promise<ProjectAddressAvailability>;
   createDraftProject(
     name?: string,
+    slug?: string,
   ): Promise<Project>;
   createProject(
     name: string,

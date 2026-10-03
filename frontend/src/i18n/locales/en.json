@@ -300,8 +300,28 @@
         "description": "Enter a public GitHub repository URL to use its project files."
       }
     },
-    "optionalName": "Project name (optional)",
-    "optionalNameHint": "Leave blank to use the page title or filename",
+    "optionalName": "App name (optional)",
+    "optionalNameHint": "For example: Travel journal",
+    "nameExplanation": "Use any language and rename it later. Leave blank for an automatic name.",
+    "publicationAddress": "Publication address",
+    "editAddress": "Edit",
+    "finishAddressEdit": "Done",
+    "addressPrefix": "Address prefix",
+    "addressExplanation": "The address stays fixed after publication. Renaming the app won’t change its link.",
+    "automaticAddress": "Use automatic address",
+    "useSuggestedAddress": "Use {{address}}",
+    "addressStatus": {
+      "invalid": "Use 1–63 lowercase letters, numbers or hyphens. Start and end with a letter or number.",
+      "checking": "Checking address…",
+      "available": "Available now; confirmed when you publish.",
+      "taken": "This address is in use. Choose another.",
+      "error": "Couldn’t check now. We’ll confirm when you publish."
+    },
+    "addressErrors": {
+      "ADDRESS_TAKEN": "This address was just taken. Choose another before publishing.",
+      "INVALID_ADDRESS": "Use 1–63 lowercase letters, numbers or hyphens, with no leading or trailing hyphen.",
+      "ADDRESS_LOCKED": "Publication has started for this app. Its address can no longer be changed."
+    },
     "publish": "Publish and get a link",
     "publishAnother": "Publish another",
     "invalidGithubRepo": "Enter a valid GitHub repository URL, such as https://github.com/owner/repo",

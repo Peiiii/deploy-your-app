@@ -1,3 +1,5 @@
+import { ProjectAddressError } from '@/services/project-address';
+import { getPublicationSlug, isValidPublicationSlug } from './publication-details';
 import type { Project } from '@/types';
 import { DeploymentStatus, SourceType } from '@/types';
 import { useDeploymentStore } from '../stores/deployment.store';
@@ -79,12 +81,15 @@ export class DeploymentManager {
       throw new Error('Select a ZIP file first.');
     if (state.sourceType === SourceType.GITHUB && !repoUrl)
       throw new Error('Enter a valid GitHub repository URL.');
+    const slug = getPublicationSlug(state);
+    if (!isValidPublicationSlug(slug)) throw new ProjectAddressError('INVALID_ADDRESS');
     state.actions.setIsPublishingNewProject(true);
     try {
       let project = await this.projectCreator.createFromWizard();
       const name = this.projectCreator.getFallbackNameFromState(state);
       // The backend reads the saved repository when building GitHub projects.
       const patch = {
+        ...(slug !== project.slug ? { slug } : {}),
         ...(name !== project.name ? { name } : {}),
         ...(state.sourceType === SourceType.GITHUB && repoUrl !== project.repoUrl ? { repoUrl: repoUrl! } : {}),
       };
@@ -100,6 +105,10 @@ export class DeploymentManager {
         { zipFile: state.zipFile }
       );
     } catch (error) {
+      if (error instanceof ProjectAddressError) {
+        useDeploymentStore.setState({ publicationAddressError: error.code });
+        throw error;
+      }
       state.actions.setDeploymentStatus(DeploymentStatus.FAILED);
       state.actions.addLog({
         timestamp: new Date().toISOString(),
@@ -131,6 +140,8 @@ export class DeploymentManager {
   setHtmlContent = (html: string) => this.storeActions.setHtmlContent(html);
 
   setProjectName = (name: string) => this.storeActions.setProjectName(name);
+
+  setPublicationSlug = (slug: string | null) => useDeploymentStore.getState().actions.setPublicationSlug(slug);
 
   clearZipFile = () => this.storeActions.clearZipFile();
 }

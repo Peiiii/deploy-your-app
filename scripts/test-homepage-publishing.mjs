@@ -94,6 +94,8 @@ const deploymentDependency = {
   '@/types': types,
 };
 const projectStore = { projects: [] };
+const publicationDetails = load('features/deployment/managers/publication-details.ts', { '@/types': types });
+const addressErrors = load('services/project-address.ts');
 const { DeploymentStoreActions } = load(
   'features/deployment/managers/deployment-store-actions.ts',
   { ...deploymentDependency, '@/analytics/collector': { track() {} } }
@@ -101,6 +103,7 @@ const { DeploymentStoreActions } = load(
 const { ProjectCreator } = load('features/deployment/managers/project-creator.ts', {
   ...deploymentDependency,
   '@/stores/project.store': { useProjectStore: { getState: () => projectStore } },
+  './publication-details': publicationDetails,
 });
 const { DeploymentExecutor } = load('features/deployment/managers/deployment-executor.ts', {
   ...deploymentDependency,
@@ -115,6 +118,8 @@ const { DeploymentManager } = load('features/deployment/managers/deployment.mana
   './project-creator': { ProjectCreator },
   './deployment-store-actions': { DeploymentStoreActions },
   './deployment-executor': { DeploymentExecutor },
+  './publication-details': publicationDetails,
+  '@/services/project-address': addressErrors,
 });
 let creates = 0,
   calls = 0,
@@ -125,14 +130,14 @@ let creates = 0,
 let delayedCreation = false;
 const projectManager = {
   async loadProjects() {},
-  async createDraftProject(name) {
+  async createDraftProject(name, slug) {
     creates++;
     if (delayedCreation)
       await new Promise((resolve) => {
         releaseCreate = resolve;
       });
     if (failCreate) return undefined;
-    const project = { id: `p${creates}`, name, repoUrl: `draft:p${creates}`, status: 'Offline' };
+    const project = { id: `p${creates}`, name, slug, repoUrl: `draft:p${creates}`, status: 'Offline' };
     projectStore.projects.push(project);
     return project;
   },
@@ -152,6 +157,7 @@ const projectManager = {
 const provider = {
   async startDeployment(project, onLog, onStatus, options) {
     calls++;
+    assert.equal(project.slug, getPublicationSlug(store.getState()), 'Deployment uses the visible address');
     if (project.sourceType === SourceType.ZIP) assert.equal(options.zipFile.base64, 'UEsFBg==');
     assert.equal(project.id, store.getState().activeProjectId);
     if (failDeploy) {
@@ -170,6 +176,21 @@ const provider = {
 };
 const manager = new DeploymentManager(provider, projectManager);
 const actions = store.getState().actions;
+const { getPublicationSlug, isValidPublicationSlug } = publicationDetails;
+manager.initializeNewPublication(SourceType.HTML);
+const fallbackAddress = getPublicationSlug(store.getState());
+assert.match(fallbackAddress, /^app-[a-f0-9]{8}$/);
+actions.setProjectName('旅行账本');
+assert.equal(getPublicationSlug(store.getState()), fallbackAddress, 'Chinese names keep a stable automatic address');
+actions.setProjectName('My Travel Journal');
+assert.equal(getPublicationSlug(store.getState()), 'my-travel-journal');
+manager.setPublicationSlug('my-chosen-address');
+actions.setProjectName('A different name');
+actions.setSourceType(SourceType.ZIP);
+assert.equal(getPublicationSlug(store.getState()), 'my-chosen-address', 'Chosen addresses survive name and source changes');
+for (const invalid of ['', '-app', 'app-', 'Uppercase', '中文', 'a'.repeat(64)]) assert.equal(isValidPublicationSlug(invalid), false);
+for (const valid of ['a', 'my-app', 'a'.repeat(63)]) assert.equal(isValidPublicationSlug(valid), true);
+
 manager.initializeNewPublication(SourceType.HTML);
 await assert.rejects(manager.publishNewProject(), /HTML/);
 assert.equal(creates, 0);
@@ -248,6 +269,24 @@ actions.setZipFile({ name: 'shared-page.zip', base64: 'UEsFBg==' });
 await manager.publishNewProject();
 assert.equal(projectStore.projects.at(-1).name, 'shared-page');
 assert.equal(store.getState().deploymentStatus, DeploymentStatus.SUCCESS);
+
+manager.initializeNewPublication(SourceType.HTML);
+actions.setHtmlContent('<h1>Address race</h1>');
+manager.setPublicationSlug('taken-address');
+const originalCreate = projectManager.createDraftProject;
+projectManager.createDraftProject = async () => { throw new addressErrors.ProjectAddressError('ADDRESS_TAKEN'); };
+const callsBeforeConflict = calls;
+await assert.rejects(manager.publishNewProject(), /ADDRESS_TAKEN/);
+assert.equal(calls, callsBeforeConflict);
+assert.equal(store.getState().publicationAddressError, 'ADDRESS_TAKEN');
+assert.equal(store.getState().htmlContent, '<h1>Address race</h1>');
+assert.equal(store.getState().newProjectId, null);
+assert.equal(store.getState().isPublishingNewProject, false);
+manager.setPublicationSlug('available-address');
+assert.equal(store.getState().publicationAddressError, null);
+projectManager.createDraftProject = originalCreate;
+await manager.publishNewProject();
+assert.equal(projectStore.projects.at(-1).slug, 'available-address');
 
 const { HttpDeploymentProvider } = load(
   'services/http/http-deployment-provider.ts',

@@ -7,6 +7,7 @@ import {
   type ProjectMetadataOverrides,
 } from '../types/project';
 import { slugify } from '../utils/strings';
+import { validateProjectAddress, addressTakenError, addressLockedError } from '../utils/project-address';
 import {
   deriveFlatMetadataFromLocalization,
   mergeDefaultLocaleIntoLocalization,
@@ -153,10 +154,19 @@ class ProjectService {
     });
   }
 
+  async checkAddressAvailability(db: D1Database, slug: string, excludeProjectId?: string) {
+    validateProjectAddress(slug);
+    const available = !(await projectRepository.slugExists(db, slug, excludeProjectId));
+    return {
+      available,
+      ...(!available ? { suggestion: await this.ensureUniqueSlug(db, slug.slice(0, 57), excludeProjectId) } : {}),
+    };
+  }
+
   async createDraftProject(
     env: ApiWorkerEnv,
     db: D1Database,
-    input?: { name?: string; ownerId?: string; isPublic?: boolean },
+    input?: { name?: string; slug?: string; ownerId?: string; isPublic?: boolean },
   ): Promise<Project> {
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
@@ -164,8 +174,9 @@ class ProjectService {
       input?.name && input.name.trim().length > 0
         ? input.name.trim()
         : `new-app-${id.slice(0, 6)}`;
-    const baseSlug = slugify(seedName);
-    const uniqueSlug = await this.ensureUniqueSlug(db, baseSlug);
+    const uniqueSlug = input?.slug !== undefined
+      ? validateProjectAddress(input.slug)
+      : await this.ensureUniqueSlug(db, slugify(seedName));
 
     const deployTarget = configService.getDeployTarget(env);
 
@@ -245,15 +256,11 @@ class ProjectService {
     }
 
     if (patch.slug !== undefined) {
-      const normalizedSlug = slugify(patch.slug);
-      const taken = await projectRepository.slugExists(
-        db,
-        normalizedSlug,
-        id,
-      );
-      patch.slug = taken
-        ? await this.ensureUniqueSlug(db, normalizedSlug, id)
-        : normalizedSlug;
+      validateProjectAddress(patch.slug);
+      if (existing.slug && patch.slug !== existing.slug && (existing.url || existing.lastSuccessAt || existing.status === 'Live' || existing.status === 'Building')) {
+        throw addressLockedError();
+      }
+      if (await projectRepository.slugExists(db, patch.slug, id)) throw addressTakenError();
     }
 
     let normalizedLocalization =
