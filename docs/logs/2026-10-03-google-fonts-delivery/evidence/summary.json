@@ -1,0 +1,40 @@
+{
+  "cold": {
+    "n": 3,
+    "fcp_ms": [
+      1164,
+      1216,
+      2520
+    ],
+    "mean_fcp_ms": 1633.3333333333333,
+    "median_fcp_ms": 1216,
+    "dcl_ms": [
+      2764.4000000953674,
+      2021.7000002861023,
+      4301.400000095367
+    ],
+    "direct_google_requests": 0,
+    "font_failure_responses": 0
+  },
+  "warm": {
+    "n": 3,
+    "fcp_ms": [
+      1420,
+      1352,
+      1288
+    ],
+    "mean_fcp_ms": 1353.3333333333333,
+    "median_fcp_ms": 1352,
+    "dcl_ms": [
+      1052.0999999046326,
+      933,
+      655.6999998092651
+    ],
+    "direct_google_requests": 0,
+    "font_failure_responses": 0
+  },
+  "default_dns_fcp_ms": 1332,
+  "fixed_host_ip": "104.21.14.73",
+  "worker_version": "54830cb9-eedf-4900-9f89-5bb820e07ecf",
+  "production_analytics_preserved": true
+}

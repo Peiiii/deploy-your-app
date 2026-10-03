@@ -1,0 +1,103 @@
+{
+  "elapsed": 3163,
+  "events": [],
+  "paint": [
+    {
+      "name": "first-paint",
+      "ms": 1332
+    },
+    {
+      "name": "first-contentful-paint",
+      "ms": 1332
+    }
+  ],
+  "resources": [
+    {
+      "url": "https://www.bowers.org/images/easyblog_articles/858/b2ap3_large_BLOG_97.119.1.jpg",
+      "ms": 1416,
+      "bytes": 0
+    },
+    {
+      "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+      "ms": 844.7999997138977,
+      "bytes": 0
+    },
+    {
+      "url": "https://app-n4p3.gemigo.app/__gemigo/analytics.v2.js",
+      "ms": 221,
+      "bytes": 1206
+    },
+    {
+      "url": "https://app-n4p3.gemigo.app/__gemigo/favicon-runtime.v1.js",
+      "ms": 228.5,
+      "bytes": 5170
+    },
+    {
+      "url": "https://assets.gemigo.app/__gemigo/google-fonts-runtime.v1.js",
+      "ms": 407.09999990463257,
+      "bytes": 0
+    },
+    {
+      "url": "https://english.chnmus.net/webfile/sitesources/hnbwy/upload/201909/20190904174920221.jpg",
+      "ms": 721.0999999046326,
+      "bytes": 0
+    },
+    {
+      "url": "https://app-n4p3.gemigo.app/favicon.ico",
+      "ms": 395.09999990463257,
+      "bytes": 300
+    },
+    {
+      "url": "https://assets.gemigo.app/__gemigo/google-fonts/v3/css2?family=DM+Mono:wght@400;500&family=Noto+Serif+SC:wght@500;600;700;900&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap",
+      "ms": 345.59999990463257,
+      "bytes": 0
+    }
+  ],
+  "ready": "interactive",
+  "images": [
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/b/b5/British_Museum_Chinese_jade_Neolithic_period_Liangzhu_culture_Cong_11022019_1399.jpg",
+      "loaded": false
+    },
+    {
+      "src": "https://www.bowers.org/images/easyblog_articles/858/b2ap3_large_BLOG_97.119.1.jpg",
+      "loaded": true
+    },
+    {
+      "src": "https://english.chnmus.net/webfile/sitesources/hnbwy/upload/201909/20190904174920221.jpg",
+      "loaded": true
+    },
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/b/b5/British_Museum_Chinese_jade_Neolithic_period_Liangzhu_culture_Cong_11022019_1399.jpg",
+      "loaded": false
+    },
+    {
+      "src": "https://commons.wikimedia.org/wiki/Special:FilePath/Cishan%20Cultural%201.jpg",
+      "loaded": false
+    },
+    {
+      "src": "https://www.bowers.org/images/easyblog_articles/858/b2ap3_large_BLOG_97.119.1.jpg",
+      "loaded": true
+    },
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Longshan_Culture_Black_Pottery_%2810125922214%29.jpg",
+      "loaded": false
+    },
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/2/2b/Butterfly-shaped_ivory_vessel_with_the_pattern_of_two_birds_facing_the_sun%28Neolithic%29_in_Zhejiang_Museum.JPG",
+      "loaded": false
+    },
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/d/dc/British_Museum_Chinese_jade_Neolithic_period_Hongshan_culture_Coiled_dragon_Pig-dragon_11022019_1393.jpg",
+      "loaded": false
+    },
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/0/0b/Painted_Pottery_Dou_with_Octagram_Design.jpg",
+      "loaded": false
+    },
+    {
+      "src": "https://i0.wp.com/www.viewofchina.com/wp-content/uploads/2019/01/majiabang-ceramic-jar.png?ssl=1&w=600",
+      "loaded": false
+    }
+  ]
+}
