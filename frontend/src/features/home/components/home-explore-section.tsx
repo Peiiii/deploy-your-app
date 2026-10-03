@@ -72,6 +72,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
 interface CategoryFilterProps {
   activeCategory: CategoryFilter;
   onCategoryChange: (category: CategoryFilter) => void;
+  onCategoryIntent: (category: CategoryFilter) => void;
   onTagReset: () => void;
   isCompact?: boolean;
 }
@@ -79,6 +80,7 @@ interface CategoryFilterProps {
 const CategoryFilter: React.FC<CategoryFilterProps> = ({
   activeCategory,
   onCategoryChange,
+  onCategoryIntent,
   onTagReset,
   isCompact = false,
 }) => {
@@ -103,6 +105,8 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
           <button
             key={cat}
             data-event="filter_change" onClick={() => handleCategoryClick(cat)}
+            onPointerEnter={(event) => { if (event.pointerType === 'mouse') onCategoryIntent(cat); }}
+            onFocus={() => onCategoryIntent(cat)}
             style={{ animationDelay: `${index * 30}ms` }}
             className={`rounded-full font-medium whitespace-nowrap transition-all duration-200 ${isCompact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'} ${isActive
               ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30 scale-105'
@@ -160,6 +164,7 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
     apps,
     activeCategory,
     setActiveCategory,
+    prefetchCategory,
     activeTag,
     setActiveTag,
     searchQuery,
@@ -199,6 +204,7 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
           <CategoryFilter
             activeCategory={activeCategory}
             onCategoryChange={setActiveCategory}
+            onCategoryIntent={prefetchCategory}
             onTagReset={() => setActiveTag(null)}
             isCompact
           />

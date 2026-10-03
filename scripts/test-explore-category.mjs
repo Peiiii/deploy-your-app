@@ -82,16 +82,26 @@ assert.equal(store.getState().isLoading, false);
 actions.setActiveCategory('All Apps');
 assert.equal(store.getState().apps[0].category, 'Fun');
 
-// Even for the same filter, an older response cannot overwrite a newer refresh.
+// Repeated reads reuse the recent page without changing filter or pagination.
 const firstRefresh = manager.loadPage(1);
 const secondRefresh = manager.loadPage(1);
-pending[4].resolve(result('Development'));
-await secondRefresh;
-pending[3].resolve(result('Fun', 3, 100));
-await firstRefresh;
-assert.equal(store.getState().apps[0].category, 'Development');
+assert.equal(pending.length, 3);
+await Promise.all([firstRefresh, secondRefresh]);
+assert.equal(store.getState().apps[0].category, 'Fun');
 assert.equal(store.getState().page, 1);
 assert.equal(store.getState().hasMore, false);
 assert.equal(store.getState().isLoading, false);
 
-console.log('PASS: category queries and stale response protection for apps, pagination and loading.');
+// A prefetch and two refreshes share one network response; only the latest
+// manager request may settle visible state, even when the promise is shared.
+manager.prefetchCategory('Games');
+actions.setActiveCategory('Games');
+const sharedFirst = manager.loadPage(1);
+const sharedSecond = manager.loadPage(1);
+assert.equal(pending.length, 4);
+pending[3].resolve(result('Games'));
+await Promise.all([sharedFirst, sharedSecond]);
+assert.equal(store.getState().apps[0].category, 'Games');
+assert.equal(store.getState().isLoading, false);
+
+console.log('PASS: category queries, cache/prefetch sharing and stale response protection for apps, pagination and loading.');

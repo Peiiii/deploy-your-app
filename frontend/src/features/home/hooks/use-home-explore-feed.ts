@@ -1,11 +1,11 @@
 import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
 import { track } from '@/analytics/collector';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 import { mapProjectsToApps } from '@/components/explore-app-card';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
-import { fetchExploreProjects } from '@/services/http/explore-api';
+import { fetchExploreProjects, type ExploreQueryParams } from '@/services/http/explore-api';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { rankHomeRecommendations, type CategoryFilter, type SortOption } from '@/features/home/components/home-explore';
 import { PERFORMANCE_CONFIG } from '@/constants';
@@ -26,6 +26,24 @@ export const useHomeExploreFeed = () => {
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const exploreRequestIdRef = useRef(0);
   const PAGE_SIZE = 12;
+  const query = useMemo<ExploreQueryParams>(() => ({
+    languages,
+    search: searchQuery.trim() || undefined,
+    category: activeCategory !== 'All Apps' ? activeCategory : undefined,
+    tag: activeTag,
+    sort: sortBy === 'recommended' ? 'popularity' : sortBy,
+    pageSize: sortBy === 'recommended' ? 36 : PAGE_SIZE,
+  }), [languages, searchQuery, activeCategory, activeTag, sortBy]);
+
+  const prefetchCategory = useCallback((category: CategoryFilter) => {
+    if (category === activeCategory && !activeTag) return;
+    void fetchExploreProjects({
+      ...query,
+      category: category !== 'All Apps' ? category : undefined,
+      tag: null,
+      page: 1,
+    }).catch(() => { /* Actual selection owns errors and retries. */ });
+  }, [query, activeCategory, activeTag]);
 
   const mergeUniqueApps = useCallback((prev: ExploreAppCard[], next: ExploreAppCard[]) => {
     if (prev.length === 0) return next;
@@ -57,15 +75,7 @@ export const useHomeExploreFeed = () => {
 
       try {
       if (pageToLoad === 1 && searchQuery.trim()) track('search_submit');
-        const result = await fetchExploreProjects({
-          languages,
-          search: searchQuery.trim() || undefined,
-          category: activeCategory !== 'All Apps' ? activeCategory : undefined,
-          tag: activeTag,
-          sort: sortBy === 'recommended' ? 'popularity' : sortBy,
-          page: pageToLoad,
-          pageSize: sortBy === 'recommended' ? 36 : PAGE_SIZE,
-        });
+        const result = await fetchExploreProjects({ ...query, page: pageToLoad });
 
         if (requestId !== exploreRequestIdRef.current || JSON.stringify(languages) !== JSON.stringify(useAppLanguageStore.getState().languages)) return;
         useAppLanguageStore.getState().actions.setAvailable(result.availableLanguages || []);
@@ -118,6 +128,7 @@ export const useHomeExploreFeed = () => {
       presenter.reaction,
       searchQuery,
       sortBy,
+      query,
     ],
   );
 
@@ -144,6 +155,7 @@ export const useHomeExploreFeed = () => {
     apps,
     activeCategory,
     setActiveCategory,
+    prefetchCategory,
     activeTag,
     setActiveTag,
     searchQuery,

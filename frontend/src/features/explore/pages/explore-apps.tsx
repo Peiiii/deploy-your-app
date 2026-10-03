@@ -46,11 +46,13 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
 interface CategoryFilterProps {
   activeCategory: CategoryFilter;
   onCategoryChange: (category: CategoryFilter) => void;
+  onCategoryIntent: (category: CategoryFilter) => void;
 }
 
 const CategoryFilterBar: React.FC<CategoryFilterProps> = ({
   activeCategory,
   onCategoryChange,
+  onCategoryIntent,
 }) => {
   const { t } = useTranslation();
 
@@ -66,6 +68,8 @@ const CategoryFilterBar: React.FC<CategoryFilterProps> = ({
           <button
             key={cat}
             data-event="filter_change" onClick={() => onCategoryChange(cat)}
+            onPointerEnter={(event) => { if (event.pointerType === 'mouse') onCategoryIntent(cat); }}
+            onFocus={() => onCategoryIntent(cat)}
             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${isActive
               ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30 scale-105'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
@@ -99,15 +103,18 @@ export const ExploreApps: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'feed'>('grid');
   const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
 
-  React.useEffect(() => { presenter.explore.refresh(); }, [languages, presenter.explore]);
-  const previousFilters = React.useRef(JSON.stringify([searchQuery, activeCategory, activeTag]));
+  const previousFilters = React.useRef({ languages, searchQuery, activeCategory, activeTag });
   React.useEffect(() => {
-    const key = JSON.stringify([searchQuery, activeCategory, activeTag]);
-    if (previousFilters.current === key) return;
-    previousFilters.current = key;
-    const timeoutId = setTimeout(() => presenter.explore.refresh(), 300);
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery, activeCategory, activeTag, presenter.explore]);
+    const previous = previousFilters.current;
+    previousFilters.current = { languages, searchQuery, activeCategory, activeTag };
+    const onlySearchChanged = previous.searchQuery !== searchQuery &&
+      previous.languages === languages && previous.activeCategory === activeCategory && previous.activeTag === activeTag;
+    if (onlySearchChanged) {
+      const timeoutId = setTimeout(() => presenter.explore.refresh(), 300);
+      return () => clearTimeout(timeoutId);
+    }
+    presenter.explore.refresh();
+  }, [languages, searchQuery, activeCategory, activeTag, presenter.explore]);
 
 
 
@@ -206,6 +213,7 @@ export const ExploreApps: React.FC = () => {
         <CategoryFilterBar
           activeCategory={activeCategory}
           onCategoryChange={actions.setActiveCategory}
+          onCategoryIntent={presenter.explore.prefetchCategory}
         />
 
         {!isLoading && (error || apps.length === 0) && <div className="rounded-2xl border border-slate-200 dark:border-slate-700 p-8 text-center">

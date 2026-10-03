@@ -13,7 +13,16 @@ export interface ExploreQueryParams {
   pageSize?: number;
 }
 
-export async function fetchExploreProjects(
+// Public directory snapshots stay only in this page's memory. Bound freshness
+// and capacity, and share pending requests with category intent prefetches.
+const CACHE_TTL_MS = 15_000;
+const MAX_CACHED_QUERIES = 24;
+const queries = new Map<string, {
+  promise: Promise<ExploreProjectsResponse>;
+  expiresAt: number;
+}>();
+
+export function fetchExploreProjects(
   params: ExploreQueryParams,
 ): Promise<ExploreProjectsResponse> {
   const query = new URLSearchParams();
@@ -43,11 +52,25 @@ export async function fetchExploreProjects(
     qs ? `?${qs}` : ''
   }`;
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error('Failed to load explore projects');
+  const cached = queries.get(url);
+  if (cached && cached.expiresAt > Date.now()) return cached.promise;
+
+  for (const [key, entry] of queries) {
+    if (entry.expiresAt <= Date.now()) queries.delete(key);
   }
-
-  return response.json();
+  const entry = {
+    expiresAt: Infinity,
+    promise: fetch(url).then(async (response): Promise<ExploreProjectsResponse> => {
+      if (!response.ok) throw new Error('Failed to load explore projects');
+      const result = await response.json();
+      entry.expiresAt = Date.now() + CACHE_TTL_MS;
+      return result;
+    }).catch((error) => {
+      if (queries.get(url) === entry) queries.delete(url);
+      throw error;
+    }),
+  };
+  queries.set(url, entry);
+  if (queries.size > MAX_CACHED_QUERIES) queries.delete(queries.keys().next().value!);
+  return entry.promise;
 }
-

@@ -3,7 +3,8 @@ import { track } from '@/analytics/collector';
 import { useExploreStore } from '@/features/explore/stores/explore.store';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { mapProjectsToApps } from '@/components/explore-app-card';
-import { fetchExploreProjects } from '@/services/http/explore-api';
+import { fetchExploreProjects, type ExploreQueryParams } from '@/services/http/explore-api';
+import type { CategoryFilter } from '@/constants/app-categories';
 import type { AuthManager } from '@/features/auth/managers/auth.manager';
 import type { UIManager } from '@/managers/ui.manager';
 import type { ReactionManager } from '@/managers/reaction.manager';
@@ -31,9 +32,31 @@ export class ExploreManager {
     this.reactionManager = reactionManager;
   }
 
-  /**
-   * Load a page of explore apps.
-   */
+  private queryForPage = (
+    state: ReturnType<typeof useExploreStore.getState>,
+    languages: string[] | null,
+    page: number,
+  ): ExploreQueryParams => ({
+    languages,
+    search: state.searchQuery.trim() || undefined,
+    category: state.activeCategory !== 'All Apps' ? state.activeCategory : undefined,
+    tag: state.activeTag,
+    sort: 'recent',
+    page,
+    pageSize: PAGE_SIZE,
+  });
+
+  prefetchCategory = (category: CategoryFilter) => {
+    const state = useExploreStore.getState();
+    if (category === state.activeCategory && !state.activeTag) return;
+    void fetchExploreProjects(this.queryForPage(
+      { ...state, activeCategory: category, activeTag: null },
+      useAppLanguageStore.getState().languages,
+      1,
+    )).catch(() => { /* Actual selection owns errors and retries. */ });
+  };
+
+  /** Load a page while rejecting responses for outdated filters. */
   loadPage = async (pageToLoad: number, append: boolean = false) => {
     const state = useExploreStore.getState();
     const languages = useAppLanguageStore.getState().languages;
@@ -55,15 +78,7 @@ export class ExploreManager {
 
     try {
       if (pageToLoad === 1 && state.searchQuery.trim()) track('search_submit');
-      const result = await fetchExploreProjects({
-        languages,
-        search: state.searchQuery.trim() || undefined,
-        category: state.activeCategory !== 'All Apps' ? state.activeCategory : undefined,
-        tag: state.activeTag,
-        sort: 'recent',
-        page: pageToLoad,
-        pageSize: PAGE_SIZE,
-      });
+      const result = await fetchExploreProjects(this.queryForPage(state, languages, pageToLoad));
 
       if (!isCurrentRequest()) return;
 
