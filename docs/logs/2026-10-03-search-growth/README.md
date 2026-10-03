@@ -51,3 +51,6 @@
 - Google实时测试18:39:25完成，智能手机版：是否允许抓取=是、网页抓取=成功、是否允许编入索引=是；[结果截图](artifacts/gsc-live-fetch.jpg)和[结构化记录](artifacts/gsc-observation.json)。XML无需请求页面索引；未点击该动作。sitemap报告解析状态仍需复查，Live测试通过不等于已解析/已收录。
 - Bing在原Chrome打开站长平台、拒绝可选Cookies、选择Google登录后，账号选择页持续空白，刷新一次未恢复；未出现可操作授权/条款，未取得站点权限。原Chrome native控制也间歇无法捕获窗口。未尝试改密/绕过安全。SG01保持partial，SG05日预算不足仍未闭合。仅更新事实文档及证据，不改生产源码、不重复触发预算查询；diff-only检查通过，无文档Review finding。
 - 实时测试通过后复查sitemap报告仍无法抓取；再次提交同一sitemap，Google显示“已成功提交站点地图”。停止重复提交，等待Google后续解析；尚未将报告错误认定为已恢复。文档证据已普通推送并同步主工作区；此前收尾实际SHA26d6343、两端0 0，WIP与暂存保持，新增并行清理日志也受保护。
+
+- 用户追问“为什么我看到的都是无法抓取”后，明确纠正状态：GSC报告失败仍未关闭，实时测试成功只证明检索。复查四种UA均200、无跳转、application/xml/3277字节、10个url，XML解析有效。Google实际测试页面的[原文](artifacts/gsc-live-xml-source.jpg)是sitemap XML；详情AX明确内容类型application/xml、HTTP响应200 OK。Cloudflare限定host/path与已验证Search Engine Crawler，识别Googlebot在10:35和10:46 UTC各一次200/XML，区别于本任务模拟UA探测；[结构化诊断](artifacts/sitemap-fetch-diagnostic.json)。适应性抽样记录不证明每次请求，成功HTTP也不证明Google已解析。安全事件本轮窗口未查到记录，但现有Token无权读取具体安全设置（403），未据此关闭或修改防护。报告未给更细原因，根因保持unconfirmed，不认定必然是延迟、低抓取需求或防火墙；没有盲改源码、继续重复提交或触发D1预算。SG01保持partial。
+- 本批仅增补诊断证据和现有状态owner，JSON口径、文档链接、diff-only检查通过；人工Review确认模拟UA与已验证爬虫分开，报告与实时测试分开，无未关闭文档finding。适用范围不含源码/部署，未重跑已通过且未受影响的源码测试。精确提交并普通推送后同步主工作区，保留当前并行WIP；整体Required仍SG01/SG05未闭合。

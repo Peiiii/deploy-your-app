@@ -1,0 +1,81 @@
+{
+  "observed_at_utc": "2026-10-03T11:03:55.278117+00:00",
+  "url": "https://gemigo.io/sitemap.xml",
+  "public_probes": [
+    {
+      "user_agent": "Mozilla/5.0",
+      "status": 200,
+      "final_url": "https://gemigo.io/sitemap.xml",
+      "content_type": "application/xml",
+      "bytes": 3277,
+      "xml_root": "{http://www.sitemaps.org/schemas/sitemap/0.9}urlset",
+      "urls": 10
+    },
+    {
+      "user_agent": "Googlebot",
+      "status": 200,
+      "final_url": "https://gemigo.io/sitemap.xml",
+      "content_type": "application/xml",
+      "bytes": 3277,
+      "xml_root": "{http://www.sitemaps.org/schemas/sitemap/0.9}urlset",
+      "urls": 10
+    },
+    {
+      "user_agent": "Google-InspectionTool",
+      "status": 200,
+      "final_url": "https://gemigo.io/sitemap.xml",
+      "content_type": "application/xml",
+      "bytes": 3277,
+      "xml_root": "{http://www.sitemaps.org/schemas/sitemap/0.9}urlset",
+      "urls": 10
+    },
+    {
+      "user_agent": "bingbot",
+      "status": 200,
+      "final_url": "https://gemigo.io/sitemap.xml",
+      "content_type": "application/xml",
+      "bytes": 3277,
+      "xml_root": "{http://www.sitemaps.org/schemas/sitemap/0.9}urlset",
+      "urls": 10
+    }
+  ],
+  "cloudflare": {
+    "dataset": "httpRequestsAdaptiveGroups",
+    "window_utc": {
+      "start": "2026-10-03T10:20:00Z",
+      "end": "2026-10-03T11:02:12Z"
+    },
+    "filter": {
+      "host": "gemigo.io",
+      "path": "/sitemap.xml",
+      "verified_bot_category": "Search Engine Crawler"
+    },
+    "observations": [
+      {
+        "count": 1,
+        "minute_utc": "2026-10-03T10:35:00Z",
+        "crawler": "Googlebot",
+        "verified_bot_category": "Search Engine Crawler",
+        "status": 200,
+        "content_type_name": "xml"
+      },
+      {
+        "count": 1,
+        "minute_utc": "2026-10-03T10:46:00Z",
+        "crawler": "Googlebot",
+        "verified_bot_category": "Search Engine Crawler",
+        "status": 200,
+        "content_type_name": "xml"
+      }
+    ],
+    "coverage": "Adaptive sampled data; these observations do not establish every Google request or the sitemap-processing outcome."
+  },
+  "gsc_live_details": {
+    "tested_at_local": "2026-10-03 18:39 Asia/Shanghai",
+    "content_type": "application/xml",
+    "http_response": "200 OK",
+    "source_screenshot": "gsc-live-xml-source.jpg"
+  },
+  "report_status": "could_not_fetch at latest report inspection; no recovery confirmed",
+  "root_cause": "unconfirmed; current evidence establishes successful XML retrieval, not sitemap parsing or indexing"
+}

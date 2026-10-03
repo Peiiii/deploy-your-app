@@ -35,7 +35,7 @@
 
 新GEO基线：Perplexity匿名非品牌固定问题1次有效回答、10个来源，没有GemiGo引用（0/1）；品牌新会话被登录墙挡住，不进入分母。不是平台总体引用率。手机390×844无CPU/网络节流的3次热加载LCP548—844ms、CLS约0.0037、无横向溢出；无INP/真实用户CWV，也没有性能提升前后对照。
 
-当前判断：可发现的真实内容和任务解答已改善，排名、自然获客及AI引用提升仍未证明。站长验证/数据是主要缺口：Google前缀资源通过HTML文件自动验证，sitemap提交成功但当前无法抓取，效果与索引报告提示约1天后查看；公开XML和Googlebot UA均200、robots允许，Google智能手机版实时检查允许抓取且抓取成功；sitemap报告解析状态仍待确认；Bing权限仍未取得。IndexNow12URL返回202只证明收到请求/等待key核验，不证明收录。后台Search Console API仍未连接，与站点验证分开。
+当前判断：可发现的真实内容和任务解答已改善，排名、自然获客及AI引用提升仍未证明。站长验证/数据是主要缺口：Google前缀资源通过HTML文件自动验证，sitemap提交成功但当前无法抓取，效果与索引报告提示约1天后查看；公开XML和Googlebot UA均200、robots允许，Google智能手机版实时检查允许抓取且抓取成功，详情200/application/xml；Cloudflare确认两次已验证Googlebot请求200/XML，见[诊断](../logs/2026-10-03-search-growth/artifacts/sitemap-fetch-diagnostic.json)。sitemap报告失败根因未确认，解析状态仍待复查；Bing权限仍未取得。IndexNow12URL返回202只证明收到请求/等待key核验，不证明收录。后台Search Console API仍未连接，与站点验证分开。
 
 ## 下一步与复查条件
 

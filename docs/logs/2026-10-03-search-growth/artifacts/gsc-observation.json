@@ -15,7 +15,10 @@
       "user_agent": "Google 检查工具智能手机版",
       "crawl_allowed": true,
       "page_fetch": "successful",
-      "indexing_allowed": true
+      "indexing_allowed": true,
+      "content_type": "application/xml",
+      "http_response": "200 OK",
+      "source_is_sitemap_xml": true
     },
     "http_probe": {
       "observed_at_utc": "2026-10-03 10:35",
@@ -25,7 +28,9 @@
       "googlebot_ua_status": 200
     },
     "interpretation": "Live fetch success is not sitemap parsing success or page indexing.",
-    "resubmission_after_live_test": "success; report still shows could_not_fetch"
+    "resubmission_after_live_test": "success; report still shows could_not_fetch",
+    "diagnostic": "sitemap-fetch-diagnostic.json",
+    "root_cause": "unconfirmed"
   },
   "performance": "processing; UI asks to return in about one day",
   "indexing": "processing; unavailable",
