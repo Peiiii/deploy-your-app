@@ -74,7 +74,7 @@ try {
         'rewritten response must not keep template ETag'
       );
     }
-  for (const path of ['/dashboard', '/deploy', '/u/creator', '/privacy-policy', '/cli/login']) {
+  for (const path of ['/dashboard', '/deploy', '/u/creator', '/app/public-work', '/privacy-policy', '/cli/login']) {
     const response = await mf.dispatchFetch('https://gemigo.io' + path);
     assert.equal(response.status, 200);
     assert.equal(response.headers.get('x-robots-tag'), 'noindex, follow');

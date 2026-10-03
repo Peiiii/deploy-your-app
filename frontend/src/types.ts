@@ -87,6 +87,11 @@ export interface Project {
   htmlContent?: string;
 }
 
+/** Public app-page payload deliberately excludes source/deployment internals. */
+export type PublicApp = Pick<Project,
+  'id' | 'ownerId' | 'name' | 'description' | 'localization' | 'category' | 'tags' | 'appLanguage' | 'url'
+> & { publicAuthor: PublicAuthorIdentity };
+
 export interface BuildLog {
   timestamp: string;
   message: string;

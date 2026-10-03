@@ -288,7 +288,7 @@ export const getSeo = (url) => {
       '/cli/login',
       '/cli/login/success',
     ].includes(path) ||
-    /^\/(projects|u)\/[^/]+$/.test(path);
+    /^\/(projects|u|app)\/[^/]+$/.test(path);
   const structuredData = key
     ? {
         '@context': 'https://schema.org',

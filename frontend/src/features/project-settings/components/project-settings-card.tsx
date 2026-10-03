@@ -8,6 +8,7 @@ import { SettingsGeneralTab } from '@/features/project-settings/components/tabs/
 import { SettingsDeploymentTab } from '@/features/project-settings/components/tabs/settings-deployment-tab';
 import { SettingsDisplayTab } from '@/features/project-settings/components/tabs/settings-display-tab';
 import { SettingsAnalyticsTab } from '@/features/project-settings/components/tabs/settings-analytics-tab';
+import { SettingsFeedbackTab } from '@/features/project-settings/components/tabs/settings-feedback-tab';
 import { SettingsCloudDbTab } from '@/features/project-settings/components/tabs/settings-cloud-db-tab';
 import type { Project } from '@/types';
 
@@ -18,7 +19,7 @@ interface ProjectSettingsCardProps {
   onDeleteProject: () => void;
 }
 
-type TabId = 'general' | 'deployments' | 'display' | 'analytics' | 'cloud-db';
+type TabId = 'general' | 'deployments' | 'display' | 'analytics' | 'cloud-db' | 'feedback';
 
 export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
   project,
@@ -31,7 +32,7 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
   const initialTab = (searchParams.get('tab') as TabId) || 'general';
 
   // Validate tab to ensure it's a valid TabId, fallback to general
-  const validTab = ['general', 'deployments', 'display', 'analytics', 'cloud-db'].includes(initialTab)
+  const validTab = ['general', 'deployments', 'display', 'analytics', 'cloud-db', 'feedback'].includes(initialTab)
     ? initialTab
     : 'general';
 
@@ -40,7 +41,7 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
   // Sync state with URL if URL changes externally (e.g. back button)
   React.useEffect(() => {
     const currentTab = searchParams.get('tab') as TabId;
-    if (currentTab && ['general', 'deployments', 'display', 'analytics', 'cloud-db'].includes(currentTab)) {
+    if (currentTab && ['general', 'deployments', 'display', 'analytics', 'cloud-db', 'feedback'].includes(currentTab)) {
       setActiveTabState(currentTab);
     }
   }, [searchParams]);
@@ -61,6 +62,7 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
     { id: 'deployments', label: t('project.deployments', 'Deployments') },
     { id: 'display', label: t('project.display', 'Display') },
     { id: 'cloud-db', label: t('project.cloudDb', 'Cloud DB') },
+    { id: 'feedback', label: t('appDetail.feedbackTab') },
     { id: 'analytics', label: t('project.analytics', 'Analytics') },
   ];
 
@@ -100,6 +102,8 @@ export const ProjectSettingsCard: React.FC<ProjectSettingsCardProps> = ({
       {activeTab === 'display' && <SettingsDisplayTab project={project} />}
 
       {activeTab === 'cloud-db' && <SettingsCloudDbTab project={project} />}
+
+      {activeTab === 'feedback' && <SettingsFeedbackTab project={project} />}
 
       {activeTab === 'analytics' && <SettingsAnalyticsTab project={project} />}
     </ProjectLayout >
