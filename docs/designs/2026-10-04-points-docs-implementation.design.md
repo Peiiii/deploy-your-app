@@ -28,7 +28,7 @@ SDK purchase 在用户 gesture 同步开窗口，后台生成短期 intent 绑�
 
 独立 `workers/docs` 使用 Workers 静态 assets 与 custom_domain=docs.gemigo.io，根目录 `developer-docs` 内容；本项目现有 SDK 指南引用到文档站，而不是平行维护另一份 API。构建脚本从源 Markdown 生成导航 HTML、llms.txt 与原 Markdown，复制真实 SDK 构建产物、现有 CLI Skill、新 app Skill和示例源码。使用一个确定的 Markdown 渲染依赖，不开发 Markdown parser。静态页提供暗色/移动布局和本地标题搜索。无需云 CMS 或新 Docs 账号。
 
-示例应用需真实项目登记与当前 gemigo.app origin；通过现有授权部署 API/CLI 发布，不直接改他人作品。示例项目 ID/收费项 ID 注入受控配置，无用户密钥。固定模型 @cf/meta/llama-3.1-8b-instruct-fp8 受控 API 必须禁用客户端 arbitrary upstream/model，现有免费 AI 代理消费者不改。
+示例应用需真实项目登记与当前 gemigo.app origin；通过现有授权部署 API/CLI 发布，不直接改他人作品。示例项目 ID/收费项 ID 注入受控配置，无用户密钥。固定模型 @cf/meta/llama-3.3-70b-instruct-fp8-fast 受控 API 必须禁用客户端 arbitrary upstream/model，现有免费 AI 代理消费者不改。
 
 ## 测试矩阵与评审
 

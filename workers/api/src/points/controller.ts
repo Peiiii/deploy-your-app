@@ -113,7 +113,7 @@ export async function pointsController(
           project.id
         ),
         repo.statement(
-          'SELECT r.*,i.name FROM points_receipts r JOIN points_items i ON r.item_id=i.id WHERE r.project_id=? ORDER BY r.created_at DESC LIMIT 100',
+          'SELECT r.id,r.item_id,r.request_id,r.status,r.price,r.paid_minor,r.creator_minor,r.currency,r.created_at,r.error,i.name FROM points_receipts r JOIN points_items i ON r.item_id=i.id WHERE r.project_id=? ORDER BY r.created_at DESC LIMIT 100',
           project.id
         ),
       ]);
@@ -175,7 +175,7 @@ export async function pointsController(
       (
         await repo
           .statement(
-            'SELECT * FROM points_items WHERE project_id=? AND enabled=1',
+            'SELECT id,name,description,type,price,entitlement,units,period_seconds,delivery,enabled FROM points_items WHERE project_id=? AND enabled=1',
             identity!.project.id
           )
           .all()
@@ -220,6 +220,7 @@ export async function pointsController(
     const item = await repo.item(itemId);
     if (!item?.enabled || item.project_id !== identity!.project.id)
       throw new AppError('收费项不可用或属于另一应用。', 403, 'ITEM_UNAVAILABLE');
+    const topic = item.delivery === 'ai' ? textInput(data.topic, '知识主题', 160) : null;
     const old = await repo
       .statement(
         'SELECT * FROM points_intents WHERE user_id=? AND project_id=? AND request_id=?',
@@ -235,7 +236,7 @@ export async function pointsController(
         const payload = await repo
           .statement('SELECT payload FROM points_intent_payloads WHERE id=?', old.id)
           .first<{ payload: string }>();
-        if (JSON.parse(payload?.payload || '{}').topic !== data.topic)
+        if (JSON.parse(payload?.payload || '{}').topic !== topic)
           throw new AppError('请求 ID 已用于另一服务输入。', 409, 'REQUEST_MISMATCH');
       }
       if (old.expires_at <= Date.now() && !(await repo.receipt(uid, item.project_id, requestId))) {
@@ -252,8 +253,7 @@ export async function pointsController(
     }
     const id = crypto.randomUUID(),
       now = Date.now();
-    // Payload is bounded service input, stored on the intent so the app cannot swap it after consent.
-    const topic = item.delivery === 'ai' ? textInput(data.topic, '知识主题', 160) : null;
+    // Input is normalized before comparing retries and stored atomically with the intent.
     const count = await repo
       .statement(
         'SELECT COUNT(*) count FROM points_intents WHERE user_id=? AND created_at>?',

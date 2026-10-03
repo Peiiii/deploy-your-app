@@ -156,7 +156,7 @@
       </section>
       <section>
         <h2>问一个科学问题</h2>
-        <p>平台受控 AI 解说，结果保存后完成消费。</p>
+        <p>平台受控 AI 解说，结果保存后完成消费。AI 生成内容可能有误，请核实。</p>
         <textarea id="topic" maxlength="160">为什么天空是蓝色的？</textarea
         ><button id="explain">获取 AI 解说</button
         ><button class="secondary" id="recover">恢复上次 AI 任务</button>
@@ -195,9 +195,15 @@
         try {
           const item = items.find((i) => i.entitlement === key);
           if (!item) throw new Error('该收费项未启用，请联系作者。');
-          if (key === 'explain' && localStorage.getItem('purchase:explain')) {
-            await recoverAi();
-            throw new Error('已有未结束的 AI 请求，请先恢复原任务，勿以新问题重复购买。');
+          if (key === 'explain') {
+            topic = topic.trim();
+            const original = localStorage.getItem('pending-ai-topic');
+            if (localStorage.getItem('purchase:explain') && original && original !== topic) {
+              $('topic').value = original;
+              throw new Error(
+                '已恢复未结束请求的原问题。点击获取重新确认，或先恢复原任务；不会另建扣费请求。'
+              );
+            }
           }
           const storage = 'purchase:' + key;
           let requestId = localStorage.getItem(storage);
@@ -205,6 +211,7 @@
             requestId = crypto.randomUUID();
             localStorage.setItem(storage, requestId);
           }
+          if (key === 'explain') localStorage.setItem('pending-ai-topic', topic);
           const result = await gemigo.points.purchase({ itemId: item.id, requestId, topic });
           $('confirm-link').replaceChildren();
           if (result.status === 'pending' && result.confirmationUrl) {
@@ -220,6 +227,7 @@
             result.status === 'refunded'
           ) {
             localStorage.removeItem(storage);
+            if (key === 'explain') localStorage.removeItem('pending-ai-topic');
             tell(result.status === 'granted' ? '消费完成，权益已恢复。' : '点数已回补。');
           } else if (result.status === 'cancelled') {
             tell('已退出确认。可继续使用免费功能或恢复同一请求。');
@@ -242,13 +250,17 @@
         if (receipt?.status === 'granted') {
           $('ai-result').textContent = receipt.result.text;
           localStorage.removeItem('purchase:explain');
+          localStorage.removeItem('pending-ai-topic');
           tell('AI 结果已从平台恢复。');
         } else {
-          if (receipt?.status === 'released' || receipt?.status === 'refunded')
+          if (receipt?.status === 'released' || receipt?.status === 'refunded') {
             localStorage.removeItem('purchase:explain');
+            localStorage.removeItem('pending-ai-topic');
+          }
           if (!receipt) {
-            localStorage.removeItem('purchase:explain');
-            tell('上次 AI 请求尚未确认，可重新选择问题；原请求没有扣点。');
+            const original = localStorage.getItem('pending-ai-topic');
+            if (original) $('topic').value = original;
+            tell('尚未查到交易，已保留原请求。点击获取重新确认，或稍后恢复，勿另建重复购买。');
             return;
           }
           tell('AI 任务状态：' + receipt.status + (receipt.error ? ' · ' + receipt.error : ''));
@@ -256,6 +268,7 @@
       }
       $('login').onclick = async () => {
         try {
+          tell('正在打开平台登录，请在弹窗完成授权…');
           await gemigo.auth.login({ scopes: ['identity:basic', 'points:use'] });
           await restore();
           tell('已登录。打开点数钱包领取体验点，然后选择需要的功能。');

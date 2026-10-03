@@ -3,6 +3,7 @@ import { sdkAuthRepository } from '../workers/api/src/repositories/sdk-auth.repo
 import { sdkCloudService } from '../workers/api/src/services/sdk-cloud.service';
 import { sdkAuthService } from '../workers/api/src/services/sdk-auth.service';
 import assert from 'node:assert/strict';
+import { createContext, runInContext } from 'node:vm';
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { PointsRepository } from '../workers/api/src/points/repository';
@@ -339,18 +340,70 @@ try {
         itemId: 'explain',
         requestId: 'missing-ai',
         state: 'ai-state',
+        topic: ' 天空 ',
+      }),
+      env,
+      db
+    )
+  ).json()) as { id: string };
+  const normalizedRetry = (await (
+    await pointsController(
+      sdkReq('/intents', {
+        itemId: 'explain',
+        requestId: 'missing-ai',
+        state: 'retry-state',
         topic: '天空',
       }),
       env,
       db
     )
   ).json()) as { id: string };
+  assert.equal(normalizedRetry.id, noServiceIntent.id);
+  await assert.rejects(
+    pointsController(
+      sdkReq('/intents', {
+        itemId: 'explain',
+        requestId: 'missing-ai',
+        state: 'conflict',
+        topic: '另一主题',
+      }),
+      env,
+      db
+    ),
+    /另一服务输入/
+  );
   await assert.rejects(
     pointsController(platformReq('/intents/' + noServiceIntent.id + '/confirm', {}), env, db),
     /服务暂不可用/
   );
   assert.equal(await repo.receipt('real-api-user', 'app-a', 'missing-ai'), null);
   assert.equal((await repo.balance('real-api-user'))!.balance, 18);
+  await authRepository.createUser(db, { id: 'author', email: 'author-test@example.invalid' });
+  const authorSession = await authRepository.createSession(db, 'author');
+  const authorView = (await (
+    await pointsController(
+      new Request('https://gemigo.io/api/v1/points/projects/app-a', {
+        headers: { cookie: 'session_id=' + authorSession.id },
+      }),
+      env,
+      db
+    )
+  ).json()) as { sales: Record<string, unknown>[] };
+  assert.ok(authorView.sales.length > 0);
+  for (const row of authorView.sales) {
+    assert.ok(!('user_id' in row));
+    assert.ok(!('payload' in row));
+    assert.ok(!('result' in row));
+  }
+  const publicItems = (await (await pointsController(sdkReq('/items'), env, db)).json()) as Record<
+    string,
+    unknown
+  >[];
+  assert.ok(publicItems.length > 0);
+  assert.ok(
+    publicItems.every((row) => !('author_id' in row)),
+    'SDK exposes only published item fields'
+  );
   await assert.rejects(pointsController(platformReq('/recharge', {}), env, db), /商户/);
   await sdkCloudService.kvSet(sdkReq('/unused'), env, db, {
     key: 'progress',
@@ -393,6 +446,79 @@ try {
   await assert.rejects(repo.purchase('cash-user', item, 'cash-attempt', null), /真实收费/);
   assert.equal((await repo.balance('cash-user'))!.balance, 20);
   assert.equal(await repo.receipt('cash-user', 'app-a', 'cash-attempt'), null);
+  // Replay the actual example's observed popup-timeout boundary; this UI adapter is
+  // fault injection only, not evidence of production AI execution.
+  const pendingStorage = new Map([
+    ['purchase:explain', 'pending-request'],
+    ['pending-ai-topic', '原问题'],
+  ]);
+  const uiNodes = new Map<
+    string,
+    {
+      textContent: string;
+      value: string;
+      hidden: boolean;
+      replaceChildren: () => void;
+      append: () => void;
+    }
+  >();
+  const node = (id: string) => {
+    if (!uiNodes.has(id))
+      uiNodes.set(id, {
+        textContent: '',
+        value: '',
+        hidden: false,
+        replaceChildren: () => {},
+        append: () => {},
+      });
+    return uiNodes.get(id)!;
+  };
+  let examplePurchases = 0;
+  const exampleContext = createContext({
+    document: { getElementById: node, querySelectorAll: () => [], createElement: () => ({}) },
+    localStorage: {
+      getItem: (key: string) => pendingStorage.get(key) || null,
+      setItem: (key: string, value: string) => pendingStorage.set(key, value),
+      removeItem: (key: string) => pendingStorage.delete(key),
+    },
+    crypto,
+    gemigo: {
+      auth: { getAccessToken: () => null },
+      points: {
+        items: async () => [{ id: 'ai-item', entitlement: 'explain' }],
+        grants: async () => ({ durable: [], terms: [], quotas: [] }),
+        receipt: async () => null,
+        purchase: async (input: { requestId: string }) => {
+          examplePurchases++;
+          assert.equal(input.requestId, 'pending-request');
+          return {
+            status: 'pending',
+            confirmationUrl: 'https://gemigo.io/points/confirm?intent=bound',
+          };
+        },
+      },
+    },
+  });
+  const exampleSource = readFileSync('examples/knowledge-lab/index.html', 'utf8').match(
+    /<script>([\s\S]*?)<\/script>/
+  )![1];
+  runInContext(exampleSource, exampleContext);
+  await runInContext('recoverAi()', exampleContext);
+  assert.equal(
+    pendingStorage.get('purchase:explain'),
+    'pending-request',
+    'unconfirmed timeout must not discard request'
+  );
+  assert.equal(node('topic').value, '原问题');
+  await runInContext('restore()', exampleContext);
+  await runInContext("buy('explain','新问题')", exampleContext);
+  assert.equal(examplePurchases, 0, 'different input cannot create another pending charge');
+  await runInContext("buy('explain','原问题')", exampleContext);
+  assert.equal(examplePurchases, 1);
+  assert.equal(pendingStorage.get('purchase:explain'), 'pending-request');
+  console.log(
+    'PASS: actual example timeout recovery preserves request and input; retries reopen original intent'
+  );
   console.log(
     'PASS: Cloud legacy + points tokens, app/user storage isolation, operator access, global subsidy exhaustion, unapproved paid sources rejected'
   );

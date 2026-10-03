@@ -124,16 +124,17 @@ export async function runAi(env: ApiWorkerEnv, repo: PointsRepository, receipt: 
       .first<{ payload: string }>();
     const input = JSON.parse(row?.payload || '{}') as { topic: string };
     // Fixed service: no client-selected model, URL, secret or unbounded prompt.
-    const result = (await env.RECOMMENDATION_AI.run('@cf/meta/llama-3.1-8b-instruct-fp8', {
+    const result = (await env.RECOMMENDATION_AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
       messages: [
         {
           role: 'system',
           content:
-            '你是一名知识讲解员，用中文在200字以内解释一个科学或历史概念。不提供医疗、法律或投资建议。',
+            '你是一名严谨的知识讲解员，用中文在200字以内解释一个科学或历史概念。先检查问题前提，依据公认知识说明原因，不编造事实。不确定时明确说明，不提供医疗、法律或投资建议。只输出简短解说。',
         },
         { role: 'user', content: input.topic },
       ],
-      max_tokens: 256,
+      max_tokens: 512,
+      temperature: 0.2,
     })) as { response?: string };
     if (!result?.response) {
       await repo
