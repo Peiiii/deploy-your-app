@@ -2,11 +2,15 @@ name = "gemigo-api"
 main = "src/index.ts"
 compatibility_date = "2026-09-18"
 
+# Uncomment and set your Cloudflare account ID once known.
+account_id = "adb27b39051202962038992eeaf8f6bb"
+
 [ai]
 binding = "RECOMMENDATION_AI"
 
-# Uncomment and set your Cloudflare account ID once known.
-account_id = "adb27b39051202962038992eeaf8f6bb"
+# The production D1 primary is NRT. Avoid repeated cross-region database trips.
+[placement]
+region = "aws:ap-northeast-1"
 
 [vars]
 # These mirror the Node backend defaults. Override per environment via
