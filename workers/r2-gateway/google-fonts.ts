@@ -1,5 +1,7 @@
 /** Delivery-only Google Fonts acceleration; no customer source writes or open proxy. */
-export const FONT_PREFIX = '/__gemigo/google-fonts/v2/';
+export const FONT_ROUTE_PREFIX = '/__gemigo/google-fonts/';
+export const FONT_PREFIX = `${FONT_ROUTE_PREFIX}v3/`;
+export const FONT_RUNTIME_PATH = '/__gemigo/google-fonts-runtime.v1.js';
 export const FONT_CSS_MARKER = '__gemigo_fonts';
 const UPSTREAM_TIMEOUT_MS = 2500;
 const MAX_DOCUMENT_BYTES = 1024 * 1024;
@@ -29,7 +31,7 @@ function markedStylesheet(value: string, base: string, ownerOrigin = new URL(bas
 
 // Consume comments and ordinary strings as whole tokens so quoted examples stay intact.
 const CSS_TOKEN = /\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|url\(\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^)"']*)\s*\)|@import\s+(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/gi;
-export function rewriteFontCss(css: string, origin: string, stylesheet?: string): string {
+export function rewriteFontCss(css: string, origin: string, stylesheet?: string, nonblocking = false): string {
   return css.replace(CSS_TOKEN, (token, offset: number) => {
     const isImport = /^@import/i.test(token);
     const urlImport = /^url\(/i.test(token) && /@import\s*$/i.test(css.slice(Math.max(0, offset - 40), offset));
@@ -38,6 +40,11 @@ export function rewriteFontCss(css: string, origin: string, stylesheet?: string)
     const value = /^['"]/.test(raw) ? raw.slice(1, -1) : raw;
     if (value.includes('\\')) return token;
     const replacement = fontUrl(value, origin) ?? ((isImport || urlImport) && stylesheet ? markedStylesheet(value, stylesheet) : null);
+    if (nonblocking && replacement?.startsWith(`${origin}${FONT_PREFIX}`)
+      && (isImport || urlImport) && /^\s*;/.test(css.slice(offset + token.length))) {
+      const emptyCss = `data:text/css,/*__gemigo_font=${encodeURIComponent(replacement)}*/`;
+      return isImport ? `@import "${emptyCss}"` : `url("${emptyCss}")`;
+    }
     return replacement ? (isImport ? `@import "${replacement}"` : `url("${replacement}")`) : token;
   });
 }
@@ -79,7 +86,7 @@ export async function rewriteFontHtml(response: Response, pageUrl: string, origi
     if (/^content-security-policy(?:-report-only)?$/i.test(element.getAttribute('http-equiv') ?? '')) restricted = true;
   } }).transform(new Response(document.text)).arrayBuffer();
   if (restricted) return document.response;
-  let base = pageUrl, style = '', hasBase = false;
+  let base = pageUrl, style = '', hasBase = false, enabled = false;
   return new HTMLRewriter()
     .on('base[href]', { element(element) {
       if (hasBase) return;
@@ -91,15 +98,29 @@ export async function rewriteFontHtml(response: Response, pageUrl: string, origi
       const href = element.getAttribute('href')!;
       const replacement = fontUrl(href, origin)
         ?? (element.getAttribute('rel')?.toLowerCase() === 'stylesheet' ? markedStylesheet(href, base, new URL(pageUrl).origin) : null);
-      if (replacement) element.setAttribute('href', replacement);
+      if (replacement) {
+        enabled = true;
+        element.setAttribute('href', replacement);
+        if (replacement.startsWith(`${origin}${FONT_PREFIX}`) && element.getAttribute('rel')?.toLowerCase() === 'stylesheet') {
+          element.setAttribute('data-gemigo-font-media', element.getAttribute('media') ?? 'all');
+          element.setAttribute('media', 'not all');
+        }
+      }
     } })
     .on('style', { element() { style = ''; }, text(chunk) {
       style += chunk.text;
-      if (chunk.lastInTextNode) { chunk.replace(rewriteFontCss(style, origin), { html: true }); style = ''; }
+      if (chunk.lastInTextNode) {
+        const css = rewriteFontCss(style, origin, undefined, true);
+        if (css.includes('__gemigo_font=')) enabled = true;
+        chunk.replace(css, { html: true }); style = '';
+      }
       else chunk.remove();
     } })
     .on('[style]', { element(element) {
       element.setAttribute('style', rewriteFontCss(element.getAttribute('style')!, origin));
+    } })
+    .onDocument({ end(end) {
+      if (enabled) end.append(`<script async src="${origin}${FONT_RUNTIME_PATH}" data-gemigo-font-runtime></script>`, { html: true });
     } })
     .transform(document.response);
 }
@@ -115,7 +136,7 @@ function fontResponse(request: Request, response: Response, cacheState: string):
 
 export async function serveGoogleFont(request: Request, ctx: ExecutionContext): Promise<Response> {
   if (request.method !== 'GET' && request.method !== 'HEAD') return new Response('Method not allowed', { status: 405, headers: { allow: 'GET, HEAD' } });
-  const url = new URL(request.url), part = url.pathname.slice(FONT_PREFIX.length);
+  const url = new URL(request.url), part = url.pathname.slice(FONT_ROUTE_PREFIX.length).replace(/^v[23]\//, '');
   const isCss = /^css2?$/.test(part);
   const isFile = /^file\/s\/[\w/.-]+\.(?:woff2?|ttf|otf)$/.test(part) && !part.includes('..');
   if ((!isCss && !isFile) || url.search.length > 4096) return new Response('Not found', { status: 404 });
@@ -165,3 +186,45 @@ export async function serveGoogleFont(request: Request, ctx: ExecutionContext): 
     });
   } finally { clearTimeout(timer); }
 }
+
+// Font-face styles load after document readiness; the author's visual CSS renders immediately.
+export const FONT_RUNTIME = `(() => {
+  const origin = new URL(document.currentScript.src).origin;
+  const seen = new Set();
+  const add = value => {
+    try {
+      const url = new URL(value);
+      if (url.origin !== origin || !url.pathname.startsWith('${FONT_PREFIX}') || seen.has(url.href)) return;
+      seen.add(url.href);
+      const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = url.href;
+      document.head.append(link);
+    } catch {}
+  };
+  const restore = link => {
+    if (link.hasAttribute('data-gemigo-font-media')) {
+      link.media = link.getAttribute('data-gemigo-font-media'); link.removeAttribute('data-gemigo-font-media');
+    }
+  };
+  document.addEventListener('load', event => {
+    if (event.target.tagName === 'LINK') restore(event.target);
+  }, true);
+  const inspect = (sheet, depth = 0) => {
+    if (!sheet || depth > 10) return;
+    try {
+      for (const rule of Array.from(sheet.cssRules).slice(0, 5000)) {
+        if (rule.type !== 3) continue;
+        const marker = /^data:text\\/css,\\/\\*__gemigo_font=(.*?)\\*\\/$/.exec(rule.href);
+        if (marker) add(decodeURIComponent(marker[1]));
+        else inspect(rule.styleSheet, depth + 1);
+      }
+    } catch {}
+  };
+  const start = () => {
+    document.querySelectorAll('link[data-gemigo-font-media]').forEach(link => {
+      seen.add(link.href); if (link.sheet) restore(link);
+    });
+    Array.from(document.styleSheets).forEach(sheet => inspect(sheet));
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+  else start();
+})();`;

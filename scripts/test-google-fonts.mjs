@@ -17,13 +17,13 @@ const mf=new Miniflare({modules:true,script:built.outputFiles[0].text,compatibil
   if(url.hostname==='fonts.googleapis.com') return new Response('@font-face{font-family:DM;src:url(https://fonts.gstatic.com/s/dmmono/v1/file.woff2);font-display:swap}',{headers:{'content-type':'text/css'}});
   return new Response(new Uint8Array([119,79,70,50]),{headers:{'content-type':'font/woff2'}});
 }});
-const root='https://assets.gemigo.app/__gemigo/google-fonts/v2/';
+const root='https://assets.gemigo.app/__gemigo/google-fonts/v3/';
 try{
  const bucket=await mf.getR2Bucket('ASSETS');
  const html='<html><head><link rel="stylesheet" href="//fonts.googleapis.com/css2?family=DM+Mono&amp;display=swap"><link rel="stylesheet" href="styles/main.css"><link integrity="sha256-x" rel="stylesheet" href="https://fonts.googleapis.com/css?family=DM"><style>@import url(\'https://fonts.googleapis.com/css2?family=Noto+Serif+SC\');/* url(https://fonts.googleapis.com/css?family=Ignore) */ .x:after{content:"url(https://fonts.googleapis.com/css?family=Example)"}</style></head><body>Demo</body></html>';
  await bucket.put('apps/demo/current/index.html',html,{httpMetadata:{contentType:'text/html'}});
  let response=await mf.dispatchFetch('https://demo.gemigo.app/');const text=await response.text();
- assert.ok(text.includes(root+'css2?family=DM+Mono&amp;display=swap')); assert.ok(text.includes(root+'css2?family=Noto+Serif+SC'));
+ assert.ok(text.includes(root+'css2?family=DM+Mono&amp;display=swap')); assert.ok(text.includes(encodeURIComponent(root+'css2?family=Noto+Serif+SC')));assert.ok(text.includes('data-gemigo-font-runtime'));assert.ok(text.includes('media="not all"'));
  assert.ok(text.includes('https://demo.gemigo.app/styles/main.css?__gemigo_fonts=v1')); assert.ok(text.includes('integrity="sha256-x" rel="stylesheet" href="https://fonts.googleapis.com/css?family=DM"'));
  assert.ok(text.includes('/* url(https://fonts.googleapis.com/css?family=Ignore) */'));assert.ok(text.includes('content:"url(https://fonts.googleapis.com/css?family=Example)"'));
  assert.equal(await(await bucket.get('apps/demo/current/index.html')).text(),html);
@@ -34,7 +34,7 @@ try{
  await bucket.put('apps/demo/current/styles/main.css',css,{httpMetadata:{contentType:'text/css'}});
  assert.equal(await(await mf.dispatchFetch('https://demo.gemigo.app/styles/main.css')).text(),css);
  response=await mf.dispatchFetch('https://demo.gemigo.app/styles/main.css?__gemigo_fonts=v1');const modified=await response.text();
- assert.ok(modified.includes('https://demo.gemigo.app/styles/nested.css?__gemigo_fonts=v1'));assert.ok(modified.includes('https://demo.gemigo.app/styles/other.css?__gemigo_fonts=v1'));assert.ok(modified.includes(root+'css?family=DM'));
+ assert.ok(modified.includes('https://demo.gemigo.app/styles/nested.css?__gemigo_fonts=v1'));assert.ok(modified.includes('https://demo.gemigo.app/styles/other.css?__gemigo_fonts=v1'));assert.ok(modified.includes(encodeURIComponent(root+'css?family=DM')));
  assert.ok(modified.includes('url(../image.png)'));assert.ok(modified.includes('/* @import url("comment.css") */'));
  assert.equal((await mf.dispatchFetch('https://demo.gemigo.app/styles/main.css?__gemigo_fonts=v1',{headers:{'if-none-match':response.headers.get('etag')}})).status,304);
  response=await mf.dispatchFetch(root+'css2?family=DM+Mono',{headers:{cookie:'secret=1',authorization:'Bearer secret','user-agent':'private'}});
