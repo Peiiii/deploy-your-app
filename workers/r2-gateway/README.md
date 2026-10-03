@@ -6,6 +6,7 @@ This Worker serves deployed apps from a Cloudflare R2 bucket behind a wildcard d
 - Reads static assets from an R2 bucket (binding `ASSETS`)
 - Serves optimized screenshots from R2 and a temporary SVG until the GitHub capture workflow writes a real image
 - Serves legacy `__thumbnail.png` from R2, falling back to the optimized WebP object
+- Redirects the exact `gemigo.app` hostname to `https://gemigo.io/` with HTTP 301, preserving query parameters; all apex paths enter the homepage. This branch reads no R2 objects.
 
 It is used together with the Node backend (`server`) and API Worker (`workers/api`) when `DEPLOY_TARGET = r2`.
 
@@ -34,10 +35,11 @@ Defined by `workers/r2-gateway/wrangler.toml`:
 ```toml
 name = "gemigo-apps-r2-gateway"
 main = "worker.ts"
-compatibility_date = "2025-01-01"
+compatibility_date = "2026-09-18"
 
 routes = [
-  "*.gemigo.app/*"
+  { pattern = "*.gemigo.app/*", zone_name = "gemigo.app" },
+  { pattern = "gemigo.app", custom_domain = true }
 ]
 
 [vars]
@@ -63,6 +65,7 @@ bucket_name = "gemigo-apps"
    - DNS: configure `*.gemigo.app` to point at this Worker (via Cloudflare Routes).
    - `APPS_ROOT_DOMAIN` must match the root domain in DNS, e.g. `gemigo.app`.
    - The API Worker and backend use the same `APPS_ROOT_DOMAIN` to generate project URLs.
+   - The apex Custom Domain lets Cloudflare manage DNS and certificates for `gemigo.app`. Only the exact root hostname redirects; `www` remains reserved and returns 404. Redirect responses use a five-minute cache lifetime.
 
 3. **Screenshot capture**
 
@@ -88,4 +91,5 @@ pnpm exec wrangler deploy
 After deploy:
 
 - Visiting `https://<some-existing-slug>.gemigo.app/` should serve the app.
+- Visiting `https://gemigo.app/` should redirect to the homepage at `https://gemigo.io/`.
 - `https://<slug>.gemigo.app/__thumbnail.png` should return a PNG or WebP when a cover is available.

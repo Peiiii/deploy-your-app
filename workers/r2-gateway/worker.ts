@@ -336,6 +336,18 @@ export default {
 
     const rootDomain: string = env.APPS_ROOT_DOMAIN || 'example.com';
 
+    if (host === rootDomain) {
+      const destination = new URL('https://gemigo.io/');
+      destination.search = url.search;
+      return new Response(null, {
+        status: 301,
+        headers: {
+          location: destination.href,
+          'cache-control': 'public, max-age=300',
+        },
+      });
+    }
+
     // Expect requests like <slug>.<rootDomain>
     if (!host.endsWith(rootDomain)) {
       return new Response('Not found', { status: 404 });
@@ -344,7 +356,7 @@ export default {
     const withoutRoot = host.slice(0, host.length - rootDomain.length);
     const subdomain = withoutRoot.replace(/\.$/, '');
 
-    // Ignore bare domain or invalid hostnames.
+    // Ignore invalid or reserved subdomains.
     if (!subdomain || subdomain === 'www') {
       return new Response('Not found', { status: 404 });
     }
