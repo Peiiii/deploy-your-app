@@ -1,0 +1,69 @@
+{
+  "settings": {
+    "id": 1,
+    "enabled": 1,
+    "percent": 20,
+    "experiment": "explore-v1",
+    "ranker": "content",
+    "embedding": "@cf/baai/bge-m3",
+    "monthly_micro": 10000000
+  },
+  "windowDays": 7,
+  "events": [],
+  "groups": [],
+  "algorithms": [],
+  "calls": [
+    {
+      "kind": "index",
+      "model": "@cf/baai/bge-m3",
+      "status": "success",
+      "calls": 25,
+      "actual_micro": 0,
+      "reserved_micro": 2290,
+      "unknown_usage_calls": 25,
+      "mean_ms": 350.08
+    },
+    {
+      "kind": "rank",
+      "model": "@cf/baai/bge-reranker-base",
+      "status": "success",
+      "calls": 15,
+      "actual_micro": 195,
+      "reserved_micro": 1095,
+      "unknown_usage_calls": 0,
+      "mean_ms": 427.26666666666665
+    },
+    {
+      "kind": "rank",
+      "model": "@cf/baai/bge-reranker-base",
+      "status": "timeout",
+      "calls": 4,
+      "actual_micro": 0,
+      "reserved_micro": 317,
+      "unknown_usage_calls": 0,
+      "mean_ms": 775.25
+    }
+  ],
+  "index": [
+    {
+      "model": "@cf/baai/bge-m3",
+      "indexed": 548
+    }
+  ],
+  "budget": [
+    {
+      "month": "2026-10",
+      "reserved_micro": 2802
+    }
+  ],
+  "comparison": null,
+  "decision": "insufficient-sample",
+  "rules": {
+    "primary": "Visitor open rate; intention-to-treat includes fallback. Manual modes excluded.",
+    "minimum": "300 exposed visitors in each group; at least 7 days; one review per completed weekly window.",
+    "promote": "Relative gain >=10%, 95% difference lower bound >0, no guardrail breach; requires review, never auto-expands.",
+    "pause": "After 50 opens in each group, load errors or dismisses increase by >2 percentage points.",
+    "incomplete": "Insufficient sample is not success. Review again after the next complete weekly window."
+  },
+  "interpretation": "Only remembered visitors are measured. UTC returning visits are descriptive, not causal retention proof. Descriptions, opens and iframe loads do not prove learning or playability. Reserved cost includes unknown/failed calls; known actual cost is only reported usage, not the Cloudflare invoice."
+}

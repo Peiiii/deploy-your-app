@@ -1,0 +1,188 @@
+{
+  "desktop": {
+    "viewport": {
+      "width": 1280,
+      "scrollWidth": 1280
+    },
+    "negative": {
+      "x": 1228,
+      "y": 748,
+      "width": 36,
+      "height": 36,
+      "right": 1264,
+      "bottom": 784
+    },
+    "author": {
+      "x": 24,
+      "y": 688,
+      "width": 985.59375,
+      "height": 28,
+      "right": 1009.59375,
+      "bottom": 716
+    },
+    "preferences": "Recommendation preferences",
+    "remember": false
+  },
+  "mobile": {
+    "viewport": {
+      "width": 390,
+      "scrollWidth": 390
+    },
+    "negative": {
+      "x": 338,
+      "y": 792,
+      "width": 36,
+      "height": 36,
+      "right": 374,
+      "bottom": 828
+    },
+    "author": {
+      "x": 16,
+      "y": 720,
+      "width": 304.296875,
+      "height": 28,
+      "right": 320.296875,
+      "bottom": 748
+    },
+    "last": [
+      {
+        "action": "feed",
+        "status": 200,
+        "ms": 966.5,
+        "workerTiming": "recommendation;dur=92.0,settings;dur=14.0,identity;dur=0.0,candidates;dur=48.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=20.0,authors;dur=10.0",
+        "algorithm": "content",
+        "variant": "manual-recommended",
+        "count": 12,
+        "ids": [
+          "6758e2da-ff09-4fb9-be9d-4408ba4e1c15",
+          "16461f25-8d04-44d2-a6e6-f56e86775009",
+          "a9cd8005-2973-4662-90f1-872ed594bf08",
+          "010232e5-292a-4422-8265-d79c75157a2f",
+          "7f5890e9-b2a8-49f2-9416-2ec0521c5049",
+          "61a60ff0-2434-48cf-a8e8-7fe5a09ee5a5",
+          "b06eff2e-de36-42f1-981b-0686f585786e",
+          "eba1cc75-dc09-466a-95ee-ecdaf4f22de7",
+          "8a87a542-7139-4ecf-a09c-8e042996afe3",
+          "56fdc79b-c667-4da4-b7d6-32cbeaed4538",
+          "234fc371-cc1a-40e2-92d0-aba688b08fe9",
+          "2ca6d364-a051-4d1e-a02b-5e0fe1000008"
+        ],
+        "hasMore": true,
+        "remember": false
+      }
+    ]
+  },
+  "last_controls": {
+    "results": [
+      {
+        "path": "/api/v1/projects/explore?sort=recent&limit=12&languages=zh",
+        "status": 200,
+        "keys": [
+          "items",
+          "page",
+          "pageSize",
+          "total",
+          "availableLanguages",
+          "engagement"
+        ],
+        "recommendation": null
+      },
+      {
+        "path": "/api/v1/me",
+        "status": 200,
+        "keys": [
+          "user"
+        ],
+        "recommendation": null
+      }
+    ],
+    "storageKeys": [],
+    "events": [
+      {
+        "action": "reset",
+        "status": 200,
+        "ms": 426.19999980926514,
+        "workerTiming": "recommendation;dur=29.0,settings;dur=13.0,identity;dur=0.0",
+        "variant": "control",
+        "remember": true
+      },
+      {
+        "action": "feed",
+        "status": 200,
+        "ms": 916.8000001907349,
+        "workerTiming": "recommendation;dur=142.0,settings;dur=16.0,identity;dur=0.0,candidates;dur=49.0,snapshot;dur=23.0,delivery;dur=43.0,authors;dur=11.0",
+        "algorithm": "recent",
+        "variant": "control",
+        "count": 12,
+        "ids": [
+          "d66caacf-ea06-4a3e-851f-628ba020901d",
+          "979d4562-0979-4cbf-a4ba-63ca9a0e28d5",
+          "1b94af6f-b5ca-4394-bafc-6f2ab561192b",
+          "d53a870a-acfa-4647-b02f-ea849b1a0ce0",
+          "07703e42-71b7-4f80-9513-f094b7bc0781",
+          "2b325b74-77e6-4c59-b009-f2e79f4b0786",
+          "15245009-cba2-4fe6-846a-05211e0c08e3",
+          "4e6ae461-6925-4c69-9443-f843df3c95f7",
+          "ca675442-4cd3-41bb-aecb-41a3963eb28e",
+          "a9cd8005-2973-4662-90f1-872ed594bf08",
+          "6758e2da-ff09-4fb9-be9d-4408ba4e1c15",
+          "16461f25-8d04-44d2-a6e6-f56e86775009"
+        ],
+        "hasMore": true,
+        "remember": true
+      },
+      {
+        "action": "feed",
+        "status": 200,
+        "ms": 727.2000002861023,
+        "workerTiming": "recommendation;dur=139.0,settings;dur=25.0,identity;dur=0.0,candidates;dur=57.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=31.0,authors;dur=26.0",
+        "algorithm": "content",
+        "variant": "manual-recommended",
+        "count": 12,
+        "ids": [
+          "a9cd8005-2973-4662-90f1-872ed594bf08",
+          "16461f25-8d04-44d2-a6e6-f56e86775009",
+          "6758e2da-ff09-4fb9-be9d-4408ba4e1c15",
+          "010232e5-292a-4422-8265-d79c75157a2f",
+          "7f5890e9-b2a8-49f2-9416-2ec0521c5049",
+          "61a60ff0-2434-48cf-a8e8-7fe5a09ee5a5",
+          "b06eff2e-de36-42f1-981b-0686f585786e",
+          "eba1cc75-dc09-466a-95ee-ecdaf4f22de7",
+          "8a87a542-7139-4ecf-a09c-8e042996afe3",
+          "56fdc79b-c667-4da4-b7d6-32cbeaed4538",
+          "234fc371-cc1a-40e2-92d0-aba688b08fe9",
+          "2ca6d364-a051-4d1e-a02b-5e0fe1000008"
+        ],
+        "hasMore": true,
+        "remember": false
+      },
+      {
+        "action": "feed",
+        "status": 200,
+        "ms": 879.0999999046326,
+        "workerTiming": "recommendation;dur=213.0,settings;dur=14.0,identity;dur=0.0,candidates;dur=66.0,ranking;dur=0.0,snapshot;dur=61.0,delivery;dur=57.0,authors;dur=15.0",
+        "algorithm": "content",
+        "variant": "manual-recommended",
+        "count": 12,
+        "ids": [
+          "a9cd8005-2973-4662-90f1-872ed594bf08",
+          "16461f25-8d04-44d2-a6e6-f56e86775009",
+          "6758e2da-ff09-4fb9-be9d-4408ba4e1c15",
+          "010232e5-292a-4422-8265-d79c75157a2f",
+          "7f5890e9-b2a8-49f2-9416-2ec0521c5049",
+          "61a60ff0-2434-48cf-a8e8-7fe5a09ee5a5",
+          "b06eff2e-de36-42f1-981b-0686f585786e",
+          "eba1cc75-dc09-466a-95ee-ecdaf4f22de7",
+          "8a87a542-7139-4ecf-a09c-8e042996afe3",
+          "56fdc79b-c667-4da4-b7d6-32cbeaed4538",
+          "234fc371-cc1a-40e2-92d0-aba688b08fe9",
+          "2ca6d364-a051-4d1e-a02b-5e0fe1000008"
+        ],
+        "hasMore": true,
+        "remember": true
+      }
+    ],
+    "width": 390,
+    "scrollWidth": 390
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "conditions": "20 production requests, alternating Chinese/English filters, real work-derived science interest, content algorithm; local client HTTPS transport included; first request shown separately. No stored behavior or retention claim.",
+  "rows": [
+    {
+      "status": 200,
+      "total_ms": 4653.77,
+      "worker_ms": 2877.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 3586.77,
+      "worker_ms": 1954.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 3878.37,
+      "worker_ms": 2350.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 2119.23,
+      "worker_ms": 732.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 3159.43,
+      "worker_ms": 2047.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 2416.89,
+      "worker_ms": 719.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 5746.57,
+      "worker_ms": 4491.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 2285.96,
+      "worker_ms": 843.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 2125.23,
+      "worker_ms": 877.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 2070.21,
+      "worker_ms": 734.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 1950.28,
+      "worker_ms": 730.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 2283.65,
+      "worker_ms": 741.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 6228.01,
+      "worker_ms": 4966.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 2684.16,
+      "worker_ms": 1605.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 2689.83,
+      "worker_ms": 1368.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 2902.82,
+      "worker_ms": 1642.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 2772.76,
+      "worker_ms": 1353.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 6001.5,
+      "worker_ms": 4784.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 6557.52,
+      "worker_ms": 5340.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    },
+    {
+      "status": 200,
+      "total_ms": 2098.04,
+      "worker_ms": 894.0,
+      "algorithm": "content",
+      "count": 12,
+      "private": true
+    }
+  ],
+  "first": {
+    "status": 200,
+    "total_ms": 4653.77,
+    "worker_ms": 2877.0,
+    "algorithm": "content",
+    "count": 12,
+    "private": true
+  },
+  "warm_worker_p95_ms": 5340.0,
+  "warm_client_p95_ms": 6557.52,
+  "stable_private_stateless_pagination": true
+}

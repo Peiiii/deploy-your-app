@@ -1,0 +1,265 @@
+{
+  "conditions": "20 real production browser fetch requests on same HTTPS origin, actual Chrome mobile viewport; alternating Chinese/English, work-derived MathBoard interest, 546-item public catalogue. No transport or response mocks. Persistent HTTP connection; model content. Separate fresh-connection curl probe retained.",
+  "rows": [
+    {
+      "status": 200,
+      "client_ms": 1051.0999999046326,
+      "timing": "recommendation;dur=112.0,settings;dur=19.0,identity;dur=0.0,candidates;dur=56.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=26.0,authors;dur=11.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 576.5999999046326,
+      "timing": "recommendation;dur=122.0,settings;dur=20.0,identity;dur=0.0,candidates;dur=61.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=26.0,authors;dur=15.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 696.5999999046326,
+      "timing": "recommendation;dur=109.0,settings;dur=17.0,identity;dur=0.0,candidates;dur=38.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=37.0,authors;dur=17.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 490.19999980926514,
+      "timing": "recommendation;dur=83.0,settings;dur=13.0,identity;dur=0.0,candidates;dur=28.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=29.0,authors;dur=13.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 555.9000000953674,
+      "timing": "recommendation;dur=93.0,settings;dur=12.0,identity;dur=0.0,candidates;dur=44.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=24.0,authors;dur=13.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 719.5999999046326,
+      "timing": "recommendation;dur=76.0,settings;dur=14.0,identity;dur=0.0,candidates;dur=25.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=22.0,authors;dur=15.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 513,
+      "timing": "recommendation;dur=82.0,settings;dur=11.0,identity;dur=0.0,candidates;dur=41.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=19.0,authors;dur=11.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 466.90000009536743,
+      "timing": "recommendation;dur=74.0,settings;dur=12.0,identity;dur=0.0,candidates;dur=32.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=19.0,authors;dur=11.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 598.5,
+      "timing": "recommendation;dur=73.0,settings;dur=13.0,identity;dur=0.0,candidates;dur=26.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=22.0,authors;dur=12.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 1036.0999999046326,
+      "timing": "recommendation;dur=69.0,settings;dur=14.0,identity;dur=0.0,candidates;dur=26.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=16.0,authors;dur=13.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 682.4000000953674,
+      "timing": "recommendation;dur=98.0,settings;dur=15.0,identity;dur=0.0,candidates;dur=42.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=23.0,authors;dur=18.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 828.6000003814697,
+      "timing": "recommendation;dur=110.0,settings;dur=13.0,identity;dur=0.0,candidates;dur=37.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=42.0,authors;dur=18.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 545.2999997138977,
+      "timing": "recommendation;dur=73.0,settings;dur=13.0,identity;dur=0.0,candidates;dur=32.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=17.0,authors;dur=11.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 561,
+      "timing": "recommendation;dur=80.0,settings;dur=15.0,identity;dur=0.0,candidates;dur=26.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=21.0,authors;dur=18.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 1005,
+      "timing": "recommendation;dur=161.0,settings;dur=30.0,identity;dur=0.0,candidates;dur=63.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=43.0,authors;dur=25.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 466.2000002861023,
+      "timing": "recommendation;dur=81.0,settings;dur=18.0,identity;dur=0.0,candidates;dur=30.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=21.0,authors;dur=12.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 513.5999999046326,
+      "timing": "recommendation;dur=107.0,settings;dur=13.0,identity;dur=0.0,candidates;dur=50.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=25.0,authors;dur=19.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 639.4000000953674,
+      "timing": "recommendation;dur=89.0,settings;dur=22.0,identity;dur=0.0,candidates;dur=31.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=20.0,authors;dur=16.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 566.7999997138977,
+      "timing": "recommendation;dur=97.0,settings;dur=14.0,identity;dur=0.0,candidates;dur=47.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=22.0,authors;dur=14.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    },
+    {
+      "status": 200,
+      "client_ms": 499.2000002861023,
+      "timing": "recommendation;dur=114.0,settings;dur=10.0,identity;dur=0.0,candidates;dur=53.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=24.0,authors;dur=27.0",
+      "algorithm": "content",
+      "count": 12,
+      "publicOnly": true
+    }
+  ],
+  "worker_p95_ms": 122,
+  "browser_p95_ms": 1036.0999999046326,
+  "final_source_rows": [
+    {
+      "status": 200,
+      "client_ms": 884.3000001907349,
+      "timing": "recommendation;dur=185.0,settings;dur=23.0,identity;dur=0.0,candidates;dur=85.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=39.0,authors;dur=38.0",
+      "algorithm": "content",
+      "count": 12
+    },
+    {
+      "status": 200,
+      "client_ms": 1098.8999996185303,
+      "timing": "recommendation;dur=213.0,settings;dur=14.0,identity;dur=0.0,candidates;dur=160.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=23.0,authors;dur=16.0",
+      "algorithm": "content",
+      "count": 12
+    },
+    {
+      "status": 200,
+      "client_ms": 924.1000003814697,
+      "timing": "recommendation;dur=100.0,settings;dur=15.0,identity;dur=0.0,candidates;dur=40.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=30.0,authors;dur=15.0",
+      "algorithm": "content",
+      "count": 12
+    },
+    {
+      "status": 200,
+      "client_ms": 991.5999999046326,
+      "timing": "recommendation;dur=89.0,settings;dur=19.0,identity;dur=0.0,candidates;dur=29.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=27.0,authors;dur=14.0",
+      "algorithm": "content",
+      "count": 12
+    },
+    {
+      "status": 200,
+      "client_ms": 1134.2999997138977,
+      "timing": "recommendation;dur=254.0,settings;dur=16.0,identity;dur=0.0,candidates;dur=188.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=34.0,authors;dur=16.0",
+      "algorithm": "content",
+      "count": 12
+    },
+    {
+      "status": 200,
+      "client_ms": 2256.7999997138977,
+      "timing": "recommendation;dur=87.0,settings;dur=16.0,identity;dur=0.0,candidates;dur=32.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=23.0,authors;dur=16.0",
+      "algorithm": "content",
+      "count": 12
+    },
+    {
+      "status": 200,
+      "client_ms": 879.3000001907349,
+      "timing": "recommendation;dur=84.0,settings;dur=17.0,identity;dur=0.0,candidates;dur=33.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=22.0,authors;dur=12.0",
+      "algorithm": "content",
+      "count": 12
+    },
+    {
+      "status": 200,
+      "client_ms": 1708.5999999046326,
+      "timing": "recommendation;dur=80.0,settings;dur=15.0,identity;dur=0.0,candidates;dur=33.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=20.0,authors;dur=12.0",
+      "algorithm": "content",
+      "count": 12
+    },
+    {
+      "status": 200,
+      "client_ms": 755.5999999046326,
+      "timing": "recommendation;dur=100.0,settings;dur=19.0,identity;dur=0.0,candidates;dur=31.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=29.0,authors;dur=21.0",
+      "algorithm": "content",
+      "count": 12
+    },
+    {
+      "status": 200,
+      "client_ms": 680.3000001907349,
+      "timing": "recommendation;dur=92.0,settings;dur=13.0,identity;dur=0.0,candidates;dur=30.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=26.0,authors;dur=23.0",
+      "algorithm": "content",
+      "count": 12
+    },
+    {
+      "status": 200,
+      "client_ms": 1018.1999998092651,
+      "timing": "recommendation;dur=79.0,settings;dur=14.0,identity;dur=0.0,candidates;dur=33.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=18.0,authors;dur=14.0",
+      "algorithm": "content",
+      "count": 12
+    },
+    {
+      "status": 200,
+      "client_ms": 1165.7000002861023,
+      "timing": "recommendation;dur=82.0,settings;dur=18.0,identity;dur=0.0,candidates;dur=27.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=20.0,authors;dur=17.0",
+      "algorithm": "content",
+      "count": 12
+    }
+  ],
+  "final_source_combined_n": 32,
+  "combined_worker_p95_ms": 213,
+  "combined_browser_p95_ms": 1708.5999999046326,
+  "network_outliers": [
+    {
+      "status": 200,
+      "client_ms": 2256.7999997138977,
+      "timing": "recommendation;dur=87.0,settings;dur=16.0,identity;dur=0.0,candidates;dur=32.0,ranking;dur=0.0,snapshot;dur=0.0,delivery;dur=23.0,authors;dur=16.0",
+      "algorithm": "content",
+      "count": 12
+    }
+  ]
+}

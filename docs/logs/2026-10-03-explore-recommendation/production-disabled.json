@@ -1,0 +1,238 @@
+{
+  "settings": {
+    "id": 1,
+    "enabled": 0,
+    "percent": 0,
+    "experiment": "explore-v1",
+    "ranker": "bge",
+    "embedding": "@cf/baai/bge-m3",
+    "monthly_micro": 10000000
+  },
+  "windowDays": 7,
+  "events": [
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recent",
+      "action": "dwell",
+      "events": 2,
+      "visitors": 1,
+      "sessions": 1,
+      "works": 2
+    },
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recent",
+      "action": "exposure",
+      "events": 2,
+      "visitors": 1,
+      "sessions": 1,
+      "works": 2
+    },
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recent",
+      "action": "loaded",
+      "events": 1,
+      "visitors": 1,
+      "sessions": 1,
+      "works": 1
+    },
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recent",
+      "action": "open",
+      "events": 1,
+      "visitors": 1,
+      "sessions": 1,
+      "works": 1
+    },
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recommended",
+      "action": "dismiss",
+      "events": 1,
+      "visitors": 1,
+      "sessions": 1,
+      "works": 1
+    },
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recommended",
+      "action": "dwell",
+      "events": 5,
+      "visitors": 1,
+      "sessions": 1,
+      "works": 5
+    },
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recommended",
+      "action": "exposure",
+      "events": 6,
+      "visitors": 1,
+      "sessions": 1,
+      "works": 6
+    }
+  ],
+  "groups": [
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recent",
+      "exposedVisitors": 1,
+      "openedVisitors": 1,
+      "exposures": 2,
+      "opens": 1,
+      "loaded": 1,
+      "errors": 0,
+      "dismisses": 0,
+      "favorites": 0,
+      "sessions": 1,
+      "returningVisitors": 0,
+      "firstEvent": 1791033251292,
+      "visitorOpenRate": 1,
+      "opensPerExposure": 0.5,
+      "loadErrorRate": 0,
+      "dismissRate": 0,
+      "favoritesPer1000Exposures": 0
+    },
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recommended",
+      "exposedVisitors": 1,
+      "openedVisitors": 0,
+      "exposures": 6,
+      "opens": 0,
+      "loaded": 0,
+      "errors": 0,
+      "dismisses": 1,
+      "favorites": 0,
+      "sessions": 1,
+      "returningVisitors": 0,
+      "firstEvent": 1791033197965,
+      "visitorOpenRate": 0,
+      "opensPerExposure": 0,
+      "loadErrorRate": null,
+      "dismissRate": 0.16666666666666666,
+      "favoritesPer1000Exposures": 0
+    }
+  ],
+  "algorithms": [
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recent",
+      "algorithm": "recent",
+      "action": "dwell",
+      "events": 2
+    },
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recent",
+      "algorithm": "recent",
+      "action": "exposure",
+      "events": 2
+    },
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recent",
+      "algorithm": "recent",
+      "action": "loaded",
+      "events": 1
+    },
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recent",
+      "algorithm": "recent",
+      "action": "open",
+      "events": 1
+    },
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recommended",
+      "algorithm": "content",
+      "action": "dwell",
+      "events": 1
+    },
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recommended",
+      "algorithm": "content",
+      "action": "exposure",
+      "events": 1
+    },
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recommended",
+      "algorithm": "content-fallback",
+      "action": "dismiss",
+      "events": 1
+    },
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recommended",
+      "algorithm": "content-fallback",
+      "action": "dwell",
+      "events": 4
+    },
+    {
+      "experiment": "explore-v1",
+      "variant": "manual-recommended",
+      "algorithm": "content-fallback",
+      "action": "exposure",
+      "events": 5
+    }
+  ],
+  "calls": [
+    {
+      "kind": "index",
+      "model": "@cf/baai/bge-m3",
+      "status": "success",
+      "calls": 21,
+      "actual_micro": 0,
+      "reserved_micro": 2264,
+      "unknown_usage_calls": 21,
+      "mean_ms": 381.8095238095238
+    },
+    {
+      "kind": "rank",
+      "model": "@cf/baai/bge-reranker-base",
+      "status": "success",
+      "calls": 5,
+      "actual_micro": 65,
+      "reserved_micro": 366,
+      "unknown_usage_calls": 0,
+      "mean_ms": 551
+    },
+    {
+      "kind": "rank",
+      "model": "@cf/baai/bge-reranker-base",
+      "status": "timeout",
+      "calls": 2,
+      "actual_micro": 0,
+      "reserved_micro": 171,
+      "unknown_usage_calls": 0,
+      "mean_ms": 1086
+    }
+  ],
+  "index": [
+    {
+      "model": "@cf/baai/bge-m3",
+      "indexed": 546
+    }
+  ],
+  "budget": [
+    {
+      "month": "2026-10",
+      "reserved_micro": 2500
+    }
+  ],
+  "comparison": null,
+  "decision": "insufficient-sample",
+  "rules": {
+    "primary": "Visitor open rate; intention-to-treat includes fallback. Manual modes excluded.",
+    "minimum": "300 exposed visitors in each group; at least 7 days; one review per completed weekly window.",
+    "promote": "Relative gain >=10%, 95% difference lower bound >0, no guardrail breach; requires review, never auto-expands.",
+    "pause": "After 50 opens in each group, load errors or dismisses increase by >2 percentage points.",
+    "incomplete": "Insufficient sample is not success. Review again after the next complete weekly window."
+  },
+  "interpretation": "Only remembered visitors are measured. UTC returning visits are descriptive, not causal retention proof. Descriptions, opens and iframe loads do not prove learning or playability. Reserved cost includes unknown/failed calls; known actual cost is only reported usage, not the Cloudflare invoice."
+}

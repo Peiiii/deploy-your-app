@@ -1,0 +1,9 @@
+{
+  "scope": "Synthetic production HTTP protocol smoke on a fresh owned anonymous identity; manual mode, then cleared. Not a human engagement or golden UI event. Concurrent lookup/write reset is separately covered by real Miniflare D1.",
+  "first_accepted": 1,
+  "retry_accepted": 0,
+  "cleared": true,
+  "stale_accepted": 0,
+  "algorithm": "content",
+  "items": 12
+}

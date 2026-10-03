@@ -1,0 +1,752 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "scrollWidth": 390
+  },
+  "evidence": [
+    {
+      "action": "feed",
+      "status": 200,
+      "ms": 703.2000002861023,
+      "workerTiming": "recommendation;dur=98.0,settings;dur=10.0,identity;dur=0.0,candidates;dur=30.0,snapshot;dur=21.0,delivery;dur=28.0,authors;dur=9.0",
+      "algorithm": "recent",
+      "variant": "control",
+      "count": 12,
+      "ids": [
+        "d66caacf-ea06-4a3e-851f-628ba020901d",
+        "979d4562-0979-4cbf-a4ba-63ca9a0e28d5",
+        "1b94af6f-b5ca-4394-bafc-6f2ab561192b",
+        "d53a870a-acfa-4647-b02f-ea849b1a0ce0",
+        "07703e42-71b7-4f80-9513-f094b7bc0781",
+        "2b325b74-77e6-4c59-b009-f2e79f4b0786",
+        "15245009-cba2-4fe6-846a-05211e0c08e3",
+        "4e6ae461-6925-4c69-9443-f843df3c95f7",
+        "ca675442-4cd3-41bb-aecb-41a3963eb28e",
+        "a9cd8005-2973-4662-90f1-872ed594bf08",
+        "6758e2da-ff09-4fb9-be9d-4408ba4e1c15",
+        "16461f25-8d04-44d2-a6e6-f56e86775009"
+      ],
+      "hasMore": true,
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 460.59999990463257,
+      "workerTiming": "recommendation;dur=69.0,settings;dur=13.0,identity;dur=0.0",
+      "variant": "control",
+      "eventActions": [
+        "exposure"
+      ],
+      "remember": true
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 447.1000003814697,
+      "workerTiming": "recommendation;dur=26.0,settings;dur=26.0"
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 421,
+      "workerTiming": "recommendation;dur=13.0,settings;dur=13.0"
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 388.09999990463257,
+      "workerTiming": "recommendation;dur=27.0,settings;dur=27.0"
+    },
+    {
+      "action": "feed",
+      "status": 200,
+      "ms": 962.6000003814697,
+      "workerTiming": "recommendation;dur=282.0,settings;dur=14.0,identity;dur=0.0,candidates;dur=192.0,ranking;dur=0.0,snapshot;dur=26.0,delivery;dur=37.0,authors;dur=13.0",
+      "algorithm": "content",
+      "variant": "manual-recommended",
+      "count": 12,
+      "ids": [
+        "a9cd8005-2973-4662-90f1-872ed594bf08",
+        "16461f25-8d04-44d2-a6e6-f56e86775009",
+        "6758e2da-ff09-4fb9-be9d-4408ba4e1c15",
+        "010232e5-292a-4422-8265-d79c75157a2f",
+        "7f5890e9-b2a8-49f2-9416-2ec0521c5049",
+        "61a60ff0-2434-48cf-a8e8-7fe5a09ee5a5",
+        "b06eff2e-de36-42f1-981b-0686f585786e",
+        "eba1cc75-dc09-466a-95ee-ecdaf4f22de7",
+        "8a87a542-7139-4ecf-a09c-8e042996afe3",
+        "56fdc79b-c667-4da4-b7d6-32cbeaed4538",
+        "234fc371-cc1a-40e2-92d0-aba688b08fe9",
+        "2ca6d364-a051-4d1e-a02b-5e0fe1000008"
+      ],
+      "hasMore": true,
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 559.8000001907349,
+      "workerTiming": "recommendation;dur=69.0,settings;dur=11.0,identity;dur=0.0",
+      "variant": "manual-recommended",
+      "eventActions": [
+        "dwell"
+      ],
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 681.4000000953674,
+      "workerTiming": "recommendation;dur=79.0,settings;dur=16.0,identity;dur=0.0",
+      "variant": "manual-recommended",
+      "eventActions": [
+        "exposure"
+      ],
+      "remember": true
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 379,
+      "workerTiming": "recommendation;dur=18.0,settings;dur=18.0"
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 387.09999990463257,
+      "workerTiming": "recommendation;dur=22.0,settings;dur=22.0"
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 485.1000003814697,
+      "workerTiming": "recommendation;dur=15.0,settings;dur=15.0"
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 753.8999996185303,
+      "workerTiming": "recommendation;dur=16.0,settings;dur=16.0"
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 525.6999998092651,
+      "workerTiming": "recommendation;dur=33.0,settings;dur=33.0"
+    },
+    {
+      "action": "reset",
+      "status": 200,
+      "ms": 469.90000009536743,
+      "workerTiming": "recommendation;dur=41.0,settings;dur=16.0,identity;dur=0.0",
+      "variant": "manual-recommended",
+      "remember": true
+    },
+    {
+      "action": "feed",
+      "status": 200,
+      "ms": 664.8000001907349,
+      "workerTiming": "recommendation;dur=173.0,settings;dur=18.0,identity;dur=0.0,candidates;dur=76.0,ranking;dur=0.0,snapshot;dur=28.0,delivery;dur=33.0,authors;dur=18.0",
+      "algorithm": "content",
+      "variant": "manual-recommended",
+      "count": 12,
+      "ids": [
+        "a9cd8005-2973-4662-90f1-872ed594bf08",
+        "16461f25-8d04-44d2-a6e6-f56e86775009",
+        "6758e2da-ff09-4fb9-be9d-4408ba4e1c15",
+        "010232e5-292a-4422-8265-d79c75157a2f",
+        "7f5890e9-b2a8-49f2-9416-2ec0521c5049",
+        "61a60ff0-2434-48cf-a8e8-7fe5a09ee5a5",
+        "b06eff2e-de36-42f1-981b-0686f585786e",
+        "eba1cc75-dc09-466a-95ee-ecdaf4f22de7",
+        "8a87a542-7139-4ecf-a09c-8e042996afe3",
+        "56fdc79b-c667-4da4-b7d6-32cbeaed4538",
+        "234fc371-cc1a-40e2-92d0-aba688b08fe9",
+        "2ca6d364-a051-4d1e-a02b-5e0fe1000008"
+      ],
+      "hasMore": true,
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 646.2000002861023,
+      "workerTiming": "recommendation;dur=76.0,settings;dur=10.0,identity;dur=0.0",
+      "variant": "manual-recommended",
+      "eventActions": [
+        "exposure"
+      ],
+      "remember": true
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 381.30000019073486,
+      "workerTiming": "recommendation;dur=16.0,settings;dur=16.0"
+    },
+    {
+      "action": "feed",
+      "status": 200,
+      "ms": 575.9000000953674,
+      "workerTiming": "recommendation;dur=151.0,settings;dur=27.0,identity;dur=0.0,candidates;dur=38.0,snapshot;dur=23.0,delivery;dur=46.0,authors;dur=17.0",
+      "algorithm": "recent",
+      "variant": "manual-recent",
+      "count": 12,
+      "ids": [
+        "d66caacf-ea06-4a3e-851f-628ba020901d",
+        "979d4562-0979-4cbf-a4ba-63ca9a0e28d5",
+        "1b94af6f-b5ca-4394-bafc-6f2ab561192b",
+        "d53a870a-acfa-4647-b02f-ea849b1a0ce0",
+        "07703e42-71b7-4f80-9513-f094b7bc0781",
+        "2b325b74-77e6-4c59-b009-f2e79f4b0786",
+        "15245009-cba2-4fe6-846a-05211e0c08e3",
+        "4e6ae461-6925-4c69-9443-f843df3c95f7",
+        "ca675442-4cd3-41bb-aecb-41a3963eb28e",
+        "6758e2da-ff09-4fb9-be9d-4408ba4e1c15",
+        "16461f25-8d04-44d2-a6e6-f56e86775009",
+        "f773f6d3-110a-45dd-ba3b-29d8639013f1"
+      ],
+      "hasMore": true,
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 588.0999999046326,
+      "workerTiming": "recommendation;dur=85.0,settings;dur=25.0,identity;dur=0.0",
+      "variant": "manual-recent",
+      "eventActions": [
+        "dwell"
+      ],
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 537.5999999046326,
+      "workerTiming": "recommendation;dur=109.0,settings;dur=11.0,identity;dur=0.0",
+      "variant": "manual-recent",
+      "eventActions": [
+        "exposure"
+      ],
+      "remember": true
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 374.90000009536743,
+      "workerTiming": "recommendation;dur=23.0,settings;dur=23.0"
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 1279.0999999046326,
+      "workerTiming": "recommendation;dur=86.0,settings;dur=15.0,identity;dur=0.0",
+      "variant": "manual-recent",
+      "eventActions": [
+        "dwell",
+        "exposure",
+        "open"
+      ],
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 488.5,
+      "workerTiming": "recommendation;dur=68.0,settings;dur=12.0,identity;dur=0.0",
+      "variant": "manual-recent",
+      "eventActions": [
+        "loaded"
+      ],
+      "remember": true
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 472.80000019073486,
+      "workerTiming": "recommendation;dur=17.0,settings;dur=17.0"
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 428.2000002861023,
+      "workerTiming": "recommendation;dur=23.0,settings;dur=23.0"
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 900,
+      "workerTiming": "recommendation;dur=90.0,settings;dur=15.0,identity;dur=0.0",
+      "variant": "manual-recent",
+      "eventActions": [
+        "dwell"
+      ],
+      "remember": true
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 422.40000009536743,
+      "workerTiming": "recommendation;dur=24.0,settings;dur=24.0"
+    },
+    {
+      "action": "feed",
+      "status": 200,
+      "ms": 2497.5,
+      "workerTiming": "recommendation;dur=1899.0,settings;dur=38.0,identity;dur=0.0,candidates;dur=507.0,ranking;dur=1070.0,snapshot;dur=33.0,delivery;dur=63.0,authors;dur=188.0",
+      "algorithm": "content-fallback",
+      "variant": "manual-recommended",
+      "count": 12,
+      "ids": [
+        "061894a6-3b6a-4d18-a25c-ceda73fd364a",
+        "939bbb9f-f25c-4d05-9ba9-fe1f87ee5d33",
+        "57ff1742-b08c-4360-85a4-884c7bb7b59b",
+        "473d1549-26b2-43ab-82e3-91d9ef35fe3c",
+        "18a340c7-f885-440d-a407-ebbc22084590",
+        "07703e42-71b7-4f80-9513-f094b7bc0781",
+        "1cad0658-3663-434a-9a4e-6de306b3c329",
+        "16461f25-8d04-44d2-a6e6-f56e86775009",
+        "d9d85916-65a7-49db-b480-3c04d5ba06e4",
+        "b06eff2e-de36-42f1-981b-0686f585786e",
+        "e555b089-2cd2-4985-af01-b9deaee66276",
+        "2ca6d364-a051-4d1e-a02b-5e0fe1000008"
+      ],
+      "hasMore": true,
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 634.1999998092651,
+      "workerTiming": "recommendation;dur=138.0,settings;dur=30.0,identity;dur=0.0",
+      "variant": "manual-recommended",
+      "eventActions": [
+        "exposure"
+      ],
+      "remember": true
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 440.30000019073486,
+      "workerTiming": "recommendation;dur=39.0,settings;dur=39.0"
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 378.80000019073486,
+      "workerTiming": "recommendation;dur=14.0,settings;dur=14.0"
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 400.19999980926514,
+      "workerTiming": "recommendation;dur=17.0,settings;dur=17.0"
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 526.9000000953674,
+      "workerTiming": "recommendation;dur=23.0,settings;dur=23.0"
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 497.5,
+      "workerTiming": "recommendation;dur=15.0,settings;dur=15.0"
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 634.6000003814697,
+      "workerTiming": "recommendation;dur=82.0,settings;dur=14.0,identity;dur=0.0",
+      "variant": "manual-recommended",
+      "eventActions": [
+        "dismiss",
+        "dwell"
+      ],
+      "remember": true
+    },
+    {
+      "action": "feed",
+      "status": 200,
+      "ms": 593.6000003814697,
+      "workerTiming": "recommendation;dur=73.0,settings;dur=15.0,identity;dur=0.0,delivery;dur=46.0,authors;dur=12.0",
+      "algorithm": "content-fallback",
+      "variant": "manual-recommended",
+      "count": 12,
+      "ids": [
+        "5557b265-f3b4-4dde-b5cf-7875cd370e2b",
+        "1b94af6f-b5ca-4394-bafc-6f2ab561192b",
+        "cc5efb73-9533-46e9-99e4-1e2f10d624cc",
+        "010232e5-292a-4422-8265-d79c75157a2f",
+        "82d0d0b9-a316-4b47-b1fa-9f2d1ebfaffe",
+        "ff2e3dd3-b39d-4b63-bab2-33f47be2756c",
+        "cfc2423e-b916-43a6-bdb3-04b0f78e169f",
+        "7f5890e9-b2a8-49f2-9416-2ec0521c5049",
+        "d765ba7b-1baf-4d99-941b-68f955f75e36",
+        "56fdc79b-c667-4da4-b7d6-32cbeaed4538",
+        "58403e1c-c060-41e0-b42a-cfc903ff9b7c",
+        "c29c9dd6-7b71-4746-aadc-f9f4fec40bde"
+      ],
+      "hasMore": true,
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 539.5,
+      "workerTiming": "recommendation;dur=81.0,settings;dur=22.0,identity;dur=0.0",
+      "variant": "manual-recommended",
+      "eventActions": [
+        "exposure"
+      ],
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 534.4000000953674,
+      "workerTiming": "recommendation;dur=80.0,settings;dur=14.0,identity;dur=0.0",
+      "variant": "manual-recommended",
+      "eventActions": [
+        "dwell"
+      ],
+      "remember": true
+    },
+    {
+      "action": "feed",
+      "status": 200,
+      "ms": 1253.4000000953674,
+      "workerTiming": "recommendation;dur=94.0,settings;dur=14.0,identity;dur=0.0,delivery;dur=56.0,authors;dur=24.0",
+      "algorithm": "content-fallback",
+      "variant": "manual-recommended",
+      "count": 12,
+      "ids": [
+        "4eb19a14-04bf-4c9e-950b-f5438b1b3c9a",
+        "e5b97ec9-9dd1-4433-829b-e5f4a7a30607",
+        "67b20133-846c-4070-8fec-aebf8f014fd6",
+        "a8fe4dc1-05cc-4d8b-be3c-afcbcdfad265",
+        "f4d8c20f-aeb0-4b33-a770-c71b8a60b955",
+        "d53a870a-acfa-4647-b02f-ea849b1a0ce0",
+        "09109216-9348-4d36-ac77-9631cee2858a",
+        "2b325b74-77e6-4c59-b009-f2e79f4b0786",
+        "15245009-cba2-4fe6-846a-05211e0c08e3",
+        "4e6ae461-6925-4c69-9443-f843df3c95f7",
+        "b62369cb-d8b1-4fea-80ed-21a079817374",
+        "3ef96ccf-fe01-457f-b025-74b6b7ff8975"
+      ],
+      "hasMore": true,
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 684.5999999046326,
+      "workerTiming": "recommendation;dur=71.0,settings;dur=14.0,identity;dur=0.0",
+      "variant": "manual-recommended",
+      "eventActions": [
+        "exposure"
+      ],
+      "remember": true
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 628.6999998092651,
+      "workerTiming": "recommendation;dur=15.0,settings;dur=15.0"
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 539.5,
+      "workerTiming": "recommendation;dur=103.0,settings;dur=24.0,identity;dur=0.0",
+      "variant": "manual-recommended",
+      "eventActions": [
+        "dwell"
+      ],
+      "remember": true
+    },
+    {
+      "action": "feed",
+      "status": 200,
+      "ms": 541.3000001907349,
+      "workerTiming": "recommendation;dur=90.0,settings;dur=19.0,identity;dur=0.0,delivery;dur=52.0,authors;dur=19.0",
+      "algorithm": "content-fallback",
+      "variant": "manual-recommended",
+      "count": 4,
+      "ids": [
+        "f10e7c66-a23b-4b26-a508-39987599cc6c",
+        "ee48f8a3-d745-4b78-b17c-9c3e34d63ae0",
+        "56ef9556-7aee-4b1e-8298-bcf27ce60d82",
+        "047b7113-8112-4880-a47f-7bcb419a1a9d"
+      ],
+      "hasMore": true,
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 543,
+      "workerTiming": "recommendation;dur=80.0,settings;dur=12.0,identity;dur=0.0",
+      "variant": "manual-recommended",
+      "eventActions": [
+        "exposure"
+      ],
+      "remember": true
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 408.09999990463257,
+      "workerTiming": "recommendation;dur=28.0,settings;dur=28.0"
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 608.5,
+      "workerTiming": "recommendation;dur=77.0,settings;dur=12.0,identity;dur=0.0",
+      "variant": "manual-recommended",
+      "eventActions": [
+        "dwell",
+        "exposure"
+      ],
+      "remember": true
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 423.80000019073486,
+      "workerTiming": "recommendation;dur=11.0,settings;dur=11.0"
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 1116.0999999046326,
+      "workerTiming": "recommendation;dur=13.0,settings;dur=13.0"
+    },
+    {
+      "action": "feed",
+      "status": 200,
+      "ms": 785.4000000953674,
+      "workerTiming": "recommendation;dur=139.0,settings;dur=29.0,identity;dur=0.0,candidates;dur=36.0,snapshot;dur=22.0,delivery;dur=32.0,authors;dur=20.0",
+      "algorithm": "recent",
+      "variant": "control",
+      "count": 12,
+      "ids": [
+        "939bbb9f-f25c-4d05-9ba9-fe1f87ee5d33",
+        "c3191564-fcc5-43c5-ae9b-9ed14a0c6205",
+        "4d333d90-a90d-4063-95e1-ebaa3791ecf1",
+        "ba596e7b-852c-46ac-8b08-c0936b7299bd",
+        "c5069abf-0da0-499d-bb8b-c9c33dc3da49",
+        "0be7f582-60e3-4845-95fd-54a3dc3855d8",
+        "3dc44138-437c-455c-8c4f-6bd73b73a0db",
+        "0d0dc545-94c2-448e-b616-52954306e76e",
+        "8ef2845a-5e26-4280-ac80-0a2540e35008",
+        "56b843c3-52e9-4d95-b9e7-0c9378e15ee4",
+        "7c2a8be1-58c9-4d27-b05d-33f1b5490874",
+        "ee48f8a3-d745-4b78-b17c-9c3e34d63ae0"
+      ],
+      "hasMore": true,
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 1554.3999996185303,
+      "workerTiming": "recommendation;dur=96.0,settings;dur=21.0,identity;dur=0.0",
+      "variant": "control",
+      "eventActions": [
+        "exposure"
+      ],
+      "remember": true
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 387.2000002861023,
+      "workerTiming": "recommendation;dur=13.0,settings;dur=13.0"
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 383.09999990463257,
+      "workerTiming": "recommendation;dur=23.0,settings;dur=23.0"
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 539,
+      "workerTiming": "recommendation;dur=95.0,settings;dur=19.0,identity;dur=0.0",
+      "variant": "control",
+      "eventActions": [
+        "dwell"
+      ],
+      "remember": true
+    },
+    {
+      "action": "feed",
+      "status": 200,
+      "ms": 565.4000000953674,
+      "workerTiming": "recommendation;dur=119.0,settings;dur=25.0,identity;dur=0.0,delivery;dur=64.0,authors;dur=30.0",
+      "algorithm": "recent",
+      "variant": "control",
+      "count": 4,
+      "ids": [
+        "57ff1742-b08c-4360-85a4-884c7bb7b59b",
+        "5557b265-f3b4-4dde-b5cf-7875cd370e2b",
+        "b045e28e-b96a-476e-a382-868489d4c4ae",
+        "da428b3c-211c-4b7e-bda7-336b653c6427"
+      ],
+      "hasMore": false,
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 485.09999990463257,
+      "workerTiming": "recommendation;dur=95.0,settings;dur=16.0,identity;dur=0.0",
+      "variant": "control",
+      "eventActions": [
+        "exposure"
+      ],
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 498.90000009536743,
+      "workerTiming": "recommendation;dur=72.0,settings;dur=12.0,identity;dur=0.0",
+      "variant": "control",
+      "eventActions": [
+        "dwell",
+        "exposure"
+      ],
+      "remember": true
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 482.69999980926514,
+      "workerTiming": "recommendation;dur=29.0,settings;dur=29.0"
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 880.7000002861023,
+      "workerTiming": "recommendation;dur=73.0,settings;dur=16.0,identity;dur=0.0",
+      "variant": "control",
+      "eventActions": [
+        "dwell"
+      ],
+      "remember": true
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 744,
+      "workerTiming": "recommendation;dur=13.0,settings;dur=13.0"
+    },
+    {
+      "action": "feed",
+      "status": 200,
+      "ms": 1438.6999998092651,
+      "workerTiming": "recommendation;dur=429.0,settings;dur=13.0,identity;dur=0.0,candidates;dur=277.0,ranking;dur=0.0,snapshot;dur=24.0,delivery;dur=29.0,authors;dur=86.0",
+      "algorithm": "content",
+      "variant": "manual-recommended",
+      "count": 12,
+      "ids": [
+        "57ff1742-b08c-4360-85a4-884c7bb7b59b",
+        "4d333d90-a90d-4063-95e1-ebaa3791ecf1",
+        "5557b265-f3b4-4dde-b5cf-7875cd370e2b",
+        "c3191564-fcc5-43c5-ae9b-9ed14a0c6205",
+        "b045e28e-b96a-476e-a382-868489d4c4ae",
+        "3dc44138-437c-455c-8c4f-6bd73b73a0db",
+        "ba596e7b-852c-46ac-8b08-c0936b7299bd",
+        "7c2a8be1-58c9-4d27-b05d-33f1b5490874",
+        "8ef2845a-5e26-4280-ac80-0a2540e35008",
+        "0be7f582-60e3-4845-95fd-54a3dc3855d8",
+        "0d0dc545-94c2-448e-b616-52954306e76e",
+        "c5069abf-0da0-499d-bb8b-c9c33dc3da49"
+      ],
+      "hasMore": true,
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 464.40000009536743,
+      "workerTiming": "recommendation;dur=67.0,settings;dur=12.0,identity;dur=0.0",
+      "variant": "manual-recommended",
+      "eventActions": [
+        "exposure"
+      ],
+      "remember": true
+    },
+    {
+      "action": "status",
+      "status": 200,
+      "ms": 1092,
+      "workerTiming": "recommendation;dur=14.0,settings;dur=14.0"
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 544.5,
+      "workerTiming": "recommendation;dur=71.0,settings;dur=15.0,identity;dur=0.0",
+      "variant": "manual-recommended",
+      "eventActions": [
+        "dwell"
+      ],
+      "remember": true
+    },
+    {
+      "action": "feed",
+      "status": 200,
+      "ms": 481.59999990463257,
+      "workerTiming": "recommendation;dur=76.0,settings;dur=10.0,identity;dur=0.0,delivery;dur=54.0,authors;dur=12.0",
+      "algorithm": "content",
+      "variant": "manual-recommended",
+      "count": 1,
+      "ids": [
+        "56b843c3-52e9-4d95-b9e7-0c9378e15ee4"
+      ],
+      "hasMore": false,
+      "remember": true
+    },
+    {
+      "action": "events",
+      "status": 200,
+      "ms": 456.5,
+      "workerTiming": "recommendation;dur=83.0,settings;dur=15.0,identity;dur=0.0",
+      "variant": "manual-recommended",
+      "eventActions": [
+        "exposure"
+      ],
+      "remember": true
+    }
+  ],
+  "kill": {
+    "before": {
+      "scroll": 4220,
+      "current": "互动数学画板 · MathBoard",
+      "author": "创作者 WBR5MZ",
+      "count": 40
+    },
+    "after": {
+      "scroll": 4220,
+      "current": "互动数学画板 · MathBoard",
+      "author": "创作者 WBR5MZ",
+      "count": 17,
+      "controls": 0
+    },
+    "background_index": {
+      "indexed": 0,
+      "reason": "disabled"
+    },
+    "calls_unchanged": true
+  }
+}

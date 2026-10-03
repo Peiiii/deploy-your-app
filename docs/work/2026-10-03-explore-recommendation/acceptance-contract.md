@@ -24,19 +24,21 @@
 
 | ID | Required | Status | 当前证据 |
 | --- | --- | --- | --- |
-| R1 | true | partial | 本地证据见交付日志；生产/整体完成门待关闭 |
-| R2 | true | partial | 本地证据见交付日志；生产/整体完成门待关闭 |
-| R3 | true | partial | 本地证据见交付日志；生产/整体完成门待关闭 |
-| R4 | true | partial | 本地证据见交付日志；生产/整体完成门待关闭 |
-| R5 | true | partial | 本地证据见交付日志；生产/整体完成门待关闭 |
-| R6 | true | partial | 本地证据见交付日志；生产/整体完成门待关闭 |
-| R7 | true | partial | 本地证据见交付日志；生产/整体完成门待关闭 |
-| R8 | true | partial | 本地证据见交付日志；生产/整体完成门待关闭 |
-| R9 | true | partial | 本地证据见交付日志；生产/整体完成门待关闭 |
-| R10 | true | partial | 本地证据见交付日志；生产/整体完成门待关闭 |
+| R1 | true | passed | 独立流manager/路由真实D1分组及其它路径回归；生产普通目录/me旧合同，20% content/80% recent |
+| R2 | true | passed | 真实D1兴趣/收藏/匿名/账号隔离；生产负反馈、清除、关闭历史及无token后续页；production-ui.json |
+| R3 | true | passed | 真实D1私密更新/89件无重复终态；生产40项及Education过滤对照/推荐终态 |
+| R4 | true | passed | 生产ColorLab实际交互、exposure/open/loaded/dismiss聚合；批次事件幂等及未把预取/加载算兴趣 |
+| R5 | true | passed | 30中英文同候选比较；生产BGE-M3索引546件、bge实调/超时/预算失败回退；候选失败未当默认 |
+| R6 | true | passed | 主路径32次Worker p95=213ms/浏览器p95=1708.6ms；原子预算与生产2776microUSD保守责任；失败候选单列 |
+| R7 | true | passed | 真实D1身份/伪造/权限闭集/DNT；模型输入只有公开内容；生产关闭历史无本地token |
+| R8 | true | passed | 适用tsc/lint/build/目录/浏览器及findings-first通过；API/Web实际部署、普通推送及主区master快进同步 |
+| R9 | true | passed | 生产MathBoard当前位置4220不跳、旧队列切回recent；后台disabled无新增AI；本地7表移除原目录可用 |
+| R10 | true | passed | 真实D1稳定分流/回退归组；production-report.json仅聚合、手工模式排除、insufficient-sample及推广停止门 |
 
 ## 当前阶段门
 
 固定实测条件：真实公开目录快照546件（实时以公开目录为准），中英文至少 30 场景，同候选质量比较；暖请求 p95≤500ms；冷模型分支等待≤1.2s后回退、可用响应p95≤1.8s，在生产Worker重复测量。新增 AI 月预算建议 $10、首次选型/索引 $5，发请求前原子预留，包括异常和并发；数据库等另列。
 黄金链路：进入探索流→收到可用作品→打开/收藏/负反馈→后续批次兴趣变化且不重复→清除偏好；另一链路关闭开关→当前作品不跳→后续原排序且后台无新增AI。其它入口保持旧链路。
 契约 Review：没有把不可获得的增长证明当工程完成条件；模型对照、实验测量、退出与上线均是当前必需闭环。未登记支付/自训练模型/全站推广，均非用户请求。无待决范围删减。
+
+AI acceptance-ready：必需工程项已有效通过；候选bge不满足整体速度/质量门，非所选发布方案。真实增长与主观体验待用户/实验数据确认，不声称用户验收通过。发布交接完成后复盘no-increment，由lifecycle核对最终Git同步与整体完成门。
