@@ -24,7 +24,8 @@
       "bytes": 3277,
       "googlebot_ua_status": 200
     },
-    "interpretation": "Live fetch success is not sitemap parsing success or page indexing."
+    "interpretation": "Live fetch success is not sitemap parsing success or page indexing.",
+    "resubmission_after_live_test": "success; report still shows could_not_fetch"
   },
   "performance": "processing; UI asks to return in about one day",
   "indexing": "processing; unavailable",
