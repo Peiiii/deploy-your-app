@@ -61,7 +61,7 @@ export const Header: React.FC = () => {
     return (
         <header className="h-16 shrink-0 border-b border-app-border bg-app-bg/50 backdrop-blur sticky top-0 z-40 flex items-center justify-between px-4 md:px-8">
             <div className="flex items-center gap-3">
-                <IconButton label={t('ui.toggleMenu')} size="auto"
+                <IconButton tooltipSide="bottom" label={t('ui.toggleMenu')} size="auto"
                     onClick={presenter.ui.toggleSidebar}
                     className="md:hidden p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 rounded-lg transition-all"
                 >
@@ -70,7 +70,7 @@ export const Header: React.FC = () => {
 
             </div>
             <div className="flex items-center gap-2 md:gap-4">
-                <IconButton label={t('ui.toggleTheme')} size="auto"
+                <IconButton tooltipSide="bottom" label={t('ui.toggleTheme')} size="auto"
                     onClick={presenter.ui.toggleTheme}
                     className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all"
                 >
@@ -78,7 +78,7 @@ export const Header: React.FC = () => {
                 </IconButton>
                 <LanguageSwitcher />
                 <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden md:block" />
-                <IconButton asChild size="auto" label={t('ui.openSourceOnGitHub')}>
+                <IconButton tooltipSide="bottom" asChild size="auto" label={t('ui.openSourceOnGitHub')}>
                     <a
                         href={URLS.GITHUB_REPOSITORY}
                         target="_blank"
@@ -88,13 +88,13 @@ export const Header: React.FC = () => {
                         <Github className="w-5 h-5" />
                     </a>
                 </IconButton>
-                <IconButton label={t('ui.help')} size="auto"
+                <IconButton tooltipSide="bottom" label={t('ui.help')} size="auto"
                     data-event="help_open" onClick={handleOpenChat}
                     className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all hidden md:block"
                 >
                     <HelpCircle className="w-5 h-5" />
                 </IconButton>
-                <IconButton label={t('ui.notifications')} size="auto"
+                <IconButton tooltipSide="bottom" label={t('ui.notifications')} size="auto"
                     className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all relative hidden md:block"
                 >
                     <Bell className="w-5 h-5" />
@@ -102,7 +102,7 @@ export const Header: React.FC = () => {
                 </IconButton>
                 {user ? (
                     <div className="relative" ref={userMenuRef}>
-                        <IconButton label={t('ui.account')} showTooltip={isBelow('md')} size="auto"
+                        <IconButton tooltipSide="bottom" label={t('ui.account')} showTooltip={isBelow('md')} size="auto"
                             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                             className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
                         >

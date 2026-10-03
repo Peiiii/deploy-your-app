@@ -18,7 +18,7 @@ export const SidebarProjectViewToggle: React.FC<SidebarProjectViewToggleProps> =
 
   return (
     <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-md p-0.5">
-      <IconButton label={t('navigation.pinnedProjects')} size="auto"
+      <IconButton tooltipSide="bottom" label={t('navigation.pinnedProjects')} size="auto"
         onClick={() => onViewTypeChange('pinned')}
         className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium transition-all ${
           viewType === 'pinned'
@@ -28,7 +28,7 @@ export const SidebarProjectViewToggle: React.FC<SidebarProjectViewToggleProps> =
       >
         <Pin className="w-3 h-3" />
       </IconButton>
-      <IconButton label={t('navigation.recentProjects')} size="auto"
+      <IconButton tooltipSide="bottom" label={t('navigation.recentProjects')} size="auto"
         onClick={() => onViewTypeChange('recent')}
         className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium transition-all ${
           viewType === 'recent'

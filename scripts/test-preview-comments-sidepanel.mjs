@@ -113,7 +113,7 @@ try {
   assert.equal(await counter.innerText(), '1');
   const toggle = page.getByRole('button', { name: '评论', exact: true });
   await page.waitForTimeout(350);
-  const expectTooltip = async (target, name) => {
+  const expectTooltip = async (target, name, expectedSide) => {
     const dialogBox = await page.getByRole('dialog').count() ? await page.getByRole('dialog').boundingBox() : null;
     const away = dialogBox ? { x: dialogBox.x + 40, y: dialogBox.y + 80 } : { x: 400, y: 700 };
     await page.mouse.move(away.x, away.y, { steps: 8 });
@@ -125,6 +125,16 @@ try {
     assert.ok((await tip.innerText()).includes(name), `Tooltip names ${name}`);
     const content = page.locator('[data-radix-popper-content-wrapper]').filter({ has: tip });
     const box = await content.boundingBox();
+    if (expectedSide) {
+      assert.equal(await content.locator('[data-side]').first().getAttribute('data-side'), expectedSide, 'Tooltip follows its layout direction');
+      const triggerBox = await target.boundingBox();
+      if (expectedSide === 'right') {
+        assert.ok(box.x >= triggerBox.x + triggerBox.width, 'Sidebar tooltip stays outside the icon column');
+        assert.ok(Math.abs(box.y + box.height / 2 - triggerBox.y - triggerBox.height / 2) <= 1, 'Sidebar tooltip centers on its action');
+      } else if (expectedSide === 'bottom') {
+        assert.ok(box.y >= triggerBox.y + triggerBox.height, 'Top toolbar tooltip opens below its action');
+      }
+    }
     assert.ok(box.x >= 0 && box.y >= 0 && box.x + box.width <= page.viewportSize().width && box.y + box.height <= page.viewportSize().height, 'Tooltip stays in viewport');
     assert.equal(await target.getAttribute('title'), null, 'No duplicate native tooltip');
 
@@ -134,7 +144,7 @@ try {
   };
   await expectTooltip(page.getByRole('button', { name: '点赞', exact: true }).last(), '点赞');
   await expectTooltip(toggle, '评论');
-  await expectTooltip(page.getByRole('link', { name: 'GitHub', exact: true }), 'GitHub');
+  await expectTooltip(page.getByRole('link', { name: 'GitHub', exact: true }), 'GitHub', 'bottom');
   await toggle.focus();
   await page.getByRole('tooltip').waitFor();
   assert.ok((await page.getByRole('tooltip').innerText()).includes('评论'), 'Keyboard focus shows the same name');
@@ -302,8 +312,8 @@ try {
   assert.equal(await page.locator('iframe[title="元素周期表"]').count(), 0);
   await page.goto(baseUrl);
   const expandSidebar = page.getByRole('button', { name: '展开侧边栏', exact: true });
-  await expectTooltip(expandSidebar, '展开侧边栏');
-  await expectTooltip(page.getByRole('button', { name: '探索应用', exact: true }), '探索应用');
+  await expectTooltip(expandSidebar, '展开侧边栏', 'right');
+  await expectTooltip(page.getByRole('button', { name: '探索应用', exact: true }), '探索应用', 'right');
   await page.setViewportSize({ width: 1440, height: 1000 });
   await expandSidebar.click();
   const nav = page.getByRole('button', { name: '探索应用', exact: true });

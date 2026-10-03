@@ -46,7 +46,7 @@ export const SidebarProjectItem: React.FC<SidebarProjectItemProps> = ({
       >
         <span className="truncate block">{project.name}</span>
       </button>
-      <IconButton label={isPinned ? t('navigation.unpinProject') : t('navigation.pinProject')} size="auto"
+      <IconButton tooltipSide="right" label={isPinned ? t('navigation.unpinProject') : t('navigation.pinProject')} size="auto"
         onClick={(e) => onTogglePin(e, project.id)}
         className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-slate-300 dark:hover:bg-slate-700"
       >

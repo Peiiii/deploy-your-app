@@ -32,7 +32,7 @@ export const SidebarUserProfile: React.FC<SidebarUserProfileProps> = ({ collapse
 
   return (
     <div className={`p-3 border-t border-slate-200 dark:border-slate-800 ${collapsed ? 'flex justify-center' : ''}`}>
-      <IconButton label={authUser ? t('navigation.profile') : t('common.signIn')} showTooltip={collapsed} size="auto"
+      <IconButton tooltipSide="right" label={authUser ? t('navigation.profile') : t('common.signIn')} showTooltip={collapsed} size="auto"
         type="button"
         onClick={handleClick}
 

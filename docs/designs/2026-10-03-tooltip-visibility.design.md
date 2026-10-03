@@ -38,3 +38,15 @@ design-review: passed。反例已纳入：只隐藏浮层 CSS 会留下 aria 描
 - 无 HTTP fixture 的真实 https://gemigo.io/ 验收通过，实际加载 `index-DEMOk9Rv.js` / `index-DMr0dao2.css`：展开导航、更多方式、语言设置与内容筛选、桌面视图切换无重复提示；折叠导航键盘名称/Escape、导航点击及 active 状态、窄屏图标与放大后焦点保持正确。线上登录用户的个人页/反馈/管理页分支未实际登录操作，其定向行为由完整源码页面 + HTTP fixture 证明。
 - 用户入口：刷新首页，hover 展开导航无 Tooltip；折叠侧栏后 hover/键盘聚焦图标显示名称，再展开关闭提示。AI 先验已通过，体验可由用户继续反馈。
 - retrospective_decision=updated-existing-owner：修订原 `frontend/README.md` 并扩展现有 icon-actions lint 与浏览器回归，补上迁移时文字可见性边界；不新增通用 Skill 或平行规范。此前预览操作设计的无条件 Tooltip 描述由本修订的可见名称边界替代。
+
+## 修订 2：按布局选择提示方向
+
+用户追加指出折叠侧栏「应用管理」提示出现在上方，要求参考 ChatGPT。真实线上折叠导航复现 `data-side=top`：共享组件默认 top，而布局调用方没有指定方向。ChatGPT 实际参考页被 Cloudflare 人机验证阻断，未进行验证或声称逐像素对照；方向选择依据左边缘导航与顶部工具栏的实际空间，定位合同核对 [Radix Tooltip 官方文档](https://www.radix-ui.com/primitives/docs/components/tooltip)。
+
+冻结：左侧折叠导航、账户入口、侧栏展开/收起控件向右，按图标垂直居中；顶部工具栏及移动侧栏顶部关闭按钮向下；侧栏横向项目视图切换向下，列表末尾 pin 操作向右。内容区域沿用默认 top，已有预览 dock 显式 right 不改。保留已有 6px 间距、箭头、延迟、Portal、Escape 和自动边缘避让；不新增定位状态/算法/组件。文字显示与布局尺寸维持修订 1 合同。
+
+flow=bugfix，L1，skip-design（明确方向的单 owner 局部视觉修正，无状态/API/生命周期变化）；plan=not-required。复现入口 → 折叠侧栏 hover/键盘图标 → 提示在右侧且不盖住按钮或相邻导航 → 展开不重复提示；顶部图标向下，窄视口不越界。验证为 frontend tsc、触达 TSX lint、规则回归、真实页面矩形/方向/截图、生产资源身份及同入口复验。Review 在有效视觉证据后执行。
+
+修订 2 本地证据：frontend tsc、6 个触达 TSX 定向 lint、icon-actions 全 inventory/规则样例、测试脚本语法与 diff-check 通过。通过 CUA 在真实源码页面验证 4 项游客侧栏、登录入口与展开控件全部 right；图标 x=11.5/width=40，提示 x=62.5，中心差 0.25px，没有覆盖图标列。主题/帮助/通知/GitHub 全部 bottom，提示 y=60.5，按钮底部 y=49.5；390px 菜单/主题/GitHub/侧栏关闭提示向下且位于视口内。展开导航 hover/focus 无提示、Escape 正常。已有浏览器回归脚本增加方向/矩形断言，本轮使用 CUA 执行真实交互证据，没有重新运行完整评论测试。局部页面未连接 API，不用其应用列表加载结果证明线上可用性，部署后直接核对真实线上数据与导航。
+
+mode=implementation Review（修订 2）：no findings。只在布局 owner 显式指定已有 tooltipSide，未新增全局默认、定位状态、CSS 依赖或抽象；尺寸、对齐、业务事件、名称可见性与 Radix 避让未变。项目无独立 diff-only maintainability 脚本，已审查本次 diff。复盘继续收敛到 README 的方向规范与现有定位回归，不另建规范 owner。
