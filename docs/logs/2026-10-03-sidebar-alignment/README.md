@@ -40,3 +40,6 @@
 - 验收：展开/收起整段动画每帧必须一项一行、图标宽高20px、无挤压；多次切换仍正确，展开左对齐、折叠居中、圆形切换按钮与 Tooltip 保留。目标是恢复已有行为，不新增动画设计。
 - 本地四次实际切换（收起/展开/收起/展开），采样55/56/56/57共224帧；换行、重叠、图标尺寸异常均0。展开图标左边距16px，原UI正常加载。frontend类型检查、定向ESLint、生产构建、diff check通过。
 - 实现Review：仅把导航父容器由普通文档流改为flex-column，gap=4px与原间距一致，按钮和状态代码不变；no findings。没有独立maintainability检查入口，沿项目既有diff人工检查。
+- 代码提交 `ba426a0`，集成 `6a5e4b4` 普通推送主线并安全快进主工作区。`pnpm deploy:pages` Published，Pages `3f332a2faabbccac4d06eee667d75443ddf47b62` built，回退版本 `0eeee28`；线上实际消费 `index-507Qr7wn.js` / `index-DX73BQ5Y.css`。
+- 线上登录用户六项导航，四次往返共244帧（每次61帧）：换行/重叠/图标尺寸异常均0；圆形按钮radius=9999px、折叠导航40px/20px图标/左右10px，键盘Tooltip正确。截图 `/tmp/gemigo-sidebar-motion-fixed.png`。
+- retrospective_state=completed，retrospective_decision=原owner更新：在frontend/README.md记录既有侧栏布局与动画验收约束，收敛此次组件迁移暴露的静态验证缺口；不新增共享Skill或平行状态。用户可刷新 https://gemigo.io/，连续收起/展开观察图标始终单列。

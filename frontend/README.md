@@ -25,3 +25,9 @@ ESLint `gemigo-ui/icon-actions` 拦截直接使用 Lucide 图标的裸按钮、�
 ```
 
 应用根部统一 `TooltipProvider`；Popover 触发器复用 `IconButton`。有可见名称的普通文字按钮和装饰性图标无需图标按钮组件。禁用、pressed、expanded、控件 ref、analytics 事件继续保留在原调用方，Tooltip 不代替权限或焦点管理。
+
+## 侧栏导航
+
+导航容器统一负责纵向排列，展开、收起及宽度动画期间始终一项一行，不依赖按钮是 `flex` 还是 `inline-flex`。展开时图标和文字左对齐；折叠时图标居中，图标保持20px、按钮40px。展开/收起控件保持圆形。
+
+替换交互组件须保留这些布局约束和 Tooltip；验证必须覆盖动画中间帧、多次往返切换，不能只核对两个最终状态。
