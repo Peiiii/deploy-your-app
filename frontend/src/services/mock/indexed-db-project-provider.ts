@@ -57,6 +57,10 @@ export class IndexedDBProjectProvider implements IProjectProvider {
     return response.items.find((p) => p.repoUrl === repoUrl) ?? null;
   }
 
+  async generateAddressSuggestion(): Promise<never> {
+    throw new Error('AI address suggestions are unavailable in local mock mode');
+  }
+
   async checkAddressAvailability(slug: string, projectId?: string) {
     const projects = await db.getAll<Project>('projects');
     const available = !projects.some((project) => project.id !== projectId && project.slug === slug);

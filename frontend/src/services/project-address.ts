@@ -1,3 +1,8 @@
+export interface ProjectAddressSuggestion {
+  slug: string;
+  domain: string;
+}
+
 export interface ProjectAddressAvailability {
   available: boolean;
   domain: string;

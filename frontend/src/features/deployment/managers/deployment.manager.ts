@@ -22,6 +22,7 @@ export class DeploymentManager {
   private deploymentExecutor: DeploymentExecutor;
   private projectCreator: ProjectCreator;
   private storeActions: DeploymentStoreActions;
+  private addressGeneration?: AbortController;
 
   constructor(
     provider: IDeploymentProvider,
@@ -62,6 +63,7 @@ export class DeploymentManager {
       state.deploymentStatus === DeploymentStatus.DEPLOYING
     )
       return;
+    this.cancelAddressGeneration();
     state.actions.reset();
     state.actions.setSourceType(source);
   };
@@ -70,6 +72,7 @@ export class DeploymentManager {
     const state = useDeploymentStore.getState();
     if (
       state.isPublishingNewProject ||
+      state.isGeneratingAddress ||
       state.deploymentStatus === DeploymentStatus.BUILDING ||
       state.deploymentStatus === DeploymentStatus.DEPLOYING
     )
@@ -121,13 +124,50 @@ export class DeploymentManager {
     }
   };
 
+  cancelAddressGeneration = () => {
+    this.addressGeneration?.abort();
+    this.addressGeneration = undefined;
+    useDeploymentStore.setState({ isGeneratingAddress: false, addressGenerationFailed: false });
+  };
+
+  generatePublicationAddress = async (): Promise<void> => {
+    const state = useDeploymentStore.getState();
+    if (!state.projectName.trim() || state.isGeneratingAddress || state.isPublishingNewProject ||
+        state.deploymentStatus === DeploymentStatus.BUILDING || state.deploymentStatus === DeploymentStatus.DEPLOYING) return;
+    const controller = new AbortController();
+    this.addressGeneration = controller;
+    useDeploymentStore.setState({ isGeneratingAddress: true, addressGenerationFailed: false });
+    const deadline = setTimeout(() => {
+      if (this.addressGeneration !== controller) return;
+      controller.abort();
+      this.addressGeneration = undefined;
+      useDeploymentStore.setState({ isGeneratingAddress: false, addressGenerationFailed: true });
+    }, 15000);
+    try {
+      const result = await this.projectManager.generateAddressSuggestion(state.projectName.trim(), state.newProjectId ?? undefined, controller.signal);
+      if (this.addressGeneration !== controller || controller.signal.aborted) return;
+      const current = useDeploymentStore.getState();
+      if (current.projectName !== state.projectName || current.newProjectId !== state.newProjectId || current.publicationSlug !== state.publicationSlug) return;
+      if (!isValidPublicationSlug(result.slug)) throw new Error('AI returned an invalid address');
+      current.actions.setPublicationSlug(result.slug);
+    } catch {
+      if (this.addressGeneration === controller && !controller.signal.aborted) useDeploymentStore.setState({ addressGenerationFailed: true });
+    } finally {
+      clearTimeout(deadline);
+      if (this.addressGeneration === controller) {
+        this.addressGeneration = undefined;
+        useDeploymentStore.setState({ isGeneratingAddress: false });
+      }
+    }
+  };
+
   // ============================================================
   // Public API - Store Actions
   // ============================================================
 
-  resetWizard = () => this.storeActions.reset();
+  resetWizard = () => { this.cancelAddressGeneration(); this.storeActions.reset(); };
 
-  handleSourceChange = (type: SourceType) => this.storeActions.handleSourceChange(type);
+  handleSourceChange = (type: SourceType) => { this.cancelAddressGeneration(); this.storeActions.handleSourceChange(type); };
 
   handleFileDrop = (file: File) => this.storeActions.handleFileDrop(file);
 
@@ -139,9 +179,9 @@ export class DeploymentManager {
 
   setHtmlContent = (html: string) => this.storeActions.setHtmlContent(html);
 
-  setProjectName = (name: string) => this.storeActions.setProjectName(name);
+  setProjectName = (name: string) => { this.cancelAddressGeneration(); this.storeActions.setProjectName(name); };
 
-  setPublicationSlug = (slug: string | null) => useDeploymentStore.getState().actions.setPublicationSlug(slug);
+  setPublicationSlug = (slug: string | null) => { this.cancelAddressGeneration(); useDeploymentStore.getState().actions.setPublicationSlug(slug); };
 
   clearZipFile = () => this.storeActions.clearZipFile();
 }

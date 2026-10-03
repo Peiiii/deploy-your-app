@@ -1,3 +1,5 @@
+import { aiService } from './ai.service';
+import { AppError } from '../utils/error-handler';
 import type { AppLanguage } from '../utils/app-language';
 import type { ApiWorkerEnv } from '../types/env';
 import {
@@ -152,6 +154,13 @@ class ProjectService {
       deployTarget,
       htmlContent: input.htmlContent,
     });
+  }
+
+  async suggestPublicationAddress(env: ApiWorkerEnv, db: D1Database, name: string, excludeProjectId?: string) {
+    const generated = await aiService.generatePublicationSlug(env, name);
+    if (!generated) throw new AppError('Could not generate an address. Please retry or enter one yourself.', 503, 'ADDRESS_GENERATION_FAILED');
+    const result = await this.checkAddressAvailability(db, generated, excludeProjectId);
+    return { slug: result.available ? generated : result.suggestion! };
   }
 
   async checkAddressAvailability(db: D1Database, slug: string, excludeProjectId?: string) {

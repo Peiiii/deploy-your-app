@@ -37,6 +37,7 @@ export const NewDeployment = () => {
   const [initialSource] = useState(source);
   useEffect(() => {
     presenter.deployment.initializeNewPublication(initialSource);
+    return () => presenter.deployment.cancelAddressGeneration();
   }, [presenter.deployment, initialSource]);
 
   const busy =
@@ -132,7 +133,7 @@ export const NewDeployment = () => {
           <button
             type="button"
             onClick={() => void publish()}
-            disabled={busy || !valid || authLoading || !isValidPublicationSlug(slug) || address.status === 'taken' || Boolean(state.publicationAddressError)}
+            disabled={busy || state.isGeneratingAddress || !valid || authLoading || !isValidPublicationSlug(slug) || address.status === 'taken' || Boolean(state.publicationAddressError)}
             className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 disabled:opacity-50"
           >
             {busy ? (

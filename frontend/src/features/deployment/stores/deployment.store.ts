@@ -14,6 +14,8 @@ interface DeploymentState {
   publicationSlug: string | null;
   addressSeed: string;
   publicationAddressError: string | null;
+  isGeneratingAddress: boolean;
+  addressGenerationFailed: boolean;
   apiKey: string;
   deploymentStatus: DeploymentStatus;
   logs: BuildLog[];
@@ -51,6 +53,8 @@ export const useDeploymentStore = create<DeploymentState>((set) => ({
   publicationSlug: null,
   addressSeed: `app-${crypto.randomUUID().slice(0, 8)}`,
   publicationAddressError: null,
+  isGeneratingAddress: false,
+  addressGenerationFailed: false,
   apiKey: process.env.API_KEY || '',
   deploymentStatus: DeploymentStatus.IDLE,
   logs: [],
@@ -82,6 +86,8 @@ export const useDeploymentStore = create<DeploymentState>((set) => ({
       publicationSlug: null,
       addressSeed: `app-${crypto.randomUUID().slice(0, 8)}`,
       publicationAddressError: null,
+      isGeneratingAddress: false,
+      addressGenerationFailed: false,
       apiKey: process.env.API_KEY || '',
       deploymentStatus: DeploymentStatus.IDLE,
       logs: [],

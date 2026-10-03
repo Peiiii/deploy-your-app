@@ -105,6 +105,9 @@ export class ProjectManager {
     }
   };
 
+  generateAddressSuggestion = (name: string, projectId?: string, signal?: AbortSignal) =>
+    this.provider.generateAddressSuggestion(name, projectId, signal);
+
   checkAddressAvailability = (slug: string, projectId?: string, signal?: AbortSignal) =>
     this.provider.checkAddressAvailability(slug, projectId, signal);
 

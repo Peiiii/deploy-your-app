@@ -6,7 +6,13 @@ const require = createRequire(realpathSync(new URL('../workers/api/node_modules/
 const { Miniflare } = require('miniflare');
 const { build } = require('esbuild');
 const built = await build({ entryPoints: ['workers/api/src/index.ts'], bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022' });
-const mf = new Miniflare({ modules: true, script: built.outputFiles[0].text, compatibilityDate: '2026-09-18', d1Databases: ['PROJECTS_DB'], bindings: { APPS_ROOT_DOMAIN: 'gemigo.app', DEPLOY_TARGET: 'r2' } });
+let aiContent = '{"slug":"travel-journal"}', aiStatus = 200;
+const aiBodies = [];
+const mf = new Miniflare({ outboundService: async (request) => {
+  assert.equal(new URL(request.url).pathname, '/chat/completions');
+  const body = await request.json(); aiBodies.push(body);
+  return new Response(JSON.stringify({ choices: [{ message: { content: aiContent } }] }), { status: aiStatus, headers: { 'Content-Type': 'application/json' } });
+}, modules: true, script: built.outputFiles[0].text, compatibilityDate: '2026-09-18', d1Databases: ['PROJECTS_DB'], bindings: { DASHSCOPE_API_KEY: 'local-test-placeholder', PLATFORM_AI_BASE_URL: 'https://model.test', APPS_ROOT_DOMAIN: 'gemigo.app', DEPLOY_TARGET: 'r2' } });
 let cookie = '';
 async function request(path, method = 'GET', body, authenticated = true) {
   return mf.dispatchFetch(`https://gemigo.test/api/v1${path}`, {
@@ -37,6 +43,24 @@ try {
   assert.deepEqual(await json(await request('/projects/address-availability?slug=travel-journal')), { available: false, domain: 'gemigo.app', suggestion: 'travel-journal-1' });
   assert.equal((await json(await request(`/projects/address-availability?slug=travel-journal&projectId=${draft.id}`))).available, true);
   await json(await request(`/projects/address-availability?slug=travel-journal&projectId=${draft.id}`, 'GET', undefined, false), 401);
+  await json(await request('/projects/address-suggestion', 'POST', { name: '旅行账本' }, false), 401);
+  for (const name of ['', 'x'.repeat(81)]) await json(await request('/projects/address-suggestion', 'POST', { name }), 400);
+  assert.equal(aiBodies.length, 0, 'Validate authentication and input before paying for AI');
+  const generatedResponse = await request('/projects/address-suggestion', 'POST', { name: '旅行账本' });
+  assert.equal(generatedResponse.headers.get('cache-control'), 'no-store');
+  assert.deepEqual(await json(generatedResponse), { slug: 'travel-journal-1', domain: 'gemigo.app' }, 'AI suggestion checks collisions without creating a project');
+  assert.deepEqual(JSON.parse(aiBodies[0].messages[1].content), { name: '旅行账本' });
+  assert.equal(aiBodies[0].enable_thinking, false);
+  assert.equal(aiBodies[0].max_tokens, 100);
+  assert.equal((await json(await request('/projects/address-suggestion', 'POST', { name: '旅行账本', projectId: draft.id }))).slug, 'travel-journal');
+  for (const content of ['not json', '{"slug":"Uppercase"}', '{"slug":"-broken"}', '{"name":"No address"}']) {
+    aiContent = content;
+    assert.equal((await json(await request('/projects/address-suggestion', 'POST', { name: '旅行账本' }), 503)).code, 'ADDRESS_GENERATION_FAILED');
+  }
+  aiStatus = 502;
+  await json(await request('/projects/address-suggestion', 'POST', { name: '旅行账本' }), 503);
+  aiStatus = 200; aiContent = '{"slug":"travel-journal"}';
+  console.log('PASS: real Worker/D1 + standard AI HTTP boundary: auth/input validation, name-only prompt, collision suggestion, owner exclusion and upstream/invalid-output errors.');
   const conflict = await json(await request('/projects/draft', 'POST', { name: 'Another', slug: 'travel-journal' }), 409);
   assert.equal(conflict.code, 'ADDRESS_TAKEN');
   const renamed = await json(await request(`/projects/${draft.id}`, 'PATCH', { name: '新名称' }));

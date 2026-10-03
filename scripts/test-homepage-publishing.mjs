@@ -111,6 +111,7 @@ const { DeploymentExecutor } = load('features/deployment/managers/deployment-exe
 }, { FileReader: class {
   readAsDataURL(file) { this.result = `data:application/zip;base64,${file.base64}`; this.onload(); }
 } });
+const generationDeadlines = new Map(); let nextGenerationTimer = 0;
 const { DeploymentManager } = load('features/deployment/managers/deployment.manager.ts', {
   '@/types': types,
   '../stores/deployment.store': { useDeploymentStore: store },
@@ -120,7 +121,7 @@ const { DeploymentManager } = load('features/deployment/managers/deployment.mana
   './deployment-executor': { DeploymentExecutor },
   './publication-details': publicationDetails,
   '@/services/project-address': addressErrors,
-});
+}, { AbortController, setTimeout(fn, delay) { const id = ++nextGenerationTimer; generationDeadlines.set(id,{fn,delay}); return id; }, clearTimeout(id) { generationDeadlines.delete(id); } });
 let creates = 0,
   calls = 0,
   failCreate = false,
@@ -384,4 +385,42 @@ console.log(
   assert.equal(render('latest').status,'available');
   cleanup(); assert.equal(timers.size,0,'Unmount clears debounce and deadline');
   console.log('PASS: address check debounce, 8-second timeout, late response, retry and cancellation.');
+}
+
+{
+  manager.initializeNewPublication(SourceType.HTML);
+  manager.setProjectName('旅行账本');
+  manager.setPublicationSlug('my-own-address');
+  const requests = [];
+  projectManager.generateAddressSuggestion = (name, id, signal) => new Promise((resolve,reject) => requests.push({name,id,signal,resolve,reject}));
+  const first = manager.generatePublicationAddress();
+  assert.equal(store.getState().isGeneratingAddress,true);
+  assert.equal(getPublicationSlug(store.getState()),'my-own-address','AI loading preserves current input');
+  await manager.generatePublicationAddress(); assert.equal(requests.length,1,'No duplicate generation');
+  manager.setPublicationSlug('typed-while-generating');
+  assert.equal(requests[0].signal.aborted,true);
+  const second = manager.generatePublicationAddress();
+  requests[0].resolve({slug:'old-ai-result',domain:'gemigo.app'}); await first;
+  assert.equal(store.getState().isGeneratingAddress,true,'Old cleanup cannot stop a newer generation');
+  assert.equal(getPublicationSlug(store.getState()),'typed-while-generating');
+  requests[1].resolve({slug:'travel-journal',domain:'gemigo.app'}); await second;
+  assert.equal(getPublicationSlug(store.getState()),'travel-journal');
+  assert.equal(store.getState().projectName,'旅行账本');
+  const failure = manager.generatePublicationAddress(); requests[2].reject(new Error('Upstream unavailable')); await failure;
+  assert.equal(store.getState().addressGenerationFailed,true); assert.equal(getPublicationSlug(store.getState()),'travel-journal');
+  const timeout = manager.generatePublicationAddress();
+  const timer = [...generationDeadlines.values()][0]; assert.equal(timer.delay,15000); timer.fn();
+  assert.equal(store.getState().addressGenerationFailed,true); assert.equal(store.getState().isGeneratingAddress,false);
+  requests[3].resolve({slug:'too-late',domain:'gemigo.app'}); await timeout;
+  assert.equal(getPublicationSlug(store.getState()),'travel-journal');
+  const renamed = manager.generatePublicationAddress(); manager.setProjectName('新的名称');
+  requests[4].resolve({slug:'old-name-result',domain:'gemigo.app'}); await renamed;
+  assert.equal(getPublicationSlug(store.getState()),'travel-journal');
+  const sourceChanged = manager.generatePublicationAddress(); manager.handleSourceChange(SourceType.ZIP);
+  requests[5].resolve({slug:'wrong-source',domain:'gemigo.app'}); await sourceChanged;
+  assert.equal(getPublicationSlug(store.getState()),'travel-journal');
+  const leaving = manager.generatePublicationAddress(); manager.cancelAddressGeneration();
+  requests[6].resolve({slug:'after-exit',domain:'gemigo.app'}); await leaving;
+  assert.equal(getPublicationSlug(store.getState()),'travel-journal'); assert.equal(generationDeadlines.size,0);
+  console.log('PASS: actual generation manager: success/name preservation, failure, 15-second timeout, late result, manual edit, rename, source change and exit cancellation.');
 }

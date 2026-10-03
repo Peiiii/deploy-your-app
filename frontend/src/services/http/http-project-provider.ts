@@ -1,4 +1,4 @@
-import { throwProjectRequestError, type ProjectAddressAvailability } from '../project-address';
+import { throwProjectRequestError, type ProjectAddressSuggestion, type ProjectAddressAvailability } from '../project-address';
 import type { IProjectProvider, DeploymentDiagnostic } from '../interfaces';
 import type {
   Project,
@@ -40,6 +40,16 @@ export class HttpProjectProvider implements IProjectProvider {
     }
     const data = (await response.json()) as { project?: Project | null };
     return data.project ?? null;
+  }
+
+  async generateAddressSuggestion(name: string, projectId?: string, signal?: AbortSignal): Promise<ProjectAddressSuggestion> {
+    const response = await fetch(`${this.baseUrl}${API_ROUTES.PROJECTS}/address-suggestion`, {
+      method: 'POST', signal, credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, ...(projectId ? { projectId } : {}) }),
+    });
+    if (!response.ok) throw new Error('Could not generate an address');
+    return response.json();
   }
 
   async checkAddressAvailability(slug: string, projectId?: string, signal?: AbortSignal): Promise<ProjectAddressAvailability> {

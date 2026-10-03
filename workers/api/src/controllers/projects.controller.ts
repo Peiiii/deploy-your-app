@@ -187,6 +187,20 @@ class ProjectsController {
     return jsonResponse(project);
   }
 
+  /** POST /api/v1/projects/address-suggestion */
+  async suggestPublicationAddress(request: Request, env: ApiWorkerEnv, db: D1Database): Promise<Response> {
+    const user = await this.requireAuth(request, db, 'generate an address');
+    const body = await readJson(request);
+    const name = validateRequiredString(body.name, 'name');
+    if (name.length > 80) throw new ValidationError('name must be at most 80 characters');
+    const projectId = validateOptionalString(body.projectId);
+    if (projectId) await this.requireProjectOwner(db, projectId, user.id, 'generate its address');
+    const result = await projectService.suggestPublicationAddress(env, db, name, projectId);
+    const response = jsonResponse({ ...result, domain: configService.getAppsRootDomain(env) });
+    response.headers.set('Cache-Control', 'no-store');
+    return response;
+  }
+
   /** GET /api/v1/projects/address-availability */
   async checkAddressAvailability(request: Request, env: ApiWorkerEnv, db: D1Database): Promise<Response> {
     const url = new URL(request.url);
