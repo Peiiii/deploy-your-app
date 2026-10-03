@@ -1,14 +1,13 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Plus, TrendingUp, FileText, Lock } from 'lucide-react';
+import { Zap, Plus, TrendingUp, AppWindow, Lock } from 'lucide-react';
 import { useProjectStore } from '@/stores/project.store';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { useAnalyticsStore } from '@/stores/analytics.store';
 import { useReactionStore } from '@/stores/reaction.store';
 import { useDashboardStore } from '@/features/dashboard/stores/dashboard.store';
 import { usePresenter } from '@/contexts/presenter-context';
-import { useLayoutMode } from '@/hooks/use-layout-mode';
 import { useCopyToClipboardWithKey } from '@/hooks/use-copy-to-clipboard-with-key';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { StatCard } from '@/features/dashboard/components/stat-card';
@@ -16,10 +15,11 @@ import { ProjectCard } from '@/features/dashboard/components/project-card';
 import { DashboardLayout } from '@/features/dashboard/components/dashboard-layout';
 import { DashboardFilters } from '@/features/dashboard/components/dashboard-filters';
 import { DashboardEmptyState } from '@/features/dashboard/components/dashboard-empty-state';
-import { DashboardInspirationSection } from '@/features/dashboard/components/dashboard-inspiration-section';
+import { selectManagementProjects } from '@/features/dashboard/utils/select-management-projects';
 
 export const Dashboard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const language = i18n.resolvedLanguage || i18n.language;
   const user = useAuthStore((state) => state.user);
   const isLoadingAuth = useAuthStore((state) => state.isLoading);
   const allProjects = useProjectStore((state) => state.projects);
@@ -33,25 +33,28 @@ export const Dashboard: React.FC = () => {
   const searchQuery = useDashboardStore((s) => s.searchQuery);
   const sortBy = useDashboardStore((s) => s.sortBy);
   const sortDirection = useDashboardStore((s) => s.sortDirection);
+  const statusFilter = useDashboardStore((s) => s.statusFilter);
 
   const { copyToClipboard, isCopied } = useCopyToClipboardWithKey();
-  const { isCompact } = useLayoutMode();
 
   // Pagination state
   const sentinelRef = React.useRef<HTMLDivElement>(null);
   const pagination = useProjectStore((s) => s.pagination);
   const isLoadingProjects = useProjectStore((s) => s.isLoading);
 
-  // Infinite scroll
+  const hasLoaded = useProjectStore((s) => s.hasLoaded);
+  const loadError = useProjectStore((s) => s.loadError);
+
+  // Pause automatic retries after a failed page request.
   useInfiniteScroll({
     targetRef: sentinelRef,
     onLoadMore: () => presenter.project.loadMore(),
-    enabled: pagination.hasMore && !isLoadingProjects,
+    enabled: !!user && pagination.hasMore && !isLoadingProjects && !loadError,
   });
 
   const projects = React.useMemo(
     () => (user ? allProjects.filter((p) => p.ownerId === user.id) : []),
-    [allProjects, user],
+    [allProjects, user]
   );
 
   React.useEffect(() => {
@@ -61,69 +64,43 @@ export const Dashboard: React.FC = () => {
   }, [projects, presenter.analytics]);
 
   React.useEffect(() => {
-    presenter.reaction.loadFavoritesForCurrentUser();
-  }, [presenter.reaction]);
+    if (user) presenter.reaction.loadFavoritesForCurrentUser();
+  }, [user, presenter.reaction]);
 
-  const totalViews7d = React.useMemo(() => {
-    return projects.reduce((sum, project) => {
-      const entry = analyticsByProject[project.id];
-      return sum + (entry?.stats?.views7d ?? 0);
-    }, 0);
-  }, [projects, analyticsByProject]);
-
-  const filteredAndSortedProjects = React.useMemo(() => {
-    const filtered = projects.filter((project) => {
-      if (
-        showFavoritesOnly &&
-        !reactionsByProject[project.id]?.favoritedByCurrentUser
-      ) {
-        return false;
-      }
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        return (
-          project.name.toLowerCase().includes(query) ||
-          project.description?.toLowerCase().includes(query) ||
-          project.framework.toLowerCase().includes(query) ||
-          project.repoUrl.toLowerCase().includes(query)
-        );
-      }
-      return true;
-    });
-
-    const statusOrder = { Live: 0, Building: 1, Offline: 2, Failed: 3 };
-
-    const sorted = [...filtered].sort((a, b) => {
-      let comparison = 0;
-
-      switch (sortBy) {
-        case 'name':
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case 'recent':
-          comparison =
-            new Date(b.lastDeployed).getTime() -
-            new Date(a.lastDeployed).getTime();
-          break;
-        case 'status':
-          comparison =
-            (statusOrder[a.status as keyof typeof statusOrder] ?? 999) -
-            (statusOrder[b.status as keyof typeof statusOrder] ?? 999);
-          break;
-      }
-
-      return sortDirection === 'asc' ? -comparison : comparison;
-    });
-
-    return sorted;
-  }, [
-    projects,
-    showFavoritesOnly,
-    reactionsByProject,
-    searchQuery,
-    sortBy,
-    sortDirection,
-  ]);
+  const completeStats = projects.every((project) => {
+    const entry = analyticsByProject[project.id];
+    return !!entry?.stats && !entry.error;
+  });
+  const totalViews7d = completeStats
+    ? projects.reduce((sum, project) => sum + analyticsByProject[project.id].stats!.views7d, 0)
+    : null;
+  const filteredAndSortedProjects = React.useMemo(
+    () =>
+      selectManagementProjects(
+        projects,
+        { searchQuery, showFavoritesOnly, statusFilter, sortBy, sortDirection },
+        new Set(
+          Object.keys(reactionsByProject).filter(
+            (id) => reactionsByProject[id]?.favoritedByCurrentUser
+          )
+        ),
+        language
+      ),
+    [
+      projects,
+      searchQuery,
+      showFavoritesOnly,
+      statusFilter,
+      sortBy,
+      sortDirection,
+      reactionsByProject,
+      language,
+    ]
+  );
+  const ready = hasLoaded && !(!projects.length && loadError);
+  const partial = pagination.hasMore;
+  const retry = () =>
+    pagination.page > 0 ? presenter.project.loadMore() : presenter.project.loadProjects();
 
   const handleCopyUrl = (url: string, projectId: string) => {
     copyToClipboard(url, projectId);
@@ -175,96 +152,126 @@ export const Dashboard: React.FC = () => {
       actions={
         <button
           onClick={() => navigate('/deploy')}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-colors shadow-sm"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
         >
-          <Plus className="w-4 h-4" />
-          <span>{t('dashboard.deployApp')}</span>
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          {t('dashboard.deployApp')}
         </button>
       }
-    >
-      {/* Filters (Search & Sort) */}
-      <DashboardFilters />
-
-      {/* Stats Row */}
-      <div className={`grid gap-6 ${isCompact ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
-        <StatCard
-          icon={Zap}
-          label={t('dashboard.activeProjects')}
-          value={projects.filter((p) => p.status === 'Live').length.toString()}
-          sublabel={t('dashboard.runningOnEdge')}
-          iconColor="text-green-600 dark:text-green-400"
-        />
-        <StatCard
-          icon={TrendingUp}
-          label={t('dashboard.totalViews')}
-          value={totalViews7d.toLocaleString()}
-          sublabel={t('dashboard.last7Days')}
-          iconColor="text-purple-600 dark:text-purple-400"
-        />
-        <div className={isCompact ? 'sm:col-span-2 md:col-span-1' : ''}>
+      summary={
+        <div className="grid grid-cols-3 gap-3 sm:gap-6">
           <StatCard
-            icon={FileText}
+            icon={AppWindow}
             label={t('dashboard.totalProjects')}
-            value={projects.length.toLocaleString()}
-            sublabel={t('dashboard.projectsLoaded')}
-            iconColor="text-orange-600 dark:text-orange-400"
+            value={ready ? pagination.total.toLocaleString() : '—'}
+            sublabel={t('dashboard.ownedApps')}
+            iconColor="text-brand-500"
+          />
+          <StatCard
+            icon={Zap}
+            label={t('dashboard.activeProjects')}
+            value={
+              ready
+                ? projects.filter((project) => project.status === 'Live').length.toLocaleString()
+                : '—'
+            }
+            sublabel={t(partial ? 'dashboard.loadedApps' : 'dashboard.runningOnEdge')}
+            iconColor="text-emerald-500"
+          />
+          <StatCard
+            icon={TrendingUp}
+            label={t('dashboard.totalViews')}
+            value={ready && totalViews7d !== null ? totalViews7d.toLocaleString() : '—'}
+            sublabel={t(partial ? 'dashboard.loadedApps' : 'dashboard.last7Days')}
+            iconColor="text-brand-500"
           />
         </div>
-      </div>
-
-      {/* Projects Grid */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-            {showFavoritesOnly
-              ? t('dashboard.favoriteProjects')
-              : t('dashboard.recentCreations')}
-            <span className="text-xs bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 px-2 py-0.5 rounded-full">
-              {filteredAndSortedProjects.length}
+      }
+    >
+      <section className="space-y-5" aria-label={t('dashboard.myProjects')}>
+        <DashboardFilters projects={projects} />
+        {partial && (
+          <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
+            {t('dashboard.loadedScope', { loaded: projects.length, total: pagination.total })}
+          </p>
+        )}
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+            {t('dashboard.myProjects')}{' '}
+            <span className="ml-1.5 font-normal tabular-nums text-slate-400">
+              {ready ? filteredAndSortedProjects.length : '—'}
             </span>
-          </h3>
+          </h2>
+          {(searchQuery || statusFilter || showFavoritesOnly) && (
+            <button
+              onClick={() => presenter.dashboard.resetFilters()}
+              className="rounded-md text-xs font-medium text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-brand-300"
+            >
+              {t('dashboard.resetFilters')}
+            </button>
+          )}
         </div>
-
-        {filteredAndSortedProjects.length === 0 ? (
-          <DashboardEmptyState />
-        ) : (
-          <div className={`grid gap-6 ${isCompact ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-            }`}>
-            {filteredAndSortedProjects.map((project) => (
+        {!hasLoaded && !loadError ? (
+          <div role="status" className="management-grid">
+            {[0, 1, 2].map((item) => (
+              <div
+                key={item}
+                className="h-80 motion-safe:animate-pulse rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
+              >
+                <div className="h-14 w-20 rounded-xl bg-slate-100 dark:bg-slate-800" />
+                <div className="mt-6 h-4 w-2/3 rounded bg-slate-100 dark:bg-slate-800" />
+                <div className="mt-4 h-20 rounded bg-slate-50 dark:bg-slate-800/50" />
+              </div>
+            ))}
+            <span className="sr-only">{t('common.loading')}</span>
+          </div>
+        ) : filteredAndSortedProjects.length > 0 ? (
+          <div className="management-grid">
+            {filteredAndSortedProjects.map((project, index) => (
               <ProjectCard
                 key={project.id}
                 project={project}
                 onCopyUrl={handleCopyUrl}
                 isCopied={isCopied}
+                priority={index < 3}
               />
             ))}
-
-            {/* Add New Project Card */}
+          </div>
+        ) : !loadError ? (
+          <DashboardEmptyState />
+        ) : null}
+        {loadError && (
+          <div
+            role="alert"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300"
+          >
+            <p>{t(pagination.page > 0 ? 'dashboard.loadMoreError' : 'dashboard.loadError')}</p>
             <button
-              onClick={() => navigate('/deploy')}
-              className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-white/5 hover:bg-gradient-to-br hover:from-brand-500/5 hover:to-purple-500/5 hover:border-brand-500/50 dark:hover:border-brand-500/50 transition-all group flex flex-col items-center justify-center p-6 gap-3 text-slate-500 dark:text-gray-500 hover:text-brand-600 dark:hover:text-brand-400 min-h-[280px]"
+              onClick={retry}
+              disabled={isLoadingProjects}
+              className="rounded-lg px-3 py-2 font-semibold hover:bg-red-100 disabled:opacity-50 dark:hover:bg-red-900/30"
             >
-              <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 group-hover:bg-brand-100 dark:group-hover:bg-brand-900/30 flex items-center justify-center transition-all shadow-sm group-hover:scale-110">
-                <Plus className="w-7 h-7" />
-              </div>
-              <span className="font-bold text-sm">{t('dashboard.deployApp')}</span>
+              {t('dashboard.retry')}
             </button>
           </div>
         )}
-
-        {/* Infinite scroll sentinel */}
-        <div ref={sentinelRef} className="h-4" />
-
-        {/* Loading indicator */}
-        {isLoadingProjects && pagination.page > 0 && (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+        <div ref={sentinelRef} className="h-px" />
+        {isLoadingProjects && hasLoaded && (
+          <p role="status" className="py-4 text-center text-xs text-slate-500">
+            {t('common.loading')}
+          </p>
+        )}
+        {pagination.hasMore && !loadError && !isLoadingProjects && (
+          <div className="text-center">
+            <button
+              onClick={() => presenter.project.loadMore()}
+              className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-white dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+            >
+              {t('dashboard.loadMore')}
+            </button>
           </div>
         )}
-      </div>
-
-      {/* What Will You Build Section */}
-      <DashboardInspirationSection />
+      </section>
     </DashboardLayout>
   );
 };

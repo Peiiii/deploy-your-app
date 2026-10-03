@@ -1,202 +1,188 @@
-import { IconButton } from '@/components/icon-button';
-import { getProjectDescription } from '@/utils/project';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import {
-  ExternalLink,
-  GitBranch,
-  Clock,
-  FolderArchive,
-  TrendingUp,
-  FileCode,
-  Copy,
-  Check,
-  Settings,
-} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Check, Copy, ExternalLink, Github, Globe, Lock, Settings } from 'lucide-react';
+import { IconButton } from '@/components/icon-button';
+import { getGitHubUrl, getProjectDescription, getProjectThumbnailUrl } from '@/utils/project';
+import { useProjectThumbnail } from '@/hooks/use-project-thumbnail';
 import { useAnalyticsStore } from '@/stores/analytics.store';
-import { getDisplayRepoUrl, getGitHubUrl } from '@/utils/project';
-import { SourceType } from '@/types';
 import type { Project } from '@/types';
 
-interface ProjectCardProps {
-  project: Project;
-  onCopyUrl: (url: string, projectId: string) => void;
-  isCopied: (key: string) => boolean;
-}
+const statusColors: Record<Project['status'], string> = {
+  Live: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400',
+  Building: 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300',
+  Failed: 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400',
+  Offline: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
+};
 
-export const ProjectCard: React.FC<ProjectCardProps> = ({
+export function ProjectCard({
   project,
   onCopyUrl,
   isCopied,
-}) => {
+  priority = false,
+}: {
+  project: Project;
+  onCopyUrl: (url: string, id: string) => void;
+  isCopied: (id: string) => boolean;
+  priority?: boolean;
+}) {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
-  const analyticsByProject = useAnalyticsStore((s) => s.byProjectId);
-  const analytics = analyticsByProject[project.id];
-  const views7d = analytics?.stats?.views7d ?? 0;
-
-  const handleCardClick = (e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
-    if (target.closest('a') || target.closest('button')) {
-      return;
-    }
-    navigate(`/projects/${encodeURIComponent(project.id)}`);
-  };
-
+  const language = i18n.resolvedLanguage || i18n.language;
+  const stats = useAnalyticsStore((s) => s.byProjectId[project.id]);
+  const thumbnailUrl = project.url
+    ? (getProjectThumbnailUrl(project.url, { name: project.name, seed: project.id }) ?? undefined)
+    : undefined;
+  const thumbnail = useProjectThumbnail(thumbnailUrl);
+  const destination = `/projects/${encodeURIComponent(project.id)}`;
   const githubUrl = getGitHubUrl(project);
-  const displayRepoUrl = getDisplayRepoUrl(project.repoUrl);
-
+  const date = Date.parse(project.lastDeployed);
+  const formattedDate = Number.isFinite(date)
+    ? new Intl.DateTimeFormat(language, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(date)
+    : t('dashboard.notPublished');
+  let domain = project.url;
+  try {
+    if (domain) domain = new URL(domain).hostname;
+  } catch {
+    /* Keep the supplied public address readable. */
+  }
+  const description = getProjectDescription(project, language);
   return (
-    <div
-      className="bg-white dark:bg-slate-900 rounded-2xl p-5 group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer flex flex-col h-full"
-      onClick={handleCardClick}
-    >
-      {/* Subtle Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-transparent dark:from-slate-800/30 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-
-      {/* Status Indicator */}
-      <div
-        className={`absolute top-4 right-4 flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider z-10 ${project.status === 'Live'
-          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-          : project.status === 'Failed'
-            ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30'
-            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
-          }`}
-      >
-        <span
-          className={`w-1.5 h-1.5 rounded-full ${project.status === 'Live'
-            ? 'bg-emerald-500 animate-pulse'
-            : project.status === 'Failed'
-              ? 'bg-red-500'
-              : 'bg-amber-500'
-            }`}
-        />
-        {project.status}
-      </div>
-
-      {/* Header - Project Name & Repo */}
-      <div className="mb-3 relative pr-16">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/projects/${encodeURIComponent(project.id)}`);
-          }}
-          className="font-bold text-slate-900 dark:text-white text-base group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors truncate mb-0.5 block w-full text-left"
-        >
-          {project.name}
-        </button>
-        {githubUrl ? (
-          <a
-            href={githubUrl}
-            target="_blank"
-            rel="noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-gray-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors group/repo"
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-1 flex-col p-5">
+        <div className="flex items-start justify-between gap-3">
+          <Link
+            to={destination}
+            aria-label={`${t('common.manage')}: ${project.name}`}
+            className="flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-brand-100 bg-brand-50 text-xl font-bold text-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-brand-900 dark:bg-brand-950"
           >
-            {project.sourceType === SourceType.ZIP ? (
-              <FolderArchive className="w-3 h-3 flex-shrink-0" />
-            ) : project.sourceType === SourceType.HTML ? (
-              <FileCode className="w-3 h-3 flex-shrink-0" />
+            {thumbnailUrl && !thumbnail.error ? (
+              <div className="relative h-full w-full">
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 flex items-center justify-center"
+                >
+                  {project.name.charAt(0).toUpperCase()}
+                </span>
+                <img
+                  src={thumbnail.src}
+                  alt=""
+                  draggable={false}
+                  width={160}
+                  height={112}
+                  loading={priority ? 'eager' : 'lazy'}
+                  decoding="async"
+                  onLoad={thumbnail.onLoad}
+                  onError={thumbnail.onError}
+                  className={`absolute inset-0 h-full w-full object-cover ${thumbnail.loaded ? 'opacity-100' : 'opacity-0'}`}
+                />
+              </div>
             ) : (
-              <GitBranch className="w-3 h-3 flex-shrink-0" />
+              <span aria-hidden="true">{project.name.charAt(0).toUpperCase()}</span>
             )}
-            <span className="truncate">{displayRepoUrl}</span>
-            <ExternalLink className="w-3 h-3 opacity-0 group-hover/repo:opacity-100 transition-opacity flex-shrink-0" />
-          </a>
-        ) : (
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-gray-500">
-            {project.sourceType === SourceType.ZIP ? (
-              <FolderArchive className="w-3 h-3 flex-shrink-0" />
-            ) : project.sourceType === SourceType.HTML ? (
-              <FileCode className="w-3 h-3 flex-shrink-0" />
-            ) : (
-              <GitBranch className="w-3 h-3 flex-shrink-0" />
-            )}
-            <span className="truncate">{displayRepoUrl}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Content - flex-1 to push footer to bottom */}
-      <div className="flex-1">
-        {getProjectDescription(project, i18n.resolvedLanguage || i18n.language) && (
-          <p className="text-sm text-slate-600 dark:text-gray-400 mb-4 line-clamp-2">
-            {getProjectDescription(project, i18n.resolvedLanguage || i18n.language)}
-          </p>
-        )}
-
-        <div className="space-y-2 text-xs">
-          {views7d > 0 && (
-            <div className="flex items-center justify-between py-1">
-              <span className="text-slate-500 dark:text-gray-500 flex items-center gap-1.5">
-                <TrendingUp className="w-3.5 h-3.5" />
-                {t('dashboard.views7d')}
-              </span>
-              <span className="text-slate-700 dark:text-gray-300 font-semibold">
-                {views7d.toLocaleString()}
-              </span>
-            </div>
-          )}
-          <div className="flex items-center justify-between py-1 border-t border-slate-100 dark:border-white/5 pt-2">
-            <span className="text-slate-500 dark:text-gray-500">
-              {t('dashboard.lastDeploy')}
-            </span>
-            <span className="text-slate-700 dark:text-gray-300 flex items-center gap-1 font-medium">
-              <Clock className="w-3 h-3" />
-              {project.lastDeployed}
-            </span>
-          </div>
+          </Link>
+          <span
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${statusColors[project.status]}`}
+          >
+            <span
+              aria-hidden="true"
+              className={`h-1.5 w-1.5 rounded-full bg-current ${project.status === 'Building' ? 'motion-safe:animate-pulse' : ''}`}
+            />
+            {t(`dashboard.appStatus.${project.status}`)}
+          </span>
         </div>
+        <Link
+          to={destination}
+          className="mt-4 min-w-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+        >
+          <h3 className="truncate text-base font-semibold text-slate-900 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-300">
+            {project.name}
+          </h3>
+        </Link>
+        <p className="mt-1 truncate text-xs text-slate-400">
+          {domain || t('dashboard.notPublished')}
+        </p>
+        <p className="mt-3 min-h-10 text-xs leading-5 text-slate-500 line-clamp-2 dark:text-slate-400">
+          {description || t('dashboard.noDescription')}
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
+          <span className="inline-flex items-center gap-1">
+            {project.isPublic === false ? (
+              <Lock className="h-3 w-3" aria-hidden="true" />
+            ) : (
+              <Globe className="h-3 w-3" aria-hidden="true" />
+            )}
+            {t(project.isPublic === false ? 'dashboard.unlistedApp' : 'dashboard.publicApp')}
+          </span>
+          {githubUrl && (
+            <a
+              href={githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-slate-500 hover:text-brand-600 dark:text-slate-400"
+            >
+              <Github className="h-3 w-3" aria-hidden="true" />
+              GitHub
+            </a>
+          )}
+        </div>
+        <dl className="mt-4 grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-t border-slate-100 pt-3 text-[11px] dark:border-slate-800">
+          <div className="min-w-0">
+            <dt className="text-slate-400">{t('dashboard.lastDeploy')}</dt>
+            <dd className="mt-1 truncate font-medium text-slate-600 dark:text-slate-300">
+              {formattedDate}
+            </dd>
+          </div>
+          <div className="text-right">
+            <dt className="text-slate-400">{t('dashboard.views7d')}</dt>
+            <dd className="mt-1 font-semibold tabular-nums text-slate-700 dark:text-slate-200">
+              {stats?.stats && !stats.error ? stats.stats.views7d.toLocaleString() : '—'}
+            </dd>
+          </div>
+        </dl>
       </div>
-
-      {/* Footer - Always at bottom */}
-      <div className="flex items-center justify-between pt-3 mt-4 border-t border-slate-100 dark:border-white/5 relative">
+      <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-4 py-3 dark:border-slate-800">
+        <Link
+          to={destination}
+          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-brand-600 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-brand-300 dark:hover:bg-brand-950"
+        >
+          <Settings className="h-3.5 w-3.5" aria-hidden="true" />
+          {t('common.manage')}
+        </Link>
         <div className="flex items-center gap-1">
-          {project.url ? (
+          {project.url && (
             <>
-              <a
-                href={project.url}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {t('common.visit')} <ExternalLink className="w-3 h-3" />
-              </a>
-              <IconButton label={
-                  isCopied(project.id) ? t('common.copied') : t('common.copyUrl')
-                } size="auto"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCopyUrl(project.url!, project.id);
-                }}
-                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+              <IconButton
+                label={isCopied(project.id) ? t('common.copied') : t('common.copyUrl')}
+                size="sm"
+                onClick={() => onCopyUrl(project.url!, project.id)}
+                className="text-slate-400"
               >
                 {isCopied(project.id) ? (
-                  <Check className="w-3.5 h-3.5 text-emerald-500" />
+                  <Check className="h-4 w-4 text-emerald-500" />
                 ) : (
-                  <Copy className="w-3.5 h-3.5" />
+                  <Copy className="h-4 w-4" />
                 )}
               </IconButton>
+              <IconButton
+                asChild
+                label={`${t('common.visit')}: ${project.name}`}
+                size="auto"
+                className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-slate-600 dark:text-slate-300"
+              >
+                <a href={project.url} target="_blank" rel="noopener noreferrer">
+                  <span>{t('common.visit')}</span>
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </IconButton>
             </>
-          ) : (
-            <span className="text-slate-400 dark:text-gray-600 text-xs italic">
-              {t('common.notAccessible')}
-            </span>
           )}
         </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/projects/${encodeURIComponent(project.id)}`);
-          }}
-          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-        >
-          <Settings className="w-3.5 h-3.5" />
-          {t('common.manage')}
-        </button>
       </div>
-    </div>
+    </article>
   );
-};
+}

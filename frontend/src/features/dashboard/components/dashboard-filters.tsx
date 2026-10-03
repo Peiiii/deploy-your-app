@@ -1,119 +1,97 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Star, Clock, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Star, X } from 'lucide-react';
+import { IconButton } from '@/components/icon-button';
 import { useDashboardStore } from '@/features/dashboard/stores/dashboard.store';
-import { usePresenter } from '@/contexts/presenter-context';
-import { useLayoutMode } from '@/hooks/use-layout-mode';
+import type { SortDirection, SortOption } from '@/features/dashboard/stores/dashboard.store';
+import type { Project } from '@/types';
 
-export const DashboardFilters: React.FC = () => {
+export function DashboardFilters({ projects }: { projects: Project[] }) {
   const { t } = useTranslation();
-  const presenter = usePresenter();
-  const { isCompact } = useLayoutMode();
-
-  const showFavoritesOnly = useDashboardStore((s) => s.showFavoritesOnly);
-  const searchQuery = useDashboardStore((s) => s.searchQuery);
-  const sortBy = useDashboardStore((s) => s.sortBy);
-  const sortDirection = useDashboardStore((s) => s.sortDirection);
-  const dashboardActions = useDashboardStore((s) => s.actions);
-
+  const { showFavoritesOnly, searchQuery, statusFilter, sortBy, sortDirection, actions } =
+    useDashboardStore();
+  const statuses = [null, 'Live', 'Building', 'Failed', 'Offline'] as const;
+  const sorts = [
+    ['recent', 'desc', 'newest'],
+    ['recent', 'asc', 'oldest'],
+    ['name', 'asc', 'nameAsc'],
+    ['name', 'desc', 'nameDesc'],
+    ['status', 'asc', 'statusFirst'],
+  ] as const;
   return (
-    <div className={`flex gap-4 ${isCompact ? 'flex-col items-stretch' : 'flex-col sm:flex-row items-start sm:items-center'}`}>
-      {/* Search Bar */}
-      <div className={`relative flex-1 group ${isCompact ? 'w-full' : 'w-full sm:max-w-md'}`}>
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <Search className="h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+    <div className="space-y-4">
+      <div className="management-toolbar">
+        <div className="relative min-w-0 flex-1">
+          <Search
+            className="pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"
+            aria-hidden="true"
+          />
+          <input
+            type="search"
+            aria-label={t('dashboard.searchProjects')}
+            value={searchQuery}
+            onChange={(event) => actions.setSearchQuery(event.target.value)}
+            placeholder={t('dashboard.searchProjects')}
+            className="w-full min-w-0 rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-10 text-sm text-slate-900 placeholder:text-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+          />
+          {searchQuery && (
+            <IconButton
+              label={t('dashboard.clearSearch')}
+              size="sm"
+              onClick={() => actions.setSearchQuery('')}
+              className="absolute right-1.5 top-1.5 text-slate-400"
+            >
+              <X className="h-4 w-4" />
+            </IconButton>
+          )}
         </div>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => dashboardActions.setSearchQuery(e.target.value)}
-          placeholder={t('dashboard.searchProjects')}
-          className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:bg-white dark:focus:bg-slate-800 transition-all placeholder:text-slate-400"
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <IconButton
+            label={t('dashboard.favoritesOnly')}
+            size="auto"
+            aria-pressed={showFavoritesOnly}
+            onClick={() => actions.setShowFavoritesOnly(!showFavoritesOnly)}
+            className={`inline-flex min-h-11 items-center gap-2 rounded-xl border px-3 text-xs font-medium ${showFavoritesOnly ? 'border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-700 dark:bg-brand-950 dark:text-brand-300' : 'border-slate-200 bg-white text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400'}`}
+          >
+            <Star
+              className={`h-4 w-4 ${showFavoritesOnly ? 'fill-brand-500 text-brand-500' : ''}`}
+            />
+            <span>{t('common.favorites')}</span>
+          </IconButton>
+          <select
+            aria-label={t('dashboard.sortBy')}
+            value={`${sortBy}:${sortDirection}`}
+            onChange={(event) => {
+              const [option, direction] = event.target.value.split(':');
+              actions.setSort(option as SortOption, direction as SortDirection);
+            }}
+            className="min-h-11 min-w-0 max-w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+          >
+            {sorts.map(([option, direction, label]) => (
+              <option key={label} value={`${option}:${direction}`}>
+                {t(`dashboard.${label}`)}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
-
-      <div className={`flex items-center gap-2 flex-wrap ${isCompact ? 'justify-between font-sm' : ''}`}>
-        {/* All/Favorites Toggle */}
-        <div className="inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1 text-xs">
+      <div className="flex flex-wrap gap-2" role="group" aria-label={t('dashboard.filterStatus')}>
+        {statuses.map((status) => (
           <button
+            key={status ?? 'all'}
             type="button"
-            onClick={() => dashboardActions.setShowFavoritesOnly(false)}
-            className={`px-2 py-1 rounded-md transition-colors ${!showFavoritesOnly
-                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
+            aria-pressed={statusFilter === status}
+            onClick={() => actions.setStatusFilter(status)}
+            className={`inline-flex min-h-9 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${statusFilter === status ? 'bg-brand-600 text-white shadow-sm' : 'bg-white text-slate-500 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'}`}
           >
-            {t('common.all')}
+            <span>{status ? t(`dashboard.appStatus.${status}`) : t('dashboard.allApps')}</span>
+            <span className={statusFilter === status ? 'text-white/75' : 'text-slate-400'}>
+              {status
+                ? projects.filter((project) => project.status === status).length
+                : projects.length}
+            </span>
           </button>
-          <button
-            type="button"
-            onClick={() => dashboardActions.setShowFavoritesOnly(true)}
-            className={`px-2 py-1 rounded-md inline-flex items-center gap-1 transition-colors ${showFavoritesOnly
-                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
-          >
-            <Star className="w-3 h-3" />
-            {t('common.favorites')}
-          </button>
-        </div>
-
-        {/* Sort Options */}
-        <div className="inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1 text-xs">
-          <span className="px-2 py-1 text-slate-500 dark:text-slate-400">
-            {t('dashboard.sortBy')}:
-          </span>
-          <button
-            type="button"
-            onClick={() => presenter.dashboard.handleSort('recent')}
-            className={`px-2 py-1 rounded-md inline-flex items-center gap-1 transition-colors ${sortBy === 'recent'
-                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
-          >
-            <Clock className="w-3 h-3" />
-            {t('dashboard.recent')}
-            {sortBy === 'recent' &&
-              (sortDirection === 'desc' ? (
-                <ArrowDown className="w-3 h-3" />
-              ) : (
-                <ArrowUp className="w-3 h-3" />
-              ))}
-          </button>
-          <button
-            type="button"
-            onClick={() => presenter.dashboard.handleSort('name')}
-            className={`px-2 py-1 rounded-md inline-flex items-center gap-1 transition-colors ${sortBy === 'name'
-                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
-          >
-            {t('dashboard.name')}
-            {sortBy === 'name' &&
-              (sortDirection === 'desc' ? (
-                <ArrowDown className="w-3 h-3" />
-              ) : (
-                <ArrowUp className="w-3 h-3" />
-              ))}
-          </button>
-          <button
-            type="button"
-            onClick={() => presenter.dashboard.handleSort('status')}
-            className={`px-2 py-1 rounded-md inline-flex items-center gap-1 transition-colors ${sortBy === 'status'
-                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
-          >
-            {t('dashboard.status')}
-            {sortBy === 'status' &&
-              (sortDirection === 'desc' ? (
-                <ArrowDown className="w-3 h-3" />
-              ) : (
-                <ArrowUp className="w-3 h-3" />
-              ))}
-          </button>
-        </div>
+        ))}
       </div>
     </div>
   );
-};
+}
