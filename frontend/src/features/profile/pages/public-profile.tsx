@@ -1,339 +1,157 @@
-import { IconButton } from '@/components/icon-button';
-import { getProjectDescription } from '@/utils/project';
-import React from 'react';
-import { getAuthorName, getAuthorColor, getAuthorInitial } from '@/utils/author';
-import { resolvePublicAuthorIdentity } from '@gemigo/public-author';
+import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ArrowLeft, Check, Copy, LayoutGrid, Star, ThumbsUp } from 'lucide-react';
+import { IconButton } from '@/components/icon-button';
 import { usePresenter } from '@/contexts/presenter-context';
 import { usePublicProfileStore } from '@/features/profile/stores/public-profile.store';
 import { useReactionStore } from '@/stores/reaction.store';
-import {
-  normalizeLinksForDisplay,
-  resolveLinkKind,
-  getEffectiveLabel,
-} from '@/utils/profile-links';
-import {
-  ThumbsUp,
-  Star,
-  Zap,
-  ExternalLink,
-  Lock,
-  ArrowLeft,
-  Github,
-  Twitter,
-  Globe,
-  Linkedin,
-  Youtube,
-} from 'lucide-react';
+import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
+import { CreatorHeader } from '@/features/profile/components/creator-header';
+import { CreatorProjectCard } from '@/features/profile/components/creator-project-card';
+import { ProfileLoadingState } from '@/features/profile/components/my-profile/profile-loading-state';
 
-export const PublicProfile: React.FC = () => {
+export function PublicProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const presenter = usePresenter();
-
-  // Subscribe to store
   const data = usePublicProfileStore((s) => s.data);
   const isLoading = usePublicProfileStore((s) => s.isLoading);
   const error = usePublicProfileStore((s) => s.error);
-  const reactionStore = useReactionStore();
-
-  // Load profile on mount
-  React.useEffect(() => {
-    if (id) {
-      presenter.publicProfile.loadProfile(id);
-    }
+  const reactions = useReactionStore((s) => s.byProjectId);
+  const { copied, copyToClipboard } = useCopyToClipboard({
+    onSuccess: () => presenter.ui.showSuccessToast(t('profile.profileLinkCopied')),
+  });
+  useEffect(() => {
+    if (id) void presenter.publicProfile.loadProfile(id);
   }, [id, presenter.publicProfile]);
 
-  const reactionFor = (projectId: string) => reactionStore.byProjectId[projectId];
-
-  if (isLoading) {
+  if (isLoading) return <ProfileLoadingState />;
+  if (error || !data)
     return (
-      <div className="p-4 md:p-8 max-w-5xl mx-auto flex items-center justify-center h-full animate-fade-in">
-        <div className="glass-card rounded-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur max-w-md w-full text-center space-y-4">
-          <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse">
-            <Lock className="w-6 h-6 text-slate-500 dark:text-slate-300" />
-          </div>
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-            {t('common.loading')}
-          </h2>
-        </div>
+      <div className="mx-auto max-w-xl p-8 text-center">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+          {t('profile.profileNotFound')}
+        </h1>
+        <button
+          type="button"
+          onClick={() => navigate('/explore')}
+          className="mt-6 rounded-xl bg-brand-600 px-5 py-3 text-sm font-medium text-white"
+        >
+          {t('explore.exploreApps')}
+        </button>
       </div>
     );
-  }
 
-  if (error || !data) {
+  const { pinnedProjects, otherProjects } = presenter.publicProfile.getProjectGroups();
+  const renderCard = (project: (typeof data.projects)[number], index: number, pinned = false) => {
+    const entry = reactions[project.id];
     return (
-      <div className="p-4 md:p-8 max-w-3xl mx-auto flex items-center justify-center h-full animate-fade-in">
-        <div className="glass-card rounded-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur max-w-md w-full text-center space-y-4">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-            {t('profile.creatorProfile')}
-          </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            {t('profile.profileNotFound')}
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate('/explore')}
-            className="mt-2 inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 transition-all"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            {t('explore.exploreApps')}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const publicAuthor = data.publicAuthor ?? resolvePublicAuthorIdentity({
-    ownerId: data.user.id,
-    handle: data.user.handle,
-    displayName: data.user.displayName,
-  });
-  const authorName = getAuthorName(publicAuthor, t);
-  const authorColor = getAuthorColor(publicAuthor.identityKey);
-
-  const pinnedIds = data.profile.pinnedProjectIds ?? [];
-  const pinnedSet = new Set(pinnedIds);
-  const pinnedProjects = pinnedIds
-    .map((id) => data.projects.find((p) => p.id === id))
-    .filter((p): p is (typeof data.projects)[number] => !!p);
-  const otherProjects = data.projects.filter((p) => !pinnedSet.has(p.id));
-
-  const renderProjectCard = (
-    project: (typeof data.projects)[number],
-  ) => {
-    const reactions = reactionFor(project.id);
-    const likes =
-      reactions?.likesCount ??
-      (project as { likesCount?: number }).likesCount ??
-      0;
-    const favorites =
-      reactions?.favoritesCount ??
-      (project as { favoritesCount?: number }).favoritesCount ??
-      0;
-    const liked = reactions?.likedByCurrentUser ?? false;
-    const favorited = reactions?.favoritedByCurrentUser ?? false;
-
-    return (
-      <div
+      <CreatorProjectCard
         key={project.id}
-        className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 flex flex-col gap-2"
-      >
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
-              {project.name}
-            </div>
-            {getProjectDescription(project, i18n.resolvedLanguage || i18n.language) && (
-              <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                {getProjectDescription(project, i18n.resolvedLanguage || i18n.language)}
-              </div>
-            )}
-          </div>
-          {project.url && (
-            <button
-              type="button"
-              onClick={() => {
-                window.open(project.url, '_blank', 'noopener,noreferrer');
-              }}
-              className="inline-flex items-center gap-1 text-[11px] text-brand-600 dark:text-brand-400 hover:underline"
-            >
-              <span>{t('common.visit')}</span>
-              <ExternalLink className="w-3 h-3" />
-            </button>
-          )}
-        </div>
-        <div className="flex items-center justify-between text-xs pt-1">
-          <div className="flex items-center gap-2">
-            <IconButton label={t('previewActions.favorite')} size="auto"
-              type="button"
+        project={project}
+        pinned={pinned}
+        priority={index < 3}
+        actions={
+          <>
+            <IconButton
+              label={t('previewActions.favorite')}
+              size="sm"
+              aria-pressed={entry?.favoritedByCurrentUser ?? false}
               onClick={() => presenter.publicProfile.toggleFavorite(project.id)}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="gap-1 text-slate-400"
             >
               <Star
-                className={`w-3.5 h-3.5 ${favorited
-                  ? 'text-amber-400 fill-amber-400'
-                  : 'text-slate-400'
-                  }`}
+                className={`h-4 w-4 ${entry?.favoritedByCurrentUser ? 'fill-amber-400 text-amber-500' : ''}`}
               />
-              <span>{favorites.toLocaleString()}</span>
+              <span className="text-xs tabular-nums">
+                {(entry?.favoritesCount ?? project.favoritesCount ?? 0).toLocaleString()}
+              </span>
             </IconButton>
-            <IconButton label={t('previewActions.like')} size="auto"
-              type="button"
+            <IconButton
+              label={t('previewActions.like')}
+              size="sm"
+              aria-pressed={entry?.likedByCurrentUser ?? false}
               onClick={() => presenter.publicProfile.toggleLike(project.id)}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="gap-1 text-slate-400"
             >
               <ThumbsUp
-                className={`w-3 h-3 ${liked ? 'fill-pink-500 text-pink-500' : 'text-slate-400'
-                  }`}
+                className={`h-4 w-4 ${entry?.likedByCurrentUser ? 'fill-brand-500 text-brand-500' : ''}`}
               />
-              <span>{likes.toLocaleString()}</span>
+              <span className="text-xs tabular-nums">
+                {(entry?.likesCount ?? project.likesCount ?? 0).toLocaleString()}
+              </span>
             </IconButton>
-          </div>
-          <div className="inline-flex items-center gap-1 text-slate-400">
-            <Zap className="w-3 h-3" />
-            <span className="text-[11px]">{project.framework}</span>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
     );
   };
-
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 md:space-y-8 animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className={`w-14 h-14 shrink-0 rounded-full bg-gradient-to-tr ${authorColor} flex items-center justify-center text-lg font-semibold text-white`}>
-            {getAuthorInitial(authorName, publicAuthor.anonymousCode)}
-          </div>
-          <div className="min-w-0">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight break-words">
-              {authorName}
-            </h2>
-            {data.user.handle && authorName !== `@${data.user.handle}` && (
-              <p className="text-sm text-brand-600 dark:text-brand-400 break-all">@{data.user.handle}</p>
-            )}
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {t('profile.creatorProfile')}
-            </p>
-          </div>
-        </div>
+    <div className="creator-profile mx-auto w-full max-w-6xl space-y-8 p-4 sm:p-6 lg:p-8 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => navigate('/explore')}
+          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-600 dark:text-slate-400"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t('explore.exploreApps')}
+        </button>
       </div>
-
-      {/* About + stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 glass-card rounded-xl p-5 border border-slate-200 dark:border-slate-800">
-          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-3">
-            {t('profile.about')}
-          </h3>
-          {data.profile.bio ? (
-            <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-line">
-              {data.profile.bio}
-            </p>
-          ) : null}
-          {normalizeLinksForDisplay(data.profile.links).length > 0 ? (
-            <div
-              className={`space-y-2 text-xs text-slate-500 dark:text-slate-400 ${data.profile.bio ? 'mt-4' : ''
-                }`}
-            >
-              {normalizeLinksForDisplay(data.profile.links).map((link, idx) => {
-                const kind = resolveLinkKind(link.url);
-                const label = getEffectiveLabel(link);
-                const Icon =
-                  kind === 'github'
-                    ? Github
-                    : kind === 'x'
-                      ? Twitter
-                      : kind === 'linkedin'
-                        ? Linkedin
-                        : kind === 'youtube'
-                          ? Youtube
-                          : Globe;
-
-                let displayUrl = link.url;
-                try {
-                  const u = new URL(link.url);
-                  const path = u.pathname && u.pathname !== '/' ? u.pathname : '';
-                  displayUrl = `${u.hostname}${path}`;
-                } catch {
-                  displayUrl = link.url;
-                }
-
-                return (
-                  <div key={idx} className="flex items-center gap-2">
-                    <Icon className="w-3.5 h-3.5 text-slate-400" />
-                    <a
-                      href={link.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      title={label}
-                      className="text-brand-600 dark:text-brand-400 hover:underline truncate"
-                    >
-                      {displayUrl}
-                    </a>
-                  </div>
-                );
-              })}
-            </div>
-          ) : null}
-          {!data.profile.bio &&
-            normalizeLinksForDisplay(data.profile.links).length === 0 && (
-              <p className="text-sm text-slate-500 dark:text-slate-400 italic">
-                {t('profile.noBioOrLinks')}
-              </p>
-            )}
+      <CreatorHeader
+        data={data}
+        actions={
+          <IconButton
+            label={t(copied ? 'common.copied' : 'profile.copyProfileLink')}
+            size="auto"
+            onClick={() =>
+              void copyToClipboard(
+                `${window.location.origin}/u/${encodeURIComponent(data.user.handle || data.user.id)}`
+              )
+            }
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+          >
+            {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+            <span>{t('profile.copyProfileLink')}</span>
+          </IconButton>
+        }
+      />
+      <section className="space-y-5">
+        <div className="flex items-center gap-3 border-b border-slate-200 pb-4 dark:border-slate-800">
+          <LayoutGrid className="h-5 w-5 text-brand-500" aria-hidden="true" />
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t('profile.works')}</h2>
+          <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-600 dark:bg-brand-950 dark:text-brand-300">
+            {data.projects.length}
+          </span>
         </div>
-
-        <div className="glass-card rounded-xl p-5 border border-slate-200 dark:border-slate-800">
-          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-3">
-            {t('profile.communityStats')}
-          </h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500 dark:text-slate-400">
-                {t('profile.publicApps')}
-              </span>
-              <span className="font-semibold text-slate-900 dark:text-slate-100">
-                {data.stats.publicProjectsCount}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500 dark:text-slate-400">
-                {t('profile.totalLikes')}
-              </span>
-              <span className="font-semibold text-slate-900 dark:text-slate-100">
-                {data.stats.totalLikes}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500 dark:text-slate-400">
-                {t('profile.totalFavorites')}
-              </span>
-              <span className="font-semibold text-slate-900 dark:text-slate-100">
-                {data.stats.totalFavorites}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Pinned apps */}
-      {pinnedProjects.length > 0 && (
-        <div className="glass-card rounded-xl p-5 border border-slate-200 dark:border-slate-800">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-              {t('profile.pinnedApps')}
-            </h3>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">
-              {pinnedProjects.length}
-            </span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {pinnedProjects.map((project) => renderProjectCard(project))}
-          </div>
-        </div>
-      )}
-
-      {/* All other apps */}
-      <div className="glass-card rounded-xl p-5 border border-slate-200 dark:border-slate-800">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-            {t('profile.appsByCreator')}
-          </h3>
-        </div>
-        {otherProjects.length === 0 ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400 py-4">
-            {t('profile.creatorNoPublicApps')}
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {otherProjects.map((project) => renderProjectCard(project))}
+        {pinnedProjects.length > 0 && (
+          <div className="creator-grid">
+            {pinnedProjects.map((project, index) => renderCard(project, index, true))}
           </div>
         )}
-      </div>
+        {pinnedProjects.length > 0 && otherProjects.length > 0 && (
+          <h3 className="pt-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
+            {t('profile.allApps')}
+          </h3>
+        )}
+        {otherProjects.length > 0 && (
+          <div className="creator-grid">
+            {otherProjects.map((project, index) =>
+              renderCard(project, pinnedProjects.length + index)
+            )}
+          </div>
+        )}
+        {data.projects.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-16 text-center dark:border-slate-700">
+            <LayoutGrid className="mx-auto mb-4 h-8 w-8 text-brand-300" aria-hidden="true" />
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {t('profile.creatorNoPublicApps')}
+            </p>
+          </div>
+        )}
+      </section>
     </div>
   );
-};
+}

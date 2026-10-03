@@ -28,4 +28,5 @@
 - 用户补充截图要求核对原来的圆形按钮。`git show f0cd5da -- frontend/src/components/sidebar/sidebar-header.tsx` 证明同一会话/提交把原生 button 改为 IconButton，调用方的 `rounded-full` 未删除；共享组件的 `rounded-md` 因 CSS 生成顺序覆盖它。线上修前 24×24px，computed borderRadius=6px。
 - 局部恢复圆形：该调用方使用 `!rounded-full`，不依赖 className 字符串顺序。按钮尺寸、箭头、阴影、事件和 Tooltip 不变。
 - frontend 类型检查、header 定向 ESLint、diff check、生产构建通过；人工 diff Review no findings。独立本地地址实际渲染：展开/折叠均 24×24px、borderRadius=9999px，切换正常、键盘 Tooltip 正确，截图确认圆形；L1 bugfix，skip-design 依据同上。
-- 追加形状修复待上线，retrospective_state=pending。
+- 追加修复提交 `3dc9beb`，集成主线 `436015c` 普通推送并安全快进主工作区；标准 deploy:pages Published，Pages `1b603f790e3953bd0cf253b6dbe4619fdf96c563`（上一版 b9f8503 可恢复）。线上实际消费 `index-DITlwTsN.js` / `index-BoxlsD_b.css`，两种状态均 24×24px、borderRadius=9999px，六项登录导航仍 flex-start/16px；最终截图 `/tmp/gemigo-sidebar-fixed.png`。
+- 追加变更 diff Review no findings；retrospective_state=completed，retrospective_decision=no-increment：同一次默认样式覆盖的另一表现已在原调用方修正，没有新的流程或公共 API 需求。

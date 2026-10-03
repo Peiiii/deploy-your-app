@@ -1,93 +1,90 @@
-import { IconButton } from '@/components/icon-button';
-import { getProjectDescription } from '@/utils/project';
-import React from 'react';
+import type { DragEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GripVertical, Pin } from 'lucide-react';
+import { ArrowDown, ArrowUp, PinOff } from 'lucide-react';
+import { IconButton } from '@/components/icon-button';
 import { useMyProfileStore } from '@/features/profile/stores/my-profile.store';
 import { usePresenter } from '@/contexts/presenter-context';
+import { CreatorProjectCard } from '@/features/profile/components/creator-project-card';
 
-export const ProfilePinnedProjects: React.FC = () => {
-    const { t, i18n } = useTranslation();
-    const presenter = usePresenter();
-
-    const pinnedIds = useMyProfileStore((s) => s.pinnedIds);
-    const draggingPinnedId = useMyProfileStore((s) => s.draggingPinnedId);
-    const actions = useMyProfileStore((s) => s.actions);
-
-    const myProjects = presenter.myProfile.getMyProjects();
-
-    const pinnedProjects = pinnedIds
-        .map((id) => myProjects.find((p) => p.id === id))
-        .filter((p): p is (typeof myProjects)[number] => !!p);
-
-    if (pinnedProjects.length === 0) return null;
-
-    const handleDragStart = (e: React.DragEvent, projectId: string) => {
-        e.stopPropagation();
-        presenter.myProfile.handlePinnedDragStart(projectId);
-    };
-
-    const handleDragOver = (e: React.DragEvent<HTMLDivElement>, projectId: string) => {
-        if (!draggingPinnedId || draggingPinnedId === projectId) return;
-        if (!pinnedIds.includes(projectId)) return;
-        e.preventDefault();
-        e.stopPropagation();
-    };
-
-    const handleDrop = (e: React.DragEvent<HTMLDivElement>, projectId: string) => {
-        e.preventDefault();
-        e.stopPropagation();
-        presenter.myProfile.handlePinnedDrop(projectId);
-    };
-
-    return (
-        <div className="glass-card rounded-xl p-5 border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center justify-between mb-3">
-                <div>
-                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                        {t('profile.pinnedApps')}
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {t('profile.pinnedAppsDescription')}
-                    </p>
-                </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {pinnedProjects.map((project) => (
-                    <div
-                        key={project.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, project.id)}
-                        onDragOver={(e) => handleDragOver(e, project.id)}
-                        onDrop={(e) => handleDrop(e, project.id)}
-                        onDragEnd={presenter.myProfile.handlePinnedDragEnd}
-                        className={`flex items-start gap-3 rounded-lg border px-3 py-2 transition-all cursor-move border-brand-500/60 bg-brand-50 dark:bg-brand-900/20 ${draggingPinnedId === project.id ? 'opacity-80 ring-1 ring-brand-500/60' : ''
-                            }`}
-                    >
-                        <GripVertical className="mt-1 w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                        <div className="min-w-0 flex-1">
-                            <div className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">
-                                {project.name}
-                            </div>
-                            {getProjectDescription(project, i18n.resolvedLanguage || i18n.language) && (
-                                <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">
-                                    {getProjectDescription(project, i18n.resolvedLanguage || i18n.language)}
-                                </div>
-                            )}
-                        </div>
-                        <IconButton label={t('navigation.unpinProject')} size="auto"
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                actions.togglePinned(project.id);
-                            }}
-                            className="flex items-center gap-1 flex-shrink-0 hover:opacity-80"
-                        >
-                            <Pin className="w-4 h-4 text-brand-600 dark:text-brand-400" />
-                        </IconButton>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-};
+export function ProfilePinnedProjects() {
+  const { t } = useTranslation();
+  const presenter = usePresenter();
+  const { pinnedIds, draggingPinnedId, actions } = useMyProfileStore();
+  const projects = presenter.myProfile.getMyProjects();
+  const pinned = pinnedIds
+    .map((id) => projects.find((project) => project.id === id))
+    .filter((project) => !!project);
+  if (!pinned.length) return null;
+  const move = (index: number, offset: number) => {
+    const ids = pinnedIds.slice();
+    const current = ids.indexOf(pinned[index].id);
+    const target = ids.indexOf(pinned[index + offset].id);
+    [ids[current], ids[target]] = [ids[target], ids[current]];
+    actions.setPinnedIds(ids);
+  };
+  const dragOver = (event: DragEvent, id: string) => {
+    if (draggingPinnedId && draggingPinnedId !== id) event.preventDefault();
+  };
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-slate-500 dark:text-slate-400">
+        {t('profile.pinnedAppsDescription')}
+      </p>
+      <div className="creator-grid">
+        {pinned.map((project, index) => (
+          <div
+            key={project.id}
+            draggable
+            onDragStart={(event) => {
+              event.dataTransfer.setData('text/plain', project.id);
+              presenter.myProfile.handlePinnedDragStart(project.id);
+            }}
+            onDragOver={(event) => dragOver(event, project.id)}
+            onDrop={(event) => {
+              event.preventDefault();
+              presenter.myProfile.handlePinnedDrop(project.id);
+            }}
+            onDragEnd={presenter.myProfile.handlePinnedDragEnd}
+            className={draggingPinnedId === project.id ? 'opacity-50' : ''}
+          >
+            <CreatorProjectCard
+              project={project}
+              pinned
+              priority={index < 3}
+              actions={
+                <>
+                  <IconButton
+                    label={t('profile.moveLinkUp')}
+                    size="sm"
+                    disabled={index === 0}
+                    onClick={() => move(index, -1)}
+                    className="text-slate-400 disabled:opacity-30"
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                  </IconButton>
+                  <IconButton
+                    label={t('profile.moveLinkDown')}
+                    size="sm"
+                    disabled={index === pinned.length - 1}
+                    onClick={() => move(index, 1)}
+                    className="text-slate-400 disabled:opacity-30"
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                  </IconButton>
+                  <IconButton
+                    label={t('navigation.unpinProject')}
+                    size="sm"
+                    onClick={() => actions.togglePinned(project.id)}
+                    className="text-brand-500"
+                  >
+                    <PinOff className="h-4 w-4" />
+                  </IconButton>
+                </>
+              }
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

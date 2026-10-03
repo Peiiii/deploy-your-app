@@ -1,74 +1,50 @@
-import { IconButton } from '@/components/icon-button';
-import { getProjectDescription } from '@/utils/project';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { PinOff } from 'lucide-react';
+import { Pin } from 'lucide-react';
+import { IconButton } from '@/components/icon-button';
 import { useMyProfileStore } from '@/features/profile/stores/my-profile.store';
 import { usePresenter } from '@/contexts/presenter-context';
+import { CreatorProjectCard } from '@/features/profile/components/creator-project-card';
 
-export const ProfileAllProjects: React.FC = () => {
-    const { t, i18n } = useTranslation();
-    const presenter = usePresenter();
-
-    const pinnedIds = useMyProfileStore((s) => s.pinnedIds);
-    const actions = useMyProfileStore((s) => s.actions);
-
-    const myProjects = presenter.myProfile.getMyProjects();
-    const pinnedSet = new Set(pinnedIds);
-    const unpinnedProjects = myProjects.filter((p) => !pinnedSet.has(p.id));
-
-    if (unpinnedProjects.length === 0) {
-        if (myProjects.length === 0) {
-            return (
-                <div className="glass-card rounded-xl p-5 border border-slate-200 dark:border-slate-800">
-                    <div className="text-sm text-slate-500 dark:text-slate-400 py-4">
-                        <p className="font-medium mb-1">{t('profile.noPublicApps')}</p>
-                        <p className="text-xs">{t('profile.noPublicAppsHint')}</p>
-                    </div>
-                </div>
-            );
-        }
-        return null;
-    }
-
+export function ProfileAllProjects() {
+  const { t } = useTranslation();
+  const presenter = usePresenter();
+  const { pinnedIds, actions } = useMyProfileStore();
+  const projects = presenter.myProfile.getMyProjects();
+  const others = projects.filter((project) => !pinnedIds.includes(project.id));
+  if (!projects.length)
     return (
-        <div className="glass-card rounded-xl p-5 border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center justify-between mb-3">
-                <div>
-                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                        {t('profile.allApps')}
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {t('profile.clickToPin')}
-                    </p>
-                </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {unpinnedProjects.map((project) => (
-                    <div
-                        key={project.id}
-                        className="flex items-start justify-between gap-3 rounded-lg border px-3 py-2 border-slate-200 dark:border-slate-700"
-                    >
-                        <div className="min-w-0 flex-1">
-                            <div className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">
-                                {project.name}
-                            </div>
-                            {getProjectDescription(project, i18n.resolvedLanguage || i18n.language) && (
-                                <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">
-                                    {getProjectDescription(project, i18n.resolvedLanguage || i18n.language)}
-                                </div>
-                            )}
-                        </div>
-                        <IconButton label={t('navigation.pinProject')} size="auto"
-                            type="button"
-                            onClick={() => actions.togglePinned(project.id)}
-                            className="flex items-center gap-1 flex-shrink-0 hover:opacity-80 transition-opacity"
-                        >
-                            <PinOff className="w-4 h-4 text-slate-400" />
-                        </IconButton>
-                    </div>
-                ))}
-            </div>
-        </div>
+      <div className="rounded-2xl border border-dashed border-slate-200 p-12 text-center dark:border-slate-700">
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+          {t('profile.noPublicApps')}
+        </p>
+        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+          {t('profile.noPublicAppsHint')}
+        </p>
+      </div>
     );
-};
+  if (!others.length) return null;
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-slate-500 dark:text-slate-400">{t('profile.clickToPin')}</p>
+      <div className="creator-grid">
+        {others.map((project, index) => (
+          <CreatorProjectCard
+            key={project.id}
+            project={project}
+            priority={index < 3 && !pinnedIds.length}
+            actions={
+              <IconButton
+                label={t('navigation.pinProject')}
+                size="sm"
+                onClick={() => actions.togglePinned(project.id)}
+                className="text-slate-400 hover:text-brand-500"
+              >
+                <Pin className="h-4 w-4" />
+              </IconButton>
+            }
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
