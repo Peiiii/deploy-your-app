@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "sourceDigest": "b16eaffae308365d41dfc1cf96e33284123637223512f5cfac6162c72df0a55b",
-  "sourceCommit": "024c19baafd429f60ff1c10381d26bd40eed3d10",
+  "sourceDigest": "63538a9579123c7bd284b5c8e0e414890d5ccc70286fadcb08527f9d3b3e5b3d",
+  "sourceCommit": "2d1c0f0c1ae7251af8cb181542e175c8b0c528c5",
   "files": {
     ".agents/skills/development-delivery/SKILL.md": "1b4a211898b4b27fe518f191a501d52a0f0be70b50f15dca91acd907328989c7",
     ".agents/skills/development-delivery/references/release-evolution.md": "6a65a471aa350e6e172aa69dca48cb740900792191f49090f81c1e526322f144",
@@ -13,7 +13,7 @@
     ".agents/skills/development-design/references/feature-design-gate.md": "a420c2bc4f5b05a1941cef0269721ccee6f4937b3601ea249ca69a309514de97",
     ".agents/skills/development-implementation/SKILL.md": "a5eb655a9ab7cf7ee4867cff1e71961007bb8fa58d2d05d473a965a2dcd1524c",
     ".agents/skills/development-implementation/references/implementation-craft.md": "14dc3d8f2a67324a8b46fdba69f6c4cae325c83206fd1f6d5242d35f79cf8e76",
-    ".agents/skills/development-lifecycle/SKILL.md": "910098b62306d1548ab755607d9132c23591fbe4f58b74c631ab99f18fca70bf",
+    ".agents/skills/development-lifecycle/SKILL.md": "b075e14e4207f5c806f1af9493fea23a860ec682437a0227b334614dcf84e22d",
     ".agents/skills/development-lifecycle/references/major-delivery.md": "22aab96c14a502277c510218a5093b02315914dcc6b659743b476902e92a674f",
     ".agents/skills/development-lifecycle/references/token-efficient-delegation.md": "fb8fddd2ca8cd4cc95db1b34f55e06e71333251261c2e44a44d9a4c1022564bb",
     ".agents/skills/development-retrospective/SKILL.md": "eed303d143c6998d1a5156e0c69c2ed396349aa7ace325d7c609e923fe592bea",
@@ -43,9 +43,10 @@
     ".agents/wiki/skills/process/iteration-work-notes/references/major-delivery-records.md": "820de8664f52872ccbbf516cf563b0677c46960ece01996fe02b5de7ce25230b",
     ".agents/wiki/skills/process/iterative-quality-convergence/SKILL.md": "99bee41a2724d5c8519eeffb20ec4681db1a3f08b32d7d6f1de940a1de88db44",
     ".agents/wiki/skills/process/iterative-quality-convergence/agents/openai.yaml": "9d99c7f160833dd6e604e886a31b5d1defc2fdb8a7b5143c81e22b4b9f90f334",
-    ".agents/wiki/skills/process/project-knowledge-governance/SKILL.md": "56b64c2e0064dd3dc1ba3f3b0fa68162b7cf897a30e6384b00505b9571ba3b79",
+    ".agents/wiki/skills/process/project-knowledge-governance/SKILL.md": "afafc56e5c611e6e528e81658649dfc151c226be1df71522a3f74aa4f5c72f74",
     ".agents/wiki/skills/process/project-knowledge-governance/references/development-plan-contract.md": "f191318f23310aa85e180805b3da701e568a18eec91a5b4cd02a096553ebc2ea",
-    ".agents/wiki/skills/process/project-knowledge-governance/references/fact-knowledge.md": "5a8e3ae45a9ab51242de11cb32813759a6b7dbb21a05eb6070b5df4d38e8a921"
+    ".agents/wiki/skills/process/project-knowledge-governance/references/fact-knowledge.md": "5a8e3ae45a9ab51242de11cb32813759a6b7dbb21a05eb6070b5df4d38e8a921",
+    ".agents/wiki/skills/process/project-knowledge-governance/references/long-term-tracks.md": "ddff2af721821543077006275c578cc7a58022b4c7954803f0b2a6c908305145"
   },
   "agents": {
     "mode": "managed",
