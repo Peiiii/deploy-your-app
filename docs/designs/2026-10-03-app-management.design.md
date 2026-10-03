@@ -69,3 +69,13 @@ mode=design Review：原用户目标与纠偏覆盖，复用既有预览/封面/
 返工最终 Review：按当前任务diff手工检查（项目无独立diff-only入口），封面与预览沿首页owner，业务数据仍沿原store；同一卡片只用CSS调整布局，没有平行状态/数据模型；图标动作统一IconButton，链接和封面按钮可键盘操作，布局不依赖点击根div。pnpm check、筛选/排序/视图保留测试、production build通过；暂无开放finding。主线并发升级访问统计，集成后须保留其新数据字段与“已采集”口径，并重验相关证据，不能用旧UI断言覆盖新合同。
 
 主线集成复核：并发 app-analytics 已将 views7d 改为 pageViews，并区分统计周期与采集覆盖。冲突按新字段/7d周期/加载及错误保护整合，概览明确“采集”而非完整访问总量；卡片沿 appAnalytics.observed7d 标签。集成后 pnpm check 和 test-app-management 通过；新版 fixture pageViews=21 的6卡片与概览126对齐，加载过程显示 — 后转为已采集值。上游 test-app-analytics 额外尝试因隔离环境未安装其 Playwright 依赖无法执行，本任务未改动统计服务/采集逻辑，服务端回归沿上游交付证据；本次以浏览器回放验证新统计UI，未将该额外脚本记为通过。新统计口径、两种布局、预览生命周期与旧操作保留复核无开放finding。
+
+## 返工线上交付
+
+实现提交 `376da1a7d15df26ef1303cb8486d1f4f6d50e9d0` 普通推送到 origin/master，主工作区 master 快进同步，未提交并发分析脚本与未跟踪资料。`pnpm deploy:pages` 完成 Published，production HTML 与真实浏览器脚本均为 `/assets/index-qH1uhbdk.js`，样式为 `/assets/index-B59n9eqJ.css`。
+
+线上真实账号：27 应用、4 运行中；1280px三列大封面和列表横排均核对，430px手机无横向溢出。运行中与“小小怪事”搜索组合只显示1个；封面打开首页同款侧栏，真实 iframe 内容加载，筛选与列表选择保留。关闭后复制反馈及剪贴板均正确，管理链接键盘 Enter 进入原项目设置。返回后清除筛选恢复27个，恢复默认卡片视图与浏览器原视口，预览已关闭。验收浏览产生正常采集PV，概览从3到4与卡片3+1对齐，不把测试前数值当固定断言。未更改真实应用配置或权限。
+
+最终截图：`/Users/peiwang/.codex/visualizations/2026/10/03/01a0ffe8-b91c-7242-9ef1-721cc0eb46a9/app-management-home-style-live.jpg`；列表截图 `app-management-home-style-list.jpg` 同目录。隔离测试服务和自建测试标签已关闭。错误/空库等分支沿本地fixture验证，未在生产制造故障；最终审美仍由用户判断。
+
+返工复盘：无溢出和功能可用不足以证明视觉验收；本轮先对照首页完整首屏比例，再按首张卡片操作位置修正移动布局，用户明确否定时回到设计。该过程已记录于同一设计owner，无需另建知识或规则。
