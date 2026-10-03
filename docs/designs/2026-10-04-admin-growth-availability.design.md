@@ -29,13 +29,14 @@ owner为`workers/admin/src/growth.ts`；API路由只完成鉴权/传递，不再
 ## Active acceptance ledger
 
 - contract-id: ADMIN-GROWTH-AVAILABILITY-20261004；parent-goal: 所有正常后台查看不因累计日用量受到人为限制；仅异常暴力请求短期限流，查询成本减少且可观测。
-- scope-revision: 2；scope-confirmation: authorized-implementation-choice（用户明确纠偏，具体技术方案由全托管授权执行）。
+- scope-revision: 4；scope-confirmation: authorized-implementation-choice（用户明确纠偏，具体技术方案由全托管授权执行）。
 
 | ID | Required | 合同 | Status | 证据 |
 | --- | --- | --- | --- | --- |
 | GAV01 | true | 旧日桶993558及100万均不能阻断增长/搜索/产品分析/明细/导出，原口径与鉴权保持 | passed | 组装Worker+真实D1证明5类入口在百万旧账下200，另会话热缓存；独立鉴权保持 |
 | GAV02 | true | 冷成本低于基线、热/并发避免重复聚合；不同周期/跨日/过期/失败恢复正确 | passed | test-admin-growth：34313 vs 44322；10热请求/12并发；跨日/15分钟/损坏/失败恢复 |
 | GAV03 | true | 实际reads可观察，旧预算/客户数据/Secrets/并行改动保持 | passed | 精确diff、tsc/admin+api、ESLint；真实D1精确记账；原子120/min、跨分钟/会话隔离/额外cookie不能绕过 |
+| GAV05 | true | 单人正常浏览的边际成本几乎忽略；20次代表查看统计读取≤100万，热增长不重查，无新增付费资源 | not-run | 用户2026-10-04补充单人低成本要求；待生产测量/官方定价对照 |
 | GAV04 | true | 精确提交推送、主master同步、部署admin并原生产页面7/30成功显示 | not-run | 待部署和线上验收 |
 
 契约Review：不能以只隐藏提示或抬额度通过；必须有原页面真实新响应、完整数据及成本证据。无必要的新套餐选择、通用账单告警、全仓重构或其它产品需求不进入本任务。
@@ -57,3 +58,18 @@ owner为`workers/admin/src/growth.ts`；API路由只完成鉴权/传递，不再
 适用tsc（product-analytics/admin/admin-worker/API）、定向ESLint、admin构建、test:admin、test:analytics、真实D1 acquisition/publication/analytics及组装API注册验证通过。冷成本代表性合成分布与生产实际分开；统计计数不包含数据库所有开销。项目无自动diff-only maintainability检查，采用实际diff Review。
 
 mode=implementation：逐条核对日拒绝移除、4个HTTP保护入口、固定统计口径、实际counter原子更新、缓存单一owner/并发释放/UTC边界、UI预算投影和旧账保护。发现按整个Cookie头生成身份会被额外cookie绕过，已复用认证owner的adminSessionToken并补组装HTTP回归，重验通过。无未关闭finding。GAV04继续not-run，须部署和现有真实管理员页面验收后更新。
+
+## 单人低成本补充（修订3）
+
+用户补充：“我一个人使用的话，它的成本应该几乎忽略不计，不应该很昂贵。”保持修订2的无限日常读取能力，新增GAV05。冻结代表任务为同一管理员15分钟内20次普通浏览/刷新/7↔30/报表/明细/CSV操作；统计查询实际读量累计≤100万（成本门槛，不是产品拒绝额度），缓存命中的经营读取不得重新聚合，不引入新增付费资源/订阅。按Cloudflare官方D1/Workers定价区分新增读写与既有账户固定费用；免费/付费包含额度和全账户其它业务用量不能由本统计诊断推断。
+
+修订3方案Review：复用已实现缓存/删除预检和实际读取counter即可验证，无需另造预算或抬高限额；生产还需按冻结任务取证。GAV05 not-run，其余本地证据保持有效。
+
+
+## 每日注册展示补充（修订4）
+
+用户补充大盘缺少每日新增注册用户。现状：完整增长大盘已有 registrations 日曲线和每日明细/CSV，经营首页只有期间合计及今日注册，未直接展示每日注册趋势。黄金链路：原登录管理员打开经营总览 → 在趋势区直接看到每日新增注册用户 → 切7/30日查看对应日期和人数 → 进入完整增长大盘查看每日明细或导出CSV。注册使用现有 users.created_at 聚合，全部登录方式的新账号，重复登录不增加注册；完整UTC日与今日进行中仍分开。
+
+复用GrowthSummary现有report.daily与GrowthChart增加独立注册图；保留原发布者和访问图，避免藏进切换菜单。无需新请求、SQL、状态或存储，不改变已有空/加载/错误与周期保护。同步首页缓存文案由遗漏的5分钟修正为真实15分钟。plan:not-required。设计Review：用户目标覆盖，两入口数据owner唯一，无新成本，7/30与零新增日由既有数据链支持；无finding，revision4 design-review:passed。
+
+GAV06 Required：经营首页直接显示每日新增注册用户曲线，7/30周期正确，完整大盘明细/CSV继续可用，无新增后台请求。Status:not-run。

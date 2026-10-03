@@ -5,6 +5,9 @@ import { authRepository } from '../workers/api/src/repositories/auth.repository'
 import { projectRepository } from '../workers/api/src/repositories/project.repository';
 import { deploymentRepository } from '../workers/api/src/repositories/deployment.repository';
 import { growthPeriod } from '../workers/admin/src/growth';
+import { queryAcquisition } from '../workers/admin/src/acquisition';
+import { querySqlReport } from '../packages/product-analytics/src/sql-report';
+import { parseFilter, queryEventDetails } from '../packages/product-analytics/src/repository';
 const require = createRequire(import.meta.url);
 const runtime = createRequire(require.resolve('wrangler/package.json'));
 const { Miniflare } = runtime('miniflare');
@@ -477,6 +480,30 @@ try {
   );
   console.log(
     `PASS growth cost: 216 users / 783 apps / 657 attempts / 8153 events; cold ${large.rowsRead} vs old 44322 charged; 10 hot requests repeat no aggregates.`
+  );
+  // One administrator, 20 ordinary views within one cache window: two growth
+  // ranges, 13 repeated views, two source reports, two filters and one export.
+  const monthly = await cached(30, cacheNow);
+  for (let i = 0; i < 13; i++) assert.equal((await cached(i % 2 ? 30 : 7, cacheNow)).cached, true);
+  const sources = await Promise.all([7, 30].map((days) => queryAcquisition(db, days, cacheNow)));
+  const reportUrl = new URL(`https://test/report?from=${period.rawFrom}&to=${period.today}`);
+  const filteredUrl = new URL(reportUrl);
+  filteredUrl.searchParams.set('device', 'mobile');
+  const reports = await Promise.all(
+    [reportUrl, filteredUrl].map((url) => querySqlReport(db, parseFilter(url)))
+  );
+  reportUrl.searchParams.set('export', 'true');
+  const exported = await queryEventDetails(db, parseFilter(reportUrl), reportUrl);
+  assert.equal(exported.items.length, 5000, 'the existing export size bound remains');
+  const workflowReads =
+    large.rowsRead +
+    monthly.rowsRead +
+    sources.reduce((n, r) => n + r.rowsRead, 0) +
+    reports.reduce((n, r) => n + r.rowsRead, 0) +
+    exported.rowsRead;
+  assert.ok(workflowReads <= 1000000, '20 ordinary views have negligible marginal read cost');
+  console.log(
+    `PASS single-admin workflow: 20 views / ${workflowReads} actual statistics reads / no daily quota / bounded export.`
   );
   console.log(
     'PASS growth: complete UTC windows/previous periods, human CF PV vs app PV/visits, daily+period UV dedupe, admin/channel exclusion, actual registration/activation/deploy cohort, today separation, retention nulls, cached/stale/missing upstream, no individual user data.'

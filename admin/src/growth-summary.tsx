@@ -158,6 +158,13 @@ export default function GrowthSummary({
           <div className="growth-grid home-trends">
             <Chart
               daily={report.daily}
+              metric="registrations"
+              title="每日新增注册用户"
+              color="#557bc5"
+              hint="所有登录方式的新账号，按注册日期统计；重复登录不计入。完整 UTC 日，今日新增见上方。"
+            />
+            <Chart
+              daily={report.daily}
               metric="publishers"
               title="每日成功发布创作者"
               color="#7c4fce"
@@ -262,7 +269,7 @@ export default function GrowthSummary({
           </div>
           <p className="caption">
             增长摘要更新于 {new Date(report.generatedAt).toLocaleString('zh-CN')} ·{' '}
-            {report.cached ? '5 分钟内缓存' : '本次查询'}；流量缓存最多 30 分钟。
+            {report.cached ? '15 分钟内缓存' : '本次查询'}；流量缓存最多 30 分钟。
             {report.web.stale ? '流量为上次成功数据。' : ''}
           </p>
         </>
