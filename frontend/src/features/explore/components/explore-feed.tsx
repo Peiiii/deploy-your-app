@@ -1,3 +1,4 @@
+import type { FeedAction } from '../recommendation/feed.manager';
 import { LoadingStatus, Skeleton } from '@/components/skeleton';
 import { IconButton } from '@/components/icon-button';
 import { getProjectDescription } from '@/utils/project';
@@ -7,7 +8,7 @@ import { track } from '@/analytics/collector';
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ThumbsUp, MessageCircle, Star, Share2, Play, X, ChevronLeft } from 'lucide-react';
+import { ThumbsUp, MessageCircle, Star, Share2, Play, X, ChevronLeft, Ban } from 'lucide-react';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
@@ -25,6 +26,9 @@ interface ExploreFeedProps {
     isLoading: boolean;
     onLoadMore: () => void;
     onToggleView: () => void;
+    controls?: React.ReactNode;
+    onActive?: (id: string) => void;
+    onFeedback?: (id: string, action: FeedAction, durationMs?: number) => void;
 }
 
 const buildAvatarFallback = (author: ProjectComment['author']): string => {
@@ -61,6 +65,7 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
     isLoading,
     onLoadMore,
     onToggleView,
+    controls, onActive, onFeedback,
 }) => {
     const { t } = useTranslation();
     const [activeIndex, setActiveIndex] = useState(0);
@@ -89,6 +94,7 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
                     if (entry.isIntersecting) {
                         const index = Number(entry.target.getAttribute('data-index'));
                         setActiveIndex(index);
+                        if (apps[index]) onActive?.(apps[index].id);
                     }
                 });
             },
@@ -120,7 +126,7 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
             observer.disconnect();
             container?.removeEventListener('scroll', handleScroll);
         };
-    }, [apps.length, lastScrollTop]);
+    }, [apps, lastScrollTop, onActive]);
 
     return (
         <div className="fixed inset-0 z-[100] bg-black overflow-hidden flex flex-col">
@@ -140,7 +146,7 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
                 </div>
 
                 {/* Center - Empty/Spacing */}
-                <div className="flex-1" />
+                <div className="flex-1 flex justify-center">{controls}</div>
 
                 {/* Right Side - Close Button */}
                 <div className="flex-1 flex justify-end">
@@ -180,6 +186,7 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
                                 isRendered={isVisible}
                                 isActive={isActive}
                                 onEnterStateChange={setIsAnyAppEntered}
+                                onFeedback={onFeedback}
                             />
                         </div>
                     );
@@ -194,15 +201,17 @@ interface FeedItemProps {
     isRendered: boolean;
     isActive: boolean;
     onEnterStateChange: (isEntered: boolean) => void;
+    onFeedback?: (id: string, action: FeedAction, durationMs?: number) => void;
 }
 
-const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterStateChange }) => {
+const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterStateChange, onFeedback }) => {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const presenter = usePresenter();
     const currentUser = useAuthStore((s) => s.user);
     const reactionEntry = useReactionStore((s) => s.byProjectId[app.id]);
     const [isEntered, setIsEntered] = useState(false);
+    const [dismissed, setDismissed] = useState(false);
     const [isCommentsOpen, setIsCommentsOpen] = useState(false);
     const [comments, setComments] = useState<ProjectComment[]>([]);
     const [commentsTotal, setCommentsTotal] = useState(0);
@@ -365,9 +374,22 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
 
     useEffect(() => {
         if (!isActive || !isRendered) return;
-        const timer = window.setTimeout(() => track('app_preview'), 300);
-        return () => window.clearTimeout(timer);
-    }, [isActive, isRendered, app.id]);
+        let visibleSince = document.visibilityState === 'visible' ? Date.now() : 0;
+        let timer: number | undefined;
+        const expose = () => {
+            if (document.visibilityState !== 'visible') return;
+            visibleSince = Date.now();
+            timer = window.setTimeout(() => { track('app_preview'); onFeedback?.(app.id, 'exposure'); }, 300);
+        };
+        const visibility = () => {
+            window.clearTimeout(timer);
+            if (document.visibilityState === 'visible') expose();
+            else if (visibleSince) { onFeedback?.(app.id, 'dwell', Date.now()-visibleSince); visibleSince=0; }
+        };
+        expose(); document.addEventListener('visibilitychange', visibility);
+        return () => { window.clearTimeout(timer); document.removeEventListener('visibilitychange', visibility);
+            if (visibleSince) onFeedback?.(app.id, 'dwell', Date.now()-visibleSince); };
+    }, [isActive, isRendered, app.id, onFeedback]);
 
     // Reset enter state when moving away
     useEffect(() => {
@@ -381,6 +403,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
     }, [isActive, isEntered, onEnterStateChange]);
 
     const handleEnter = () => {
+        onFeedback?.(app.id, 'exposure'); onFeedback?.(app.id, 'open');
         setIsEntered(true);
         onEnterStateChange(true);
     };
@@ -445,6 +468,8 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                     <iframe
                         ref={iframeRef}
                         src={app.url}
+                        onLoad={() => onFeedback?.(app.id, 'loaded')}
+                        onError={() => onFeedback?.(app.id, 'load_error')}
                         className="w-full h-full border-none bg-white transition-all duration-300"
                         title={app.name}
                     />
@@ -526,7 +551,9 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                     <div className="flex flex-col items-center gap-1">
                         <IconButton label={t('previewActions.like')} size="auto"
                             className="p-2 transition-transform active:scale-90 cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
-                            onClick={() => presenter.reaction.toggleLike(app.id)}
+                            onClick={() => { void presenter.reaction.toggleLike(app.id).then(() => {
+                                if (!isLiked && useReactionStore.getState().byProjectId[app.id]?.likedByCurrentUser) onFeedback?.(app.id, 'like');
+                            }); }}
                         >
                             <ThumbsUp className={`w-8 h-8 text-white transition-colors ${isLiked ? 'fill-[#ff0050] text-[#ff0050]' : 'fill-white/20'}`} />
                         </IconButton>
@@ -550,7 +577,9 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                     <div className="flex flex-col items-center gap-1">
                         <IconButton label={t('previewActions.favorite')} size="auto"
                             className="p-2 transition-transform active:scale-90 cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
-                            onClick={() => presenter.reaction.toggleFavorite(app.id)}
+                            onClick={() => { void presenter.reaction.toggleFavorite(app.id).then(() => {
+                                if (!isFavorited && useReactionStore.getState().byProjectId[app.id]?.favoritedByCurrentUser) onFeedback?.(app.id, 'favorite');
+                            }); }}
                         >
                             <Star className={`w-8 h-8 text-white transition-colors ${isFavorited ? 'fill-yellow-400 text-yellow-400' : 'fill-white/20'}`} />
                         </IconButton>
@@ -566,6 +595,13 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                         <span className="text-white text-xs font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{t('explore.feed.share')}</span>
                     </div>
                 </div>
+
+                {onFeedback && <IconButton label={t(dismissed ? 'explore.recommendation.excluded' : 'explore.recommendation.notInterested')} size="auto" onClick={() => { onFeedback(app.id, 'dismiss'); setDismissed(true); }}
+                    className="absolute bottom-24 left-4 z-40 rounded-full bg-black/50 p-2 text-white/80 hover:text-white">
+                    <Ban className={`w-5 h-5 ${dismissed ? 'text-brand-300' : ''}`} />
+                </IconButton>}
+
+                {dismissed && <p role="status" className="absolute bottom-16 left-4 right-20 text-xs text-white/80">{t('explore.recommendation.excluded')}</p>}
 
                 {/* Comment Drawer */}
                 <div

@@ -533,7 +533,20 @@
       "originalSound": "原声",
       "interactive": "互动"
     },
-    "sortByRecommended": "推荐"
+    "sortByRecommended": "推荐",
+    "recommendation": {
+      "order": "浏览顺序",
+      "discover": "发现作品",
+      "try": "试用推荐",
+      "recent": "最近发布",
+      "preferences": "推荐偏好",
+      "explanation": "此实验根据你在这个流中的浏览与反馈推荐作品。可以清除偏好或关闭历史保存。",
+      "remember": "记住近期兴趣",
+      "clear": "清除我的偏好",
+      "cleared": "偏好已更新",
+      "notInterested": "不感兴趣",
+      "excluded": "之后的推荐会跳过此作品"
+    }
   },
   "project": {
     "projectSettings": "项目设置",

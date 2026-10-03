@@ -1,4 +1,7 @@
 export interface ApiWorkerEnv {
+  RECOMMENDATION_AI?: Ai;
+  /** Signs scoped anonymous feed identities and authenticates module-only operations. */
+  RECOMMENDATION_SECRET?: string;
   ANALYTICS_DB?: D1Database;
   /** Shared Worker secret authenticating privacy-safe app traffic pings. */
   ANALYTICS_INGEST_SECRET?: string;
