@@ -1,6 +1,6 @@
 # 嵌入预览摄像头权限修复
 
-2026-10-03，bugfix / L2，retrospective_state=pending。用户截图“纸境 · 体感素描游戏”开启摄像头后显示未授权；目标是在 GemiGo 网页嵌入打开时能正常向浏览器申请摄像头。
+2026-10-03，bugfix / L2，retrospective_state=completed。用户截图“纸境 · 体感素描游戏”开启摄像头后显示未授权；目标是在 GemiGo 网页嵌入打开时能正常向浏览器申请摄像头。
 
 ## 事实与范围
 
@@ -34,3 +34,11 @@ mode=design：从截图目标核对真实预览路径，根因由实际浏览器
 frontend tsc、2组件及脚本定向 ESLint、production build、diff-check 通过；构建 index-VcCXKRxZ.js / index-B0quAaXB.css。既有 Browserslist 过期及大 bundle 警告仍在，无本次新增构建错误。
 
 mode=implementation：no findings。项目无 diff-only maintainability 自动入口，人工审查本次 diff 与两个 iframe 的 src/sandbox/导航合同：产品仅新增2行 src 范围媒体委派，无通配符、权限状态、预执行调用或生命周期变化；不替用户自动授权。测试覆盖实际媒体结果与拒绝/导航边界。生产交付仍待完成；用户物理设备与操作系统授权不在 AI 合成设备证据内。
+
+## 线上交付与收尾
+
+源码 c982070 普通推送 origin/master；主工作区直接在 master 精确提交，fetch 后 rev-list=0 0 且实际远端 SHA 相同。`pnpm deploy:pages` 发布成功，gh-pages=e29030e2a538fa750d2b622babb6cd17ee724f08；前一版 da1ae6fc5b2b8f1d70e3f5571aa9c439be55e1b8 可作回退依据。仅前端发布，无后台或 Secrets 改动。默认 https://gemigo.io/explore 实际加载 index-VcCXKRxZ.js；线上及本地 JS SHA256 同为 862de308271e5de170573b4df5008b23d6d1e905d93edb040aeadc7dbaceb56b。
+
+生产无 HTTP mock、无 store/DOM 注入：真实探索页搜索“纸境”→打开真实卡片→应用完成初始化后点击“开启摄像头 · 让小人跟着你”→cameraPolicy=true，video track live（fake_device_0），640×480、readyState=4，界面显示“摄像头已开启 · 身体识别加载中”及“关闭摄像头”→点击关闭，srcObject=null。证据 `/tmp/gemigo-camera-production-evidence.json` 与 `/tmp/gemigo-camera-production.png` 已核对。AI 使用合成摄像头验证接口与画面链路；不声称用户物理摄像头、系统授权或真人动作识别已验证。production preview 的同一媒体回归也通过。
+
+所有本任务验收项 passed；已上线、AI 验收通过，待用户实际设备体验确认。最终实现 diff Review no findings。retrospective_decision=no-increment：现有跨源权限标准和两个 iframe owner 足以修复，事实与回归已保留本设计，不新增通用规则/抽象。无关 analytics 脚本修改及未跟踪文件保持原样；收尾记录精确提交后再次 fetch 并核对实际远端 master。
