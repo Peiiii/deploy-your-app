@@ -173,6 +173,10 @@ const MainLayout: React.FC = () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function App() {
+  // Hand off the HTML startup placeholder in the same frame as the first commit.
+  useLayoutEffect(() => {
+    document.documentElement.classList.remove('app-booting');
+  }, []);
   usePageSeo();
   const location = useLocation();
   const pathname = location.pathname || '/';

@@ -8,6 +8,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="version" content="1.0.1" />
 
+    <script>
+      // Establish the enhanced startup state before the first browser paint.
+      document.documentElement.classList.add('app-booting');
+      try {
+        const saved = JSON.parse(localStorage.getItem('gemigo-ui-preferences') || 'null');
+        if (saved?.state?.sidebarCollapsed === true) {
+          document.documentElement.style.setProperty('--bootstrap-sidebar-width', '64px');
+        }
+      } catch { /* Startup still works when storage is unavailable. */ }
+      window.addEventListener('error', (event) => {
+        if (event.target === window || event.target?.type === 'module') {
+          document.documentElement.classList.remove('app-booting');
+        }
+      }, true);
+    </script>
+
     <!-- seo-head -->
     <link rel="dns-prefetch" href="//assets.gemigo.app" />
     <link rel="preconnect" href="https://assets.gemigo.app" crossorigin />
@@ -149,9 +165,56 @@
       .seo-content nav { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; }
       .seo-content a { color: #7c3aed; text-decoration: underline; }
       .dark .seo-content a { color: #c4b5fd; }
+
+      .app-bootstrap { display: none; }
+      .app-booting #root { display: none; }
+      .app-booting body { margin: 0; }
+      .app-booting .app-bootstrap {
+        display: block; height: 100vh; padding: 88px 24px 24px;
+        box-sizing: border-box; overflow: hidden;
+      }
+      .app-bootstrap-sidebar { display: none; }
+      .app-bootstrap-bar, .app-bootstrap-card {
+        background: #e2e8f0; border-radius: 12px;
+      }
+      .app-bootstrap-bar { height: 24px; width: 160px; margin-bottom: 32px; }
+      .app-bootstrap-grid { display: grid; gap: 24px; }
+      .app-bootstrap-card { height: 240px; opacity: .6; }
+      @media (min-width: 768px) {
+        .app-booting .app-bootstrap {
+          padding-left: calc(var(--bootstrap-sidebar-width, 256px) + 24px);
+        }
+        .app-bootstrap-sidebar {
+          display: block; position: fixed; inset: 0 auto 0 0;
+          width: var(--bootstrap-sidebar-width, 256px);
+          background: #ffffff; border-right: 1px solid #e2e8f0;
+        }
+        .app-bootstrap-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (min-width: 1024px) {
+        .app-bootstrap-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .app-bootstrap-card { animation: bootstrap-pulse 2s ease-in-out infinite; }
+        @keyframes bootstrap-pulse { 50% { opacity: .3; } }
+      }
     </style>
   </head>
   <body>
+    <div class="app-bootstrap" role="status" aria-label="Loading">
+      <div aria-hidden="true">
+        <div class="app-bootstrap-sidebar"></div>
+        <div class="app-bootstrap-bar"></div>
+        <div class="app-bootstrap-grid">
+          <div class="app-bootstrap-card"></div>
+          <div class="app-bootstrap-card"></div>
+          <div class="app-bootstrap-card"></div>
+          <div class="app-bootstrap-card"></div>
+          <div class="app-bootstrap-card"></div>
+          <div class="app-bootstrap-card"></div>
+        </div>
+      </div>
+    </div>
     <div id="root"><!-- seo-content --></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
