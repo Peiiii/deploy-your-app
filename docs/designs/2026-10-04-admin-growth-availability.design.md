@@ -29,7 +29,7 @@ owner为`workers/admin/src/growth.ts`；API路由只完成鉴权/传递，不再
 ## Active acceptance ledger
 
 - contract-id: ADMIN-GROWTH-AVAILABILITY-20261004；parent-goal: 所有正常后台查看不因累计日用量受到人为限制；仅异常暴力请求短期限流，查询成本减少且可观测。
-- scope-revision: 4；scope-confirmation: authorized-implementation-choice（用户明确纠偏，具体技术方案由全托管授权执行）。
+- scope-revision: 6；scope-confirmation: authorized-implementation-choice（用户明确纠偏，具体技术方案由全托管授权执行）。
 
 | ID | Required | 合同 | Status | 证据 |
 | --- | --- | --- | --- | --- |
@@ -111,3 +111,8 @@ GAV06 Required：经营首页直接显示每日新增注册用户曲线，7/30�
 修订6当前切片验证：product-analytics/admin/admin-worker/API tsc与admin构建、targeted ESLint通过；API dry-run成功。assembled Worker+D1回归覆盖其他应用/机器人/旧服务器诊断排除、同浏览器跨日周期UV=1而每天UV=1、无存储PV计入UV不计、缺历史null、覆盖内空应用0、admin与原owner服务结果完全一致。隐藏IAB走真实本地管理员登录→应用详情，7/30均显示周期PV3/UV1、7/30行明细、历史—、1个未识别浏览量；真实查询及页面消费通过，不冒充生产会话。
 
 实现Review：公共查询同时替换旧API查询/覆盖投影和admin旧daily消费，无平行口径；复用slug解析避免旧url应用错误归属；无schema/采集/Secret变更，详情分钟保护与实际reads诊断保持正常使用不设日量。实际diff无finding。生产发布与鉴权后的线上详情尚待执行；全应用跨应用UV澄清仍pending，不以没有答复推断新识别授权。
+
+
+修订6切片发布：5f4c6b2已普通推送；API版本27938b50-5bde-45aa-8b23-c28eed7ffe5a、admin版本0ed9213b-4111-443b-a316-b6d26f51bcba。最终线上JS /assets/index-nTFOgyix.js与本地构建完整字节一致（sha256 f3867b8ad3da69f32f7996118878e5ba95da0352579fa2af804a06ff8331ca9a），含官网UV及本应用周期PV/UV。生产浏览器采集起点2026-10-03T05:11:14Z；只读D1核对公开应用33data在当前7天实际采集PV156/UV58，未识别0。此为数据层证据，不冒充生产登录页面截图；没有新采集或跨应用身份。
+
+GAV08本地真实管理员链路/共用owner/类型/部署/产物已验证；生产登录后的详情视觉验收仍unverified，与GAV04同一会话可用性边界。GAV09等用户选定跨应用总UV语义；当前已补齐官网与每个应用PV/UV，未擅自将应用身份汇总宣称跨应用同人去重。复盘增量已修正原PRODUCT_ANALYTICS与应用analytics设计事实，并以真实D1回归保护周期去重/隔离；不新增通用规则。parent保持未关闭直到必要澄清/生产会话验收完成。
