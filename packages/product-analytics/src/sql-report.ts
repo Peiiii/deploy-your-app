@@ -1,5 +1,5 @@
 import { EVENTS } from './contract';
-import { dayKey, reserveReads, readBudgetMessage } from './budget';
+import { dayKey, recordReads } from './budget';
 import { filterSql, type AnalyticsFilter } from './repository';
 import type { summarize } from './report';
 
@@ -8,20 +8,8 @@ type Report = ReturnType<typeof summarize>;
 export const querySqlReport = async (
   db: D1Database,
   filter: AnalyticsFilter
-): Promise<Report & { rowsRead: number; reservedReads: number }> => {
+): Promise<Report & { rowsRead: number }> => {
   const { where, values } = filterSql(filter);
-  const countAllowance = (Math.ceil((filter.to - filter.from) / 86400000) + 2) * 4000 + 100;
-  const bucket = `reads:${dayKey()}`;
-  const countReservation = await reserveReads(db, bucket, countAllowance);
-  if (!countReservation) throw new Error(readBudgetMessage());
-  const count = await db
-    .prepare(`SELECT COUNT(*) total FROM product_events WHERE ${where}`)
-    .bind(...values)
-    .all<{ total: number }>();
-  await countReservation.settle(count.meta.rows_read);
-  const allowance = (count.results[0]?.total || 0) * 64 + 100;
-  const queryReservation = await reserveReads(db, bucket, allowance);
-  if (!queryReservation) throw new Error(readBudgetMessage());
   const base = `WITH f AS MATERIALIZED (SELECT * FROM product_events WHERE ${where}),
     starts AS (SELECT DISTINCT flow_id FROM f WHERE name='deployment_start' AND flow_id IS NOT NULL),
     c0 AS (SELECT session_id,MIN(at) at FROM f WHERE name='project_create_click' GROUP BY session_id),
@@ -46,7 +34,7 @@ export const querySqlReport = async (
     .prepare(base)
     .bind(...values)
     .all<{ report: string }>();
-  await queryReservation.settle(result.meta.rows_read);
+  await recordReads(db, `analysis_reads:${dayKey()}`, result.meta.rows_read);
   const raw = JSON.parse(result.results[0].report) as Report & {
     creation: number[];
     discovery: number[];
@@ -79,6 +67,5 @@ export const querySqlReport = async (
     },
     generatedAt: Date.now(),
     rowsRead: result.meta.rows_read,
-    reservedReads: countAllowance + allowance,
   };
 };

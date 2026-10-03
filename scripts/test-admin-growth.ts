@@ -11,7 +11,7 @@ const { Miniflare } = runtime('miniflare');
 const { build } = runtime('esbuild');
 const bundle = await build({
   stdin: {
-    contents: `import { queryGrowth } from './workers/admin/src/growth'; export default { async fetch(request,env) { try { return Response.json(await queryGrowth(env,new URL(request.url))); } catch(e) { return Response.json({error:e.message},{status:e.status||500}); } } };`,
+    contents: `import { queryGrowth, getGrowthReport } from './workers/admin/src/growth'; export default { async fetch(request,env) { try { const url = new URL(request.url); const now = Number(url.searchParams.get('now')) || Date.now(); return Response.json(await (url.pathname === '/cached-growth' ? getGrowthReport : queryGrowth)(env,url,now)); } catch(e) { return Response.json({error:e.message},{status:e.status||500}); } } };`,
     resolveDir: process.cwd(),
     sourcefile: 'growth-test.ts',
   },
@@ -333,13 +333,150 @@ try {
     'growth response never exposes individual user data'
   );
   assert.equal((await mf.dispatchFetch('https://test/growth?days=90')).status, 400);
-  await db
-    .prepare("UPDATE product_event_limits SET count=1000000 WHERE bucket LIKE 'reads:%'")
-    .run();
+  const baselineReports = new Map([
+    [7, await get(7)],
+    [30, await get(30)],
+  ]);
+  const bucket = `reads:${period.today}`;
+  for (const count of [993558, 1000000]) {
+    await db
+      .prepare(
+        'INSERT INTO product_event_limits VALUES (?,?,?) ON CONFLICT(bucket) DO UPDATE SET count=excluded.count'
+      )
+      .bind(bucket, count, Date.now() + 86400000)
+      .run();
+    for (const days of [7, 30]) {
+      const available = await get(days);
+      const expected = baselineReports.get(days)!;
+      for (const field of [
+        'current',
+        'previous',
+        'daily',
+        'observedUv',
+        'cohort',
+        'previousCohort',
+        'publishing',
+        'channels',
+      ])
+        assert.deepEqual(
+          available[field],
+          expected[field],
+          `quota cannot alter ${days}-day ${field}`
+        );
+      assert.ok(available.rowsRead > 0);
+      assert.ok(!('reservedReads' in available), 'operating cost is actual, not estimated');
+    }
+    assert.equal(
+      (
+        await db
+          .prepare('SELECT count FROM product_event_limits WHERE bucket=?')
+          .bind(bucket)
+          .first()
+      ).count,
+      count,
+      'growth neither consumes nor resets the legacy analysis allowance'
+    );
+  }
+  const charged = async () =>
+    Number(
+      (
+        await db
+          .prepare('SELECT count FROM product_event_limits WHERE bucket=?')
+          .bind(`growth_reads:${period.today}`)
+          .first()
+      ).count
+    );
+  const cached = async (days = 7, now = Date.now()) => {
+    const response = await mf.dispatchFetch(`https://test/cached-growth?days=${days}&now=${now}`);
+    assert.equal(response.status, 200, await response.clone().text());
+    return response.json();
+  };
+  const cacheNow = Date.now();
+  const before = await charged();
+  const simultaneous = await Promise.all(Array.from({ length: 12 }, () => cached(7, cacheNow)));
   assert.equal(
-    (await mf.dispatchFetch('https://test/growth?days=7')).status,
-    429,
-    'growth shares the account daily query allowance'
+    simultaneous.filter((item) => !item.cached).length,
+    1,
+    'same Worker concurrent callers share one generation'
+  );
+  assert.equal((await charged()) - before, simultaneous[0].rowsRead);
+  for (const item of simultaneous) {
+    assert.equal(item.generatedAt, cacheNow);
+    assert.ok(item.web.error, 'upstream failure remains visible in a cached business report');
+  }
+  const hotBefore = await charged();
+  const upstreamBefore = calls;
+  for (let i = 0; i < 10; i++) {
+    const hot = await cached(7, cacheNow + i);
+    assert.equal(hot.cached, true);
+    assert.equal(hot.generatedAt, cacheNow);
+  }
+  assert.equal(await charged(), hotBefore, 'repeated viewing does not repeat aggregation');
+  assert.equal(calls, upstreamBefore, 'upstream failure does not cause a refresh storm');
+  assert.equal((await cached(30, cacheNow)).cached, false, '7/30 day snapshots are isolated');
+  const expired = await cached(7, cacheNow + 15 * 60000);
+  assert.equal(expired.cached, false, 'exactly 15 minutes expires the report');
+  const clockBack = await cached(7, cacheNow);
+  assert.equal(clockBack.cached, false, 'a future timestamp cannot be treated as fresh');
+  await db
+    .prepare("UPDATE analytics_settings SET value='broken JSON' WHERE key='growth_report_v5_7'")
+    .run();
+  assert.equal((await cached(7, cacheNow)).cached, false, 'damaged cache is replaced');
+  const midnight = Date.parse(period.today) + 86400000;
+  await cached(7, midnight - 1);
+  const nextDay = await cached(7, midnight);
+  assert.equal(nextDay.cached, false, 'a one-millisecond-old report from yesterday is invalid');
+  assert.notEqual(nextDay.period.today, period.today);
+  await db.prepare("DELETE FROM analytics_settings WHERE key='growth_report_v5_7'").run();
+  await db.prepare('ALTER TABLE product_events RENAME TO suspended_events').run();
+  assert.equal((await mf.dispatchFetch('https://test/cached-growth?days=7')).status, 500);
+  await db.prepare('ALTER TABLE suspended_events RENAME TO product_events').run();
+  assert.equal((await cached()).cached, false, 'failed in-flight generation releases its slot');
+  // Same cardinalities as the reported production incident, with synthetic data.
+  // The old count/pre-reservation path charged 44,322 reads on this fixture.
+  for (const table of ['product_events', 'deployment_attempts', 'projects', 'users'])
+    await db.prepare(`DELETE FROM ${table}`).run();
+  await db.prepare("DELETE FROM analytics_settings WHERE key LIKE 'growth_report_v5_%'").run();
+  await db
+    .prepare(
+      "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x<216) INSERT INTO users(id,email,created_at,updated_at) SELECT 'u-'||x,'u-'||x||'@example.invalid',?,? FROM n"
+    )
+    .bind(timestamp(1), timestamp(1))
+    .run();
+  await db
+    .prepare(
+      "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x<783) INSERT INTO projects(id,name,repo_url,owner_id,status,is_deleted,last_deployed,created_at) SELECT 'p-'||x,'Synthetic','','u-'||((x%216)+1),'Live',0,?,? FROM n"
+    )
+    .bind(timestamp(1), timestamp(1))
+    .run();
+  await db
+    .prepare(
+      "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x<657) INSERT INTO deployment_attempts(id,project_id,owner_id,source_type,client_channel,status,started_at) SELECT 'd-'||x,'p-'||x,'u-'||((x%216)+1),'html','web','succeeded',? FROM n"
+    )
+    .bind(timestamp(1))
+    .run();
+  await db
+    .prepare(
+      "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x<8153) INSERT INTO product_events(id,name,at,received_at,visitor_id,session_id,page,device,referrer,client_channel,signed_in,is_admin,source) SELECT 'e-'||x,'page_view',?,?,'v-'||(x%300),'s-'||(x%500),'home','desktop','direct','web',0,0,'browser' FROM n"
+    )
+    .bind(Date.parse(timestamp(1)), Date.now())
+    .run();
+  const large = await cached(7, cacheNow);
+  assert.ok(
+    large.rowsRead < 44322,
+    'cold generation must cost less than the original incident fixture'
+  );
+  assert.equal(large.current.registrations, 216);
+  assert.deepEqual(large.cohort, { registered: 216, activated: 216, deployed: 216 });
+  const largeBefore = await charged();
+  await Promise.all(Array.from({ length: 10 }, () => cached(7, cacheNow + 1)));
+  assert.equal(
+    await charged(),
+    largeBefore,
+    'representative repeated viewing has no aggregation cost'
+  );
+  console.log(
+    `PASS growth cost: 216 users / 783 apps / 657 attempts / 8153 events; cold ${large.rowsRead} vs old 44322 charged; 10 hot requests repeat no aggregates.`
   );
   console.log(
     'PASS growth: complete UTC windows/previous periods, human CF PV vs app PV/visits, daily+period UV dedupe, admin/channel exclusion, actual registration/activation/deploy cohort, today separation, retention nulls, cached/stale/missing upstream, no individual user data.'

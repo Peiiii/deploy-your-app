@@ -36,8 +36,8 @@ try {
   for (let i = 0; i < series.length; i += 20) await db.batch(series.slice(i, i + 20).map(e => db.prepare('INSERT INTO product_events (id,name,at,received_at,visitor_id,session_id,page,dimension,duration_ms,flow_id,device,referrer,signed_in,is_admin,source,client_channel,utm_source,utm_medium,utm_campaign) SELECT ?,?, ?,received_at,visitor_id,session_id,page,dimension,duration_ms,?,device,referrer,signed_in,is_admin,source,client_channel,utm_source,utm_medium,utm_campaign FROM product_events LIMIT 1').bind(e.id,e.name,e.at,batch.sessionId)));
   const large = await querySqlReport(db, parseFilter(new URL('https://admin.test')));
   assert.equal(large.summary.events, 1001);
-  assert.ok(large.rowsRead < large.reservedReads, 'read reservation exceeds measured D1 scan cost');
-  console.log('1,001 event report rows read / reserved:', large.rowsRead, large.reservedReads);
+  assert.ok(large.rowsRead < 1001 * 64, 'bounded aggregation stays within representative scan cost');
+  console.log('1,001 event report measured reads:', large.rowsRead);
   await db.prepare("UPDATE analytics_settings SET value=? WHERE key='collection'").bind(JSON.stringify({ enabled: true, dailyEvents: 100 })).run();
   const spent = (await db.prepare('SELECT count FROM product_event_limits WHERE bucket=?').bind('events:' + dayKey()).first()).count;
   await reserve(db, 'events:' + dayKey(), 100 - spent, 100);

@@ -156,6 +156,5 @@ export interface AcquisitionReport {
     averagePosition: number | null;
   };
   generatedAt: number;
-  reservedReads: number;
   rowsRead: number;
 }

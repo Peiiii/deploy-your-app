@@ -52,6 +52,7 @@ export type GrowthReport = {
   };
   generatedAt: number;
   cached: boolean;
+  rowsRead: number;
 };
 export const number = (value: number | null | undefined) =>
   value == null ? '—' : Math.round(value).toLocaleString('zh-CN');

@@ -107,7 +107,7 @@ export default function Growth() {
           <p className="caption">
             {report.period.from} — {report.period.to} · 完整 UTC 日 · 对比{' '}
             {report.period.previousFrom} — {report.period.previousTo} ·{' '}
-            {report.cached ? '5 分钟内缓存' : '本次查询'} · 更新于{' '}
+            {report.cached ? '15 分钟内缓存' : '本次查询'} · 更新于{' '}
             {new Date(report.generatedAt).toLocaleString('zh-CN', { hour12: false })}
           </p>
           {report.web.error && (

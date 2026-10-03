@@ -1,6 +1,5 @@
 import {
-  reserveReads,
-  readBudgetMessage,
+  recordReads,
   type AcquisitionCounts,
   type AcquisitionReport,
 } from '@gemigo/product-analytics';
@@ -74,26 +73,12 @@ export const queryAcquisition = async (
   const rawStart = Math.ceil((now - 30 * DAY) / DAY) * DAY;
   const availableStart = Math.max(periodStart, rawStart);
   const end = todayStart + DAY;
-  const bucket = `reads:${date(now)}`;
-  const countAllowance = (days + 3) * 4000 + 100;
-  const countReservation = await reserveReads(db, bucket, countAllowance);
-  if (!countReservation) throw new AdminInputError(readBudgetMessage(now), 429);
   const tracking = await db
     .prepare('SELECT value FROM analytics_settings WHERE key=?')
     .bind(TRACKING_SETTING)
     .all<{ value: string }>();
   const trackingTime = tracking.results[0] ? Date.parse(tracking.results[0].value) : NaN;
   const trackingStart = Number.isFinite(trackingTime) ? trackingTime : end;
-  const count = await db
-    .prepare('SELECT COUNT(*) AS total FROM product_events WHERE at>=? AND at<?')
-    .bind(availableStart, end)
-    .all<{ total: number }>();
-  await countReservation.settle(tracking.meta.rows_read + count.meta.rows_read);
-  // Two bounded cohort passes. Publication uses indexed session and unique flow
-  // joins in the same D1; 48 rows/event plus 1000 gives lookup headroom.
-  const queryAllowance = (count.results[0]?.total || 0) * 48 + 1000;
-  const queryReservation = await reserveReads(db, bucket, queryAllowance);
-  if (!queryReservation) throw new AdminInputError(readBudgetMessage(now), 429);
   const results = await db
     .prepare(acquisitionSql)
     .bind(availableStart, end, trackingStart, now + 1)
@@ -121,7 +106,8 @@ export const queryAcquisition = async (
     .prepare(acquisitionSql)
     .bind(availableStart, todayStart, trackingStart, todayStart)
     .all<{ report: string }>();
-  await queryReservation.settle(results.meta.rows_read + periodResults.meta.rows_read);
+  const rowsRead = tracking.meta.rows_read + results.meta.rows_read + periodResults.meta.rows_read;
+  await recordReads(db, `analysis_reads:${date(now)}`, rowsRead);
   const period = JSON.parse(periodResults.results[0].report) as typeof raw;
   return {
     period: {
@@ -148,7 +134,6 @@ export const queryAcquisition = async (
       averagePosition: null,
     },
     generatedAt: now,
-    reservedReads: countAllowance + queryAllowance,
-    rowsRead: results.meta.rows_read + periodResults.meta.rows_read,
+    rowsRead,
   };
 };

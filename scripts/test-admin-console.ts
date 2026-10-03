@@ -201,6 +201,72 @@ try {
   assert.equal(summary.deployments.failed, 1);
   assert.equal(summary.daily.length, 7, 'zero deployment dates remain on the axis');
   assert.equal((await request('overview?days=90', cookie)).status, 400);
+  const readBucket = `reads:${now.slice(0, 10)}`;
+  await db
+    .prepare('INSERT INTO product_event_limits VALUES (?,?,?)')
+    .bind(readBucket, 1000000, Date.now() + 86400000)
+    .run();
+  for (const days of [7, 30]) {
+    const coldResponse = await request(`growth?days=${days}`, cookie);
+    assert.equal(coldResponse.status, 200, await coldResponse.clone().text());
+    assert.match(coldResponse.headers.get('cache-control')!, /private, no-store/);
+    const cold = await coldResponse.json();
+    assert.equal(cold.cached, false);
+    assert.equal(cold.period.days, days);
+    const hot = await (await request(`growth?days=${days}`, cookie2)).json();
+    assert.equal(hot.cached, true, 'another valid session shares the report');
+    assert.equal(hot.generatedAt, cold.generatedAt);
+  }
+  const budgetResponse = await (await request('budget', cookie)).json();
+  assert.ok(!budgetResponse.readBudget, 'normal reads have no daily allowance');
+  assert.equal(
+    (
+      await db
+        .prepare('SELECT count FROM product_event_limits WHERE bucket=?')
+        .bind(readBucket)
+        .first()
+    ).count,
+    1000000
+  );
+  assert.ok(budgetResponse.used.growth_reads > 0, 'actual operating reads remain observable');
+  for (const path of [
+    'report',
+    'acquisition?days=7',
+    'acquisition?days=30',
+    'events',
+    'events?export=true',
+  ]) {
+    const response = await request(path, cookie);
+    assert.equal(response.status, 200, await response.clone().text());
+  }
+  const burstCookie = await login(initial);
+  let limited: Response | null = null;
+  for (let i = 0; i < 242; i++) {
+    const response = await request('growth?days=7', burstCookie);
+    if (response.status === 429) {
+      limited = response;
+      break;
+    }
+    assert.equal(response.status, 200);
+  }
+  assert.ok(limited, 'only an abnormal request burst is rejected');
+  assert.ok(
+    Number(limited.headers.get('Retry-After')) >= 1 &&
+      Number(limited.headers.get('Retry-After')) <= 60
+  );
+  assert.match((await limited.json()).error, /查询过于频繁/);
+  assert.equal(
+    (await request('growth?days=7', `unrelated=random; ${burstCookie}; extra=changed`)).status,
+    429,
+    'changing unrelated cookies cannot evade the same authenticated session limit'
+  );
+  assert.equal(
+    (await request('growth?days=7', cookie)).status,
+    200,
+    'another valid session is unaffected'
+  );
+  assert.equal((await request('growth?days=90', cookie)).status, 400);
+  await db.prepare('DELETE FROM product_event_limits WHERE bucket=?').bind(readBucket).run();
   const usersResponse = await request('users?q=example.invalid', cookie);
   assert.match(usersResponse.headers.get('cache-control')!, /no-store/);
   const usersText = await usersResponse.text();

@@ -148,6 +148,7 @@ export const queryEventDetails = async (db: D1Database, filter: AnalyticsFilter,
     items: result[1].results,
     page,
     limit,
+    rowsRead: result.reduce((sum, item) => sum + item.meta.rows_read, 0),
   };
 };
 export const makeServerEvent = (

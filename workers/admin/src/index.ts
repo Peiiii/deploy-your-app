@@ -8,9 +8,12 @@ import {
   queryAnalytics,
   queryEventDetails,
   reserve,
+  recordReads,
+  allowAdminRead,
 } from '@gemigo/product-analytics';
 import {
   authenticated,
+  adminSessionToken,
   changePassword,
   credential,
   initializeAccount,
@@ -23,7 +26,7 @@ import {
 import { maintenanceService } from './maintenance';
 import { AdminInputError, listOperations, manageOperation, overview } from './operations';
 import { listFeedback, feedbackDetail, manageFeedback } from './feedback';
-import { queryGrowth } from './growth';
+import { getGrowthReport } from './growth';
 
 const json = (value: unknown, status = 200, extra: HeadersInit = {}) =>
   new Response(JSON.stringify(value), {
@@ -79,6 +82,22 @@ const handle = async (
     return json({ ok: true }, 200, { 'Set-Cookie': await createSession(env, current.version) });
   }
   if (!(await authenticated(request, env))) return json({ error: '请登录独立管理账号' }, 401);
+  if (
+    request.method === 'GET' &&
+    ['/api/growth', '/api/acquisition', '/api/report', '/api/events'].includes(url.pathname)
+  ) {
+    const now = Date.now();
+    if (
+      !(await allowAdminRead(
+        env.ANALYTICS_DB,
+        await hash(adminSessionToken(request) || ''),
+        now
+      ))
+    )
+      return json({ error: '查询过于频繁，请稍后再试。' }, 429, {
+        'Retry-After': String(60 - (Math.floor(now / 1000) % 60)),
+      });
+  }
   if (url.pathname === '/api/session') return json({ username: env.ADMIN_USERNAME });
   if (url.pathname === '/api/logout' && request.method === 'POST')
     return json({ ok: true }, 200, { 'Set-Cookie': await logout(request, env) });
@@ -108,7 +127,7 @@ const handle = async (
   if (url.pathname === '/api/acquisition' && request.method === 'GET') {
     const days = Number(url.searchParams.get('days') || 7);
     if (![7, 30].includes(days)) throw new AdminInputError('请选择近 7 天或 30 天');
-    const cache = await caches.open('gemigo-acquisition-v2');
+    const cache = await caches.open('gemigo-acquisition-v3');
     const key = new Request(`${url.origin}/__acquisition-cache/${dayKey()}/${days}`);
     const cached = await cache.match(key);
     if (cached) return json({ ...((await cached.json()) as object), cached: true });
@@ -122,21 +141,7 @@ const handle = async (
     return json({ ...report, cached: false });
   }
   if (url.pathname === '/api/growth' && request.method === 'GET') {
-    const days = Number(url.searchParams.get('days') || 7);
-    if (![7, 30].includes(days)) throw new AdminInputError('请选择近 7 天或 30 天');
-    const cache = await caches.open('gemigo-growth-v4');
-    const key = new Request(`${url.origin}/__growth-cache/${dayKey()}/${days}`);
-    const cached = await cache.match(key);
-    if (cached) return json({ ...((await cached.json()) as object), cached: true });
-    const report = await queryGrowth(env, url);
-    if (!report.web.error)
-      ctx.waitUntil(
-        cache.put(
-          key,
-          new Response(JSON.stringify(report), { headers: { 'Cache-Control': 'max-age=300' } })
-        )
-      );
-    return json({ ...report, cached: false });
+    return json(await getGrowthReport(env, url));
   }
   if (url.pathname === '/api/overview' && request.method === 'GET')
     return json(await overview(env.ANALYTICS_DB, url));
@@ -185,7 +190,7 @@ const handle = async (
   if (url.pathname === '/api/report') {
     const filter = parseFilter(url);
     const key = new Request(`${url.origin}/__report-cache/${await hash(JSON.stringify(filter))}`);
-    const cache = await caches.open('gemigo-analytics-v1');
+    const cache = await caches.open('gemigo-analytics-v2');
     const cached = await cache.match(key);
     if (cached) return json({ ...((await cached.json()) as object), cached: true });
     const report = await queryAnalytics(env.ANALYTICS_DB, filter);
@@ -201,10 +206,9 @@ const handle = async (
   }
   if (url.pathname === '/api/events') {
     const filter = parseFilter(url);
-    const cost = (Math.ceil((filter.to - filter.from) / 86400000) + 2) * 2000 * 4 + 100;
-    if (!(await reserve(env.ANALYTICS_DB, `reads:${dayKey()}`, cost, 1000000)))
-      return json({ error: '今日查询预算已用完，请明天再试。' }, 429);
-    return json(await queryEventDetails(env.ANALYTICS_DB, filter, url));
+    const details = await queryEventDetails(env.ANALYTICS_DB, filter, url);
+    await recordReads(env.ANALYTICS_DB, `analysis_reads:${dayKey()}`, details.rowsRead);
+    return json(details);
   }
   return json({ error: 'Not found' }, 404);
 };

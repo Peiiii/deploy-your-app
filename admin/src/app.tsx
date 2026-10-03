@@ -295,7 +295,14 @@ export default function App() {
         setSection(key);
         setError('');
         setNotice('');
-        if (['overview', 'features', 'funnels', 'events', 'settings'].includes(key) && !report)
+        if (key === 'settings')
+          void run(async () => {
+            const b = await api<Budget>('budget');
+            setBudget(b);
+            setEnabled(b.settings.enabled);
+            setDailyEvents(b.settings.dailyEvents);
+          });
+        else if (['overview', 'features', 'funnels', 'events'].includes(key) && !report)
           void run(load);
       }}
     >
@@ -779,8 +786,12 @@ export default function App() {
                         <span>独立补报批次</span>
                       </div>
                       <div>
-                        <strong>{number(budget.used.reads || 0)}</strong>
-                        <span>查询预留行额度 / 100 万</span>
+                        <strong>{number(budget.used.analysis_reads || 0)}</strong>
+                        <span>今日分析统计实际读取行数（UTC）</span>
+                      </div>
+                      <div>
+                        <strong>{number(budget.used.growth_reads || 0)}</strong>
+                        <span>今日经营统计实际读取行数（UTC）</span>
                       </div>
                     </div>
                     <form
@@ -834,8 +845,8 @@ export default function App() {
                     账户的剩余额度。
                   </li>
                   <li>
-                    报表缓存 15 分钟。查询前按日期范围预留保守的读取额度，上限每日 100
-                    万行；达到上限仍可读取已有缓存。
+                    报表缓存 15 分钟，按统计查询实际读取行数记账，不设每日查询额度。
+                    仅对短时间内异常密集的请求限流，稍后即可恢复；正常查看、筛选和导出不受累计用量限制。
                   </li>
                   <li>
                     浏览器不记录邮箱、表单、搜索词、代码、密钥、原始 URL 或

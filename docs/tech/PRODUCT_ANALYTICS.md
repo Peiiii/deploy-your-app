@@ -22,7 +22,7 @@
 - 功能使用：包括零记录功能；点击功能进入明细。
 - 转化与路径：同会话有序漏斗、相邻页面路径。
 - 事件明细：日期、设备、登录状态、事件、会话过滤和 CSV（最多 5000 条）。日期按 UTC，单次最多 30 天。
-- 采集与预算：关闭采集、修改每日事件预算（100–2000）、查看捎带与补报批次和保守查询预留额度。
+- 采集与预算：关闭采集、修改每日事件预算（100–2000）、查看捎带与补报批次和实际统计读取行数。
 
 数据从上线后积累，不能回填历史。匿名浏览器标识不等于自然人；会话对应浏览器标签页。身份状态是服务器接收批次时的状态。部署完成/失败是浏览器观测，不把缺失结果当失败。Do Not Track、拦截器、关闭页面、队列容量、每日预算都会影响覆盖率。当前版本不做全站精确计费统计。
 
@@ -37,7 +37,9 @@ INSERT OR IGNORE INTO analytics_settings (key,value)
 VALUES ('acquisition_registration_start', strftime('%Y-%m-%dT%H:%M:%fZ','now'));
 ```
 
-缺失明细日期和历史注册在界面/CSV显示空缺；零分母转化率null。报表缓存15分钟、无轮询，缓存namespace为acquisition-v2；计数后以固定两次cohort查询的观测事件48倍加1000行预留，保持百万日额度；代表全转化200会话/600事件真实D1两次读取12410行。实际生产验证见 [SEO/GEO记录](../logs/2026-10-03-seo-geo/README.md)。三个读取报表（搜索获客、成长、基础分析）复用budget owner的阶段预留结算：成功取得D1实际rows_read后归还未用额度，并为管理语句保留100行余量；每个阶段只结算一次，失败未知阶段不退款。每日百万上限为应用内共享成本保护，不是Cloudflare套餐或账单；reservedReads仍表示查询的原始估算预留上界，日桶记账会扣除实际归还额。预算不足显示下一次北京时间08:00的具体日期，搜索报表不提供无效重试。注册口径起点不是产品分析全部历史的起点。
+缺失明细日期和历史注册在界面/CSV显示空缺；零分母转化率null。搜索/产品分析报表缓存15分钟、无轮询，namespace为acquisition-v3/analytics-v2；经营报表在analytics_settings的growth_report_v5_7/30共享15分钟快照，跨UTC日立即失效，同Worker并发生成合并，CF失败报告也复用避免重复查询。正常查询、筛选、切换日期和导出不设每日/每月读取额度；旧reads日桶仅保留历史，不参与拒绝或猜测退款。增长、搜索、基础分析和明细移除仅服务估算的预检/预留，按成功查询的D1 rows_read记录growth_reads/analysis_reads实际统计成本；不包含鉴权、缓存和管理语句开销，不是Cloudflare全账户账单。经营与分析原日期/指标/留存定义保持。
+
+仅在独立鉴权之后，growth/acquisition/report/events四个读取入口按有效管理会话每UTC分钟最多120个请求做暴力保护；超过返回短暂429及距下一分钟的Retry-After（1–60秒），下一分钟恢复，其它管理会话不受影响。身份复用原adminSessionToken解析，额外cookie不能绕过。此为异常短时频率控制，正常用量不按天累计拒绝。登录/改密/采集原安全限额不变。注册口径起点不是产品分析全部历史的起点。
 
 新增成功发布会话：可测来源入口→API确认的新注册→同会话服务端deployment_accepted→同flow的deployment_attempts为succeeded且web渠道，尝试开始不早于注册、完成早于观察截止。同一会话最多计一次；不新增用户ID，不用浏览器部署成功事件替代。期间截至各自完整UTC日末；今日及按入口日期的日cohort截至查询时点，日行不能累加代替期间。可测分母为0时publishedSessions为null，有分母且无成功才为0；不能表示跨会话新客激活或长期留存。权威为同一gemigo-projects实例中的事件和不可变尝试，不新增数据库绑定。
 
@@ -51,7 +53,7 @@ Search Console展示/点击/CTR/排名尚未通过API接入后台，返回null�
 2. 无业务请求时至少间隔 120 秒，跨标签页锁和 localStorage 限制每天最多 6 次独立补报。无 Web Locks 或无法保存预算时不补报。不立即重试，不创建独立配置轮询。
 3. 主站现有 Pages 转发层意味着一次补报最多涉及 Pages 与 API 两次 Worker 调用；六次浏览器补报不宣称等于六次 Cloudflare 调用。捎带没有新增 HTTP 请求。
 4. 每天最多预留 2000 个事件，每浏览器最多 200。超限整批丢弃；去重和写入失败不会返还预留预算。实际 D1 写入还包括索引、额度行等写放大。
-5. SQLite 完成报表聚合，避免把大量数据放入免费 Worker 的 JavaScript 内存/CPU。报表缓存 15 分钟；无自动轮询；读取前保守预留额度，每日最高 100 万行，额度不足时要求缩小日期或等下一天。
+5. SQLite 完成报表聚合，避免把大量数据放入免费 Worker 的 JavaScript 内存/CPU。报表缓存 15 分钟；无自动轮询；正常读取不设每日或每月查询额度，只有独立鉴权后的异常短时请求触发限流。查询仍限最多30天，分页与导出有界，记录成功SQL的实际统计读取量。
 6. 每日先把即将删除的事件写入日级聚合，再删除 30 天以前明细；日级聚合保留 90 天。同步清理过期会话、限额、访问去重键，并把超过 24 小时仍在 Building 的项目/部署标记失败。本系统预算不是 Cloudflare 全账户剩余额度。
 7. 关闭采集后数据库停止接收事件；浏览器在下次已有请求收到策略后清空队列并停止补报，可通过后续业务请求恢复配置，无额外轮询。
 
@@ -83,8 +85,8 @@ pnpm exec wrangler d1 execute gemigo-projects --remote -c workers/api/wrangler.t
 pnpm exec wrangler d1 execute gemigo-projects --remote -c workers/admin/wrangler.jsonc --file workers/admin/migrations/0001_admin_console.sql
 ```
 
-增长服务的真人流量权威遵守 `skills/gemigo-customer-analytics/references/metric-contract.md`：CF Web Analytics RUM `bot=0`，账号/两个 siteTag 由 admin Worker vars 定义，使用现有后台服务账号的持久 API token，通过 `ANALYTICS_CF_TOKEN` Worker Secret 安装；不得使用短期 Wrangler OAuth、不进入浏览器或 Git。查询固定字段，流量缓存 30 分钟（既有 analytics_settings 命名 key）与报表缓存 5 分钟，失效上游明确 stale/last fetched，首次失败指标 null。业务查询沿原百万日预算先计数再按实际规模保守预留，不因理论采集上限耗尽额度。采样、DNT、预算和留存分别限制指标覆盖；Cloudflare visits 不能被命名为 UV。运营激活只对同一新注册 cohort 计算，截至周期末持有有效应用与该有效应用成功部署。
+增长服务的真人流量权威遵守 `skills/gemigo-customer-analytics/references/metric-contract.md`：CF Web Analytics RUM `bot=0`，账号/两个 siteTag 由 admin Worker vars 定义，使用现有后台服务账号的持久 API token，通过 `ANALYTICS_CF_TOKEN` Worker Secret 安装；不得使用短期 Wrangler OAuth、不进入浏览器或 Git。查询固定字段，流量缓存 30 分钟（既有 analytics_settings 命名 key）与报表共享缓存 15 分钟，失效上游明确 stale/last fetched，首次失败指标 null。业务查询不依赖产品事件日预算，删除规模计数预检；实际统计读取量单独记账，短时暴力请求才限流。采样、DNT、预算和留存分别限制指标覆盖；Cloudflare visits 不能被命名为 UV。运营激活只对同一新注册 cohort 计算，截至周期末持有有效应用与该有效应用成功部署。
 
 事件合同与查询公共接口由 `packages/product-analytics` 唯一维护。新增功能时添加语义事件/允许的维度、在具体交互或确认结果处接入，再补充对应测试。禁止直接采集 DOM 文本、搜索词、邮箱、代码、密钥或原始 URL。
 
-生产验收同样会占用查询预留：执行前记录现有日预留基线，并保存每次非缓存响应的 `reservedReads` 与生成时间；缓存命中不能重复归账。收尾仅恢复能明确归属本次验收的预留，保护既有实际使用与所有其它用量，不清零采集或查询预算。升级缓存 namespace 会再次产生查询预留，切换版本后的验证范围应只覆盖受影响行为。
+生产验收使用现有正常管理员会话，保存非缓存报告的rowsRead与生成时间，重复请求应命中同一快照并不增加统计读取账。真实查询成本正常记录，不按旧reservedReads退款，不清零历史预算；升级namespace会重新生成一次，验证覆盖受影响经营、搜索、基础分析与明细/CSV入口即可。

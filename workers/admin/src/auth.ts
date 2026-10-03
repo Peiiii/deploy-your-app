@@ -63,7 +63,7 @@ export const changePassword = async (env: AdminEnv, current: Credential, passwor
   ]);
   return results[0].meta.changes === 1;
 };
-const token = (request: Request) =>
+export const adminSessionToken = (request: Request) =>
   request.headers
     .get('cookie')
     ?.split(';')
@@ -74,7 +74,7 @@ const token = (request: Request) =>
 const sessionHash = (value: string, version: number) =>
   hash(version === 0 ? value : `${version}:${value}`);
 export const authenticated = async (request: Request, env: AdminEnv) => {
-  const value = token(request);
+  const value = adminSessionToken(request);
   if (!value || !/^[a-f0-9]{64}$/.test(value)) return false;
   return Boolean(
     await env.ANALYTICS_DB.prepare(
@@ -92,7 +92,7 @@ export const createSession = async (env: AdminEnv, version: number) => {
   return `${COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=43200`;
 };
 export const logout = async (request: Request, env: AdminEnv) => {
-  const value = token(request);
+  const value = adminSessionToken(request);
   if (value)
     await env.ANALYTICS_DB.prepare('DELETE FROM admin_sessions WHERE token_hash=?')
       .bind(await sessionHash(value, (await credential(env)).version))

@@ -1,4 +1,4 @@
-import { reserveReads, readBudgetMessage } from '@gemigo/product-analytics';
+import { recordReads } from '@gemigo/product-analytics';
 import type { AdminEnv } from './auth';
 import { AdminInputError } from './operations';
 
@@ -132,33 +132,7 @@ const webAnalytics = async (
 export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => {
   const period = growthPeriod(Number(url.searchParams.get('days') || 7), now);
   const db = env.ANALYTICS_DB;
-  const bucket = `reads:${day(now)}`;
-  const countReservation = await reserveReads(db, bucket, 10000);
-  if (!countReservation) throw new AdminInputError(readBudgetMessage(now), 429);
   const end = day(Date.parse(period.today) + DAY);
-  // Count first, as the shared report owner does; reserve for observed rows rather
-  // than spending the entire daily allowance on hypothetical collection capacity.
-  const size = await db
-    .prepare(
-      `SELECT (SELECT COUNT(*) FROM users) AS users,
-    (SELECT COUNT(*) FROM projects) AS projects,
-    (SELECT COUNT(*) FROM deployment_attempts) AS attempts,
-    (SELECT COUNT(*) FROM product_events WHERE at>=? AND at<?) AS events`
-    )
-    .bind(Math.max(Date.parse(period.previousFrom), Date.parse(period.rawFrom)), Date.parse(end))
-    .all<{ users: number; projects: number; attempts: number; events: number }>();
-  const rows = size.results[0];
-  await countReservation.settle(size.meta.rows_read);
-  const queryAllowance = Math.max(
-    10000,
-    rows.events * 4 +
-      (rows.users + rows.projects) * 12 +
-      rows.attempts * 18 +
-      Math.max(0, size.meta.rows_read - 10000)
-  );
-  const reservedReads = 10000 + queryAllowance;
-  const queryReservation = await reserveReads(db, bucket, queryAllowance);
-  if (!queryReservation) throw new AdminInputError(readBudgetMessage(now), 429);
   const registrationCohort = (from: string, to: string) =>
     db
       .prepare(
@@ -248,7 +222,10 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
       registrationCohort(period.previousFrom, period.from),
     ]),
   ]);
-  await queryReservation.settle(results.reduce((sum, result) => sum + result.meta.rows_read, 0));
+  // Operational reporting records actual completed statistics.
+  // Record completed D1 work, without charging hypothetical scan reservations.
+  const rowsRead = results.reduce((sum, result) => sum + result.meta.rows_read, 0);
+  await recordReads(db, `growth_reads:${day(now)}`, rowsRead);
   const maps = results
     .slice(0, 4)
     .map((result) => new Map(result.results.map((row) => [String(row.day), row])));
@@ -366,6 +343,53 @@ export const queryGrowth = async (env: AdminEnv, url: URL, now = Date.now()) => 
     devices: web.data?.devices || [],
     web: { fetchedAt: web.fetchedAt, stale: web.stale, error: web.error, adaptiveSampling: true },
     generatedAt: now,
-    reservedReads,
+    rowsRead,
   };
+};
+
+// Both administration views share the same persisted report across locations.
+// In-flight requests in one Worker also share a single generation.
+const pendingGrowth = new Map<
+  string,
+  Promise<Awaited<ReturnType<typeof queryGrowth>> & { cached: boolean }>
+>();
+export const getGrowthReport = async (env: AdminEnv, url: URL, now = Date.now()) => {
+  const period = growthPeriod(Number(url.searchParams.get('days') || 7), now);
+  const key = `growth_report_v5_${period.days}`;
+  const requestKey = `${period.today}:${period.days}`;
+  const pending = pendingGrowth.get(requestKey);
+  if (pending) return { ...(await pending), cached: true };
+  const work = (async () => {
+    const saved = await env.ANALYTICS_DB.prepare('SELECT value FROM analytics_settings WHERE key=?')
+      .bind(key)
+      .first<{ value: string }>();
+    if (saved) {
+      try {
+        const snapshot = JSON.parse(saved.value) as Awaited<ReturnType<typeof queryGrowth>>;
+        const age = now - snapshot.generatedAt;
+        if (
+          snapshot.period.days === period.days &&
+          snapshot.period.today === period.today &&
+          age >= 0 &&
+          age < 15 * 60000
+        )
+          return { ...snapshot, cached: true };
+      } catch {
+        // A damaged cache is replaced by a newly computed report.
+      }
+    }
+    const report = await queryGrowth(env, url, now);
+    await env.ANALYTICS_DB.prepare(
+      'INSERT INTO analytics_settings (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value'
+    )
+      .bind(key, JSON.stringify(report))
+      .run();
+    return { ...report, cached: false };
+  })();
+  pendingGrowth.set(requestKey, work);
+  try {
+    return await work;
+  } finally {
+    pendingGrowth.delete(requestKey);
+  }
 };
