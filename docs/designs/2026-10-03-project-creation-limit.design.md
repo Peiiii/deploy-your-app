@@ -33,9 +33,11 @@ contract-id=project-creation-limit-2026-10-03；parent-goal=以宽松简单限�
 | --- | --- | --- | --- |
 | Q1 | true | 草稿与 classic 入口覆盖；并发最多 20，错误非地址冲突 | passed / test:project-creation-limit |
 | Q2 | true | 北京时间自然日重置；私有、软删除计入；失败不扣，账号独立 | passed / test:project-creation-limit |
-| Q3 | true | 达限中英文提示、表单保留、旧应用仍可更新且 ID/网址不变 | not-run |
-| Q4 | true | 检查与 Review 通过，API/前端线上生效，精确提交推送和本地主线同步 | not-run |
+| Q3 | true | 达限中英文提示、表单保留、旧应用仍可更新且 ID/网址不变 | passed / 线上真实更新、截图与 production-update.json |
+| Q4 | true | 检查与 Review 通过，API/前端线上生效，精确提交推送和本地主线同步 | passed / 7d680bd、Worker/Pages 生产验收；Git 收尾记录 |
 
 ## 方案 Review
 
 独立反查用户“简单、宽松”要求与网页/CLI入口：20 高于近期最高 16；新增事实复用现有记录；原子写保护覆盖并发；不限制旧应用部署；软删除不返额度；所有创建路径 owner 来自认证。无开放 finding，design-review=passed。维护性审计：一个 quota helper 拥有数值与日历，repository 拥有计数和写入；错误传输字段均有现用消费者。无需增建通用限流基础设施。
+
+验证、部署、清理、恢复与复盘详见[交付证据](../logs/2026-10-03-project-creation-limit/README.md)。无开放 Required 项；最终完成条件由 Git 收尾核对确认。

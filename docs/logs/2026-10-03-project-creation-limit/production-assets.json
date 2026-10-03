@@ -1,0 +1,16 @@
+[
+  {
+    "origin": "https://gemigo.io",
+    "status": 200,
+    "assets": [
+      "assets/index-DasDi2gt.js"
+    ]
+  },
+  {
+    "origin": "https://gemigo.pages.dev",
+    "status": 200,
+    "assets": [
+      "assets/index-DasDi2gt.js"
+    ]
+  }
+]

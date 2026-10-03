@@ -1,0 +1,27 @@
+{
+  "identityPreserved": true,
+  "newProjectCountUnchanged": {
+    "total": 20,
+    "private": 20,
+    "deleted": 1
+  },
+  "activeProjectCount": 19,
+  "app": {
+    "id": "bf96b468-2c75-4d45-96ad-29ca77d29704",
+    "name": "新增额度验收",
+    "slug": "quota-qa-142f630b",
+    "url": "https://quota-qa-142f630b.gemigo.app/",
+    "isPublic": false,
+    "lastSuccessAt": "2026-10-03T11:22:01.479Z"
+  },
+  "deployment": {
+    "status": "succeeded",
+    "stage": "complete",
+    "buildMode": "static",
+    "errorCode": null,
+    "errorMessage": null,
+    "startedAt": "2026-10-03T11:21:58.977Z",
+    "finishedAt": "2026-10-03T11:22:01.615Z"
+  },
+  "originalUrlUpdatedTo": "Q3 update after daily limit"
+}
