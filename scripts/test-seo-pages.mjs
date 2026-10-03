@@ -80,11 +80,6 @@ const mf = new Miniflare({
             total: 25,
           });
     }
-    if (url.pathname.startsWith('/api/v1/apps/')) {
-      if (url.pathname.endsWith('/private')) return new Response('missing', { status: 404 });
-      if (url.pathname.endsWith('/broken')) return new Response('down', { status: 503 });
-      return Response.json({ app: project });
-    }
     if (url.pathname.includes('/profile')) {
       if (url.pathname.includes('/missing/')) return new Response('missing', { status: 404 });
       if (url.pathname.includes('/broken/')) return new Response('down', { status: 500 });
@@ -159,6 +154,7 @@ try {
     const html = await response.text();
     assert.ok(html.includes('href="https://science.gemigo.app/"') && html.includes('/u/alice'));
     assert.ok(html.includes('Science &lt;app&gt;'));
+    assert.ok(!html.includes('href="/app/') && !html.includes('href="https://gemigo.io/app/'));
     assert.ok(
       !html.includes('PRIVATE_SOURCE') &&
         !html.includes('private@example.test') &&
@@ -173,17 +169,8 @@ try {
       catalog.includes('/catalog?page=3')
   );
   assert.equal((await mf.dispatchFetch('https://gemigo.io/catalog?page=4')).status, 404);
-  const appResponse = await mf.dispatchFetch('https://gemigo.io/app/public');
-  assert.equal(appResponse.status, 200);
-  assert.equal(appResponse.headers.has('x-robots-tag'), false);
-  const appHtml = await appResponse.text();
-  assert.ok(
-    appHtml.includes('Science &lt;app&gt; | GemiGo') &&
-      appHtml.includes('href="https://gemigo.io/app/public"')
-  );
-  assert.ok(!appHtml.includes('PRIVATE_SOURCE') && !appHtml.includes('private@example.test'));
-  assert.equal((await mf.dispatchFetch('https://gemigo.io/app/private')).status, 404);
-  assert.equal((await mf.dispatchFetch('https://gemigo.io/app/broken')).status, 503);
+  for (const path of ['/app/public', '/app/private', '/app/broken'])
+    assert.equal((await mf.dispatchFetch('https://gemigo.io' + path)).status, 404);
   const profileResponse = await mf.dispatchFetch('https://gemigo.io/u/alice');
   const profile = await profileResponse.text();
   assert.equal(profileResponse.headers.has('x-robots-tag'), false);

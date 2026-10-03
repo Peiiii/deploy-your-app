@@ -871,28 +871,5 @@
     "reportEvidence": "Include the full app URL, the suspected violation, when you observed it and necessary evidence. You do not need to download or redistribute illegal material. Do not submit passwords, secrets or unrelated personal information.",
     "reportPrivacy": "Only you and the GemiGo team can read your feedback. View replies or add details in “My feedback”.",
     "reportAction": "Open private feedback (sign-in required)"
-  },
-  "appDetail": {
-    "share": "Copy work link",
-    "view": "Work page",
-    "copyError": "Could not copy. Open the work page and copy its address.",
-    "unavailable": "This work is unavailable",
-    "unavailableHint": "It may be private or no longer published.",
-    "loadError": "Could not load this work",
-    "retryHint": "Please try again in a moment.",
-    "reactionError": "Could not save your reaction. Please try again.",
-    "experience": "Try this work",
-    "start": "Start exploring",
-    "manageFeedback": "Manage feedback",
-    "createTitle": "Have an idea of your own?",
-    "createHint": "Publish your HTML or ZIP and share it with others.",
-    "create": "Publish a work",
-    "feedbackTab": "Sharing & feedback",
-    "shareTitle": "Invite people to try your work",
-    "shareHint": "Share a page with your introduction, live app and comments. Update the introduction in General.",
-    "notShareable": "The work page is available once this project is public and live.",
-    "editIntro": "Edit introduction & visibility",
-    "viewAnalytics": "View PV / UV",
-    "feedbackHint": "Comments here are shared with the work page and preview. Reply to questions and use suggestions for your next update."
   }
 }
