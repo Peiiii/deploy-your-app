@@ -11,7 +11,9 @@ export async function indexPending(env: ApiWorkerEnv, requested = 16) {
   if (!config.enabled || !env.RECOMMENDATION_AI || config.embedding !== EMBEDDING_MODEL)
     return { indexed: 0, reason: 'disabled' };
   const catalog = await projectRepository.queryPublicFeedItems(db, {});
-  const old = new Map((await features(db)).map((f) => [f.project_id, f]));
+  const old = new Map(
+    (await features(db, env.RECOMMENDATION_SECRET || db)).map((f) => [f.project_id, f])
+  );
   const pending = catalog
     .filter((p) => {
       const f = old.get(p.id);

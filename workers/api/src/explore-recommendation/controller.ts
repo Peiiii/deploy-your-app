@@ -32,12 +32,18 @@ async function inputBody(request: Request): Promise<Record<string, unknown>> {
 }
 export async function handleFeed(request: Request, env: ApiWorkerEnv) {
   const started = performance.now();
+  let previous = started;
+  const stages: string[] = [];
   const response = privateResponse(
-    await feedRequest(request, env, (await inputBody(request)) as FeedInput)
+    await feedRequest(request, env, (await inputBody(request)) as FeedInput, (name) => {
+      const now = performance.now();
+      stages.push(`${name};dur=${(now - previous).toFixed(1)}`);
+      previous = now;
+    })
   );
   response.headers.set(
     'Server-Timing',
-    `recommendation;dur=${(performance.now() - started).toFixed(1)}`
+    `recommendation;dur=${(performance.now() - started).toFixed(1)},${stages.join(',')}`
   );
   return response;
 }

@@ -66,9 +66,15 @@ const actions = new Set([
   'dwell',
 ]);
 
-export async function feedRequest(request: Request, env: ApiWorkerEnv, input: FeedInput) {
+export async function feedRequest(
+  request: Request,
+  env: ApiWorkerEnv,
+  input: FeedInput,
+  mark: (name: string) => void = () => {}
+) {
   const db = env.PROJECTS_DB;
   const config = await settings(db);
+  mark('settings');
   if (input.action === 'status')
     return { enabled: !!config.enabled, experiment: config.experiment };
   const options = filtersOf(input);
@@ -76,6 +82,7 @@ export async function feedRequest(request: Request, env: ApiWorkerEnv, input: Fe
   const persistent = input.persistent !== false && request.headers.get('DNT') !== '1';
   const identityResult = await resolveIdentity(request, env, input.token, persistent);
   const { identity, token } = identityResult;
+  mark('identity');
   const mode = ['recent', 'recommended'].includes(input.mode) ? input.mode : 'experiment';
   const assigned =
     stableHash(config.experiment + ':' + identity.subject) % 100 < config.percent
@@ -179,9 +186,23 @@ export async function feedRequest(request: Request, env: ApiWorkerEnv, input: Fe
       throw new ValidationError('Expired or mismatched cursor');
   }
   if (!batch) {
-    if (!(await rateLimit(db, identity.subject, 'batch', 20))) throw new RateLimitError();
-    const catalog = await projectRepository.queryPublicFeedItems(db, options);
-    const historical = persistent ? await interests(db, identity.subject) : [];
+    const [allowed, catalog, historical, indexed, exposed] = await Promise.all([
+      rateLimit(db, identity.subject, 'batch', 20),
+      projectRepository.queryPublicFeedItems(db, options, undefined, 'candidate'),
+      persistent ? interests(db, identity.subject) : Promise.resolve([]),
+      treatment ? features(db, env.RECOMMENDATION_SECRET) : Promise.resolve([]),
+      persistent
+        ? db
+            .prepare(
+              `SELECT DISTINCT project_id AS id FROM explore_rec_events
+        WHERE subject=? AND action='exposure' AND created_at>? LIMIT 1500`
+            )
+            .bind(identity.subject, Date.now() - 2 * 3600000)
+            .all<{ id: string }>()
+        : Promise.resolve({ results: [] }),
+    ]);
+    mark('candidates');
+    if (!allowed) throw new RateLimitError();
     const sessionInterests = Array.isArray(input.sessionInterests)
       ? input.sessionInterests
           .slice(0, 30)
@@ -197,15 +218,6 @@ export async function feedRequest(request: Request, env: ApiWorkerEnv, input: Fe
       : [];
     const behavior = [...sessionInterests, ...historical];
     // Unconsumed/aborted initial requests must not hide an entire 40-item batch.
-    const exposed = persistent
-      ? await db
-          .prepare(
-            `SELECT DISTINCT project_id AS id FROM explore_rec_events
-      WHERE subject=? AND action='exposure' AND created_at>? LIMIT 1500`
-          )
-          .bind(identity.subject, Date.now() - 2 * 3600000)
-          .all<{ id: string }>()
-      : { results: [] };
     const seen = new Set(exposed.results.map((p) => p.id));
     const blocked = new Set(behavior.filter((i) => i.action === 'dismiss').map((i) => i.projectId));
     if (Array.isArray(input.excludeIds))
@@ -216,7 +228,7 @@ export async function feedRequest(request: Request, env: ApiWorkerEnv, input: Fe
     if (treatment) {
       const candidates = createCandidates(
         available,
-        (await features(db)).filter((f) => f.model === config.embedding),
+        indexed.filter((f) => f.model === config.embedding),
         behavior,
         identity.subject + config.experiment,
         catalog
@@ -250,6 +262,7 @@ export async function feedRequest(request: Request, env: ApiWorkerEnv, input: Fe
         } else algorithm = 'content-fallback';
       }
       selected = diversify(selected);
+      mark('ranking');
     }
     const now = Date.now();
     batch = {
@@ -265,6 +278,7 @@ export async function feedRequest(request: Request, env: ApiWorkerEnv, input: Fe
     };
     // DNT identities use signed stateless snapshots instead of persistent batches/events.
     if (persistent) await saveBatch(db, batch);
+    mark('snapshot');
   }
   const ids = JSON.parse(batch.items) as string[];
   const currentInterests = persistent
@@ -276,32 +290,35 @@ export async function feedRequest(request: Request, env: ApiWorkerEnv, input: Fe
     currentInterests.filter((i) => i.action === 'dismiss').map((i) => i.projectId)
   );
   const slice = ids.slice(offset, offset + 12).filter((id) => !dismissed.has(id));
-  // Recheck current visibility, URL, language and explicit filters after model await/cache.
-  const current = await projectRepository.queryPublicFeedItems(db, options, slice);
+  // Recheck current visibility after model/cache. Counts are parallel and only returned for still-public IDs.
+  const [current, counts] = await Promise.all([
+    projectRepository.queryPublicFeedItems(db, options, slice),
+    slice.length
+      ? db
+          .prepare(
+            `SELECT p.id,
+      (SELECT COUNT(*) FROM project_likes WHERE project_id=p.id) AS likesCount,
+      (SELECT COUNT(*) FROM project_favorites WHERE project_id=p.id) AS favoritesCount FROM projects p
+      WHERE p.id IN (SELECT value FROM json_each(?))`
+          )
+          .bind(JSON.stringify(slice))
+          .all<{ id: string; likesCount: number; favoritesCount: number }>()
+      : Promise.resolve({ results: [] }),
+  ]);
+  mark('delivery');
   const currentById = new Map(current.map((p) => [p.id, p]));
   const items = await publicAuthorService.enrichProjects(
     db,
     slice.map((id) => currentById.get(id)).filter(Boolean)
   );
-  const counts = items.length
-    ? await db
-        .prepare(
-          `SELECT p.id,
-    (SELECT COUNT(*) FROM project_likes WHERE project_id=p.id) AS likesCount,
-    (SELECT COUNT(*) FROM project_favorites WHERE project_id=p.id) AS favoritesCount FROM projects p
-    WHERE p.id IN (SELECT value FROM json_each(?))`
-        )
-        .bind(JSON.stringify(items.map((p) => p.id)))
-        .all<{ id: string; likesCount: number; favoritesCount: number }>()
-    : { results: [] };
+  mark('authors');
   return {
     ...base,
     items,
     engagement: Object.fromEntries(
-      (counts.results || []).map((r) => [
-        r.id,
-        { likesCount: r.likesCount, favoritesCount: r.favoritesCount },
-      ])
+      (counts.results || [])
+        .filter((r) => currentById.has(r.id))
+        .map((r) => [r.id, { likesCount: r.likesCount, favoritesCount: r.favoritesCount }])
     ),
     batch: batch.id,
     cursor:

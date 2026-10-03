@@ -9,6 +9,15 @@ export interface Feature {
   vector: string | null;
   retry_at: number;
 }
+const decoded = new WeakMap<Feature, number[]>();
+function featureVector(f: Feature): number[] {
+  let vector = decoded.get(f);
+  if (!vector) {
+    vector = unpackVector(f.vector!);
+    decoded.set(f, vector);
+  }
+  return vector;
+}
 export interface Interest {
   projectId: string;
   action: string;
@@ -70,7 +79,7 @@ export function createCandidates(
     const weight =
       (i.action === 'favorite' ? 3 : i.action === 'like' ? 2 : 1) *
       Math.exp(-(Date.now() - i.at) / (7 * 86400000));
-    unpackVector(f.vector).forEach((n, k) => (vector[k] += n * weight));
+    featureVector(f).forEach((n, k) => (vector[k] += n * weight));
     totalWeight += weight;
   }
   const norm = Math.sqrt(vector.reduce((sum, n) => sum + n * n, 0)) || 1;
@@ -88,7 +97,7 @@ export function createCandidates(
       const f = featureById.get(p.id);
       const similarity =
         totalWeight && f?.vector && f.revision === revision(p)
-          ? cosine(normalized, unpackVector(f.vector))
+          ? cosine(normalized, featureVector(f))
           : affinity(query, projectText(p));
       return { project: p, score: similarity * 5 + quality(p) * 0.5 + 0.1 / (1 + index), index };
     });

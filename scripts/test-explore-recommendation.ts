@@ -107,7 +107,7 @@ try {
   const indexBefore = calls;
   assert.equal((await indexPending(env, 32)).indexed, 32);
   assert.equal(calls, indexBefore + 1);
-  await features(db);
+  await features(db, env.RECOMMENDATION_SECRET);
   for (const p of catalog)
     await db
       .prepare(`INSERT OR REPLACE INTO explore_rec_features VALUES(?,?,?,?,?,0,?)`)

@@ -50,12 +50,15 @@ export async function interests(db: D1Database, subject: string): Promise<Intere
     .all<Interest>();
   return result.results || [];
 }
-let featureCache: { db: D1Database; until: number; items: Feature[] } | null = null;
-export async function features(db: D1Database): Promise<Feature[]> {
-  if (featureCache?.db === db && featureCache.until > Date.now()) return featureCache.items;
+let featureCache: { db: D1Database | string; until: number; items: Feature[] } | null = null;
+export async function features(
+  db: D1Database,
+  cacheKey: D1Database | string = db
+): Promise<Feature[]> {
+  if (featureCache?.db === cacheKey && featureCache.until > Date.now()) return featureCache.items;
   const result = await db.prepare('SELECT * FROM explore_rec_features LIMIT 1500').all<Feature>();
   const items = result.results || [];
-  featureCache = { db, until: Date.now() + 30000, items };
+  featureCache = { db: cacheKey, until: Date.now() + 30000, items };
   return items;
 }
 export function invalidateFeatures() {

@@ -642,14 +642,13 @@ class ProjectRepository {
   }
 
   /** Bounded public feed projection: reuse directory filters without shipping HTML/source. */
-  async queryPublicFeedItems(db: D1Database, options: ProjectQueryOptions, ids?: string[]): Promise<Project[]> {
-    await this.ensureSchema(db);
-    await engagementRepository.ensureSchema(db);
+  async queryPublicFeedItems(db: D1Database, options: ProjectQueryOptions, ids?: string[], projection: 'candidate' | 'delivery' = 'delivery'): Promise<Project[]> {
+    await Promise.all([this.ensureSchema(db),engagementRepository.ensureSchema(db)]);
     if (ids && !ids.length) return [];
     const { where, params } = projectFilters({ ...options, onlyPublic:true });
     if (ids) { where.push('id IN (SELECT value FROM json_each(?))'); params.push(JSON.stringify(ids)); }
-    const columns = `id,name,description,category,tags,url,slug,owner_id,repo_url,source_type,last_deployed,last_success_at,
-      status,is_public,is_deleted,app_language,default_locale,localized_metadata`;
+    const columns = `id,name,description,category,tags,owner_id,last_deployed,last_success_at,
+      status,is_public,is_deleted,app_language` + (projection==='delivery' ? ',url,slug,repo_url,source_type,default_locale,localized_metadata' : '');
     const result = await db.prepare(`SELECT ${columns} FROM projects WHERE ${where.join(' AND ')}
       ORDER BY last_deployed DESC,id ASC LIMIT 1500`).bind(...params).all<ProjectRow>();
     return (result.results || []).map(row => this.mapRowToProject(row));
