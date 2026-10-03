@@ -37,15 +37,15 @@
 | PA3 | true | 评论查看/发表/回复/授权删除及分页、重试、迟到请求隔离 | passed | scripts/test-preview-actions.ts；真实组件 HTTP 回放 |
 | PA4 | true | ownerId 精确决定齿轮；设置页能打开对应应用 | passed | 游客与 owner Chrome 回放；HTTP 分页查找与换账号晚响应测试 |
 | PA5 | true | frontend 类型/静态/构建及实现 Review 通过 | passed | 先构建 workspace 类型声明后 frontend tsc、7 文件定向 ESLint、production build、diff --check；无开放 finding |
-| PA6 | true | 本次代码推送主线、主工作区同步，网站实际消费新资产 | not-run | 实现 442fc0b，整合 c173f00 推送；主工作区快进，0 0 与实际远端 SHA 一致；线上加载 index-DEYVdMNz.js |
+| PA6 | true | 本次代码推送主线、主工作区同步，网站实际消费新资产 | passed | 实现 442fc0b，整合 c173f00 推送；主工作区快进，0 0 与实际远端 SHA 一致；线上加载 index-DEYVdMNz.js |
 | PC1 | true | 左侧相邻、非模态，应用和首页继续可操作 | passed | production preview 的 iframe 真实按钮计数/首页搜索；无 dialog、焦点锁或 body 滚动锁 |
 | PC2 | true | 连续过渡、独立滚动/底部输入、不同布局/主题/reduced-motion | passed | RAF 记录中间位置，半屏 1440、全屏、1024 窄桌面与暗色完整画面复看；输入区 y 不随列表滚动改变 |
 | PC3 | true | 开关/Esc、草稿/滚动与 iframe 身份、切换应用/登录 | passed | 同一 iframe 节点只加载 1 次；重复开关保留草稿/scrollTop；关闭后 inert/aria-hidden；登录 Esc 只关闭登录；切换应用隔离 |
-| PC4 | true | 修订 2 上线与主工作区/实际远端 SHA 同步 | not-run | 待当前修订发布及真实读取验收 |
+| PC4 | true | 相邻评论上线与主工作区/实际远端 SHA 同步 | passed | 当前修订 Chrome 真实读取/状态验收及主工作区快进 |
 | IT1 | true | 统一 IconButton、必填 label、多尺寸与规范 | passed | 类型约束、frontend README、尺寸 xs/sm/md/lg/auto |
 | IT2 | true | 图标操作迁移与 hover/focus/动态名称/边界 | passed | 全 frontend icon lint 清零、真实 Chrome 悬停/聚焦/密码名称变更、asChild 链接与登录弹窗 |
 | IT3 | true | 当前 revision 类型/lint/build/UI 联动回归/Review | passed | frontend tsc、全部 changed TSX 定向 ESLint、全图标 lint/规则回归、原 HTTP manager 回归、含窄屏/暗色/侧栏/模态的 production Chrome UI 回归与 Review |
-| IT4 | true | 当前 revision 上线及两端主线同步 | not-run | 待本次发布 |
+| IT4 | true | 当前 revision 上线及两端主线同步 | passed | 源码 cdaf143 推送与本地 master 快进，gh-pages 6e93d47，线上 index-V_k6qt5T.js |
 | IT5 | true | 卡片点赞圆角矩形 hover、内边距与边缘点击隔离 | passed | Chrome target≥32px、radius≥6px、hover底色变化、按钮角落点击产生like HTTP请求且 iframe数量=0 |
 | IT6 | true | 操作条边缘/零移动/抖动/右键不拖拽，真实拖拽与取消正确 | passed | Chrome 验证原style不变、iframe继续可交互；真实手柄移动、blur恢复parked style并释放iframe保护 |
 
@@ -111,3 +111,11 @@ design-review: passed（修订 2）。从用户原话独立核对“左侧、隔
 最近 owner 为 shared useFloatingDock（仅此主前端 consumer），不是评论布局或 Tooltip。bugfix 由本次 standard 合同包含。选择：只在顶部 handle 绑定；hook pending 保持原吸附样式，鼠标左键移动至少5px才启动 drag/callback，零移动或抖动不重新吸附；真正拖拽才持久化、终止回调。blur 取消恢复初始位置，释放 iframe 保护；拖过再回原位也不触发 handle 的展开点击。保持现有 docking 判定/存储Key/半全屏策略。IT6 required：边缘/手柄零移动/2px抖动/右键不入拖拽、不改位置；真实手柄拖拽及 blur取消正确，操作点击不移位。受影响证据重验；design-review=passed，关键反例完整，局部 owner 修正，无新通用框架。
 
 修订4/5当前验证与实现 Review：frontend tsc、受影响 TS/TSX ESLint、全 icon-rule 及 Chrome production UI 回归通过，production JS index-O27Zkcl7.js。hook 引入 pending，视觉 CSS吸附不变，5px阈值为唯一常量；只手柄进入drag，started保护开始/结束回调，鼠标button状态与blur取消保护生命周期，原dock算法/持久化保持。图标 shared ghost/内边距尺寸有卡片与dock真实消费者，play遮罩显式plain，无单独点赞按钮分叉。无开放 finding。主线并行的 ThumbsUp/反馈导航排序已安全合入并复验，保留其结果。
+
+## 修订5交付与复盘（当前有效）
+
+- 源码提交 f0cd5da（相邻评论 + 统一 Tooltip）、1404116（点赞热区 + 操作条误触修复）；集成主线 cdaf143，包含并行的点赞 ThumbsUp、导航顺序、加载 skeleton、发布地址与缩略图修复。集成后 frontend tsc、icon lint/规则回归、production build、完整 Chrome UI 再验通过；无开放 Review finding。
+- 标准 `pnpm deploy:pages` Published，gh-pages=6e93d47d09b98a28f99dbe437958b4a002cd8e77；前一发布 ea884ca2a9fde72b8a5e6f8e16172afe4a03c77c 为可恢复 Git 版本。线上 https://gemigo.io/ 实际消费 index-V_k6qt5T.js / index-C3VlbAJ4.css。初次公开列表等待超时，复查实际 explore API 200（36项）与重新加载正常，真实链路再次完整通过。
+- Chrome 无 HTTP fixture 的线上验收：卡片点赞目标≥32px、圆角/hover 底色可见，tooltip正确；点击 dock 边缘/按住手柄不移动保持原style；评论读取HTTP200、无全局dialog/遮罩、面板与iframe邻接；同iframe身份、草稿关闭重开保留、guest 点dock点赞进入真实登录且关闭登录保留评论。未执行生产评论/点赞写入；登录后的发送/回复/删除与权限用真实 UI + fixture/既有 HTTP 边界回归证明。人工查看真实线上截图，卡片和面板布局清晰。
+- 主工作区 master 安全快进，原并行 WIP 均留在原位、未stage。受保护文件不在本任务合并 diff；smart-favicon 未跟踪脚本由并行工作继续更新，不用旧快照覆盖。主工作区 offline frozen install 完成新依赖安装。收尾再次fetch、核对actual远端SHA与0 0；此记录的文档提交随后普通推送/快进，不触发重复前端发布。
+- 规范唯一落点 `frontend/README.md` + `IconButton` + ESLint rule；用户明确要求建立的主前端规范已验证，无需新增共享 AI 规则。retrospective_state=completed，retrospective_decision=原owner更新（组件与README/lint），其它 no-increment：本次局部点击/拖拽和连续布局合同已进入原设计及回归，未形成额外全局方法需求。所有 Required IDs 当前 passed。开发交付完成；用户可直接刷新首页、悬停卡片点赞、点评论并继续使用应用确认主观体验，未把用户沉默视为体验验收通过。
