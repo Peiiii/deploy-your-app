@@ -6,6 +6,7 @@ import type { User } from '../frontend/src/types';
 const memory = new Map<string, string>();
 const storage = { getItem: (key: string) => memory.get(key) ?? null, setItem: (key: string, value: string) => { memory.set(key, value); }, removeItem: (key: string) => { memory.delete(key); } };
 Object.assign(globalThis, {
+  document: { referrer: '' }, innerWidth: 1280,
   location: new URL('http://localhost/'), localStorage: storage, sessionStorage: storage,
   window: { fetch: globalThis.fetch, location: new URL('http://localhost/'), localStorage: storage },
 });

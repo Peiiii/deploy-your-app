@@ -183,6 +183,8 @@ try {
 
   const storage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
   Object.assign(globalThis, {
+    document: { referrer: '' },
+    innerWidth: 1280,
     location: new URL('http://localhost/'),
     localStorage: storage,
     sessionStorage: storage,
