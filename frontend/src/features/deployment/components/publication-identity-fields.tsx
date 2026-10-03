@@ -19,9 +19,9 @@ export function PublicationIdentityFields({ address }: { address: ReturnType<typ
   const actionClass = 'shrink-0 rounded-md px-1 py-1 text-xs font-medium text-brand-600 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-brand-300';
 
   return (
-    <div className="space-y-4">
-      <div>
-        <label htmlFor="publication-name" className="block text-sm font-medium text-slate-900 dark:text-white">{t('deployment.optionalName')}</label>
+    <div className="grid gap-4 sm:grid-cols-2 sm:gap-5">
+      <div className="min-w-0">
+        <label htmlFor="publication-name" className="block h-6 text-sm font-medium text-slate-900 dark:text-white">{t('deployment.optionalName')}</label>
         <input
           id="publication-name"
           value={state.projectName}
@@ -33,8 +33,8 @@ export function PublicationIdentityFields({ address }: { address: ReturnType<typ
         />
         <p id="publication-name-hint" className="mt-1.5 text-xs leading-5 text-slate-500 dark:text-slate-400">{t('deployment.nameExplanation')}</p>
       </div>
-      <div>
-        <div className="flex items-center justify-between gap-3">
+      <div className="min-w-0">
+        <div className="flex h-6 items-center justify-between gap-3">
           <label htmlFor={editing ? 'publication-address' : undefined} className="text-sm font-medium text-slate-900 dark:text-white">{t('deployment.publicationAddress')}</label>
           <button type="button" className={actionClass} disabled={editing && !isValidPublicationSlug(slug)} onClick={() => {
             if (!editing) deployment.setPublicationSlug(slug);

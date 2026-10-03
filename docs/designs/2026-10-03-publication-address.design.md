@@ -1,7 +1,7 @@
 # 发布名称与地址明确分离
 
 ## 目标与授权
-用户指出项目名称暗中决定子域名、中文回退与重名改写难以预期，接受“名称自由填写、地址自动建议且常显可修改”方案，并要求直接上线。保留现有品牌紫色、主卡片与常显名称；不增加步骤、独立卡片或高级配置。feature / standard，跨前端、Worker 与 D1 写边界 L3；部署按 L4 验收。plan=not-required，单批闭环，retrospective_state=pending。
+用户指出项目名称暗中决定子域名、中文回退与重名改写难以预期，接受“名称自由填写、地址自动建议且常显可修改”方案，并要求直接上线。保留现有品牌紫色、主卡片与常显名称；不增加步骤、独立卡片或高级配置。名称与地址在宽屏并排，在手机纵向排列；同一组信息不会把桌面主按钮推得过远。feature / standard，跨前端、Worker 与 D1 写边界 L3；部署按 L4 验收。plan=not-required，单批闭环，retrospective_state=pending。
 
 ## 现状与选择
 名称保存于 deployment.store，ProjectCreator 创建草稿，ProjectManager/provider 调用 Worker draft，再由既有 executor 发布。草稿用 slugify(name)，纯中文变 app，ensureUniqueSlug 静默加数字；改名称不修改已有 slug。设置页已区分名称/slug，并在 Live/Building 时禁改，数据库写入目前没有原子排他保障。保留现有 projects 表、草稿与发布 owner，不建平行项目或预留表。
