@@ -1,0 +1,57 @@
+[
+  {
+    "readyAt": 5368.8,
+    "cards": 27,
+    "resources": [
+      {
+        "path": "/api/v1/me?include=projects",
+        "start": 1430.1999998092651,
+        "end": 5333.199999809265,
+        "duration": 3903
+      },
+      {
+        "path": "/api/v1/me/profile",
+        "start": 5340.900000095367,
+        "end": 6308,
+        "duration": 967.0999999046326
+      },
+      {
+        "path": "/api/v1/me/favorites",
+        "start": 5341.099999904633,
+        "end": 6619.900000095367,
+        "duration": 1278.8000001907349
+      },
+      {
+        "path": "/api/v1/projects/stats?range=7d",
+        "start": 5357.900000095367,
+        "end": 8577.199999809265,
+        "duration": 3219.2999997138977,
+        "idsCount": 27
+      }
+    ]
+  },
+  {
+    "readyAt": 2070,
+    "cards": 27,
+    "resources": [
+      {
+        "path": "/api/v1/me?include=projects",
+        "start": 1028,
+        "end": 2028.2999997138977,
+        "duration": 1000.2999997138977
+      }
+    ]
+  },
+  {
+    "readyAt": 2595.2000002861023,
+    "cards": 27,
+    "resources": [
+      {
+        "path": "/api/v1/me?include=projects",
+        "start": 1114.4000000953674,
+        "end": 2567.300000190735,
+        "duration": 1452.9000000953674
+      }
+    ]
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "path": "/api/v1/me",
+    "include": "projects",
+    "range": null,
+    "idsCount": 0,
+    "start": 1114.4000000953674,
+    "end": 2567.300000190735,
+    "duration": 1452.9000000953674
+  },
+  {
+    "path": "/api/v1/me/profile",
+    "include": null,
+    "range": null,
+    "idsCount": 0,
+    "start": 2571.1000003814697,
+    "end": 3378,
+    "duration": 806.8999996185303
+  },
+  {
+    "path": "/api/v1/me/favorites",
+    "include": null,
+    "range": null,
+    "idsCount": 0,
+    "start": 2571.2000002861023,
+    "end": 3363.1000003814697,
+    "duration": 791.9000000953674
+  },
+  {
+    "path": "/api/v1/projects/stats",
+    "include": null,
+    "range": "7d",
+    "idsCount": 27,
+    "start": 2584,
+    "end": 3892.300000190735,
+    "duration": 1308.3000001907349
+  },
+  {
+    "path": "/api/v1/projects/18a340c7-f885-440d-a407-ebbc22084590/reactions",
+    "include": null,
+    "range": null,
+    "idsCount": 0,
+    "start": 41675.60000038147,
+    "end": 43328.5,
+    "duration": 1652.8999996185303
+  },
+  {
+    "path": "/api/v1/me/favorites",
+    "include": null,
+    "range": null,
+    "idsCount": 0,
+    "start": 41985.7000002861,
+    "end": 43328,
+    "duration": 1342.2999997138977
+  }
+]
