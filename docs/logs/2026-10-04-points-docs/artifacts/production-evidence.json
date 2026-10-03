@@ -1,0 +1,154 @@
+{
+  "capturedAt": "2026-10-03T17:24:10.644Z",
+  "codeCommit": "3642aa2",
+  "deployments": {
+    "api": "56af31ea-0733-4ca9-8085-9cfe9f30c5c4",
+    "docs": "9520c5fc-5fee-403f-898f-396f5611651e",
+    "pages": "2f134b90-14dd-482e-bb40-38503c53a233",
+    "pagesBranch": "gh-pages",
+    "pagesSource": "e72cc6b",
+    "frontendAsset": "index-BnSsYbi1.js",
+    "knowledge": "f3c34751-c4c6-4895-ba27-b4201e85fdde",
+    "creative": "abce4dcf-2204-4309-b457-80d9a2ee7374"
+  },
+  "docsHttp": [
+    {
+      "path": "/",
+      "status": 200,
+      "type": "text/html"
+    },
+    {
+      "path": "/getting-started",
+      "status": 200,
+      "type": "text/html"
+    },
+    {
+      "path": "/auth-cloud",
+      "status": 200,
+      "type": "text/html"
+    },
+    {
+      "path": "/points",
+      "status": 200,
+      "type": "text/html"
+    },
+    {
+      "path": "/wallet",
+      "status": 200,
+      "type": "text/html"
+    },
+    {
+      "path": "/examples",
+      "status": 200,
+      "type": "text/html"
+    },
+    {
+      "path": "/troubleshooting",
+      "status": 200,
+      "type": "text/html"
+    },
+    {
+      "path": "/skills/gemigo-app/SKILL.md",
+      "status": 200,
+      "type": "text/markdown; charset=utf-8, text/markdown; charset=utf-8"
+    },
+    {
+      "path": "/sdk/0.3.0/gemigo-app-sdk-0.3.0.tgz",
+      "status": 200,
+      "type": null
+    },
+    {
+      "path": "/llms.txt",
+      "status": 200,
+      "type": "text/plain"
+    },
+    {
+      "path": "/missing-acceptance-page",
+      "status": 404,
+      "type": "text/html"
+    }
+  ],
+  "wallet": {
+    "balance": 3,
+    "lots": [
+      {
+        "kind": "trial",
+        "total": 20,
+        "remaining": 3
+      }
+    ],
+    "receipts": [
+      {
+        "id": "63669394-4172-4444-ad94-ec2025ab8580",
+        "projectId": "5d87699b-bd26-4b16-8a50-45f3126721af",
+        "name": "AI 科学解说",
+        "status": "granted",
+        "price": 3,
+        "paidMinor": 0,
+        "creatorMinor": 0,
+        "hasPersistedResult": true
+      },
+      {
+        "id": "e25f849c-7e60-4965-acea-225e511787b2",
+        "projectId": "5d87699b-bd26-4b16-8a50-45f3126721af",
+        "name": "科学提示",
+        "status": "refunded",
+        "price": 2,
+        "paidMinor": 0,
+        "creatorMinor": 0,
+        "hasPersistedResult": false
+      },
+      {
+        "id": "8672041f-3650-466f-97ea-17af2ccd16c6",
+        "projectId": "5d87699b-bd26-4b16-8a50-45f3126721af",
+        "name": "AI 科学解说",
+        "status": "granted",
+        "price": 3,
+        "paidMinor": 0,
+        "creatorMinor": 0,
+        "hasPersistedResult": true
+      },
+      {
+        "id": "ca914bf1-8fe1-4fae-bbe7-4655f7aeebee",
+        "projectId": "5d87699b-bd26-4b16-8a50-45f3126721af",
+        "name": "30 天专题练习",
+        "status": "granted",
+        "price": 5,
+        "paidMinor": 0,
+        "creatorMinor": 0,
+        "hasPersistedResult": false
+      },
+      {
+        "id": "d04e2185-69fc-48fa-9294-ff2996399813",
+        "projectId": "5d87699b-bd26-4b16-8a50-45f3126721af",
+        "name": "进阶题库",
+        "status": "granted",
+        "price": 4,
+        "paidMinor": 0,
+        "creatorMinor": 0,
+        "hasPersistedResult": false
+      },
+      {
+        "id": "f24cc83f-e343-4ece-bd15-222d4f471f54",
+        "projectId": "5d87699b-bd26-4b16-8a50-45f3126721af",
+        "name": "科学提示",
+        "status": "granted",
+        "price": 2,
+        "paidMinor": 0,
+        "creatorMinor": 0,
+        "hasPersistedResult": false
+      }
+    ],
+    "subscriptions": [
+      {
+        "id": "40d6b236-2e08-4745-91b9-acd0f3fa54c6",
+        "active": 0,
+        "dueAt": 1793639232190
+      }
+    ],
+    "livePayments": 0
+  },
+  "cashAcceptance": "blocked: no approved merchant/channel; recharge503, no paid/payout evidence",
+  "uiCreative": "pending: Mac locked, user unlock requested",
+  "knownBoundary": "Creative app final UI acceptance and temporary native tab/browser viewport cleanup wait for Mac unlock; cash path remains unimplemented pending approved merchant/channel."
+}

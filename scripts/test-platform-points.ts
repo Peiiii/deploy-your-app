@@ -10,7 +10,7 @@ import { PointsRepository } from '../workers/api/src/points/repository';
 import { refund, processPointsScheduled, runAi } from '../workers/api/src/points/service';
 import { pointsController } from '../workers/api/src/points/controller';
 import type { ApiWorkerEnv } from '../workers/api/src/types/env';
-import type { PointsItem } from '../workers/api/src/points/types';
+import type { PointsItem, PointsReceipt } from '../workers/api/src/points/types';
 const require = createRequire(import.meta.url);
 const wranglerRequire = createRequire(require.resolve('wrangler/package.json'));
 const { Miniflare } = wranglerRequire('miniflare');
@@ -181,6 +181,31 @@ try {
   await assert.rejects(repo.purchase('subscriber', item, 'deleted-app', null));
   assert.equal(await repo.receipt('subscriber', 'app-a', 'deleted-app'), null);
   await db.prepare("UPDATE projects SET is_deleted=0 WHERE id='app-a'").run();
+  await db.prepare("UPDATE points_terms SET expires_at=0 WHERE user_id='subscriber'").run();
+  const expiredTerms = (await repo.grants('subscriber', 'app-a')).terms;
+  assert.equal(expiredTerms[0].expires_at, 0);
+  await db.prepare("UPDATE points_subscriptions SET active=1 WHERE id='sub'").run();
+  const renewal = (await db
+    .prepare("SELECT * FROM points_receipts WHERE user_id='subscriber'")
+    .first()) as unknown as PointsReceipt;
+  await refund(repo, renewal);
+  assert.equal((await repo.balance('subscriber'))!.balance, 20);
+  assert.equal(
+    (await db.prepare("SELECT active FROM points_subscriptions WHERE id='sub'").first()).active,
+    0,
+    'term refund stops future renewals'
+  );
+  await db
+    .prepare("INSERT INTO points_subscriptions VALUES('poor-sub','no-balance','app-a','member',1,0,0)")
+    .run();
+  await processPointsScheduled(env);
+  assert.equal(
+    (await db.prepare("SELECT active FROM points_subscriptions WHERE id='poor-sub'").first()).active,
+    0,
+    'insufficient balance stops authorized renewal'
+  );
+  assert.equal((await repo.balance('no-balance'))!.balance, 0);
+  assert.equal(await repo.receipt('no-balance', 'app-a', 'renew:poor-sub:0'), null);
   await repo.claim('ai-user');
   const ai = await register({ ...item, id: 'explain', delivery: 'ai', price: 3 });
   const reserved = await repo.purchase('ai-user', ai, 'ai-1', JSON.stringify({ topic: '彩虹' }));
@@ -414,6 +439,20 @@ try {
   );
   assert.equal(await repo.receipt('real-api-user', 'app-a', 'missing-ai'), null);
   assert.equal((await repo.balance('real-api-user'))!.balance, 18);
+  const expiredIntent = (await (
+    await pointsController(
+      sdkReq('/intents', { itemId: 'hint', requestId: 'expired-confirm', state: 'expired-state' }),
+      env,
+      db
+    )
+  ).json()) as { id: string };
+  await db.prepare('UPDATE points_intents SET expires_at=0 WHERE id=?').bind(expiredIntent.id).run();
+  await assert.rejects(
+    pointsController(platformReq('/intents/' + expiredIntent.id + '/confirm', {}), env, db),
+    /已过期/
+  );
+  assert.equal(await repo.receipt('real-api-user', 'app-a', 'expired-confirm'), null);
+  assert.equal((await repo.balance('real-api-user'))!.balance, 18);
   await authRepository.createUser(db, { id: 'author', email: 'author-test@example.invalid' });
   const authorSession = await authRepository.createSession(db, 'author');
   const authorView = (await (
@@ -510,6 +549,7 @@ try {
     return uiNodes.get(id)!;
   };
   let examplePurchases = 0;
+  let exampleTerms: Record<string, unknown>[] = [];
   const exampleContext = createContext({
     document: { getElementById: node, querySelectorAll: () => [], createElement: () => ({}) },
     localStorage: {
@@ -522,7 +562,7 @@ try {
       auth: { getAccessToken: () => null },
       points: {
         items: async () => [{ id: 'ai-item', entitlement: 'explain' }],
-        grants: async () => ({ durable: [], terms: [], quotas: [] }),
+        grants: async () => ({ durable: [], terms: exampleTerms, quotas: [] }),
         receipt: async () => null,
         purchase: async (input: { requestId: string }) => {
           examplePurchases++;
@@ -552,6 +592,9 @@ try {
   await runInContext("buy('explain','原问题')", exampleContext);
   assert.equal(examplePurchases, 1);
   assert.equal(pendingStorage.get('purchase:explain'), 'pending-request');
+  exampleTerms = expiredTerms;
+  await runInContext('restore()', exampleContext);
+  assert.equal(node('member-content').hidden, true, 'actual sample hides expired term rights');
   console.log(
     'PASS: actual example timeout recovery preserves request and input; retries reopen original intent'
   );
