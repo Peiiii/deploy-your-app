@@ -8,6 +8,7 @@ import { track } from '@/analytics/collector';
 import { getAuthorColor, getAuthorInitial, getAuthorName } from '../utils/author';
 import { PERFORMANCE_CONFIG } from '../constants';
 import { getScrollParent } from '../utils/scroll';
+import { preconnectApp } from '../utils/preconnect-app';
 import { useProjectThumbnail } from '../hooks/use-project-thumbnail';
 import { ThumbsUp, Play } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
@@ -156,6 +157,8 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
   return (
     <div
       onClick={handleRootClick}
+      onPointerEnter={event => { if (event.pointerType !== 'touch') preconnectApp(app.url); }}
+      onFocus={() => preconnectApp(app.url)}
       data-preview-app-id={app.id}
       aria-current={isPreviewing ? 'true' : undefined}
       className={`group relative flex flex-col bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer break-inside-avoid ${isPreviewing ? 'ring-2 ring-brand-500' : ''}`}

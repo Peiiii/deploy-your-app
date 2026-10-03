@@ -183,6 +183,31 @@ body {
   container-name: page-layout;
 }
 
+.preview-sprite-jaw {
+  transform-origin: 16px 16px;
+  animation: preview-chomp 600ms ease-in-out infinite;
+}
+
+.preview-sprite-dot {
+  animation: preview-snack 1.8s linear infinite;
+}
+
+@keyframes preview-chomp {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(27deg); }
+}
+
+@keyframes preview-snack {
+  0% { opacity: 0; transform: translateX(0); }
+  12%, 78% { opacity: 0.8; }
+  100% { opacity: 0; transform: translateX(-52px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preview-sprite-jaw, .preview-sprite-dot { animation: none; }
+  .preview-sprite-dot { opacity: 0; }
+}
+
 @container page-layout (min-width: 64rem) {
   .explore-wide-filters {
     display: flex;

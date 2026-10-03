@@ -1,4 +1,11 @@
 {
+  "previewLoading": {
+    "opening": "正在打开应用",
+    "companion": "让小精灵陪你等一会儿",
+    "slow": "加载比平时久一些",
+    "slowHint": "可以继续等待，或试试下面的方式。",
+    "showApp": "直接显示应用"
+  },
   "previewActions": {
     "actions": "应用操作",
     "like": "点赞",

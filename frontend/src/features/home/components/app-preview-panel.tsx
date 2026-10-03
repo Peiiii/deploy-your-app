@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { PreviewCommentsPanel } from './preview-comments-panel';
+import { AppPreviewContent } from './app-preview-content';
 
 interface AppPreviewPanelProps {
     app: ExploreAppCard;
@@ -130,11 +131,11 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
                     {/* Iframe Content */}
                     <div className={`absolute inset-0 z-0 bg-slate-100 dark:bg-slate-950 ${isDragging ? 'pointer-events-none' : ''}`}>
                         {app.url ? (
-                            <iframe
-                                src={app.url}
-                                className="w-full h-full border-0 select-none"
-                                title={app.name}
-                                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+                            <AppPreviewContent
+                                key={`${app.id}:${app.url}`}
+                                url={app.url}
+                                name={app.name}
+                                onOpenInNewTab={onOpenInNewTab}
                             />
                         ) : (
                             <div className="flex items-center justify-center h-full">
