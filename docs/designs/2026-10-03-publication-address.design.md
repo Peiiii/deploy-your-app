@@ -1,7 +1,7 @@
 # 发布名称与地址明确分离
 
 ## 目标与授权
-用户指出项目名称暗中决定子域名、中文回退与重名改写难以预期，接受“名称自由填写、地址自动建议且常显可修改”方案，并要求直接上线。保留现有品牌紫色、主卡片与常显名称；不增加步骤、独立卡片或高级配置。名称与地址在宽屏并排，在手机纵向排列；同一组信息不会把桌面主按钮推得过远。feature / standard，跨前端、Worker 与 D1 写边界 L3；部署按 L4 验收。plan=not-required，单批闭环，retrospective_state=pending。
+用户指出项目名称暗中决定子域名、中文回退与重名改写难以预期，接受“名称自由填写、地址自动建议且常显可修改”方案，并要求直接上线。保留现有品牌紫色、主卡片与常显名称；不增加步骤、独立卡片或高级配置。名称与地址在宽屏并排，在手机纵向排列；同一组信息不会把桌面主按钮推得过远。feature / standard，跨前端、Worker 与 D1 写边界 L3；部署按 L4 验收。plan=not-required，单批闭环，retrospective_state=completed。
 
 ## 现状与选择
 名称保存于 deployment.store，ProjectCreator 创建草稿，ProjectManager/provider 调用 Worker draft，再由既有 executor 发布。草稿用 slugify(name)，纯中文变 app，ensureUniqueSlug 静默加数字；改名称不修改已有 slug。设置页已区分名称/slug，并在 Live/Building 时禁改，数据库写入目前没有原子排他保障。保留现有 projects 表、草稿与发布 owner，不建平行项目或预留表。
@@ -19,13 +19,13 @@ project.repository INSERT SELECT WHERE NOT EXISTS / UPDATE WHERE NOT EXISTS 在�
 contract-id=publication-address-2026-10-03；parent-goal=用户发布前能理解、看到并选择最终地址，保留现有流程与品牌，线上可用。
 | ID | Required | 标准 | 状态 | 证据 |
 | --- | --- | --- | --- | --- |
-| PA-1 | true | 名称/地址常显、中文/英文/空名建议、手动地址不随名称变、宽窄屏/主题布局 | passed | 真实HTTPS生产桌面与预览手机/暗色渲染；中文输入、手动地址、来源切换保持；桌面两列/手机堆叠 |
+| PA-1 | true | 名称/地址常显、中文/英文/空名建议、手动地址不随名称变、宽窄屏/主题布局 | passed | 新版生产真实桌面/390px手机/深色渲染；默认前缀直接编辑、域名固定；中文/手动/HTML-ZIP-GitHub切换保持，原英文/空名回归 |
 | PA-2 | true | 格式/占用/检查失败/过期响应正确反馈，可用建议明确采用 | passed | 生产app占用、采用建议/编辑；预览无API显示失败重试；hook可控时钟验证防抖/取消/8秒超时/过期结果/重试 |
 | PA-3 | true | draft 精确保存地址、并发冲突不静默换址、名称修改不改链接、已发布地址保护 | passed | test-publication-address.mjs：真实 Worker/Miniflare/D1 HTTP、同时创建/更新只有一方成功 |
 | PA-4 | true | HTML/ZIP/GitHub、登录、失败重试复用草稿，原发布链保留 | passed | test-homepage-publishing.mjs + deployment-metadata/completion 回归；登录与线上发布待 PA-5 复核 |
 | PA-6 | true | 常用重名地址 app 检查不随重名数量逐次往返；线上连续3次全部<8秒且中位数<3秒；前端请求8秒后转失败/重试，修改地址取消旧结果 | passed | 修前app 39.573/19.877秒；修后同生产入口3.190/0.385/0.332秒，中位数0.385秒；可用分支0.316秒；hook超时/取消回归及线上快速占用提示 |
-| PA-7 | true | 前缀默认可输入、后缀固定；按名称真实AI生成合法可用建议，人工/名称变更不被晚响应覆盖，失败不改旧地址，登录/等待清楚 | not-run | 新用户请求，待验 |
-| PA-5 | true | Worker先于前端上线，线上页面与API当前版本可用，提交推送且本地master=远端实际SHA | not-run | 待验 |
+| PA-7 | true | 前缀默认可输入、后缀固定；按名称真实AI生成合法可用建议，人工/名称变更不被晚响应覆盖，失败不改旧地址，登录/等待清楚 | passed | 真实生产已登录UI：旅行账本→AI travel-ledger、名称不变、地址可用；直接非法/占用编辑、采用app-141；真实manager取消/失败/15秒超时与Worker/AI HTTP装配测试 |
+| PA-5 | true | Worker先于前端上线，线上页面与API当前版本可用，提交推送且本地master=远端实际SHA | passed | Worker 9c9589c3先上线，Pages9479e357生产；真实UI+上游AI运行；主工作区快进、既有WIP保留与实际远程SHA/0 0对账 |
 
 验证：前端/Worker tsc、定向 lint/build、现有发布回归；真实 Miniflare+D1 HTTP 精确合同与并发排他，线上公开预检与私有QA草稿/名称修改/清理。真实线上 UI 渲染检查桌面/手机及地址编辑；先前本地浏览器动作受安全策略阻止，不绕过，使用允许的 HTTPS 线上入口；无法取得的视觉证据如实报告。外观最终由用户判断。只部署受影响 gemigo-api 与网站 Pages，不部署 Node/其它 Worker；保留 Secrets。
 
@@ -72,3 +72,10 @@ Owner：DeploymentManager完整拥有本次AI请求（controller/取消/15秒上
 ### 直接编辑与AI实现验证 / Review
 前端/Worker tsc、定向ESLint、frontend build、diff检查通过。真实Worker+D1+标准上游HTTP边界验证已登录/未登录、80字符限制、名称JSON数据传递、真实AI输出解析、冲突后缀与本人排除、无效JSON/非法slug/上游502均503；实际DeploymentManager测试成功/名称保持/失败保留/15秒超时/手改/改名/来源切换/退出/旧请求cleanup不干扰新请求。原发布、精确slug、并发写入、重名1000条与hook8秒超时回归继续通过。
 mode=implementation：no findings。人工diff-only核对字段直接编辑、固定后缀、登录入口、模型请求数据边界、输出校验、请求取消identity/状态owner、发布与生成互斥、mock不冒充AI；无新增文件/依赖、无项目维护性脚本，无未关闭finding。生产真实AI与渲染在PA-7等待上线验收。
+
+## 最终线上交付与验收
+实现提交6a18fb4，Worker版本9c9589c3-12fc-48cc-a69b-0334b5482671（回退可用85183c2d）；pnpm deploy:pages生产9479e357-ce0e-4cc4-8f71-f50bd208568d，gh-pages来源1df6705，线上JS index-B5RzDDoL含AI endpoint/control与generation owner。真实生产界面已登录正常账号：填写旅行账本，点击AI生成，真实模型返回travel-ledger，名称保持；既有检查显示可用。手动输入-broken即时非法，app快速占用，点击app-141恢复可用；切换ZIP/GitHub名字与地址保持。空名禁用AI、生成中按钮等待，出错保持/取消/重试由已组装边界与真实manager验证。桌面两列、390px手机纵列、深色控件实际渲染通过；恢复原浅色主题和viewport，关闭AI测试tab，保留用户当前输入tab，未强行刷新。
+
+用户入口：https://gemigo.io/deploy；刷新后直接输入前缀，固定.gemigo.app；填名称后点击AI生成，再手动调整或继续原发布。AI模型输出文字的偏好与视觉审美交用户判断，不宣称用户主观验收已通过。线上AI测试没有创建新项目；上一批完整QA项目已清理。生产Secrets/Node/其它Workers未改。精确提交推送并同步主工作区，既有并行未提交文件hash/暂存状态保护；最后重新fetch核对实际远端SHA与master分叉0 0。
+
+retrospective_decision=no-increment：根因与D1长模式限制已落在本设计原事实owner，性能与取消回归已加入既有测试；没有足够证据升级为跨项目规则或新通用AI机制，不创建额外日志。各Required IDs当前passed，授权内实现/验证/Review/线上交付完成，主观效果待用户反馈。
