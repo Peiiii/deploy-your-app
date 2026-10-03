@@ -189,3 +189,10 @@ scope9 retrospective completed：唯一组件的owner/边界归原PRODUCT_ANALYT
 scope10本地Validation通过：build:admin含tsc，定向ESLint/diff-check；现有隔离console --serve启动的真实Worker+D1原认证/管理/反馈回归保持。复用正式`scripts/test-admin-charts.mjs`并增加readout/SVG矩形不相交、进入/关闭前后SVG y与高度稳定、320px单/双指标和触摸读数，原hover/保持/Esc、键盘首末/范围/单位/null/zero、三消费者、手机滑动全部PASS。真实截图1440/390/320及compact-bars已打开复核，对照用户图片确认数值在上方栏、整段曲线和轴不受遮挡，闲置占位不冒充零。
 
 mode=implementation Review：没有项目diff-only检查入口，按本次diff核对唯一选择owner、活跃role/aria关联、占位行/小屏断行、不拦截滑动和Esc/外部关闭、旧坐标/absolute/shadow路径退场、无新增调用。无开放findings；新增验证保护用户反馈的遮挡与跳动边界，不是类名镜像测试。原数据与Worker功能证据复用，受影响展示已本地验收；acceptance-ready（本地），待后台部署与生产几何/截图/清理。
+
+
+scope10生产Delivery：精确7文件功能提交`f966b5e`已普通推送并主工作区master差异0 0；既有admin deploy发布Worker `b8c2f370-8e3a-43a8-b1cd-1e4752ea3d86`，CSS `index-IRHybCe5.css` / JS `index-DxDn86YZ.js`。实际生产`scripts/test-admin-charts.mjs`全部PASS：首页/增长四曲线/部署和使用概览双指标，7/30及指标切换、tooltip进入/离开/Esc、键盘、390px点选/横滑，新增320px单/双指标、读数栏与SVG不相交及显示/关闭无位移。使用概览按一天真实报表验证事件/访客柱，不扩大报表口径或声称该次7日报表也成功。零/null本地证据保持，生产30日UV缺失已再次覆盖。
+
+实际查看`/tmp/gemigo-admin-charts-docked-prod/{desktop,mobile}-tooltip.png`及compact-bars.png，对照用户附图同一10月2日11人状态：数值位于上方细栏，曲线与日期轴完整可见，双指标320px均完整无裁切；截图0600。scope10质量模型为同时读数/看趋势、稳定几何、小屏完整信息与原操作保持，全部获得运行和视觉证据；不以无溢出替代曲线无遮挡，也不声称用户主观美感验收。
+
+专用QA session精确删除后HTTP401，当前密码版本6与其他会话保持；本轮3份成功非缓存报表预留合计155248按已记录响应原子归还，共享时点计数668270，其它/无法归属额度保留，不清零共享预算。QA、本地凭据、预算JSON全部删除；隔离5176服务确认owned进程后SIGINT退出130。无迁移/Secrets或业务资源写入。最终实现Review无新增findings，原组件owner不变；retrospective completed：更新原事实/设计与真实运行断言，没有新通用规则。ADM06/15 passed，最后记录提交/推送后重新fetch核对本地master、origin/master及远程实际SHA。
