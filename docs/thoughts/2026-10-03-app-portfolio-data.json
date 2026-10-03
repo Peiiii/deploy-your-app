@@ -20,7 +20,9 @@
     "visits": "Visits are not unique visitors",
     "observedDays": "Days observed in sampled RUM, not exact days used",
     "zero": "Not observed, not proof of zero actual use",
-    "deployment": "Existing history from Sep 18 onward; creator comparison uses Sep 19-Oct 2"
+    "deployment": "Existing history from Sep 18 onward; creator comparison uses Sep 19-Oct 2",
+    "uv": "Unique visitors deduplicated over each full period. Period UV is unavailable (null, never zero): app diagnostic daily/hourly records end on 2026-09-19, and visitor hashes rotate daily. Visits and summed daily/app UV are not substitutes.",
+    "pv": "Page views, not unique visitors; existing Cloudflare RUM bot=0 estimates retained."
   },
   "summary": {
     "provenance": {
@@ -55,7 +57,11 @@
       "previous7Pv": 1470,
       "previous7Visits": 1380,
       "previous30Pv": 1010,
-      "previous30Visits": 820
+      "previous30Visits": 820,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null,
+      "previous30Uv": null
     },
     "public": {
       "apps": 566,
@@ -74,7 +80,10 @@
       "largestCreatorPv30": 529,
       "largestCreatorPv7": 249,
       "observedCreators30": 113,
-      "observedCreators7": 93
+      "observedCreators7": 93,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     "categories": {
       "Education": {
@@ -94,7 +103,10 @@
         "largestCreatorPv30": 80,
         "largestCreatorPv7": 33,
         "observedCreators30": 64,
-        "observedCreators7": 56
+        "observedCreators7": 56,
+        "uv30": null,
+        "uv7": null,
+        "previous7Uv": null
       },
       "Games": {
         "apps": 75,
@@ -113,7 +125,10 @@
         "largestCreatorPv30": 127,
         "largestCreatorPv7": 127,
         "observedCreators30": 24,
-        "observedCreators7": 18
+        "observedCreators7": 18,
+        "uv30": null,
+        "uv7": null,
+        "previous7Uv": null
       },
       "Productivity": {
         "apps": 101,
@@ -132,7 +147,10 @@
         "largestCreatorPv30": 163,
         "largestCreatorPv7": 42,
         "observedCreators30": 19,
-        "observedCreators7": 14
+        "observedCreators7": 14,
+        "uv30": null,
+        "uv7": null,
+        "previous7Uv": null
       },
       "Creative": {
         "apps": 115,
@@ -151,7 +169,10 @@
         "largestCreatorPv30": 116,
         "largestCreatorPv7": 64,
         "observedCreators30": 19,
-        "observedCreators7": 9
+        "observedCreators7": 9,
+        "uv30": null,
+        "uv7": null,
+        "previous7Uv": null
       },
       "Development": {
         "apps": 77,
@@ -170,7 +191,10 @@
         "largestCreatorPv30": 434,
         "largestCreatorPv7": 102,
         "observedCreators30": 14,
-        "observedCreators7": 10
+        "observedCreators7": 10,
+        "uv30": null,
+        "uv7": null,
+        "previous7Uv": null
       },
       "Other": {
         "apps": 21,
@@ -189,7 +213,10 @@
         "largestCreatorPv30": 144,
         "largestCreatorPv7": 144,
         "observedCreators30": 6,
-        "observedCreators7": 5
+        "observedCreators7": 5,
+        "uv30": null,
+        "uv7": null,
+        "previous7Uv": null
       }
     },
     "educationSubjects": {
@@ -210,7 +237,10 @@
         "largestCreatorPv30": 80,
         "largestCreatorPv7": 33,
         "observedCreators30": 5,
-        "observedCreators7": 3
+        "observedCreators7": 3,
+        "uv30": null,
+        "uv7": null,
+        "previous7Uv": null
       },
       "数学": {
         "apps": 46,
@@ -229,7 +259,10 @@
         "largestCreatorPv30": 53,
         "largestCreatorPv7": 27,
         "observedCreators30": 19,
-        "observedCreators7": 19
+        "observedCreators7": 19,
+        "uv30": null,
+        "uv7": null,
+        "previous7Uv": null
       },
       "社会生活艺术": {
         "apps": 32,
@@ -248,7 +281,10 @@
         "largestCreatorPv30": 23,
         "largestCreatorPv7": 15,
         "observedCreators30": 12,
-        "observedCreators7": 10
+        "observedCreators7": 10,
+        "uv30": null,
+        "uv7": null,
+        "previous7Uv": null
       },
       "科学": {
         "apps": 26,
@@ -267,7 +303,10 @@
         "largestCreatorPv30": 22,
         "largestCreatorPv7": 12,
         "observedCreators30": 13,
-        "observedCreators7": 11
+        "observedCreators7": 11,
+        "uv30": null,
+        "uv7": null,
+        "previous7Uv": null
       },
       "综合知识": {
         "apps": 1,
@@ -286,7 +325,10 @@
         "largestCreatorPv30": 16,
         "largestCreatorPv7": 6,
         "observedCreators30": 1,
-        "observedCreators7": 1
+        "observedCreators7": 1,
+        "uv30": null,
+        "uv7": null,
+        "previous7Uv": null
       },
       "语言": {
         "apps": 58,
@@ -305,7 +347,10 @@
         "largestCreatorPv30": 14,
         "largestCreatorPv7": 7,
         "observedCreators30": 20,
-        "observedCreators7": 15
+        "observedCreators7": 15,
+        "uv30": null,
+        "uv7": null,
+        "previous7Uv": null
       }
     },
     "educationGames": {
@@ -325,7 +370,10 @@
       "largestCreatorPv30": 53,
       "largestCreatorPv7": 27,
       "observedCreators30": 57,
-      "observedCreators7": 51
+      "observedCreators7": 51,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     "educationNonGames": {
       "apps": 27,
@@ -344,7 +392,10 @@
       "largestCreatorPv30": 80,
       "largestCreatorPv7": 33,
       "observedCreators30": 7,
-      "observedCreators7": 5
+      "observedCreators7": 5,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     "countriesByCategory": {
       "非当前公开目录": {
@@ -437,14 +488,18 @@
         "pv30": 2162,
         "visits30": 1679,
         "pv7": 502,
-        "visits7": 169
+        "visits7": 169,
+        "uv30": null,
+        "uv7": null
       },
       "无法匹配当前项目 URL": {
         "hosts": 22,
         "pv30": 310,
         "visits30": 302,
         "pv7": 160,
-        "visits7": 152
+        "visits7": 152,
+        "uv30": null,
+        "uv7": null
       }
     },
     "concentration": {
@@ -524,7 +579,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-lnfw",
@@ -548,7 +606,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมสะกดดดด",
@@ -578,7 +639,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "0",
@@ -604,7 +668,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "italy",
@@ -633,7 +700,10 @@
         "配对",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "xingmonb",
@@ -659,7 +729,10 @@
       "favorites": 0,
       "contentStatus": "empty",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "603",
@@ -687,7 +760,10 @@
       "features": [
         "配对"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "ืื603",
@@ -715,7 +791,10 @@
       "features": [
         "配对"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมฝ่าวิกฤตวิ่งหนีซอมบี้",
@@ -741,7 +820,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "azai-daohang",
@@ -767,7 +849,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-tbhh",
@@ -793,7 +878,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "jhh",
@@ -817,7 +905,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "232101126ceshi",
@@ -843,7 +934,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-l9uh",
@@ -869,7 +963,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "MindFlow Editor",
@@ -895,7 +992,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "note",
@@ -923,7 +1023,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "787878",
@@ -949,7 +1052,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "VividLife Health Advisor",
@@ -975,7 +1081,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-jcqd",
@@ -1001,7 +1110,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Taiji Path",
@@ -1027,7 +1139,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมอะไรเอ่ย",
@@ -1056,7 +1171,10 @@
         "拖拽",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-xazq",
@@ -1084,7 +1202,10 @@
       "features": [
         "问答"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-001",
@@ -1110,7 +1231,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-p6bv",
@@ -1140,7 +1264,10 @@
         "排序",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-k1bd",
@@ -1166,7 +1293,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game p3",
@@ -1195,7 +1325,10 @@
         "配对",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-1vqx",
@@ -1221,7 +1354,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมต้องจำ",
@@ -1251,7 +1387,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "91",
@@ -1277,7 +1416,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "1",
@@ -1306,7 +1448,10 @@
         "配对",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "CineFlow AI",
@@ -1332,7 +1477,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app",
@@ -1356,7 +1504,10 @@
       "favorites": 0,
       "contentStatus": "unavailable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมฝ่าวิกฤตวิ่งหนีซอมบี้",
@@ -1382,7 +1533,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมคณิตคิดเร็ว",
@@ -1411,7 +1565,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-o6v1",
@@ -1437,7 +1594,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "daguozhongqi",
@@ -1463,7 +1623,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-ไอติมถั่ว",
@@ -1492,7 +1655,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-4811",
@@ -1516,7 +1682,10 @@
       "favorites": 0,
       "contentStatus": "unavailable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "姐姐国庆快乐",
@@ -1542,7 +1711,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "137891",
@@ -1568,7 +1740,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Green Men Gaze",
@@ -1592,7 +1767,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-黑科技",
@@ -1618,7 +1796,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game-thai",
@@ -1648,7 +1829,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-re57",
@@ -1674,7 +1858,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game-01",
@@ -1703,7 +1890,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -1729,7 +1919,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-cvjn",
@@ -1758,7 +1951,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "博饼",
@@ -1786,7 +1982,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมระบบประสาทน่ารู้",
@@ -1812,7 +2011,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "1",
@@ -1836,7 +2038,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "787878",
@@ -1862,7 +2067,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-itl9",
@@ -1888,7 +2096,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-f27e",
@@ -1918,7 +2129,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมวงจรชีวิติ(JJ)",
@@ -1947,7 +2161,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-sj2m",
@@ -1979,7 +2196,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "azai-rengong",
@@ -2005,7 +2225,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Game ii",
@@ -2034,7 +2257,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Game.html",
@@ -2065,7 +2291,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "bilibili · 液态玻璃",
@@ -2091,7 +2320,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "จับให้ถูก",
@@ -2119,7 +2351,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมจับคู่การงานอาชีพ",
@@ -2149,7 +2384,10 @@
         "配对",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "案例系统",
@@ -2173,7 +2411,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกม",
@@ -2203,7 +2444,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "loading chat",
@@ -2229,7 +2473,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -2255,7 +2502,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "yvyv",
@@ -2281,7 +2531,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "yingyujiaoshijie",
@@ -2309,7 +2562,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมจับคู่อาหารไทย",
@@ -2339,7 +2595,10 @@
         "配对",
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "小小怪事研究所",
@@ -2365,7 +2624,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-ilml",
@@ -2391,7 +2653,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "azai-kuaisubushu",
@@ -2417,7 +2682,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "33data",
@@ -2441,7 +2709,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Magic Storybook",
@@ -2467,7 +2738,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-1",
@@ -2493,7 +2767,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-x0as",
@@ -2519,7 +2796,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "小六防红",
@@ -2545,7 +2825,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เลือดกรุ๊ปY",
@@ -2575,7 +2858,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-re56",
@@ -2601,7 +2887,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "platformer game",
@@ -2630,7 +2919,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Aura AI Theater",
@@ -2656,7 +2948,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "test game",
@@ -2684,7 +2979,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "232101126",
@@ -2710,7 +3008,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-n1vg",
@@ -2736,7 +3037,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "gameOp",
@@ -2765,7 +3069,10 @@
         "排序",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "泰煜管理系统",
@@ -2791,7 +3098,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app Egg",
@@ -2817,7 +3127,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -2843,7 +3156,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "future-market",
@@ -2869,7 +3185,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมฝ่าวิกฤตวิ่งหนีซอมบี้",
@@ -2895,7 +3214,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-",
@@ -2921,7 +3243,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-9mp2",
@@ -2949,7 +3274,10 @@
       "features": [
         "问答"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "711003",
@@ -2975,7 +3303,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "ACERNG",
@@ -3001,7 +3332,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "蔬菜大棚coc规划器",
@@ -3030,7 +3364,10 @@
         "拖拽",
         "排序"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "7891",
@@ -3056,7 +3393,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "GAME01",
@@ -3085,7 +3425,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "6",
@@ -3111,7 +3454,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมเเข่งรถ",
@@ -3137,7 +3483,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Magic Birthday Wishes",
@@ -3161,7 +3510,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-dne4",
@@ -3185,7 +3537,10 @@
       "favorites": 0,
       "contentStatus": "empty",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "slottt",
@@ -3211,7 +3566,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-bgqm",
@@ -3239,7 +3597,10 @@
       "features": [
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "jason",
@@ -3268,7 +3629,10 @@
         "拖拽",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-z0pa",
@@ -3294,7 +3658,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกม",
@@ -3325,7 +3692,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "ditiepaokumingli",
@@ -3353,7 +3723,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "goy-01",
@@ -3381,7 +3754,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกม",
@@ -3405,7 +3781,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมระบบประสาท",
@@ -3433,7 +3812,10 @@
       "features": [
         "问答"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-0wk0",
@@ -3459,7 +3841,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game-01",
@@ -3489,7 +3874,10 @@
         "排序",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Thanyalak Somphet",
@@ -3518,7 +3906,10 @@
         "拖拽",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-clxb",
@@ -3544,7 +3935,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "13号线：模拟驾驶",
@@ -3570,7 +3964,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมเเข่งรถ",
@@ -3596,7 +3993,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Incomepm",
@@ -3620,7 +4020,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-naxi",
@@ -3644,7 +4047,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "zzqzzq",
@@ -3670,7 +4076,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "小六官网",
@@ -3696,7 +4105,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Italy Game",
@@ -3725,7 +4137,10 @@
         "配对",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -3751,7 +4166,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมเรียงลำดับ ป.3",
@@ -3782,7 +4200,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมสุดท้าย",
@@ -3812,7 +4233,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-9him",
@@ -3838,7 +4262,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-340j",
@@ -3862,7 +4289,10 @@
       "favorites": 0,
       "contentStatus": "unavailable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Aether Horizon",
@@ -3888,7 +4318,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-sgvn",
@@ -3914,7 +4347,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "yv",
@@ -3940,7 +4376,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "minglibaidu",
@@ -3966,7 +4405,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "com1",
@@ -3995,7 +4437,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-uee8",
@@ -4021,7 +4466,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "color art",
@@ -4051,7 +4499,10 @@
         "拖拽",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Teerawat602",
@@ -4080,7 +4531,10 @@
         "配对",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "测试",
@@ -4106,7 +4560,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-lqvm",
@@ -4134,7 +4591,10 @@
       "features": [
         "拖拽"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "8",
@@ -4158,7 +4618,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game p3",
@@ -4187,7 +4650,10 @@
         "配对",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "azai-admin",
@@ -4213,7 +4679,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Sonic Shell",
@@ -4237,7 +4706,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมเเข่งรถ",
@@ -4263,7 +4735,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "fdemo0.25",
@@ -4289,7 +4764,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-665s",
@@ -4315,7 +4793,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Hell Game",
@@ -4345,7 +4826,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-0x0j",
@@ -4369,7 +4853,10 @@
       "favorites": 0,
       "contentStatus": "unavailable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-f9pi",
@@ -4395,7 +4882,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Game",
@@ -4424,7 +4914,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "45427",
@@ -4450,7 +4943,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Voxel Smash & Rebuild",
@@ -4476,7 +4972,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "sb",
@@ -4502,7 +5001,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "wangxinghe",
@@ -4528,7 +5030,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "thai",
@@ -4558,7 +5063,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "9178",
@@ -4584,7 +5092,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-0qb1",
@@ -4610,7 +5121,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "nuk",
@@ -4640,7 +5154,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "卡密获取",
@@ -4666,7 +5183,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-vjam",
@@ -4694,7 +5214,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "臭微",
@@ -4722,7 +5245,10 @@
       "features": [
         "拖拽"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Cake",
@@ -4751,7 +5277,10 @@
         "拖拽",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app Egg",
@@ -4777,7 +5306,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "787878",
@@ -4803,7 +5335,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "客户跟进系统",
@@ -4829,7 +5364,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -4855,7 +5393,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-x4u1",
@@ -4881,7 +5422,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Worlds",
@@ -4910,7 +5454,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "5",
@@ -4936,7 +5483,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Math Adventure",
@@ -4964,7 +5514,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Chromatic Mines",
@@ -4990,7 +5543,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "piyatida1852.html",
@@ -5018,7 +5574,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "404",
@@ -5042,7 +5601,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-72oa",
@@ -5068,7 +5630,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-30fs",
@@ -5094,7 +5659,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกม",
@@ -5124,7 +5692,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Game3",
@@ -5153,7 +5724,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-n4p3",
@@ -5181,7 +5755,10 @@
       "features": [
         "拖拽"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "dc",
@@ -5209,7 +5786,10 @@
       "features": [
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "1077564alc",
@@ -5233,7 +5813,10 @@
       "favorites": 0,
       "contentStatus": "empty",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "qingshui",
@@ -5259,7 +5842,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "AM Lx laz",
@@ -5285,7 +5871,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Zen Ascension",
@@ -5311,7 +5900,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-fu6p",
@@ -5337,7 +5929,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-6ohl",
@@ -5363,7 +5958,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "www",
@@ -5387,7 +5985,10 @@
       "favorites": 0,
       "contentStatus": "unavailable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "felicity",
@@ -5416,7 +6017,10 @@
         "配对",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-qp5g",
@@ -5444,7 +6048,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมภาษาอังกฤา",
@@ -5474,7 +6081,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game",
@@ -5503,7 +6113,10 @@
         "配对",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-a6se",
@@ -5533,7 +6146,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "azai-dongcha",
@@ -5559,7 +6175,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-70jv Suwarak",
@@ -5588,7 +6207,10 @@
         "排序",
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมฝ่าวิกฤตวิ่งหนีซอมบี้",
@@ -5614,7 +6236,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game2",
@@ -5643,7 +6268,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมเเข่งรถ",
@@ -5669,7 +6297,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Ball Drop Physics",
@@ -5693,7 +6324,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมเรียงคณิตป.3",
@@ -5724,7 +6358,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "滕王阁序互动教学",
@@ -5750,7 +6387,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "123",
@@ -5776,7 +6416,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "ภาษาไทย",
@@ -5805,7 +6448,10 @@
         "配对",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกม",
@@ -5838,7 +6484,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "xingtai",
@@ -5864,7 +6513,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "a",
@@ -5890,7 +6542,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "shengna",
@@ -5916,7 +6571,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-lxsn",
@@ -5947,7 +6605,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "测试",
@@ -5971,7 +6632,10 @@
       "favorites": 0,
       "contentStatus": "unavailable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Math Quest",
@@ -5997,7 +6661,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Card World: Reality Archive",
@@ -6023,7 +6690,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "RedAI Creative Studio",
@@ -6049,7 +6719,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "232101126lcwfzsj",
@@ -6075,7 +6748,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -6101,7 +6777,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-j8bs",
@@ -6125,7 +6804,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-nfdy",
@@ -6151,7 +6833,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "TM",
@@ -6175,7 +6860,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "AI Voyager Planner",
@@ -6201,7 +6889,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "中秋快乐",
@@ -6227,7 +6918,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-llan",
@@ -6255,7 +6949,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "namo17",
@@ -6284,7 +6981,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-fmi7",
@@ -6310,7 +7010,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "she",
@@ -6338,7 +7041,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "mnlg232101126",
@@ -6364,7 +7070,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-o41u",
@@ -6390,7 +7099,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "tiangong",
@@ -6416,7 +7128,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "flls",
@@ -6444,7 +7159,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game-1",
@@ -6473,7 +7191,10 @@
         "拖拽",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Github 小岛",
@@ -6499,7 +7220,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมจับให้ถูก",
@@ -6527,7 +7251,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "XiaokLibrary",
@@ -6553,7 +7280,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-j29f",
@@ -6579,7 +7309,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "隔空投送",
@@ -6605,7 +7338,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-69c0",
@@ -6629,7 +7365,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Memo Space",
@@ -6655,7 +7394,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "xingmo",
@@ -6681,7 +7423,10 @@
       "favorites": 0,
       "contentStatus": "empty",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-5ooe",
@@ -6705,7 +7450,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-6be8",
@@ -6729,7 +7477,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "711003",
@@ -6755,7 +7506,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Thanyalak Somphet",
@@ -6784,7 +7538,10 @@
         "问答",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Nnnpp",
@@ -6814,7 +7571,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "shebo",
@@ -6843,7 +7603,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-xgm9",
@@ -6869,7 +7632,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "AppLibWeb",
@@ -6895,7 +7661,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Gemini Smart Sidebar",
@@ -6921,7 +7690,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -6947,7 +7719,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "guess medival weapon game",
@@ -6976,7 +7751,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -7002,7 +7780,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "growu",
@@ -7026,7 +7807,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมฝ่าวิกฤตวิ่งหนีซอมบี้",
@@ -7054,7 +7838,10 @@
       "features": [
         "问答"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมง่ายๆ",
@@ -7084,7 +7871,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "iQ",
@@ -7113,7 +7903,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "yuwenjiaoshijie",
@@ -7141,7 +7934,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Xx",
@@ -7167,7 +7963,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมฝ่าวิกฤตวิ่งหนีซอมบี้",
@@ -7193,7 +7992,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Game3",
@@ -7222,7 +8024,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Aura Plan",
@@ -7248,7 +8053,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "artv.2",
@@ -7279,7 +8087,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game-05",
@@ -7308,7 +8119,10 @@
         "拖拽",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "sata",
@@ -7337,7 +8151,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "TOTROR",
@@ -7367,7 +8184,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Hwahgwahfoohowduhchyen",
@@ -7395,7 +8215,10 @@
       "features": [
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-dtks",
@@ -7421,7 +8244,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Food Games",
@@ -7449,7 +8275,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "1",
@@ -7475,7 +8304,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "91",
@@ -7501,7 +8333,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Case 1 标签推导 - Evidence graph",
@@ -7527,7 +8362,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "sth的mcjs",
@@ -7555,7 +8393,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "xx",
@@ -7581,7 +8422,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "1",
@@ -7607,7 +8451,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมจัดจานอาหารป.3",
@@ -7636,7 +8483,10 @@
         "拖拽",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "fahfy",
@@ -7662,7 +8512,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมสุขศึกษา",
@@ -7688,7 +8541,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-7uhv",
@@ -7714,7 +8570,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "000000",
@@ -7740,7 +8599,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "wechat",
@@ -7766,7 +8628,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "fzpzgl",
@@ -7794,7 +8659,10 @@
       "features": [
         "拖拽"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกม",
@@ -7823,7 +8691,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-hzun",
@@ -7849,7 +8720,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "AR Hand Shooter",
@@ -7875,7 +8749,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "NB",
@@ -7899,7 +8776,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -7925,7 +8805,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "91",
@@ -7951,7 +8834,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "jx-象棋",
@@ -7977,7 +8863,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Pancake",
@@ -8006,7 +8895,10 @@
         "拖拽",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "ืnote",
@@ -8032,7 +8924,10 @@
       "features": [
         "问答"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-mjzg",
@@ -8058,7 +8953,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "spam",
@@ -8084,7 +8982,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-0j4h",
@@ -8112,7 +9013,10 @@
       "features": [
         "问答"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "ธัญลักษณ์ สมเพ็ชร",
@@ -8141,7 +9045,10 @@
         "拖拽",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "8",
@@ -8167,7 +9074,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกม",
@@ -8197,7 +9107,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "NeuroBlock OS",
@@ -8223,7 +9136,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "paokugongfang2",
@@ -8251,7 +9167,10 @@
       "features": [
         "配对"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game1",
@@ -8280,7 +9199,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "TypeMaster",
@@ -8306,7 +9228,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "凉亭",
@@ -8330,7 +9255,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "whatapp仿写",
@@ -8356,7 +9284,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "test",
@@ -8380,7 +9311,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "gamafew1",
@@ -8410,7 +9344,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "sata",
@@ -8436,7 +9373,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "azai-dongcha",
@@ -8462,7 +9402,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Book of Answers",
@@ -8488,7 +9431,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -8514,7 +9460,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game-thai",
@@ -8543,7 +9492,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-dy32",
@@ -8567,7 +9519,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "GemiGo Tieba",
@@ -8593,7 +9548,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "她",
@@ -8619,7 +9577,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "石昊电竞商城",
@@ -8645,7 +9606,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมยิงอุกาบาท",
@@ -8673,7 +9637,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -8699,7 +9666,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "软件下载",
@@ -8727,7 +9697,10 @@
       "features": [
         "拖拽"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-0xqi",
@@ -8755,7 +9728,10 @@
       "features": [
         "问答"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมเเข่งรถ",
@@ -8781,7 +9757,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "xiaoyv",
@@ -8805,7 +9784,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "91",
@@ -8831,7 +9813,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Game.html",
@@ -8860,7 +9845,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "wangxinhe2",
@@ -8886,7 +9874,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "star-first-look",
@@ -8916,7 +9907,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "goy-02",
@@ -8942,7 +9936,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "SonicScript",
@@ -8968,7 +9965,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "小六账号管理器",
@@ -8994,7 +9994,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมคณิตศาสตร์ม.6",
@@ -9023,7 +10026,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "อิตาลี2",
@@ -9052,7 +10058,10 @@
         "配对",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-ay8z",
@@ -9078,7 +10087,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "2.0",
@@ -9102,7 +10114,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-mez6",
@@ -9128,7 +10143,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "element",
@@ -9154,7 +10172,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app",
@@ -9178,7 +10199,10 @@
       "favorites": 0,
       "contentStatus": "unavailable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-l9ug",
@@ -9206,7 +10230,10 @@
       "features": [
         "问答"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกม",
@@ -9235,7 +10262,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมภาษาไทย",
@@ -9265,7 +10295,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Game3",
@@ -9294,7 +10327,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-91y3",
@@ -9322,7 +10358,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "GTA",
@@ -9348,7 +10387,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -9374,7 +10416,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Ain MusicX",
@@ -9400,7 +10445,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "33png",
@@ -9424,7 +10472,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "ภาษาไทย",
@@ -9454,7 +10505,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "color art",
@@ -9484,7 +10538,10 @@
         "拖拽",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game-2",
@@ -9513,7 +10570,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "azai-peizhi",
@@ -9539,7 +10599,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-m1aa",
@@ -9565,7 +10628,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game54",
@@ -9593,7 +10659,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "简章系统",
@@ -9619,7 +10688,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-rie6",
@@ -9650,7 +10722,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "9",
@@ -9674,7 +10749,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-hf8y",
@@ -9700,7 +10778,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game",
@@ -9728,7 +10809,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "X",
@@ -9754,7 +10838,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "ceshiyon",
@@ -9780,7 +10867,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "art",
@@ -9811,7 +10901,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกม",
@@ -9842,7 +10935,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "LIANREN",
@@ -9868,7 +10964,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เเทียน",
@@ -9896,7 +10995,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game arm",
@@ -9926,7 +11028,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "D",
@@ -9952,7 +11057,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-ae13",
@@ -9983,7 +11091,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมฝ่าวิกฤตวิ่งหนีซอมบี้",
@@ -10009,7 +11120,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "azai-denglu",
@@ -10035,7 +11149,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "ii",
@@ -10061,7 +11178,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "9178",
@@ -10087,7 +11207,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-iu1b",
@@ -10113,7 +11236,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -10139,7 +11265,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกม",
@@ -10168,7 +11297,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "wechat",
@@ -10194,7 +11326,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -10220,7 +11355,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "paint color",
@@ -10250,7 +11388,10 @@
         "拖拽",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-h4ey",
@@ -10278,7 +11419,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมคณิตคิดเร็ว",
@@ -10306,7 +11450,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "4p8n",
@@ -10330,7 +11477,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "russianapp",
@@ -10354,7 +11504,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "iQ",
@@ -10383,7 +11536,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "thanakit",
@@ -10412,7 +11568,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกม",
@@ -10441,7 +11600,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-fpfw",
@@ -10467,7 +11629,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "paint color",
@@ -10497,7 +11662,10 @@
         "拖拽",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมฝ่าวิกฤตวิ่งหนีซอมบี้",
@@ -10527,7 +11695,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -10553,7 +11724,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-phxt",
@@ -10581,7 +11755,10 @@
       "features": [
         "配对"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "签名墙",
@@ -10607,7 +11784,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-kzq1",
@@ -10633,7 +11813,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Geeglo",
@@ -10659,7 +11842,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Claw.cool - AI Butler",
@@ -10685,7 +11871,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "thatu",
@@ -10711,7 +11900,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Game TT",
@@ -10740,7 +11932,10 @@
         "配对",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "78",
@@ -10766,7 +11961,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกม",
@@ -10795,7 +11993,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-re68",
@@ -10821,7 +12022,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game123",
@@ -10851,7 +12055,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "78",
@@ -10877,7 +12084,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "patihan34",
@@ -10906,7 +12116,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-nobino",
@@ -10932,7 +12145,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมฝ่าวิกฤตวิ่งหนีซอมบี้",
@@ -10958,7 +12174,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-xnlo",
@@ -10984,7 +12203,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-2a2z",
@@ -11008,7 +12230,10 @@
       "favorites": 0,
       "contentStatus": "unavailable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Elon Musk Archive",
@@ -11034,7 +12259,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "paokugongfang",
@@ -11060,7 +12288,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "ภาษาอังกฤษ",
@@ -11090,7 +12321,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Aether Infinite Workspace",
@@ -11116,7 +12350,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกม",
@@ -11140,7 +12377,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Detaudom",
@@ -11169,7 +12409,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-9gqw",
@@ -11195,7 +12438,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "A Wonderful Tiny Animal Game",
@@ -11223,7 +12469,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "刘维勃的专属网站",
@@ -11249,7 +12498,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "申安云",
@@ -11275,7 +12527,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "jgrigoojer",
@@ -11305,7 +12560,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-4biu",
@@ -11333,7 +12591,10 @@
       "features": [
         "排序"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-jprc",
@@ -11359,7 +12620,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "hjj",
@@ -11385,7 +12649,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Am Lx",
@@ -11411,7 +12678,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมเเข่งรถ",
@@ -11437,7 +12707,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมนี้สนุกมมาก",
@@ -11467,7 +12740,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "sheshe",
@@ -11495,7 +12771,10 @@
       "features": [
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "com1",
@@ -11524,7 +12803,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "李睿博的网站",
@@ -11550,7 +12832,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-yeek",
@@ -11580,7 +12865,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Neon Blade: Cyber Slice",
@@ -11606,7 +12894,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-kezp",
@@ -11632,7 +12923,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Peiiii OS Portfolio",
@@ -11658,7 +12952,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "อิตาลีv2",
@@ -11688,7 +12985,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-zkmn",
@@ -11716,7 +13016,10 @@
       "features": [
         "排序"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-m19h",
@@ -11744,7 +13047,10 @@
       "features": [
         "拖拽"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "น้ำแข็ง",
@@ -11772,7 +13078,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "gmae54",
@@ -11796,7 +13105,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game-3",
@@ -11826,7 +13138,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมภาษาไทย",
@@ -11856,7 +13171,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Mystery Birthday Box",
@@ -11880,7 +13198,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "shuxuejiaoshijie",
@@ -11908,7 +13229,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "chhf",
@@ -11934,7 +13258,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "xiemi-xz",
@@ -11960,7 +13287,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "nnn603",
@@ -11989,7 +13319,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "มินิเกม สุวภัทร",
@@ -12018,7 +13351,10 @@
         "拖拽",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมอะไรเอ่ย",
@@ -12047,7 +13383,10 @@
         "拖拽",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "sataporn",
@@ -12077,7 +13416,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-r6rj",
@@ -12105,7 +13447,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Baby",
@@ -12131,7 +13476,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "香港入境处",
@@ -12157,7 +13505,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "H",
@@ -12183,7 +13534,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "WeChat Desktop AI",
@@ -12209,7 +13563,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "ภาษาไทย",
@@ -12239,7 +13596,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-9jtn",
@@ -12267,7 +13627,10 @@
       "features": [
         "拖拽"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-89es",
@@ -12293,7 +13656,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "azai-qiyerenzheng",
@@ -12319,7 +13685,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "757637",
@@ -12345,7 +13714,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-114514",
@@ -12371,7 +13743,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Quick Form Builder",
@@ -12395,7 +13770,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "芄芷",
@@ -12421,7 +13799,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมภาษาไทย",
@@ -12450,7 +13831,10 @@
         "配对",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-3s2n",
@@ -12474,7 +13858,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เขียนโค้ด HTML, CSS และ JavaScript สร้าง \"เกมจับคู่เวลา\" วิชาคณิตศาสตร์ ป.3 เงื่อนไข: 1) หน้าแรกมีช่องกรอกชื่อ 2) ฝั่งซ้ายเป็นข้อความบอกเวลา (เช่น 08:30 น.) ฝั่งขวาเป็นตัวเลือกหน้าปัดนาฬิกาจำลอง 3) ให้ผู้เล่นกดจับคู่ 4) จบเกมมีหน้าต่างสรุปคะแนนที่ดึงชื่อผู้เล่นมาแสดงผล",
@@ -12504,7 +13891,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-5gjh",
@@ -12530,7 +13920,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "大战场",
@@ -12556,7 +13949,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "超市",
@@ -12582,7 +13978,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game01",
@@ -12611,7 +14010,10 @@
         "配对",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "91",
@@ -12637,7 +14039,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "919191",
@@ -12663,7 +14068,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "nonganfield qnd nongdiaw",
@@ -12693,7 +14101,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-g2sk",
@@ -12723,7 +14134,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "33store",
@@ -12749,7 +14163,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมปรนัยภาพ",
@@ -12779,7 +14196,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมจีบ",
@@ -12807,7 +14227,10 @@
       "features": [
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Ethereal Card Forge",
@@ -12833,7 +14256,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-5air",
@@ -12859,7 +14285,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "2",
@@ -12885,7 +14314,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game001",
@@ -12914,7 +14346,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมคำถาม",
@@ -12943,7 +14378,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "蛇脖",
@@ -12969,7 +14407,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -12995,7 +14436,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-84fu",
@@ -13021,7 +14465,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Lens: Smart Web Layer",
@@ -13047,7 +14494,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-usuc",
@@ -13075,7 +14525,10 @@
       "features": [
         "配对"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "7",
@@ -13101,7 +14554,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "c",
@@ -13125,7 +14581,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เก็บดาว",
@@ -13153,7 +14612,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Efootball",
@@ -13181,7 +14643,10 @@
       "features": [
         "拖拽"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "石昊电竞",
@@ -13207,7 +14672,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "krushi-kiran",
@@ -13231,7 +14699,10 @@
       "favorites": 0,
       "contentStatus": "unavailable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "3",
@@ -13257,7 +14728,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "gama 1",
@@ -13287,7 +14761,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-xi7t",
@@ -13313,7 +14790,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-cuii",
@@ -13339,7 +14819,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "XxX",
@@ -13365,7 +14848,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "豆包",
@@ -13391,7 +14877,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "guess medival weapon game",
@@ -13420,7 +14909,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Lumina Diary",
@@ -13446,7 +14938,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "4",
@@ -13472,7 +14967,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "泰煜管理系统",
@@ -13498,7 +14996,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "A",
@@ -13524,7 +15025,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "คณิตคิดเร็ว",
@@ -13553,7 +15057,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "o",
@@ -13579,7 +15086,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Souji - The Soul of Things",
@@ -13605,7 +15115,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "申安云",
@@ -13631,7 +15144,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Musk Mindset Academy",
@@ -13657,7 +15173,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-azel",
@@ -13685,7 +15204,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Nobina",
@@ -13711,7 +15233,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "ZenPomodoro",
@@ -13737,7 +15262,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "hk",
@@ -13763,7 +15291,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "高清壁纸免费下载",
@@ -13789,7 +15320,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game603",
@@ -13818,7 +15352,10 @@
         "拖拽",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-m8ad",
@@ -13842,7 +15379,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-yoot",
@@ -13871,7 +15411,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "มินิเกม สุวภัทร",
@@ -13901,7 +15444,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-bczr",
@@ -13927,7 +15473,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "papem",
@@ -13957,7 +15506,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "wulijiaoshijie",
@@ -13985,7 +15537,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "sbti",
@@ -14013,7 +15568,10 @@
       "features": [
         "问答"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "xzc-xz-zc-app-wz",
@@ -14037,7 +15595,10 @@
       "favorites": 0,
       "contentStatus": "unavailable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมหลบลูกบอล",
@@ -14065,7 +15626,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "gung ning 08",
@@ -14094,7 +15658,10 @@
         "配对",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-kig3",
@@ -14120,7 +15687,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-9yst",
@@ -14146,7 +15716,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมอิ้ง",
@@ -14175,7 +15748,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-91",
@@ -14201,7 +15777,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -14227,7 +15806,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "7575557",
@@ -14251,7 +15833,10 @@
       "favorites": 0,
       "contentStatus": "unavailable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "中秋快乐",
@@ -14275,7 +15860,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "919191",
@@ -14301,7 +15889,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "note",
@@ -14331,7 +15922,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "CompanionStar",
@@ -14357,7 +15951,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Frosted Glass UI Demo",
@@ -14383,7 +15980,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "คิดเลขโหดด",
@@ -14412,7 +16012,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-adta",
@@ -14441,7 +16044,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "ss",
@@ -14472,7 +16078,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมอะไร",
@@ -14501,7 +16110,10 @@
         "拖拽",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกม",
@@ -14527,7 +16139,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "20",
@@ -14556,7 +16171,10 @@
         "问答",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-8cy7",
@@ -14582,7 +16200,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "0000000000",
@@ -14608,7 +16229,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "sth_mcjs",
@@ -14636,7 +16260,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "AetherOS",
@@ -14662,7 +16289,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมเรียงลำดับจำนวน ป.3",
@@ -14693,7 +16323,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "403",
@@ -14719,7 +16352,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "yv",
@@ -14743,7 +16379,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-d1hp",
@@ -14769,7 +16408,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-50ho",
@@ -14795,7 +16437,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "1",
@@ -14825,7 +16470,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game-3",
@@ -14854,7 +16502,10 @@
         "拖拽",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมคณิตศาสตร์",
@@ -14878,7 +16529,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "azai-fuwurengwu",
@@ -14904,7 +16558,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "6",
@@ -14930,7 +16587,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "bo",
@@ -14954,7 +16614,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "78",
@@ -14980,7 +16643,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "91",
@@ -15006,7 +16672,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "game-english",
@@ -15036,7 +16705,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "ll",
@@ -15062,7 +16734,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "tk3u",
@@ -15090,7 +16765,10 @@
       "features": [
         "成绩"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Cyber Digital Garden",
@@ -15116,7 +16794,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "papem",
@@ -15146,7 +16827,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "nb",
@@ -15172,7 +16856,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "LifeScale",
@@ -15198,7 +16885,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมง่าย",
@@ -15228,7 +16918,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "x",
@@ -15254,7 +16947,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "bonut",
@@ -15284,7 +16980,10 @@
         "成绩",
         "输入姓名"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "com",
@@ -15308,7 +17007,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "ai-客服",
@@ -15336,7 +17038,10 @@
       "features": [
         "问答"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "bobobo",
@@ -15364,7 +17069,10 @@
       "features": [
         "输入姓名"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "2.0",
@@ -15390,7 +17098,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-9j0m",
@@ -15416,7 +17127,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Math_clock",
@@ -15446,7 +17160,10 @@
         "拖拽",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-n41y",
@@ -15475,7 +17192,10 @@
         "拖拽",
         "成绩"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "1523",
@@ -15501,7 +17221,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "91",
@@ -15527,7 +17250,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "Voxel World Builder",
@@ -15551,7 +17277,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "เกมของแพนเค้ก",
@@ -15579,7 +17308,10 @@
       "features": [
         "问答"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-bz7t",
@@ -15605,7 +17337,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "3D Clover Meadow",
@@ -15631,7 +17366,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-78",
@@ -15657,7 +17395,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "燕云代肝价格表",
@@ -15683,7 +17424,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "GAME01",
@@ -15711,7 +17455,10 @@
       "features": [
         "问答"
       ],
-      "grade3Mention": true
+      "grade3Mention": true,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": "app-kgt3",
@@ -15739,7 +17486,10 @@
       "features": [
         "拖拽"
       ],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     },
     {
       "name": ".",
@@ -15763,7 +17513,10 @@
       "favorites": 0,
       "contentStatus": "readable",
       "features": [],
-      "grade3Mention": false
+      "grade3Mention": false,
+      "uv30": null,
+      "uv7": null,
+      "previous7Uv": null
     }
   ],
   "nonpublicCaseChecks": [
@@ -15773,7 +17526,8 @@
       "visits30": 876,
       "observedDays30": 21,
       "peakDayPv": 410,
-      "contentSummary": "Page has announcements, queries and management structure; actual task completion not verified"
+      "contentSummary": "Page has announcements, queries and management structure; actual task completion not verified",
+      "uv30": null
     },
     {
       "label": "B",
@@ -15781,7 +17535,23 @@
       "visits30": 515,
       "observedDays30": 12,
       "peakDayPv": 260,
-      "contentSummary": "Page has game-related content; specific genre not reliably verified"
+      "contentSummary": "Page has game-related content; specific genre not reliably verified",
+      "uv30": null
     }
-  ]
+  ],
+  "uvAvailability": {
+    "checkedOn": "2026-10-03",
+    "scope": "Application domains, not the GemiGo platform website",
+    "periodUvStatus": "unavailable_incomplete_coverage_daily_only",
+    "diagnosticFirstObservedDate": "2026-09-18",
+    "diagnosticLastObservedDate": "2026-09-19",
+    "diagnosticLastObservedHour": "2026-09-19T10",
+    "crossDayDeduplicationAvailable": false,
+    "rumMetricsUsed": [
+      "pageViews",
+      "visits"
+    ],
+    "presentation": "— in report; null in JSON. Missing UV does not imply zero users.",
+    "categoryUvNote": "Even with future per-app UV, adding apps cannot produce deduplicated category or platform UV."
+  }
 }
