@@ -472,7 +472,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
 
                 {/* Interaction Shield */}
                 {!isEntered && (
-                    <IconButton label={t('common.clickToEnter')} size="auto"
+                    <IconButton label={t('common.clickToEnter')} size="auto" variant="plain"
                         className="absolute inset-0 z-10 cursor-pointer bg-transparent flex flex-col items-center justify-center group transition-all duration-300"
                         data-event="app_visit" onClick={handleEnter}
                     >
@@ -525,7 +525,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                     )}
 
                     <div className="flex flex-col items-center gap-1">
-                        <IconButton label={t('previewActions.like')} size="lg"
+                        <IconButton label={t('previewActions.like')} size="auto"
                             className="p-2 transition-transform active:scale-90 cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                             onClick={() => presenter.reaction.toggleLike(app.id)}
                         >
@@ -537,7 +537,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                     </div>
 
                     <div className="flex flex-col items-center gap-1">
-                        <IconButton label={t('previewActions.comments')} size="lg"
+                        <IconButton label={t('previewActions.comments')} size="auto"
                             className="p-2 transition-transform active:scale-90 cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                             onClick={openComments}
                         >
@@ -549,7 +549,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                     </div>
 
                     <div className="flex flex-col items-center gap-1">
-                        <IconButton label={t('previewActions.favorite')} size="lg"
+                        <IconButton label={t('previewActions.favorite')} size="auto"
                             className="p-2 transition-transform active:scale-90 cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                             onClick={() => presenter.reaction.toggleFavorite(app.id)}
                         >

@@ -31,10 +31,10 @@ export const Tooltip = ({ children, label, side = 'top' }: {
 );
 
 const sizes = {
-  xs: 'h-6 w-6',
-  sm: 'h-8 w-8',
-  md: 'h-9 w-9',
-  lg: 'h-11 w-11',
+  xs: 'h-6 min-w-6 px-1',
+  sm: 'h-8 min-w-8 px-2',
+  md: 'h-9 min-w-9 px-2.5',
+  lg: 'h-11 min-w-11 px-3',
   auto: '',
 };
 
@@ -43,13 +43,14 @@ type IconButtonProps = Omit<ComponentPropsWithRef<'button'>, 'title' | 'aria-lab
   label: string;
   tooltip?: string;
   size?: keyof typeof sizes;
+  variant?: 'ghost' | 'plain';
   tooltipSide?: 'top' | 'right' | 'bottom' | 'left';
   asChild?: boolean;
 };
 
 /** Icon actions share naming, keyboard focus and tooltip behavior. */
 export const IconButton = ({
-  label, tooltip, size = 'md', tooltipSide, asChild = false,
+  label, tooltip, size = 'md', variant = 'ghost', tooltipSide, asChild = false,
   className = '', type = 'button', children, ...props
 }: IconButtonProps) => {
   const Component = asChild ? Slot : 'button';
@@ -60,7 +61,7 @@ export const IconButton = ({
         {...(!asChild ? { type } : {})}
         aria-label={label}
         data-icon-button=""
-        className={`inline-flex shrink-0 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-40 ${sizes[size]} ${className}`}
+        className={`inline-flex shrink-0 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-40 ${variant === 'ghost' ? 'hover:bg-slate-100 active:bg-slate-200 dark:hover:bg-slate-800 dark:active:bg-slate-700' : ''} ${sizes[size]} ${className}`}
       >
         {children}
       </Component>

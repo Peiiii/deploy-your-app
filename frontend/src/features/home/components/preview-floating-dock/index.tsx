@@ -8,6 +8,7 @@ import { BrandLogo } from './brand-logo';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { useReactionStore } from '@/stores/reaction.store';
+import { DOCK_DRAG_THRESHOLD_PX } from '@/components/floating-dock/types';
 
 // ============================================================================
 // PREVIEW FLOATING DOCK COMPONENT
@@ -70,6 +71,7 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
     const [pinnedOpen, setPinnedOpen] = useState(false);
     const [reactionPending, setReactionPending] = useState(false);
     const pointerStart = useRef<{ x: number; y: number } | null>(null);
+    const draggedHandle = useRef(false);
     const actionAreaId = useId();
     const isOwner = !!user && !!app.ownerId && user.id === app.ownerId;
     const toggleReaction = async (kind: 'like' | 'favorite') => {
@@ -88,7 +90,10 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
     };
 
     const { nodeRef, style, onMouseDown, isDragging, dockSide } = useFloatingDock({
-        onDragStart,
+        onDragStart: () => {
+            draggedHandle.current = true;
+            onDragStart();
+        },
         onDragEnd,
         ...dockOptions,
     });
@@ -107,11 +112,10 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
     return (
         <div
             ref={nodeRef}
-            onMouseDown={onMouseDown}
             style={style}
           className={`
                 absolute z-50 select-none
-                ${isDragging ? 'cursor-grabbing' : 'transition-[left,top] duration-500 linear cursor-grab'}
+                ${isDragging ? 'cursor-grabbing' : 'transition-[left,top] duration-500 linear'}
             `}
         >
             {/* Unified Capsule Container */}
@@ -133,11 +137,15 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
                   aria-expanded={expanded}
                   aria-controls={actionAreaId}
 
-                    onPointerDown={event => { pointerStart.current = { x: event.clientX, y: event.clientY }; }}
+                    onMouseDown={onMouseDown}
+                    onPointerDown={event => {
+                        draggedHandle.current = false;
+                        pointerStart.current = { x: event.clientX, y: event.clientY };
+                    }}
                     onClick={event => {
                         const start = pointerStart.current;
                         pointerStart.current = null;
-                        if (event.detail === 0 || !start || Math.hypot(event.clientX - start.x, event.clientY - start.y) < 5) {
+                        if (!draggedHandle.current && (event.detail === 0 || !start || Math.hypot(event.clientX - start.x, event.clientY - start.y) < DOCK_DRAG_THRESHOLD_PX)) {
                             setPinnedOpen(value => !value);
                         }
                     }}

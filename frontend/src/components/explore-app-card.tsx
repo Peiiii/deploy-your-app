@@ -251,7 +251,8 @@ export const ExploreAppCardView: React.FC<ExploreAppCardViewProps> = ({
               {languageLabel}
             </span>
           )}
-          <IconButton label={t('previewActions.like')} size="auto"
+          <IconButton label={t('previewActions.like')} size="sm"
+            aria-pressed={reactionEntry?.likedByCurrentUser ?? false}
             onClick={(e) => {
               e.stopPropagation();
               presenter.reaction.toggleLike(app.id);

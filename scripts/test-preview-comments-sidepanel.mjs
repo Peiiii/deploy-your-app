@@ -64,7 +64,22 @@ try {
     return route.fulfill({ contentType: 'text/html', body: '<html><body style="background:#f5fafc;font-family:sans-serif;padding:24px"><h1>元素周期表</h1><div style="background:#abe6db;border-radius:20px;width:90px;padding:24px;font-size:50px">H</div><p>评论打开时，应用仍然可以操作。</p><button id="counter" onclick="this.textContent=String(Number(this.textContent)+1)">0</button></body></html>' });
   });
   await page.goto(baseUrl);
-  await page.locator('[data-preview-app-id="preview-app"]').click();
+  const card = page.locator('[data-preview-app-id="preview-app"]');
+  await card.waitFor();
+  const cardLike = card.getByRole('button', { name: '点赞', exact: true });
+  const hitArea = await cardLike.boundingBox();
+  assert.ok(hitArea.width >= 32 && hitArea.height >= 32, 'Card like has a padded target of at least 32px');
+  const restingColor = await cardLike.evaluate(element => getComputedStyle(element).backgroundColor);
+  await cardLike.hover();
+  await page.getByRole('tooltip').waitFor();
+  const hoveredStyle = await cardLike.evaluate(element => ({ background: getComputedStyle(element).backgroundColor, radius: parseFloat(getComputedStyle(element).borderRadius) }));
+  assert.notEqual(hoveredStyle.background, restingColor, 'Card like has visible hover feedback');
+  assert.ok(hoveredStyle.radius >= 6, 'Card like feedback is a rounded rectangle');
+  const likeRequest = page.waitForRequest(request => request.method() === 'POST' && /\/like$/.test(new URL(request.url()).pathname));
+  await cardLike.click({ position: { x: 2, y: 2 } });
+  await likeRequest;
+  assert.equal(await page.locator('iframe').count(), 0, 'Clicking like padding does not open the card preview');
+  await card.click();
   const frame = page.locator('iframe[title="元素周期表"]');
   const iframeIdentity = await frame.elementHandle();
   const counter = page.frameLocator('iframe[title="元素周期表"]').locator('#counter');
@@ -99,6 +114,24 @@ try {
   assert.ok((await page.getByRole('tooltip').innerText()).includes('评论'), 'Keyboard focus shows the same name');
   await toggle.press('Escape');
   await page.getByRole('tooltip').waitFor({ state: 'detached' });
+  const handle = page.getByRole('button', { name: '应用操作', exact: true });
+  const dockRoot = handle.locator('..').locator('..');
+  const dockBox = await dockRoot.boundingBox();
+  const parkedStyle = await dockRoot.getAttribute('style');
+  await dockRoot.click({ position: { x: dockBox.width - 1, y: 60 } });
+  await page.waitForTimeout(100);
+  assert.equal(await dockRoot.getAttribute('style'), parkedStyle, 'Edge clicks never start docking');
+  const handleBox = await handle.boundingBox();
+  await page.mouse.move(handleBox.x + 20, handleBox.y + 20);
+  await page.mouse.down();
+  await page.waitForTimeout(100);
+  assert.equal(await dockRoot.getAttribute('style'), parkedStyle, 'Press without movement keeps docking');
+  assert.notEqual(await frame.evaluate(e => getComputedStyle(e.parentElement).pointerEvents), 'none');
+  await page.mouse.move(handleBox.x + 22, handleBox.y + 22);
+  assert.equal(await dockRoot.getAttribute('style'), parkedStyle, 'Small pointer jitter is a click');
+  await page.mouse.up();
+  await handle.click({ button: 'right' });
+  assert.equal(await dockRoot.getAttribute('style'), parkedStyle, 'Right-click never drags');
   const initialX = (await frame.boundingBox()).x;
   const bodyOverflow = await page.evaluate(() => document.body.style.overflow);
   await page.evaluate(() => {
@@ -220,6 +253,17 @@ try {
   await page.mouse.up();
   await page.waitForTimeout(600);
   assert.ok((await logo.boundingBox()).y - beforeDrag.y > 50, 'Dock dragging still works beside comments');
+  const parkedAfterDrag = await dockRoot.getAttribute('style');
+  const cancelStart = await handle.boundingBox();
+  await page.mouse.move(cancelStart.x + 20, cancelStart.y + 20);
+  await page.mouse.down();
+  await page.mouse.move(cancelStart.x + 20, cancelStart.y + 50, { steps: 4 });
+  await page.waitForFunction(() => getComputedStyle(document.querySelector('iframe').parentElement).pointerEvents === 'none');
+  await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+  await page.mouse.up();
+  await page.waitForTimeout(100);
+  assert.equal(await dockRoot.getAttribute('style'), parkedAfterDrag, 'Blur cancels dragging back to its parked position');
+  assert.notEqual(await frame.evaluate(e => getComputedStyle(e.parentElement).pointerEvents), 'none');
   await input.fill('这个应用的草稿');
   await page.locator('[data-preview-app-id="other-app"]').click();
   await toggle.click();
@@ -235,7 +279,7 @@ try {
   await expectTooltip(expandSidebar, '展开侧边栏');
   await expectTooltip(page.getByRole('button', { name: '探索应用', exact: true }), '探索应用');
   assert.deepEqual(errors, []);
-  console.log('Icon Tooltip and adjacent comments UI passed: nonmodal interactions, animation, iframe identity, draft/scroll preservation, pagination, focus/Escape/auth, reply/delete, fullscreen/narrow/dark/reduced-motion.');
+  console.log('Padded card like, icon Tooltip and adjacent comments UI passed: nonmodal interactions, animation, iframe identity, draft/scroll preservation, pagination, focus/Escape/auth, reply/delete, fullscreen/narrow/dark/reduced-motion.');
 } finally {
   await browser.close();
 }

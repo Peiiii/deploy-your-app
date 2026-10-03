@@ -28,7 +28,7 @@
 
 ## 当前证据与发布契约
 
-本项前端发布为 L4，active contract-id=preview-actions-release；parent-goal=在正常网站应用预览浮动栏完成互动、自己的应用进入设置、连续评论面板，以及统一图标操作名称提示；scope-revision=3（评论相邻非阻断面板 + 主前端统一图标 Tooltip 规范）。既有浏览行为与权限是必须保持的不变量。单阶段契约 Review 通过，不要求新增用户审批。
+本项前端发布为 L4，active contract-id=preview-actions-release；parent-goal=在正常网站应用预览浮动栏完成互动、自己的应用进入设置、连续评论面板，以及统一图标操作名称提示；scope-revision=5（含操作条点击误触拖拽修复）。既有浏览行为与权限是必须保持的不变量。单阶段契约 Review 通过，不要求新增用户审批。
 
 | ID | Required | 合同 | Status | 当前证据 |
 | --- | --- | --- | --- | --- |
@@ -46,6 +46,8 @@
 | IT2 | true | 图标操作迁移与 hover/focus/动态名称/边界 | passed | 全 frontend icon lint 清零、真实 Chrome 悬停/聚焦/密码名称变更、asChild 链接与登录弹窗 |
 | IT3 | true | 当前 revision 类型/lint/build/UI 联动回归/Review | passed | frontend tsc、全部 changed TSX 定向 ESLint、全图标 lint/规则回归、原 HTTP manager 回归、含窄屏/暗色/侧栏/模态的 production Chrome UI 回归与 Review |
 | IT4 | true | 当前 revision 上线及两端主线同步 | not-run | 待本次发布 |
+| IT5 | true | 卡片点赞圆角矩形 hover、内边距与边缘点击隔离 | passed | Chrome target≥32px、radius≥6px、hover底色变化、按钮角落点击产生like HTTP请求且 iframe数量=0 |
+| IT6 | true | 操作条边缘/零移动/抖动/右键不拖拽，真实拖拽与取消正确 | passed | Chrome 验证原style不变、iframe继续可交互；真实手柄移动、blur恢复parked style并释放iframe保护 |
 
 浏览器证据：/tmp/preview-actions-delivered.png、preview-actions-comments.png、preview-actions-dark.png；UI 回放数据为隔离 fixture，未对生产账号发表/删除评论。线上检查将验证真实读取、游客登录、资产版本与预览入口。首次直接 tsc 在未生成 product-analytics 声明时解析到 Worker 源码，报告 D1Database；按 workspace build 顺序生成声明后通过，未修改类型来掩盖错误。生产构建仅有既有 Browserslist 陈旧与 bundle 大小提示。
 
@@ -97,3 +99,15 @@ design-review: passed（修订 2）。从用户原话独立核对“左侧、隔
 修订3迭代证据：ESLint 已接入 `gemigo-ui/icon-actions`，裸按钮/链接/可点击div、条件图标和计数不能绕过；`scripts/test-icon-actions.mjs` 验证违反/合法 composition 场景及全 frontend inventory。浏览器验证使用 production build 与 HTTP fixture，加入 hover、键盘聚焦、无原生 title、视口避让、真实 Radix 登录弹窗内密码显示/隐藏名称。点击状态更新后等待 React/浮层提交再移动鼠标，避免自动化连续输入遗漏 pointerleave；产品代码无为测试添加的 tooltip state 或计时逻辑。
 
 修订3实现 Review（当前 diff）：无项目 diff-only maintainability 自动入口，按已有方法审查组件/全迁移 diff、状态/权限/事件/ref/HTML semantics 与测试边界。图标统一 owner 有真实跨入口消费者，Portal 不改变按钮 DOM 布局、支持 Dialog.Close/link composition；新增 lint 只约束主 frontend，合法文字按钮不被误报。评论 lifecycle 保留 iframe 与同应用草稿/滚动，关闭内容 inert 且无焦点锁；身份和 app 切换仍由原 owner 处理。没有开放 finding。public env 已按白名单保留，最终 production build index-QSliTkNM.js；已有 Browserslist/大 bundle 提示未新增失败。人工检查当前窄屏/暗色截图，无遮挡/横向溢出，剩余主观项为用户对实际丝滑程度的判断。
+
+## 修订 4：卡片点赞按钮热区与反馈（实施前）
+
+来源：用户要求卡片点赞采用合理内边距、圆角矩形、hover 反馈，避免点偏打开右侧应用，并由统一组件实现。保留修订3范围。IconButton 的标准尺寸改为固定高度与最小宽度 + 内边距，图标加计数自然增宽；默认 ghost 提供统一 hover/active 背景和过渡，plain 仅用于已有整张应用交互遮罩（不能用灰底盖住应用）。卡片点赞使用 sm，至少32px高度/宽度与8px横向内边距；原 stopPropagation 保留，命中边缘仍属于点赞按钮。其余同类图标复用 default ghost，不新增点赞专用按钮。组件尺寸变体仅前端 CSS，无跨层传播。验收新增 IT5 required：hover 可见底色、面积≥32px、圆角≥6px、边缘点击触发点赞/登录且不打开右侧 iframe，计数可增宽。IT3/IT4 对修订4重验，design-review=passed（操作边界清楚，新增 variant 有真实消费者，尺寸和事件不重复 owner），plan=not-required。
+
+## 修订 5：操作条边缘点击误触拖拽（实施前）
+
+来源：用户截图 `codex-clipboard-55805134-0b1e-4a30-9368-8ad18cdaaf18.png` 标记操作条右侧边缘，普通点击会往左弹。修前 Chrome production preview 直接复现最近边界：顶部手柄只按下、不移动，已变为 cursor-grabbing、绝对像素定位，iframe pointer-events=none；边缘零移动点击在当前宽度最终坐标不变，用户完整横跳幅度未稳定复现，不能声称此环境复现同幅度。源码确认整个操作条绑定 mousedown，未区分点击/拖拽，按下即坐标转换、松开即重新判断吸附；因此零移动点击也能进入错误链路。
+
+最近 owner 为 shared useFloatingDock（仅此主前端 consumer），不是评论布局或 Tooltip。bugfix 由本次 standard 合同包含。选择：只在顶部 handle 绑定；hook pending 保持原吸附样式，鼠标左键移动至少5px才启动 drag/callback，零移动或抖动不重新吸附；真正拖拽才持久化、终止回调。blur 取消恢复初始位置，释放 iframe 保护；拖过再回原位也不触发 handle 的展开点击。保持现有 docking 判定/存储Key/半全屏策略。IT6 required：边缘/手柄零移动/2px抖动/右键不入拖拽、不改位置；真实手柄拖拽及 blur取消正确，操作点击不移位。受影响证据重验；design-review=passed，关键反例完整，局部 owner 修正，无新通用框架。
+
+修订4/5当前验证与实现 Review：frontend tsc、受影响 TS/TSX ESLint、全 icon-rule 及 Chrome production UI 回归通过，production JS index-O27Zkcl7.js。hook 引入 pending，视觉 CSS吸附不变，5px阈值为唯一常量；只手柄进入drag，started保护开始/结束回调，鼠标button状态与blur取消保护生命周期，原dock算法/持久化保持。图标 shared ghost/内边距尺寸有卡片与dock真实消费者，play遮罩显式plain，无单独点赞按钮分叉。无开放 finding。主线并行的 ThumbsUp/反馈导航排序已安全合入并复验，保留其结果。
