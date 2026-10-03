@@ -1,6 +1,6 @@
 # 应用预览等待体验
 
-当前有效行为为修订4：iframe 从挂载开始正常显示与交互，load 仅清理底层反馈；下文原始方案与修订1–3的 load 揭示/淡入描述均为历史，已被修订4取代。
+当前有效行为为修订5：iframe 从挂载开始正常显示与交互，load 仅清理底层反馈；下文原始方案与修订1–3的 load 揭示/淡入描述均为历史，已被修订4取代。
 
 来源：2026-10-03 用户希望右侧展开应用期间消除类似白屏的等待，探索加载提速，并参考产品缺口图标做吃东西的小精灵。用户授权 AI 自行选择；AGENTS.md 全托管授权包含精确提交、普通推送、主工作区同步、前端上线。feature / standard，交互 L2、发布 L4；plan=not-required（单批闭环），retrospective_state=pending。
 
@@ -22,7 +22,7 @@
 
 ## 验收合同与方案 Review
 
-contract-id=preview-loading；parent-goal=线上点开应用时有品牌反馈、完成即进入应用、慢等待有可用出口；scope-revision=4（当前行为见修订4，修订1–3为历史证据）。
+contract-id=preview-loading；parent-goal=线上点开应用时有品牌反馈、完成即进入应用、慢等待有可用出口；scope-revision=5（当前行为见修订5，之前修订为历史证据）。
 
 | ID | Required | 可观察判定 | 状态 |
 | --- | --- | --- | --- |
@@ -33,6 +33,7 @@ contract-id=preview-loading；parent-goal=线上点开应用时有品牌反馈�
 | PL5 | true | 本任务精确提交、origin/master和主工作区master同步；线上新资产与真实入口验收 | passed |
 | PL6 | true | 单缺口开合、没有眼睛，身体固定且小；无分离扇形/双缝 | passed |
 | PL7 | true | 正文可用但非关键图片挂起时，load 前可见且按钮立即能点，首次/重复打开均无需等待 | passed |
+| PL8 | true | 普通切换保留同一窗口和旧画面至原生提交，retry后切换也保留，快速切换旧请求隔离 | passed |
 
 黄金链路：默认 gemigo.io 首页 → 点开应用 → 看到精灵和应用名称 → 网页出现后实际操作 → 展开评论/全屏保持网页进度 → 关闭返回浏览。慢网络：同一入口 → 等待提示变化 → 重试或直接显示/新标签 → 可以继续或关闭。
 
@@ -112,3 +113,29 @@ implementation Review：no findings。项目无 diff-only maintainability 自动
 真实默认首页→element元素周期表→氢详情，全部通过；400ms网络延迟仅用于观测加载中状态，实际iframe始终opacity1、transition0s、无inert/aria-hidden，精灵是底层反馈；评论/全屏保留同一iframe，390px手机真实新标签element.gemigo.app。无HTTPmock/状态注入，证据/tmp/preview-no-delay-production-evidence.json与production.png已核对。PL1–PL7 current passed（PL7的慢非关键资源直接操作由受控浏览器边界证明，不声称真实应用普遍耗时比例）。源码同步rev-list=0 0、实际远端master SHA与本地相等；本记录精确提交后再次同步复查。最终diff-only implementation Review no findings。
 
 retrospective_decision=原owner事实纠正：加载提示的load清理边界与用户可用边界必须分离；旧设计“无最低停留”不足以证明零额外等待。当前组件取消门槛，原设计和原真实浏览器回归均已更新，复用最近owner记录，无必要新增通用规则或平行机制。retrospective_state=completed。已交付默认站点，AI功能与生产验收通过；主观体感待用户反馈，未声称用户验收通过或网络传输本身提速。
+
+
+## 修订 5：沿用浏览窗口，让旧内容接上新内容（当前有效）
+
+来源：用户指出以前点击不会马上清空旧界面，而当前立即进入加载态让体感变慢，要求尽量减少无内容与变化；“不增加延时”继续是硬约束。bugfix / L2，发布L4；plan=not-required，retrospective_state=pending。调查沿真实首页卡片→useAppPreviewPanel→同一AppPreviewPanel→AppPreviewContent：旧986c73f之前直接iframe src切换、没有key；新增加载组件的app.id+URL key，以及重试attempt key销毁了原浏览窗口，立即回到空about:blank。修订4取消隐藏门槛仍没有纠正这一点。完整产品浏览器修前复现 /tmp/test-preview-continuity-baseline.mjs：A已操作、B文档请求挂起时，原iframe断开，断言失败（exit1）。独立Chrome原生导航实验表明，同一iframe更新src时旧文档在请求期间保留，新文档返回即替换。
+
+用户黄金链路：默认首页打开A并操作→点击B，新请求立即启动而A画面继续保留→浏览器接到B文档直接切换、B先就绪的按钮即可点击（即使非关键图片仍未结束）→评论/全屏保持窗口、关闭返回首页。首次打开没有旧预览时沿用现有极小背景动效；关闭后重新打开不额外缓存或偷偷运行已关闭应用。超慢导航仍可用底部重试/收起提示/新窗口或关闭；用户主动重试仍启动全新导航以恢复卡住的请求，快速A→B→A交给浏览器取消被替代的导航。
+
+brainstorming比较：推荐同一iframe原生src导航（恢复旧交互、单个浏览窗口、零新就绪门槛）；保留两层iframe直到load（会延迟已经可用的新文档、双倍运行任意应用，违背修订4）；旧页面截图占位（跨源截图不可可靠获取，新增资源与陈旧占位）。冻结第一种方案：删除AppPreviewContent app/URL key；iframe attempt key仅保留用于用户主动重试，URL切换不重置attempt；URL变化只重置本地反馈会话，浏览器DOM节点始终复用。会话只有url/status/attempt，timer检查当前会话防旧回调；retry增加attempt并重建iframe，保证卡住的导航有真实恢复出口；普通切换仅更新src。焦点交接、sandbox、手机与preconnect不变，无最低时长、淡入、延迟启动、预加载池或隐藏就绪探测。
+
+scope-revision=5，contract-id=preview-loading。PL1/PL2/PL3/PL4/PL5/PL7受会话变化转stale，PL6视觉继续有效；新增PL8 Required=true / not-run：A已点击计数1，B文档请求挂起时同一iframe保持连接、旧计数仍显示，新导航已开始；释放B文档后立即出现B，图片仍挂起也可点击；经过retry后再次切换仍保留节点/画面；快速切换被取消旧请求不能替代当前内容。固定对比用相同受控HTTP和产品入口，不以总体毫秒或感知量表声称网络提速。真实线上使用400ms网络延迟观测A→B期间节点与旧body保留及B之后的操作。
+
+边界：浏览器一旦提交新HTML，新应用自己的脚本/样式/异步请求仍可能出现空白，当前仅消除我们主动销毁窗口造成的空白，不承诺所有跨源应用没有内部加载。原生请求/文档提交生命周期参考[HTML导航](https://html.spec.whatwg.org/dev/browsing-the-web.html)。失败后页面/错误文档由浏览器接管，load不是成功就绪判断。保持旧内容指旧预览请求期间，首次从列表打开没有旧iframe不延迟右侧展开。
+
+实施前 mode=design Review：no findings，design-review=passed。原用户“少空白/少变化”与零延迟约束同时覆盖；旧→新比较确认原生浏览上下文复用为最近owner，不发明状态池；固定回归覆盖首次/重复/重试后切换/快速切换/取消/旧回调与load前交互。当前范围4文件内（组件/调用方/回归脚本/本设计），不新增组件或公共接口，无计划路径检查需求。没有双frame后台执行或load门槛，旧内容允许继续可见/可操作至原生导航提交，dock沿原行为选中目标应用。
+
+
+设计返工与复审（实现迭代证据）：Chrome在同一iframe里对正在加载的同一URL重新赋src或location.replace会合并请求；挂起文档的产品回归中retry没有发出新请求，不能替代原恢复出口。故保留显式retry的attempt key，只有用户主动retry重建窗口；普通URL切换保留同一attempt值，尤其覆盖retry后A→B的旧画面保留。用户要求的普通连续切换不增加任何等待，原重试能力也不丢失。上述当前方案已同步，mode=design复审no findings/passed；不加入cache-bust、跨源stop调用、第二iframe或隐藏导航绕路。
+
+
+验证方法补充：保留旧文档的请求期间，Playwright locator动作会等待新导航，不能用counter.innerText()代替当前页面观测；实际截图/tmp/preview-switch-debug.png明确仍有旧正文与计数1。普通evaluate也可能等新上下文，因此改为对比同一区域的浏览器实际截图PNG（切换前/挂起请求期间完全相等），同时验证新导航请求已发出；不注入/改变页面状态来假造保留效果。
+
+
+修订5开发验收：scripts/test-preview-loading.mjs完整回归passed；切换前/挂起B文档期间同一预览区域PNG逐字节相等（不是DOM标志推断），/tmp/preview-switch-retains-content.png已核对旧正文与计数1仍显示；释放B后按钮可点。初始重试之后再切换也保留iframe，A→B→A取消旧导航后只显示当前目标；非关键图片未结束前三次打开均可操作，原慢提示/主动重试/焦点交接/布局保留/中英/主题/减少动态效果/手机/preconnect回归通过。设备emulation与主题配置移至独立导航之前，避免浏览器工具等待挂起导航；iframe外层既有布局过渡期间测试点击等待元素稳定（只影响自动化坐标，没有产品延时）。frontend tsc、两组件定向ESLint、build和diff-check passed，产物index-DcgZIxNw.js/index-CvP_PGYz.css。
+
+implementation Review：no findings，项目无diff-only maintainability自动入口，按4文件及相邻预览owner/key/timer/focus审查。浏览器文档生命周期保持单一owner，url仅更新feedback会话，attempt只由显式retry增加；正常切换不能再误重置attempt并销毁浏览窗口。state渲染期只在url不同有限调整当前组件状态，无effect延迟加载或循环；旧timer通过url/attempt/status条件隔离。PL1–PL4/PL6–PL8 current passed，PL5等新主线与线上验收，retrospective_state=pending。

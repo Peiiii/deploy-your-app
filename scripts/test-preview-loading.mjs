@@ -39,7 +39,7 @@ try {
         if (!route.request().isNavigationRequest()) return route.fulfill({ status: 404, body: '' });
         await new Promise(resolve => pending.push({ route, resolve }));
         try {
-            await route.fulfill({ contentType: 'text/html', body: '<html><body style="background:#f5fafc;font-family:sans-serif;padding:24px"><h1>应用已打开</h1><button id="counter" onclick="this.textContent=String(Number(this.textContent)+1)">0</button></body></html>' });
+            await route.fulfill({ contentType: 'text/html', body: '<html><head><meta charset="utf-8"></head><body style="background:#f5fafc;font-family:sans-serif;padding:24px"><h1>应用已打开</h1><button id="counter" onclick="this.textContent=String(Number(this.textContent)+1)">0</button></body></html>' });
         } catch { /* A superseded navigation can already have been cancelled. */ }
     });
     const waitRequests = async count => {
@@ -104,6 +104,7 @@ try {
     assert.equal(await page.getByRole('status').count(), 0);
     assert.equal(await frame.getAttribute('inert'), null);
     const counter = page.frameLocator('iframe').locator('#counter');
+    await (await frame.elementHandle()).waitForElementState('stable');
     await counter.click();
     assert.equal(await counter.innerText(), '1');
     const loadedIdentity = await frame.elementHandle();
@@ -113,16 +114,37 @@ try {
     assert.equal(await counter.innerText(), '1', 'App interaction progress survives layout changes');
     await page.getByRole('button', { name: '退出全屏', exact: true }).click();
 
+    await page.getByRole('button', { name: '评论', exact: true }).click();
+    await page.waitForTimeout(300); // Let the existing comments layout transition finish.
+    const previewClip = await frame.boundingBox();
+    const previousPaint = await page.screenshot({ clip: previewClip });
+
     // Switch to a slow app; reduced motion and dark theme use product settings.
     await b.click();
     await waitRequests(3);
-    await state('loading').waitFor();
+    assert.ok(await loadedIdentity.evaluate(element => element === document.querySelector('iframe')), 'Switch preserves the existing browsing window');
+    const pendingPaint = await page.screenshot({ clip: previewClip });
+    assert.ok(pendingPaint.equals(previousPaint), 'Previous app pixels stay visible during the next document request');
+    await page.screenshot({ path: join(screenshots, 'preview-switch-retains-content.png') });
+    pending[2].resolve();
+    await state('visible').waitFor();
+    await (await frame.elementHandle()).waitForElementState('stable');
+    await counter.click();
+    assert.equal(await counter.innerText(), '1', 'Next app is usable as soon as its document arrives');
+    await page.getByRole('button', { name: '关闭', exact: true }).click();
+    await frame.waitFor({ state: 'detached' });
+
+    // Configure device preferences before another navigation is deliberately held.
+
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.getByRole('button', { name: '切换主题', exact: true }).click();
     assert.ok(await page.locator('html').evaluate(element => element.classList.contains('dark')));
+    await page.setViewportSize({ width: 1100, height: 820 });
+    await b.click();
+    await waitRequests(4);
+    await state('loading').waitFor();
     assert.equal(await page.locator('.preview-sprite-jaw').evaluate(element => getComputedStyle(element).animationName), 'none');
     await page.screenshot({ path: join(screenshots, 'preview-loading-dark.png') });
-    await page.setViewportSize({ width: 1100, height: 820 });
     await page.clock.fastForward(10_001);
     await state('slow').waitFor();
     await page.screenshot({ path: join(screenshots, 'preview-loading-narrow.png') });
@@ -130,19 +152,27 @@ try {
     await page.getByRole('button', { name: '收起提示', exact: true }).click();
     await state('visible').waitFor();
     assert.equal(await frame.evaluate(element => document.activeElement === element), true, 'Reveal keeps keyboard focus usable');
-    pending[2].resolve();
+    const nextNavigation = page.waitForEvent('framenavigated', { predicate: frame => frame.url() === otherApp.url });
+    pending[3].resolve();
+    await nextNavigation;
     await page.frameLocator('iframe').locator('#counter').waitFor();
 
     // A previous app finishes after switching: it must not dismiss the new loader.
     await a.click();
-    await waitRequests(4);
-    await b.click();
     await waitRequests(5);
-    pending[3].resolve();
+    await b.click();
+    await waitRequests(6);
+    pending[4].resolve();
     await page.waitForTimeout(100);
     assert.equal(await state('loading').count(), 1);
     assert.equal(await frame.getAttribute('title'), otherApp.name);
-    pending[4].resolve();
+    await a.click();
+    await waitRequests(7);
+    pending[5].resolve();
+    await page.waitForTimeout(100);
+    assert.equal(await frame.getAttribute('title'), app.name);
+    assert.equal(await state('loading').count(), 1);
+    pending[6].resolve();
     await state('visible').waitFor();
     await page.getByRole('button', { name: '关闭', exact: true }).click();
     await frame.waitFor({ state: 'detached' });
@@ -163,6 +193,7 @@ try {
         const ready = page.frameLocator('iframe').locator('#ready');
         await ready.waitFor();
         assert.equal(await state('loading').count(), 1, 'Resource still pending: load has not fired');
+        await (await frame.elementHandle()).waitForElementState('stable');
         await ready.click({ timeout: 1500 });
         assert.equal(await ready.innerText(), '1', 'App works before the last image finishes');
         assert.equal(await frame.evaluate(element => getComputedStyle(element).opacity), '1');
@@ -205,7 +236,7 @@ try {
     assert.equal(await page.locator('iframe').count(), 0, 'Mobile still opens a new tab');
     await mobilePopup.close();
     assert.deepEqual(errors, []);
-    console.log('PASS: immediate feedback, animation, usable before load (3 visits), nonblocking slow/retry/dismiss/new-tab, stale navigation, layout preservation, reduced motion, responsive UI, languages, bounded preconnect and mobile.');
+    console.log('PASS: immediate feedback, animation, usable before load (3 visits), nonblocking slow/retry/dismiss/new-tab, stale navigation, old content during switch after retry, rapid switch cancellation, layout preservation, reduced motion, responsive UI, languages, bounded preconnect and mobile.');
 } finally {
     await browser.close();
 }

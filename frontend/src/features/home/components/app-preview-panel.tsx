@@ -132,7 +132,6 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
                     <div className={`absolute inset-0 z-0 bg-slate-100 dark:bg-slate-950 ${isDragging ? 'pointer-events-none' : ''}`}>
                         {app.url ? (
                             <AppPreviewContent
-                                key={`${app.id}:${app.url}`}
                                 url={app.url}
                                 name={app.name}
                                 onOpenInNewTab={onOpenInNewTab}
