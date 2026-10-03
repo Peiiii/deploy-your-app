@@ -1,6 +1,7 @@
 import { readFile, mkdir, writeFile, cp, rm, readdir } from 'node:fs/promises';
 import { marked } from 'marked';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 const root = path.resolve(import.meta.dirname, '..');
 const out = path.join(root, 'developer-docs/dist');
 await rm(out, { recursive: true, force: true });
@@ -52,6 +53,7 @@ await mkdir(path.join(out, 'sdk/0.3.0'), { recursive: true });
 await cp(path.join(root, 'packages/app-sdk/dist'), path.join(out, 'sdk/0.3.0'), {
   recursive: true,
 });
+execFileSync('npm', ['pack', '--silent', '--pack-destination', path.join(out, 'sdk/0.3.0')], {cwd:path.join(root,'packages/app-sdk'),stdio:'pipe'});
 for (const name of ['knowledge-lab', 'creative-lab']) {
   await mkdir(path.join(out, 'examples', name), { recursive: true });
   await cp(

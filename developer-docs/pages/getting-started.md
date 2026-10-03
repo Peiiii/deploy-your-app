@@ -19,6 +19,20 @@ SDK 的全局变量是 `gemigo`。浏览器登录需要直接从点击事件触�
 
 已有项目的免费功能不需要点数授权。旧登录仅有 identity/storage 时，重新登录申请 `points:use`。
 
+## 使用构建工具
+
+可安装包含 UMD、ES module 和 TypeScript 声明的[正式 SDK 包](/sdk/0.3.0/gemigo-app-sdk-0.3.0.tgz)：
+
+```sh
+npm install https://docs.gemigo.io/sdk/0.3.0/gemigo-app-sdk-0.3.0.tgz
+```
+
+```js
+import gemigo from '@gemigo/app-sdk';
+```
+
+当前 0.3.0 托管在文档站，尚未上传 npm registry。
+
 ## 发布你的应用
 
 打开 [GemiGo](https://gemigo.io/deploy)，粘贴 HTML 或上传 ZIP。应用成功部署后，从项目设置进入“点数与收益”，创建收费项，将生成的 itemId 放到 SDK 调用中，再更新部署。
