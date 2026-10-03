@@ -1,4 +1,30 @@
 {
+  "appAnalytics": {
+    "observed7d": "Collected PV (last 7 days)",
+    "pv": "Page views (PV)",
+    "uv": "Unique visitors (UV)",
+    "description": "Your app’s browser visits, collected by GemiGo.",
+    "range": "Time range",
+    "days7": "Last 7 days",
+    "days30": "Last 30 days",
+    "refresh": "Refresh",
+    "error": "Could not load app analytics. Try again.",
+    "unavailable": "Collection has not started. No reliable PV or UV data is available yet.",
+    "partial": "This range has incomplete coverage. Totals include collected visits only; missing history cannot be recovered.",
+    "complete": "Collection covers this range. Today’s counts continue to update.",
+    "started": "Collection started: {{at}}",
+    "utc": "UTC calendar days, including today",
+    "trend": "Daily traffic",
+    "date": "Date (UTC)",
+    "dailyUv": "Daily UV",
+    "partialDay": "Part of day collected",
+    "missing": "Not collected",
+    "lastVisit": "Last recorded visit",
+    "unidentified": "{{count}} page views could not identify a browser. UV counts identified browsers only.",
+    "pvDefinition": "PV counts visible page loads, reloads and app route changes. Known bots and resource requests are excluded.",
+    "uvDefinition": "UV counts distinct anonymous browsers for this app across the selected range. Daily UV cannot be added to obtain range UV. Clearing browser storage or using another device creates a new visitor.",
+    "limitations": "JavaScript, storage restrictions, CSP, blockers and offline visits can limit collection. App previews and the owner’s visits are included. GemiGo does not store visitor IPs or full visited URLs."
+  },
   "previewLoading": {
     "slow": "Taking longer",
     "showApp": "Show app now"

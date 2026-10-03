@@ -69,10 +69,10 @@ export const Dashboard: React.FC = () => {
 
   const completeStats = projects.every((project) => {
     const entry = analyticsByProject[project.id];
-    return !!entry?.stats && !entry.error;
+    return !!entry?.stats && !entry.error && !entry.isLoading && entry.stats.range === '7d' && entry.stats.pageViews != null;
   });
   const totalViews7d = completeStats
-    ? projects.reduce((sum, project) => sum + analyticsByProject[project.id].stats!.views7d, 0)
+    ? projects.reduce((sum, project) => sum + analyticsByProject[project.id].stats!.pageViews!, 0)
     : null;
   const filteredAndSortedProjects = React.useMemo(
     () =>
@@ -180,7 +180,7 @@ export const Dashboard: React.FC = () => {
           />
           <StatCard
             icon={TrendingUp}
-            label={t('dashboard.totalViews')}
+            label={t('appAnalytics.observed7d')}
             value={ready && totalViews7d !== null ? totalViews7d.toLocaleString() : '—'}
             sublabel={t(partial ? 'dashboard.loadedApps' : 'dashboard.last7Days')}
             iconColor="text-brand-500"

@@ -103,6 +103,14 @@ After deploy:
 - Visiting `https://gemigo.app/` should redirect to the homepage at `https://gemigo.io/`.
 - `https://<slug>.gemigo.app/__thumbnail.png` should return a PNG or WebP when a cover is available.
 
+### Product-built app analytics
+
+HTML delivery includes `/__gemigo/analytics.v2.js`. Visible browser page loads, reloads and pathname/hash changes POST one small same-origin event to `/__gemigo/page-view`; document GETs, HEADs, resources and scanner fallback requests never write analytics. Known automation and `navigator.webdriver` are excluded. The gateway hashes an app-scoped anonymous browser UUID and event UUID before forwarding authenticated v2 pings. It does not forward IPs, full user agents, URLs or localStorage UUIDs to D1. Storage-blocked visits still contribute PV and are explicitly counted as unidentified, without inflating UV.
+
+`project_page_views` in the existing API analytics repository is the atomic event owner; its trigger updates existing daily/hourly/unique/dimension projections. Event identities retain 35 days and cleanup runs daily at 03:00 UTC. Calendar-day 7/30-day UV is computed across the selected range, not by adding daily UV. The API reads `project_analytics_collection.started_at` to distinguish missing history from genuine zero visits. Set the collection start once, after enabling production gateway v2; do not recreate it on redeploy or infer it from a first visitor. Disable/rollback v2 should be accompanied by an explicit coverage boundary, since lack of browser events cannot prove zero traffic. CSP, script blockers, offline visits and old service-worker HTML may undercount; policies remain authoritative.
+
+Developers use `/projects/<id>?tab=analytics` in GemiGo. Stats reads require the application's owner session and are private/no-store. `pnpm build:frontend` then `./server/node_modules/.bin/tsx scripts/test-app-analytics.ts` exercises actual browser, Worker, R2, API, D1 and settings UI boundaries (with Playwright installed, or the same runtime overrides as favicon tests).
+
 ### Google Fonts delivery
 
 Small HTML pages (up to 1 MiB) receive delivery-only URL substitutions for Google Fonts stylesheet links, inline CSS imports and `fonts.gstatic.com` files. Same-origin `.css` stylesheet links receive `__gemigo_fonts=v1`; only those marked CSS responses and their same-origin CSS imports are transformed. Other relative resource paths retain their original directory. Original R2 objects, publication and rollback remain unchanged.

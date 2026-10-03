@@ -2,8 +2,8 @@
 
 - contract-id: admin-console-2026-10-02
 - parent-goal: 独立后台管理网站、大盘与实际业务管理、初始管理员账号及网页改密；追加私密反馈管理、日度增长运营大盘、CLI渠道使用与整合应用存量统计。
-- scope-revision: 7；原始要求、修订与授权见 [设计](../../designs/2026-10-02-admin-console.design.md)、[交付记录](../../logs/2026-10-02-admin-console/README.md) 与项目 AGENTS.md。
-- flow: standard；delivery-mode: major；retrospective_state: completed。
+- scope-revision: 8；原始要求、修订与授权见 [设计](../../designs/2026-10-02-admin-console.design.md)、[交付记录](../../logs/2026-10-02-admin-console/README.md) 与项目 AGENTS.md。
+- flow: standard；delivery-mode: major；retrospective_state: pending。
 
 | ID | Required | 合同 | Status | 当前证据 |
 | --- | --- | --- | --- | --- |
@@ -15,11 +15,11 @@
 | ADM-06 | true | 桌面/手机信息清楚、真实完整交互可用 | passed | 1440×1050 / 390×844；经营、反馈、增长真实页面，表格/图表内部滚动，无根溢出或JS错误；主观偏好待用户反馈 |
 | ADM-07 | true | 精确提交推送、迁移部署/线上验收、入口/初始账号交付、master同步 | passed | 功能 `f936201`、修复 `2008ff6`，后台 `f59b057a`，生产全链路与本记录收尾的Git检查；最终同步以工具SHA证据为准 |
 | ADM-08 | true | 反馈筛选/分页、完整讨论、状态/团队回复/删除，作者同步且私密 | passed | D1 106条讨论/并发去重；真实主站作者创建→后台处理→作者API读取，跨用户403/匿名401→确认删除/审计→专用数据清理 |
-| ADM-09 | true | PV/观测UV曲线、7/30等周期日表、注册激活部署及来源，缺失/错误明确 | passed | `scripts/test-admin-growth.ts`、真实CF+业务7/30日、UV去重/留存、CSV、来源合并、手机日期及日表滚动、缓存刷新均通过 |
-| ADM-10 | true | CLI统一含Skill，7/30使用量/占比/用户/成功率与日曲线，应用首次/最近渠道及部署渠道筛选 | passed | 实际Worker+D1跨日去重/边界/分页；生产7/30与canonical渠道一致、CSV11列、应用与部署CLI筛选、桌面/手机及QA清理通过；c87f4da / Worker 6270fc65 |
+| ADM-09 | true | PV/观测UV曲线、7/30等周期日表、注册激活部署及来源，缺失/错误明确 | stale | `scripts/test-admin-growth.ts`、真实CF+业务7/30日、UV去重/留存、CSV、来源合并、手机日期及日表滚动、缓存刷新均通过 |
+| ADM-10 | true | CLI统一含Skill，7/30使用量/占比/用户/成功率与日曲线，应用首次/最近渠道及部署渠道筛选 | stale | 实际Worker+D1跨日去重/边界/分页；生产7/30与canonical渠道一致、CSV11列、应用与部署CLI筛选、桌面/手机及QA清理通过；c87f4da / Worker 6270fc65 |
 | ADM-11 | true | 应用管理整合类别/实际UI语言/公开性存量统计与列表筛选，缺失明确、不无限扩展模块 | passed | Worker+D1真实库存/缺失/多语去重/组合筛选/空态；生产752聚合对账、桌面手机完整6类/语言及筛选、QA清理通过；0cdc93f / Worker21987f53 |
 
-| ADM-12 | true | 经营首页数字/图表优先，突出真实发布创作者与待关注应用/反馈，明确历史/时间口径，问题可直达处理入口 | passed | [整体方案](../../designs/2026-10-03-admin-operations.design.md)，Worker+D1/实际UI通过；生产7/30与canonical对账47/33/14和89/89/0；待关注23/反馈空态0；19cce8f / Worker a2fd065d |
+| ADM-12 | true | 经营首页数字/图表优先，突出真实发布创作者与待关注应用/反馈，明确历史/时间口径，问题可直达处理入口 | stale | [整体方案](../../designs/2026-10-03-admin-operations.design.md)，Worker+D1/实际UI通过；生产7/30与canonical对账47/33/14和89/89/0；待关注23/反馈空态0；19cce8f / Worker a2fd065d |
 | ADM-13 | true | 应用详情完整追溯、作者反馈精确定位、返回保留上下文、导航整合且旧能力保持，生产生效 | passed | 同方案三条黄金链路；Worker/UI、生产桌面/手机/作者筛选/导航/后退刷新与empty/401/404；账号version6与QA清理401 |
 
 当前阶段：scope7首页数字/图表前置与侧边栏优化Validation/Review/生产Delivery和复盘完成；open-required: 无，等待最终Git工具核对；其余未变化证据继续有效。最终收尾须在本记录提交推送后重新 fetch，并核对本地 master、origin/master 与远程实际 SHA 一致。本文件状态以实际工具交付证据为准，不以写文档代替推送。
@@ -31,3 +31,7 @@
 retrospective_decision：原事实 owner `docs/tech/PRODUCT_ANALYTICS.md` 已更新账号、反馈、增长数据源/缓存与预算合同；最小增量保留在既有文档与测试，无新的全局规则或框架资产。用户凭据纠偏按最终明确请求执行；保护当前改密结果。整体是否完成由 lifecycle 在 Git 与清理证据核对后判定。
 
 scope7补充当前证据（ADM-06/12/13）：`576ea8b` / Worker `6bcb6b20`，生产数字7卡→图表→待办排序、侧栏统一SVG/选中/键盘/折叠、7/30、日常入口及异常详情，桌面/手机实际渲染通过；本地13项导航验证。当前密码保留，专用QA清理session401，scope6非布局证据复用，原设计已同步用户明确优先级。
+
+| ADM-14 | true | 首页完整7/30日周期比较、新注册同批激活摘要、每日成功发布人数和应用真人访问趋势、首次/再次及CLI贡献，零/缺失/失败恢复明确；今日独立，队列与原能力保持，生产生效 | not-run | scope8设计与Review通过；实现/验证/交付待完成 |
+
+scope8当前阶段：Implementation；open-required: ADM09/10/12（受影响证据stale）、ADM14；其它有效证据复用。按专题scope8黄金链路验证；无Required缩减。

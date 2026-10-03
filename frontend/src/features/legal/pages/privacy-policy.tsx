@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 
 export const PrivacyPolicyPage: React.FC = () => {
-  const lastUpdated = '2026-09-18';
+  const lastUpdated = '2026-10-03';
 
   const defaultLang = useMemo<'zh' | 'en'>(() => {
     try {
@@ -51,7 +51,7 @@ export const PrivacyPolicyPage: React.FC = () => {
         <main className="mt-10 space-y-8 leading-7 text-slate-700">
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-slate-900">{isZh ? '网站使用分析' : 'Website usage analytics'}</h2>
-            <p>{isZh ? '我们以匿名浏览器标识记录页面类别、功能操作、设备类别、来源类别、UTM 渠道和部署结果，用于改进产品。产品事件明细保留 30 天，日级聚合最多保留 90 天，仅独立管理站的授权管理员可查看。应用访问诊断只保存每日轮换的不可逆匿名哈希、粗粒度浏览器类别、来源域名和机器人分类，不保存原始 IP、完整 User-Agent 或完整来源网址。不会记录邮箱、表单内容、搜索词、代码、密钥或带参数的原始网址。浏览器启用 Do Not Track 时停止主站产品事件采集。' : 'We use anonymous browser identifiers to measure page categories, feature usage, device and referral categories, UTM channels, and deployment outcomes. Raw product events are retained for 30 days and daily aggregates for up to 90 days, accessible only to authorized administrators. App-traffic diagnostics store only daily rotating irreversible hashes, coarse browser categories, referral hostnames, and bot classifications; they do not store raw IP addresses, full User-Agent strings, or full referral URLs. We do not record email addresses, form contents, search terms, code, secrets, or raw URLs with parameters. Main-site product event collection stops when your browser enables Do Not Track.'}</p>
+            <p>{isZh ? '我们以匿名浏览器标识记录页面类别、功能操作、设备类别、来源类别、UTM 渠道和部署结果，用于改进产品。产品事件明细保留 30 天，日级聚合最多保留 90 天，仅独立管理站的授权管理员可查看。应用内建 PV/UV 统计在每个应用的浏览器本地存储中保存独立随机标识；服务器只保存按应用隔离的不可逆匿名哈希与访问时间，不保存原始 IP、完整 User-Agent 或访问网址。新采集链路定期清理 35 天以前的访问明细和匿名标识，保留不含访客标识的历史日级汇总；应用所有者只能查看汇总统计。清除应用的浏览器存储会重置其匿名标识。不会记录邮箱、表单内容、搜索词、代码、密钥或带参数的原始网址。浏览器启用 Do Not Track 时停止主站产品事件和应用内建访问采集。' : 'We use anonymous browser identifiers to measure page categories, feature usage, device and referral categories, UTM channels, and deployment outcomes. Raw product events are retained for 30 days and daily aggregates for up to 90 days, accessible only to authorized administrators. Built-in app PV/UV analytics store a separate random identifier in each app’s browser local storage. The server stores only irreversible app-scoped hashes and visit times, without raw IP addresses, full User-Agent strings or visited URLs. The new collection path periodically removes visit records and anonymous identities older than 35 days, while retaining historical daily aggregates without visitor identifiers. App owners can view aggregates only. Clearing an app’s browser storage resets its anonymous identifier. We do not record email addresses, form contents, search terms, code, secrets, or raw URLs with parameters. Main-site product events and built-in app visit collection stop when your browser enables Do Not Track.'}</p>
           </section>
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-slate-900">

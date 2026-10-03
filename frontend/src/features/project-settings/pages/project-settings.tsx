@@ -44,12 +44,6 @@ export const ProjectSettings: React.FC = () => {
     }
   }, [project, presenter.projectSettings]);
 
-  // Load analytics once the project is available.
-  useEffect(() => {
-    if (!project) return;
-    presenter.projectSettings.loadAnalytics(project.id, '7d');
-  }, [project, presenter.projectSettings]);
-
   // Load reactions once the project is available.
   useEffect(() => {
     if (!project || !user) return;

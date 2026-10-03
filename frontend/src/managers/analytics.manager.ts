@@ -2,6 +2,7 @@ import { useAnalyticsStore } from '../stores/analytics.store';
 import type { IAnalyticsProvider } from '../services/interfaces';
 
 export class AnalyticsManager {
+  private requests = new Map<string, number>();
   private provider: IAnalyticsProvider;
 
   constructor(provider: IAnalyticsProvider) {
@@ -14,15 +15,17 @@ export class AnalyticsManager {
   ): Promise<void> => {
     const { setLoading, setStats, setError } = useAnalyticsStore.getState()
       .actions;
-    setLoading(projectId, true);
+    const request = (this.requests.get(projectId) ?? 0) + 1;
+    this.requests.set(projectId, request);
+    setLoading(projectId, true, range);
     try {
       const stats = await this.provider.getProjectStats(projectId, range);
-      setStats(projectId, stats);
+      if (this.requests.get(projectId) === request) setStats(projectId, stats);
     } catch (error) {
       console.error('Failed to load project stats', error);
-      setError(projectId, 'Failed to load analytics');
+      if (this.requests.get(projectId) === request) setError(projectId, 'Failed to load analytics');
     } finally {
-      setLoading(projectId, false);
+      if (this.requests.get(projectId) === request) setLoading(projectId, false, range);
     }
   };
 }

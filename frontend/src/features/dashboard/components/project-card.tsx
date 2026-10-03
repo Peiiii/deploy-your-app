@@ -138,9 +138,9 @@ export function ProjectCard({
             </dd>
           </div>
           <div className="text-right">
-            <dt className="text-slate-400">{t('dashboard.views7d')}</dt>
+            <dt className="text-slate-400">{t('appAnalytics.observed7d')}</dt>
             <dd className="mt-1 font-semibold tabular-nums text-slate-700 dark:text-slate-200">
-              {stats?.stats && !stats.error ? stats.stats.views7d.toLocaleString() : '—'}
+              {stats?.stats?.range === '7d' && !stats.error && !stats.isLoading && stats.stats.pageViews != null ? stats.stats.pageViews.toLocaleString() : '—'}
             </dd>
           </div>
         </dl>

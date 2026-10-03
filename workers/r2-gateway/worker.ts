@@ -1,3 +1,4 @@
+import { addAppAnalytics, APP_ANALYTICS_SCRIPT, APP_ANALYTICS_BEACON, APP_ANALYTICS_RUNTIME } from './app-analytics';
 import { FONT_ROUTE_PREFIX, FONT_RUNTIME_PATH, FONT_RUNTIME, FONT_CSS_MARKER, serveGoogleFont, rewriteFontHtml, rewriteFontCss, readSmallDocument } from './google-fonts';
 import runtimeAssets from './runtime-assets.json';
 import { addSmartFavicon, faviconFallback, SMART_FAVICON_FALLBACK_PATH, SMART_FAVICON_PATH, SMART_FAVICON_RUNTIME } from './smart-favicon';
@@ -314,7 +315,7 @@ const respondWithValidation = (
   return new Response(response.body, { headers });
 };
 
-const rewriteSharedRuntime = (response: Response, rootDomain: string, origin: string): Response => {
+const rewriteSharedRuntime = (response: Response, rootDomain: string, origin: string, analyticsEnabled: boolean): Response => {
   let hasCsp = false;
   const rewriter = new HTMLRewriter()
     .on('meta[http-equiv]', { element(element) {
@@ -328,6 +329,7 @@ const rewriteSharedRuntime = (response: Response, rootDomain: string, origin: st
         element.setAttribute('src', `https://${CENTRAL_THUMBNAIL_HOST}.${rootDomain}${runtimeAssets.tailwind.path}`);
       }
     } });
+  if (analyticsEnabled) addAppAnalytics(rewriter, origin);
   return addSmartFavicon(rewriter, response, origin).transform(response);
 };
 
@@ -378,6 +380,19 @@ export default {
       const headers = new Headers({ 'content-type': 'application/javascript; charset=utf-8',
         'cache-control': 'no-cache', 'x-content-type-options': 'nosniff', etag });
       return respondWithValidation(request, new Response(SMART_FAVICON_RUNTIME), headers, ctx);
+    }
+
+    const analyticsEnabled = env.ANALYTICS_ENABLED === 'true';
+    if (url.pathname === APP_ANALYTICS_SCRIPT) {
+      if (!analyticsEnabled || request.method !== 'GET') return new Response(null, { status: 404 });
+      return new Response(APP_ANALYTICS_RUNTIME, { headers: {
+        'content-type': 'application/javascript; charset=utf-8', 'cache-control': 'public, max-age=3600',
+        'x-content-type-options': 'nosniff',
+      } });
+    }
+    if (url.pathname === APP_ANALYTICS_BEACON) {
+      if (!analyticsEnabled) return new Response(null, { status: 404 });
+      return recordPageView(env, request, url, subdomain);
     }
 
     const bucket = env.ASSETS; // R2 bucket binding configured in wrangler / dashboard
@@ -507,11 +522,6 @@ export default {
     }
     if (!result) return new Response('Not found', { status: 404 });
 
-    if (isPageViewRequest(url)) {
-      ctx.waitUntil(recordPageView(env, request, url, subdomain).catch((err) => {
-        console.error('Failed to record page view', err);
-      }));
-    }
     const headers = new Headers(result.response.headers);
     headers.set('cache-control', 'no-cache');
     headers.set('x-gemigo-gateway', 'r2');
@@ -520,11 +530,11 @@ export default {
     headers.set('server-timing', `gemigo;dur=${(performance.now() - started).toFixed(1)}`);
     if (headers.get('content-type')?.includes('text/html')) {
       const etag = headers.get('etag');
-      if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, `-hosting-${runtimeAssets.tailwind.sha256.slice(0, 8)}-favicon-v2-fonts-v3"`)}`);
+      if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, `-hosting-${runtimeAssets.tailwind.sha256.slice(0, 8)}-favicon-v2-fonts-v3${analyticsEnabled ? "-analytics-v2" : ""}"`)}`);
       headers.delete('content-length');
       // Origin objects stay byte-for-byte intact; this is a delivery-only URL substitution.
       const fonts = await rewriteFontHtml(new Response(result.response.body, { headers }), url.href, `https://${CENTRAL_THUMBNAIL_HOST}.${rootDomain}`);
-      const response = rewriteSharedRuntime(fonts, rootDomain, url.origin);
+      const response = rewriteSharedRuntime(fonts, rootDomain, url.origin, analyticsEnabled);
       return respondWithValidation(request, response, headers, ctx);
     }
     if (headers.get('content-type')?.includes('text/css') && url.searchParams.get(FONT_CSS_MARKER) === 'v1'
@@ -572,16 +582,6 @@ function getContentTypeFromExt(ext: string): string {
   }
 }
 
-function isPageViewRequest(url: URL): boolean {
-  const pathname = url.pathname;
-  if (!pathname || pathname === '/' || pathname === '/index.html') {
-    return true;
-  }
-  // Heuristic: treat SPA-style routes without a file extension as page views.
-  const lastSegment = pathname.split('/').pop() ?? '';
-  return !lastSegment.includes('.');
-}
-
 const hmac = async (secret: string, value: string): Promise<string> => {
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
@@ -595,20 +595,6 @@ const hmac = async (secret: string, value: string): Promise<string> => {
     await crypto.subtle.sign('HMAC', key, encoder.encode(value)),
   );
   return Array.from(signature, (byte) => byte.toString(16).padStart(2, '0')).join('');
-};
-
-const attribution = (url: URL, name: string): string | undefined => {
-  const value = url.searchParams.get(name)?.trim().toLowerCase();
-  return value && /^[a-z0-9._+-]{1,80}$/.test(value) ? value : undefined;
-};
-
-const userAgentFamily = (userAgent: string): string => {
-  if (/edg\//i.test(userAgent)) return 'edge';
-  if (/firefox\//i.test(userAgent)) return 'firefox';
-  if (/chrome\//i.test(userAgent)) return 'chrome';
-  if (/safari\//i.test(userAgent)) return 'safari';
-  if (/curl|wget|python|httpclient/i.test(userAgent)) return 'script';
-  return 'other';
 };
 
 const isAutomatedRequest = (request: Request, userAgent: string): boolean => {
@@ -625,60 +611,52 @@ const isAutomatedRequest = (request: Request, userAgent: string): boolean => {
   );
 };
 
+const uuidPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
+
 async function recordPageView(
-  env: Env,
-  request: Request,
-  requestUrl: URL,
-  slug: string,
-): Promise<void> {
-  if (env.ANALYTICS_ENABLED !== 'true') return;
+  env: Env, request: Request, requestUrl: URL, slug: string,
+): Promise<Response> {
+  const reply = (status: number) => new Response(null, { status, headers: { 'cache-control': 'no-store' } });
+  if (request.method !== 'POST') return reply(405);
+  if (request.headers.get('origin') !== requestUrl.origin
+      || request.headers.get('sec-fetch-site') !== 'same-origin'
+      || !request.headers.get('content-type')?.startsWith('application/json')) return reply(403);
+  const userAgent = request.headers.get('user-agent') ?? '';
+  if (isAutomatedRequest(request, userAgent)) return reply(204);
   const base = env.ANALYTICS_API_BASE_URL;
   const secret = env.ANALYTICS_INGEST_SECRET;
-  if (!base || !secret) return;
-  const apiBase = base.replace(/\/+$/, '');
-  const url = `${apiBase}/analytics/ping/${encodeURIComponent(slug)}`;
-  const userAgent = request.headers.get('user-agent') ?? '';
-  const ip = request.headers.get('cf-connecting-ip') ?? 'unknown';
-  const now = Date.now();
-  const day = new Date(now).toISOString().slice(0, 10);
-  const sessionBucket = Math.floor(now / (30 * 60 * 1000));
-  const dedupeBucket = Math.floor(now / 10000);
-  const identity = `${ip}|${userAgent}`;
-  const [visitorHash, sessionHash, dedupeKey] = await Promise.all([
-    hmac(secret, `visitor|${day}|${identity}`),
-    hmac(secret, `session|${sessionBucket}|${identity}`),
-    hmac(secret, `dedupe|${dedupeBucket}|${identity}|${requestUrl.pathname}`),
-  ]);
-  let referrerHost: string | undefined;
-  try {
-    const referrer = request.headers.get('referer');
-    referrerHost = referrer ? new URL(referrer).hostname.toLowerCase().slice(0, 120) : undefined;
-  } catch {
-    referrerHost = undefined;
+  if (!base || !secret) return reply(503);
+  // Bound the streamed body too; Content-Length is optional in Worker requests.
+  const reader = request.body?.getReader();
+  if (!reader) return reply(400);
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.length;
+    if (size > 512) { await reader.cancel(); return reply(413); }
+    chunks.push(value);
   }
-  await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Gemigo-Analytics-Token': secret,
-    },
-    body: JSON.stringify({
-      isBot: isAutomatedRequest(request, userAgent),
-      visitorHash,
-      sessionHash,
-      dedupeKey,
-      userAgentFamily: userAgentFamily(userAgent),
-      ...(referrerHost ? { referrerHost } : {}),
-      ...(attribution(requestUrl, 'utm_source')
-        ? { utmSource: attribution(requestUrl, 'utm_source') }
-        : {}),
-      ...(attribution(requestUrl, 'utm_medium')
-        ? { utmMedium: attribution(requestUrl, 'utm_medium') }
-        : {}),
-      ...(attribution(requestUrl, 'utm_campaign')
-        ? { utmCampaign: attribution(requestUrl, 'utm_campaign') }
-        : {}),
-      clientChannel: 'web',
-    }),
-  });
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+  let body: { eventId?: unknown; visitorId?: unknown };
+  try { body = JSON.parse(new TextDecoder().decode(bytes)); } catch { return reply(400); }
+  if (!body || typeof body.eventId !== 'string' || !uuidPattern.test(body.eventId)
+      || (body.visitorId !== undefined && (typeof body.visitorId !== 'string' || !uuidPattern.test(body.visitorId)))) return reply(400);
+  const [visitorHash, sessionHash, dedupeKey] = await Promise.all([
+    typeof body.visitorId === 'string' ? hmac(secret, `visitor-v2|${slug}|${body.visitorId}`) : Promise.resolve(''),
+    typeof body.visitorId === 'string' ? hmac(secret, `session-v2|${slug}|${Math.floor(Date.now() / 1800000)}|${body.visitorId}`) : Promise.resolve(''),
+    hmac(secret, `event-v2|${slug}|${body.eventId}`),
+  ]);
+  try {
+    const response = await fetch(`${base.replace(/\/+$/, '')}/analytics/ping/${encodeURIComponent(slug)}`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'X-Gemigo-Analytics-Token': secret },
+      body: JSON.stringify({ version: 2, isBot: false, visitorHash, sessionHash,
+        dedupeKey, userAgentFamily: 'browser', clientChannel: 'web' }),
+    });
+    if (!response.ok) { console.warn('App analytics ingestion failed', response.status); return reply(503); }
+    return reply(204);
+  } catch { console.warn('App analytics ingestion unavailable'); return reply(503); }
 }
