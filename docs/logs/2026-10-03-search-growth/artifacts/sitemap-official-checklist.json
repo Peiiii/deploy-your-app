@@ -89,5 +89,15 @@
     "manual_actions_report": "Navigated and reloaded; report content unreadable. No conclusion about penalties.",
     "security_issues_report": "Navigation attempted; report content unreadable. No conclusion about security issues.",
     "interruption": "Chrome switched to another task repeatedly; user asked to pause other browser operations briefly."
+  },
+  "admin_property_link": {
+    "at_utc": "2026-10-03T12:25:39.887479+00:00",
+    "admin_root_status": 200,
+    "asset": "/assets/index-DD5Izc6P.js",
+    "asset_status": 200,
+    "target": "https://search.google.com/search-console?resource_id=https%3A%2F%2Fgemigo.io%2F",
+    "old_domain_target_absent": true,
+    "deployment_version": "32e82c85-3c79-4f17-a038-b37d00b04e7c",
+    "scope": "Public deployed asset verification; Google report body and production acquisition query still unverified."
   }
 }
