@@ -1,5 +1,7 @@
 # 应用预览等待体验
 
+当前有效行为为修订4：iframe 从挂载开始正常显示与交互，load 仅清理底层反馈；下文原始方案与修订1–3的 load 揭示/淡入描述均为历史，已被修订4取代。
+
 来源：2026-10-03 用户希望右侧展开应用期间消除类似白屏的等待，探索加载提速，并参考产品缺口图标做吃东西的小精灵。用户授权 AI 自行选择；AGENTS.md 全托管授权包含精确提交、普通推送、主工作区同步、前端上线。feature / standard，交互 L2、发布 L4；plan=not-required（单批闭环），retrospective_state=pending。
 
 ## 现状与用户链路
@@ -103,3 +105,10 @@ contract-id=preview-loading，scope-revision=4；parent-goal=首页预览等待�
 修订4开发验证：同一个 /tmp/test-preview-no-delay.mjs 修前 opacity=0/inert/不可点击，修后 opacity=1/无inert/可点击，退出0；原 scripts/test-preview-loading.mjs 新增真实卡片到跨源应用的挂起图片回归，连续3次打开在 load 前计数按钮均可操作，10秒慢提示后继续可点。保留完整快应用/慢导航/重试/旧请求隔离/评论全屏节点保留/中英文/主题/减少动态效果/手机回归，全部通过。frontend tsc、组件定向 ESLint、production build、diff-check passed；构建 index-v9NcXinQ.js/index-CvP_PGYz.css。实际截图位于系统 tmpdir（/var/folders/gp/ls0ngf8d1qn97_g1t48670zc0000gn/T/preview-{loading-light,loading-slow,loading-narrow,ready-before-load}.png），已复核：初始小精灵可见、正文绘制后覆盖精灵、慢提示在底部小区域，亮暗/窄桌面无溢出。
 
 implementation Review：no findings。项目无 diff-only maintainability 自动入口，按5文件diff与相邻 iframe/key/ref/焦点/计时边界审查：状态不参与应用可见性或可操作性、无淡入/最短周期、背景穿透；10秒仅决定小型辅助操作、条件计时避免已结束反馈回流。未引入协议、资源预加载、跨源脚本或运行依赖。PL1–PL4/PL6/PL7 current passed，PL5 等待本次源码同步和线上新资产验收；网络本身的总耗时改善未测量，不声称提速比例。
+
+
+修订4上线和收尾：源码8dcd520已普通推送到origin/master，主工作区master安全快进，原有admin文档/analytics脚本与未跟踪文件保持不动。既有pnpm deploy:pages成功，gh-pages=ccea91d19530f9aee08c550417f2ca5598c672cd（前一版3847c7b保留作回退依据）；仅发布frontend，没有后台/Secrets变化。默认https://gemigo.io实际Chrome使用index-v9NcXinQ.js/index-CvP_PGYz.css，线上/本地SHA256一致：JS05436bfdde492c0e6d4748a261da25c82e803ef762e6cc24fb1a62dd8ee4a5d3，CSS88bc7081a64d841aa83ba488b86a6bb139900479e6ff52ead2a8838c8c1f1a7d。
+
+真实默认首页→element元素周期表→氢详情，全部通过；400ms网络延迟仅用于观测加载中状态，实际iframe始终opacity1、transition0s、无inert/aria-hidden，精灵是底层反馈；评论/全屏保留同一iframe，390px手机真实新标签element.gemigo.app。无HTTPmock/状态注入，证据/tmp/preview-no-delay-production-evidence.json与production.png已核对。PL1–PL7 current passed（PL7的慢非关键资源直接操作由受控浏览器边界证明，不声称真实应用普遍耗时比例）。源码同步rev-list=0 0、实际远端master SHA与本地相等；本记录精确提交后再次同步复查。最终diff-only implementation Review no findings。
+
+retrospective_decision=原owner事实纠正：加载提示的load清理边界与用户可用边界必须分离；旧设计“无最低停留”不足以证明零额外等待。当前组件取消门槛，原设计和原真实浏览器回归均已更新，复用最近owner记录，无必要新增通用规则或平行机制。retrospective_state=completed。已交付默认站点，AI功能与生产验收通过；主观体感待用户反馈，未声称用户验收通过或网络传输本身提速。
