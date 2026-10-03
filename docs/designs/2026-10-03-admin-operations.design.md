@@ -1,6 +1,6 @@
 # 后台经营与处理链路优化
 
-状态：scope11金融图表返工已实现，正在真实页面验证及交付；scope10固定读数栏按用户反馈退场，scope8增长判断与scope7侧栏保持（交付详见原日志）；design-document: required；plan: not-required（同一后台 Worker/UI、单批交付）。上位设计：[独立后台](2026-10-02-admin-console.design.md)。当前合同 scope-revision 11 / ADM-12、ADM-13、ADM-14、ADM-15。原始输入：用户要求整体设计并优化；前序明确增长与运营价值、CLI含Skill、库存整合且不要无限拓展。当前产品方向以 2026-10-03 direction thought 为准，教育/学习与游戏是探索重点，保留所有应用类别。
+状态：Implemented / production verified（scope11 ECharts原生交互，Worker 5ad843aa，scope10固定读数栏退场，scope8增长判断与scope7侧栏保持；交付详见原日志）；design-document: required；plan: not-required（同一后台 Worker/UI、单批交付）。上位设计：[独立后台](2026-10-02-admin-console.design.md)。当前合同 scope-revision 11 / ADM-12、ADM-13、ADM-14、ADM-15。原始输入：用户要求整体设计并优化；前序明确增长与运营价值、CLI含Skill、库存整合且不要无限拓展。当前产品方向以 2026-10-03 direction thought 为准，教育/学习与游戏是探索重点，保留所有应用类别。
 
 ## 选择与用户价值
 
@@ -98,7 +98,7 @@ mode=design Review：截图原目标是同时读数与看趋势，顶部静态�
 scope10交付：`f966b5e` / Worker `b8c2f370-8e3a-43a8-b1cd-1e4752ea3d86`；1440/390/320实际Chrome和截图已验证读数与绘图区分离、进入/退出无位移、单/双指标与原hover/键盘/touch完整。对照用户附件，真实10月2日11人读数移到栏内，整条曲线及轴可见；事实owner更新与本地/生产几何验证保留。无进一步高价值范围内缺口，停止本批视觉迭代；美感仍可由用户反馈，不冒充主观验收。
 
 
-## 金融图表交互返工（scope11，Design Ready）
+## 金融图表交互返工（scope11，Implemented / production verified）
 
 用户明确认为scope10固定栏“交互很怪”，要求参考顶级图表库并指出交易/股票软件。scope10体验方案失效，scope9自绘浮层与scope10占位条均退场；完整目标是自然查看日期与数字、趋势仍清楚、鼠标/键盘/手机通用，而不是机械保证整张SVG永无浮层。flow=bugfix，L2 UI/L4发布；skip-reproduction基于用户实际线上评价和现行固定栏源码，原图表统计、账号与处理路径继续保持，ADM06/15 stale。plan:not-required，retrospective pending。
 
@@ -115,4 +115,7 @@ TimeSeriesChart继续是三个消费者的唯一业务适配owner，输入API不
 mode=design Review：用户当前指定金融图表常见交互已覆盖，旧读数/缺失/键盘链路逐项保留；缺失日不能用series点动作的反例已试验并选择坐标动作。所有数据仍可访问，响应时间轴替代强制横滚但原指标不减；库负责坐标而非两套图形平行运行，组件仅必要业务适配，初始化/resize/dispose明确。无新状态表或未安装未来图形能力；no findings，design-review:passed（scope11）。
 
 
-scope11依赖落地补充（Design Review passed）：首个模块化构建gzip265.25KiB，对比原86.82KiB多178.43KiB；登录页不需要图表运行时。采用一个现有React.lazy/Suspense边界：time-series-chart为唯一消费入口/业务输入类型/固定高度加载反馈，time-series-plot为ECharts实例与图形交互owner；模块只在实际图表挂载时加载，不建新loader框架或三个入口各自懒加载。目标目录admin/src现有组件域，无planned-path preflight；新文件有当前3消费者且隔离已测第三方运行时成本。原SVG/定位逻辑完全退场，无并行引擎。单批实现/验证与原验收保持，no findings。
+scope11依赖落地补充（Design Review passed）：首个模块化构建gzip265.25kB，对比原86.82kB多178.43kB；登录页不需要图表运行时。采用一个现有React.lazy/Suspense边界：time-series-chart为唯一消费入口/业务输入类型/固定高度加载反馈，time-series-plot为ECharts实例与图形交互owner；模块只在实际图表挂载时加载，不建新loader框架或三个入口各自懒加载。目标目录admin/src现有组件域，无planned-path preflight；新文件有当前3消费者且隔离已测第三方运行时成本。原SVG/定位逻辑完全退场，无并行引擎。单批实现/验证与原验收保持，no findings。
+
+
+scope11落地证据：功能96338b7已进入master；Worker5ad843aa-5b9c-4c1f-b3a9-bdd94bd833dd，真实生产全交互脚本通过。CSS/main/lazy三资源SHA256与已验证构建逐一一致；1440/390/320、7/30、全部曲线与双柱、零/缺失/数字单位、crosshair/首末日/键盘/手机点选与页面纵滚、当前点/日期标签及边缘避让/无位移已实证，截图已核对。当前密码版本6保持，专用QA删除→401、私有凭据与预留文件清理，精确归还3份成功生成报表预留156208，其它共享用量保留。正式入口admin.gemigo.io；用户主观体验待反馈。
