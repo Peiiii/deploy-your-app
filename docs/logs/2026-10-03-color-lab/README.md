@@ -23,9 +23,9 @@
 | CL-02 | true | 挑战具备调色、失败反馈、五关完成、重玩及切换闭环 | passed | 真实 UI 初始失败给红光调高提示；五关逐次提交完成，用 6 次提交展示成果；重玩回到第一关；模式切换保留各自状态 |
 | CL-03 | true | 手机与桌面可操作，分享链接可还原配方 | passed | 桌面 1280px、手机 390×844 操作及弹窗检查；手机 scrollWidth=innerWidth=390；线上独立新页面还原 100/100/0 为 #FFFF00；线上手机首关通过 |
 | CL-04 | true | GemiGo 线上匿名可用、探索可找到、归属与元数据准确、产物匹配 | passed | CLI SUCCESS；匿名页面无登录；探索中文语言筛选下按名称搜索得到作品并打开预览；线上失败/成功反馈及分享；4 资源原始 SHA-256 一致，HTML 去除平台既有运行时注入后逐字一致 |
-| CL-05 | true | 定向检查和 Review 通过，精确提交并同步远程与本地 master | pending-git | 模型 3/3、JS node --check、定向 ESLint recommended、Prettier、CLI validate 通过；diff-only Review 无未关闭 findings；Git 收尾见下 |
+| CL-05 | true | 定向检查和 Review 通过，精确提交并同步远程与本地 master | passed | 模型 3/3、JS node --check、定向 ESLint recommended、Prettier、CLI validate 通过；diff-only Review 无未关闭 findings；Git 精确提交、普通推送与两端 master 同步通过，见下 |
 
-flow=standard；实现局部 L2，发布边界 L4；阶段=delivery；AI 验收 acceptance-ready，产品吸引力待用户验收。
+flow=standard；实现局部 L2，发布边界 L4；阶段=completed；AI 验收 acceptance-ready，产品吸引力待用户验收。
 
 ## 技术与发布证据
 
@@ -50,8 +50,10 @@ flow=standard；实现局部 L2，发布边界 L4；阶段=delivery；AI 验收 
 
 已有项目更新必须复用上面的 project ID：现有 UI“再次部署”上传 site 的 ZIP，或使用现有 CLI 的 GemigoApiClient.uploadDeploymentSource/startDeployment/streamDeployment 与 zipDirectory，沿同一项目发布。不要再次运行 CLI deploy，它会新建项目。恢复旧内容使用 Git 历史中的 site 再次部署，地址保持 color-lab；不删除或覆盖无关作者作品。
 
-retrospective_decision=no-increment：来源与发布身份保存在当前内容 owner；未形成新的通用流程问题，不新增全局规则。主观体验反馈更新同一记录。retrospective_state=completed，parent_status=ready-for-completion-check（Git 状态仍须满足 CL-05）。
+retrospective_decision=no-increment：来源与发布身份保存在当前内容 owner；未形成新的通用流程问题，不新增全局规则。主观体验反馈更新同一记录。retrospective_state=completed，parent_status=ready-for-completion-check（CL-01～CL-05 均通过；用户体验确认仍待反馈）。
 
 ## Git 交付
 
-待精确提交本任务文件，普通推送并重新 fetch，核对实际远程 SHA 与本地 master 一致、分叉计数 0 0。其它会话的修改与未跟踪文件保留，不纳入本任务。
+实现交付提交 `181ee8f988048656db684423d3469453ece70212` 已普通推送。主工作区在 master；重新 fetch 后实际 `git ls-remote origin refs/heads/master` 与本地 master 均为该 SHA，`git rev-list --left-right --count master...origin/master` 为 `0 0`。本记录的验收状态补记另行精确提交，并在最终交接前再次核对两端。
+
+原有 analyze.sh、interview-prep.md、education-game-initiative.md 和 gemigo-0.1.0.tgz 的 SHA-256 与任务前一致；其它会话并行交付的主线提交保留，新增验收截图和文件不纳入本任务。无本任务未提交草稿。
