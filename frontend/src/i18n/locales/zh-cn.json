@@ -718,7 +718,13 @@
     "handleTaken": "这个用户名已经有人使用了，请换一个。",
     "nameError": "请填写 1–50 个字符的昵称，不要包含邮箱或控制字符。",
     "nameSaved": "名字已保存，大家可以认出你了。",
-    "nameSessionChanged": "登录状态已变化，请重新设置名字。"
+    "nameSessionChanged": "登录状态已变化，请重新设置名字。",
+    "works": "作品",
+    "featured": "置顶",
+    "editProfile": "编辑资料",
+    "editProfileHint": "让大家认识你，把最喜欢的作品放在前面。",
+    "editingDraft": "资料与置顶修改将在保存后公开。",
+    "loadFailed": "主页加载失败，请重试后再编辑。"
   },
   "languages": {
     "appLanguage": "想看哪些语言的应用？",

@@ -1,0 +1,68 @@
+.creator-profile {
+  container-type: inline-size;
+  container-name: creator;
+}
+.creator-cover {
+  background:
+    radial-gradient(ellipse at 12% 30%, #ddd6fe 0, transparent 55%),
+    linear-gradient(115deg, #f5f3ff, #ede9fe 55%, #e0e7ff);
+}
+.dark .creator-cover {
+  background:
+    radial-gradient(ellipse at 12% 30%, #4c1d9560 0, transparent 55%),
+    linear-gradient(115deg, #1e1b4b, #2e1065 55%, #172554);
+}
+.creator-cover-orbit {
+  position: absolute;
+  width: 28rem;
+  height: 28rem;
+  right: 6%;
+  top: -19rem;
+  border: 1px solid #a78bfa40;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 36px #a78bfa10,
+    0 0 0 72px #a78bfa10,
+    0 0 0 108px #a78bfa10;
+}
+.creator-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+}
+@container creator (min-width: 34rem) {
+  .creator-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container creator (min-width: 58rem) {
+  .creator-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.creator-profile a:hover {
+  text-decoration: none;
+}
+.creator-editor summary::marker {
+  color: #8b5cf6;
+}
+.creator-editor[open] summary {
+  border-bottom: 1px solid var(--border-subtle);
+}
+.creator-profile input,
+.creator-profile textarea {
+  min-width: 0;
+}
+.creator-profile input:focus-visible,
+.creator-profile textarea:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .creator-profile *,
+  .creator-profile *::before,
+  .creator-profile *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

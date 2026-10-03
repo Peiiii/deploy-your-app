@@ -1,6 +1,5 @@
 import { track } from '@/analytics/collector';
 import { useMyProfileStore } from '@/features/profile/stores/my-profile.store';
-import { useProjectStore } from '@/stores/project.store';
 import { fetchPublicProfile, updateMyProfile } from '@/services/http/profile-api';
 import type { AuthManager } from '@/features/auth/managers/auth.manager';
 import type { UIManager } from '@/managers/ui.manager';
@@ -13,6 +12,7 @@ import { useProfileNameStore } from '@/features/profile/stores/profile-name.stor
  * All methods are arrow functions to avoid `this` binding issues.
  */
 export class MyProfileManager {
+  private profileRequestId = 0;
   private authManager: AuthManager;
   private uiManager: UIManager;
 
@@ -70,10 +70,15 @@ export class MyProfileManager {
       }
     } catch (error) {
       if (useProfileNameStore.getState().editingUserId === user.id) {
-        useProfileNameStore.setState({ error: error instanceof Error ? error.message : i18n.t('profile.updateError') });
+        useProfileNameStore.setState({
+          error: error instanceof Error ? error.message : i18n.t('profile.updateError'),
+        });
       }
     } finally {
-      if (useProfileNameStore.getState().editingUserId === user.id || useProfileNameStore.getState().editingUserId === null) {
+      if (
+        useProfileNameStore.getState().editingUserId === user.id ||
+        useProfileNameStore.getState().editingUserId === null
+      ) {
         useProfileNameStore.setState({ isSaving: false });
       }
     }
@@ -86,16 +91,23 @@ export class MyProfileManager {
     const user = this.authManager.getCurrentUser();
     if (!user) return;
 
+    const requestId = ++this.profileRequestId;
     const actions = useMyProfileStore.getState().actions;
+    actions.reset();
     actions.setIsLoading(true);
 
     try {
       const data = await fetchPublicProfile(user.id);
+      if (requestId !== this.profileRequestId || this.authManager.getCurrentUser()?.id !== user.id)
+        return;
       actions.initializeFromProfile(data, user.handle);
     } catch (err) {
+      if (requestId !== this.profileRequestId || this.authManager.getCurrentUser()?.id !== user.id)
+        return;
+      actions.setLoadError('load_failed');
       console.error('Failed to load profile', err);
     } finally {
-      actions.setIsLoading(false);
+      if (requestId === this.profileRequestId) actions.setIsLoading(false);
     }
   };
 
@@ -114,17 +126,15 @@ export class MyProfileManager {
       return true;
     }
     if (trimmed.length < 3 || trimmed.length > 24) {
-      actions.setHandleError(
-        t('profile.handleErrorLength', 'Handle must be 3–24 characters.'),
-      );
+      actions.setHandleError(t('profile.handleErrorLength', 'Handle must be 3–24 characters.'));
       return false;
     }
     if (!/^[a-z0-9-]+$/.test(trimmed)) {
       actions.setHandleError(
         t(
           'profile.handleErrorCharset',
-          'Handle can only contain lowercase letters, numbers and dashes.',
-        ),
+          'Handle can only contain lowercase letters, numbers and dashes.'
+        )
       );
       return false;
     }
@@ -144,6 +154,8 @@ export class MyProfileManager {
     const state = useMyProfileStore.getState();
     const actions = state.actions;
 
+    if (state.isSaving || state.isLoading || state.loadError || !state.profileData || state.profileData.user.id !== user.id) return;
+
     if (state.handleError) {
       this.uiManager.showErrorToast(state.handleError);
       return;
@@ -154,7 +166,10 @@ export class MyProfileManager {
     try {
       // Update handle if changed
       const trimmedHandle = state.handleInput.trim();
-      if (trimmedHandle !== (user.handle ?? '') || state.displayNameInput.trim() !== (user.displayName ?? '')) {
+      if (
+        trimmedHandle !== (user.handle ?? '') ||
+        state.displayNameInput.trim() !== (user.displayName ?? '')
+      ) {
         await this.authManager.updateHandle(trimmedHandle, state.displayNameInput.trim());
       }
 
@@ -175,9 +190,7 @@ export class MyProfileManager {
 
       // Update store
       actions.setProfileData(
-        state.profileData
-          ? { ...state.profileData, profile: nextProfile }
-          : null,
+        state.profileData ? { ...state.profileData, profile: nextProfile } : null
       );
       actions.setLinks(validLinks);
       this.uiManager.showSuccessToast(t('profile.updateSuccess'));
@@ -201,10 +214,7 @@ export class MyProfileManager {
     const user = this.authManager.getCurrentUser();
     if (!user) return;
 
-    const identifier =
-      user.handle && user.handle.trim().length > 0
-        ? user.handle.trim()
-        : user.id;
+    const identifier = user.handle && user.handle.trim().length > 0 ? user.handle.trim() : user.id;
     const url = `${window.location.origin}/u/${encodeURIComponent(identifier)}`;
     copyToClipboard(url);
   };
@@ -216,15 +226,8 @@ export class MyProfileManager {
     const user = this.authManager.getCurrentUser();
     if (!user) return;
 
-    const identifier =
-      user.handle && user.handle.trim().length > 0
-        ? user.handle.trim()
-        : user.id;
-    window.open(
-      `/u/${encodeURIComponent(identifier)}`,
-      '_blank',
-      'noopener,noreferrer',
-    );
+    const identifier = user.handle && user.handle.trim().length > 0 ? user.handle.trim() : user.id;
+    window.open(`/u/${encodeURIComponent(identifier)}`, '_blank', 'noopener,noreferrer');
   };
 
   /**
@@ -233,10 +236,8 @@ export class MyProfileManager {
   getMyProjects = () => {
     const user = this.authManager.getCurrentUser();
     if (!user) return [];
-    const allProjects = useProjectStore.getState().projects;
-    return allProjects.filter(
-      (p) => p.ownerId === user.id && p.isPublic !== false,
-    );
+    const data = useMyProfileStore.getState().profileData;
+    return data?.user.id === user.id ? data.projects : [];
   };
 
   /**
