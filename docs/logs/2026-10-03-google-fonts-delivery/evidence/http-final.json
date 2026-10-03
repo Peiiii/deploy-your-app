@@ -1,0 +1,66 @@
+[
+  {
+    "name": "css-cold",
+    "curl_exit": 0,
+    "metrics": "200 4.566851 4.578151 1808",
+    "headers": {
+      "content-type": "text/css; charset=utf-8",
+      "content-length": "1808",
+      "access-control-allow-origin": "*",
+      "cache-control": "public, max-age=86400",
+      "etag": "\"e01026398ef02808d75e002975be71297d623ec562495d3726d6b1592363cf25\"",
+      "x-gemigo-font-cache": "MISS"
+    }
+  },
+  {
+    "name": "css-hot",
+    "curl_exit": 0,
+    "metrics": "200 0.988287 1.446716 1808",
+    "headers": {
+      "content-type": "text/css; charset=utf-8",
+      "content-length": "1808",
+      "access-control-allow-origin": "*",
+      "cache-control": "public, max-age=86400",
+      "etag": "\"e01026398ef02808d75e002975be71297d623ec562495d3726d6b1592363cf25\"",
+      "x-gemigo-font-cache": "HIT"
+    }
+  },
+  {
+    "name": "css-conditional",
+    "metrics": "304 0",
+    "curl_exit": 0
+  },
+  {
+    "name": "css-head",
+    "curl_exit": 0,
+    "metrics": "200 1.432589 1.433209 0",
+    "headers": {
+      "content-type": "text/css; charset=utf-8",
+      "access-control-allow-origin": "*",
+      "cache-control": "public, max-age=86400",
+      "etag": "\"e01026398ef02808d75e002975be71297d623ec562495d3726d6b1592363cf25\"",
+      "x-gemigo-font-cache": "HIT"
+    }
+  },
+  {
+    "name": "runtime",
+    "curl_exit": 0,
+    "metrics": "200 0.899858 0.900585 1591",
+    "headers": {
+      "content-type": "application/javascript; charset=utf-8",
+      "content-length": "1591",
+      "access-control-allow-origin": "*",
+      "cache-control": "public, max-age=31536000, immutable"
+    }
+  },
+  {
+    "name": "analytics",
+    "curl_exit": 0,
+    "metrics": "200 1.236260 1.237203 1954",
+    "headers": {
+      "content-type": "application/javascript; charset=utf-8",
+      "content-length": "1954",
+      "cache-control": "public, max-age=3600"
+    }
+  }
+]

@@ -28,8 +28,10 @@ v3保留旧namespace路由兼容缓存；HTML/CSS font imports瞬时data stylesh
 
 外部图片真实边界：hero Wikimedia原图7,062,648 bytes，首轮约24.67s，warm的一张WordPress外部图片出现connection reset；不伪称全页load/所有图片已加速。原cdn-cgi/image/width=640公开探测返回Cloudflare404，当前没有验证可用的图片transformation能力；接入需明确启用与额度/来源策略，不把不可用服务URL写入客户页面。官方[Images优化开关](https://developers.cloudflare.com/images/optimization/transformations/overview/)、[额度与价格](https://developers.cloudflare.com/images/pricing/)为调研来源，不是已开通事实。要全国覆盖仍需运营商多点证据与接入网络选择；[China Network上线条件](https://developers.cloudflare.com/china-network/get-started/)含Enterprise独立套餐、ICP备案及内容审核，现有项目未提供这些外部前提。本次无法凭一个本机线路或源码改写闭合“全国所有任意应用顶级”，交付的是已生效且可验证的通用字体改进，剩余平台接入与图片能力依赖明确披露。
 
-成本：没有新增固定月费或R2写入。每访问额外一个约1.7KiB font helper请求（浏览器可长期缓存）；各CSS与实际使用的字体subset经Worker请求，热缓存不回源Google，冷请求有上游子请求与有限CPU/内存开销。不声称账单零增或Cache API绕过Worker计费；未做全账户账单归因。
+成本：没有新增固定月费或R2写入。每访问额外一个1591 bytes font helper请求（浏览器可长期缓存）；各CSS与实际使用的字体subset经Worker请求，热缓存不回源Google，冷请求有上游子请求与有限CPU/内存开销。不声称账单零增或Cache API绕过Worker计费；未做全账户账单归因。
 
 AI validation与implementation Review当前有效、no findings；源提交df093b8/eeb770a/fc2ae44及合并74e901e包含已发布字体实现。黄金验收入口https://app-n4p3.gemigo.app/：默认网络直接打开→内容先显示→字体随后加载→刷新复用，原应用阅读/滚动保留。
 
 retrospective_decision: updated-existing-owner。回写原architecture网关字体owner和兼容/性能边界；已验证机制保留在模块/回归测试，不新增Skill或指令规则。retrospective_state: completed；parent_status ready-for-completion-check（仅字体改进已交付、整体全国顶级目标仍有上述外部条件）。
+
+生产HTTP复验：v3 CSS MISS→HIT、准确ETag304/0bytes、HEAD200/0bytes，runtime1591bytes/immutable/CORS，analytics script200；证据evidence/http-final.json。冷CSS自身TTFB4.57s、热0.99s（新连接），仍是非阻塞加载，不能称字体下载本身恒定亚秒。当前主线合并与源区无关草稿受保护，最后Git 0 0/actual SHA在交付末尾复查。
