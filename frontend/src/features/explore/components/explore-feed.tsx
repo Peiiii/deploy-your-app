@@ -452,7 +452,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                             <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                             <span className="text-white/60 text-[10px] font-medium uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{t('explore.feed.interactive')}</span>
                         </div>
-                        <IconButton label={t('common.exit')} size="auto"
+                        <IconButton label={t('common.close')} size="auto"
                             className="w-10 h-10 flex items-center justify-center text-white/80 hover:text-white transition-all active:scale-90 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
                             onClick={handleExit}
                         >

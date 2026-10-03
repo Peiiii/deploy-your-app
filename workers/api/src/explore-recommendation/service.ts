@@ -72,6 +72,7 @@ export async function feedRequest(
   input: FeedInput,
   mark: (name: string) => void = () => {}
 ) {
+  const rankingDeadline = performance.now() + 700;
   const db = env.PROJECTS_DB;
   const config = await settings(db);
   mark('settings');
@@ -240,7 +241,8 @@ export async function feedRequest(
         selected.length > 1 &&
         config.ranker === 'bge' &&
         env.RECOMMENDATION_AI &&
-        (await rateLimit(db, identity.subject, 'rank', 2))
+        (await rateLimit(db, identity.subject, 'rank', 2)) &&
+        performance.now() < rankingDeadline
       ) {
         const contents = selected.map(projectText);
         const budget = contents.reduce(
@@ -254,8 +256,8 @@ export async function feedRequest(
           RANK_MODEL,
           budget,
           () => rankModel(env, candidates.query, contents),
-          // Leave room for budget settlement, current visibility checks and transport.
-          900
+          // Cold catalogue work consumes the same response budget as model waiting.
+          Math.max(1, rankingDeadline - performance.now())
         );
         if (result) {
           selected = result.order.map((index) => selected[index]);
