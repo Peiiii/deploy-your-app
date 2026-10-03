@@ -1,6 +1,6 @@
 # 后台经营与处理链路优化
 
-状态：Implemented / production verified（Worker 6bcb6b20，scope7首页/侧栏已线上验证，交付详见原日志）；design-document: required；plan: not-required（同一后台 Worker/UI、单批交付）。上位设计：[独立后台](2026-10-02-admin-console.design.md)。当前合同 scope-revision 7 / ADM-12、ADM-13。原始输入：用户要求整体设计并优化；前序明确增长与运营价值、CLI含Skill、库存整合且不要无限拓展。当前产品方向以 2026-10-03 direction thought 为准，教育/学习与游戏是探索重点，保留所有应用类别。
+状态：Implemented / production verified（Worker ceea3dd5，scope8增长判断已线上验证，scope7侧栏保持；交付详见原日志）；design-document: required；plan: not-required（同一后台 Worker/UI、单批交付）。上位设计：[独立后台](2026-10-02-admin-console.design.md)。当前合同 scope-revision 8 / ADM-12、ADM-13、ADM-14。原始输入：用户要求整体设计并优化；前序明确增长与运营价值、CLI含Skill、库存整合且不要无限拓展。当前产品方向以 2026-10-03 direction thought 为准，教育/学习与游戏是探索重点，保留所有应用类别。
 
 ## 选择与用户价值
 
@@ -45,3 +45,37 @@ mode=design；2026-10-03：从原始用户要求和既有入口独立走查上�
 ## 同轮侧边栏视觉优化
 
 追加输入：“另外，你这个侧边栏有点难看，要不优化一下吧。”采用轻量浅色导航：复用主站现有紫色品牌标记；统一18px线条SVG图标、44px左右的菜单高度、清晰字体对比与选中背景；日常/系统分组留白稳定，诊断折叠使用明确箭头和子项层级，底部主站入口整齐。相比只调整颜色，消除符号图标混杂；相比更改导航模式，不改原13个入口、hash/选中状态、折叠或手机横向滚动行为，不增加收起模式/菜单状态。纯展示改动L1，仍为trivial；文件角色为admin/src/sidebar-icon.tsx的现有菜单SVG展示，唯一消费者App，不加依赖。原生details与button键盘行为保持，SVG aria-hidden、菜单aria-current，字体/图标/hover/focus真实渲染验收。Design轻量自审覆盖现有入口/移动滚动/无新owner，无findings，按现有授权直接实现，不新增确认门。
+
+
+## 2026-10-03 经营判断优化（scope8，Implemented / production verified）
+
+原始输入：用户询问首页关注信息与排序，AI建议成功发布人数、新用户激活、应用真人访问、复用、CLI贡献、异常反馈；用户回复“可以，那你来优化一下吧”。本批采用已建议的最小完整改进，不新增运营模块。flow=standard，风险L3（Worker报表投影与UI），发布L4；plan:not-required，retrospective_state:completed（证据见原日志）。
+
+黄金链路：管理员沿原登录进入经营总览→默认7天→四卡看到成功发布人数/新注册/成功发布激活率/应用真人PV及上一等长周期比较→查看每日发布人数与应用访问曲线→查看同批注册→有效应用→成功发布，以及首次/再次和CLI贡献→切30天核对日期与数字→增长大盘查完整日表/CSV→回首页查看现有异常应用和反馈并进入原处理。今日是进行中，独立显示且不进入完整周期比较。桌面和手机均先数字、图表，再分析与待办。
+
+候选：在overview复制CF/队列SQL会造成两个增长owner；把整个Growth页嵌入首页会重复大量报表。采用现有growth API/cache/budget为完整周期唯一owner，添加成功发布人数当前/上一期/每日去重、上一期注册队列和CLI成功发布人数；前端抽出原报表类型/格式工具及原曲线，供两页消费。overview保持累计存量与实时异常队列、原包含今日诊断；其诊断明确独立窗口并折叠，避免混入核心周期。首页增长请求独立于队列分页，刷新及7/30切换才重读；请求失败显示重试和明确旧数据状态，不让错误吞掉待办。无CF时PV显示—/断线，业务仍可看，旧CF缓存披露时间。cache schema升版避免旧字段缺失。
+
+不变量：首期/再次以已记录成功历史的MIN(started_at)判定，期间去重与每日去重不能累加；pending不进结束尝试成功率；CLI/Skill合并且不证明AI来源；同一注册队列以其各自期末判定，并非固定7日成熟留存。激活率比较用百分点，无注册时—；上期零不能算无限增长。CF应用PV与官网观测UV分别命名，观测UV不冒充应用UV或自然人数。应用PV canonical为CF bot=0，自适应采样，不用D1诊断替代。沿用原权限和当前密码，无迁移、支付、自动重试或新留存模型。
+
+验收：实际Worker+D1覆盖跨期/每日重复owner、无owner、首次与再次、今天排除、零样本、队列期末/删除应用、CLI成功去重、缺失CF/旧缓存/预算；原全量admin测试与类型/lint；真实浏览器7/30、快速切换、刷新、失败重试、队列翻页不重查增长、原增长页/CSV和详情、390px滚动；生产同API数值/日期核对与QA会话清理、普通推送并master同步。
+
+mode=design Review：从用户接受的排序与增量反查主链路，旧后台能力保持，三个核心增量有实际入口；当前/前期队列独立期末与统计时间明确，零/缺失/失败恢复可观察。抽象审计仅复用既有Chart和Report，无平行事实/存储/生命周期；新增文件位于现有admin/src职责域，项目无planned-path preflight。无findings，design-review:passed（scope8）。
+
+
+## 2026-10-03 图表交互修复（scope9，Design Ready）
+
+原始输入：用户报告图表hover无法看到反馈/点数字，要求参考最佳实践优化并考虑统一可复用组件。flow=bugfix（reproduce），L2共享前端交互，发布L4；design-document:required，plan:not-required，retrospective pending。调查命中growth-chart仅3.5px圆点原生SVG title、app事件柱与operating-summary部署柱原生title，无统一命中/数字状态。修前真实Chrome绘图区hover及键盘均无自定义数值提示。
+
+黄金链路：原账号登录→首页趋势图任意绘图区横移→自动选最近日期、参考线/高亮与日期+指标+单位卡→鼠标移入数值卡保持→Esc关闭→增长大盘同样查看7/30与零/缺失→首页展开部署诊断查看两指标→使用概览事件/访客查看→手机点日期并横滚30日；键盘Tab聚焦图、左右/Home/End选日并自动带到视口、Esc关闭，离焦退出。不改统计口径、接口、账号、权限或报表缓存。
+
+候选：各图独立加提示会留下三套状态/命中；引入图表库能提供很多未使用能力，但现有三处简单日序列无需新增依赖或替换业务报表。采用admin/src/time-series-chart.tsx为日期序列交互与渲染唯一owner，GrowthChart保留既有标题/脚注外壳并适配单指标；部署诊断与事件Trend映射数据到同组件的分组柱模式（明确总尝试含成功，不是堆叠相加）。折线保留缺失断线与零值点，柱零值不伪造最小非零高度。SVG绘图区全宽最近日期命中，参考线/高亮；HTML数值卡在滚动区之外，局部容器内横向限位、不被裁切。日期显示完整UTC日，单位由调用方提供，多指标同日统一显示，缺失写“暂无数据”。小图/30日/手机保留横向滚动。
+
+交互状态仅本图局部选日，日期范围/指标改变时旧选择失效，刷新同日数据更新；鼠标离开图和数值卡且无键盘焦点时关闭，数值卡可hover且不自动计时隐藏。触摸点选保留，外部点按关闭；滑动/取消不拦截页面与横滚，拖动不当点击。键盘焦点显示最近日，方向/Home/End受范围约束，选日自动横滚到可见，Esc不移动焦点也能关闭（hover也支持文档Esc）。SVG保留图像描述；操作区提供键盘说明与aria-describedby，提示role=tooltip/只读不抢焦点，键盘选日有可读数值。
+
+参考主源：[W3C WCAG 1.4.13](https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html)的可关闭、可hover、持续；[WAI tooltip pattern](https://www.w3.org/WAI/ARIA/apg/patterns/tooltip/)的Escape/焦点描述（APG该模式仍为work in progress，不声明完整无障碍认证）。只参考上游原则，不采用未安装图表库。
+
+架构审计：三个实际消费者共享最近日期/触摸/键盘/缺失/限位边界，新增一个组件有当前收益；保留业务报表owner和GrowthChart外壳，删除两处title-only柱图及退场无消费者旧bar CSS。无registry/context/tooltip全站框架/新依赖。项目无planned-path preflight，新增路径核对同admin/src组件域。模式line/bar仅局部消费，非公开持久协议。
+
+验收：真实Chrome修前/修后同入口，hover点间、首/末日、数值/单位精确、move进tooltip、Escape/leave/焦点、7/30与指标切换清旧值、零与null、不破坏滑动；3个消费者与多指标非相加、390px真实触摸/横滚/键盘带到视口、无根溢出/JS错误；admin tsc/build/lint/diff Review，生产真实三入口验收、保护密码/QA会话与查询预留、精确提交普通推送/master同步。
+
+mode=design Review：用户目标覆盖所有已查日趋势，三处消费者路径完整；仅最近日期选择不新增跨图同步、tooltip无交互控件，不把缺失解释零；横滚和触摸拖动区分/键盘自动可见/切换失效已纳入。本方案无开放findings，design-review:passed（scope9），随后实现。

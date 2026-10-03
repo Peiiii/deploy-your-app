@@ -139,3 +139,32 @@ retrospective_decision：已验证事实归原owner `docs/tech/PRODUCT_ANALYTICS
 生产scope7：`576ea8b`已普通推送，`pnpm deploy:admin`发布Worker `6bcb6b20-ace9-4c8e-93ef-766bac16013d`；资源`index-DhXpLOv7.css`/`index-2aRrHl_6.js`。/tmp/gemigo-admin-visual-polish.cjs --production从实际admin.gemigo.io验证4个发布指标+3个累计卡→图表→两组待办的真实布局坐标，7/30/数字与接口、13个SVG与选中、键盘诊断折叠、各日常入口/部署/安全/审计、异常详情，独立1440×1050与390×844 context无溢出/JS错误，已查看截图。原产品分析/增长导航完整13项在本地真实Worker UI验证，生产不重复触发昂贵product_events/CF报告。本轮无后端/API/账号变更，QA当前version绑定session按确切hash删除→session401，临时凭据删除；截图0600；本地测试服务停止。原生产能力证据保持有效。主观美感交用户反馈，不视为用户已验收。
 
 scope7 retrospective_decision：明确偏好是经营总览数据/图表优先，已在原设计修订优先级与本轮证据，替换原背景文字布局；纯视觉调整无新通用流程增量，不增加规则/镜像测试。复盘完成，最后提交记录后fresh fetch核对本地master/跟踪与远程实际SHA，保留所有无关WIP。
+
+
+## 2026-10-03 首页增长判断（scope8）
+
+原始输入：用户“首页你觉得还有哪些信息值得关注，以及你觉得重要性的一些排序之类的。”在AI排序与建议后确认“可以，那你来优化一下吧”。采纳周期对比、新人激活摘要、发布人数与应用访问趋势，结合首次/再次和CLI贡献，不无限扩展。方案与Design Review见经营专题scope8。当前密码保护；起始master4a974ae，无关WIP为analytics分析脚本、interview-prep、education-game计划及tgz，全部保留。当前阶段Implementation，retrospective pending，open ADM14及受影响ADM09/10/12。
+
+
+scope8本地验证与实现Review：增长owner新增当前/上一期及每日成功发布创作者去重、前期注册队列与渠道successfulUsers；共享报表合同与原Chart供两页使用，缓存namespace v4，预留按新增扫描规模调整。overview的原包含今日诊断与实时队列保持。`pnpm build:admin`、admin Worker tsc、定向ESLint及diff-check通过；原admin assembled Worker+D1/反馈/认证/详情回归通过，增长测试覆盖重复owner、空/空白owner、当天排除、跨期首次/再次、CLI成功去重、各自队列期末与删除应用、CF缓存/缺失/预算；恢复测试通过。最初NULL owner fixture被真实NOT NULL约束拒绝，改为空/空白合法边界后通过，无修改生产schema。
+
+真实本地Chrome：`/tmp/gemigo-admin-home-growth-ui.cjs`，1440×1050及390×844，7/30卡片与growth数据相符、图表前置、3类流量切换、原增长/CSV/详情、队列翻页不重查增长；额外HTTP429初载/刷新失败与重试、零注册/上期为0、CF缺失—/断线、快速7→30→7晚到响应隔离通过。截图`/tmp/gemigo-admin-home-local-{desktop,mobile}.png`已实际查看，核心卡对比字色与图表基线调整后构建/复验有效，无根溢出或JS错误。
+
+mode=implementation Review：项目无diff-only maintainability入口，按当前diff完成findings-first与主观结构复核。检查原始接受的三个核心增量、时间/分母/零与缺失、共享cache schema、请求取消与队列分页、原导航与管理能力及认证边界；无开放findings。新增Report/Chart仅服务两页既有共享变化点，GrowthSummary独立请求避免队列重复查询，无新持久化/框架/留存模型。Validation acceptance-ready（本地），Delivery待推送/部署/生产数值与QA清理，ADM14尚未最终passed。
+
+
+scope8生产Delivery：功能commit `ce8585262af0d7e9d91b2d54255735c2e3bbf9c8`精确14文件提交、普通推送后主工作区master/跟踪/远程实际SHA一致，diff0 0。复用已验证构建（CSS index-w7nygbMG / JS index-CtO7NwmX），执行admin-worker已有deploy入口，Worker `ceea3dd5-fe90-41c1-b4d7-e11c15a51073`已在admin.gemigo.io生效，无迁移/Secrets变更。并发应用分析/字体任务普通合并纳入主线，已核对它们未触达本批admin运行代码，保护各自代码和WIP。
+
+真实生产Chrome完整7/30：页面收到的growth报表与独立D1聚合核对当前/前期发布人数、首次人数、注册/创建/发布队列；CF真人访问正常、每日值与期间PV相符、四卡比较/日期/今日分开、3类流量选择、图表优先、两队列独立、原增长/每日CSV/异常详情可用，1440×1050和390×844无根溢出或JS错误。实际查看`/tmp/gemigo-admin-home-prod-{desktop,mobile}.png`，发布50、新注册26、激活20/26=76.9%、应用PV1880只是该次7日完整窗口快照，非固定实时值。
+
+验收工具恢复：首轮独立APIRequest请求网络超时，初始真实页面增长已成功；改为消费页面实际收到的JSON响应，避免额外接口请求，成功复验。最初Wrangler --file只返回导入汇总，不能拿它当SELECT结果；随后使用--command取得10个实际聚合结果集，断言shape后对账。没有将工具异常误判产品问题，未改生产代码。首轮已知成功生成预留62682单独归还后共享基线223652，最终仅生成一份非缓存30日64422，再精确归还并保留基线及并发用量；缓存7日不重复归账。两次版本绑定短时QA会话各自精确删除后session HTTP401，当前密码版本未变，其它会话保留，临时凭据/聚合JSON清理、生产截图0600。复盘更新原事实/方案/验收owner，无通用流程增量。最终记录提交后fresh fetch并再次核对主线SHA及0 0。
+
+
+## 2026-10-03 图表hover与统一交互（scope9）
+
+原始输入：用户“这些图表有一些有问题，就是鼠标 hover 上去之后也看不到……对应点的数字……参考最佳实践优化……考虑是否要封装统一的可复用组件……优化一下”。修前GrowthChart原生title命中仅小圆点，两个柱图独立title，最近绘图区和键盘无自定义提示。按专题scope9正式bugfix设计与Review，三入口收敛一个实际日期序列组件，不换统计和后台接口。当前阶段Implementation，open ADM15与受影响ADM06/14，retrospective pending；原密码保留，原WIP分析脚本及未跟踪资料/assets/tgz保护。
+
+
+scope9本地Validation：修前真实Chrome在绘图区中间hover与ArrowLeft均tooltip0；修后相同入口出现日期、数字单位与参考线。`pnpm build:admin`（含admin tsc）、定向ESLint、diff-check通过；组装Worker+D1原管理/认证/反馈/详情测试复用本轮隔离服务启动证据，Worker未修改。新增可复跑`scripts/test-admin-charts.mjs`，使用PLAYWRIGHT_MODULE可选运行时模块、现有console --serve和临时本地凭据，正式页面三消费者，不注入DOM或组件专用页。真实浏览器测试通过全部首页/增长4曲线/部署诊断双指标/原事件和访客：最近日期hover、边缘限位、数值卡hover/离开/Esc、键盘首末/边界与焦点保持、7/30与指标切换失效、零/留存期null、390px真实触摸点选/外部关闭与CDP横滑、无根溢出/JS错误。初次脚本嵌套summary严格匹配报错已限定直接summary，非产品缺陷。截图`/tmp/gemigo-admin-charts-local/{desktop,mobile}-tooltip.png`已实际查看。
+
+scope9 mode=implementation Review：从用户hover读数字目标反查三套旧渲染，全部迁移到同一组件，title-only路径及旧bar CSS退场；无追加图表库/全局tooltip框架/新请求。项目无diff-only maintainability入口，定向diff与主观结构审查覆盖局部选择生命周期、context失效、null/zero、横滚坐标/限位、touch cancel、Esc监听注销、aria关联、分组柱总数含成功不可相加、共享UI回归。无开放findings，acceptance-ready（本地），待精确提交/普通推送/部署与生产三入口及清理证据。

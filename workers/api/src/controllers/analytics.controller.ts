@@ -1,5 +1,7 @@
+import { getSessionIdFromRequest } from '../utils/auth';
+import { authRepository } from '../repositories/auth.repository';
 import { jsonResponse, emptyResponse, readJson } from '../utils/http';
-import { ValidationError } from '../utils/error-handler';
+import { ValidationError, UnauthorizedError, NotFoundError } from '../utils/error-handler';
 import { analyticsService } from '../services/analytics.service';
 import { projectService } from '../services/project.service';
 import type { ApiWorkerEnv } from '../types/env';
@@ -28,7 +30,7 @@ const secureEqual = async (left: string, right: string): Promise<boolean> => {
 
 class AnalyticsController {
   // Internal endpoint – used by the R2 gateway Worker to record page views.
-  // GET /api/v1/analytics/ping/:slug
+  // POST /api/v1/analytics/ping/:slug
   async pingPageView(
     request: Request,
     env: ApiWorkerEnv,
@@ -49,6 +51,7 @@ class AnalyticsController {
       return emptyResponse(404);
     }
     const body = await readJson(request);
+    if (body.version !== 2) throw new ValidationError('Unsupported analytics signal');
     const signal: PageViewSignal = {
       isBot: body.isBot === true,
       visitorHash: safeText(body.visitorHash, 64) ?? '',
@@ -61,7 +64,9 @@ class AnalyticsController {
       utmCampaign: safeText(body.utmCampaign),
       clientChannel: safeText(body.clientChannel, 24) ?? 'web',
     };
-    if (!signal.visitorHash || !signal.sessionHash || !signal.dedupeKey) {
+    if (!/^[a-f0-9]{64}$/.test(signal.dedupeKey)
+      || (body.visitorHash !== '' && !/^[a-f0-9]{64}$/.test(signal.visitorHash))
+      || (signal.visitorHash ? !/^[a-f0-9]{64}$/.test(signal.sessionHash) : signal.sessionHash !== '')) {
       throw new ValidationError('Invalid analytics signal');
     }
     await analyticsService.recordPageView(db, normalizedSlug, new Date(), signal);
@@ -74,11 +79,15 @@ class AnalyticsController {
     db: D1Database,
     projectId: string,
   ): Promise<Response> {
+    const sessionId = getSessionIdFromRequest(request);
+    const session = sessionId ? await authRepository.getSessionWithUser(db, sessionId) : null;
+    if (!session) throw new UnauthorizedError('Login required to view app analytics.');
     const project = await projectService.getProjectById(db, projectId);
     if (!project) {
-      throw new ValidationError('Project not found');
+      throw new NotFoundError('Project not found');
     }
 
+    if (project.ownerId !== session.user.id) throw new NotFoundError('Project not found');
     const url = new URL(request.url);
     const rangeParam = url.searchParams.get('range') ?? '7d';
     const rangeDays = rangeParam === '30d' ? 30 : 7;
@@ -88,7 +97,9 @@ class AnalyticsController {
       project,
       rangeDays,
     );
-    return jsonResponse(stats);
+    const response = jsonResponse(stats);
+    response.headers.set('cache-control', 'private, no-store');
+    return response;
   }
 }
 

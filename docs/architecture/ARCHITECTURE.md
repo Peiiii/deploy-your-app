@@ -155,6 +155,8 @@ server/src/
 
 默认无query的Tailwind CDN根脚本在交付HTML时替换成平台同字节固定版本镜像；上传源码不变，CSP/显式版本/插件query等保留原地址。资源版本/hash由 [runtime-assets.json](../../workers/r2-gateway/runtime-assets.json) 持有，发布脚本先验证hash再上传镜像和许可证，之后才能发布gateway。原始验证与线上数据见 [性能交付记录](../logs/2026-10-03-app-delivery-performance/README.md)。
 
+Google Fonts交付由 [google-fonts.ts](../../workers/r2-gateway/google-fonts.ts) 持有：HTML静态链接、内联CSS及带标记的同源CSS/nested imports在交付时转换；Google CSS与gstatic字体通过平台assets域限域镜像和缓存，完整浏览器UA协商WOFF2，上游2.5秒限时。无条件字体CSS由async helper在文档ready后经CSSOM加载，正文样式先显示；作者字体选择与原始R2文件不变。CSP/SRI、条件import、动态JS引用与超大文件保留边界。缓存namespace隔离交付变更；旧namespace承接已缓存CSS。字体成功不等于全国网络或任意图片/API已加速，真实本机证据见 [字体优化交付记录](../logs/2026-10-03-google-fonts-delivery/README.md)。
+
 ## 技术栈
 
 ### 前端技术

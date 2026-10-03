@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Plus, TrendingUp, AppWindow, Lock } from 'lucide-react';
+import { Plus, Lock } from 'lucide-react';
 import { useProjectStore } from '@/stores/project.store';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { useAnalyticsStore } from '@/stores/analytics.store';
@@ -10,7 +10,7 @@ import { useDashboardStore } from '@/features/dashboard/stores/dashboard.store';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useCopyToClipboardWithKey } from '@/hooks/use-copy-to-clipboard-with-key';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
-import { StatCard } from '@/features/dashboard/components/stat-card';
+import { useAppPreviewPanel } from '@/hooks/use-app-preview-panel';
 import { ProjectCard } from '@/features/dashboard/components/project-card';
 import { DashboardLayout } from '@/features/dashboard/components/dashboard-layout';
 import { DashboardFilters } from '@/features/dashboard/components/dashboard-filters';
@@ -34,6 +34,8 @@ export const Dashboard: React.FC = () => {
   const sortBy = useDashboardStore((s) => s.sortBy);
   const sortDirection = useDashboardStore((s) => s.sortDirection);
   const statusFilter = useDashboardStore((s) => s.statusFilter);
+  const viewMode = useDashboardStore((s) => s.viewMode);
+  const { openAppPreview } = useAppPreviewPanel({ closeOnUnmount: true, collapseSidebar: false });
 
   const { copyToClipboard, isCopied } = useCopyToClipboardWithKey();
 
@@ -69,10 +71,16 @@ export const Dashboard: React.FC = () => {
 
   const completeStats = projects.every((project) => {
     const entry = analyticsByProject[project.id];
-    return !!entry?.stats && !entry.error;
+    return (
+      !!entry?.stats &&
+      !entry.error &&
+      !entry.isLoading &&
+      entry.stats.range === '7d' &&
+      entry.stats.pageViews != null
+    );
   });
   const totalViews7d = completeStats
-    ? projects.reduce((sum, project) => sum + analyticsByProject[project.id].stats!.views7d, 0)
+    ? projects.reduce((sum, project) => sum + analyticsByProject[project.id].stats!.pageViews!, 0)
     : null;
   const filteredAndSortedProjects = React.useMemo(
     () =>
@@ -152,81 +160,64 @@ export const Dashboard: React.FC = () => {
       actions={
         <button
           onClick={() => navigate('/deploy')}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           {t('dashboard.deployApp')}
         </button>
       }
       summary={
-        <div className="grid grid-cols-3 gap-3 sm:gap-6">
-          <StatCard
-            icon={AppWindow}
-            label={t('dashboard.totalProjects')}
-            value={ready ? pagination.total.toLocaleString() : '—'}
-            sublabel={t('dashboard.ownedApps')}
-            iconColor="text-brand-500"
-          />
-          <StatCard
-            icon={Zap}
-            label={t('dashboard.activeProjects')}
-            value={
-              ready
-                ? projects.filter((project) => project.status === 'Live').length.toLocaleString()
-                : '—'
-            }
-            sublabel={t(partial ? 'dashboard.loadedApps' : 'dashboard.runningOnEdge')}
-            iconColor="text-emerald-500"
-          />
-          <StatCard
-            icon={TrendingUp}
-            label={t('dashboard.totalViews')}
-            value={ready && totalViews7d !== null ? totalViews7d.toLocaleString() : '—'}
-            sublabel={t(partial ? 'dashboard.loadedApps' : 'dashboard.last7Days')}
-            iconColor="text-brand-500"
-          />
-        </div>
+        ready ? (
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs tabular-nums text-slate-500 dark:text-slate-400">
+            <span>{t('dashboard.summaryApps', { count: pagination.total })}</span>
+            <span>
+              {t('dashboard.summaryRunning', {
+                count: projects.filter((project) => project.status === 'Live').length,
+              })}
+            </span>
+            <span>
+              {t('dashboard.summaryVisits', {
+                value: ready && totalViews7d !== null ? totalViews7d.toLocaleString() : '—',
+              })}
+            </span>
+          </p>
+        ) : null
       }
     >
-      <section className="space-y-5" aria-label={t('dashboard.myProjects')}>
+      <section className="space-y-3" aria-label={t('dashboard.myProjects')}>
         <DashboardFilters projects={projects} />
         {partial && (
           <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
             {t('dashboard.loadedScope', { loaded: projects.length, total: pagination.total })}
           </p>
         )}
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
-            {t('dashboard.myProjects')}{' '}
-            <span className="ml-1.5 font-normal tabular-nums text-slate-400">
-              {ready ? filteredAndSortedProjects.length : '—'}
-            </span>
-          </h2>
-          {(searchQuery || statusFilter || showFavoritesOnly) && (
+        {(searchQuery || statusFilter || showFavoritesOnly) && (
+          <div className="flex items-center justify-between text-xs text-slate-500">
+            <p>{t('dashboard.matchingApps', { count: filteredAndSortedProjects.length })}</p>
             <button
               onClick={() => presenter.dashboard.resetFilters()}
-              className="rounded-md text-xs font-medium text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-brand-300"
+              className="rounded text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-brand-300"
             >
               {t('dashboard.resetFilters')}
             </button>
-          )}
-        </div>
+          </div>
+        )}
         {!hasLoaded && !loadError ? (
           <div role="status" className="management-grid">
             {[0, 1, 2].map((item) => (
               <div
                 key={item}
-                className="h-80 motion-safe:animate-pulse rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
+                className="motion-safe:animate-pulse overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
               >
-                <div className="h-14 w-20 rounded-xl bg-slate-100 dark:bg-slate-800" />
-                <div className="mt-6 h-4 w-2/3 rounded bg-slate-100 dark:bg-slate-800" />
-                <div className="mt-4 h-20 rounded bg-slate-50 dark:bg-slate-800/50" />
+                <div className="aspect-video bg-slate-100 dark:bg-slate-700" />
+                <div className="m-4 h-4 w-2/3 rounded bg-slate-100 dark:bg-slate-800" />
+                <div className="m-4 h-8 rounded bg-slate-50 dark:bg-slate-800/50" />
               </div>
             ))}
             <span className="sr-only">{t('common.loading')}</span>
           </div>
         ) : filteredAndSortedProjects.length > 0 ? (
-          <div className="management-grid">
+          <div className={`management-grid ${viewMode === 'list' ? 'management-list' : ''}`}>
             {filteredAndSortedProjects.map((project, index) => (
               <ProjectCard
                 key={project.id}
@@ -234,6 +225,7 @@ export const Dashboard: React.FC = () => {
                 onCopyUrl={handleCopyUrl}
                 isCopied={isCopied}
                 priority={index < 3}
+                onPreview={openAppPreview}
               />
             ))}
           </div>

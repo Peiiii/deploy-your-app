@@ -6,14 +6,21 @@ import type { Project } from '../types/project';
 
 export interface ProjectDailyStatsPoint {
   date: string;
-  views: number;
+  views: number | null;
+  uniqueVisitors: number | null;
+  coverage: 'complete' | 'partial' | 'missing';
 }
 
 export interface ProjectStats {
   slug: string;
-  totalViews: number;
-  views7d: number;
+  range: '7d' | '30d';
+  from: string;
+  to: string;
+  pageViews: number | null;
+  uniqueVisitors: number | null;
+  unidentifiedViews: number;
   lastViewAt?: string;
+  coverage: { status: 'complete' | 'partial' | 'unavailable'; startedAt: string | null; timezone: 'UTC' };
   points: ProjectDailyStatsPoint[];
 }
 
@@ -32,39 +39,31 @@ class AnalyticsService {
     slug: string,
     rangeDays: number,
   ): Promise<ProjectStats> {
-    const today = new Date();
-    const from = new Date(today);
-    from.setDate(today.getDate() - rangeDays + 1);
-    const fromDateStr = from.toISOString().slice(0, 10);
-
-    const rows = await analyticsRepository.getStatsForSlug(
-      db,
-      slug,
-      fromDateStr,
-    );
-
-    let totalViews = 0;
-    let lastViewAt: string | undefined;
-
-    const points: ProjectDailyStatsPoint[] = rows.map((row) => {
-      totalViews += row.views;
-      if (row.last_view_at) {
-        if (!lastViewAt || row.last_view_at > lastViewAt) {
-          lastViewAt = row.last_view_at;
-        }
-      }
-      return {
-        date: row.date,
-        views: row.views,
-      };
-    });
-
+    const now = new Date();
+    const to = now.toISOString().slice(0,10);
+    const from = new Date(`${to}T00:00:00.000Z`);
+    from.setUTCDate(from.getUTCDate() - rangeDays + 1);
+    const fromDate = from.toISOString().slice(0,10);
+    const startedAt = await analyticsRepository.getCollectionStart(db);
+    const available = !!startedAt && startedAt <= now.toISOString();
+    const effectiveStart = startedAt && startedAt > from.toISOString() ? startedAt : from.toISOString();
+    const rows = available ? await analyticsRepository.getBrowserStats(db,slug,effectiveStart,now.toISOString()) : null;
+    const daily = new Map(rows?.daily.map(row => [row.date,row]));
+    const points: ProjectDailyStatsPoint[] = [];
+    for (let i=0;i<rangeDays;i+=1) {
+      const date = new Date(from.getTime() + i * 86400000).toISOString().slice(0,10);
+      const coverage = !available || date < startedAt!.slice(0,10) ? 'missing'
+        : date === startedAt!.slice(0,10) && startedAt!.slice(11,23) !== '00:00:00.000' ? 'partial' : 'complete';
+      const row = daily.get(date);
+      points.push({ date, views: coverage === 'missing' ? null : row?.views ?? 0,
+        uniqueVisitors: coverage === 'missing' ? null : row?.unique_visitors ?? 0, coverage });
+    }
     return {
-      slug,
-      totalViews,
-      views7d: totalViews,
-      lastViewAt,
-      points,
+      slug,range: rangeDays === 30 ? '30d' : '7d',from: fromDate,to,
+      pageViews: rows?.summary.views ?? null,uniqueVisitors: rows?.summary.unique_visitors ?? null,
+      unidentifiedViews: rows?.summary.unidentified_views ?? 0,lastViewAt: rows?.summary.last_view_at ?? undefined,
+      coverage: { status: !available ? 'unavailable' : points.some(point => point.coverage !== 'complete') ? 'partial' : 'complete',
+        startedAt,timezone: 'UTC' },points,
     };
   }
 

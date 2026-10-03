@@ -19,3 +19,9 @@
 抽象审计：仅font delivery模块承担固定上游与CSS引用转换，复用gateway缓存/发布owner，无第二构建状态、不修改部署流水线、不建通用开放代理。
 
 mode=design review：独立核对用户来源、晚置CSP、query隔离、错误回退、CSS相对路径、UA、资源限额与真实入口。无findings；上述有限规则不外推任意Google API。design-review passed。
+
+## 基于生产证据的设计修订（不降低门槛）
+
+v2生产一冷FCP5.228s超GF-03；镜像CSS仍render-blocking。改为非阻塞字体：直接Google stylesheet link保留原media于data属性、初始not all；无条件Google CSS import变成瞬时空data CSS，注释载有encoded镜像引用，保留import位置/语法；同源marked CSS同处理。平台async小脚本在document ready扫描CSSOM（含同源nested imports）解码严格平台font路径并动态加入font stylesheet；恢复直接link原media需其已load，空data import不申请字体，不阻塞原样式规则。有media/layer/supports条件的import维持原条件和镜像，不擅改语义。脚本仅Google/marked CSS应用插入；CSP/SRI维持跳过；脚本不可达则系统字体仍可阅读。data是临时交付引用metadata，不建R2或数据库状态owner。字体运行时固定独立缓存路径，变更字体CSS namespace和hosting ETag防旧缓存混用。
+
+自审和mode=design Review：以原入口与超目标证据核对条件import、普通CSS注释/字符串、晚置CSP、跨域CSSOM限制和JS disabled系统字体；上述设计通过，无未关闭finding；新增验证真实浏览器CSSOM发现、fonts loaded与首屏不依赖font upstream。

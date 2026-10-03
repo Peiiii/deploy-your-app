@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { ProjectStats } from '../types';
 
 interface AnalyticsEntry {
+  range: '7d' | '30d';
   stats: ProjectStats | null;
   isLoading: boolean;
   error?: string;
@@ -10,7 +11,7 @@ interface AnalyticsEntry {
 interface AnalyticsState {
   byProjectId: Record<string, AnalyticsEntry>;
   actions: {
-    setLoading: (projectId: string, isLoading: boolean) => void;
+    setLoading: (projectId: string, isLoading: boolean, range: '7d' | '30d') => void;
     setStats: (projectId: string, stats: ProjectStats) => void;
     setError: (projectId: string, error?: string) => void;
   };
@@ -19,7 +20,7 @@ interface AnalyticsState {
 export const useAnalyticsStore = create<AnalyticsState>((set) => ({
   byProjectId: {},
   actions: {
-    setLoading: (projectId, isLoading) =>
+    setLoading: (projectId, isLoading, range) =>
       set((state) => ({
         byProjectId: {
           ...state.byProjectId,
@@ -28,6 +29,8 @@ export const useAnalyticsStore = create<AnalyticsState>((set) => ({
               stats: null,
               error: undefined,
             }),
+            range,
+            ...(isLoading ? { error: undefined } : {}),
             isLoading,
           },
         },
@@ -37,6 +40,7 @@ export const useAnalyticsStore = create<AnalyticsState>((set) => ({
         byProjectId: {
           ...state.byProjectId,
           [projectId]: {
+            range: stats.range,
             stats,
             isLoading: false,
             error: undefined,
@@ -49,6 +53,7 @@ export const useAnalyticsStore = create<AnalyticsState>((set) => ({
           ...state.byProjectId,
           [projectId]: {
             ...(state.byProjectId[projectId] ?? {
+              range: '7d',
               stats: null,
               isLoading: false,
             }),
@@ -58,4 +63,3 @@ export const useAnalyticsStore = create<AnalyticsState>((set) => ({
       })),
   },
 }));
-

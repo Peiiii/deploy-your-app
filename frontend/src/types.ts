@@ -109,15 +109,22 @@ export interface DeploymentMetadata {
 // ---------------------------------------------------------------------------
 
 export interface ProjectDailyStatsPoint {
-  date: string; // YYYY-MM-DD
-  views: number;
+  date: string;
+  views: number | null;
+  uniqueVisitors: number | null;
+  coverage: 'complete' | 'partial' | 'missing';
 }
 
 export interface ProjectStats {
   slug: string;
-  totalViews: number;
-  views7d: number;
+  range: '7d' | '30d';
+  from: string;
+  to: string;
+  pageViews: number | null;
+  uniqueVisitors: number | null;
+  unidentifiedViews: number;
   lastViewAt?: string;
+  coverage: { status: 'complete' | 'partial' | 'unavailable'; startedAt: string | null; timezone: 'UTC' };
   points: ProjectDailyStatsPoint[];
 }
 
