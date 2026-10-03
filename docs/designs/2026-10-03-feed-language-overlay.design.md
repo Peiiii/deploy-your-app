@@ -22,6 +22,14 @@ design-review: passed。对照原图核对覆盖源、列表筛选仍可访问�
 
 ## 开发验证与 Review
 
-当前源码 localhost:5307 连接生产公开 API，实际浏览 qingshui、进入 iframe、连续滚到 33store 并进入，通过：语言悬浮按钮始终不存在，前一个 iframe 退出，后一个 iframe 正常显示。1512px 桌面和390px窄屏截图直接检查通过。退出应用→滚回顶部→退出视频流→打开列表内容语言→选择英语，持久化为 zh/en→再次进入视频流，仍无浮层且语言选择保留。
+当前源码 localhost:5307 连接生产公开 API，实际浏览 qingshui、进入 iframe、连续滚到 33store 并进入，通过：语言悬浮按钮始终不存在，前一个 iframe 退出，后一个 iframe 正常显示。1512px 桌面和窄屏截图直接检查通过（请求390px，Chrome窗口实际下限500px）。退出应用→滚回顶部→退出视频流→打开列表内容语言→选择英语，持久化为 zh/en→再次进入视频流，仍无浮层且语言选择保留。
 
 前端 tsc 通过（先按项目 tsc -b 构建 public-author/product-analytics 声明，避免把未生成声明造成的 D1 类型缺失误当源码错误）；文件 ESLint 零告警、生产构建、diff-check 通过。只有既有 Browserslist/bundle 提示。项目没有独立 diff-only maintainability 入口；人工 diff-only Review 核对6行删除与相邻页面/语言store/退出和空状态恢复路径：no findings，implementation-review=passed。未新增状态或数据合同。
+
+## 交付与复盘
+
+按既有 pnpm deploy:pages 发布前端成功，源码0389a7a（含修复f8244ad），gh-pages=5089e4913db33296da23643ef0e617b0508104aa；上一版916888a785958dcd171ba30dd1d83675e28711d4保留为回退依据。生产 gemigo.io 默认页面加载 index-D2lHWmlK.js，真实浏览器HTTP200，SHA256=724c5705df8898cf1fafdc38310776a07b0fc8b4b71d1e859645bce17d66fe17，与本地构建一致。线上从探索列表进入视频流、滚到 qingshui 并进入应用，截图核对iframe正常显示且语言浮层不存在；切换到33store仍无浮层、前一个iframe退出。
+
+主工作区master安全快进；仅对重叠的 explore-feed.tsx 临时可恢复隔离并恢复并行 Tooltip 草稿，逐字核对恢复内容等于原草稿加本次6行删除，暂存状态不变。其它WIP不提交。交付后再次fetch与actual远端SHA、0 0核对。仅前端发布，不修改Secrets或后台。
+
+retrospective_decision=no-increment：单个冗余固定展示入口，根因已删除；没有新的跨项目方法或规则价值，事实和验证保留在本设计。retrospective_state=completed。
