@@ -286,6 +286,8 @@ export const getSeo = (url) => {
       '/privacy-policy',
       '/acceptable-use',
       '/sdk/broker',
+      '/wallet',
+      '/points/confirm',
       '/cli/login',
       '/cli/login/success',
     ].includes(path) ||
