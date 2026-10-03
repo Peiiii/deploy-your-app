@@ -42,7 +42,7 @@ const initialState = {
   searchQuery: '',
   page: 1,
   hasMore: false,
-  isLoading: false,
+  isLoading: true,
   error: false,
 };
 
@@ -56,9 +56,14 @@ export const useExploreStore = create<ExploreState>((set) => ({
     setActiveCategory: (category) =>
       set((state) => state.activeCategory === category && state.activeTag === null
         ? state
-        : { activeCategory: category, page: 1, activeTag: null, apps: [], hasMore: false }),
-    setActiveTag: (tag) => set({ activeTag: tag }),
-    setSearchQuery: (query) => set({ searchQuery: query }),
+        : { activeCategory: category, page: 1, activeTag: null, apps: [], hasMore: false, isLoading: true, error: false }),
+    // Filters enter loading before the debounced refresh starts its request.
+    setActiveTag: (tag) => set((state) => state.activeTag === tag
+      ? state
+      : { activeTag: tag, isLoading: true, error: false }),
+    setSearchQuery: (query) => set((state) => state.searchQuery === query
+      ? state
+      : { searchQuery: query, isLoading: true, error: false }),
     setPage: (page) => set({ page }),
     setHasMore: (hasMore) => set({ hasMore }),
     setError: (error) => set({ error }),
