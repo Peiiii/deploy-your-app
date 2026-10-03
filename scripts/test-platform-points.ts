@@ -227,6 +227,42 @@ try {
   );
   assert.equal((await repo.receipt('ai-user', 'app-a', 'ai-3'))!.status, 'released');
   assert.equal((await repo.balance('ai-user'))!.balance, 17);
+  // The maintenance timeout cannot discard a response from the original executor.
+  // A verified operator release, however, must never be resurrected by that response.
+  await repo.claim('late-ai-user');
+  for (const releaseFirst of [false, true]) {
+    const request = 'late-ai-' + releaseFirst;
+    const late = await repo.purchase('late-ai-user', ai, request, JSON.stringify({ topic: '光' }));
+    let started!: () => void;
+    let complete!: (value: { response: string }) => void;
+    const startedPromise = new Promise<void>((resolve) => (started = resolve));
+    const responsePromise = new Promise<{ response: string }>((resolve) => (complete = resolve));
+    const execution = runAi(
+      {
+        ...env,
+        RECOMMENDATION_AI: {
+          run: () => {
+            started();
+            return responsePromise;
+          },
+        },
+      } as unknown as ApiWorkerEnv,
+      repo,
+      late
+    );
+    await startedPromise;
+    await db.prepare('UPDATE points_receipts SET updated_at=0 WHERE id=?').bind(late.id).run();
+    await processPointsScheduled(env);
+    assert.equal((await repo.receipt('late-ai-user', 'app-a', request))!.status, 'unknown');
+    if (releaseFirst) await refund(repo, { ...late, status: 'unknown' }, true);
+    complete({ response: '原执行者返回的可恢复解说。' });
+    await execution;
+    const recovered = (await repo.receipt('late-ai-user', 'app-a', request))!;
+    assert.equal(recovered.status, releaseFirst ? 'released' : 'granted');
+    assert.equal(!!recovered.result, !releaseFirst);
+    if (!releaseFirst) assert.equal(recovered.error, null);
+    assert.equal((await repo.balance('late-ai-user'))!.balance, 17);
+  }
   await assert.rejects(
     pointsController(
       new Request('https://gemigo.io/api/v1/points/claim', {

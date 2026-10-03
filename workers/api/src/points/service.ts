@@ -149,7 +149,8 @@ export async function runAi(env: ApiWorkerEnv, repo: PointsRepository, receipt: 
     }
     await repo
       .statement(
-        "UPDATE points_receipts SET status='granted',result=?,updated_at=? WHERE id=? AND status='running'",
+        // Keep a late response from the original executor, but never revive a released charge.
+        "UPDATE points_receipts SET status='granted',result=?,error=NULL,updated_at=? WHERE id=? AND status IN('running','unknown')",
         JSON.stringify({ text: result.response }),
         Date.now(),
         receipt.id
