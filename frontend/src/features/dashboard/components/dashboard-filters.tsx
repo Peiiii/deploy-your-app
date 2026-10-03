@@ -5,7 +5,7 @@ import { useDashboardStore } from '@/features/dashboard/stores/dashboard.store';
 import type { SortDirection, SortOption } from '@/features/dashboard/stores/dashboard.store';
 import type { Project } from '@/types';
 
-export function DashboardFilters({ projects }: { projects: Project[] }) {
+export function DashboardFilters({ projects, loading = false }: { projects: Project[]; loading?: boolean }) {
   const { t } = useTranslation();
   const { showFavoritesOnly, searchQuery, statusFilter, sortBy, sortDirection, viewMode, actions } =
     useDashboardStore();
@@ -114,7 +114,7 @@ export function DashboardFilters({ projects }: { projects: Project[] }) {
           >
             <span>{status ? t(`dashboard.appStatus.${status}`) : t('dashboard.allApps')}</span>
             <span className={statusFilter === status ? 'text-white/75' : 'text-slate-400'}>
-              {status
+              {loading ? <span aria-hidden="true" className="block h-3 w-4 rounded bg-current opacity-15 motion-safe:animate-pulse" /> : status
                 ? projects.filter((project) => project.status === status).length
                 : projects.length}
             </span>

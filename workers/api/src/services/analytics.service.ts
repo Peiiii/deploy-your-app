@@ -1,7 +1,4 @@
-import {
-  analyticsRepository,
-  type PageViewSignal,
-} from '../repositories/analytics.repository';
+import { analyticsRepository, type PageViewSignal } from '../repositories/analytics.repository';
 import type { Project } from '../types/project';
 
 export interface ProjectDailyStatsPoint {
@@ -20,7 +17,11 @@ export interface ProjectStats {
   uniqueVisitors: number | null;
   unidentifiedViews: number;
   lastViewAt?: string;
-  coverage: { status: 'complete' | 'partial' | 'unavailable'; startedAt: string | null; timezone: 'UTC' };
+  coverage: {
+    status: 'complete' | 'partial' | 'unavailable';
+    startedAt: string | null;
+    timezone: 'UTC';
+  };
   points: ProjectDailyStatsPoint[];
 }
 
@@ -29,7 +30,7 @@ class AnalyticsService {
     db: D1Database,
     slug: string,
     timestamp: Date,
-    signal: PageViewSignal,
+    signal: PageViewSignal
   ): Promise<boolean> {
     return analyticsRepository.recordPageView(db, slug, timestamp, signal);
   }
@@ -37,40 +38,101 @@ class AnalyticsService {
   async getProjectStatsForSlug(
     db: D1Database,
     slug: string,
-    rangeDays: number,
+    rangeDays: number
   ): Promise<ProjectStats> {
+    return (await this.getStatsForSlugs(db, [slug], rangeDays))[slug];
+  }
+
+  async getProjectStatsForProjects(
+    db: D1Database,
+    projects: Project[],
+    rangeDays: number
+  ): Promise<Record<string, ProjectStats>> {
+    if (!projects.length) return {};
+    const stats = await this.getStatsForSlugs(
+      db,
+      projects.map((project) => this.resolveSlugForProject(project)),
+      rangeDays
+    );
+    return Object.fromEntries(
+      projects.map((project) => [project.id, stats[this.resolveSlugForProject(project)]])
+    );
+  }
+
+  private async getStatsForSlugs(
+    db: D1Database,
+    slugs: string[],
+    rangeDays: number
+  ): Promise<Record<string, ProjectStats>> {
     const now = new Date();
-    const to = now.toISOString().slice(0,10);
+    const to = now.toISOString().slice(0, 10);
     const from = new Date(`${to}T00:00:00.000Z`);
     from.setUTCDate(from.getUTCDate() - rangeDays + 1);
-    const fromDate = from.toISOString().slice(0,10);
+    const fromDate = from.toISOString().slice(0, 10);
     const startedAt = await analyticsRepository.getCollectionStart(db);
     const available = !!startedAt && startedAt <= now.toISOString();
-    const effectiveStart = startedAt && startedAt > from.toISOString() ? startedAt : from.toISOString();
-    const rows = available ? await analyticsRepository.getBrowserStats(db,slug,effectiveStart,now.toISOString()) : null;
-    const daily = new Map(rows?.daily.map(row => [row.date,row]));
-    const points: ProjectDailyStatsPoint[] = [];
-    for (let i=0;i<rangeDays;i+=1) {
-      const date = new Date(from.getTime() + i * 86400000).toISOString().slice(0,10);
-      const coverage = !available || date < startedAt!.slice(0,10) ? 'missing'
-        : date === startedAt!.slice(0,10) && startedAt!.slice(11,23) !== '00:00:00.000' ? 'partial' : 'complete';
-      const row = daily.get(date);
-      points.push({ date, views: coverage === 'missing' ? null : row?.views ?? 0,
-        uniqueVisitors: coverage === 'missing' ? null : row?.unique_visitors ?? 0, coverage });
-    }
-    return {
-      slug,range: rangeDays === 30 ? '30d' : '7d',from: fromDate,to,
-      pageViews: rows?.summary.views ?? null,uniqueVisitors: rows?.summary.unique_visitors ?? null,
-      unidentifiedViews: rows?.summary.unidentified_views ?? 0,lastViewAt: rows?.summary.last_view_at ?? undefined,
-      coverage: { status: !available ? 'unavailable' : points.some(point => point.coverage !== 'complete') ? 'partial' : 'complete',
-        startedAt,timezone: 'UTC' },points,
-    };
+    const effectiveStart =
+      startedAt && startedAt > from.toISOString() ? startedAt : from.toISOString();
+    const rows = available
+      ? await analyticsRepository.getBrowserStatsForSlugs(
+          db,
+          slugs,
+          effectiveStart,
+          now.toISOString()
+        )
+      : null;
+    return Object.fromEntries(
+      [...new Set(slugs)].map((slug) => {
+        const daily = new Map(
+          rows?.daily.filter((row) => row.slug === slug).map((row) => [row.date, row])
+        );
+        const summary = rows?.summary.find((row) => row.slug === slug);
+        const points: ProjectDailyStatsPoint[] = [];
+        for (let i = 0; i < rangeDays; i += 1) {
+          const date = new Date(from.getTime() + i * 86400000).toISOString().slice(0, 10);
+          const coverage =
+            !available || date < startedAt!.slice(0, 10)
+              ? 'missing'
+              : date === startedAt!.slice(0, 10) && startedAt!.slice(11, 23) !== '00:00:00.000'
+                ? 'partial'
+                : 'complete';
+          const row = daily.get(date);
+          points.push({
+            date,
+            views: coverage === 'missing' ? null : (row?.views ?? 0),
+            uniqueVisitors: coverage === 'missing' ? null : (row?.unique_visitors ?? 0),
+            coverage,
+          });
+        }
+        const stats: ProjectStats = {
+          slug,
+          range: rangeDays === 30 ? '30d' : '7d',
+          from: fromDate,
+          to,
+          pageViews: available ? (summary?.views ?? 0) : null,
+          uniqueVisitors: available ? (summary?.unique_visitors ?? 0) : null,
+          unidentifiedViews: summary?.unidentified_views ?? 0,
+          lastViewAt: summary?.last_view_at ?? undefined,
+          coverage: {
+            status: !available
+              ? 'unavailable'
+              : points.some((point) => point.coverage !== 'complete')
+                ? 'partial'
+                : 'complete',
+            startedAt,
+            timezone: 'UTC',
+          },
+          points,
+        };
+        return [slug, stats];
+      })
+    );
   }
 
   async getProjectStats(
     db: D1Database,
     project: Project,
-    rangeDays: number,
+    rangeDays: number
   ): Promise<ProjectStats> {
     const slug = this.resolveSlugForProject(project);
     return this.getProjectStatsForSlug(db, slug, rangeDays);
@@ -79,7 +141,7 @@ class AnalyticsService {
   async getViewsByProjectSlug(
     db: D1Database,
     projects: Project[],
-    rangeDays: number,
+    rangeDays: number
   ): Promise<Record<string, number>> {
     const today = new Date();
     const from = new Date(today);
@@ -90,10 +152,7 @@ class AnalyticsService {
     return analyticsRepository.getViewsBySlugSince(db, slugs, fromDateStr);
   }
 
-  async deleteStatsForSlug(
-    db: D1Database,
-    slug: string,
-  ): Promise<void> {
+  async deleteStatsForSlug(db: D1Database, slug: string): Promise<void> {
     await analyticsRepository.deleteStatsForSlug(db, slug);
   }
 

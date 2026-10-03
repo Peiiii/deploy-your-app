@@ -147,19 +147,20 @@ class AnalyticsRepository {
     return row?.started_at ?? null;
   };
 
-  getBrowserStats = async (db: D1Database, slug: string, from: string, to: string) => {
+  getBrowserStatsForSlugs = async (db: D1Database, slugs: string[], from: string, to: string) => {
     await this.ensureSchema(db);
     const [daily, summary] = await db.batch([
-      db.prepare(`SELECT substr(viewed_at,1,10) AS date,COUNT(*) AS views,
+      db.prepare(`SELECT slug,substr(viewed_at,1,10) AS date,COUNT(*) AS views,
         COUNT(DISTINCT NULLIF(visitor_hash,'')) AS unique_visitors,
         SUM(visitor_hash='') AS unidentified_views,MAX(viewed_at) AS last_view_at
-        FROM project_page_views WHERE slug=? AND viewed_at>=? AND viewed_at<=? AND is_bot=0
-        GROUP BY date ORDER BY date`).bind(slug,from,to),
-      db.prepare(`SELECT COUNT(*) AS views,COUNT(DISTINCT NULLIF(visitor_hash,'')) AS unique_visitors,
+        FROM project_page_views WHERE slug IN (SELECT value FROM json_each(?)) AND viewed_at>=? AND viewed_at<=? AND is_bot=0
+        GROUP BY slug,date ORDER BY date`).bind(JSON.stringify(slugs),from,to),
+      db.prepare(`SELECT slug,COUNT(*) AS views,COUNT(DISTINCT NULLIF(visitor_hash,'')) AS unique_visitors,
         COALESCE(SUM(visitor_hash=''),0) AS unidentified_views,MAX(viewed_at) AS last_view_at
-        FROM project_page_views WHERE slug=? AND viewed_at>=? AND viewed_at<=? AND is_bot=0`).bind(slug,from,to),
+        FROM project_page_views WHERE slug IN (SELECT value FROM json_each(?)) AND viewed_at>=? AND viewed_at<=? AND is_bot=0
+        GROUP BY slug`).bind(JSON.stringify(slugs),from,to),
     ]);
-    return { daily: daily.results as BrowserStatsRow[], summary: summary.results[0] as BrowserStatsRow };
+    return { daily: daily.results as (BrowserStatsRow & { slug: string })[], summary: summary.results as (BrowserStatsRow & { slug: string })[] };
   };
 
   getViewsBySlugSince = async (

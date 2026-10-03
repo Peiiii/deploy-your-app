@@ -1,4 +1,5 @@
 import { IconButton } from '@/components/icon-button';
+import { LoadingStatus, Skeleton } from '@/components/skeleton';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -30,7 +31,12 @@ export function RecentApplications({ disabled }: { disabled: boolean }) {
       </div>
       <p className="mt-1.5 text-xs leading-5 text-slate-500 dark:text-slate-400">{t('deployment.recentAppsDescription')}</p>
       <div id="recent-applications-list" className={`${expanded ? 'block' : 'hidden'} mt-3 lg:block`}>
-        {recentLoading && recentProjects.length === 0 && <p role="status" className="py-3 text-xs text-slate-500">{t('common.loading')}</p>}
+        {recentLoading && recentProjects.length === 0 && <LoadingStatus className="py-2">
+          <div className="space-y-3">{[0, 1, 2].map(index => <div key={index} className="flex items-center gap-3">
+            <Skeleton className="h-11 w-14 shrink-0 rounded-lg" />
+            <div className="flex-1 space-y-2"><Skeleton className="h-3 w-3/4" /><Skeleton className="h-2 w-1/2" /></div>
+          </div>)}</div>
+        </LoadingStatus>}
         {recentError && <div role="status" className="space-y-2 py-2 text-xs text-slate-500">
           <p>{t('deployment.recentAppsError')}</p>
           <button type="button" className="inline-flex items-center gap-1 rounded-md text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" onClick={() => void presenter.project.loadRecentProjects(ownerId)}><RefreshCw className="h-3 w-3" />{t('common.retry')}</button>

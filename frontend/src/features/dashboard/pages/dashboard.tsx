@@ -15,6 +15,7 @@ import { ProjectCard } from '@/features/dashboard/components/project-card';
 import { DashboardLayout } from '@/features/dashboard/components/dashboard-layout';
 import { DashboardFilters } from '@/features/dashboard/components/dashboard-filters';
 import { DashboardEmptyState } from '@/features/dashboard/components/dashboard-empty-state';
+import { DashboardSkeleton } from '@/features/dashboard/components/dashboard-skeleton';
 import { selectManagementProjects } from '@/features/dashboard/utils/select-management-projects';
 
 export const Dashboard: React.FC = () => {
@@ -60,9 +61,7 @@ export const Dashboard: React.FC = () => {
   );
 
   React.useEffect(() => {
-    projects.forEach((project) => {
-      presenter.analytics.loadProjectStats(project.id, '7d');
-    });
+    void presenter.analytics.loadProjectsStats(projects.map((project) => project.id), '7d');
   }, [projects, presenter.analytics]);
 
   React.useEffect(() => {
@@ -114,22 +113,7 @@ export const Dashboard: React.FC = () => {
     copyToClipboard(url, projectId);
   };
 
-  if (isLoadingAuth) {
-    return (
-      <div className="p-4 md:p-8 max-w-4xl mx-auto flex items-center justify-center h-full animate-fade-in">
-        <div className="glass-card rounded-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur max-w-md w-full text-center space-y-4">
-          <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center animate-pulse">
-            <Lock className="w-6 h-6 text-slate-500 dark:text-slate-300" />
-          </div>
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-            {t('common.loading')}
-          </h2>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
+  if (!isLoadingAuth && !user) {
     return (
       <div className="p-4 md:p-8 max-w-4xl mx-auto flex items-center justify-center h-full animate-fade-in">
         <div className="glass-card rounded-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur max-w-md w-full text-center space-y-4">
@@ -160,14 +144,15 @@ export const Dashboard: React.FC = () => {
       actions={
         <button
           onClick={() => navigate('/deploy')}
-          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+          disabled={isLoadingAuth}
+          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-500 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           {t('dashboard.deployApp')}
         </button>
       }
       summary={
-        ready ? (
+        !isLoadingAuth && ready ? (
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs tabular-nums text-slate-500 dark:text-slate-400">
             <span>{t('dashboard.summaryApps', { count: pagination.total })}</span>
             <span>
@@ -181,17 +166,23 @@ export const Dashboard: React.FC = () => {
               })}
             </span>
           </p>
+        ) : !loadError ? (
+          <div aria-hidden="true" className="flex h-4 items-center gap-3 motion-safe:animate-pulse">
+            {[16, 20, 28].map((width) => <span key={width} style={{ width: `${width / 4}rem` }} className="h-3 rounded bg-slate-200/70 dark:bg-slate-700" />)}
+          </div>
         ) : null
       }
     >
       <section className="space-y-3" aria-label={t('dashboard.myProjects')}>
-        <DashboardFilters projects={projects} />
+        <fieldset disabled={isLoadingAuth || (!hasLoaded && !loadError)} className="min-w-0">
+          <DashboardFilters projects={projects} loading={isLoadingAuth || (!hasLoaded && !loadError)} />
+        </fieldset>
         {partial && (
           <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
             {t('dashboard.loadedScope', { loaded: projects.length, total: pagination.total })}
           </p>
         )}
-        {(searchQuery || statusFilter || showFavoritesOnly) && (
+        {hasLoaded && !isLoadingAuth && (searchQuery || statusFilter || showFavoritesOnly) && (
           <div className="flex items-center justify-between text-xs text-slate-500">
             <p>{t('dashboard.matchingApps', { count: filteredAndSortedProjects.length })}</p>
             <button
@@ -202,20 +193,8 @@ export const Dashboard: React.FC = () => {
             </button>
           </div>
         )}
-        {!hasLoaded && !loadError ? (
-          <div role="status" className="management-grid">
-            {[0, 1, 2].map((item) => (
-              <div
-                key={item}
-                className="motion-safe:animate-pulse overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
-              >
-                <div className="aspect-video bg-slate-100 dark:bg-slate-700" />
-                <div className="m-4 h-4 w-2/3 rounded bg-slate-100 dark:bg-slate-800" />
-                <div className="m-4 h-8 rounded bg-slate-50 dark:bg-slate-800/50" />
-              </div>
-            ))}
-            <span className="sr-only">{t('common.loading')}</span>
-          </div>
+        {isLoadingAuth || (!hasLoaded && !loadError) ? (
+          <DashboardSkeleton list={viewMode === 'list'} />
         ) : filteredAndSortedProjects.length > 0 ? (
           <div className={`management-grid ${viewMode === 'list' ? 'management-list' : ''}`}>
             {filteredAndSortedProjects.map((project, index) => (
@@ -249,9 +228,7 @@ export const Dashboard: React.FC = () => {
         )}
         <div ref={sentinelRef} className="h-px" />
         {isLoadingProjects && hasLoaded && (
-          <p role="status" className="py-4 text-center text-xs text-slate-500">
-            {t('common.loading')}
-          </p>
+          <DashboardSkeleton list={viewMode === 'list'} count={3} />
         )}
         {pagination.hasMore && !loadError && !isLoadingProjects && (
           <div className="text-center">

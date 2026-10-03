@@ -1,3 +1,4 @@
+import { LoadingStatus, Skeleton } from '@/components/skeleton';
 import { IconButton } from '@/components/icon-button';
 import { getProjectDescription } from '@/utils/project';
 import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
@@ -156,10 +157,14 @@ export const ExploreFeed: React.FC<ExploreFeedProps> = ({
                 ref={containerRef}
                 className="flex-1 overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
             >
-                {apps.length === 0 && <div className="h-full flex flex-col items-center justify-center px-6 text-center text-white gap-4">
-                  <p>{t(isLoading ? 'common.loading' : error ? 'languages.loadFailed' : 'languages.empty')}</p>
-                  {!isLoading && <button type="button" className="rounded-full bg-brand-600 px-4 py-2" onClick={error ? onRetry : () => useAppLanguageStore.getState().actions.select(null)}>{t(error ? 'languages.retry' : 'languages.browseAll')}</button>}
-                </div>}
+                {apps.length === 0 && (isLoading ? <LoadingStatus className="h-full px-6 pb-12 pt-24">
+                  <Skeleton className="h-[55vh] w-full rounded-2xl !bg-white/5" />
+                  <div className="mt-6 flex items-center gap-3"><Skeleton className="h-10 w-10 rounded-full !bg-white/10" /><Skeleton className="h-5 w-1/3 !bg-white/10" /></div>
+                  <Skeleton className="mt-4 h-3 w-2/3 !bg-white/10" />
+                </LoadingStatus> : <div className="h-full flex flex-col items-center justify-center px-6 text-center text-white gap-4">
+                  <p>{t(error ? 'languages.loadFailed' : 'languages.empty')}</p>
+                  <button type="button" className="rounded-full bg-brand-600 px-4 py-2" onClick={error ? onRetry : () => useAppLanguageStore.getState().actions.select(null)}>{t(error ? 'languages.retry' : 'languages.browseAll')}</button>
+                </div>)}
                 {apps.map((app, index) => {
                     const isVisible = Math.abs(index - activeIndex) <= 1;
                     const isActive = index === activeIndex;

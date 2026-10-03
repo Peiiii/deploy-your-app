@@ -1,3 +1,4 @@
+import { AppCardSkeletonGrid } from '@/components/app-card-skeleton-grid';
 import { IconButton } from '@/components/icon-button';
 import { CATEGORY_LABEL_KEYS } from '@/constants/app-categories';
 import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
@@ -224,26 +225,7 @@ export const ExploreApps: React.FC = () => {
 
         {apps.length === 0 && isLoading ? (
           <div className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, idx) => (
-                <div
-                  key={idx}
-                  className="flex flex-col rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden shadow-sm animate-pulse mb-6"
-                >
-                  <div className="aspect-video bg-slate-100 dark:bg-slate-800" />
-                  <div className="p-3 space-y-3">
-                    <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <div className="w-4 h-4 rounded-full bg-slate-100 dark:bg-slate-800" />
-                        <div className="w-12 h-2 bg-slate-100 dark:bg-slate-800 rounded" />
-                      </div>
-                      <div className="w-6 h-2 bg-slate-100 dark:bg-slate-800 rounded" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <AppCardSkeletonGrid />
           </div>
         ) : (
           <>
@@ -264,9 +246,7 @@ export const ExploreApps: React.FC = () => {
             {(hasMore || (isLoading && apps.length > 0)) && (
               <div className="flex justify-center mt-8">
                 {isLoading ? (
-                  <div className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-500 dark:text-slate-400">
-                    {t('common.loading')}
-                  </div>
+                  <div className="w-full"><AppCardSkeletonGrid count={3} /></div>
                 ) : (
                   <button
                     type="button"

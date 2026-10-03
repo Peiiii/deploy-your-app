@@ -79,12 +79,13 @@ class ProjectService {
   async getProjectsForOwner(
     db: D1Database,
     ownerId: string,
-    options?: { page?: number; pageSize?: number },
+    options?: { page?: number; pageSize?: number; ids?: string[] },
   ): Promise<{ items: Project[]; page: number; pageSize: number; total: number }> {
     const page = options?.page ?? 1;
     const pageSize = options?.pageSize ?? 100;
     const result = await projectRepository.queryProjectsWithCount(db, {
       ownerId,
+      ids: options?.ids,
       includeDeleted: false,
       page,
       pageSize,

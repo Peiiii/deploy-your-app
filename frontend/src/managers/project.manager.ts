@@ -2,7 +2,7 @@ import { track } from '@/analytics/collector';
 import { useProjectStore } from '../stores/project.store';
 import type { IProjectProvider } from '../services/interfaces';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
-import { SourceType, type DeploymentMetadata, type Project } from '../types';
+import { SourceType, type DeploymentMetadata, type Project, type PaginatedResponse } from '../types';
 
 export class ProjectManager {
   private provider: IProjectProvider;
@@ -52,6 +52,12 @@ export class ProjectManager {
   };
 
   getLatestDeployment = (id: string) => this.provider.getLatestDeployment(id);
+
+  seedSessionProjects = (ownerId: string, response: PaginatedResponse<Project>): boolean => {
+    if (useAuthStore.getState().user?.id !== ownerId || response.items.some(project => project.ownerId !== ownerId)) return false;
+    useProjectStore.getState().actions.setProjects(response);
+    return true;
+  };
 
   loadProjects = async (page = 1) => {
     const actions = useProjectStore.getState().actions;

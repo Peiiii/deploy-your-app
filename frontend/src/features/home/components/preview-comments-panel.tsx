@@ -1,3 +1,4 @@
+import { LoadingStatus, Skeleton } from '@/components/skeleton';
 import { IconButton } from '@/components/icon-button';
 import { useEffect, useState } from 'react';
 import { useStore } from 'zustand';
@@ -71,7 +72,12 @@ export const PreviewCommentsPanel = ({ projectId, panelId, open, isFullscreen, a
               <time dateTime={comment.createdAt} className="mt-1 block text-[10px] text-slate-400">{new Date(comment.createdAt).toLocaleString()}</time>
             </article>
           ))}
-          {state.loading && <p role="status" className="py-3 text-center text-sm text-slate-400">{t('common.loading')}</p>}
+          {state.loading && <LoadingStatus className="py-3">
+            <div className="space-y-5">{[0, 1, 2].map(index => <div key={index} className="space-y-2">
+              <div className="flex items-center gap-2"><Skeleton className="h-7 w-7 rounded-full" /><Skeleton className="h-3 w-24" /></div>
+              <Skeleton className="h-3 w-full" /><Skeleton className="h-3 w-2/3" />
+            </div>)}</div>
+          </LoadingStatus>}
           {!state.loading && state.items.length < state.total && <button type="button" disabled={state.submitting || !!state.deletingId} onClick={() => manager.load(true)} className="w-full py-2 text-sm text-brand-600">{t('explore.loadMore')}</button>}
         </div>
         <form data-submit-event="comment_submit" onSubmit={event => { event.preventDefault(); void manager.submit(); }} className="shrink-0 space-y-2 border-t border-slate-200 p-4 dark:border-slate-700">

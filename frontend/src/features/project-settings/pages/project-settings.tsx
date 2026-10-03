@@ -1,3 +1,4 @@
+import { ProjectSettingsSkeleton } from '@/features/project-settings/components/project-settings-skeleton';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -78,18 +79,7 @@ export const ProjectSettings: React.FC = () => {
     return <div role="alert" className="space-y-3 p-8 text-center text-sm text-slate-500"><p>{t('deployment.updateLoadError')}</p><button type="button" className="text-brand-600" onClick={() => { setLoadError(null); setRetry(value => value + 1); }}>{t('common.retry')}</button></div>;
   }
 
-  if (!project) {
-    return (
-      <div className="p-8 max-w-4xl mx-auto">
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-12 text-center">
-          <div className="inline-block w-8 h-8 border-2 border-slate-300 dark:border-slate-600 border-t-brand-500 rounded-full animate-spin mb-4"></div>
-          <p className="text-sm text-slate-600 dark:text-gray-400">
-            {t('common.loadingProjectDetails')}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  if (!project) return <ProjectSettingsSkeleton />;
 
   const canRedeployFromGitHub =
     !!project.repoUrl && project.repoUrl.startsWith(URLS.GITHUB_BASE);

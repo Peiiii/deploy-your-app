@@ -81,6 +81,7 @@ export interface IDeploymentProvider {
 }
 
 export interface IAnalyticsProvider {
+  getProjectsStats?(projectIds: string[], range: '7d' | '30d'): Promise<Record<string, ProjectStats>>;
   getProjectStats(
     projectId: string,
     range: '7d' | '30d',

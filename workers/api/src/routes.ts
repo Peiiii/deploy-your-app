@@ -470,6 +470,12 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   });
 
   router.add({
+    path: '/api/v1/projects/stats',
+    method: 'GET',
+    handler: (req) => analyticsController.getProjectsStats(req, requireDb()),
+  });
+
+  router.add({
     path: '/api/v1/projects/:id/stats',
     method: 'GET',
     handler: (req, params) =>

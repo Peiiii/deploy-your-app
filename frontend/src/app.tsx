@@ -1,6 +1,6 @@
 import { usePageSeo } from '@/seo/use-page-seo';
 import { trackPage } from '@/analytics/collector';
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePreviewScrollAnchor } from '@/hooks/use-preview-scroll-anchor';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
@@ -40,6 +40,8 @@ const useAppInitialize = () => {
   const authUserId = useAuthStore((s) => s.user?.id);
   const authLoading = useAuthStore((s) => s.isLoading);
   const presenter = usePresenter();
+  const [sessionRestored, setSessionRestored] = useState(false);
+  const seededOwner = useRef<string | null>(null);
 
   // Sync i18n language
   useEffect(() => {
@@ -48,19 +50,31 @@ const useAppInitialize = () => {
 
   // Load current user
   useEffect(() => {
-    presenter.auth.loadCurrentUser();
-  }, [presenter.auth]);
+    let active = true;
+    void presenter.auth.loadCurrentUser(window.location.pathname === '/dashboard').then((snapshot) => {
+      if (!active) return;
+      if (snapshot?.user && snapshot.projects && presenter.project.seedSessionProjects(snapshot.user.id, snapshot.projects)) {
+        seededOwner.current = snapshot.user.id;
+      }
+      setSessionRestored(true);
+    });
+    return () => { active = false; };
+  }, [presenter.auth, presenter.project]);
 
   // Load the signed-in user's projects only after session restoration. This
   // avoids both an unauthorized request and a global-project pagination race.
   useEffect(() => {
-    if (authLoading) return;
+    if (!sessionRestored || authLoading) return;
     if (!authUserId) {
       useProjectStore.getState().actions.reset();
       return;
     }
+    if (seededOwner.current === authUserId) {
+      seededOwner.current = null;
+      return;
+    }
     void presenter.project.loadProjects();
-  }, [authLoading, authUserId, presenter.project]);
+  }, [sessionRestored, authLoading, authUserId, presenter.project]);
 
   // Apply theme to document
   useEffect(() => {

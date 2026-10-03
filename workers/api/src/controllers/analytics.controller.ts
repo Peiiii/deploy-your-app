@@ -29,6 +29,21 @@ const secureEqual = async (left: string, right: string): Promise<boolean> => {
 };
 
 class AnalyticsController {
+  async getProjectsStats(request: Request, db: D1Database): Promise<Response> {
+    const sessionId = getSessionIdFromRequest(request);
+    const session = sessionId ? await authRepository.getSessionWithUser(db, sessionId) : null;
+    if (!session) throw new UnauthorizedError('Login required to view app analytics.');
+    const url = new URL(request.url);
+    const ids = [...new Set((url.searchParams.get('ids') ?? '').split(',').filter(Boolean))];
+    if (!ids.length || ids.length > 100 || ids.some(id => id.length > 100)) throw new ValidationError('Provide 1 to 100 project IDs.');
+    const projects = await projectService.getProjectsForOwner(db, session.user.id, { ids, pageSize: 100 });
+    if (projects.items.length !== ids.length) throw new NotFoundError('Project not found');
+    const stats = await analyticsService.getProjectStatsForProjects(db, projects.items, url.searchParams.get('range') === '30d' ? 30 : 7);
+    const response = jsonResponse({ stats });
+    response.headers.set('cache-control', 'private, no-store');
+    return response;
+  }
+
   // Internal endpoint – used by the R2 gateway Worker to record page views.
   // POST /api/v1/analytics/ping/:slug
   async pingPageView(

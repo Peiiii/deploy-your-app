@@ -20,6 +20,7 @@ import { authRepository } from '../repositories/auth.repository';
 import type { PublicUser } from '../types/user';
 import { configService } from '../services/config.service';
 import { desktopLoginTokenRepository } from '../repositories/desktop-login-token.repository';
+import { projectService } from '../services/project.service';
 
 class AuthController {
   private isAllowedDeviceRedirect = (target: string): boolean => {
@@ -52,7 +53,18 @@ class AuthController {
     const publicUser: PublicUser = toPublicUser(result.user, {
       isAdmin: configService.isAdminUser(result.user, env),
     });
-    return jsonResponse({ user: publicUser });
+    let projects;
+    if (new URL(request.url).searchParams.get('include') === 'projects') {
+      try {
+        projects = await projectService.getProjectsForOwner(db, result.user.id, { page: 1, pageSize: 100 });
+      } catch (error) {
+        // A project read failure must not turn a valid session into a sign-out.
+        console.error('Failed to load session projects', error);
+      }
+    }
+    const response = jsonResponse({ user: publicUser, ...(projects ? { projects } : {}) });
+    response.headers.set('cache-control', 'private, no-store');
+    return response;
   }
 
   // PATCH /api/v1/me/handle

@@ -612,6 +612,7 @@ class ProjectRepository {
   async queryProjectsWithCount(
     db: D1Database,
     options: {
+      ids?: string[];
       search?: string;
       includeDeleted?: boolean;
       ownerId?: string;
@@ -631,6 +632,11 @@ class ProjectRepository {
     if (options.ownerId) {
       where.push('owner_id = ?');
       params.push(options.ownerId);
+    }
+
+    if (options.ids) {
+      where.push('id IN (SELECT value FROM json_each(?))');
+      params.push(JSON.stringify(options.ids));
     }
 
     if (options.search) {

@@ -1,3 +1,4 @@
+import { AppCardSkeletonGrid } from '@/components/app-card-skeleton-grid';
 import { IconButton } from '@/components/icon-button';
 import { CATEGORY_LABEL_KEYS } from '@/constants/app-categories';
 import { useAppLanguageStore } from '@/features/explore/stores/app-language.store';
@@ -121,35 +122,6 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   );
 };
 
-interface ExploreSkeletonGridProps {
-  compact: boolean;
-}
-
-const ExploreSkeletonGrid: React.FC<ExploreSkeletonGridProps> = ({ compact }) => {
-  return (
-    <div className={`grid ${compact ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-6`}>
-      {Array.from({ length: 6 }).map((_, idx) => (
-        <div
-          key={idx}
-          className="flex flex-col rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 overflow-hidden shadow-sm animate-pulse"
-        >
-          <div className="aspect-video bg-slate-100 dark:bg-slate-800" />
-          <div className="p-3 space-y-3">
-            <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <div className="w-4 h-4 rounded-full bg-slate-100 dark:bg-slate-800" />
-                <div className="w-12 h-2 bg-slate-100 dark:bg-slate-800 rounded" />
-              </div>
-              <div className="w-6 h-2 bg-slate-100 dark:bg-slate-800 rounded" />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
 interface HomeExploreSectionProps {
   compact: boolean;
   onCardClick: (app: ExploreAppCard) => void;
@@ -226,7 +198,7 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
       </div>
 
       {isLoadingExplore ? (
-        <ExploreSkeletonGrid compact={compact} />
+        <AppCardSkeletonGrid compact={compact} />
       ) : apps.length > 0 ? (
         <div>
           <div className={`grid ${compact ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-6`}>
@@ -247,9 +219,7 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
           {(hasMore || isLoadingMore) && (
             <div className="flex justify-center mt-8">
               {isLoadingMore ? (
-                <div className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-500 dark:text-slate-400">
-                  {t('common.loading')}
-                </div>
+                <div className="w-full"><AppCardSkeletonGrid compact={compact} count={compact ? 2 : 3} /></div>
               ) : (
                 <button
                   type="button"

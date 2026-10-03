@@ -1,3 +1,4 @@
+import { LoadingStatus, Skeleton } from '@/components/skeleton';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { usePresenter } from '@/contexts/presenter-context';
@@ -195,7 +196,7 @@ export function SdkAuthBrokerPage() {
             )}
 
             {authLoading && (
-              <div className="text-sm text-white/60">加载中…</div>
+              <LoadingStatus><div className="flex gap-2"><Skeleton className="h-10 flex-1 rounded-xl !bg-white/10" /><Skeleton className="h-10 flex-1 rounded-xl !bg-white/10" /></div></LoadingStatus>
             )}
 
             {!!user && !authLoading && (

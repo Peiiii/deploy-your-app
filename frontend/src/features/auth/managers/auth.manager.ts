@@ -1,7 +1,7 @@
 import { track, oauthAnalytics } from '@/analytics/collector';
 import { APP_CONFIG } from '@/constants';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
-import type { User } from '@/types';
+import type { User, Project, PaginatedResponse } from '@/types';
 import i18n from '@/i18n/config';
 
 const API_BASE = APP_CONFIG.API_BASE_URL.replace(/\/+$/, '');
@@ -41,23 +41,24 @@ export class AuthManager {
   // Session / identity
   // -------------------
 
-  loadCurrentUser = async (): Promise<void> => {
+  loadCurrentUser = async (includeProjects = false): Promise<{ user: User | null; projects?: PaginatedResponse<Project> } | null> => {
     useAuthStore.setState({ isLoading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE}/me`, {
+      const res = await fetch(`${API_BASE}/me${includeProjects ? '?include=projects' : ''}`, {
         credentials: 'include',
       });
       if (!res.ok) {
         // Treat non-OK as "not logged in" for now.
         useAuthStore.setState({ user: null, isLoading: false });
-        return;
+        return null;
       }
-      const data = (await res.json()) as { user: User | null };
+      const data = (await res.json()) as { user: User | null; projects?: PaginatedResponse<Project> };
       useAuthStore.setState({
         user: data.user ?? null,
         isLoading: false,
         error: null,
       });
+      return data;
     } catch (err) {
       console.error('Failed to load current user', err);
       useAuthStore.setState({
@@ -65,6 +66,7 @@ export class AuthManager {
         isLoading: false,
         error: 'failed_to_load_user',
       });
+      return null;
     }
   };
 
