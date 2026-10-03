@@ -139,3 +139,10 @@ scope-revision=5，contract-id=preview-loading。PL1/PL2/PL3/PL4/PL5/PL7受会�
 修订5开发验收：scripts/test-preview-loading.mjs完整回归passed；切换前/挂起B文档期间同一预览区域PNG逐字节相等（不是DOM标志推断），/tmp/preview-switch-retains-content.png已核对旧正文与计数1仍显示；释放B后按钮可点。初始重试之后再切换也保留iframe，A→B→A取消旧导航后只显示当前目标；非关键图片未结束前三次打开均可操作，原慢提示/主动重试/焦点交接/布局保留/中英/主题/减少动态效果/手机/preconnect回归通过。设备emulation与主题配置移至独立导航之前，避免浏览器工具等待挂起导航；iframe外层既有布局过渡期间测试点击等待元素稳定（只影响自动化坐标，没有产品延时）。frontend tsc、两组件定向ESLint、build和diff-check passed，产物index-DcgZIxNw.js/index-CvP_PGYz.css。
 
 implementation Review：no findings，项目无diff-only maintainability自动入口，按4文件及相邻预览owner/key/timer/focus审查。浏览器文档生命周期保持单一owner，url仅更新feedback会话，attempt只由显式retry增加；正常切换不能再误重置attempt并销毁浏览窗口。state渲染期只在url不同有限调整当前组件状态，无effect延迟加载或循环；旧timer通过url/attempt/status条件隔离。PL1–PL4/PL6–PL8 current passed，PL5等新主线与线上验收，retrospective_state=pending。
+
+
+修订5上线与收尾：源码e2632b4经正常merge集成同时发生的产品方向/SEO文档任务后，30d3162普通推送到origin/master；一次非快进拒绝后重新fetch/merge再推送，没有强推。主工作区master安全快进到主线，rev-list=0 0，analytics脚本及未跟踪文件原样保留、暂存区为空。pnpm deploy:pages发布成功，gh-pages=c5561547a432165989c23321ed1b5eb890af6688（前一版ccea91d为回退依据）。只发布frontend，无后台/Secrets变化。
+
+默认https://gemigo.io实际Chrome消费index-DcgZIxNw.js/index-CvP_PGYz.css，线上与本地JS SHA256均2699e22184224d4f4d8a39bbbdc85c423c90ff50b8ea4cfd3ebd7462e55987ab。真实API/应用、无HTTPmock或状态注入：首页element→点击氢详情→点击Geeglo；使用1500ms网络延迟只为观测请求阶段，真实旧页面头部截图PNG与切换前逐字节相等、iframe同一节点，新Geeglo内容接上后非空且不同，回element仍同一窗口；评论/全屏身份保留，390px手机在真实新标签打开element.gemigo.app。最初加载观察用400ms网络延迟，新frame opacity1/transition0s且无inert/aria-hidden。证据/tmp/preview-continuity-production-evidence.json与production-switch.png已核对；截图明确Geeglo请求期间仍显示氢详情而没有加载页。生产实验延迟是网络条件，不是产品增加的时间；没有网络耗时收益百分比或所有应用内部零白屏的承诺。
+
+PL1–PL8 current passed，最终diff-only implementation Review no findings。retrospective_decision=原owner事实更新：取消load展示门槛仍不足以保持视觉连续，普通src导航应保留浏览窗口身份，用户主动重试与URL切换是不同生命周期；本组件、原设计与真实像素回归已同步。无需新增通用规则/预览池/就绪协议，retrospective_state=completed。已交付默认站点、AI线上验收通过，主观顺滑度待用户反馈，不声明用户验收通过。此收尾记录精确提交后再次fetch、主工作区同步及实际远端SHA核对。
