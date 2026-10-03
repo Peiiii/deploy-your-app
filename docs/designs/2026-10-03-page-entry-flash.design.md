@@ -29,3 +29,5 @@ scripts/test-page-bootstrap.mjs 使用本次production build及真实Chrome逐�
 前端tsc、app与新增脚本定向ESLint零告警、build、git diff --check均通过；原真实Pages HTMLRewriter回归验证双语原始正文、metadata、canonical/hreflang、private noindex、404/HEAD、资源类型、API流式代理全部通过。构建仅既有Browserslist/bundle提示。
 
 diff-only人工可维护性/implementation Review: no findings。项目无独立自动入口；核对启动标记发生在首paint之前、App layout effect只首commit运行、加载失败事件覆盖Vite生产输出（不依赖被Vite去掉的script id）、noJS默认正文、SEO owner未复制、持久化键只读、占位不干扰业务/认证。implementation-review=passed。
+
+生产首次验收发现CSS未下载时侧栏占位受content-box影响为65px，完整CSS加载后才64px。启动关键CSS补上border-box，保证布局不依赖外部样式；重验首屏及原Pages合同后再发布，原首屏无文字闪跳证据仍有效。无产品行为/状态扩大。
