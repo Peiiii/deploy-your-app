@@ -30,3 +30,13 @@
 - frontend 类型检查、header 定向 ESLint、diff check、生产构建通过；人工 diff Review no findings。独立本地地址实际渲染：展开/折叠均 24×24px、borderRadius=9999px，切换正常、键盘 Tooltip 正确，截图确认圆形；L1 bugfix，skip-design 依据同上。
 - 追加修复提交 `3dc9beb`，集成主线 `436015c` 普通推送并安全快进主工作区；标准 deploy:pages Published，Pages `1b603f790e3953bd0cf253b6dbe4619fdf96c563`（上一版 b9f8503 可恢复）。线上实际消费 `index-DITlwTsN.js` / `index-BoxlsD_b.css`，两种状态均 24×24px、borderRadius=9999px，六项登录导航仍 flex-start/16px；最终截图 `/tmp/gemigo-sidebar-fixed.png`。
 - 追加变更 diff Review no findings；retrospective_state=completed，retrospective_decision=no-increment：同一次默认样式覆盖的另一表现已在原调用方修正，没有新的流程或公共 API 需求。
+
+## 追加：动画中的图标换行
+
+- 用户发现收起过程中图标换行、挤压，要求统一修复。前两次静态验证没有覆盖动画帧，本节补充相同触发过程的证据，flow=bugfix，L1，retrospective_state=pending。
+- 原导航按钮是块级 flex，f0cd5da 替换成 IconButton 后 computed display=inline-flex。父容器仅用 space-y-1，不负责纵向流；收起时按钮立即变为40px，外侧宽度仍在300ms动画中，导致多枚按钮先同排、随后自动换行。
+- 线上六项导航采样73帧，8帧有重复 y（多列），布局经过三列→两列→一列；例如第一帧 x=8/48/88，y=100/144。展开前后 Logo 宽高保持相等，标题20px、账户副标题16px，没有独立换行证据，保留原样。
+- 单路径修复：导航容器明确 flex-column + gap，统一承担所有导航项的纵向排列，不依赖单个按钮的 display，不修改共享按钮或展开/折叠状态。skip-design：单 owner、局部可逆、无交互或状态合同变更。
+- 验收：展开/收起整段动画每帧必须一项一行、图标宽高20px、无挤压；多次切换仍正确，展开左对齐、折叠居中、圆形切换按钮与 Tooltip 保留。目标是恢复已有行为，不新增动画设计。
+- 本地四次实际切换（收起/展开/收起/展开），采样55/56/56/57共224帧；换行、重叠、图标尺寸异常均0。展开图标左边距16px，原UI正常加载。frontend类型检查、定向ESLint、生产构建、diff check通过。
+- 实现Review：仅把导航父容器由普通文档流改为flex-column，gap=4px与原间距一致，按钮和状态代码不变；no findings。没有独立maintainability检查入口，沿项目既有diff人工检查。

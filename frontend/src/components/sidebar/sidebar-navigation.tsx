@@ -35,7 +35,7 @@ export const SidebarNavigation: React.FC<{ collapsed: boolean }> = ({ collapsed 
   ];
 
   return (
-    <div className="space-y-1 flex-shrink-0">
+    <div className="flex flex-col gap-1 flex-shrink-0">
       {navItems.map((item) => {
         const isActive = item.path === '/'
           ? location.pathname === '/'
