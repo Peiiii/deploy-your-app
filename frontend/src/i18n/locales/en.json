@@ -414,7 +414,7 @@
     "signInToViewProjects": "Sign in to manage your apps",
     "dashboardPrivate": "Sign in to view your apps, deployment status and traffic.",
     "myProjects": "My apps",
-    "manageLiveApps": "Manage your apps, check release status and track visits.",
+    "manageLiveApps": "Browse, preview and manage your apps.",
     "activeProjects": "Running apps",
     "runningOnEdge": "Apps that are live",
     "totalViews": "Visits in 7 days",
@@ -478,7 +478,20 @@
       "Building": "Publishing",
       "Failed": "Failed",
       "Offline": "Offline"
-    }
+    },
+    "viewMode": "App display",
+    "gridView": "Grid view",
+    "listView": "List view",
+    "previewApp": "Preview app",
+    "statsUnavailable": "Visit data unavailable",
+    "summaryApps": "{{count}} apps",
+    "summaryApps_one": "{{count}} app",
+    "summaryApps_other": "{{count}} apps",
+    "summaryRunning": "{{count}} running",
+    "summaryVisits": "{{value}} observed views (7d)",
+    "matchingApps": "{{count}} matching apps",
+    "matchingApps_one": "{{count}} matching app",
+    "matchingApps_other": "{{count}} matching apps"
   },
   "explore": {
     "exploreApps": "Explore Apps",

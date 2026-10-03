@@ -1,5 +1,5 @@
 import { addAppAnalytics, APP_ANALYTICS_SCRIPT, APP_ANALYTICS_BEACON, APP_ANALYTICS_RUNTIME } from './app-analytics';
-import { FONT_PREFIX, FONT_CSS_MARKER, serveGoogleFont, rewriteFontHtml, rewriteFontCss, readSmallDocument } from './google-fonts';
+import { FONT_ROUTE_PREFIX, FONT_RUNTIME_PATH, FONT_RUNTIME, FONT_CSS_MARKER, serveGoogleFont, rewriteFontHtml, rewriteFontCss, readSmallDocument } from './google-fonts';
 import runtimeAssets from './runtime-assets.json';
 import { addSmartFavicon, faviconFallback, SMART_FAVICON_FALLBACK_PATH, SMART_FAVICON_PATH, SMART_FAVICON_RUNTIME } from './smart-favicon';
 
@@ -412,7 +412,14 @@ export default {
       }
     }
 
-    if (subdomain === CENTRAL_THUMBNAIL_HOST && url.pathname.startsWith(FONT_PREFIX)) {
+    if (subdomain === CENTRAL_THUMBNAIL_HOST && url.pathname === FONT_RUNTIME_PATH) {
+      if (request.method !== 'GET' && request.method !== 'HEAD') return new Response('Method not allowed', { status: 405 });
+      return new Response(request.method === 'HEAD' ? null : FONT_RUNTIME, { headers: {
+        'content-type': 'application/javascript; charset=utf-8', 'cache-control': 'public, max-age=31536000, immutable',
+        'access-control-allow-origin': '*', 'x-content-type-options': 'nosniff',
+      } });
+    }
+    if (subdomain === CENTRAL_THUMBNAIL_HOST && url.pathname.startsWith(FONT_ROUTE_PREFIX)) {
       return serveGoogleFont(request, ctx);
     }
 
@@ -523,7 +530,7 @@ export default {
     headers.set('server-timing', `gemigo;dur=${(performance.now() - started).toFixed(1)}`);
     if (headers.get('content-type')?.includes('text/html')) {
       const etag = headers.get('etag');
-      if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, `-hosting-${runtimeAssets.tailwind.sha256.slice(0, 8)}-favicon-v2-fonts-v2${analyticsEnabled ? "-analytics-v2" : ""}"`)}`);
+      if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, `-hosting-${runtimeAssets.tailwind.sha256.slice(0, 8)}-favicon-v2-fonts-v3${analyticsEnabled ? "-analytics-v2" : ""}"`)}`);
       headers.delete('content-length');
       // Origin objects stay byte-for-byte intact; this is a delivery-only URL substitution.
       const fonts = await rewriteFontHtml(new Response(result.response.body, { headers }), url.href, `https://${CENTRAL_THUMBNAIL_HOST}.${rootDomain}`);
@@ -535,9 +542,9 @@ export default {
       const document = await readSmallDocument(result.response);
       if (document.text !== undefined) {
         const etag = headers.get('etag');
-        if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, '-fonts-v2"')}`);
+        if (etag) headers.set('etag', `W/${etag.replace(/^W\//, '').replace(/"$/, '-fonts-v3"')}`);
         headers.delete('content-length');
-        const css = rewriteFontCss(document.text, `https://${CENTRAL_THUMBNAIL_HOST}.${rootDomain}`, url.href);
+        const css = rewriteFontCss(document.text, `https://${CENTRAL_THUMBNAIL_HOST}.${rootDomain}`, url.href, true);
         return respondWithValidation(request, new Response(css), headers, ctx);
       }
       return respondWithValidation(request, document.response, headers, ctx);

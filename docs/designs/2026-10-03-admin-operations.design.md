@@ -1,6 +1,6 @@
 # 后台经营与处理链路优化
 
-状态：Implemented / production verified（Worker 6bcb6b20，scope7首页/侧栏已线上验证，交付详见原日志）；design-document: required；plan: not-required（同一后台 Worker/UI、单批交付）。上位设计：[独立后台](2026-10-02-admin-console.design.md)。当前合同 scope-revision 7 / ADM-12、ADM-13。原始输入：用户要求整体设计并优化；前序明确增长与运营价值、CLI含Skill、库存整合且不要无限拓展。当前产品方向以 2026-10-03 direction thought 为准，教育/学习与游戏是探索重点，保留所有应用类别。
+状态：Implemented / production verified（Worker ceea3dd5，scope8增长判断已线上验证，scope7侧栏保持；交付详见原日志）；design-document: required；plan: not-required（同一后台 Worker/UI、单批交付）。上位设计：[独立后台](2026-10-02-admin-console.design.md)。当前合同 scope-revision 8 / ADM-12、ADM-13、ADM-14。原始输入：用户要求整体设计并优化；前序明确增长与运营价值、CLI含Skill、库存整合且不要无限拓展。当前产品方向以 2026-10-03 direction thought 为准，教育/学习与游戏是探索重点，保留所有应用类别。
 
 ## 选择与用户价值
 
@@ -47,9 +47,9 @@ mode=design；2026-10-03：从原始用户要求和既有入口独立走查上�
 追加输入：“另外，你这个侧边栏有点难看，要不优化一下吧。”采用轻量浅色导航：复用主站现有紫色品牌标记；统一18px线条SVG图标、44px左右的菜单高度、清晰字体对比与选中背景；日常/系统分组留白稳定，诊断折叠使用明确箭头和子项层级，底部主站入口整齐。相比只调整颜色，消除符号图标混杂；相比更改导航模式，不改原13个入口、hash/选中状态、折叠或手机横向滚动行为，不增加收起模式/菜单状态。纯展示改动L1，仍为trivial；文件角色为admin/src/sidebar-icon.tsx的现有菜单SVG展示，唯一消费者App，不加依赖。原生details与button键盘行为保持，SVG aria-hidden、菜单aria-current，字体/图标/hover/focus真实渲染验收。Design轻量自审覆盖现有入口/移动滚动/无新owner，无findings，按现有授权直接实现，不新增确认门。
 
 
-## 2026-10-03 经营判断优化（scope8，Design Ready）
+## 2026-10-03 经营判断优化（scope8，Implemented / production verified）
 
-原始输入：用户询问首页关注信息与排序，AI建议成功发布人数、新用户激活、应用真人访问、复用、CLI贡献、异常反馈；用户回复“可以，那你来优化一下吧”。本批采用已建议的最小完整改进，不新增运营模块。flow=standard，风险L3（Worker报表投影与UI），发布L4；plan:not-required，retrospective_state:pending。
+原始输入：用户询问首页关注信息与排序，AI建议成功发布人数、新用户激活、应用真人访问、复用、CLI贡献、异常反馈；用户回复“可以，那你来优化一下吧”。本批采用已建议的最小完整改进，不新增运营模块。flow=standard，风险L3（Worker报表投影与UI），发布L4；plan:not-required，retrospective_state:completed（证据见原日志）。
 
 黄金链路：管理员沿原登录进入经营总览→默认7天→四卡看到成功发布人数/新注册/成功发布激活率/应用真人PV及上一等长周期比较→查看每日发布人数与应用访问曲线→查看同批注册→有效应用→成功发布，以及首次/再次和CLI贡献→切30天核对日期与数字→增长大盘查完整日表/CSV→回首页查看现有异常应用和反馈并进入原处理。今日是进行中，独立显示且不进入完整周期比较。桌面和手机均先数字、图表，再分析与待办。
 

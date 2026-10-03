@@ -91,12 +91,15 @@ assert.equal(
   'Filtering and sorting must not mutate the source list'
 );
 const { actions } = useDashboardStore.getState();
+assert.equal(useDashboardStore.getState().viewMode, 'grid');
+actions.setViewMode('list');
 actions.setStatusFilter('Failed');
 actions.setSearchQuery('beta');
 actions.setShowFavoritesOnly(true);
 actions.setSort('name', 'asc');
 actions.reset();
 const state = useDashboardStore.getState();
+assert.equal(state.viewMode, 'list', 'Clearing filters must preserve the chosen display');
 assert.equal(state.statusFilter, null);
 assert.equal(state.searchQuery, '');
 assert.equal(state.showFavoritesOnly, false);
