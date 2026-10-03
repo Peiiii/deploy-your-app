@@ -149,7 +149,7 @@ mode=design：已按四条候选、用户补充的最近应用侧栏、移动端
 
 ## 2026-10-03 实施授权与首期冻结
 
-用户明确要求“那你优化呀……不是全托管模式吗”，本轮落实其最新提出的创建页最近应用快捷更新方案，按已有全托管授权上线。flow=standard；UI 行为 L2、生产交付 L4；plan=not-required，单批完成；retrospective_state=pending。
+用户明确要求“那你优化呀……不是全托管模式吗”，本轮落实其最新提出的创建页最近应用快捷更新方案，按已有全托管授权上线。flow=standard；UI 行为 L2、生产交付 L4；plan=not-required，单批完成；retrospective_state=completed。
 
 实现范围：创建页桌面右栏/手机编辑器前最近本人应用；复用 scope=mine 分页接口、独立最近列表状态不覆盖 dashboard；点击导航到既有 deployments tab；明确更新目标/网址/动作；保留当前会话创建草稿，更新页显式导入 HTML/ZIP/GitHub 内容，返回恢复；身份变化清空草稿，忙碌时禁止切换；修复分页外项目与未登录/读取失败状态。创建输入和旧项目地址/名称严格分开；更新页共享表单与既有部署 executor，不创建项目。不在本批执行历史分组、指纹策略或 CLI 新版发布；这些是路线建议，不冒充首期完成结果。
 
@@ -159,12 +159,22 @@ contract-id=recent-app-update-entry-2026-10-03；parent-goal=用户从创建页�
 
 | ID | Required | 验收 | 状态 |
 | --- | --- | --- | --- |
-| RU-1 | true | 桌面右侧最近六项/手机上传前紧凑可展开入口，缩略图/名/网址/时间，查看全部；无应用/未登录不展示空管理面板；中英文和主题，无横向溢出 | not-run |
-| RU-2 | true | 仅本人有界查询，加载失败局部重试；不改全量分页；换账号/过期返回无串号 | not-run |
-| RU-3 | true | 点击进入目标更新页，显示保留网址，更新操作复用原 projectId；分页外/直接链接加载及读取失败明确；HTML/ZIP/GitHub 原更新能力保留 | not-run |
-| RU-4 | true | 已输入创建内容可主动导入更新，原名/网址不改；返回创建恢复，明确再发布重置；File 当前会话保留，忙时禁切换，身份变化清空 | not-run |
-| RU-5 | true | 定向类型/lint/行为证据与实现 Review，前端部署及线上创建→更新→同网址内容改变/项目数量不增；精确提交推送、本地master与实际远端一致 | not-run |
+| RU-1 | true | 桌面右侧最近六项/手机上传前紧凑可展开入口，缩略图/名/网址/时间，查看全部；无应用/未登录不展示空管理面板；中英文和主题，无横向溢出 | passed：桌面生产六项；390×844 手机可展开、英文深色/中文浅色，无横向溢出；未登录隐藏入口 |
+| RU-2 | true | 仅本人有界查询，加载失败局部重试；不改全量分页；换账号/过期返回无串号 | passed：真实 ProjectManager 行为回归，pageSize=6、局部错误、分页保留、旧响应/跨账号隔离 |
+| RU-3 | true | 点击进入目标更新页，显示保留网址，更新操作复用原 projectId；分页外/直接链接加载及读取失败明确；HTML/ZIP/GitHub 原更新能力保留 | passed：生产旧目标更新成功/直接链接刷新，缺失目标错误可重试；三来源 UI 带入验证 |
+| RU-4 | true | 已输入创建内容可主动导入更新，原名/网址不改；返回创建恢复，明确再发布重置；File 当前会话保留，忙时禁切换，身份变化清空 | passed：HTML/ZIP/GitHub 显式导入和返回恢复，身份不覆盖；忙碌/换账号回归 |
+| RU-5 | true | 定向类型/lint/行为证据与实现 Review，前端部署及线上创建→更新→同网址内容改变/项目数量不增；精确提交推送、本地master与实际远端一致 | passed：定向检查/构建/Review；生产原网址 RU-v2、项目数 1、身份不变；提交推送及 master 同步核对 |
 
 方案 Review(mode=design)：独立按最新原话核对首期链路，已关闭侧栏请求覆盖 dashboard、分页外目标无限等待、来源跨项目残留、NewDeployment 重挂清空草稿和已有 ZIP File 导入丢失等风险；通过，适用上述首期范围，不扩展到内容特征/展示组未固化设计。复用源表单、ProjectManager、DeploymentManager；新增 recent-applications.tsx 仅负责呈现与导航连接，既有目录无 planned-path/maintainability 专用检查入口，按职责与 diff review 核对。
 
 实现 Review(mode=implementation)：已完成 diff-only 职责、状态归属、复用边界和失败路径审查，无未关闭 findings。定向 frontend TypeScript、ESLint（零 warning）、`git diff --check`、`test-homepage-publishing.mjs` 和生产构建通过；原地址 AI 建议并发/取消测试保持通过。浏览器本地完整产品＋生产 API 验证旧目标明确、内容显式导入及创建草稿恢复。生产部署/线上黄金链路证据待补充，不以本地通过代替 RU-5。
+
+首期交付证据：实现提交 `66cac24`，沿仓库既有 `gh-pages` 发布路径；Cloudflare Pages production deployment `2aa450e6-1fc4-4ec9-a332-bf9118851df8`，生产分支 `gh-pages` commit `f215ff8`。`https://gemigo.io/deploy` 的资源 `/assets/index-COw9HRLw.js` 与本次 dist 一致。
+
+线上黄金链路：在生产同版本 `gemigo.pages.dev` 使用独立私有 QA 账号（避免改变 gemigo.io 用户会话），创建页填写 RU-v2 HTML/临时新名字 → 最近项 → 原项目部署 tab → 显式使用内容 → 发布更新 → UI 部署成功；直接打开原 gemigo.app 网址显示 `RU-v2 same application`。API 核对同 projectId、名称、slug、URL，应用总数始终 1，deployment-result 为 succeeded/complete，时间 2026-10-03T04:37:03.107Z。检查后测试项目已按现有软删除路径清理，QA 活跃项目数 0；记录不含凭证。三来源 UI 导入均实际操作，ZIP/GitHub 的发布执行器沿用原路径，本批线上实际部署证据为 HTML，不宣称重新跑过两者完整构建。
+
+截图和机器断言：[生产创建页](../logs/2026-10-03-recent-app-update/production-create.jpg)、[更新成功](../logs/2026-10-03-recent-app-update/production-update-success.jpg)、[原网址更新](../logs/2026-10-03-recent-app-update/original-url-updated.jpg)、[身份与数量核对](../logs/2026-10-03-recent-app-update/production-verification.json)。
+
+AI acceptance=ready（首期 RU-1..RU-5）；用户入口 `https://gemigo.io/deploy`，登录后从右侧选择旧应用、进入更新页发布更新；手机先展开编辑器前的入口。当前会话可带入创建输入并返回恢复，刷新不承诺 File 恢复。历史“诡市”展示分组、指纹预检与 CLI 身份绑定仍属于后续治理路线，未修改这些历史应用。
+
+复盘：retrospective_decision=no-increment。用户纠正后直接落实当前授权实施范围；复用方法已能覆盖调查、设计、实现与线上交付，偶发停留在设计不新增共享流程规则。最近查询刷新缓存实体的实际问题已修正并进入现有行为回归，不复制知识 owner。parent_status=ready-for-completion-check。
