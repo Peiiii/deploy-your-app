@@ -1,0 +1,686 @@
+{
+  "date": "2026-10-03",
+  "environment": "Production gemigo.io, same host, ordinary network, Chinese app-language filter; small consecutive sample, not a cross-region SLA.",
+  "measurement": "Click capture timestamp to requestAnimationFrame after card titles appear; excludes completion of all thumbnails. Negative request delay indicates focus prefetch began before click.",
+  "frontendAsset": "/assets/index-DJ1c8X0x.js",
+  "sourceCommit": "bec3fcf",
+  "cacheLifetimeMs": 15000,
+  "samples": {
+    "homeBefore": [
+      {
+        "category": "游戏",
+        "start": 33409.800000190735,
+        "visibleMs": 500.19999980926514,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Games&sort=popularity&page=1&pageSize=36",
+            "requestDelayMs": 3,
+            "durationMs": 482.5,
+            "ttfbMs": 480,
+            "downloadMs": 1.9000000953674316,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 246,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "实用工具",
+        "start": 47701.5,
+        "visibleMs": 496.90000009536743,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Productivity&sort=popularity&page=1&pageSize=36",
+            "requestDelayMs": 3.1000003814697266,
+            "durationMs": 482.2999997138977,
+            "ttfbMs": 478.90000009536743,
+            "downloadMs": 1.799999713897705,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 243,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "学习与教育",
+        "start": 83384.60000038147,
+        "visibleMs": 483,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Education&sort=popularity&page=1&pageSize=36",
+            "requestDelayMs": 4.399999618530273,
+            "durationMs": 470,
+            "ttfbMs": 464.90000009536743,
+            "downloadMs": 0.7999997138977051,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 232,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "创意与展示",
+        "start": 84681.10000038147,
+        "visibleMs": 564.5999999046326,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Creative&sort=popularity&page=1&pageSize=36",
+            "requestDelayMs": 1.3999996185302734,
+            "durationMs": 530.5,
+            "ttfbMs": 501.69999980926514,
+            "downloadMs": 28,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 258,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "开发",
+        "start": 85912,
+        "visibleMs": 531.9000000953674,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Development&sort=popularity&page=1&pageSize=36",
+            "requestDelayMs": 2.200000286102295,
+            "durationMs": 517.1999998092651,
+            "ttfbMs": 514.9000000953674,
+            "downloadMs": 0.5,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 246,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "其他",
+        "start": 87022.5,
+        "visibleMs": 528.6000003814697,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Other&sort=popularity&page=1&pageSize=36",
+            "requestDelayMs": 2.3000001907348633,
+            "durationMs": 515.1999998092651,
+            "ttfbMs": 509.6000003814697,
+            "downloadMs": 3.3999996185302734,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 217,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "游戏",
+        "start": 88056,
+        "visibleMs": 499,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Games&sort=popularity&page=1&pageSize=36",
+            "requestDelayMs": 0.9000000953674316,
+            "durationMs": 488.30000019073486,
+            "ttfbMs": 485.3999996185303,
+            "downloadMs": 1.700000286102295,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 258,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "实用工具",
+        "start": 89056.90000009537,
+        "visibleMs": 521.8000001907349,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Productivity&sort=popularity&page=1&pageSize=36",
+            "requestDelayMs": 2,
+            "durationMs": 507.90000009536743,
+            "ttfbMs": 506.09999990463257,
+            "downloadMs": 0.8000001907348633,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 259,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "exploreBefore": [
+      {
+        "category": "游戏",
+        "start": 1825.0999999046326,
+        "visibleMs": 925.6000003814697,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Games&sort=recent&page=1&pageSize=12",
+            "requestDelayMs": 302.80000019073486,
+            "durationMs": 609.6999998092651,
+            "ttfbMs": 608.8000001907349,
+            "downloadMs": 0.39999961853027344,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 248,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "实用工具",
+        "start": 3079.0999999046326,
+        "visibleMs": 903.1000003814697,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Productivity&sort=recent&page=1&pageSize=12",
+            "requestDelayMs": 302.7000002861023,
+            "durationMs": 592,
+            "ttfbMs": 588.2999997138977,
+            "downloadMs": 2.200000286102295,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 239,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "学习与教育",
+        "start": 4162.800000190735,
+        "visibleMs": 951.5999999046326,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Education&sort=recent&page=1&pageSize=12",
+            "requestDelayMs": 302,
+            "durationMs": 644.5999999046326,
+            "ttfbMs": 638.9000000953674,
+            "downloadMs": 0.5,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 236,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "创意与展示",
+        "start": 5288.599999904633,
+        "visibleMs": 897.6000003814697,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Creative&sort=recent&page=1&pageSize=12",
+            "requestDelayMs": 301.6000003814697,
+            "durationMs": 589.1999998092651,
+            "ttfbMs": 588.1999998092651,
+            "downloadMs": 0.3000001907348633,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 242,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "开发",
+        "start": 6349,
+        "visibleMs": 922.2000002861023,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Development&sort=recent&page=1&pageSize=12",
+            "requestDelayMs": 303,
+            "durationMs": 610.2000002861023,
+            "ttfbMs": 608.5,
+            "downloadMs": 0.7000002861022949,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 241,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "其他",
+        "start": 7469.599999904633,
+        "visibleMs": 892,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Other&sort=recent&page=1&pageSize=12",
+            "requestDelayMs": 302,
+            "durationMs": 584,
+            "ttfbMs": 578.9000000953674,
+            "downloadMs": 0.5999999046325684,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 229,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "homeAfter": [
+      {
+        "category": "游戏",
+        "start": 1949.5,
+        "visibleMs": 737.5999999046326,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Games&sort=popularity&page=1&pageSize=36",
+            "requestDelayMs": -19.200000286102295,
+            "durationMs": 503.30000019073486,
+            "ttfbMs": 498.30000019073486,
+            "downloadMs": 3.5999999046325684,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 251,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "实用工具",
+        "start": 3603.5999999046326,
+        "visibleMs": 941.6999998092651,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Productivity&sort=popularity&page=1&pageSize=36",
+            "requestDelayMs": -60,
+            "durationMs": 976.5,
+            "ttfbMs": 972.9000000953674,
+            "downloadMs": 2.8000001907348633,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 243,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "学习与教育",
+        "start": 4842.799999713898,
+        "visibleMs": 508.59999990463257,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Education&sort=popularity&page=1&pageSize=36",
+            "requestDelayMs": -14.699999809265137,
+            "durationMs": 509.09999990463257,
+            "ttfbMs": 505.5,
+            "downloadMs": 2.5,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 232,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "创意与展示",
+        "start": 6177.299999713898,
+        "visibleMs": 520.8000001907349,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Creative&sort=popularity&page=1&pageSize=36",
+            "requestDelayMs": -8.099999904632568,
+            "durationMs": 513,
+            "ttfbMs": 510.5,
+            "downloadMs": 1.8000001907348633,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 260,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "开发",
+        "start": 7241,
+        "visibleMs": 486.2999997138977,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Development&sort=popularity&page=1&pageSize=36",
+            "requestDelayMs": -5.600000381469727,
+            "durationMs": 476,
+            "ttfbMs": 474.7000002861023,
+            "downloadMs": 0.39999961853027344,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 234,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "其他",
+        "start": 8480.699999809265,
+        "visibleMs": 467.80000019073486,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Other&sort=popularity&page=1&pageSize=36",
+            "requestDelayMs": -6.5,
+            "durationMs": 470.09999990463257,
+            "ttfbMs": 468.8999996185303,
+            "downloadMs": 0.40000009536743164,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 243,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "游戏",
+        "start": 9622,
+        "visibleMs": 14,
+        "requests": []
+      },
+      {
+        "category": "实用工具",
+        "start": 10705.39999961853,
+        "visibleMs": 18.5,
+        "requests": []
+      },
+      {
+        "category": "学习与教育",
+        "start": 11802.099999904633,
+        "visibleMs": 14.900000095367432,
+        "requests": []
+      },
+      {
+        "category": "创意与展示",
+        "start": 12803.599999904633,
+        "visibleMs": 16,
+        "requests": []
+      },
+      {
+        "category": "开发",
+        "start": 13821.299999713898,
+        "visibleMs": 16.59999990463257,
+        "requests": []
+      },
+      {
+        "category": "其他",
+        "start": 14839.099999904633,
+        "visibleMs": 9.099999904632568,
+        "requests": []
+      }
+    ],
+    "exploreAfter": [
+      {
+        "category": "游戏",
+        "start": 20570.699999809265,
+        "visibleMs": 740.5999999046326,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Games&sort=recent&page=1&pageSize=12",
+            "requestDelayMs": -9.400000095367432,
+            "durationMs": 739.2000002861023,
+            "ttfbMs": 545,
+            "downloadMs": 193.5,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 247,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "实用工具",
+        "start": 22336.5,
+        "visibleMs": 527.9000000953674,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Productivity&sort=recent&page=1&pageSize=12",
+            "requestDelayMs": -10.099999904632568,
+            "durationMs": 528.8999996185303,
+            "ttfbMs": 510.5,
+            "downloadMs": 17,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 253,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "学习与教育",
+        "start": 23385.400000095367,
+        "visibleMs": 517.3999996185303,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Education&sort=recent&page=1&pageSize=12",
+            "requestDelayMs": -26.300000190734863,
+            "durationMs": 538,
+            "ttfbMs": 532,
+            "downloadMs": 4.699999809265137,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 240,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "创意与展示",
+        "start": 24575.900000095367,
+        "visibleMs": 819.5,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Creative&sort=recent&page=1&pageSize=12",
+            "requestDelayMs": -60.10000038146973,
+            "durationMs": 823.6000003814697,
+            "ttfbMs": 716.5,
+            "downloadMs": 104,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 229,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "开发",
+        "start": 26296.099999904633,
+        "visibleMs": 477.69999980926514,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Development&sort=recent&page=1&pageSize=12",
+            "requestDelayMs": -11.300000190734863,
+            "durationMs": 478.6000003814697,
+            "ttfbMs": 473.59999990463257,
+            "downloadMs": 3.8000001907348633,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 247,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "其他",
+        "start": 27529.799999713898,
+        "visibleMs": 495.90000009536743,
+        "requests": [
+          {
+            "url": "https://gemigo.io/api/v1/projects/explore?languages=zh&category=Other&sort=recent&page=1&pageSize=12",
+            "requestDelayMs": -19.899999618530273,
+            "durationMs": 508.8999996185303,
+            "ttfbMs": 507.3999996185303,
+            "downloadMs": 0.5,
+            "serverTiming": [
+              {
+                "name": "explore",
+                "duration": 286,
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "category": "游戏",
+        "start": 28795.5,
+        "visibleMs": 8.099999904632568,
+        "requests": []
+      },
+      {
+        "category": "实用工具",
+        "start": 30079.799999713898,
+        "visibleMs": 14.200000286102295,
+        "requests": []
+      },
+      {
+        "category": "学习与教育",
+        "start": 31207,
+        "visibleMs": 17.09999990463257,
+        "requests": []
+      },
+      {
+        "category": "创意与展示",
+        "start": 32446.299999713898,
+        "visibleMs": 9.600000381469727,
+        "requests": []
+      },
+      {
+        "category": "开发",
+        "start": 33849.5,
+        "visibleMs": 22.799999713897705,
+        "requests": []
+      },
+      {
+        "category": "其他",
+        "start": 35021.09999990463,
+        "visibleMs": 5.699999809265137,
+        "requests": []
+      }
+    ],
+    "completedIntentAfter": {
+      "category": "开发",
+      "start": 74911.59999990463,
+      "visibleMs": 17.40000009536743,
+      "requests": []
+    }
+  },
+  "summary": {
+    "homeBefore": {
+      "count": 8,
+      "medianMs": 511.0,
+      "minMs": 483,
+      "maxMs": 564.6,
+      "pageRequests": 8
+    },
+    "homeColdAfter": {
+      "count": 6,
+      "medianMs": 514.7,
+      "minMs": 467.8,
+      "maxMs": 941.7,
+      "pageRequests": 6
+    },
+    "homeCachedAfter": {
+      "count": 6,
+      "medianMs": 15.5,
+      "minMs": 9.1,
+      "maxMs": 18.5,
+      "pageRequests": 0
+    },
+    "exploreBefore": {
+      "count": 6,
+      "medianMs": 912.7,
+      "minMs": 892,
+      "maxMs": 951.6,
+      "pageRequests": 6
+    },
+    "exploreColdAfter": {
+      "count": 6,
+      "medianMs": 522.6,
+      "minMs": 477.7,
+      "maxMs": 819.5,
+      "pageRequests": 6
+    },
+    "exploreCachedAfter": {
+      "count": 6,
+      "medianMs": 11.9,
+      "minMs": 5.7,
+      "maxMs": 22.8,
+      "pageRequests": 0
+    }
+  }
+}
