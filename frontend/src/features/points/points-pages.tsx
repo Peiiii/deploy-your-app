@@ -234,8 +234,10 @@ export function PointsConfirmPage() {
                   {data.serviceInput && <p>本次主题：{data.serviceInput.topic}</p>}
                   <p className="text-3xl font-semibold">{data.item.price} 点</p>
                   <p>
-                    可用 {data.balance.balance} 点 · 消费后{' '}
-                    {Math.max(0, data.balance.balance - data.item.price)} 点
+                    当前余额 {data.balance.balance} 点
+                    {!data.receipt && (
+                      <> · 消费后 {Math.max(0, data.balance.balance - data.item.price)} 点</>
+                    )}
                   </p>
                   <p className="text-sm text-app-muted">
                     {data.item.type === 'durable'
