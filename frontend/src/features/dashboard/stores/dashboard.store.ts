@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { Project } from '@/types';
 
 type SortOption = 'name' | 'recent' | 'status';
 type SortDirection = 'asc' | 'desc';
@@ -9,10 +10,13 @@ interface DashboardState {
   searchQuery: string;
   sortBy: SortOption;
   sortDirection: SortDirection;
+  statusFilter: Project['status'] | null;
 
   actions: {
     setShowFavoritesOnly: (value: boolean) => void;
     setSearchQuery: (query: string) => void;
+    setStatusFilter: (status: Project['status'] | null) => void;
+    setSort: (option: SortOption, direction: SortDirection) => void;
     setSortBy: (option: SortOption) => void;
     setSortDirection: (direction: SortDirection) => void;
     handleSort: (option: SortOption) => void;
@@ -25,6 +29,7 @@ const initialState = {
   searchQuery: '',
   sortBy: 'recent' as SortOption,
   sortDirection: 'desc' as SortDirection,
+  statusFilter: null as Project['status'] | null,
 };
 
 export const useDashboardStore = create<DashboardState>((set) => ({
@@ -33,6 +38,8 @@ export const useDashboardStore = create<DashboardState>((set) => ({
   actions: {
     setShowFavoritesOnly: (value) => set({ showFavoritesOnly: value }),
     setSearchQuery: (query) => set({ searchQuery: query }),
+    setStatusFilter: (statusFilter) => set({ statusFilter }),
+    setSort: (sortBy, sortDirection) => set({ sortBy, sortDirection }),
     setSortBy: (option) => set({ sortBy: option }),
     setSortDirection: (direction) => set({ sortDirection: direction }),
 

@@ -135,3 +135,7 @@ retrospective_decision：已验证事实归原owner `docs/tech/PRODUCT_ANALYTICS
 原始输入：“经营总览这里肯定是把各种图表和数据呀，数字这些排在前面呀。”随后：“另外，你这个侧边栏有点难看，要不优化一下吧。”本轮同时完成，不覆盖前一请求。展示层L1/trivial，沿既有API与导航，不增加查询或功能。布局与sidebar方案记录在原专题设计末尾；取消口号横幅，原累计3项升级数值卡；所有数字/图表在待办之前。品牌采用现有主站紫色分区标记，线条SVG图标统一13个菜单，字体/行距/分组/选中态与折叠箭头调整；aria-hidden图标、aria-current选中、原生键盘折叠与手机横向菜单保留。
 
 本地验证：admin构建（含tsc）、定向eslint、diff检查通过。实际产品Worker+D1服务器5176，Chrome1440×1050/390×844，数字4+3卡→图表→两组待办的真实坐标顺序、数字与API、7/30、全部13菜单标题/选中态、键盘折叠、异常应用详情与手机菜单均通过；无根溢出/JS错误。截图已人工查看，/tmp/gemigo-admin-polish-local-{desktop,mobile}.png，专用harness /tmp/gemigo-admin-visual-polish.cjs。变更仅呈现，不新增镜像实现测试；启动原UIfixture不可避免复用原集成检查。Review：no findings，轻量检查菜单元组变更的标题消费、CSS桌面/手机覆盖、SVG焦点/可访问名、无API/状态owner变化；无diff-only检查入口，按当前diff手工核对。待生产发布与同坐标验收。
+
+生产scope7：`576ea8b`已普通推送，`pnpm deploy:admin`发布Worker `6bcb6b20-ace9-4c8e-93ef-766bac16013d`；资源`index-DhXpLOv7.css`/`index-2aRrHl_6.js`。/tmp/gemigo-admin-visual-polish.cjs --production从实际admin.gemigo.io验证4个发布指标+3个累计卡→图表→两组待办的真实布局坐标，7/30/数字与接口、13个SVG与选中、键盘诊断折叠、各日常入口/部署/安全/审计、异常详情，独立1440×1050与390×844 context无溢出/JS错误，已查看截图。原产品分析/增长导航完整13项在本地真实Worker UI验证，生产不重复触发昂贵product_events/CF报告。本轮无后端/API/账号变更，QA当前version绑定session按确切hash删除→session401，临时凭据删除；截图0600；本地测试服务停止。原生产能力证据保持有效。主观美感交用户反馈，不视为用户已验收。
+
+scope7 retrospective_decision：明确偏好是经营总览数据/图表优先，已在原设计修订优先级与本轮证据，替换原背景文字布局；纯视觉调整无新通用流程增量，不增加规则/镜像测试。复盘完成，最后提交记录后fresh fetch核对本地master/跟踪与远程实际SHA，保留所有无关WIP。

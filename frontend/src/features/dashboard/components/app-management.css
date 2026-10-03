@@ -1,0 +1,52 @@
+.app-management {
+  container-type: inline-size;
+  container-name: app-management;
+}
+.management-intro {
+  background-image: radial-gradient(ellipse at 100% 0%, #ede9fe80, transparent 55%);
+}
+.dark .management-intro {
+  background-image: radial-gradient(ellipse at 100% 0%, #4c1d9530, transparent 55%);
+}
+.management-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+}
+@container app-management (min-width: 35rem) {
+  .management-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container app-management (min-width: 58rem) {
+  .management-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.management-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+@container app-management (min-width: 42rem) {
+  .management-toolbar {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+.app-management a:hover {
+  text-decoration: none;
+}
+.app-management input:focus-visible,
+.app-management select:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-management *,
+  .app-management *::before,
+  .app-management *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
