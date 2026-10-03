@@ -25,3 +25,7 @@
 - 当前实现验证：pnpm check（lint/typecheck/域名）通过；pnpm test:seo 原始 Pages runtime、注册与获客、同库实际成功归因全部通过；pnpm test:admin 通过；新主线 public app Worker/D1 可见性及投影测试通过。代表 cohort 600事件读取12410行，预算内。运行时回放覆盖索引/404/503/无Cookie/转义/隐藏作品、app与creator。
 - 本地 Chrome /catalog 中文页与第二页已实际加载，真实作品/作者/next链接可见。Perplexity 搜索模式、匿名新会话、非品牌问题（固定原文见GEO观察记录），推荐其它工具，10个来源无GemiGo。第二个独立品牌问题被登录墙阻挡，未产生可采信回答，不能记为未引用。
 - 代码 Review(mode=implementation)：没有项目 diff-only 自动可维护性入口（已检索脚本/治理规则），采用 findings-first 与主观复核。纠正 app global/profile分支无效重叠；核对新主线owner复用、SQL注册/成功时间、去重预算、撤销no-store、失败503、公开投影转义与原页面互动。检查范围本任务源码及新主线public app边界，无未关闭finding；生产性能与平台验证仍待完成。
+
+- 55fc4c4/dacb5bc 已普通推送主线，官网 gh-pages d711ef2 构建发布，admin Worker 939110bd-8f1b-4b10-8648-5fa364991fb6 已部署，主区本地 master 已快进且0 0，无关WIP保留。
+- 线上验收发现 Pages 的 HTML 静态资源 clean-URL 规则让 Google 验证文件与教学示例返回308，而旧 ASSETS fixture没有模拟该规则。已修正：两份明确的公开HTML资产在Worker内部请求clean资产地址，外部原URL返回原文件；fixture增加308/clean-path行为，避免SPA误写或验证重定向。此 finding 在定向验证和生产验收通过前保持未闭合。
+- 原用户 Chrome 已登录，但 Mac 随后锁定，native app返回不可自动解锁。已请求用户解锁，仅站长平台UI受阻；浏览器独立页面/HTTP/部署继续。GSC 验证尚未执行，Bing账户未取得，不称全部完成。

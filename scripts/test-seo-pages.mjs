@@ -46,10 +46,13 @@ const mf = new Miniflare({
         return new Response(readFileSync('frontend/dist/llms.txt'), {
           headers: { 'Content-Type': 'text/plain' },
         });
-      if (['/google0dd0feb10e3c1fd1.html', '/examples/addition.html'].includes(path))
-        return new Response(readFileSync('frontend/dist' + path), {
-          headers: { 'Content-Type': 'text/html' },
-        });
+      for (const file of ['/google0dd0feb10e3c1fd1.html', '/examples/addition.html']) {
+        if (path === file) return Response.redirect('https://gemigo.io' + file.slice(0, -5), 308);
+        if (path === file.slice(0, -5))
+          return new Response(readFileSync('frontend/dist' + file), {
+            headers: { 'Content-Type': 'text/html' },
+          });
+      }
       if (path === '/favicon.svg')
         return new Response('<svg/>', { headers: { 'Content-Type': 'image/svg+xml' } });
       // Exercise explicit route fallback; an asset miss can also return the SPA HTML.
@@ -197,6 +200,7 @@ try {
   assert.equal((await mf.dispatchFetch('https://gemigo.io/catalog')).status, 503);
   unavailable = false;
   const verification = await mf.dispatchFetch('https://gemigo.io/google0dd0feb10e3c1fd1.html');
+  assert.equal(verification.status, 200, 'verification must not redirect');
   assert.equal(await verification.text(), 'google-site-verification: google0dd0feb10e3c1fd1.html');
   const example = await mf.dispatchFetch('https://gemigo.io/examples/addition.html');
   assert.ok((await example.text()).includes('document.getElementById'));

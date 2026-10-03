@@ -75,6 +75,16 @@ export default {
         path === '/privacy' ? '/privacy-policy' : url.pathname === '/index.html' ? '/' : path;
       return Response.redirect(target.toString(), 308);
     }
+    // Pages cleans .html asset URLs. Fetch the clean asset internally while
+    // preserving the verification/download URL requested by the visitor.
+    const rawHtml = ['/google0dd0feb10e3c1fd1.html', '/examples/addition.html'].find(
+      (file) => path === file || path === file.slice(0, -5)
+    );
+    if (rawHtml) {
+      const assetUrl = new URL(url);
+      assetUrl.pathname = rawHtml.slice(0, -5);
+      return env.ASSETS.fetch(new Request(assetUrl, request));
+    }
     let assetResponse = await env.ASSETS.fetch(request);
     if (assetResponse.status === 404 && !path.includes('.')) {
       const index = new URL(url);
@@ -82,11 +92,6 @@ export default {
       index.search = '';
       assetResponse = await env.ASSETS.fetch(new Request(index, request));
     }
-    if (
-      ['/google0dd0feb10e3c1fd1.html', '/examples/addition.html'].includes(path) &&
-      assetResponse.status === 200
-    )
-      return assetResponse;
     if (!(assetResponse.headers.get('content-type') || '').includes('text/html'))
       return assetResponse;
     // Missing files must not return the SPA document as an image, XML or script.
