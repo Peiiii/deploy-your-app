@@ -66,6 +66,7 @@ export function AppPreviewContent({ name, url, onOpenInNewTab }: AppPreviewConte
                 src={url}
                 className="relative h-full w-full select-none border-0"
                 title={name}
+                allow="camera; microphone"
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
                 onLoad={event => {
                     if (event.currentTarget === iframeRef.current) dismissFeedback();

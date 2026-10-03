@@ -472,6 +472,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
                         onError={() => onFeedback?.(app.id, 'load_error')}
                         className="w-full h-full border-none bg-white transition-all duration-300"
                         title={app.name}
+                        allow="camera; microphone"
                     />
                 ) : (
                     <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
