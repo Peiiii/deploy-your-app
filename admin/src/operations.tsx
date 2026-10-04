@@ -74,10 +74,12 @@ const Pagination = ({
 export default function Operations({
   section,
   projectId,
+  owner,
   navigate,
 }: {
   section: string;
   projectId: string;
+  owner: string;
   navigate: Navigate;
 }) {
   const [days, setDays] = useState(7);
@@ -101,7 +103,7 @@ export default function Operations({
     api<List | Overview>(
       section === 'dashboard'
         ? `overview?days=${days}&actionPage=${actionPage}&feedbackPage=${feedbackPage}`
-        : `${section}?${query}`
+        : `${section}?${query}${owner && section === 'projects' ? '&' + new URLSearchParams({ owner }) : ''}`
     )
       .then((value) => {
         if (active) setData(value);
@@ -115,7 +117,7 @@ export default function Operations({
     return () => {
       active = false;
     };
-  }, [section, days, query, revision, actionPage, feedbackPage]);
+  }, [section, days, query, revision, actionPage, feedbackPage, owner]);
   const refresh = () => {
     setBusy(true);
     setError('');
@@ -253,6 +255,7 @@ export default function Operations({
         />
       )}
       {section === 'projects' && list?.inventory && <ProjectInventory data={list.inventory} />}
+      {section === 'projects' && owner && <div className="notice">正在查看所选用户的应用 <button onClick={() => navigate('projects')}>清除用户筛选</button></div>}
       {section !== 'dashboard' && (
         <article className="panel">
           {section !== 'audit' && (

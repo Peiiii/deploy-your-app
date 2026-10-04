@@ -1,3 +1,5 @@
+import { projectsController } from '../controllers/projects.controller';
+import { deployController } from '../controllers/deploy.controller';
 import { projectService } from '../services/project.service';
 import type { ApiWorkerEnv } from '../types/env';
 import { AppError, ForbiddenError, NotFoundError, ValidationError } from '../utils/error-handler';
@@ -17,6 +19,14 @@ interface ActiveCall {
 /** One project owns all its in-flight calls, revocation and transport lifecycle. */
 export class AppGateway {
   private deleted = false;
+  private mutationTail: Promise<unknown> = Promise.resolve();
+
+  private serialize<T>(task: () => Promise<T>): Promise<T> {
+    const run = this.mutationTail.then(task);
+    this.mutationTail = run.catch(() => {});
+    return run;
+  }
+
   private active = new Map<string, ActiveCall>();
   constructor(
     private state: DurableObjectState,
@@ -30,31 +40,24 @@ export class AppGateway {
       const repo = new GatewayRepository(this.env.PROJECTS_DB, projectId);
       const [operation, rawName] = new URL(request.url).pathname.slice(1).split('/');
       const name = rawName ? connectionName(decodeURIComponent(rawName)) : '';
-      if (operation === 'delete-project' && request.method === 'DELETE') {
-        return await this.state.blockConcurrencyWhile(async () => {
+      if (['delete-project', 'update-project', 'update-deployment', 'upload-thumbnail', 'upload-source', 'deploy'].includes(operation)) {
+        return await this.serialize(async () => {
           const project = await projectService.getProjectById(this.env.PROJECTS_DB, projectId);
-          if (!project || project.ownerId !== request.headers.get('x-owner-id'))
-            throw new NotFoundError('Project not found.');
-          this.deleted = true;
-          this.stopCalls(() => true);
-          try {
-            // Fail closed during deletion; retries can finish an interrupted cleanup.
+          if (!project || project.ownerId !== request.headers.get('x-owner-id')) throw new NotFoundError('Project not found.');
+          if (operation === 'delete-project' && request.method === 'DELETE') {
+            this.deleted = true;
+            this.stopCalls(() => true);
             await this.state.storage.put('deleted', true);
             await repo.purge();
-            if (
-              !(await projectService.deleteProject(
-                this.env.PROJECTS_DB,
-                projectId,
-                project.ownerId
-              ))
-            )
-              throw new NotFoundError('Project not found.');
+            await projectService.deleteProject(this.env, this.env.PROJECTS_DB, projectId, project.ownerId);
             return new Response(null, { status: 204 });
-          } catch (error) {
-            this.deleted = false;
-            await this.state.storage.delete('deleted');
-            throw error;
           }
+          if (this.deleted || await this.state.storage.get('deleted')) throw new NotFoundError('Project is being deleted.');
+          if (operation === 'update-project') return projectsController.updateProject(request, this.env, this.env.PROJECTS_DB, projectId, true);
+          if (operation === 'update-deployment') return projectsController.updateProjectDeployment(request, this.env, this.env.PROJECTS_DB, projectId, true);
+          if (operation === 'upload-thumbnail') return projectsController.uploadThumbnail(request, this.env, this.env.PROJECTS_DB, projectId, true);
+          if (operation === 'upload-source') return deployController.uploadSource(request, this.env, this.env.PROJECTS_DB, projectId, true);
+          return deployController.startDeployment(request, this.env, this.env.PROJECTS_DB, true);
         });
       }
       if (this.deleted || (await this.state.storage.get('deleted')))

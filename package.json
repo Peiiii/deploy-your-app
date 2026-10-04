@@ -51,6 +51,7 @@
     "test:profile-name": "./server/node_modules/.bin/tsx --tsconfig frontend/tsconfig.app.json scripts/test-profile-name.ts",
     "test:deployment-metadata": "./server/node_modules/.bin/tsx scripts/test-deployment-metadata-policy.ts",
     "test:deployment-metadata:http": "./server/node_modules/.bin/tsx scripts/test-deployment-metadata-http.ts",
+    "test:app-storage": "./server/node_modules/.bin/tsx scripts/test-app-storage-cleanup.ts",
     "test:project-creation-limit": "./server/node_modules/.bin/tsx scripts/test-project-creation-limit.ts && node scripts/test-homepage-publishing.mjs",
     "test:thumbnail-performance": "./server/node_modules/.bin/tsx scripts/test-thumbnail-performance.ts",
     "backfill:project-metadata": "./server/node_modules/.bin/tsx scripts/backfill-project-metadata.ts",

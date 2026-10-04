@@ -231,9 +231,11 @@ class ProjectsController {
   }
 
   /** PATCH /api/v1/projects/:id */
-  async updateProject(request: Request, _env: ApiWorkerEnv, db: D1Database, id: string): Promise<Response> {
+  async updateProject(request: Request, env: ApiWorkerEnv, db: D1Database, id: string, serialized = false): Promise<Response> {
     const user = await this.requireAuth(request, db, 'update a project');
     await this.requireProjectOwner(db, id, user.id, 'update it');
+
+    if (!serialized && env.APP_GATEWAY) return appGatewayController.projectMutation(request, env, id, user.id, 'update-project');
 
     const body = await readJson(request);
     const {
@@ -280,9 +282,11 @@ class ProjectsController {
   }
 
   /** PATCH /api/v1/projects/:id/deployment */
-  async updateProjectDeployment(request: Request, _env: ApiWorkerEnv, db: D1Database, id: string): Promise<Response> {
+  async updateProjectDeployment(request: Request, env: ApiWorkerEnv, db: D1Database, id: string, serialized = false): Promise<Response> {
     const user = await this.requireAuth(request, db, 'update deployment status');
     await this.requireProjectOwner(db, id, user.id, 'update deployment status');
+
+    if (!serialized && env.APP_GATEWAY) return appGatewayController.projectMutation(request, env, id, user.id, 'update-deployment');
 
     const body = await readJson(request);
     const status = validateOptionalString(body.status);
@@ -340,15 +344,17 @@ class ProjectsController {
     const user = await this.requireAuth(request, db, 'delete a project');
     await this.requireProjectOwner(db, id, user.id, 'delete a project');
     if (env.APP_GATEWAY) return appGatewayController.deleteProject(env, id, user.id);
-    const deleted = await projectService.deleteProject(db, id, user.id);
+    const deleted = await projectService.deleteProject(env, db, id, user.id);
     if (!deleted) throw new NotFoundError('Project not found');
     return new Response(null, { status: 204 });
   }
 
   /** POST /api/v1/projects/:id/thumbnail */
-  async uploadThumbnail(request: Request, env: ApiWorkerEnv, db: D1Database, id: string): Promise<Response> {
+  async uploadThumbnail(request: Request, env: ApiWorkerEnv, db: D1Database, id: string, serialized = false): Promise<Response> {
     const user = await this.requireAuth(request, db, 'upload a thumbnail');
     const project = await this.requireProjectOwner(db, id, user.id, 'upload a thumbnail');
+
+    if (!serialized && env.APP_GATEWAY) return appGatewayController.projectMutation(request, env, id, user.id, 'upload-thumbnail');
 
     if (configService.getDeployTarget(env) !== 'r2') {
       throw new ValidationError('Thumbnail upload is only supported when deploy target is "r2".');

@@ -7,7 +7,8 @@ import {
 import { CONFIG, DEPLOY_TARGET } from '../../common/config/config.js';
 import { applyFixesForDeployment } from './fixPipeline.js';
 import { deployToCloudflarePages } from './providers/cloudflarePagesProvider.js';
-import { deployToR2 } from './providers/r2Provider.js';
+import { cleanAppStorage, deployToR2 } from './providers/r2Provider.js';
+import { finishStorageJob, pendingStorageJobs, readStorageJob, saveStorageJob, type StorageMaintenanceJob } from './storageMaintenance.js';
 import { SourceType } from '../../common/types.js';
 
 import {
@@ -99,6 +100,57 @@ function detectPackageManager(workDir: string): PackageManagerInfo {
 
 export class DeploymentService {
   private accepting = true;
+  private maintenance = new Map<string, Promise<void>>();
+
+  private maintenanceTimer?: ReturnType<typeof setInterval>;
+
+  startStorageMaintenance(): void {
+    if (this.maintenanceTimer) return;
+    const retry = () => {
+      if (!this.accepting) return;
+      for (const job of pendingStorageJobs()) this.scheduleStorageCleanup(job).catch(() => console.warn('Storage cleanup will retry.'));
+    };
+    setTimeout(retry, 0).unref();
+    this.maintenanceTimer = setInterval(retry, 120000);
+    this.maintenanceTimer.unref();
+  }
+
+  async deleteProjectStorage(projectId: string, slug: string): Promise<void> {
+    const existing = readStorageJob(projectId);
+    if (existing?.deleted && existing.slug !== slug) throw new Error('Deleted project address does not match.');
+    if (existing?.deleted && existing.complete) return;
+    const job = { projectId, slug, deleted: true, complete: false };
+    saveStorageJob(job);
+    await this.scheduleStorageCleanup(job);
+  }
+
+  private scheduleStorageCleanup(job: StorageMaintenanceJob): Promise<void> {
+    const existing = this.maintenance.get(job.projectId);
+    if (existing) return existing.then(() => {
+      const current = readStorageJob(job.projectId);
+      if (current && !current.complete) return this.scheduleStorageCleanup(current);
+    });
+    const run = this.enqueue(async () => {
+      // A delete may supersede an older release-pruning job while it is queued.
+      const current = readStorageJob(job.projectId);
+      if (!current || current.complete) return;
+      if (DEPLOY_TARGET === 'r2') await cleanAppStorage(current.slug, current.projectId, current.deleted, () => {});
+      else if (DEPLOY_TARGET === 'local' && current.deleted) await fs.promises.rm(path.join(CONFIG.paths.staticRoot, current.slug), { recursive: true, force: true });
+      else if (DEPLOY_TARGET !== 'local') throw new Error('Storage cleanup for this provider is unavailable.');
+      finishStorageJob(current);
+    });
+    const tracked = run.finally(() => this.maintenance.delete(job.projectId));
+    this.maintenance.set(job.projectId, tracked);
+    return tracked;
+  }
+
+  private enqueue(task: () => Promise<void>): Promise<void> {
+    this.pending++;
+    const run = this.tail.then(task);
+    this.tail = run.catch(() => {});
+    return run.finally(() => { this.pending--; });
+  }
+
   private pending = 0;
   private tail: Promise<void> = Promise.resolve();
 
@@ -109,15 +161,18 @@ export class DeploymentService {
   canAccept(): boolean { return this.accepting && this.pending < 5; }
 
   runDeployment(id: string): Promise<void> {
-    this.pending++;
-    const run = this.tail.then(() => this.executeDeployment(id));
-    this.tail = run.catch(() => {});
-    return run.finally(() => { this.pending--; });
+    return this.enqueue(() => this.executeDeployment(id));
   }
 
   private async executeDeployment(id: string): Promise<void> {
     const deployment = deployments.get(id);
     if (!deployment) return;
+    if (readStorageJob(deployment.project.id)?.deleted) {
+      deployment.errorCode = 'project_deleted';
+      deployment.errorMessage = 'This application is being deleted.';
+      updateStatus(id, 'FAILED');
+      return;
+    }
 
     const project = deployment.project;
     const normalizedSourceType = project.sourceType ?? SourceType.GitHub;
@@ -342,6 +397,7 @@ export class DeploymentService {
         providerUrl = result.providerUrl;
         cloudflareProjectName = result.projectName;
       } else if (target === 'r2') {
+        if (!readStorageJob(project.id)?.deleted) saveStorageJob({ projectId: project.id, slug, deleted: false, complete: false });
         const result = await deployToR2({
           slug,
           distPath,
@@ -350,6 +406,17 @@ export class DeploymentService {
         });
         finalUrl = result.publicUrl;
         providerUrl = `r2://${result.storagePrefix}`;
+        // Persist cleanup debt before trying it; failed deletes survive a restart.
+        const cleanup = { projectId: project.id, slug, deleted: false, complete: false };
+        const existing = readStorageJob(project.id);
+        if (!existing?.deleted) saveStorageJob(cleanup);
+        const job = readStorageJob(project.id)!;
+        if (!job.deleted) {
+          try {
+            await cleanAppStorage(slug, project.id, false, (message, level) => appendLog(id, message, level));
+            finishStorageJob(job);
+          } catch { appendLog(id, 'Historical storage cleanup will retry automatically.', 'warning'); }
+        }
       } else {
         finalUrl = await deployToLocalStatic({
           deploymentId: id,

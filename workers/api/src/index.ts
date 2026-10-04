@@ -1,3 +1,6 @@
+import { appGatewayController } from './app-gateway/controller';
+import { projectRepository } from './repositories/project.repository';
+import { projectService } from './services/project.service';
 import { pointsController } from './points/controller';
 import { processPointsScheduled } from './points/service';
 export { AppGateway } from './app-gateway/object';
@@ -49,6 +52,14 @@ const worker: ExportedHandler<ApiWorkerEnv> = {
     if (env.PROJECTS_DB && new Date(_event.scheduledTime).getUTCHours() === 3
       && new Date(_event.scheduledTime).getUTCMinutes() === 0) await analyticsRepository.cleanup(env.PROJECTS_DB);
     await scheduledRecommendation(env).catch(() => console.warn('Recommendation maintenance skipped'));
+    for (const project of await projectRepository.pendingStorageDeletions(env.PROJECTS_DB)) {
+      try {
+        if (env.APP_GATEWAY) {
+          const response = await appGatewayController.deleteProject(env, project.id, project.ownerId);
+          if (!response.ok) console.warn('Application storage deletion will retry.');
+        } else await projectService.deleteProject(env, env.PROJECTS_DB, project.id, project.ownerId);
+      } catch { console.warn('Application storage deletion will retry.'); }
+    }
     await deploymentSourceService.cleanup(env);
     await projectLanguageService.scanPending(env, env.PROJECTS_DB);
     await metadataService.translatePendingDescriptions(env, env.PROJECTS_DB);
