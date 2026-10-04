@@ -881,6 +881,35 @@ try {
     expected: 'planned',
     status: 'open',
   });
+  // Ranking is current inventory, not a 7/30-day cohort or deployment count.
+  for (let index = 0; index < 12; index++) {
+    const id = `ranking-${String(index).padStart(2, '0')}`;
+    await db.prepare('INSERT INTO users (id,email,display_name,created_at,updated_at) VALUES (?,?,?,?,?)')
+      .bind(id, `${id}@example.invalid`, index === 0 ? null : `Creator ${index}`, now, now).run();
+    await db.prepare(`WITH RECURSIVE numbers(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM numbers WHERE n<?)
+      INSERT INTO projects (id,owner_id,name,slug,repo_url,framework,status,last_deployed,created_at,is_public,is_deleted,url)
+      SELECT ?||':'||n,?,?||' app '||n,?||'-'||n,'draft:qa','Unknown',CASE WHEN n<=7 THEN 'Live' ELSE 'Offline' END,
+      '2020-01-01','2020-01-01',CASE WHEN n<=3 THEN 1 ELSE 0 END,0,CASE WHEN n<=7 THEN 'https://qa.example.invalid/' ELSE NULL END FROM numbers`)
+      .bind(index <= 1 ? 200 : 200 - index, id, id, id, id).run();
+  }
+  await db.prepare(`INSERT INTO projects (id,owner_id,name,repo_url,framework,status,last_deployed,is_deleted)
+    VALUES ('ranking-deleted','ranking-00','Deleted','draft:qa','Unknown','Offline','2020-01-01',1)`).run();
+  const ranking = await (await request('overview', activeCookie)).json();
+  assert.equal(ranking.topCreators.length, 10);
+  assert.deepEqual(ranking.topCreators.map((row: { id: string }) => row.id), Array.from({ length: 10 }, (_, i) => `ranking-${String(i).padStart(2, '0')}`));
+  assert.equal(ranking.topCreators[0].projects, 200, 'draft/private/old apps included, deleted excluded');
+  assert.equal(ranking.topCreators[0].live, 7);
+  assert.equal(ranking.topCreators[0].publicLive, 3);
+  assert.equal(ranking.topCreators[0].display_name, null, 'unnamed account remains identifiable to the administrator');
+  assert.deepEqual((await (await request('overview?days=30', activeCookie)).json()).topCreators, ranking.topCreators);
+  const ownerApps = await (await request('projects?owner=ranking-00', activeCookie)).json();
+  assert.equal(ownerApps.total, 200);
+  assert.equal(ownerApps.items.length, 20);
+  assert.ok(ownerApps.items.every((row: { owner_id: string }) => row.owner_id === 'ranking-00'));
+  assert.equal((await request(`projects?owner=${'x'.repeat(201)}`, activeCookie)).status, 400);
+  assert.equal((await request('overview')).status, 401, 'ranking remains behind administrator authentication');
+  console.log('PASS: top ten current creators; stable ties; deleted/draft/private/date boundaries; exact owner drilldown; administrator authentication.');
+
   console.log(
     'PASS assembled Worker + real D1: independent auth, bootstrap, dashboard, search, pagination, field isolation, origin, CAS mutations + audit, session revocation, password validation/persistence/rotation/race, retained analytics; canonical feedback filters/pagination/status CAS/idempotent concurrent reply/team projection/privacy/soft deletion.'
   );

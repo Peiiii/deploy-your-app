@@ -359,6 +359,7 @@ class ProjectService {
   }
 
   async deleteProject(
+    env: ApiWorkerEnv,
     db: D1Database,
     id: string,
     ownerId: string,
@@ -366,6 +367,20 @@ class ProjectService {
     const project = await projectRepository.getProjectById(db, id);
     if (!project || !project.ownerId || project.ownerId !== ownerId) {
       return false;
+    }
+
+    await projectRepository.markStorageDeletion(db, id, ownerId);
+    if (project.slug) {
+      const response = await fetch(`${configService.getDeployServiceBaseUrl(env)}/projects/delete-storage`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', ...(env.DEPLOY_SERVICE_TOKEN ? { 'x-gemigo-builder-token': env.DEPLOY_SERVICE_TOKEN } : {}) },
+        body: JSON.stringify({ projectId: project.id, slug: project.slug }),
+        signal: AbortSignal.timeout(20000),
+      });
+      const result = await response.json() as { complete?: boolean };
+      if (!response.ok || result.complete !== true) {
+        throw new AppError('Application deletion is pending. Storage cleanup will retry automatically.', 503, 'STORAGE_DELETE_PENDING');
+      }
     }
 
     // Best-effort cleanup of engagement/analytics tied to this project.

@@ -53,9 +53,10 @@ export class RateLimitError extends AppError {
   }
 }
 
-export class DailyProjectLimitError extends AppError {
-  constructor(public readonly limit: number, public readonly resetAt: string) {
-    super(`You have reached today's limit of ${limit} new apps (including drafts). You can still update existing apps. New app creation resumes at 00:00 Beijing time.`, 429, 'DAILY_PROJECT_LIMIT');
+export class ProjectCountLimitError extends AppError {
+  readonly upgradeRequired = true;
+  constructor(public readonly limit: number) {
+    super(`The free plan allows up to ${limit} apps (including drafts). Delete an old app to free a slot, or request paid expansion. You can still update existing apps.`, 403, 'PROJECT_COUNT_LIMIT');
   }
 }
 
@@ -69,7 +70,7 @@ export function handleError(error: unknown): Response {
       {
         error: error.message,
         code: error.code,
-        ...(error instanceof DailyProjectLimitError ? { limit: error.limit, resetAt: error.resetAt } : {}),
+        ...(error instanceof ProjectCountLimitError ? { limit: error.limit, upgradeRequired: error.upgradeRequired } : {}),
       },
       error.statusCode,
     );

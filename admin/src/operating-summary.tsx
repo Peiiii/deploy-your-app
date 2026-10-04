@@ -15,6 +15,7 @@ export type Overview = {
   errors: Row[];
   traffic: Row;
   publishing: Row;
+  topCreators: Row[];
   attention: Queue;
   feedback: Queue;
 };
@@ -73,6 +74,33 @@ export default function OperatingSummary({
           </article>
         ))}
       </div>
+      <article className="panel">
+        <div className="spread">
+          <h3>应用数量前十的用户</h3>
+          <span className="tag">当前总量</span>
+        </div>
+        <p className="muted">按当前未删除应用数量排名，包含草稿、私有和离线应用；不受上方日期筛选影响。</p>
+        <div className="table-wrap">
+          <table>
+            <thead><tr><th>排名</th><th>用户</th><th>应用总数</th><th>已上线</th><th>公开上线</th><th>操作</th></tr></thead>
+            <tbody>
+              {report.topCreators.map((row, index) => (
+                <tr key={String(row.id)}>
+                  <td>{index + 1}</td>
+                  <td><strong>{row.display_name || row.handle || row.email || '未设置昵称'}</strong>
+                    {row.email && row.display_name && <div className="muted">{row.email}</div>}
+                  </td>
+                  <td><strong>{count(row.projects)}</strong></td>
+                  <td>{count(row.live)}</td>
+                  <td>{count(row.publicLive)}</td>
+                  <td><button onClick={() => navigate('projects', '', String(row.id))}>查看应用 →</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {!report.topCreators.length && <p className="muted">暂无拥有应用的用户</p>}
+      </article>
       <details className="panel home-diagnostics">
         <summary>部署诊断与已采集流量 · 近 {report.days} 天含今日 UTC</summary>
         <div className="two-columns dashboard-columns">

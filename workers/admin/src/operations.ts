@@ -123,6 +123,11 @@ export const overview = async (db: D1Database, url: URL) => {
         "SELECT id,title,created_at FROM community_feedback_posts WHERE deleted_at IS NULL AND status='open' ORDER BY created_at,id LIMIT 6 OFFSET ?"
       )
       .bind((feedbackPage - 1) * 6),
+    db.prepare(`SELECT u.id,u.display_name,u.handle,u.email,
+      COUNT(*) AS projects,SUM(p.status='Live') AS live,
+      SUM(p.is_public=1 AND p.status='Live' AND p.url IS NOT NULL AND TRIM(p.url)!='') AS publicLive
+      FROM projects p JOIN users u ON u.id=p.owner_id WHERE ${active}
+      GROUP BY u.id ORDER BY projects DESC,u.id ASC LIMIT 10`),
   ]);
   const perDay = new Map(results[2].results.map((row) => [String(row.day), row]));
   const daily = Array.from({ length: days }, (_, index) => {
@@ -140,6 +145,7 @@ export const overview = async (db: D1Database, url: URL) => {
     errors: results[4].results,
     traffic: results[5].results[0],
     publishing: results[6].results[0],
+    topCreators: results[11].results,
     attention: {
       items: results[8].results,
       total: Number(results[7].results[0].total),
@@ -158,6 +164,8 @@ export const overview = async (db: D1Database, url: URL) => {
 export const listOperations = async (db: D1Database, kind: string, url: URL) => {
   const page = Number(url.searchParams.get('page') || 1);
   const search = (url.searchParams.get('q') || '').trim();
+  const owner = url.searchParams.get('owner') || '';
+  if (owner.length > 200) throw new AdminInputError('用户筛选无效');
   const status = url.searchParams.get('status') || '';
   const channel = url.searchParams.get('channel') || '';
   const category = url.searchParams.get('category') || '';
@@ -204,6 +212,10 @@ export const listOperations = async (db: D1Database, kind: string, url: URL) => 
       u.display_name AS owner_name,p.source_type,p.created_at,p.last_deployed,
       p.category,${languageListSql} AS languages,
       ${projectChannel('ASC')} AS first_channel,${projectChannel('DESC')} AS latest_channel`;
+    if (owner) {
+      where += ' AND p.owner_id=?';
+      params.push(owner);
+    }
     if (search) {
       where += ' AND (p.name LIKE ? OR p.slug LIKE ? OR u.email LIKE ? OR p.owner_id=?)';
       params.push(`%${search}%`, `%${search}%`, `%${search}%`, search);

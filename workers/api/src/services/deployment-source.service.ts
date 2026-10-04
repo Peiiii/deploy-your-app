@@ -50,10 +50,14 @@ export const deploymentSourceService = {
 
   async cleanup(env: ApiWorkerEnv): Promise<void> {
     if (!env.ASSETS) return;
-    const objects = await env.ASSETS.list({ prefix: PREFIX, limit: 1000 });
-    const expired = objects.objects
-      .filter((object) => object.uploaded.getTime() < Date.now() - 86400000)
-      .map((object) => object.key);
-    if (expired.length) await env.ASSETS.delete(expired);
+    let cursor: string | undefined;
+    do {
+      const objects = await env.ASSETS.list({ prefix: PREFIX, limit: 1000, cursor });
+      const expired = objects.objects
+        .filter((object) => object.uploaded.getTime() < Date.now() - 86400000)
+        .map((object) => object.key);
+      if (expired.length) await env.ASSETS.delete(expired);
+      cursor = objects.truncated ? objects.cursor : undefined;
+    } while (cursor);
   },
 };

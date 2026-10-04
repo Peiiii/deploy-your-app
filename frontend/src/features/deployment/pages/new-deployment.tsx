@@ -64,7 +64,7 @@ export const NewDeployment = () => {
       if (error instanceof ProjectAddressError) return;
       presenter.ui.showErrorToast(
         error instanceof ProjectCreationLimitError
-          ? t('deployment.dailyProjectLimit', { limit: error.limit })
+          ? t('deployment.projectCountLimit', { limit: error.limit })
           : error instanceof Error ? error.message : t('deployment.projectCreateFailed')
       );
     }

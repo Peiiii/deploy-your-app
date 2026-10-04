@@ -23,7 +23,7 @@ export const destination = () => {
       ? decodeURIComponent(encodedId).slice(0, 200)
       : '';
     const owner =
-      section === 'feedback' ? new URLSearchParams(query).get('owner')?.slice(0, 200) || '' : '';
+      ['feedback', 'projects'].includes(section) ? new URLSearchParams(query).get('owner')?.slice(0, 200) || '' : '';
     return { section, id, owner };
   } catch {
     return { section: 'dashboard', id: '', owner: '' };

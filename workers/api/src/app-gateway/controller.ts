@@ -34,6 +34,15 @@ function safeError(error: unknown): Response {
 }
 
 export const appGatewayController = {
+  async projectMutation(request: Request, env: ApiWorkerEnv, projectId: string, ownerId: string, operation: string): Promise<Response> {
+    const headers = new Headers(request.headers);
+    headers.set('x-project-id', projectId);
+    headers.set('x-owner-id', ownerId);
+    return object(env, projectId).fetch(new Request(`https://gateway.internal/${operation}`, {
+      method: request.method, headers, body: request.body,
+    }));
+  },
+
   async deleteProject(env: ApiWorkerEnv, projectId: string, ownerId: string): Promise<Response> {
     return object(env, projectId).fetch(
       new Request('https://gateway.internal/delete-project', {

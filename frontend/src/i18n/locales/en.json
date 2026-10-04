@@ -352,7 +352,7 @@
     "optionalNameHint": "For example: Travel journal",
     "nameExplanation": "Use any language and rename it later. Leave blank for an automatic name.",
     "publicationAddress": "Publication address",
-    "dailyProjectLimit": "You’ve reached today’s limit of {{limit}} new apps (including drafts). You can still update existing apps. New app creation resumes at 00:00 Beijing time.",
+    "projectCountLimit": "The free plan allows up to {{limit}} apps, including drafts. Delete an old app to free a slot, or request paid expansion. You can still update existing apps.",
     "generateAddress": "Generate with AI",
     "generatingAddress": "Generating…",
     "addressGenerationFailed": "AI could not generate an address. Try again or enter one yourself.",

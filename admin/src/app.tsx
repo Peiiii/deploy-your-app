@@ -475,7 +475,7 @@ export default function App() {
             </p>
           )}
           {['dashboard', 'users', 'projects', 'deployments', 'audit'].includes(section) && (
-            <Operations key={section} section={section} projectId={route.id} navigate={navigate} />
+            <Operations key={`${section}:${route.owner}`} section={section} projectId={route.id} owner={route.owner} navigate={navigate} />
           )}
           {section === 'feedback' && (
             <Feedback selectedId={route.id} owner={route.owner} navigate={navigate} />

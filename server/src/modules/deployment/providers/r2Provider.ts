@@ -81,7 +81,7 @@ function getCacheControl(fileName: string): string {
   return 'public, max-age=31536000, immutable';
 }
 
-async function clearPrefix(
+export async function clearPrefix(
   client: S3Client,
   bucketName: string,
   prefix: string,
@@ -107,7 +107,7 @@ async function clearPrefix(
       .map((obj) => obj.Key)
       .filter((key): key is string => typeof key === 'string');
     if (toDelete.length > 0) {
-      await client.send(
+      const deleted = await client.send(
         new DeleteObjectsCommand({
           Bucket: bucketName,
           Delete: {
@@ -116,6 +116,7 @@ async function clearPrefix(
           },
         }),
       );
+      if (deleted.Errors?.length) throw new Error('R2 could not delete every object; cleanup will retry.');
       log(
         `Cleared ${toDelete.length} objects from R2 prefix "${prefix}"`,
         'info',
@@ -228,10 +229,6 @@ export async function deployToR2(opts: {
       if (!activated) throw error;
     }
     activated = true;
-    // Keep the immediately preceding version, including hashed assets used by open tabs.
-    if (active.previousPrefix && active.previousPrefix !== active.prefix && active.previousPrefix.startsWith(`apps/${slug}/releases/`)) {
-      await clearPrefix(client, bucketName, `${active.previousPrefix}/`, log).catch(() => log('Previous version cleanup will be retried on a later deployment.', 'warning'));
-    }
     const publicUrl = `https://${slug}.${APPS_ROOT_DOMAIN}/`;
     log(`R2 deployment completed. App is available at ${publicUrl}`, 'success');
     return { publicUrl, storagePrefix: prefix };
@@ -258,4 +255,52 @@ export async function consumeDeploymentSource(key: string): Promise<Buffer> {
     await client.send(new DeleteObjectCommand({ Bucket: R2_BUCKET_NAME, Key: key })).catch(() => {});
     client.destroy();
   }
+}
+
+
+/** Called inside the builder queue, never concurrently with a publication. */
+export async function prunePublishedVersions(client: S3Client, bucketName: string, slug: string, log: LogFn): Promise<void> {
+  const root = `apps/${slug}/`;
+  let active: { prefix: string; previousPrefix?: string } = { prefix: `${root}current` };
+  try {
+    const pointer = await client.send(new GetObjectCommand({ Bucket: bucketName, Key: `${root}deployment.json` }));
+    active = JSON.parse(await pointer.Body!.transformToString());
+  } catch (error) {
+    if ((error as { name?: string }).name !== 'NoSuchKey' && (error as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode !== 404) throw error;
+  }
+  const validPrefix = (prefix: unknown): prefix is string => typeof prefix === 'string' &&
+    (prefix === `${root}current` || new RegExp(`^apps/${slug}/releases/[a-f0-9-]{36}$`, 'i').test(prefix));
+  if (!validPrefix(active.prefix) || (active.previousPrefix && !validPrefix(active.previousPrefix))) throw new Error('Unsafe deployment pointer; storage cleanup stopped.');
+  const keep = new Set([active.prefix, active.previousPrefix]);
+  let continuationToken: string | undefined;
+  do {
+    const page = await client.send(new ListObjectsV2Command({ Bucket: bucketName, Prefix: `${root}releases/`, Delimiter: '/', ContinuationToken: continuationToken }));
+    for (const item of page.CommonPrefixes ?? []) {
+      const prefix = item.Prefix?.replace(/\/$/, '');
+      if (validPrefix(prefix) && !keep.has(prefix)) await clearPrefix(client, bucketName, `${prefix}/`, log);
+    }
+    continuationToken = page.IsTruncated ? page.NextContinuationToken : undefined;
+  } while (continuationToken);
+  if (!keep.has(`${root}current`)) await clearPrefix(client, bucketName, `${root}current/`, log);
+}
+
+export async function cleanAppStorage(slug: string, projectId: string, deleted: boolean, log: LogFn): Promise<void> {
+  ensureR2Config();
+  if (!/^[a-z0-9-]{1,63}$/.test(slug) || !/^[a-f0-9-]{36}$/i.test(projectId)) throw new Error('Invalid storage identity.');
+  const client = createR2Client();
+  try {
+    if (!deleted) return await prunePublishedVersions(client, R2_BUCKET_NAME, slug, log);
+    await clearPrefix(client, R2_BUCKET_NAME, `apps/${slug}/`, log);
+    // Temporary sources have a date before the stable project ID.
+    let continuationToken: string | undefined;
+    do {
+      const page = await client.send(new ListObjectsV2Command({ Bucket: R2_BUCKET_NAME, Prefix: 'deployment-sources/', Delimiter: '/', ContinuationToken: continuationToken }));
+      for (const item of page.CommonPrefixes ?? []) {
+        if (/^deployment-sources\/\d{4}-\d{2}-\d{2}\/$/.test(item.Prefix || '')) {
+          await clearPrefix(client, R2_BUCKET_NAME, `${item.Prefix}${projectId}/`, log);
+        }
+      }
+      continuationToken = page.IsTruncated ? page.NextContinuationToken : undefined;
+    } while (continuationToken);
+  } finally { client.destroy(); }
 }

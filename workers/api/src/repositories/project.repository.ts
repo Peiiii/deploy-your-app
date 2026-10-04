@@ -1,6 +1,6 @@
 import { addressTakenError, addressLockedError } from '../utils/project-address';
-import { DailyProjectLimitError } from '../utils/error-handler';
-import { DAILY_PROJECT_LIMIT, projectCreationWindow } from '../utils/project-creation-limit';
+import { ProjectCountLimitError } from '../utils/error-handler';
+import { FREE_PROJECT_LIMIT } from '../utils/project-creation-limit';
 import { parseAppLanguage, type AppLanguage } from '../utils/app-language';
 import {
   type CreateProjectRecordInput,
@@ -340,6 +340,12 @@ class ProjectRepository {
       // Ignore error if column already exists.
     }
 
+    try {
+      await db.prepare('ALTER TABLE projects ADD COLUMN storage_deletion_pending INTEGER DEFAULT 0').run();
+    } catch (error) {
+      if (!String(error).includes('duplicate column')) throw error;
+    }
+
     for (const column of [
       'app_language TEXT',
       'created_at TEXT',
@@ -483,15 +489,14 @@ class ProjectRepository {
   async assertProjectCreationAllowed(
     db: D1Database,
     ownerId?: string,
-    window = projectCreationWindow(),
   ): Promise<void> {
     if (!ownerId) return;
     await this.ensureSchema(db);
     const row = await db.prepare(`SELECT COUNT(*) AS count FROM projects
-      WHERE owner_id = ? AND created_at >= ? AND created_at < ?`)
-      .bind(ownerId, window.startAt, window.resetAt).first<{ count: number }>();
-    if ((row?.count ?? 0) >= DAILY_PROJECT_LIMIT) {
-      throw new DailyProjectLimitError(DAILY_PROJECT_LIMIT, window.resetAt);
+      WHERE owner_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)`)
+      .bind(ownerId).first<{ count: number }>();
+    if ((row?.count ?? 0) >= FREE_PROJECT_LIMIT) {
+      throw new ProjectCountLimitError(FREE_PROJECT_LIMIT);
     }
   }
 
@@ -500,9 +505,9 @@ class ProjectRepository {
     input: CreateProjectRecordInput,
   ): Promise<Project> {
     await this.ensureSchema(db);
-    const window = projectCreationWindow();
+    const now = new Date().toISOString();
     // Stamp user creations at this write boundary, after any metadata work.
-    const createdAt = input.ownerId ? window.createdAt : input.createdAt ?? input.lastDeployed;
+    const createdAt = input.ownerId ? now : input.createdAt ?? input.lastDeployed;
     const localizedMetadata = normalizeProjectLocalization(input.localization);
     const row = await db
       .prepare(
@@ -516,7 +521,7 @@ class ProjectRepository {
           SELECT 1 FROM projects WHERE slug = ? AND (is_deleted = 0 OR is_deleted IS NULL)
         )) AND (? IS NULL OR (
           SELECT COUNT(*) FROM projects
-          WHERE owner_id = ? AND created_at >= ? AND created_at < ?
+          WHERE owner_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)
         ) < ?) RETURNING *`,
       )
       .bind(
@@ -549,14 +554,12 @@ class ProjectRepository {
         input.slug ?? null,
         input.ownerId ?? null,
         input.ownerId ?? null,
-        window.startAt,
-        window.resetAt,
-        DAILY_PROJECT_LIMIT,
+        FREE_PROJECT_LIMIT,
       )
       .first<ProjectRow>();
 
     if (!row) {
-      await this.assertProjectCreationAllowed(db, input.ownerId, window);
+      await this.assertProjectCreationAllowed(db, input.ownerId);
       throw addressTakenError();
     }
 
@@ -1108,6 +1111,20 @@ class ProjectRepository {
       )
       .bind(slug)
       .run();
+  }
+
+  async markStorageDeletion(db: D1Database, id: string, ownerId: string): Promise<void> {
+    await this.ensureSchema(db);
+    await db.prepare('UPDATE projects SET storage_deletion_pending = 1, updated_at = ? WHERE id = ? AND owner_id = ?').bind(new Date().toISOString(), id, ownerId).run();
+    // Invalidate queued screenshots before storage is removed.
+    const table = await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='thumbnail_jobs'").first();
+    if (table) await db.prepare('DELETE FROM thumbnail_jobs WHERE project_id = ?').bind(id).run();
+  }
+
+  async pendingStorageDeletions(db: D1Database): Promise<{ id: string; ownerId: string }[]> {
+    await this.ensureSchema(db);
+    const rows = await db.prepare('SELECT id, owner_id AS ownerId FROM projects WHERE storage_deletion_pending = 1 ORDER BY updated_at, id LIMIT 10').all<{ id: string; ownerId: string }>();
+    return rows.results;
   }
 
   async hardDeleteProject(

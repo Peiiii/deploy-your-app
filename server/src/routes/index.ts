@@ -10,6 +10,7 @@ import {
 import type { Project } from '../common/types.js';
 import { SourceType } from '../common/types.js';
 import { readDeploymentReceipt, saveDeploymentReceipt, recoverDeploymentReceipts } from '../modules/deployment/deploymentReceipt.js';
+import { readStorageJob } from '../modules/deployment/storageMaintenance.js';
 import { deploymentService } from '../modules/deployment/deployment.service.js';
 import { metadataService } from '../modules/metadata/index.js';
 import { CONFIG } from '../common/config/config.js';
@@ -42,6 +43,15 @@ type AppLike = {
 // Attach all API routes to the given Express app instance.
 export function registerRoutes(app: AppLike): void {
   recoverDeploymentReceipts();
+  deploymentService.startStorageMaintenance();
+  app.post('/api/v1/projects/delete-storage', async (req, res) => {
+    const { projectId, slug } = (req.body || {}) as { projectId?: string; slug?: string };
+    if (!projectId || !/^[a-f0-9-]{36}$/i.test(projectId) || !slug || !/^[a-z0-9-]{1,63}$/.test(slug)) return res.status(400).json({ error: 'Invalid project storage identity.' });
+    try {
+      await deploymentService.deleteProjectStorage(projectId, slug);
+      res.json({ complete: true });
+    } catch { res.status(503).json({ error: 'Application storage cleanup will retry.' }); }
+  });
   // ----------------------
   // Project context extraction
   // ----------------------
@@ -182,6 +192,8 @@ export function registerRoutes(app: AppLike): void {
           'project.slug is required. Create a project first and ensure analysis/AI has produced a slug.',
       });
     }
+
+    if (readStorageJob(project.id)?.deleted) return res.status(410).json({ error: 'This application is being deleted.', code: 'project_deleted' });
 
     const requestedId = (req.body as { deploymentId?: string }).deploymentId;
     if (requestedId && !/^[a-f0-9-]{36}$/i.test(requestedId)) return res.status(400).json({ error: 'Invalid deployment identity.' });
