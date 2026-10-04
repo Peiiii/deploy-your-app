@@ -127,6 +127,7 @@ try {
     if (path.startsWith('/auth/authorize') || path.startsWith('/sdk/broker')) {
       assert.equal(response.headers.get('cache-control'), 'no-store');
       assert.equal(response.headers.get('referrer-policy'), 'no-referrer');
+      assert.match(await response.clone().text(), /Authorize application · GemiGo/);
     }
     assert.ok(!(await response.text()).includes('From your content to a public link'));
   }

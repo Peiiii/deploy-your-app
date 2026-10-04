@@ -270,7 +270,10 @@ export const getSeo = (url) => {
   const language = url.searchParams.get('lang') === 'zh-CN' ? 'zh-CN' : 'en';
   const key = keys[path];
   const text = copy[language];
-  const [title, description, heading] = key ? text[key] : ['GemiGo', '', 'GemiGo'];
+  const [title, description, heading] = key ? text[key]
+    : ['/auth/authorize', '/sdk/broker'].includes(path)
+      ? language === 'zh-CN' ? ['应用授权 · GemiGo', '安全连接你的账号与应用', '应用授权'] : ['Authorize application · GemiGo', 'Securely connect your account to an application', 'Authorize application']
+      : ['GemiGo', '', 'GemiGo'];
   const canonical = SITE + localizedPath(path, language);
   const known =
     Boolean(key) ||
