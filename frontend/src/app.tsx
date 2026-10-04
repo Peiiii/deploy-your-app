@@ -183,7 +183,7 @@ export default function App() {
   const pathname = location.pathname || '/';
   const isPrivacyPolicy =
     pathname === '/privacy-policy' || pathname === '/privacy';
-  const isSdkAuthBroker = pathname === '/sdk/broker';
+  const isSdkAuthBroker = (pathname === '/sdk/broker' || pathname === '/auth/authorize');
   const isPointsConfirm = pathname === '/points/confirm';
   const isCliLogin = pathname === '/cli/login';
   const isCliLoginSuccess = pathname === '/cli/login/success';
@@ -199,7 +199,7 @@ export default function App() {
   if (isSdkAuthBroker || isPointsConfirm) {
     return (
       <PresenterProvider>
-        <div className="min-h-screen bg-black text-white">
+        <div className={isSdkAuthBroker ? "min-h-screen" : "min-h-screen bg-black text-white"}>
           <AuthModal />
           <ConfirmDialog />
           <Toast />

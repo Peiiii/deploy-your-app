@@ -1,17 +1,10 @@
 import { verifiedProject } from '../points/identity';
 import { sdkAuthRepository } from '../repositories/sdk-auth.repository';
-import {
-  UnauthorizedError,
-  ValidationError,
-} from '../utils/error-handler';
+import { UnauthorizedError, ValidationError } from '../utils/error-handler';
 import { authRepository } from '../repositories/auth.repository';
 import { getSessionIdFromRequest } from '../utils/auth';
 import type { ApiWorkerEnv } from '../types/env';
-import type {
-  SdkAuthorizeResponse,
-  SdkMeResponse,
-  SdkTokenResponse,
-} from '../types/sdk-auth';
+import type { SdkAuthorizeResponse, SdkMeResponse, SdkTokenResponse } from '../types/sdk-auth';
 
 const AUTH_CODE_TTL_SECONDS = 60;
 const DEFAULT_ACCESS_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 180; // 180 days
@@ -60,7 +53,14 @@ function parseScopes(raw: unknown): string[] {
   return [];
 }
 
-function requireAppId(raw: unknown): string {
+export function normalizeAuthorizationScopes(raw: unknown): string[] {
+  const scopes = [...new Set(['identity:basic', ...parseScopes(raw)])];
+  if (scopes.some((scope) => !['identity:basic', 'storage:rw', 'points:use'].includes(scope)))
+    throw new ValidationError('Unsupported permission');
+  return scopes;
+}
+
+export function requireAppId(raw: unknown): string {
   if (typeof raw !== 'string') {
     throw new ValidationError('appId is required and must be a string');
   }
@@ -73,13 +73,13 @@ function requireAppId(raw: unknown): string {
   return appId;
 }
 
-function requireCodeChallenge(raw: unknown): string {
+export function requireCodeChallenge(raw: unknown): string {
   if (typeof raw !== 'string') {
     throw new ValidationError('codeChallenge is required and must be a string');
   }
   const trimmed = raw.trim();
   if (!trimmed) throw new ValidationError('codeChallenge cannot be empty');
-  if (trimmed.length > 256) throw new ValidationError('codeChallenge is invalid');
+  if (!/^[A-Za-z0-9_-]{43}$/.test(trimmed)) throw new ValidationError('codeChallenge must be S256');
   return trimmed;
 }
 
@@ -89,7 +89,7 @@ function requireCodeVerifier(raw: unknown): string {
   }
   const trimmed = raw.trim();
   if (!trimmed) throw new ValidationError('codeVerifier cannot be empty');
-  if (trimmed.length < 43 || trimmed.length > 128) {
+  if (!/^[A-Za-z0-9._~-]{43,128}$/.test(trimmed)) {
     throw new ValidationError('codeVerifier length is invalid');
   }
   return trimmed;
@@ -123,7 +123,7 @@ class SdkAuthService {
       scopes: unknown;
       codeChallenge: unknown;
       openerOrigin?: unknown;
-    },
+    }
   ): Promise<SdkAuthorizeResponse> {
     const sessionId = getSessionIdFromRequest(request);
     if (!sessionId) throw new UnauthorizedError('Login required.');
@@ -134,24 +134,19 @@ class SdkAuthService {
     const appId = requireAppId(input.appId);
     const requestedScopes = parseScopes(input.scopes);
     const codeChallenge = requireCodeChallenge(input.codeChallenge);
-    if (requestedScopes.includes('points:use')) {
-      if (typeof input.openerOrigin !== 'string') throw new ValidationError('openerOrigin required for points');
-      await verifiedProject(db, appId, input.openerOrigin);
-      if (request.headers.get('origin') !== new URL(env.AUTH_REDIRECT_BASE || 'https://gemigo.io').origin) throw new ValidationError('Invalid platform origin');
-    }
-
-    // V0: minimal scopes; allow additional strings but keep bounded.
-    if (requestedScopes.length === 0) {
-      requestedScopes.push('identity:basic');
-    }
-    if (requestedScopes.length > 10) {
-      throw new ValidationError('Too many scopes.');
-    }
+    if (typeof input.openerOrigin !== 'string') throw new ValidationError('openerOrigin required');
+    await verifiedProject(db, appId, input.openerOrigin);
+    if (
+      request.headers.get('origin') !==
+      new URL(env.AUTH_REDIRECT_BASE || 'https://gemigo.io').origin
+    )
+      throw new ValidationError('Invalid platform origin');
+    const scopes = normalizeAuthorizationScopes(requestedScopes);
 
     await sdkAuthRepository.upsertConsent(db, {
       appId,
       userId: sessionWithUser.user.id,
-      scopes: requestedScopes,
+      scopes,
     });
 
     // Ensure app-scoped user id exists.
@@ -166,8 +161,9 @@ class SdkAuthService {
       code,
       appId,
       userId: sessionWithUser.user.id,
-      scopes: requestedScopes,
+      scopes,
       codeChallenge,
+      sourceOrigin: input.openerOrigin,
       expiresAt,
     });
 
@@ -182,9 +178,8 @@ class SdkAuthService {
     input: {
       code: unknown;
       codeVerifier: unknown;
-    },
+    }
   ): Promise<SdkTokenResponse> {
-    void request;
     const code = requireCode(input.code);
     const codeVerifier = requireCodeVerifier(input.codeVerifier);
 
@@ -194,6 +189,8 @@ class SdkAuthService {
       throw new ValidationError('Code already used or invalid.');
     }
 
+    if (request.headers.get('origin') !== record.sourceOrigin)
+      throw new ValidationError('Invalid app origin');
     const nowIso = new Date().toISOString();
     if (record.expiresAt <= nowIso) {
       throw new ValidationError('Code expired.');
@@ -216,6 +213,7 @@ class SdkAuthService {
       appId: record.appId,
       appUserId: appUser.appUserId,
       scopes: record.scopes,
+      sourceOrigin: record.sourceOrigin,
       expiresAt,
     });
 

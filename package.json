@@ -55,6 +55,7 @@
     "test:thumbnail-performance": "./server/node_modules/.bin/tsx scripts/test-thumbnail-performance.ts",
     "backfill:project-metadata": "./server/node_modules/.bin/tsx scripts/backfill-project-metadata.ts",
     "test:seo": "pnpm build:frontend && node scripts/test-seo-pages.mjs && ./server/node_modules/.bin/tsx scripts/test-acquisition.ts && ./server/node_modules/.bin/tsx scripts/test-acquisition-auth.ts && ./server/node_modules/.bin/tsx scripts/test-acquisition-publication.ts",
+    "test:application-auth": "./server/node_modules/.bin/tsx scripts/test-application-authorization.ts && ./server/node_modules/.bin/tsx scripts/test-sdk-authorization.ts",
     "test:points": "./server/node_modules/.bin/tsx scripts/test-platform-points.ts",
     "build:docs": "pnpm build:sdk && node scripts/build-developer-docs.mjs",
     "deploy:docs": "pnpm build:docs && pnpm --filter @gemigo/docs-worker run deploy"

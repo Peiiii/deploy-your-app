@@ -1,6 +1,6 @@
 # Active acceptance contract
 
-contract-id: gemigo-app-api-gateway-20261003 / revision: 3 / scope-revision: 1
+contract-id: gemigo-app-api-gateway-20261003 / revision: 4 / scope-revision: 2
 parent-goal: 应用作者保存自己的 Secrets 与连接，访客通过平台安全、可限制和撤销地消费文字/实时语音；小伴在线可用。
 来源：../../logs/2026-10-03-app-api-gateway/README.md 与用户确认的设计。
 
@@ -22,3 +22,17 @@ parent-goal: 应用作者保存自己的 Secrets 与连接，访客通过平台�
 revision 2 仅更新实际线上证据及恢复限制，scope-revision 保持1。线上录音样本完成10次ASR/10次回复，音频3290880字节、播放峰值0.5468、两个AudioContext运行并在挂断后关闭，WS关闭。用户尚未确认实际可听。
 
 revision 3：授权页评审发现基础SDK发行处缺少应用来源绑定，见review.md新增P1。GW-03既有网关消费/出站证据仍有效，但不能覆盖发行处应用冒认，整体身份隔离须返工后重验；范围未缩减。
+
+## 授权优化（用户2026-10-04批准落地）
+
+| ID | Required | 可观察结果 | Status | 证据 |
+| --- | --- | --- | --- | --- |
+| AUTH-01 | true | 新短地址与旧SDK授权入口均可用，应用信息来自平台校验 | not-run | — |
+| AUTH-02 | true | 中文权限说明、真实应用名称/域名/提供者、账号状态/切换、明暗主题与手机布局 | not-run | — |
+| AUTH-03 | true | 所有身份发行来源绑定，旧未验证凭证不可继续消费；错误app/来源/权限/回跳拒绝 | not-run | — |
+| AUTH-04 | true | 整页授权成功/取消/刷新返回，PKCE/state/TTL验证，临时URL参数清理 | not-run | — |
+| AUTH-05 | true | popup成功、关闭、超时反馈，auto在blocked情况下回退整页 | not-run | — |
+| AUTH-06 | true | SDK公开接口、示例与文档贯通，原SDK入口兼容 | not-run | — |
+| AUTH-07 | true | 全套适用检查/Review/提交同步/发布/实际小伴返回与工程对话验收 | not-run | — |
+
+设计与Review见../../designs/2026-10-04-application-authorization.design.md；公开身份变更会要求旧SDK会话重新登录，数据、积分和上游Key不动。

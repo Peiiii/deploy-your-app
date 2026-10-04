@@ -99,3 +99,11 @@
 3) **责任人/评审**：为该文件与相关路由配置设置 CODEOWNERS（可选，但强烈建议），任何改动必须由平台 owner review。
 
 > 这三点里，只有“自动校验”能真正阻止后续变更把单一真相来源弄脏；没有自动化，文档必然过期。
+
+## 2026-10-04 授权入口升级（SDK 0.3.1）
+
+以 `docs/designs/2026-10-04-application-authorization.design.md` 和实际服务为当前合同：新入口 `/auth/authorize?request=<UUID>`，旧 `/sdk/broker` 继续兼容。所有 scopes 的发行都要求 appId 对应 Live 未删除项目，openerOrigin 与登记 URL origin 精确一致，授权提交 Origin 为平台。只允许 identity:basic/storage:rw/points:use，身份默认包含 basic。PKCE 必须 S256。
+
+`0008_application_authorization.sql` 增加短期 request 表和 code/token 的 source_origin。先在生产现有 SDK 表布局上执行一次迁移再发布 API；重试前检查 PRAGMA，禁止盲目重复 ALTER。新 repository 不接受 NULL 来源的旧 code/token，旧会话须重新登录；账号、appUserId、Cloud 数据、点数和上游 Secrets 保留。规范化回跳 URI 必须完全等于登记发布 URL。SDK session 保存十分钟 state/verifier，调用 handleRedirectCallback 完成整页返回，URL 从不返回 access token。
+
+保留当前 DO 绑定和迁移。授权来源修复后，不要部署 2026-10-04 早期 app-gateway 恢复 bundle（包含旧身份发行规则）；本轮重新冻结包含来源校验的 app-authorization-20261004 恢复包。恢复只暂停应用连接，平台身份与短请求流程继续可用；数据库新增列无需逆向删除。

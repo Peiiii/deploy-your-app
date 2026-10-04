@@ -32,6 +32,10 @@
 
 所有平台均支持的基础能力。
 
+### Auth 网页授权
+
+`gemigo.auth.login({appId?, scopes?, display?: 'popup' | 'redirect' | 'auto', redirectUri?, persist?})` 从用户点击发起。仅支持 `identity:basic`、`storage:rw`、`points:use`；来源必须与平台已发布应用登记地址匹配。默认弹窗；整页模式需在应用启动调用 `await gemigo.auth.handleRedirectCallback()`，返回令牌或无回调时的 `null`，失败/取消会抛错。返回 URI 必须完全等于规范化的发布 URL，默认应用根 URL。SDK 校验 state、PKCE 和十分钟时限，清理回调参数，恢复原页面。`getAccessToken()` 读取应用令牌，`logout()` 清除应用登录。详见 https://docs.gemigo.io/auth-cloud 。
+
 ### <a id="environment"></a>Environment 环境
 
 #### `gemigo.platform`

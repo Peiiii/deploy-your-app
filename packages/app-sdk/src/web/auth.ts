@@ -11,7 +11,11 @@ let currentToken: AuthTokenResponse | null = null;
 let currentApiBaseUrl: string | null = null;
 let currentPersistMode: AuthPersistMode = 'local';
 
-type PersistedTokenV1 = AuthTokenResponse & { expiresAt: number; apiBaseUrl: string; persistedAt: number };
+type PersistedTokenV1 = AuthTokenResponse & {
+  expiresAt: number;
+  apiBaseUrl: string;
+  persistedAt: number;
+};
 
 const TOKEN_STORAGE_KEY = 'gemigo:sdk-auth:v1';
 
@@ -48,7 +52,11 @@ function loadPersistedToken(mode: AuthPersistMode): PersistedTokenV1 | null {
   }
 }
 
-function savePersistedToken(mode: AuthPersistMode, token: AuthTokenResponse, apiBaseUrl: string): void {
+function savePersistedToken(
+  mode: AuthPersistMode,
+  token: AuthTokenResponse,
+  apiBaseUrl: string
+): void {
   const storage = getStorage(mode);
   if (!storage) return;
   try {
@@ -86,7 +94,7 @@ function hydrateFromStorageIfNeeded(): void {
       ? session.persistedAt >= local.persistedAt
         ? session
         : local
-      : session ?? local;
+      : (session ?? local);
   if (!persisted) return;
 
   currentToken = {
@@ -131,44 +139,35 @@ function deriveDefaultAppId(): string {
 }
 
 function normalizeScopes(scopes?: AuthScope[]): string[] {
-  const list = (scopes ?? ['identity:basic'])
-    .map((s) => String(s).trim())
-    .filter(Boolean);
+  const list = (scopes ?? ['identity:basic']).map((s) => String(s).trim()).filter(Boolean);
   return list.length > 0 ? list : ['identity:basic'];
-}
-
-function buildBrokerUrl(options: Required<Pick<AuthLoginOptions, 'platformOrigin'>> & {
-  appId: string;
-  scopes: string[];
-  state: string;
-  codeChallenge: string;
-  openerOrigin: string;
-}): string {
-  const url = new URL('/sdk/broker', options.platformOrigin);
-  url.searchParams.set('app_id', options.appId);
-  url.searchParams.set('scope', options.scopes.join(' '));
-  url.searchParams.set('state', options.state);
-  url.searchParams.set('code_challenge', options.codeChallenge);
-  url.searchParams.set('code_challenge_method', 'S256');
-  url.searchParams.set('origin', options.openerOrigin);
-  return url.toString();
 }
 
 async function exchangeCode(
   apiBaseUrl: string,
   code: string,
-  codeVerifier: string,
+  codeVerifier: string
 ): Promise<AuthTokenResponse> {
-  const res = await fetch(`${apiBaseUrl.replace(/\/+$/, '')}/sdk/token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code, codeVerifier }),
-  });
-  if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(data.error || 'Failed to exchange code');
+  const controller = new AbortController();
+  const timer = setTimeout(
+    () => controller.abort(new Error('Login exchange timed out. Please retry.')),
+    30000
+  );
+  try {
+    const res = await fetch(`${apiBaseUrl.replace(/\/+$/, '')}/sdk/token`, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, codeVerifier }),
+    });
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      throw new Error(data.error || 'Failed to exchange code');
+    }
+    return (await res.json()) as AuthTokenResponse;
+  } finally {
+    clearTimeout(timer);
   }
-  return (await res.json()) as AuthTokenResponse;
 }
 
 export function getWebApiBaseUrl(): string {
@@ -176,117 +175,217 @@ export function getWebApiBaseUrl(): string {
   return currentApiBaseUrl || 'https://gemigo.io/api/v1';
 }
 
+const PENDING_KEY = 'gemigo:sdk-auth:redirect:v1';
+const CALLBACK_KEYS = ['gemigo_code', 'gemigo_state', 'gemigo_error'];
+type PendingLogin = {
+  appId: string;
+  apiBaseUrl: string;
+  redirectUri: string;
+  returnUrl: string;
+  state: string;
+  codeVerifier: string;
+  persist: AuthPersistMode;
+  expiresAt: number;
+};
+let callbackFlight: Promise<AuthTokenResponse | null> | null = null;
+
+function acceptToken(
+  token: AuthTokenResponse,
+  pending: Pick<PendingLogin, 'appId' | 'apiBaseUrl' | 'persist'>
+): AuthTokenResponse {
+  if (token.appId !== pending.appId || !token.accessToken || !token.appUserId)
+    throw new Error('Unexpected application identity. Please retry login.');
+  currentToken = token;
+  currentApiBaseUrl = pending.apiBaseUrl;
+  currentPersistMode = pending.persist;
+  clearPersistedToken('session');
+  clearPersistedToken('local');
+  savePersistedToken(pending.persist, token, pending.apiBaseUrl);
+  return token;
+}
+async function finishRedirect(): Promise<AuthTokenResponse | null> {
+  if (typeof window === 'undefined') return null;
+  const url = new URL(window.location.href);
+  if (!CALLBACK_KEYS.some((key) => url.searchParams.has(key))) return null;
+  const code = url.searchParams.get('gemigo_code');
+  const state = url.searchParams.get('gemigo_state');
+  const error = url.searchParams.get('gemigo_error');
+  CALLBACK_KEYS.forEach((key) => url.searchParams.delete(key));
+  window.history.replaceState(null, '', url.href);
+  const storage = getStorage('session');
+  const raw = storage?.getItem(PENDING_KEY);
+  storage?.removeItem(PENDING_KEY);
+  let pending: PendingLogin | null = null;
+  try {
+    pending = raw ? (JSON.parse(raw) as PendingLogin) : null;
+  } catch {
+    /* handled below */
+  }
+  if (
+    !pending ||
+    pending.state !== state ||
+    !Number.isFinite(pending.expiresAt) ||
+    pending.expiresAt <= Date.now()
+  )
+    throw new Error('Login expired or state mismatch. Please retry login.');
+  const callback = new URL(pending.redirectUri);
+  const original = new URL(pending.returnUrl);
+  if (
+    callback.origin !== url.origin ||
+    callback.pathname !== url.pathname ||
+    original.origin !== url.origin
+  )
+    throw new Error('Invalid login return address.');
+  window.history.replaceState(null, '', original.href);
+  if (error)
+    throw new Error(error === 'access_denied' ? 'Login cancelled.' : 'Login failed. Please retry.');
+  if (!code) throw new Error('Missing authorization code.');
+  return acceptToken(await exchangeCode(pending.apiBaseUrl, code, pending.codeVerifier), pending);
+}
+
 export const webAuth: AuthAPI = {
   async login(options: AuthLoginOptions = {}): Promise<AuthTokenResponse> {
-    if (typeof window === 'undefined') {
-      throw new SDKError('NOT_SUPPORTED', 'auth.login is only supported in browser environments.');
-    }
-
-    const platformOrigin = options.platformOrigin?.trim() || 'https://gemigo.io';
-    const apiBaseUrl = options.apiBaseUrl?.trim() || `${platformOrigin.replace(/\/+$/, '')}/api/v1`;
+    if (typeof window === 'undefined')
+      throw new SDKError('NOT_SUPPORTED', 'auth.login requires a browser.');
+    const platformOrigin = new URL(options.platformOrigin?.trim() || 'https://gemigo.io').origin;
+    const apiBaseUrl = options.apiBaseUrl?.trim() || `${platformOrigin}/api/v1`;
     const appId = options.appId?.trim() || deriveDefaultAppId();
     const scopes = normalizeScopes(options.scopes);
-    const timeoutMs = typeof options.timeoutMs === 'number' ? options.timeoutMs : 2 * 60 * 1000;
+    const timeoutMs = options.timeoutMs ?? 2 * 60 * 1000;
     const persist = options.persist ?? 'local';
-    currentPersistMode = persist;
-
-    const state = randomString(16);
-    const codeVerifier = randomString(48); // => ~64 chars base64url-ish, PKCE valid
-    const openerOrigin = window.location.origin;
-
-    const width = 520;
-    const height = 720;
-    const left = Math.max(0, (window.screen.width - width) / 2);
-    const top = Math.max(0, (window.screen.height - height) / 2);
-
-    // IMPORTANT:
-    // To avoid popup blockers, open the window synchronously inside the user gesture
-    // (this function is typically called in a click handler). Computing PKCE
-    // challenge uses async crypto.subtle APIs and can break user activation.
-    const popup = window.open(
-      'about:blank',
-      'gemigo_sdk_auth',
-      `popup=yes,width=${width},height=${height},left=${left},top=${top}`,
-    );
-    if (!popup) {
-      throw new Error('Popup blocked. Please allow popups and retry.');
+    const display = options.display ?? 'popup';
+    const redirectUri = new URL(options.redirectUri || '/', window.location.origin).href;
+    if (new URL(redirectUri).origin !== window.location.origin)
+      throw new Error('Return URL must belong to this app.');
+    let mode: 'popup' | 'redirect' =
+      display === 'redirect' ||
+      (display === 'auto' && /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent))
+        ? 'redirect'
+        : 'popup';
+    // Open before the first await to preserve the click gesture.
+    const popup =
+      mode === 'popup'
+        ? window.open('about:blank', 'gemigo_sdk_auth', 'popup=yes,width=520,height=720')
+        : null;
+    if (mode === 'popup' && !popup) {
+      if (display !== 'auto')
+        throw new Error('Popup blocked. Use display: "redirect" or allow popups.');
+      mode = 'redirect';
     }
-
-    try {
-      popup.document.title = 'GemiGo Auth';
-      popup.document.body.innerHTML =
-        '<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:24px;">Loading…</div>';
-    } catch {
-      // ignore cross-origin/document access issues
-    }
-
-    const codeChallenge = await sha256Base64Url(codeVerifier);
-    const brokerUrl = buildBrokerUrl({
-      platformOrigin,
+    const pending: PendingLogin = {
       appId,
-      scopes,
-      state,
-      codeChallenge,
-      openerOrigin,
-    });
+      apiBaseUrl,
+      persist,
+      redirectUri,
+      returnUrl: window.location.href,
+      state: randomString(32),
+      codeVerifier: randomString(48),
+      expiresAt: Date.now() + 10 * 60 * 1000,
+    };
     try {
-      popup.location.href = brokerUrl;
-    } catch {
-      // If navigation fails (rare), fall back to opening a new popup.
-      const retry = window.open(brokerUrl, 'gemigo_sdk_auth');
-      if (!retry) {
-        throw new Error('Popup navigation failed. Please allow popups and retry.');
+      const codeChallenge = await sha256Base64Url(pending.codeVerifier);
+      const controller = new AbortController();
+      const requestTimer = window.setTimeout(
+        () => controller.abort(new Error('Login timed out. Please retry.')),
+        timeoutMs
+      );
+      const closedTimer = popup
+        ? window.setInterval(() => {
+            if (popup.closed) controller.abort(new Error('Login window closed. Please retry.'));
+          }, 500)
+        : null;
+      let response: Response;
+      let data: { authorizationUrl?: string; error?: string };
+      try {
+        response = await fetch(`${apiBaseUrl.replace(/\/+$/, '')}/sdk/auth-requests`, {
+          method: 'POST',
+          signal: controller.signal,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            appId,
+            scopes,
+            codeChallenge,
+            state: pending.state,
+            redirectUri,
+            mode,
+          }),
+        });
+        data = (await response.json()) as { authorizationUrl?: string; error?: string };
+      } finally {
+        window.clearTimeout(requestTimer);
+        if (closedTimer !== null) window.clearInterval(closedTimer);
       }
-    }
-
-    const result = await new Promise<{ code: string }>((resolve, reject) => {
-      const timer = window.setTimeout(() => {
-        cleanup();
-        reject(new Error('Login timeout.'));
-      }, timeoutMs);
-
-      const cleanup = () => {
-        window.clearTimeout(timer);
-        window.removeEventListener('message', onMessage);
-        try {
+      if (!response.ok || !data.authorizationUrl)
+        throw new Error(data.error || 'Unable to start login.');
+      const target = new URL(data.authorizationUrl);
+      if (target.origin !== platformOrigin || target.pathname !== '/auth/authorize')
+        throw new Error('Invalid authorization address.');
+      if (mode === 'redirect') {
+        const storage = getStorage('session');
+        if (!storage)
+          throw new Error('Browser storage is unavailable. Enable session storage to sign in.');
+        storage.setItem(PENDING_KEY, JSON.stringify(pending));
+        window.location.assign(target.href);
+        // The new page resumes via handleRedirectCallback().
+        return await new Promise<AuthTokenResponse>(() => {});
+      }
+      if (!popup) throw new Error('Login window unavailable.');
+      const result = await new Promise<string>((resolve, reject) => {
+        const cleanup = () => {
+          window.clearTimeout(timer);
+          window.clearInterval(closedTimer);
+          window.removeEventListener('message', onMessage);
           popup.close();
-        } catch {
-          // ignore
-        }
-      };
-
-      const onMessage = (event: MessageEvent) => {
-        if (event.origin !== new URL(platformOrigin).origin || event.source !== popup) return;
-        const data = event.data as any;
-        if (!data || typeof data !== 'object') return;
-        if (data.state !== state) return;
-
-        if (data.type === 'gemigo:sdk-auth-error') {
+        };
+        const onMessage = (event: MessageEvent) => {
+          if (event.origin !== platformOrigin || event.source !== popup) return;
+          const payload = event.data as {
+            state?: string;
+            type?: string;
+            code?: string;
+            error?: string;
+          } | null;
+          if (!payload || payload.state !== pending.state) return;
+          if (payload.type === 'gemigo:sdk-auth-error') {
+            cleanup();
+            reject(new Error(payload.error || 'Login cancelled.'));
+          }
+          if (payload.type === 'gemigo:sdk-auth-code' && typeof payload.code === 'string') {
+            cleanup();
+            resolve(payload.code);
+          }
+        };
+        const timer = window.setTimeout(() => {
           cleanup();
-          reject(new Error(String(data.error || 'auth_error')));
-          return;
-        }
-
-        if (data.type === 'gemigo:sdk-auth-code' && typeof data.code === 'string') {
+          reject(new Error('Login timed out. Please retry.'));
+        }, timeoutMs);
+        const closedTimer = window.setInterval(() => {
+          if (popup.closed) {
+            cleanup();
+            reject(new Error('Login window closed. Please retry.'));
+          }
+        }, 500);
+        window.addEventListener('message', onMessage);
+        try {
+          popup.location.href = target.href;
+        } catch (error) {
           cleanup();
-          resolve({ code: data.code });
+          reject(error);
         }
-      };
-
-      window.addEventListener('message', onMessage);
-    });
-
-    const token = await exchangeCode(apiBaseUrl, result.code, codeVerifier);
-    currentToken = token;
-    currentApiBaseUrl = apiBaseUrl;
-    if (persist !== 'memory') {
-      savePersistedToken(persist, token, apiBaseUrl);
-      clearPersistedToken(persist === 'local' ? 'session' : 'local');
-    } else {
-      clearPersistedToken('session');
-      clearPersistedToken('local');
+      });
+      return acceptToken(await exchangeCode(apiBaseUrl, result, pending.codeVerifier), pending);
+    } catch (error) {
+      popup?.close();
+      throw error;
     }
-    return token;
+  },
+
+  handleRedirectCallback(): Promise<AuthTokenResponse | null> {
+    if (callbackFlight) return callbackFlight;
+    callbackFlight = finishRedirect().finally(() => {
+      callbackFlight = null;
+    });
+    return callbackFlight;
   },
 
   getAccessToken(): string | null {
@@ -299,5 +398,6 @@ export const webAuth: AuthAPI = {
     currentApiBaseUrl = null;
     clearPersistedToken('session');
     clearPersistedToken('local');
+    getStorage('session')?.removeItem(PENDING_KEY);
   },
 };

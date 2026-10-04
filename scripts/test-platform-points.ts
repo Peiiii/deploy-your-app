@@ -321,6 +321,7 @@ try {
   });
   await sdkAuthRepository.insertAccessToken(db, {
     token: 'test-app-token',
+    sourceOrigin: 'https://knowledge-lab.gemigo.app',
     appId: 'knowledge-lab',
     appUserId: appUser.appUserId,
     scopes: ['identity:basic', 'points:use', 'storage:rw'],
@@ -355,7 +356,7 @@ try {
     sdkAuthService.authorize(platformReq('/unused', {}), env, db, {
       appId: 'knowledge-lab',
       scopes: ['points:use'],
-      codeChallenge: 'challenge',
+      codeChallenge: 'A'.repeat(43),
       openerOrigin: 'https://evil.gemigo.app',
     }),
     /来源/
@@ -488,6 +489,7 @@ try {
   assert.deepEqual(cloud.value, { lesson: 3 }, 'existing Cloud storage still works');
   await sdkAuthRepository.insertAccessToken(db, {
     token: 'legacy-token',
+    sourceOrigin: 'https://legacy-app.gemigo.app',
     appId: 'legacy-app',
     appUserId: 'legacy-user',
     scopes: ['identity:basic', 'storage:rw'],

@@ -25,7 +25,9 @@ GemiGo 的应用仍只部署前端。项目所有者可在「项目设置 → AP
 
 ```js
 // gemigo 来自 @gemigo/app-sdk 的浏览器构建。
-await gemigo.auth.login({ appId: 'your-app-slug', scopes: ['identity:basic'], persist: 'session' });
+await gemigo.auth.handleRedirectCallback(); // 应用启动时
+// 登录按钮中调用：
+await gemigo.auth.login({ appId: 'your-app-slug', scopes: ['identity:basic'], persist: 'session', display: 'redirect' });
 ```
 
 获取60秒内有效、只能使用一次的票据，然后调用连接。**浏览器只持有应用登录 Token 和短时票据，没有上游 Key。**

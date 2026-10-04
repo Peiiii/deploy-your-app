@@ -1,8 +1,34 @@
 import type { ApiWorkerEnv } from '../types/env';
 import { jsonResponse, readJson } from '../utils/http';
+import { sdkAuthRequestService } from '../services/sdk-auth-request.service';
 import { sdkAuthService } from '../services/sdk-auth.service';
 
+function authResponse(body: unknown): Response {
+  const response = jsonResponse(body);
+  response.headers.set('Cache-Control', 'no-store');
+  return response;
+}
+
 class SdkAuthController {
+  async createRequest(request: Request, env: ApiWorkerEnv, db: D1Database): Promise<Response> {
+    return authResponse(
+      await sdkAuthRequestService.create(request, env, db, await readJson(request))
+    );
+  }
+  async requestContext(request: Request, db: D1Database, id?: string): Promise<Response> {
+    const context = id
+      ? await sdkAuthRequestService.context(request, db, id)
+      : await sdkAuthRequestService.legacyContext(request, db);
+    return authResponse(context);
+  }
+  async authorizeRequest(
+    request: Request,
+    env: ApiWorkerEnv,
+    db: D1Database,
+    id: string
+  ): Promise<Response> {
+    return authResponse(await sdkAuthRequestService.authorize(request, env, db, id));
+  }
   // POST /api/v1/sdk/authorize
   async authorize(request: Request, env: ApiWorkerEnv, db: D1Database): Promise<Response> {
     const body = await readJson(request);
@@ -41,4 +67,3 @@ class SdkAuthController {
 }
 
 export const sdkAuthController = new SdkAuthController();
-

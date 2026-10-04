@@ -13,9 +13,7 @@ function parseJsonArray(value: unknown): string[] {
   if (typeof value !== 'string') return [];
   try {
     const parsed = JSON.parse(value) as unknown;
-    return Array.isArray(parsed)
-      ? parsed.filter((v): v is string => typeof v === 'string')
-      : [];
+    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [];
   } catch {
     return [];
   }
@@ -33,14 +31,14 @@ class SdkAuthRepository {
           app_user_id TEXT NOT NULL,
           created_at TEXT NOT NULL,
           PRIMARY KEY (app_id, user_id)
-        )`,
+        )`
       )
       .run();
 
     await db
       .prepare(
         `CREATE UNIQUE INDEX IF NOT EXISTS idx_sdk_app_users_app_user_id
-         ON sdk_app_users(app_id, app_user_id)`,
+         ON sdk_app_users(app_id, app_user_id)`
       )
       .run();
 
@@ -54,7 +52,7 @@ class SdkAuthRepository {
           updated_at TEXT NOT NULL,
           revoked_at TEXT,
           PRIMARY KEY (app_id, user_id)
-        )`,
+        )`
       )
       .run();
 
@@ -66,17 +64,18 @@ class SdkAuthRepository {
           user_id TEXT NOT NULL,
           scopes TEXT NOT NULL,
           code_challenge TEXT NOT NULL,
+          source_origin TEXT,
           created_at TEXT NOT NULL,
           expires_at TEXT NOT NULL,
           consumed_at TEXT
-        )`,
+        )`
       )
       .run();
 
     await db
       .prepare(
         `CREATE INDEX IF NOT EXISTS idx_sdk_auth_codes_app_user
-         ON sdk_auth_codes(app_id, user_id)`,
+         ON sdk_auth_codes(app_id, user_id)`
       )
       .run();
 
@@ -84,19 +83,20 @@ class SdkAuthRepository {
       .prepare(
         `CREATE TABLE IF NOT EXISTS sdk_access_tokens (
           token TEXT PRIMARY KEY,
+          source_origin TEXT,
           app_id TEXT NOT NULL,
           app_user_id TEXT NOT NULL,
           scopes TEXT NOT NULL,
           created_at TEXT NOT NULL,
           expires_at TEXT NOT NULL
-        )`,
+        )`
       )
       .run();
 
     await db
       .prepare(
         `CREATE INDEX IF NOT EXISTS idx_sdk_access_tokens_expires_at
-         ON sdk_access_tokens(expires_at)`,
+         ON sdk_access_tokens(expires_at)`
       )
       .run();
 
@@ -105,7 +105,7 @@ class SdkAuthRepository {
 
   async upsertConsent(
     db: D1Database,
-    input: { appId: string; userId: string; scopes: string[] },
+    input: { appId: string; userId: string; scopes: string[] }
   ): Promise<SdkConsentRecord> {
     await this.ensureSchema(db);
     const now = new Date().toISOString();
@@ -119,7 +119,7 @@ class SdkAuthRepository {
           scopes = excluded.scopes,
           updated_at = excluded.updated_at,
           revoked_at = NULL
-        RETURNING *`,
+        RETURNING *`
       )
       .bind(input.appId, input.userId, scopesJson, now, now)
       .first<Record<string, unknown>>();
@@ -140,14 +140,14 @@ class SdkAuthRepository {
 
   async findConsent(
     db: D1Database,
-    input: { appId: string; userId: string },
+    input: { appId: string; userId: string }
   ): Promise<SdkConsentRecord | null> {
     await this.ensureSchema(db);
     const row = await db
       .prepare(
         `SELECT * FROM sdk_app_consents
          WHERE app_id = ? AND user_id = ?
-         LIMIT 1`,
+         LIMIT 1`
       )
       .bind(input.appId, input.userId)
       .first<Record<string, unknown>>();
@@ -165,14 +165,14 @@ class SdkAuthRepository {
 
   async ensureAppUserId(
     db: D1Database,
-    input: { appId: string; userId: string },
+    input: { appId: string; userId: string }
   ): Promise<SdkAppUserRecord> {
     await this.ensureSchema(db);
     const existing = await db
       .prepare(
         `SELECT * FROM sdk_app_users
          WHERE app_id = ? AND user_id = ?
-         LIMIT 1`,
+         LIMIT 1`
       )
       .bind(input.appId, input.userId)
       .first<Record<string, unknown>>();
@@ -192,7 +192,7 @@ class SdkAuthRepository {
       .prepare(
         `INSERT INTO sdk_app_users (app_id, user_id, app_user_id, created_at)
          VALUES (?, ?, ?, ?)
-         RETURNING *`,
+         RETURNING *`
       )
       .bind(input.appId, input.userId, appUserId, now)
       .first<Record<string, unknown>>();
@@ -217,17 +217,18 @@ class SdkAuthRepository {
       userId: string;
       scopes: string[];
       codeChallenge: string;
+      sourceOrigin: string;
       expiresAt: string;
-    },
+    }
   ): Promise<SdkAuthCodeRecord> {
     await this.ensureSchema(db);
     const now = new Date().toISOString();
     const row = await db
       .prepare(
         `INSERT INTO sdk_auth_codes (
-          code, app_id, user_id, scopes, code_challenge, created_at, expires_at, consumed_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)
-        RETURNING *`,
+          code, app_id, user_id, scopes, code_challenge, source_origin, created_at, expires_at, consumed_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)
+        RETURNING *`
       )
       .bind(
         input.code,
@@ -235,8 +236,9 @@ class SdkAuthRepository {
         input.userId,
         JSON.stringify(input.scopes),
         input.codeChallenge,
+        input.sourceOrigin,
         now,
-        input.expiresAt,
+        input.expiresAt
       )
       .first<Record<string, unknown>>();
 
@@ -250,24 +252,22 @@ class SdkAuthRepository {
       userId: String(row.user_id),
       scopes: parseJsonArray(row.scopes),
       codeChallenge: String(row.code_challenge),
+      sourceOrigin: String(row.source_origin),
       createdAt: String(row.created_at),
       expiresAt: String(row.expires_at),
       consumedAt: typeof row.consumed_at === 'string' ? row.consumed_at : null,
     };
   }
 
-  async consumeAuthCode(
-    db: D1Database,
-    code: string,
-  ): Promise<SdkAuthCodeRecord | null> {
+  async consumeAuthCode(db: D1Database, code: string): Promise<SdkAuthCodeRecord | null> {
     await this.ensureSchema(db);
     const now = new Date().toISOString();
     const row = await db
       .prepare(
         `UPDATE sdk_auth_codes
          SET consumed_at = ?
-         WHERE code = ? AND consumed_at IS NULL
-         RETURNING *`,
+         WHERE code = ? AND consumed_at IS NULL AND source_origin IS NOT NULL
+         RETURNING *`
       )
       .bind(now, code)
       .first<Record<string, unknown>>();
@@ -280,6 +280,7 @@ class SdkAuthRepository {
       userId: String(row.user_id),
       scopes: parseJsonArray(row.scopes),
       codeChallenge: String(row.code_challenge),
+      sourceOrigin: String(row.source_origin),
       createdAt: String(row.created_at),
       expiresAt: String(row.expires_at),
       consumedAt: typeof row.consumed_at === 'string' ? row.consumed_at : null,
@@ -292,26 +293,28 @@ class SdkAuthRepository {
       token: string;
       appId: string;
       appUserId: string;
+      sourceOrigin: string;
       scopes: string[];
       expiresAt: string;
-    },
+    }
   ): Promise<SdkAccessTokenRecord> {
     await this.ensureSchema(db);
     const now = new Date().toISOString();
     const row = await db
       .prepare(
         `INSERT INTO sdk_access_tokens (
-          token, app_id, app_user_id, scopes, created_at, expires_at
-        ) VALUES (?, ?, ?, ?, ?, ?)
-        RETURNING *`,
+          token, app_id, app_user_id, scopes, source_origin, created_at, expires_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        RETURNING *`
       )
       .bind(
         input.token,
         input.appId,
         input.appUserId,
         JSON.stringify(input.scopes),
+        input.sourceOrigin,
         now,
-        input.expiresAt,
+        input.expiresAt
       )
       .first<Record<string, unknown>>();
 
@@ -321,6 +324,7 @@ class SdkAuthRepository {
 
     return {
       token: String(row.token),
+      sourceOrigin: String(row.source_origin),
       appId: String(row.app_id),
       appUserId: String(row.app_user_id),
       scopes: parseJsonArray(row.scopes),
@@ -329,18 +333,18 @@ class SdkAuthRepository {
     };
   }
 
-  async findAccessToken(
-    db: D1Database,
-    token: string,
-  ): Promise<SdkAccessTokenRecord | null> {
+  async findAccessToken(db: D1Database, token: string): Promise<SdkAccessTokenRecord | null> {
     await this.ensureSchema(db);
     const row = await db
-      .prepare(`SELECT * FROM sdk_access_tokens WHERE token = ? LIMIT 1`)
+      .prepare(
+        `SELECT * FROM sdk_access_tokens WHERE token = ? AND source_origin IS NOT NULL LIMIT 1`
+      )
       .bind(token)
       .first<Record<string, unknown>>();
     if (!row) return null;
     return {
       token: String(row.token),
+      sourceOrigin: String(row.source_origin),
       appId: String(row.app_id),
       appUserId: String(row.app_user_id),
       scopes: parseJsonArray(row.scopes),
@@ -353,7 +357,9 @@ class SdkAuthRepository {
     await this.ensureSchema(db);
     const now = new Date().toISOString();
     const row = await db
-      .prepare(`SELECT COUNT(*) as cnt FROM sdk_access_tokens WHERE expires_at > ?`)
+      .prepare(
+        `SELECT COUNT(*) as cnt FROM sdk_access_tokens WHERE expires_at > ? AND source_origin IS NOT NULL`
+      )
       .bind(now)
       .first<CountRow>();
     return row?.cnt ?? 0;

@@ -115,3 +115,9 @@ await gemigo.extension.removeCSS(styleId);
 ## License
 
 MIT
+
+## Web authorization (0.3.1)
+
+Call `await gemigo.auth.handleRedirectCallback()` at application startup. For a same-tab login, call `gemigo.auth.login({display: "redirect", persist: "session"})` in a click handler. The callback restores the original page and returns the application token; the departing login Promise does not resolve. `popup` remains the default, and `auto` uses redirect on mobile or when popups are blocked. All scopes require an origin matching the published application URL. `redirectUri` must exactly match that registered URL; it defaults to your origin root. Restart login after cancellation, timeout, or expired state. Legacy `/sdk/broker` clients remain compatible for registered app origins.
+
+Download the fixed release at https://docs.gemigo.io/sdk/0.3.1/gemigo-app-sdk-0.3.1.tgz (npm registry currently contains 0.2.9).

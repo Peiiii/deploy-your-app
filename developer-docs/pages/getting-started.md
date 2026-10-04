@@ -5,7 +5,7 @@
 HTML 中使用固定版本的实际构建产物：
 
 ```html
-<script src="https://docs.gemigo.io/sdk/0.3.0/gemigo-app-sdk.umd.js"></script>
+<script src="https://docs.gemigo.io/sdk/0.3.1/gemigo-app-sdk.umd.js"></script>
 <button id="login">登录</button>
 <script>
 document.querySelector('#login').onclick = async () => {
@@ -15,23 +15,23 @@ document.querySelector('#login').onclick = async () => {
 </script>
 ```
 
-SDK 的全局变量是 `gemigo`。浏览器登录需要直接从点击事件触发，允许平台弹窗。点数功能要求已部署在当前应用的 `*.gemigo.app` 地址；自定义 appId 不能绕过项目身份校验。
+SDK 的全局变量是 `gemigo`。浏览器登录需要从点击事件触发；默认弹窗，手机可按[账号文档](/auth-cloud)使用整页返回。所有登录要求来源与平台登记的已发布应用地址一致；自定义 appId 不能绕过项目身份校验。
 
 已有项目的免费功能不需要点数授权。旧登录仅有 identity/storage 时，重新登录申请 `points:use`。
 
 ## 使用构建工具
 
-可安装包含 UMD、ES module 和 TypeScript 声明的[正式 SDK 包](/sdk/0.3.0/gemigo-app-sdk-0.3.0.tgz)：
+可安装包含 UMD、ES module 和 TypeScript 声明的[正式 SDK 包](/sdk/0.3.1/gemigo-app-sdk-0.3.1.tgz)：
 
 ```sh
-npm install https://docs.gemigo.io/sdk/0.3.0/gemigo-app-sdk-0.3.0.tgz
+npm install https://docs.gemigo.io/sdk/0.3.1/gemigo-app-sdk-0.3.1.tgz
 ```
 
 ```js
 import gemigo from '@gemigo/app-sdk';
 ```
 
-当前 0.3.0 托管在文档站，尚未上传 npm registry。
+当前 0.3.1 托管在文档站，尚未上传 npm registry。
 
 ## 发布你的应用
 

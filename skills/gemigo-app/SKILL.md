@@ -5,7 +5,7 @@ description: 为托管在 GemiGo 的 HTML/Web 应用接入真实账号、Cloud �
 
 # GemiGo 应用接入
 
-先读 https://docs.gemigo.io/points.md 与 https://docs.gemigo.io/getting-started.md ，核对当前接口版本和支付状态。SDK 固定资源：https://docs.gemigo.io/sdk/0.3.0/gemigo-app-sdk.umd.js ，全局变量 `gemigo`。
+先读 https://docs.gemigo.io/points.md 与 https://docs.gemigo.io/getting-started.md ，核对当前接口版本和支付状态。SDK 固定资源：https://docs.gemigo.io/sdk/0.3.1/gemigo-app-sdk.umd.js ，全局变量 `gemigo`。
 
 1. 保留免费体验，按用户意图选择收费动作；不要把整个应用默认为销售商品。检查现有代码后在该动作调用 SDK。
 2. 账号与 Cloud 使用现有 gemigo.auth/gemigo.cloud。点数登录需用户点击 `gemigo.auth.login({scopes:['identity:basic','points:use']})`。本地 HTML 不能伪装线上项目 origin。

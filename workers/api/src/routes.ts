@@ -634,6 +634,11 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
   // SDK Auth routes (App SDK V0)
   // -----------------
 
+  router.add({ path: '/api/v1/sdk/auth-requests', method: 'POST', handler: req => sdkAuthController.createRequest(req, env, requireDb()) });
+  router.add({ path: '/api/v1/sdk/auth-requests/:id', method: 'GET', handler: (req, params) => sdkAuthController.requestContext(req, requireDb(), params.id) });
+  router.add({ path: '/api/v1/sdk/auth-requests/:id/authorize', method: 'POST', handler: (req, params) => sdkAuthController.authorizeRequest(req, env, requireDb(), params.id) });
+  router.add({ path: '/api/v1/sdk/authorization-context', method: 'GET', handler: req => sdkAuthController.requestContext(req, requireDb()) });
+
   router.add({
     path: '/api/v1/sdk/authorize',
     method: 'POST',

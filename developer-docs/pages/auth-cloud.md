@@ -2,6 +2,27 @@
 
 ## 应用登录
 
+SDK 0.3.1 的统一授权页为 `https://gemigo.io/auth/authorize?request=<短期请求编号>`。从应用按钮调用 SDK 创建请求，不要手工拼接授权链接。旧 `/sdk/broker` 弹窗入口仍兼容，应用身份以平台登记的已发布地址为准（也支持登记的自定义域名）。
+
+手机或弹窗受限环境推荐整页登录，在应用启动时处理回调：
+
+```js
+try {
+  const result = await gemigo.auth.handleRedirectCallback();
+  if (result) console.log('已登录');
+} catch (error) {
+  // 展示取消、过期或失败，允许用户重新点击登录。
+}
+document.querySelector('#login').onclick = () => gemigo.auth.login({
+  display: 'redirect', persist: 'session', scopes: ['identity:basic'],
+});
+```
+
+`display: 'popup'` 为兼容默认；`auto` 在手机和弹窗被阻止时使用整页返回。注册返回地址默认是应用根 URL，也可传 `redirectUri`，它必须与平台保存的应用发布 URL 完全一致。SDK 在 sessionStorage 中保存十分钟的 state 和 PKCE verifier，回到应用后验证、清除回调参数并恢复原页面地址。URL 只含一次性 code/state，不包含访问令牌或密钥。整页跳转后原登录 Promise 不再返回结果，结果由启动回调取得。
+
+升级后未绑定来源的旧凭证需重新登录；应用数据和账号映射保留。仅申请应用实际需要的权限。身份权限只返回该应用专属 ID，不返回平台密码、邮箱、昵称或头像。
+
+
 ```js
 await gemigo.auth.login({
   scopes: ['identity:basic', 'storage:rw', 'points:use'],

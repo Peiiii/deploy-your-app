@@ -2,6 +2,7 @@ export type SdkAuthScope = 'identity:basic' | 'storage:rw' | string;
 
 export interface SdkAuthCodeRecord {
   code: string;
+  sourceOrigin: string;
   appId: string;
   userId: string;
   scopes: string[];
@@ -13,6 +14,7 @@ export interface SdkAuthCodeRecord {
 
 export interface SdkAccessTokenRecord {
   token: string;
+  sourceOrigin: string;
   appId: string;
   appUserId: string;
   scopes: string[];
@@ -54,4 +56,3 @@ export interface SdkMeResponse {
   appUserId: string;
   scopes: string[];
 }
-

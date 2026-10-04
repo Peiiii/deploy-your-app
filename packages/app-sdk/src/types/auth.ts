@@ -23,6 +23,10 @@ export interface AuthLoginOptions {
    * Popup wait timeout.
    */
   timeoutMs?: number;
+  /** Popup by default; auto uses redirect on mobile or when popup is blocked. */
+  display?: 'popup' | 'redirect' | 'auto';
+  /** Must exactly match the application's published URL. Defaults to origin + '/'. */
+  redirectUri?: string;
 
   /**
    * Where to persist the SDK access token.
@@ -44,6 +48,8 @@ export interface AuthTokenResponse {
 
 export interface AuthAPI {
   login(options?: AuthLoginOptions): Promise<AuthTokenResponse>;
+  /** Call on app startup to finish a same-tab login; returns null when no callback exists. */
+  handleRedirectCallback(): Promise<AuthTokenResponse | null>;
   getAccessToken(): string | null;
   logout(): void;
 }
