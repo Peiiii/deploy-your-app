@@ -17,3 +17,9 @@
 自动检查：项目没有登记的diff-only maintainability可执行入口，按完整findings-first与条件主观复核审查，没有临时创建检查脚本。定向tsc/lint、静态构建、真实SQL/stream检查，以及真实Cloudflare的文字、语音、隔离、额度、撤销证据见本目录。新增DO作为唯一活动生命周期owner，D1作为唯一持久预算owner；没有按协议复制授权状态。Secret管理复用项目owner，登录消费复用SDK appId，公开Origin明确不能当作强认证。
 
 结论：实现范围无开放finding。发布后的真实Pages反向代理、实际项目部署、主线同步属于GW-09交付验收；用户物理可听与真实手机设备仍未验证，不能宣称用户验收通过。台账按真实范围更新，后续发布发现缺口继续返工。
+
+## 授权页评审新增 finding（2026-10-04，未修复）
+
+[P1] 基础SDK授权发行没有绑定真实应用来源。workers/api/src/services/sdk-auth.service.ts:137-141 只对points:use核对项目与openerOrigin；identity:basic可由输入appId发行身份，授权页仅检查来源后缀、展示查询中的appId。网关消费处校验token.appId的既有测试不能证明发行处没有应用冒认。代码路径已确认，尚未进行攻击复现；GW-03证据转stale，返工需覆盖基础与积分身份发行、真实应用元数据、合法开发来源及旧SDK兼容。不能将此Finding列为单纯视觉优化。
+
+本轮用户询问地址/美观/体验，范围为评审与设计讨论，没有部署新授权行为。当前可保留PKCE/state；规范公开入口、统一授权页和全页返回方案须按新的授权合同完成设计与验证。
