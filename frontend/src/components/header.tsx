@@ -6,7 +6,7 @@ import { useUIStore } from '@/stores/ui.store';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { usePresenter } from '@/contexts/presenter-context';
 import { LanguageSwitcher } from '@/components/language-switcher';
-import { Bell, BookOpen, Github, HelpCircle, Sun, Moon, Menu, User, LogOut, ChevronDown } from 'lucide-react';
+import { Bell, Github, HelpCircle, Sun, Moon, Menu, User, LogOut, ChevronDown } from 'lucide-react';
 import { Crisp } from 'crisp-sdk-web';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { URLS } from '@/constants';
@@ -66,15 +66,6 @@ export const Header: React.FC = () => {
                     className="md:hidden p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 rounded-lg transition-all"
                 >
                     <Menu className="w-5 h-5" />
-                </IconButton>
-                <IconButton tooltipSide="bottom" asChild size="auto" label={t('ui.developerDocs')} showTooltip={isBelow('md')}>
-                    <a
-                        href="https://docs.gemigo.io"
-                        className="p-2 text-app-muted hover:text-slate-900 dark:hover:text-white md:px-0"
-                    >
-                        <BookOpen className="w-5 h-5 md:hidden" />
-                        <span className="hidden md:inline text-sm whitespace-nowrap">{t('ui.developerDocs')}</span>
-                    </a>
                 </IconButton>
             </div>
             <div className="flex shrink-0 items-center gap-2 xl:gap-4">
