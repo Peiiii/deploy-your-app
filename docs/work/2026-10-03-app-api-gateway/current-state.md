@@ -2,18 +2,14 @@
 
 parent-goal: GemiGo 每应用 Secrets/API 连接与小伴线上接入。
 flow: standard / feature / L4 / delivery-mode: major
-phase: authorization-delivery
-retrospective_state: pending
-retrospective_decision: updated-existing-owner (DO恢复事实及生命周期/流回归)；长期方法no-increment。
+phase: authorization-delivered / awaiting-original-user-voice-acceptance
+retrospective_state: completed
+retrospective_decision: updated-existing-owner；授权来源迁移、固定SDK发行、DO恢复已写回原spec与交付记录，SEO遗漏由原路由owner修正并补真实Worker回归。长期方法no-increment。
 
-实现、Review、迁移、API/Pages/docs发布、小伴真实上传部署和工程线上验证已完成。有效证据与边界的唯一台账：acceptance-contract.md revision4/scope-revision2；交付入口与恢复方式：production-delivery.md。GW-03转stale（基础SDK身份发行缺少应用来源绑定），其余工程证据保留；GW-10保持unverified。
+当前合同：acceptance-contract.md revision5/scope-revision2。AUTH-01..07已按实际证据passed，GW-03发行来源缺口已复现、修复与生产负向验证，GW-01..09工程项passed。GW-10保持unverified：实际扬声器听感与真实iOS/Android无新用户确认，不假报整体闭环。
 
-小伴 https://xiaoban-voice.gemigo.app；设置项目942b8507-260c-4b85-a579-177314eafe2c，现有用户owner。线上录音样本10次ASR/10次回应，两个音频上下文正常运行并关闭，WS关闭；真实物理声音、原生登录弹窗和手机设备还没有用户确认。IAB弹窗未显示，真实Chrome受机器锁屏阻断；测试SDK身份和音频覆盖均已恢复。已经向用户请求验证正式入口；用户回复后只针对反馈继续，不重跑已经通过的全套检查。
+本輪工程入口 https://xiaoban-voice.gemigo.app；点击登录进入gemigo.io/auth/authorize短请求页，核实应用后继续返回。实际浏览器成功/取消/刷新已通过，未注入SDK token；真实DeepSeek文字回复与千问92160字节音频响应通过。新旧页面、浅/暗与390px布局已检查。SDK0.3.1由官方文档站分发，旧0.3.0字节保留；小伴源包和静态包已刷新。
 
-实验Workers、独立DB和5179/4320服务已清理，原4318服务保持；生产keyring安全备份与DO冻结恢复包留在~/.config/gemigo，禁止打印或提交。主区四个无关文件指纹一致，master在最后证据提交后同步核对。整体用户验收尚未闭环。
+发布/恢复与证据唯一入口：authorization-delivery.md，原生产证据保留在production-delivery.md及其JSON。本轮API082ccacf、docs7f0e91ea，小伴部署dfbf7ef8；线上主平台与本地asset相同。cookie/SDK测试会话/聊天/主题/viewport已恢复，WS关闭，没有新增staging云资源，原4318本机服务保留。
 
-用户当前询问授权地址/页面的最佳实践，正在评审和讨论改版范围，尚未改动授权代码。新增P1已登记review.md，不能宣称身份隔离整体通过。下一步：规范授权入口、可信应用元数据与权限说明、重定向与弹窗流程、基础/积分统一来源核对；原注册和本地开发兼容需设计明确。
-
-用户已批准优化，设计/Review冻结：../../designs/2026-10-04-application-authorization.design.md；执行计划同日期application-authorization.plan.md。AUTH-01..07是当前必需项；新协议与前端之外需发布SDK和小伴静态包。
-
-实现检查与Review已通过：D1授权/迁移反例，SDK实际源码状态机，积分/Cloud及17网关不变量，tsc/lint/build。SDK版本0.3.1仍按既有文档站正式tarball分发，npm账号未认证，未宣称registry发布。旧0.3.0固定资源归档保持原字节。待主线合并、迁移、部署与真实浏览器授权返回。
+主工作区四个无关文件指纹及暂存状态保留；提交证据后继续最终fetch/master同步、实际远程SHA与0 0核对。授权优化可交付用户体验验收；父任务仍等待GW-10，不能标整体完成。

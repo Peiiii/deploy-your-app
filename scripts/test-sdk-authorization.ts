@@ -17,7 +17,7 @@ class StorageMock {
     this.data.delete(key);
   }
 }
-function browser(blocked = false) {
+function browser(blocked = false, stalled = false) {
   const session = new StorageMock(),
     local = new StorageMock();
   const location = {
@@ -59,7 +59,13 @@ function browser(blocked = false) {
     },
   };
   const requests: { url: string; body: Record<string, string> }[] = [];
-  const fetch = async (url: string, options: { body: string }) => {
+  const fetch = async (url: string, options: { body: string; signal: AbortSignal }) => {
+    if (stalled)
+      return await new Promise<never>((_resolve, reject) => {
+        options.signal.addEventListener('abort', () => reject(options.signal.reason), {
+          once: true,
+        });
+      });
     const body = JSON.parse(options.body);
     requests.push({ url, body });
     return {
@@ -181,6 +187,14 @@ assert.equal(closed.listeners.size, 0);
 const timeout = browser();
 await assert.rejects(timeout.auth.login({ timeoutMs: 10 }), /timed out/);
 assert.equal(timeout.listeners.size, 0);
+const stalled = browser(false, true);
+await assert.rejects(stalled.auth.login({ timeoutMs: 10 }), /timed out/);
+assert.equal(stalled.popup.closed, true);
+const earlyClose = browser(false, true);
+const preparing = earlyClose.auth.login({});
+earlyClose.popup.closed = true;
+await assert.rejects(preparing, /window closed/);
+assert.equal(earlyClose.listeners.size, 0);
 console.log(
   'PASS: actual SDK redirect/state/TTL/cancel/URL restoration/cleanup/single flight, popup source/origin/state/success/close/timeout, mobile and blocked auto fallback'
 );

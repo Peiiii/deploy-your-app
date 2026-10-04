@@ -34,3 +34,5 @@ Review finding已修正：申请请求阶段网络挂起或弹窗关闭原先未
 定向D1/SDK行为验证、17网关不变量、原积分/Cloud检查、worker/frontend类型、lint和构建通过。条件主观复核：请求模块隔离短期记录与公开context，旧发行/兑换路径复用；SDK只增加当前小伴与文档调用的公开方法；固定SDK旧资源保留原release包，不覆盖旧版本。项目无diff-only可执行维护性检查，未新增形式脚本。当前实现 no open findings。迁移/部署及真实授权页面返回须继续线上验收，不把mock说成浏览器成功，真实手机和物理声音继续披露。
 
 线上复核发现并修正：平台SEO/Pages路由表未登记新授权路径，HTML虽存在但状态404。回到同一seo owner补齐known路由；新旧授权HTML均noindex/no-store/no-referrer，并扩充实际Pages Worker路由测试。小伴HTML设置no-referrer以保护回调加载阶段。重新构建和路由测试后再发布。
+
+最终线上复核通过：新/旧页面实际200及中文标题、no-store/no-referrer；真实小伴按钮取消/登录/刷新/文字回应、使用正常回调取得的凭证完成Qwen WS音频且关闭，旧固定SDK资源逐字保留。新增请求阶段挂起/关闭与并行CAS回归通过。当前范围无开放finding；真实手机/物理听感保留未验证。

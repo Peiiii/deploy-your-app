@@ -1,0 +1,54 @@
+{
+  "time": "2026-10-04T02:24:08.909Z",
+  "source": "Actual deployed voice login button → consent → registered app callback; no SDK token injection",
+  "cancel": {
+    "returnedToApp": true,
+    "callbackParamsCleared": true,
+    "pendingCleared": true,
+    "tokenPresent": false
+  },
+  "success": {
+    "returnedToApp": true,
+    "callbackParamsCleared": true,
+    "pendingCleared": true,
+    "tokenPresent": true,
+    "refreshRetained": true
+  },
+  "text": {
+    "receivedRealResponse": true,
+    "response": "嗨，我是小伴，一个愿意陪你聊聊天、听听你说话的 AI 伙伴～"
+  },
+  "voice": {
+    "audioBytes": 92160,
+    "closed": true,
+    "events": {
+      "conversation.item.created": 1,
+      "response.audio.delta": 6,
+      "response.audio.done": 1,
+      "response.audio_transcript.delta": 7,
+      "response.audio_transcript.done": 1,
+      "response.content_part.added": 1,
+      "response.content_part.done": 1,
+      "response.created": 1,
+      "response.done": 1,
+      "response.output_item.added": 1,
+      "response.output_item.done": 1,
+      "session.created": 1,
+      "session.updated": 1
+    },
+    "ok": true,
+    "text": "你好呀，今天过得怎么样？"
+  },
+  "responsive": {
+    "emulatedWidth": 390,
+    "scrollWidth": 390,
+    "realPhone": false
+  },
+  "theme": {
+    "light": true,
+    "dark": true
+  },
+  "physicalAudibility": "unverified",
+  "legacyPageShowsVerifiedApplication": true,
+  "cleanup": "Restored initial platform cookie, signed-out application state and empty QA chat history; viewport/theme restored; probe socket closed"
+}

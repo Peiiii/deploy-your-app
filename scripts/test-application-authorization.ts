@@ -214,6 +214,13 @@ try {
     /来源/
   );
   await db.prepare("UPDATE projects SET url='https://xiaoban-voice.gemigo.app/'").run();
+  const raceRequest = await sdkAuthRequestService.create(appRequest(), env, db, body);
+  const raceId = new URL(raceRequest.authorizationUrl).searchParams.get('request')!;
+  const races = await Promise.allSettled([
+    sdkAuthRequestService.authorize(request, env, db, raceId),
+    sdkAuthRequestService.authorize(request, env, db, raceId),
+  ]);
+  assert.equal(races.filter((result) => result.status === 'fulfilled').length, 1);
   // Simulate a full outstanding-request window, without issuing 1000 network requests.
   await db
     .prepare(

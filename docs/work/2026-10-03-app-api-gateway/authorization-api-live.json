@@ -1,0 +1,14 @@
+{
+  "time": "2026-10-04T02:09:42.662Z",
+  "foreignBasicIssuer": 403,
+  "foreignRequest": 403,
+  "wrongReturnUri": 400,
+  "registeredName": "小伴 · 实时语音伙伴",
+  "registeredOrigin": "https://xiaoban-voice.gemigo.app",
+  "contextNoStore": true,
+  "noCookieAuthorization": 401,
+  "shortRequest": true,
+  "oneUseRequest": true,
+  "tokenExchange": true,
+  "tokenReplay": 400
+}

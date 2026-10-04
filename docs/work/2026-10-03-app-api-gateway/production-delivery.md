@@ -32,3 +32,7 @@
 ## 复盘判断
 
 retrospective_decision: updated-existing-owner。首次DO迁移的回退限制已修正现有运维文档；分块脱敏停顿、慢上传取消、项目删除生命周期均回到实际owner修复并有回归证据。无需为本次单例新增全局规则或重复Skill。长期方法no-increment，待用户听感反馈更新同一合同。parent_status=awaiting-required-user-acceptance；不把发布成功推断为用户验收完成。
+
+## 后续授权优化已交付
+
+本轮新增统一授权地址、页面和小伴整页返回，修复基础身份来源P1，并失效旧未绑定来源凭证。当前发布、恢复和实际登录证据以authorization-delivery.md为准；本节前面的popup阻断/注入SDK身份是优化前历史记录。新的工程验证使用真实小伴按钮与正常回调，未注入SDK token。物理声音/真实手机仍待用户。

@@ -1,0 +1,51 @@
+{
+  "time": "2026-10-04T02:22:45.613Z",
+  "deploymentId": "dfbf7ef8-9883-479f-bc9a-c218e8ef50d2",
+  "reconcileStatus": 200,
+  "providerStatus": "SUCCESS",
+  "buildMode": "static",
+  "projectStatus": "succeeded",
+  "assets": [
+    {
+      "file": "app.js",
+      "sha256": "9bea2d6ae567f22b219017989ac85b434c225bfa88187b280dc7ca15f64f1838",
+      "onlineSha256": "9bea2d6ae567f22b219017989ac85b434c225bfa88187b280dc7ca15f64f1838"
+    },
+    {
+      "file": "gateway.js",
+      "sha256": "d193397cf210a9905a4102a427fadfdf7664dd31c79e4ae5bd86540dfffdb8a7",
+      "onlineSha256": "d193397cf210a9905a4102a427fadfdf7664dd31c79e4ae5bd86540dfffdb8a7"
+    },
+    {
+      "file": "vendor/gemigo-app-sdk.umd.js",
+      "sha256": "b99b3492aba4fa7eb2dcf188930403376e3c975a2205bb4db06267cd20ab9627",
+      "onlineSha256": "b99b3492aba4fa7eb2dcf188930403376e3c975a2205bb4db06267cd20ab9627"
+    },
+    {
+      "file": "gateway-config.js",
+      "sha256": "664e7b26fc0cf786a87bcda51dfeaad7a6ba5682e07770480602fb589421f75c",
+      "onlineSha256": "664e7b26fc0cf786a87bcda51dfeaad7a6ba5682e07770480602fb589421f75c"
+    },
+    {
+      "file": "index.html",
+      "sha256": "75fee069060d64fc94ee20c228cbc376a0829d3f1dc35193a815b6a2fcf1b1e6",
+      "onlineSha256": "9946f8864966b86100565bdb931e541055e8a82156873de28a746e0f1dd9194a",
+      "difference": "Platform font/favicon/analytics runtime injection; referrer meta and app entry verified"
+    }
+  ],
+  "platformAsset": {
+    "filename": "index-Bilfenl2.js",
+    "sha256": "0647ca06a2e74905b18c6cf594b16c00eab764df2064a13826124397d350c02b",
+    "onlineMatches": true
+  },
+  "archives": [
+    {
+      "filename": "xiaoban-source.zip",
+      "sha256": "7f4d9f644bc23565c294e542920faddc3c23871fb455abffa6d247bfcca6fdeb"
+    },
+    {
+      "filename": "xiaoban-static.zip",
+      "sha256": "ac29e7fac840c5837f0de9d6040b48da966ceb368a12d4785bc04e7851b6ae92"
+    }
+  ]
+}
