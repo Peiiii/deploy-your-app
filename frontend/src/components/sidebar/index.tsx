@@ -1,8 +1,5 @@
 import { useUIStore } from '@/stores/ui.store';
 import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { BookOpen } from 'lucide-react';
-import { IconButton } from '@/components/icon-button';
 import { SidebarHeader } from './sidebar-header';
 import { SidebarNavigation } from './sidebar-navigation';
 import { SidebarProjectList } from './sidebar-project-list';
@@ -10,7 +7,6 @@ import { SidebarUserProfile } from './sidebar-user-profile';
 import { useSidebarProjects } from './use-sidebar-projects';
 
 export const Sidebar: React.FC = () => {
-  const { t } = useTranslation();
   const sidebarOpen = useUIStore((state) => state.sidebarOpen);
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const { setSidebarOpen, toggleSidebarCollapsed } = useUIStore((state) => state.actions);
@@ -57,19 +53,6 @@ export const Sidebar: React.FC = () => {
           )}
         </nav>
 
-        <div className="shrink-0 px-3 py-2 border-t border-app-border dark:border-slate-800">
-          <IconButton asChild label={t('ui.developerDocs')} showTooltip={sidebarCollapsed} tooltipSide="right" size="auto">
-            <a
-              href="https://docs.gemigo.io"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`w-full min-h-10 gap-3 rounded-xl text-sm text-app-muted hover:text-slate-900 dark:hover:text-white ${sidebarCollapsed ? 'p-2' : '!justify-start px-4 py-2'}`}
-            >
-              <BookOpen className="w-5 h-5 shrink-0" />
-              {!sidebarCollapsed && <span className="whitespace-nowrap">{t('ui.developerDocs')}</span>}
-            </a>
-          </IconButton>
-        </div>
         <SidebarUserProfile collapsed={sidebarCollapsed} />
       </div>
     </>

@@ -6,10 +6,8 @@ import { useUIStore } from '@/stores/ui.store';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { usePresenter } from '@/contexts/presenter-context';
 import { LanguageSwitcher } from '@/components/language-switcher';
-import { Bell, Github, HelpCircle, Sun, Moon, Menu, User, LogOut, ChevronDown } from 'lucide-react';
-import { Crisp } from 'crisp-sdk-web';
-import { useBreakpoint } from '@/hooks/use-breakpoint';
-import { URLS } from '@/constants';
+import { HelpResourcesMenu } from '@/components/help-resources-menu';
+import { Sun, Moon, Menu, User, LogOut, ChevronDown } from 'lucide-react';
 
 export const Header: React.FC = () => {
     const { t } = useTranslation();
@@ -17,9 +15,21 @@ export const Header: React.FC = () => {
     const theme = useUIStore((state) => state.theme);
     const presenter = usePresenter();
     const user = useAuthStore((state) => state.user);
-    const { isBelow } = useBreakpoint();
+    const headerRef = useRef<HTMLElement>(null);
+    const [isCompact, setIsCompact] = useState(true);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const header = headerRef.current;
+        if (!header) return;
+        // Preview panels can narrow the header even on a desktop viewport.
+        const observer = new ResizeObserver(([entry]) => {
+            setIsCompact(entry.contentRect.width < 640);
+        });
+        observer.observe(header);
+        return () => observer.disconnect();
+    }, []);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -34,20 +44,6 @@ export const Header: React.FC = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isUserMenuOpen]);
 
-    const handleOpenChat = () => {
-        const websiteId = import.meta.env.VITE_CRISP_WEBSITE_ID;
-        if (!websiteId) {
-            console.warn('Crisp is not configured.');
-            return;
-        }
-        try {
-            Crisp.chat.open();
-            Crisp.chat.show();
-        } catch (error) {
-            console.error('Failed to open Crisp chat:', error);
-        }
-    };
-
     const handleNavigateToProfile = () => {
         setIsUserMenuOpen(false);
         navigate('/me');
@@ -59,11 +55,11 @@ export const Header: React.FC = () => {
     };
 
     return (
-        <header className="h-16 shrink-0 border-b border-app-border bg-app-bg/50 backdrop-blur sticky top-0 z-40 flex items-center justify-between gap-2 px-4 md:px-8">
+        <header ref={headerRef} className="h-16 shrink-0 border-b border-app-border bg-app-bg/50 backdrop-blur sticky top-0 z-40 flex items-center justify-between gap-2 px-4 md:px-8">
             <div className="flex shrink-0 items-center gap-2 md:gap-3">
                 <IconButton tooltipSide="bottom" label={t('ui.toggleMenu')} size="auto"
                     onClick={presenter.ui.toggleSidebar}
-                    className="md:hidden p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 rounded-lg transition-all"
+                    className="md:hidden h-11 w-11 text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 rounded-lg transition-all"
                 >
                     <Menu className="w-5 h-5" />
                 </IconButton>
@@ -71,47 +67,27 @@ export const Header: React.FC = () => {
             <div className="flex shrink-0 items-center gap-2 xl:gap-4">
                 <IconButton tooltipSide="bottom" label={t('ui.toggleTheme')} size="auto"
                     onClick={presenter.ui.toggleTheme}
-                    className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all"
+                    className="h-11 w-11 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all"
                 >
                     {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                 </IconButton>
                 <LanguageSwitcher />
-                <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden xl:block" />
-                <IconButton tooltipSide="bottom" asChild size="auto" label={t('ui.openSourceOnGitHub')}>
-                    <a
-                        href={URLS.GITHUB_REPOSITORY}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hidden lg:inline-flex p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all"
-                    >
-                        <Github className="w-5 h-5" />
-                    </a>
-                </IconButton>
-                <IconButton tooltipSide="bottom" label={t('ui.help')} size="auto"
-                    data-event="help_open" onClick={handleOpenChat}
-                    className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all hidden xl:block"
-                >
-                    <HelpCircle className="w-5 h-5" />
-                </IconButton>
-                <IconButton tooltipSide="bottom" label={t('ui.notifications')} size="auto"
-                    className="p-2 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-full transition-all relative hidden xl:block"
-                >
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 dark:bg-red-400 rounded-full border-2 border-app-bg dark:border-slate-900" />
-                </IconButton>
+                <HelpResourcesMenu />
                 {user ? (
                     <div className="relative" ref={userMenuRef}>
-                        <IconButton tooltipSide="bottom" label={t('ui.account')} showTooltip={isBelow('xl')} size="auto"
+                        <IconButton tooltipSide="bottom" label={t('ui.account')} showTooltip={isCompact} size="auto"
                             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                             aria-expanded={isUserMenuOpen}
-                            className="flex items-center gap-2 p-1 md:px-3 md:py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
+                            className="flex min-h-11 min-w-11 items-center gap-2 p-1 md:px-3 md:py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
                         >
                             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-500 to-purple-600 border border-slate-200 dark:border-white/10 flex items-center justify-center text-xs font-semibold text-white">
                                 {(user.displayName || user.email || 'U').toUpperCase().charAt(0)}
                             </div>
-                            <span className="hidden xl:inline text-xs text-slate-700 dark:text-slate-200 max-w-[140px] truncate">
-                                {user.displayName || user.email || t('ui.account')}
-                            </span>
+                            {!isCompact && (
+                                <span className="text-xs text-slate-700 dark:text-slate-200 max-w-[140px] truncate">
+                                    {user.displayName || user.email || t('ui.account')}
+                                </span>
+                            )}
                             <ChevronDown className={`hidden md:block w-4 h-4 text-slate-400 dark:text-slate-500 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                         </IconButton>
 

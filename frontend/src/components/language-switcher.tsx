@@ -17,17 +17,18 @@ export const LanguageSwitcher: React.FC = () => {
   };
   return (
     <Popover
+      className="static"
       triggerLabel="语言设置 / Language settings"
-      triggerClassName="min-h-9 px-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full flex items-center gap-1.5 border border-slate-200 dark:border-slate-700"
+      triggerClassName="h-11 min-w-11 px-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full flex items-center gap-1.5 border border-slate-200 dark:border-slate-700"
       trigger={
         <>
           <Languages className="w-4 h-4" />
-          <span className="text-xs font-medium">
+          <span className="hidden md:inline text-xs font-medium">
             {currentLanguage === 'zh-CN' ? '中文' : 'English'}
           </span>
         </>
       }
-      panelClassName="fixed left-4 right-4 top-16 md:absolute md:left-auto md:right-0 md:top-full md:w-[340px] mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 p-4 space-y-4"
+      panelClassName="absolute left-4 right-4 top-full md:left-auto md:right-8 md:w-[340px] max-w-[calc(100%-2rem)] mt-2 max-h-[calc(100dvh-5rem)] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 p-4 space-y-4"
     >
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">

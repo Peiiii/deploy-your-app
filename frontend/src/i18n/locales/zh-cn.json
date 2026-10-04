@@ -718,7 +718,15 @@
     "offline": "未上线"
   },
   "ui": {
-    "developerDocs": "开发文档",
+    "developerDocs": "开发者文档",
+    "helpResources": "帮助与资源",
+    "usageHelp": "使用帮助",
+    "htmlGuide": "发布 HTML 指南",
+    "zipGuide": "发布 ZIP 指南",
+    "contactSupport": "联系支持",
+    "developerResources": "开发资源",
+    "projectSource": "项目源码",
+    "supportFallback": "在线支持暂不可用，你可以在反馈页留下问题。",
     "dashboard": "应用管理",
     "toggleMenu": "切换菜单",
     "toggleTheme": "切换主题",
