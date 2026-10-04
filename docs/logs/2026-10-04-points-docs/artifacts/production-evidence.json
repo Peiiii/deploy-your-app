@@ -159,7 +159,8 @@
     "livePayments": 0
   },
   "cashAcceptance": "blocked: no approved merchant/channel; recharge503, no paid/payout evidence",
-  "uiCreative": "pending: unlocked; native Chrome control repeatedly interrupted by other tab operations. A granted 3-point creative receipt is present, but refresh/repeated-unlock UI evidence has not yet been collected.",
-  "knownBoundary": "Cash path remains unimplemented pending approved merchant/channel. Creative final UI acceptance waits for stable Chrome access. Temporary IAB viewport was reset and its failed popup-login tab was closed.",
-  "walletCapturedAt": "2026-10-04T01:37:57.587Z"
+  "uiCreative": "passed: hidden isolated IAB with real production-scoped PKCE token as explicit test setup; actual palette generation, durable repeat-unlock, reload restore and wallet reconciliation.",
+  "knownBoundary": "Cash path remains unimplemented pending approved merchant/channel. IAB popup login was not claimed; real authorization token used as isolated UI test setup and removed afterward. Creative actual UI acceptance passed.",
+  "walletCapturedAt": "2026-10-04T01:44:35.662Z",
+  "creativeBackgroundEvidence": "creative-background-live.json"
 }

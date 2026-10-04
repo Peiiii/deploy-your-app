@@ -1,0 +1,74 @@
+{
+  "capturedAt": "2026-10-04T01:44:35.662Z",
+  "environment": "production application and SDK in isolated hidden Codex IAB; actual production API/D1",
+  "url": "https://creative-lab.gemigo.app/",
+  "authenticationSetup": {
+    "method": "Existing authorized platform CLI session → production SDK authorize with PKCE S256 → token exchange → temporary SDK localStorage through supported CDP",
+    "appId": "creative-lab",
+    "scopes": [
+      "identity:basic",
+      "points:use"
+    ],
+    "popupLoginClaimed": false,
+    "initialCreativePurchaseClickObserved": false,
+    "applicationOrResponseReplaced": false
+  },
+  "artifactIdentity": {
+    "applicationScriptMatchesCurrentSource": true,
+    "sdkVersion": "0.3.0",
+    "sdkSha256": "ffb9eac3eda8be9f74da58bbf10e18e2dce806562c1631e444db0b4d6caa3401"
+  },
+  "uiActions": [
+    {
+      "action": "Load with actual scoped token, real items/grants",
+      "result": "已恢复登录与权益。; premium visible"
+    },
+    {
+      "action": "Set color through UI to #123456 and click 生成配色",
+      "hexes": [
+        "#123456",
+        "#edcba9",
+        "#345612"
+      ],
+      "renderedRgb": [
+        "rgb(18, 52, 86)",
+        "rgb(237, 203, 169)",
+        "rgb(52, 86, 18)"
+      ]
+    },
+    {
+      "action": "Click 一次解锁配色工具 again",
+      "result": "配色工具已解锁。"
+    },
+    {
+      "action": "Reload actual page",
+      "result": "已恢复登录与权益。; premiumVisible=true",
+      "hexes": [
+        "#785dc9",
+        "#87a236",
+        "#5dc978"
+      ]
+    }
+  ],
+  "productionWalletAfter": {
+    "balance": 0,
+    "totalReceipts": 7,
+    "creativeReceiptCount": 1,
+    "creativeReceiptId": "8f9f8b78-a97d-46c6-ad71-aa720cab4c1f",
+    "status": "granted",
+    "paidMinor": 0,
+    "creatorMinor": 0
+  },
+  "screenshot": "creative-background-live.png",
+  "cleanup": {
+    "temporarySdkAuthStorageRemoved": true,
+    "temporaryPurchaseStorageRemoved": true,
+    "privateSetupFileDeleted": true,
+    "createdTabClosed": true,
+    "foregroundChromeUsed": false
+  },
+  "acceptance": {
+    "PD-07": "passed",
+    "PD-04": "blocked: approved merchant/channel and actual cash implementation/transactions outstanding"
+  }
+}

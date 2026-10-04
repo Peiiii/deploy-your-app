@@ -13,10 +13,10 @@ scope-revision: 1
 | PD-04 | true | blocked | 获准渠道的真实充值、回调/对账/退款以及第三方作者真实结算；尚缺经营主体/商户/渠道准入与经济参数，不以体验点代替 |
 | PD-05 | true | passed | SDK v0.3.0 托管 UMD/ES/types 与可安装 .tgz，真实 npm URL 安装通过；App Skill/CLI Skill 已公开并用于真实示例发布；既有 Cloud/token 隔离通过。npm registry 401 未发布，不宣称 registry 可安装。 |
 | PD-06 | true | passed | docs.gemigo.io 七页 HTTPS200、真实404、Markdown/Skill/SDK/示例下载、导航/搜索/复制/移动菜单通过；[截图](../../logs/2026-10-04-points-docs/artifacts/docs-live.png)。 |
-| PD-07 | true | blocked | 知识示例真实完整路径已通过；两个项目均已发布。2026-10-04用户回复已解锁，生产钱包已出现创意配色3点granted收据，共享余额0。Chrome控制被其它标签操作反复中断，已请求暂时暂停其它Chrome操作；配色生成、刷新恢复与重复解锁的UI证据仍待验，不以服务端收据替代。 |
+| PD-07 | true | passed | 知识示例真实完整路径已通过；创意示例在独立后台浏览器使用生产PKCE授权会话、正式SDK与真实权益接口，实际修改主色/生成配色、重复解锁、刷新恢复通过。生产钱包保持0，创意收据仍仅原3点交易一笔。[后台截图](../../logs/2026-10-04-points-docs/artifacts/creative-background-live.png)与[方法/结果](../../logs/2026-10-04-points-docs/artifacts/creative-background-live.json)。后台登录状态通过真实token作测试准备，未将其称作IAB弹窗登录成功；初次创意扣点的完整点击过程未观察。 |
 | PD-08 | true | passed | 实际 D1 并发20次、事务回滚、不足/越权/假价/续费/退款/服务中断通过；生产取消确认不扣、永久二购不扣、未使用提示退款并回冲权益通过；实际示例源码的超时原ID恢复回归通过。 |
-| PD-09 | true | passed | 完整 pnpm check、SDK/CLI/前端/docs构建、SEO Pages runtime及实现 Review 通过；核心代码3642aa2普通推送，API56af31ea已发布，本地master与实际远程master核对0 0。最终验收记录同路径精确提交与同步；PD-07待验不被此交付项替代。 |
+| PD-09 | true | passed | 完整 pnpm check、SDK/CLI/前端/docs构建、SEO Pages runtime及实现 Review 通过；核心代码3642aa2普通推送，API56af31ea为点数批次发布证据，本地master与实际远程master核对0 0。最终后台验收记录同路径精确提交与同步，不重新部署后续网关任务的产品。 |
 
 旧→新：部署、免费应用、SDK identity/storage 保留；只有新增 points:use 路径要求项目来源精确绑定。目标→新：所有条目保持 Required，外部支付缺口不能删减。分批只代表执行顺序。全套通过才可声明整个收费闭环完成。
 
-证据 owner：[交付记录](../../logs/2026-10-04-points-docs/README.md#线上验收证据)与[生产快照](../../logs/2026-10-04-points-docs/artifacts/production-evidence.json)。整体保持 blocked：PD-04 与 PD-07 未通过，未缩减 Required 合同。
+证据 owner：[交付记录](../../logs/2026-10-04-points-docs/README.md#线上验收证据)与[生产快照](../../logs/2026-10-04-points-docs/artifacts/production-evidence.json)。整体保持 blocked：PD-04 未通过，未缩减 Required 合同。
