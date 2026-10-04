@@ -18,6 +18,8 @@ GEO 固定品牌事实与非品牌发布需求问题，在真实可用平台中�
 
 ## 指标与性能（SG05）
 
+2026-10-04当前查询保护修订：本文件后续涉及累计日限额、预留和结算的规则为历史设计，已被主线b7f33fa替代；正常查询可用性以[当前方案](2026-10-04-admin-growth-availability.design.md)和[指标owner](../tech/PRODUCT_ANALYTICS.md)为准。成功发布的同会话归因、观测截止和真实成功状态合同不变；生产新字段验收仍待完成。
+
 保持原搜索/AI cohort 和注册定义。产品事件不加个人身份：同会话注册后 server deployment_accepted 的 flow_id，连接 PROJECTS_DB.deployment_attempts 的真实 succeeded/finished_at；仅计观测窗口内成功。指标明确为“同会话注册后成功发布的会话”，不称完整新用户激活率，不推断跨设备/跨会话归因。返回缺失配置 null，空观察 0，基线不回填。新增查询需预算、绑定限额与 D1 fixture证明。
 
 性能按同一线上页面/移动尺寸记录浏览器 navigation/resource timing 及可用 LCP/CLS，不从单次实验声称 CWV 合格；字段实验与 Google field 数据分开。实际问题才修正，避免无根据性能改写。
@@ -51,7 +53,7 @@ mode=design Review SG05：从已确认用户目标和 acquisition/analytics/depl
 
 并行任务按用户要求在aec2660撤回creator feedback MVP，包含/app详情及依赖API。之前复用/app的集成方案在此部分被替代；本任务保留主线撤回，不恢复该功能。公开目录/首页/发现/作者投影直接指向应用部署网址，作者仍指向/u/handle；符合SG03真实公开作品和作者链接合同，未降低Required标准。已有隐私/分页/失败边界保持；不另造替代详情页。回归以当前源码的pnpm check、pnpm test:seo和线上无失效/app锚点、撤回URL404/noindex为证据。
 
-## SG05 读取预留结算修订（2026-10-03）
+## 历史：SG05 读取预留结算修订（2026-10-03，已由10-04查询可用性方案替代）
 
 来源：用户看到“今日分析查询预算已用完……重试”，询问为何自己的后台数据也超过预算。调查确定读取预算是应用内每天100万的共享成本保护，不是云账户套餐额度；acquisition/growth/sql-report均先预留count再预留aggregate，成功/二阶段拒绝均保留整笔估算，重试会额外占用count预留。此为共享读取生命周期的缺口，bugfix、L3（发布L4）；保留SG05指标定义与预算上限，plan:not-required，单批完成。
 
