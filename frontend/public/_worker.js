@@ -152,6 +152,10 @@ export default {
     headers.delete('content-length');
     headers.delete('etag');
     headers.set('Cache-Control', dynamic ? 'no-store' : 'public, max-age=0, must-revalidate');
+    if (path === '/auth/authorize' || path === '/sdk/broker') {
+      headers.set('Cache-Control', 'no-store');
+      headers.set('Referrer-Policy', 'no-referrer');
+    }
     if (!seo.indexable) headers.set('X-Robots-Tag', 'noindex, follow');
     return new Response(request.method === 'HEAD' ? null : rewritten.body, {
       status: dynamic?.status || (seo.known ? 200 : 404),

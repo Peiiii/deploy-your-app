@@ -120,10 +120,14 @@ try {
         'rewritten response must not keep template ETag'
       );
     }
-  for (const path of ['/dashboard', '/deploy', '/u/creator', '/privacy-policy', '/cli/login', '/wallet', '/points/confirm?intent=real-intent']) {
+  for (const path of ['/dashboard', '/deploy', '/u/creator', '/privacy-policy', '/cli/login', '/wallet', '/points/confirm?intent=real-intent', '/auth/authorize?request=short-request', '/sdk/broker?app_id=example']) {
     const response = await mf.dispatchFetch('https://gemigo.io' + path);
     assert.equal(response.status, 200);
     assert.equal(response.headers.get('x-robots-tag'), 'noindex, follow');
+    if (path.startsWith('/auth/authorize') || path.startsWith('/sdk/broker')) {
+      assert.equal(response.headers.get('cache-control'), 'no-store');
+      assert.equal(response.headers.get('referrer-policy'), 'no-referrer');
+    }
     assert.ok(!(await response.text()).includes('From your content to a public link'));
   }
   for (const path of ['/missing-page', '/og-image.png'])
