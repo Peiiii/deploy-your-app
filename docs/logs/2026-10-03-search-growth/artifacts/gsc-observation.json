@@ -1,6 +1,6 @@
 {
   "property": "https://gemigo.io/",
-  "observed_date": "2026-10-03",
+  "observed_date": "2026-10-04",
   "ownership": {
     "status": "verified",
     "method": "HTML file",
@@ -9,7 +9,7 @@
   "sitemap": {
     "url": "https://gemigo.io/sitemap.xml",
     "submission": "success",
-    "report_status": "could_not_fetch",
+    "report_status": "success",
     "live_test": {
       "displayed_at": "2026-10-03 18:39:25 Asia/Shanghai",
       "user_agent": "Google 检查工具智能手机版",
@@ -27,14 +27,42 @@
       "bytes": 3277,
       "googlebot_ua_status": 200
     },
-    "interpretation": "Live fetch success is not sitemap parsing success or page indexing.",
-    "resubmission_after_live_test": "success; report still shows could_not_fetch",
+    "interpretation": "Both sitemap reports are now successful; 10 discovered pages per report do not mean 20 unique or 10 indexed pages. Historical failure root cause remains unconfirmed.",
     "diagnostic": "sitemap-fetch-diagnostic.json",
     "root_cause": "unconfirmed",
-    "independent_submission": "sitemap-official-checklist.json"
+    "independent_submission": {
+      "url": "https://gemigo.io/sitemap.xml?fetch-test=20261003",
+      "report_status": "success",
+      "last_read_date": "2026-10-03",
+      "discovered_pages": 10
+    },
+    "last_read_date": "2026-10-03",
+    "discovered_pages": 10,
+    "report_screenshot": "gsc-sitemaps-20261004.png"
   },
-  "performance": "processing; UI asks to return in about one day",
-  "indexing": "processing; unavailable",
+  "performance": "processing; overview asks to return in about one day",
+  "indexing": "aggregate report processing; homepage individually indexed",
   "backend_search_console_api_connected": false,
-  "manual_actions": "not obtained"
+  "manual_actions": {
+    "status": "no_issues_detected",
+    "screenshot": "gsc-manual-actions-20261004.png"
+  },
+  "observed_at": "2026-10-04 15:19–15:21 Asia/Shanghai",
+  "security_issues": {
+    "status": "no_issues_detected",
+    "screenshot": "gsc-security-issues-20261004.png"
+  },
+  "url_inspections": [
+    {
+      "url": "https://gemigo.io/",
+      "status": "indexed",
+      "screenshot": "gsc-home-index-20261004.png"
+    },
+    {
+      "url": "https://gemigo.io/catalog",
+      "status": "unknown_to_google",
+      "screenshot": "gsc-catalog-index-20261004.png",
+      "index_request": "requested; live eligibility test pending when browser was taken by another operation"
+    }
+  ]
 }

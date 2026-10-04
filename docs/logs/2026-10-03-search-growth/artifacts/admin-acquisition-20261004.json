@@ -1,0 +1,58 @@
+{
+  "observedAt": "2026-10-04 15:17 Asia/Shanghai",
+  "environment": "production",
+  "entry": "https://admin.gemigo.io/#seo",
+  "authentication": "existing Chrome administrator session; no credential mutation or token extraction",
+  "registrationTrackingStartsAt": "2026-10-03T05:43:38.620Z",
+  "period7": {
+    "start": "2026-09-27",
+    "end": "2026-10-03",
+    "coverageStart": "2026-09-27",
+    "search": {
+      "visitors": 6,
+      "sessions": 6,
+      "eligibleSessions": 1,
+      "registeredSessions": 0,
+      "publishedSessions": 0
+    },
+    "ai": {
+      "visitors": 0,
+      "sessions": 0,
+      "eligibleSessions": 0,
+      "registeredSessions": null,
+      "publishedSessions": null
+    }
+  },
+  "period30": {
+    "start": "2026-09-04",
+    "end": "2026-10-03",
+    "coverageStart": "2026-09-05",
+    "search": {
+      "visitors": 21,
+      "sessions": 31,
+      "eligibleSessions": 1,
+      "registeredSessions": 0,
+      "publishedSessions": 0
+    },
+    "ai": {
+      "visitors": 0,
+      "sessions": 0,
+      "eligibleSessions": 0,
+      "registeredSessions": null,
+      "publishedSessions": null
+    }
+  },
+  "today": {
+    "day": "2026-10-04",
+    "complete": false,
+    "search": {
+      "visitors": 2,
+      "sessions": 3,
+      "eligibleSessions": 3,
+      "registeredSessions": 0,
+      "publishedSessions": 0
+    }
+  },
+  "csv": "admin-acquisition-20261004-30d.csv",
+  "limits": "Same-session attribution; rolling retention; today separate; samples insufficient to establish growth. Successful JSON consumed through API response.ok path; HTTP status line not independently captured."
+}

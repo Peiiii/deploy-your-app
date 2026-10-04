@@ -79,3 +79,10 @@
 - 09:01续办时浏览器工具明确Mac锁屏且自动解锁失败，需要手动解锁；已请求用户解锁，保留已有会话。没有重新读取Google/Bing或私有获客报表，没有重复提交sitemap。Google两条报告失败、人工处置/安全正文未读到和Bing权限未取得均为10-03最后观察，今天状态未知。SG01/SG05继续partial，原验收范围不变。
 - 更新同一heartbeat自动化gemigo-ai的过时日预算条件，工具确认ACTIVE；既有每日09:00、目标聊天与通知策略保持不变。现有track、current-state、合同及历史设计指针同步当前owner。仅本轮有实际政策变化与用户解锁输入需求，未创建重复日报或平行状态。
 - 文档diff-only、相对链接和内容Review通过；纠正历史结算复盘落入新日期章节的问题，当前/历史状态和私有数据未验证边界分开，无未关闭文档finding。仅维护既有事实与调度条件，未触碰源码，不重复运行未受影响的源码测试或部署。
+
+## 2026-10-04 下午：生产指标验收及 sitemap 报告成功
+
+- 用户说明未锁屏后重新检查：native Chrome可用，扩展连接仍失败；转原生界面完成真实管理员会话7/30日报表和CSV验收。搜索成功发布字段实际为0，AI无可测入口汇总为null；注册起点、UTC完整日、留存缺口及今日单列正确。窗口与覆盖详见[生产观察](artifacts/admin-acquisition-20261004.json)、[7日UI](artifacts/admin-acquisition-20261004-7d.png)、[30日UI](artifacts/admin-acquisition-20261004-30d.png)和[真实CSV](artifacts/admin-acquisition-20261004-30d.csv)。UI成功结果经过api响应ok分支，未独立捕获HTTP状态行；不虚构该状态证据。原实际D1成功/去重/截止回归仍覆盖非零与错误分支，SG05 passed；无INP/真实用户CWV仍明确，不宣称增长或性能提升。
+- GSC两条sitemap报告均成功，各发现10个网址，上次读取10-03；[报告截图](artifacts/gsc-sitemaps-20261004.png)。人工处置与安全正文明确未检测到任何问题；首页已收录，目录仍未知。覆盖[当前观察](artifacts/gsc-observation.json)，10-03的抓取诊断保留为历史，不用新成功倒推当时根因。
+- 对/catalog发起一次请求编入索引，Google开始测试实际网址；尚未见排队成功或失败，期间Chrome被另一操作切到Creem。已请求其它操作暂停约3分钟，未反复抢占。Bing新标签已导航到官方入口，但正文尚未读取，不能当权限取得。SG01仍partial；未重复提交sitemap、关闭防护、改密或抽取会话令牌。
+- 更新同一gemigo-ai自动化：sitemap成功与SG05已验收成为续办基线，继续目录既有请求/Bing/实际表现，不重复诊断已解除故障。工具确认ACTIVE，原09:00时刻和目标聊天不变。JSON、文档相对链接、diff-only检查及CSV 62行的留存/空值/会话汇总通过；内容Review无未关闭finding。未修改产品源码或重复部署。
