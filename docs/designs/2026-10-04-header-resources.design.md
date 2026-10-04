@@ -2,7 +2,7 @@
 
 日期：2026-10-04（Asia/Shanghai）
 范围：比较多个候选，采用用户选择的 C（第三个方案），继续实现、验证与项目授权内交付。
-flow=standard；risk=L2；design-document=required；plan=not-required（单批实现）；本地验证与实现 Review 已通过，交付待部署。
+flow=standard；risk=L2；design-document=required；plan=not-required（单批实现）；本地验证、实现 Review 与生产交付通过；retrospective_state=completed。
 
 ## 问题与证据
 
@@ -84,4 +84,13 @@ design-review=passed（上述设计范围）；无未关闭设计 finding。该�
 - frontend tsc、四个源码文件定向 ESLint、diff check、生产构建通过。既有 Browserslist 与大 bundle 提示未新增错误。
 - 项目没有 diff-only 自动可维护性入口，按任务 diff 与相邻合同人工 Review：单一菜单 owner、支持回退可见、路径/语言/键盘、局部 observer 清理、既有登录和反馈导航、无钱包入口及弹层边界已核对。implementation-review=passed，no findings。
 
-Validation=acceptance-ready（本地），生产菜单、指南及实际资产待 Delivery 核验。精确交付范围为本设计、新资源菜单、Header/LanguageSwitcher/Sidebar 与两份语言文件；四份原有无关 WIP 保留。
+Validation=acceptance-ready。精确交付范围为本设计、新资源菜单、Header/LanguageSwitcher/Sidebar 与两份语言文件；四份原有无关 WIP 保留。
+
+## 生产交付与收尾
+
+- 源码提交 `d6305e9` 普通推送 master，主工作区 master 同步；四份无关 WIP 的哈希与任务开始前一致。
+- 标准 `pnpm deploy:pages` Published；Pages 生产发布 `f5d479c3-7266-4587-a576-2e1c01c85016`，gh-pages `1265f0d`；前一发布 `ad303733-f3da-4d5f-8d89-247650248bb2` / `6386bb1` 可用于恢复。
+- 真实 `https://gemigo.io` 消费 `index-kaHExE62.js` / `index-ObKpMJCV.css`。375px 中文菜单位于 x16～353，两个分组和五个入口正确，侧栏独立文档、空通知及钱包入口不存在；1440px 菜单在 Header 范围内。
+- 线上从资源菜单进入中文 HTML 指南并关闭菜单；开发者文档原生点击在新标签页加载正确站点；联系支持打开真实 Crisp，对话开启/可见均为 true，未发送消息。Crisp 首次加载存在异步等待，验证在完成加载后检查真实界面，未把立即返回的 SDK 操作当作打开成功。
+- 本任务临时开发服务与外部测试标签页关闭，生产入口保留可用。故障注入和长账户名布局 fixture 仅发生在本地，线上未注入身份或修改业务数据。
+- retrospective_decision=no-increment：本次已在现有布局/弹层 owner 完成收敛，并验证可用宽度与实际用户入口。没有新增通用流程规则的证据；用户对最终体验的主观反馈仍可更新本方案。
