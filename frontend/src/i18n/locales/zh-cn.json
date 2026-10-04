@@ -718,6 +718,7 @@
     "offline": "未上线"
   },
   "ui": {
+    "developerDocs": "开发文档",
     "dashboard": "应用管理",
     "toggleMenu": "切换菜单",
     "toggleTheme": "切换主题",

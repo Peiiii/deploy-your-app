@@ -726,6 +726,7 @@
     "offline": "Offline"
   },
   "ui": {
+    "developerDocs": "Developer docs",
     "dashboard": "App management",
     "toggleMenu": "Toggle Menu",
     "toggleTheme": "Toggle Theme",
