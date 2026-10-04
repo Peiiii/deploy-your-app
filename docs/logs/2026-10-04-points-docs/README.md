@@ -29,7 +29,7 @@
 
 ## 线上验收证据
 
-可独立使用的点数、SDK/Skill、文档站与两应用源码已发布。整体未完成：PD-04 无获准商户渠道，充值/支付回调对账/真钱退款/作者到账尚未实现和验收；PD-07 第二应用的最后浏览器消费验证因 Mac 锁屏待解锁。原合同 Required 未减少。
+可独立使用的点数、SDK/Skill、文档站与两应用源码已发布。整体未完成：PD-04 无获准商户渠道，充值/支付回调对账/真钱退款/作者到账尚未实现和验收；PD-07 第二应用已出现真实扣点记录，但最终浏览器权益恢复检查受并行Chrome操作中断，等待稳定控制。原合同 Required 未减少。
 
 - 实际入口：[文档](https://docs.gemigo.io)、[钱包](https://gemigo.io/wallet)、[知识实验室](https://knowledge-lab.gemigo.app/)、[创意实验室](https://creative-lab.gemigo.app/)。两示例是正式项目，使用生产账号与正式 v0.3.0 SDK；没有客户端假余额/假订单。
 - 文档站七页、原 Markdown、Skill、SDK 资源、可安装 tgz、搜索文件和真实404线上核对。实际从公开 URL npm 安装 SDK 后核对 default import、版本、类型和依赖通过；npm registry 401，未声称 registry 发布成功。[截图](artifacts/docs-live.png)。
@@ -53,6 +53,14 @@
 
 ## 交付汇总与复盘
 
-整体 blocked，继续条件：[支付开通条件与材料草稿](../../designs/2026-10-04-payment-onboarding.design.md)及 Mac解锁后的第二示例浏览器验收。支付需要实际获准渠道、商户、经济参数及后续代码/真实交易验收，不能描述成只需填一个Key。
+整体 blocked，继续条件：[支付开通条件与材料草稿](../../designs/2026-10-04-payment-onboarding.design.md)及第二示例浏览器恢复验收。支付需要实际获准渠道、商户、经济参数及后续代码/真实交易验收，不能描述成只需填一个Key。
 
 retrospective_decision：updated-existing-owner。已核实 Pages 的 production分支，修正原 TECHNICAL_ARCHITECTURE.md 中 GitHub Pages 描述，链接唯一命令owner与本次证据；超时/迟到/终态竞争的高影响错误已经落为实际源码/D1回归。没有新增全局开发规则。父目标仍未完成，retrospective_state=decision-recorded，不能由子模块部署成功推断整体验收完成。
+
+## 解锁后的续验（2026-10-04）
+
+用户回复“已解锁”。恢复Chrome后原知识应用登录与永久/按期权益仍存在；尝试进入创意应用时，原生Chrome反复被其它应用标签操作中断，截图也未提供可靠页面渲染，不据此完成UI验收。独立IAB可载入真实创意页面，但popup登录未完成；未注入身份或token，已关闭临时页并reset视口。已请求用户暂时暂停其它任务对Chrome操作。
+
+期间实际平台钱包出现创意配色解锁收据8f9f8b78-a97d-46c6-ad71-aa720cab4c1f，requestId=08cdf27d-405c-4c3b-afeb-43db3fce4bef，price=3，status=granted，paid_minor=creator_minor=0；余额3→0，共7笔记录，证明生产跨应用共用同一来源。未观察到该消费的完整浏览器点击过程，不将它写成本次自动化点击成功。后续沿已付收据核对生成、刷新及二购幂等，不另发收费请求。
+
+快进合入其它网关任务已推送的d5e4980，保留其源码与部署结果；本次仅更新同一日志、账本、当前状态与脱敏钱包快照，不重新部署其它任务的产品。PD-07仍blocked，现金PD-04仍blocked。

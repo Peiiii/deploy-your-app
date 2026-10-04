@@ -69,15 +69,25 @@
     }
   ],
   "wallet": {
-    "balance": 3,
+    "balance": 0,
     "lots": [
       {
         "kind": "trial",
         "total": 20,
-        "remaining": 3
+        "remaining": 0
       }
     ],
     "receipts": [
+      {
+        "id": "8f9f8b78-a97d-46c6-ad71-aa720cab4c1f",
+        "projectId": "51ce4e3c-197f-4ee5-b136-d1885b3b8e81",
+        "name": "配色生成工具",
+        "status": "granted",
+        "price": 3,
+        "paidMinor": 0,
+        "creatorMinor": 0,
+        "hasPersistedResult": false
+      },
       {
         "id": "63669394-4172-4444-ad94-ec2025ab8580",
         "projectId": "5d87699b-bd26-4b16-8a50-45f3126721af",
@@ -149,6 +159,7 @@
     "livePayments": 0
   },
   "cashAcceptance": "blocked: no approved merchant/channel; recharge503, no paid/payout evidence",
-  "uiCreative": "pending: Mac locked, user unlock requested",
-  "knownBoundary": "Creative app final UI acceptance and temporary native tab/browser viewport cleanup wait for Mac unlock; cash path remains unimplemented pending approved merchant/channel."
+  "uiCreative": "pending: unlocked; native Chrome control repeatedly interrupted by other tab operations. A granted 3-point creative receipt is present, but refresh/repeated-unlock UI evidence has not yet been collected.",
+  "knownBoundary": "Cash path remains unimplemented pending approved merchant/channel. Creative final UI acceptance waits for stable Chrome access. Temporary IAB viewport was reset and its failed popup-login tab was closed.",
+  "walletCapturedAt": "2026-10-04T01:37:57.587Z"
 }
