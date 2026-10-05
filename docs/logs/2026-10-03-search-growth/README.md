@@ -86,3 +86,11 @@
 - GSC两条sitemap报告均成功，各发现10个网址，上次读取10-03；[报告截图](artifacts/gsc-sitemaps-20261004.png)。人工处置与安全正文明确未检测到任何问题；首页已收录，目录仍未知。覆盖[当前观察](artifacts/gsc-observation.json)，10-03的抓取诊断保留为历史，不用新成功倒推当时根因。
 - 对/catalog发起一次请求编入索引，Google开始测试实际网址；尚未见排队成功或失败，期间Chrome被另一操作切到Creem。已请求其它操作暂停约3分钟，未反复抢占。Bing新标签已导航到官方入口，但正文尚未读取，不能当权限取得。SG01仍partial；未重复提交sitemap、关闭防护、改密或抽取会话令牌。
 - 更新同一gemigo-ai自动化：sitemap成功与SG05已验收成为续办基线，继续目录既有请求/Bing/实际表现，不重复诊断已解除故障。工具确认ACTIVE，原09:00时刻和目标聊天不变。JSON、文档相对链接、diff-only检查及CSV 62行的留存/空值/会话汇总通过；内容Review无未关闭finding。未修改产品源码或重复部署。
+
+## 2026-10-05：搜索表现基线可读与Bing验证准备
+
+- GSC效果报告首次可读：默认3个月筛选，图表实际显示09-30—10-02，1点击/4展示、CTR25%、平均排名2.8；公开查询gemigo 1点击/3展示，唯一页面首页1/4。余下展示没有可见查询行，不猜词；不将品牌极小样本或后台来源会话当作SEO提升。两sitemap报告保持成功/各发现10网址；对照最后读取更新为10-04。
+- 目录10-05仍未知/无抓取，未重复10-04发起的一次请求，最终排队结果仍未见；两指南已发现未收录，来源均为对照sitemap，无抓取时间。整体索引报告仍处理中。人工处置/安全无问题沿用10-04证据，未宣称本次重测。
+- Chrome原生工具返回锁屏失败，但扩展通道实际可用。现有后台会话进入登录页，本次没有新获客指标，未使用旧密码重试、改密或抽取令牌。管理员登录与BingVerify已分别请求具体输入，未回复不视为批准；保留两个标签。
+- Bing基础Google账号登录成功，只使用openid/profile/email；手动添加gemigo.io，采用面板提供的HTML meta，未申请GSC导入。下载XML的事件等待超时，未取得文件，改用已显示的meta，不宣称XML下载成功。meta仅加到既有frontend/index.html，无第二配置owner/新runtime；元信息低风险无需独立设计。前端build与既有Pages原始HTML组装回归通过，dist精确meta一次，diff内容Review无finding；项目无独立维护性脚本。既有大chunk/Browserslist提示与本改动无关。
+- 精确源码提交f04f14c普通推送，主区master与实际远端一致0 0；沿pnpm deploy:pages/gh-pages发布，生产deployment21870cd2-1ace-4530-b609-17a7074f4f44、gh-pages c794c91。gemigo.io首页200/验证meta出现一次，主JS index-CaCdhVNm.js线上200，SHA256与构建一致（详见[Bing准备证据](artifacts/bing-verification-20261005.json)）。最后Verify会建立当前账号站点所有权，浏览器工具要求动作前确认；已准备具体可审阅结果，尚未点击/提交sitemap，SG01保持partial。

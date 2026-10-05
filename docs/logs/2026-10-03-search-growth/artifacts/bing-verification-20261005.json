@@ -1,0 +1,37 @@
+{
+  "observed_at": "2026-10-05 09:07–09:13 Asia/Shanghai",
+  "site": "https://gemigo.io/",
+  "account": "Wang Xiaotiao via Google basic sign-in",
+  "login": "successful",
+  "site_ownership": "pending confirmation at Verify action",
+  "method": "HTML meta tag",
+  "metadata_source": "Bing Add & verify site panel",
+  "screenshot": "bing-verification-ready-20261005.png",
+  "source_commit": "f04f14c2a677ef64688b347e4a07c6aff8cc6e6a",
+  "production_deployment": {
+    "project": "gemigo",
+    "environment": "Production",
+    "branch": "gh-pages",
+    "source": "c794c91",
+    "id": "21870cd2-1ace-4530-b609-17a7074f4f44"
+  },
+  "production_check": {
+    "observed_at_utc": "2026-10-05T01:12:05.668Z",
+    "homepage_status": 200,
+    "meta_present_once": true,
+    "js": "/assets/index-CaCdhVNm.js",
+    "js_status": 200,
+    "local_and_online_sha256": "64d08918d49dc8e8f1fd431c616e0ecc4c96813abc2dc85979a465472c9ceed7"
+  },
+  "sitemap_submission": "not yet submitted",
+  "limitations": [
+    "Adding the site and publishing verification metadata do not prove ownership verification or sitemap processing.",
+    "Only basic Google profile/email sign-in used; no GSC import permission granted."
+  ],
+  "admin_observation": {
+    "status": "existing admin session expired; login page shown after authenticated report read",
+    "latest_valid_acquisition_evidence": "admin-acquisition-20261004.json",
+    "new_metrics": null,
+    "password_changed": false
+  }
+}
