@@ -16,7 +16,7 @@ SG06：适用检查、实现 Review、生产部署验收和主工作区 master �
 
 | ID | Required | Status | 当前证据 | 失效原因 |
 | --- | --- | --- | --- | --- |
-| SG01 | true | partial | Google所有权已验证；[当前站长观察](../../logs/2026-10-03-search-growth/artifacts/gsc-observation.json)：10-05两sitemap成功/各10网址；效果1点击/4展示，已公开查询为品牌词；[Bing登录/验证meta上线](../../logs/2026-10-03-search-growth/artifacts/bing-verification-20261005.json) | Bing最终所有权Verify待确认，未提交sitemap；整体索引处理中，目录未知/上次请求最终排队结果未见，指南已发现未收录。极小样本不代表获客提升 |
+| SG01 | true | partial | Google所有权已验证；[当前站长观察](../../logs/2026-10-03-search-growth/artifacts/gsc-observation.json)：10-05两sitemap成功/各10网址；10-07效果1点击/7展示、图表覆盖多一天，已公开查询为品牌词；[Bing登录/验证meta上线](../../logs/2026-10-03-search-growth/artifacts/bing-verification-20261005.json) | Bing最终所有权Verify待确认，未提交sitemap；整体索引处理中，目录未知/上次请求最终排队结果未见，指南最近有效证据为10-05已发现未收录，10-07HTML检查平台报错无新结果。极小样本不代表获客提升 |
 | SG02 | true | passed | 中英文指南、HTML/ZIP样例已上线；生产ZIP根目录/资源匹配；指南手机UI与线上样例正确/错误答案、换题重置均已验收，见[截图](../../logs/2026-10-03-search-growth/artifacts/sample-interaction.jpg) | — |
 | SG03 | true | passed | [当前主线生产原始HTML](../../logs/2026-10-03-search-growth/artifacts/public-after-withdrawal.json)、真实目录分页UI、权限回归；app详情已按主线撤回，作品链接指向部署网址 | — |
 | SG04 | true | passed | [固定问题与回答来源](../../logs/2026-10-03-search-growth/artifacts/geo-observation.md) | 只有1条有效非品牌样本；品牌登录墙不计失败，不外推整体引用率 |

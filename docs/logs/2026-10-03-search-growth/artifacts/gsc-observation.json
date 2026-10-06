@@ -1,6 +1,6 @@
 {
   "property": "https://gemigo.io/",
-  "observed_date": "2026-10-05",
+  "observed_date": "2026-10-07",
   "ownership": {
     "status": "verified",
     "method": "HTML file",
@@ -39,51 +39,55 @@
     },
     "last_read_date": "2026-10-03",
     "discovered_pages": 10,
-    "report_screenshot": "gsc-sitemaps-20261005.png"
+    "report_screenshot": "gsc-sitemaps-20261005.png",
+    "report_observed_date": "2026-10-05"
   },
   "performance": {
     "status": "available",
-    "search_type": "web (text)",
+    "search_type": "web",
     "selected_time_range": "3 months",
     "displayed_chart_dates": [
       "2026-09-30",
-      "2026-10-02"
+      "2026-10-03"
     ],
-    "last_updated_ui": "11.5 hours ago",
+    "last_updated_ui": "12.5 hours ago",
     "clicks": 1,
-    "impressions": 4,
-    "ctr_percent": 25,
-    "average_position": 2.8,
+    "impressions": 7,
+    "ctr_percent": 14.3,
+    "average_position": 2.4,
     "visible_queries": [
       {
         "query": "gemigo",
         "clicks": 1,
-        "impressions": 3
+        "impressions": 6
       }
     ],
     "visible_pages": [
       {
         "url": "https://gemigo.io/",
         "clicks": 1,
-        "impressions": 4
+        "impressions": 7
       }
     ],
-    "screenshot": "gsc-performance-20261005.png",
+    "screenshot": "gsc-performance-20261007.png",
     "limitations": [
       "Selected three-month filter and displayed chart dates are recorded separately; do not invent exact filter dates.",
       "Visible query rows do not account for every impression; no observed non-brand acquisition improvement.",
-      "Four impressions and one click cannot establish ranking, conversion or growth.",
-      "GSC counts are not the admin rolling UTC acquisition session counts."
-    ]
+      "Seven impressions and one click cannot establish ranking, conversion or growth.",
+      "GSC counts are not the admin rolling UTC acquisition session counts.",
+      "Chart coverage extends one day beyond the prior observation; do not infer growth or a ranking/CTR trend from these snapshots."
+    ],
+    "search_type_ui": "网络",
+    "observed_at_utc": "2026-10-06T17:16:09Z"
   },
-  "indexing": "aggregate report still processing as of 2026-10-05; homepage individually indexed in 2026-10-04 observation",
+  "indexing": "aggregate report still processing as of 2026-10-07; homepage individually indexed in 2026-10-04 observation",
   "backend_search_console_api_connected": false,
   "manual_actions": {
     "status": "no_issues_detected",
     "screenshot": "gsc-manual-actions-20261004.png",
     "observed_date": "2026-10-04"
   },
-  "observed_at": "2026-10-05 09:06–09:13 Asia/Shanghai",
+  "observed_at": "2026-10-07 Asia/Shanghai",
   "security_issues": {
     "status": "no_issues_detected",
     "screenshot": "gsc-security-issues-20261004.png",
@@ -100,8 +104,8 @@
       "url": "https://gemigo.io/catalog",
       "status": "unknown_to_google",
       "screenshot": "gsc-catalog-index-20261004.png",
-      "index_request": "One request initiated 2026-10-04; final queue result not observed. 2026-10-05 inspection remains unknown to Google, no last crawl. Not submitted again.",
-      "observed_date": "2026-10-05",
+      "index_request": "One request initiated 2026-10-04; final queue result not observed. 2026-10-07 inspection remains unknown to Google, no last crawl. Not submitted again.",
+      "observed_date": "2026-10-07",
       "screenshot_observed_date": "2026-10-04"
     },
     {
@@ -122,5 +126,21 @@
       "screenshot": "gsc-zip-guide-20261005.png",
       "index_request": "not submitted in this observation"
     }
-  ]
+  ],
+  "inspection_availability": {
+    "observed_date": "2026-10-07",
+    "url": "https://gemigo.io/guides/publish-html",
+    "status": "inspection unavailable",
+    "ui_message": "出了点问题；如果此问题仍然存在，请过几个小时再试",
+    "screenshot": "gsc-inspection-unavailable-20261007.png",
+    "interpretation": "GSC lookup did not return this guide result; previous catalog body stayed visible after closing the error. No inference of site fetch failure or guide index status. ZIP guide not re-inspected after the tool error."
+  },
+  "admin_followup": {
+    "observed_date": "2026-10-07",
+    "status": "fresh tab shows administrator login form; no active administrator session",
+    "existing_tab": "CDP focus operation timed out twice; user tab untouched",
+    "new_acquisition_metrics": null,
+    "latest_valid_metrics": "admin-acquisition-20261004.json",
+    "password_changed": false
+  }
 }

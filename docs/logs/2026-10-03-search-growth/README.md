@@ -94,3 +94,8 @@
 - Chrome原生工具返回锁屏失败，但扩展通道实际可用。现有后台会话进入登录页，本次没有新获客指标，未使用旧密码重试、改密或抽取令牌。管理员登录与BingVerify已分别请求具体输入，未回复不视为批准；保留两个标签。
 - Bing基础Google账号登录成功，只使用openid/profile/email；手动添加gemigo.io，采用面板提供的HTML meta，未申请GSC导入。下载XML的事件等待超时，未取得文件，改用已显示的meta，不宣称XML下载成功。meta仅加到既有frontend/index.html，无第二配置owner/新runtime；元信息低风险无需独立设计。前端build与既有Pages原始HTML组装回归通过，dist精确meta一次，diff内容Review无finding；项目无独立维护性脚本。既有大chunk/Browserslist提示与本改动无关。
 - 精确源码提交f04f14c普通推送，主区master与实际远端一致0 0；沿pnpm deploy:pages/gh-pages发布，生产deployment21870cd2-1ace-4530-b609-17a7074f4f44、gh-pages c794c91。gemigo.io首页200/验证meta出现一次，主JS index-CaCdhVNm.js线上200，SHA256与构建一致（详见[Bing准备证据](artifacts/bing-verification-20261005.json)）。最后Verify会建立当前账号站点所有权，浏览器工具要求动作前确认；已准备具体可审阅结果，尚未点击/提交sitemap，SG01保持partial。
+
+## 2026-10-07：搜索观察更新
+
+- 实际测量日期为10-07（Asia/Shanghai）。GSC默认3个月筛选，图表09-30—10-03：1点击/7展示，公开gemigo查询1/6，页面仅首页1/7；覆盖比10-05多一天，不声称增长、排名或CTR趋势。整体索引仍处理中，目录未知/无抓取，未重复请求；HTML指南查询返回Google通用错误，关闭后仍是旧目录正文，没有把它当指南结果，ZIP未继续查询。两指南/sitemap最近有效证据仍10-05。
+- 后台旧用户标签的CDP focus读取超时；新建只读标签确认管理员登录页，随后关闭自己创建的重复标签，保留原后台/Bing待输入页面。没有新获客指标、未重试旧密码/修改保护，Bing确认未回复、不点击Verify/重复询问。仅更新现有事实与证据，JSON/本地链接/diff内容检查与轻量Review，未改源码或重新部署。
