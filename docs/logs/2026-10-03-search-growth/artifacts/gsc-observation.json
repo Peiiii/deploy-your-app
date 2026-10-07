@@ -48,39 +48,38 @@
     "selected_time_range": "3 months",
     "displayed_chart_dates": [
       "2026-09-30",
-      "2026-10-03"
+      "2026-10-04"
     ],
-    "last_updated_ui": "12.5 hours ago",
-    "clicks": 1,
-    "impressions": 7,
-    "ctr_percent": 14.3,
+    "last_updated_ui": "9.5 hours ago",
+    "clicks": 6,
+    "impressions": 15,
+    "ctr_percent": 40,
     "average_position": 2.4,
     "visible_queries": [
       {
         "query": "gemigo",
-        "clicks": 1,
-        "impressions": 6
-      }
-    ],
-    "visible_pages": [
+        "clicks": 6,
+        "impressions": 13
+      },
       {
-        "url": "https://gemigo.io/",
-        "clicks": 1,
-        "impressions": 7
+        "query": "gemoio",
+        "clicks": 0,
+        "impressions": 1
       }
     ],
-    "screenshot": "gsc-performance-20261007.png",
+    "visible_pages": null,
+    "screenshot": "gsc-performance-20261007-0958.png",
     "limitations": [
-      "Selected three-month filter and displayed chart dates are recorded separately; do not invent exact filter dates.",
-      "Visible query rows do not account for every impression; no observed non-brand acquisition improvement.",
-      "Seven impressions and one click cannot establish ranking, conversion or growth.",
-      "GSC counts are not the admin rolling UTC acquisition session counts.",
-      "Chart coverage extends one day beyond the prior observation; do not infer growth or a ranking/CTR trend from these snapshots."
+      "Selected three-month filter and displayed chart dates are recorded separately; exact filter bounds not independently captured.",
+      "Visible queries account for 14 of 15 impressions; omitted query unknown. All six observed clicks are on gemigo. gemoio intent is unconfirmed.",
+      "Fifteen impressions and six clicks, with one more covered chart day, do not establish non-brand acquisition, conversion or growth.",
+      "Page breakdown did not finish loading before the tab became unavailable; latest valid page breakdown remains the prior observation.",
+      "GSC counts are not the admin rolling UTC acquisition session counts."
     ],
     "search_type_ui": "网络",
-    "observed_at_utc": "2026-10-06T17:16:09Z"
+    "observed_at_utc": "2026-10-07T01:58Z"
   },
-  "indexing": "aggregate report still processing as of 2026-10-07; homepage individually indexed in 2026-10-04 observation",
+  "indexing": "aggregate overview still processing at 2026-10-07 09:58 Asia/Shanghai; homepage individually indexed in 2026-10-04 observation",
   "backend_search_console_api_connected": false,
   "manual_actions": {
     "status": "no_issues_detected",
@@ -133,7 +132,12 @@
     "status": "inspection unavailable",
     "ui_message": "出了点问题；如果此问题仍然存在，请过几个小时再试",
     "screenshot": "gsc-inspection-unavailable-20261007.png",
-    "interpretation": "GSC lookup did not return this guide result; previous catalog body stayed visible after closing the error. No inference of site fetch failure or guide index status. ZIP guide not re-inspected after the tool error."
+    "interpretation": "GSC lookup did not return this guide result; previous catalog body stayed visible after closing the error. No inference of site fetch failure or guide index status. ZIP guide not re-inspected after the tool error.",
+    "latest_followup": {
+      "observed_at_utc": "2026-10-07T01:58Z",
+      "status": "not re-inspected; browser tab became unavailable after page-breakdown navigation",
+      "interpretation": "No new guide or catalog indexing result. No repeated request or sitemap submission."
+    }
   },
   "admin_followup": {
     "observed_date": "2026-10-07",
@@ -141,6 +145,45 @@
     "existing_tab": "CDP focus operation timed out twice; user tab untouched",
     "new_acquisition_metrics": null,
     "latest_valid_metrics": "admin-acquisition-20261004.json",
-    "password_changed": false
+    "password_changed": false,
+    "latest_followup": "2026-10-07 09:58 Asia/Shanghai browser inventory has no admin/Bing tabs; existing login/ownership questions remain unanswered. No new admin query or authentication attempt."
+  },
+  "previous_performance_observation": {
+    "status": "available",
+    "search_type": "web",
+    "selected_time_range": "3 months",
+    "displayed_chart_dates": [
+      "2026-09-30",
+      "2026-10-03"
+    ],
+    "last_updated_ui": "12.5 hours ago",
+    "clicks": 1,
+    "impressions": 7,
+    "ctr_percent": 14.3,
+    "average_position": 2.4,
+    "visible_queries": [
+      {
+        "query": "gemigo",
+        "clicks": 1,
+        "impressions": 6
+      }
+    ],
+    "visible_pages": [
+      {
+        "url": "https://gemigo.io/",
+        "clicks": 1,
+        "impressions": 7
+      }
+    ],
+    "screenshot": "gsc-performance-20261007.png",
+    "limitations": [
+      "Selected three-month filter and displayed chart dates are recorded separately; do not invent exact filter dates.",
+      "Visible query rows do not account for every impression; no observed non-brand acquisition improvement.",
+      "Seven impressions and one click cannot establish ranking, conversion or growth.",
+      "GSC counts are not the admin rolling UTC acquisition session counts.",
+      "Chart coverage extends one day beyond the prior observation; do not infer growth or a ranking/CTR trend from these snapshots."
+    ],
+    "search_type_ui": "网络",
+    "observed_at_utc": "2026-10-06T17:16:09Z"
   }
 }
