@@ -4,13 +4,13 @@ This Worker provides the public `/api/v1/*` endpoints:
 
 - Auth: email / Google / GitHub login, sessions (`/api/v1/auth/*`, `/api/v1/me`, `/api/v1/logout`)
 - Projects CRUD in D1 (`/api/v1/projects`)
-- Deploy proxy to the Node backend (`/api/v1/deploy`, `/api/v1/deployments/:id/stream`)
+- Durable static publication in AppGateway alarms and R2 (`/api/v1/deploy`, `/api/v1/deployments/:id/stream`)
 
 For a deeper architecture overview and API details, see:
 
-- `../../docs/API_WORKER_ARCHITECTURE.md`
-- `../../docs/AUTH_SETUP.md`
-- `../../docs/ENVIRONMENT.md` (section “3.3 API Worker”)
+- `../../docs/architecture/API_WORKER_ARCHITECTURE.md`
+- `../../docs/getting-started/AUTH_SETUP.md`
+- `../../docs/getting-started/ENVIRONMENT.md` (section “3.3 API Worker”)
 
 ---
 
@@ -64,7 +64,6 @@ DEPLOY_TARGET = "r2"
 PLATFORM_AI_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 PLATFORM_AI_MODEL = "qwen3.8-flash"
 AUTH_REDIRECT_BASE = "https://gemigo.io"
-DEPLOY_SERVICE_BASE_URL = "https://<your-node-backend>/api/v1"
 
 [[d1_databases]]
 binding = "PROJECTS_DB"
@@ -90,9 +89,7 @@ There are two groups of variables:
   Base URL of the frontend, used to build OAuth callback URLs and default post-login redirect.  
   In production this should be `https://gemigo.io`.
 
-- `DEPLOY_SERVICE_BASE_URL`  
-  Base URL of the Node deployment service, e.g. `https://builderapi.gemigo.io/api/v1`.  
-  If not set, local dev defaults to `http://127.0.0.1:4173/api/v1`.
+Static publication uses the existing `ASSETS` R2 and `APP_GATEWAY` bindings. No VPS URL or builder token is required. See [production publication](../../docs/deployment/DEPLOY.md).
 
 ### Sensitive (set as Secrets in Cloudflare Dashboard)
 
@@ -120,7 +117,7 @@ pnpm exec wrangler secret put GITHUB_CLIENT_SECRET
 - `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`  
   GitHub OAuth app credentials.
 
-> Detailed OAuth setup steps are in `../../docs/AUTH_SETUP.md`.
+> Detailed OAuth setup steps are in `../../docs/getting-started/AUTH_SETUP.md`.
 
 ---
 

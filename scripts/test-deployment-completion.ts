@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { LogStreamMerger } from '../workers/api/src/utils/log-stream-merger.ts';
 import { deployService } from '../workers/api/src/services/deploy.service.ts';
 import { deploymentRepository } from '../workers/api/src/repositories/deployment.repository.ts';
-import { deployProxyService } from '../workers/api/src/services/deploy-proxy.service.ts';
 import { projectService } from '../workers/api/src/services/project.service.ts';
 import type { ApiWorkerEnv } from '../workers/api/src/types/env.ts';
 
@@ -24,7 +23,7 @@ await assert.rejects(new Response(failed.getOutputStream()).text(), /D1 unavaila
 
 const attempt = {status:'accepted' as const,id:'attempt',project_id:'project',provider_deployment_id:'provider',started_at:new Date().toISOString()};
 const originalFetch = globalThis.fetch;
-const original = {pending:deploymentRepository.listPending, connect:deployProxyService.connectStream, find:deploymentRepository.findByProviderId, latest:deploymentRepository.isLatest, finish:deploymentRepository.finishAttempt, get:projectService.getProjectById, update:projectService.updateProjectDeployment};
+const original = {pending:deploymentRepository.listPending, find:deploymentRepository.findByProviderId, latest:deploymentRepository.isLatest, finish:deploymentRepository.finishAttempt, get:projectService.getProjectById, update:projectService.updateProjectDeployment};
 const project = {id:'project',name:'Test',slug:'test',status:'Building',repoUrl:'local:test',lastDeployed:'',framework:'Unknown',description:'Complete metadata',category:'Games',tags:['test']} as const;
 let patch: Record<string, unknown> | undefined;
 let finished = false;
@@ -55,14 +54,18 @@ try {
  assert.equal((patch as Record<string,unknown> | undefined)?.status,'Failed');
  patch=undefined;finished=false;
  deploymentRepository.listPending=async()=>[attempt];
- globalThis.fetch=async()=>Response.json({type:'status',status:'SUCCESS'});
+ globalThis.fetch=async()=>{throw new Error('No builder dependency');};
  await deployService.reconcilePending(env,db);
- assert.equal((patch as Record<string,unknown> | undefined)?.url,'https://test.gemigo.app/');
- assert.equal(finished,true,'scheduled recovery persists disconnected deployment');
+ assert.equal(patch,undefined,'polling cannot invent a successful deployment');
+ assert.equal(finished,false);
+ deploymentRepository.findByProviderId=async()=>({...attempt,status:'succeeded',result_url:'https://test.gemigo.app/'});
+ assert.equal((await deployService.reconcileDeployment(env,db,'provider')).status,'SUCCESS');
+ deploymentRepository.findByProviderId=async()=>({...attempt,status:'failed',error_code:'invalid_archive'});
+ assert.equal((await deployService.reconcileDeployment(env,db,'provider')).errorCode,'invalid_archive');
 } finally {
  globalThis.fetch=originalFetch;
- deploymentRepository.listPending=original.pending;deployProxyService.connectStream=original.connect;
+ deploymentRepository.listPending=original.pending;
  deploymentRepository.findByProviderId=original.find;deploymentRepository.isLatest=original.latest;deploymentRepository.finishAttempt=original.finish;
  projectService.getProjectById=original.get;projectService.updateProjectDeployment=original.update;
 }
-console.log('PASS: delayed persistence, database failure, split SSE, replay recovery, missing URL, stale attempt, builder failure');
+console.log('PASS: delayed persistence, database failure, split SSE, persisted result recovery, missing URL, stale attempt, publish failure');

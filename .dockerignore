@@ -13,6 +13,7 @@ frontend/dist
 
 .deploy-builds
 data
+*.tsbuildinfo
 
 
 .env

@@ -13,7 +13,9 @@
     "wrangler": "^4.53.0"
   },
   "dependencies": {
+    "@gemigo/product-analytics": "workspace:*",
     "@gemigo/public-author": "workspace:*",
-    "@gemigo/product-analytics": "workspace:*"
+    "@zip.js/zip.js": "^2.23.0",
+    "@gemigo/deployment-assets": "workspace:*"
   }
 }

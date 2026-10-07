@@ -1,172 +1,21 @@
-name: Deploy to Aliyun Server
+name: Validate optional local builder
 
+# Production static publication runs entirely in Cloudflare. This workflow
+# intentionally has no SSH/deploy step: Docker-fupf belongs to Xianyu now.
 on:
-  push:
-    branches:
-      - main
-      - master
-    paths:
-      - Dockerfile
-      - server/**
-      - scripts/deploy.sh
-      - scripts/test-deployment-sandbox.mjs
-      - .github/workflows/deploy.yml
   workflow_dispatch:
-    inputs:
-      validate_only:
-        description: Build and verify isolation without deploying
-        type: boolean
-        default: false
-
-concurrency:
-  group: gemigo-builder-${{ github.event_name == 'workflow_dispatch' && inputs.validate_only && github.run_id || 'production' }}
-  cancel-in-progress: false
 
 jobs:
-  deploy:
-    name: Deploy to Production
+  validate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker image
-        run: |
-          docker build -t deploy-your-app-server:latest .
-
-      - name: Verify isolated build and restart recovery
-        run: node scripts/test-deployment-sandbox.mjs
-
-      - name: Save Docker image
-        if: github.event_name != 'workflow_dispatch' || !inputs.validate_only
-        run: |
-          docker save deploy-your-app-server:latest | gzip > deploy-image.tar.gz
-
-      - name: Upload deployment files
-        if: github.event_name != 'workflow_dispatch' || !inputs.validate_only
-        uses: appleboy/scp-action@v0.1.7
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - run: docker build -t deploy-your-app-server:validation .
+      - uses: actions/setup-node@v4
         with:
-          host: ${{ secrets.ALIYUN_HOST }}
-          username: ${{ secrets.ALIYUN_USER }}
-          key: ${{ secrets.ALIYUN_SSH_KEY }}
-          port: ${{ secrets.ALIYUN_PORT || 22 }}
-          source: "deploy-image.tar.gz,scripts/deploy.sh"
-          target: "/tmp/deploy-your-app"
-          strip_components: 0
-
-      - name: Execute deployment script
-        if: github.event_name != 'workflow_dispatch' || !inputs.validate_only
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.ALIYUN_HOST }}
-          username: ${{ secrets.ALIYUN_USER }}
-          key: ${{ secrets.ALIYUN_SSH_KEY }}
-          port: ${{ secrets.ALIYUN_PORT || 22 }}
-          envs: DEPLOY_SERVICE_TOKEN,CLOUDFLARE_ACCOUNT_ID,CLOUDFLARE_API_TOKEN,DASHSCOPE_API_KEY,DEPLOY_TARGET,CLOUDFLARE_PAGES_PROJECT_PREFIX,R2_ACCOUNT_ID,R2_ACCESS_KEY_ID,R2_SECRET_ACCESS_KEY,R2_BUCKET_NAME,APPS_ROOT_DOMAIN,CLOUDFLARE_D1_DATABASE_ID,CLOUDFLARE_D1_API_TOKEN,STORAGE_TYPE
-          script: |
-            set -e
-            echo "🔍 Pre-deployment checks..."
-            echo "Docker version: $(docker --version)"
-            echo "Available disk space:"
-            df -h / | tail -1
-            echo ""
-            echo "Checking deployment files..."
-            ls -lh /tmp/deploy-your-app/ || echo "Directory does not exist yet"
-            echo ""
-            mkdir -p /tmp/deploy-your-app
-            chmod +x /tmp/deploy-your-app/scripts/deploy.sh
-            echo "Executing deployment script..."
-            # Sensitive secrets from GitHub Secrets and non-sensitive configs from Variables
-            # will be passed to the deployment script and then to Docker container
-            /tmp/deploy-your-app/scripts/deploy.sh /tmp/deploy-your-app/deploy-image.tar.gz
-            echo ""
-            echo "✅ Deployment script completed"
-            # Cleanup
-            rm -f /tmp/deploy-your-app/deploy-image.tar.gz
+          node-version: 22
+      - run: node scripts/test-deployment-sandbox.mjs
         env:
-          DEPLOY_SERVICE_TOKEN: ${{ secrets.DEPLOY_SERVICE_TOKEN }}
-          # Sensitive information - use Secrets
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
-          # Cloudflare R2 credentials (S3-compatible)
-          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
-          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
-          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
-          CLOUDFLARE_D1_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-          # Non-sensitive configuration - use Variables (fallback handled in code if not set)
-          DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
-          CLOUDFLARE_PAGES_PROJECT_PREFIX: ${{ vars.CLOUDFLARE_PAGES_PROJECT_PREFIX }}
-          APPS_ROOT_DOMAIN: ${{ vars.APPS_ROOT_DOMAIN }}
-          STORAGE_TYPE: ${{ vars.STORAGE_TYPE }}
-
-      - name: Verify deployment
-        if: github.event_name != 'workflow_dispatch' || !inputs.validate_only
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.ALIYUN_HOST }}
-          username: ${{ secrets.ALIYUN_USER }}
-          key: ${{ secrets.ALIYUN_SSH_KEY }}
-          port: ${{ secrets.ALIYUN_PORT || 22 }}
-          script: |
-            echo "🔍 Verifying deployment..."
-            sleep 5
-            
-            CONTAINER_NAME="deploy-your-app"
-            PORT=${PORT:-80}
-            
-            # Check if container exists (running or stopped)
-            if docker ps -a --filter "name=${CONTAINER_NAME}" --format "{{.Names}}" | grep -q "${CONTAINER_NAME}"; then
-              echo "📋 Container exists"
-              # Check if container is running
-              if docker ps --filter "name=${CONTAINER_NAME}" --format "{{.Names}}" | grep -q "${CONTAINER_NAME}"; then
-                echo "✅ Container is running"
-                docker ps --filter "name=${CONTAINER_NAME}" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-              else
-                echo "❌ Container exists but is not running"
-                echo "📋 Container status:"
-                docker ps -a --filter "name=${CONTAINER_NAME}" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-                echo ""
-                echo "📝 Container exit code:"
-                docker inspect "${CONTAINER_NAME}" --format='{{.State.ExitCode}}' 2>/dev/null || echo "Unknown"
-                echo ""
-                echo "📝 Container logs (last 50 lines):"
-                docker logs --tail 50 "${CONTAINER_NAME}" 2>&1 || echo "Failed to get logs"
-                echo ""
-                echo "🔍 Container state details:"
-                docker inspect "${CONTAINER_NAME}" --format='State: {{.State.Status}}, ExitCode: {{.State.ExitCode}}, Error: {{.State.Error}}' 2>/dev/null || echo "Failed to inspect"
-                exit 1
-              fi
-            else
-              echo "❌ Container does not exist"
-              echo "📋 All containers:"
-              docker ps -a
-              echo ""
-              echo "📋 Available images:"
-              docker images | grep deploy-your-app || echo "No deploy-your-app images found"
-              exit 1
-            fi
-
-            # Basic HTTP connectivity check (Node backend only exposes deploy APIs;
-            # projects CRUD is handled by the Cloudflare Worker now).
-            echo ""
-            echo "🧪 Checking HTTP connectivity on port ${PORT}..."
-            if curl -s --max-time 5 -o /dev/null "http://localhost:${PORT}/"; then
-              echo "✅ HTTP endpoint is reachable"
-              echo "🌐 Service base URL: http://${{ secrets.ALIYUN_HOST }}:${PORT}"
-            else
-              echo "❌ HTTP endpoint is not reachable"
-              echo "📝 Container logs:"
-              docker logs --tail 30 "${CONTAINER_NAME}" 2>&1 || echo "Failed to get logs"
-              echo ""
-              echo "🔍 Checking port binding:"
-              netstat -tulpn | grep ${PORT} || ss -tulpn | grep ${PORT} || echo "Port ${PORT} not found"
-              exit 1
-            fi
+          BUILD_TEST_IMAGE: deploy-your-app-server:validation

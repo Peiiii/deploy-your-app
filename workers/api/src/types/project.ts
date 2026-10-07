@@ -118,3 +118,11 @@ export interface DeploymentStatusPayload {
   errorCode?: string;
   errorMessage?: string;
 }
+/** Prepared static source context consumed by metadata enrichment. */
+export interface ProjectContext {
+  indexHtml?: string;
+  packageJson?: { name?: string; description?: string; version?: string; dependencies?: Record<string, string>; devDependencies?: Record<string, string>; scripts?: Record<string, string> };
+  directoryTree: string[];
+  readme?: string;
+  framework?: string;
+}

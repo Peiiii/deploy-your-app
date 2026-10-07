@@ -136,6 +136,23 @@ function emptySuggestion(): ProjectMetadataSuggestion {
 }
 
 class AIService {
+  /** Preserve the static GenAI repair used by the former publisher. */
+  async rewriteGenAIBaseUrl(env: ApiWorkerEnv, path: string, code: string, baseUrl: string): Promise<string | null> {
+    if (!this.isEnabled(env)) return null;
+    const model = env.PLATFORM_AI_MODEL ?? 'qwen3.8-flash';
+    try {
+      const response = await fetch(`${env.PLATFORM_AI_BASE_URL ?? 'https://dashscope.aliyuncs.com/compatible-mode/v1'}/chat/completions`, {
+        method: 'POST', signal: AbortSignal.timeout(30000),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${env.DASHSCOPE_API_KEY}` },
+        body: JSON.stringify({ model, temperature: 0, ...(model === 'qwen3.8-flash' ? { enable_thinking: false } : {}), messages: [
+          { role: 'system', content: 'You are a senior TypeScript/JavaScript engineer. Rewrite the provided file so that any usage of Google GenAI clients (GoogleGenerativeAI, GoogleAIClient/GoogleAI from @google/genai, or direct fetches to generativelanguage.googleapis.com) ' + `sends requests to the following base URL via baseUrl/httpOptions.baseUrl/apiEndpoint: ${baseUrl}.\n- Preserve API keys / environment variables as-is.\n- Keep the rest of the code unchanged.\n- Return ONLY the full updated file content, no Markdown or commentary.` },
+          { role: 'user', content: `File path: ${path}\nTarget base URL: ${baseUrl}\nRewrite this file accordingly:\n${code}` },
+        ] }),
+      });
+      return response.ok ? extractTextFromAIResponse(await response.json() as AIResponse)?.trim() || null : null;
+    } catch { return null; }
+  }
+
   isEnabled(env: ApiWorkerEnv): boolean {
     const apiKey = env.DASHSCOPE_API_KEY?.trim() || '';
     return apiKey.length > 0;
@@ -318,6 +335,7 @@ class AIService {
     try {
       const response = await fetch(`${baseUrl}/chat/completions`, {
         method: 'POST',
+        signal: AbortSignal.timeout(30000),
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${apiKey}`,

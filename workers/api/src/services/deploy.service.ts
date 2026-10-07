@@ -1,7 +1,7 @@
 import type { ApiWorkerEnv } from '../types/env';
 import { ValidationError } from '../utils/error-handler';
 import { projectService } from './project.service';
-import { deployProxyService, type ProjectContext } from './deploy-proxy.service';
+import type { ProjectContext } from '../types/project';
 import { aiService } from './ai.service';
 import { deploymentMetadataPolicy } from './deployment-metadata-policy';
 
@@ -105,35 +105,6 @@ class DeployService {
         }
     }
 
-    /** Build the project payload to send to deploy service */
-    buildDeployPayload(
-        project: Project,
-        sourceType: SourceType,
-        analysisId: string | undefined,
-        htmlContent: string | undefined,
-        deployTarget: Project['deployTarget'],
-    ): Project {
-        return {
-            id: project.id,
-            name: project.name,
-            repoUrl: project.repoUrl,
-            sourceType,
-            slug: project.slug,
-            ...(analysisId && { analysisId }),
-            lastDeployed: project.lastDeployed,
-            status: project.status,
-            ...(project.url && { url: project.url }),
-            ...(project.description && { description: project.description }),
-            framework: project.framework,
-            ...(project.category && { category: project.category }),
-            ...(project.tags && { tags: project.tags }),
-            deployTarget,
-            ...(project.providerUrl && { providerUrl: project.providerUrl }),
-            ...(project.cloudflareProjectName && { cloudflareProjectName: project.cloudflareProjectName }),
-            ...(sourceType === SourceType.Html && htmlContent && { htmlContent }),
-        };
-    }
-
     /**
      * Fill any missing discovery metadata from source context and AI.
      * Existing user-authored fields remain authoritative.
@@ -144,7 +115,8 @@ class DeployService {
         _request: Request,
         project: Project,
         sourceType: SourceType,
-        input: DeployInput,
+        input: Partial<DeployInput>,
+        preparedContext: ProjectContext,
     ): Promise<{ project: Project; analysisId?: string; debugLogs: string[] }> => {
         const debugLogs: string[] = [];
         const missingFields = deploymentMetadataPolicy.getMissingFields(project);
@@ -166,22 +138,7 @@ class DeployService {
         let contextId: string | undefined;
 
         try {
-            // 1. Get project context from Node server
-            debugLogs.push('📦 Starting context extraction...');
-            debugLogs.push(`   Source: ${sourceType}`);
-            debugLogs.push(`   Repo: ${project.repoUrl}`);
-
-            console.log('[enrichProjectMetadata] Starting context extraction for:', project.name);
-            console.log('[enrichProjectMetadata] Source type:', sourceType);
-
-            const contextResult = await deployProxyService.getContext(env, {
-                repoUrl: project.repoUrl,
-                sourceType,
-                zipData: input.zipData,
-                zipSourceKey: input.zipSourceKey,
-                htmlContent: input.htmlContent || project.htmlContent,
-            });
-
+            const contextResult = { contextId: undefined, context: preparedContext };
             contextId = contextResult.contextId;
             console.log('[enrichProjectMetadata] Context extracted successfully. ID:', contextId);
             console.log('[enrichProjectMetadata] Framework detected:', contextResult.context.framework);
@@ -368,34 +325,31 @@ class DeployService {
     reconcileDeployment = async (env: ApiWorkerEnv, db: D1Database, deploymentId: string): Promise<DeploymentStatusPayload> => {
         const attempt = await deploymentRepository.findByProviderId(db, deploymentId);
         if (!attempt) throw new ValidationError('Deployment not found.');
-        if (attempt.status === 'succeeded' && attempt.result_url) return {
-            type: 'status', status: 'SUCCESS', stage: attempt.stage, buildMode: attempt.build_mode as 'static' | 'build', projectMetadata: { url: attempt.result_url },
-        };
+        if (attempt.status === 'succeeded') {
+            const project = await projectService.getProjectById(db, attempt.project_id);
+            return { type: 'status', status: 'SUCCESS', stage: attempt.stage, buildMode: attempt.build_mode as 'static' | 'build', projectMetadata: { name: project?.name, slug: project?.slug, description: project?.description, category: project?.category, tags: project?.tags, url: attempt.result_url || project?.url } };
+        }
         if (attempt.status === 'failed' || attempt.status === 'rejected') return {
             type: 'status', status: 'FAILED', stage: attempt.stage, buildMode: attempt.build_mode as 'static' | 'build', errorCode: attempt.error_code, errorMessage: attempt.error_message,
         };
-        const response = await fetch(`${configService.getDeployServiceBaseUrl(env)}/deployments/${encodeURIComponent(deploymentId)}`, { headers: env.DEPLOY_SERVICE_TOKEN ? { 'x-gemigo-builder-token': env.DEPLOY_SERVICE_TOKEN } : {}, signal: AbortSignal.timeout(5000) });
-        let payload: DeploymentStatusPayload;
-        if (response.status === 404 && attempt.status === 'started' && Date.now() - Date.parse(attempt.started_at) < 120000) return { type: 'status', status: 'IDLE', stage: 'queued' };
-        if (response.status === 404) {
-            payload = { type: 'status', status: 'FAILED', errorCode: 'result_unavailable', errorMessage: 'The deployment result expired or was lost during a service restart. Please deploy again.', stage: 'recovery' };
-        } else {
-            if (!response.ok) throw new Error(`Deployment status temporarily unavailable (${response.status}).`);
-            payload = await response.json() as DeploymentStatusPayload;
-        }
-        const handle = await this.statusHandler(env, db, deploymentId);
-        await handle(payload);
-        return payload;
+        return { type: 'status', status: 'BUILDING', stage: attempt.stage || 'publish', buildMode: 'static' };
     };
 
     reconcilePending = async (env: ApiWorkerEnv, db: D1Database): Promise<void> => {
         for (const attempt of await deploymentRepository.listPending(db)) {
-            try { await this.reconcileDeployment(env, db, attempt.provider_deployment_id); }
-            catch {
-                if (Date.now() - Date.parse(attempt.started_at) > 86400000) {
-                    const handle = await this.statusHandler(env, db, attempt.provider_deployment_id);
-                    await handle({ type: 'status', status: 'FAILED', errorCode: 'result_unavailable', errorMessage: 'Deployment result could not be recovered. Please deploy again.', stage: 'recovery' });
+            try {
+                if (env.APP_GATEWAY) {
+                    const gateway = env.APP_GATEWAY.get(env.APP_GATEWAY.idFromName(attempt.project_id));
+                    const response = await gateway.fetch('https://app.internal/recover-publication', { headers: { 'x-project-id': attempt.project_id } });
+                    if (!response.ok) throw new Error('Publication recovery is unavailable.');
+                    const { pending } = await response.json() as { pending: boolean };
+                    if (!pending && Date.now() - Date.parse(attempt.started_at) > 86400000) {
+                        const handle = await this.statusHandler(env, db, attempt.provider_deployment_id);
+                        await handle({ type: 'status', status: 'FAILED', errorCode: 'result_unavailable', errorMessage: 'Deployment result could not be recovered. Please deploy again.', stage: 'recovery' });
+                    }
                 }
+            }
+            catch {
                 console.warn('[DeployService] Status recovery will retry');
             }
         }
@@ -456,7 +410,9 @@ class DeployService {
 
         if (payload.status === 'FAILED') {
             await projectService.updateProjectDeployment(db, projectId, {
-                status: 'Failed',
+                // The failed attempt is separate from the already published application.
+                status: current.url && current.lastSuccessAt ? 'Live' : 'Failed',
+                ...(current.url && current.lastSuccessAt ? { lastDeployed: current.lastSuccessAt } : {}),
             }, attemptId);
             await deploymentRepository.finishAttempt(
                 db,

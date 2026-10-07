@@ -1,0 +1,17 @@
+{
+  "name": "@gemigo/deployment-assets",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "node": "./dist/index.js",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "types": "./dist/index.d.ts"
+}

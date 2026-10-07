@@ -38,6 +38,10 @@ export interface AcceptedDeployment {
 }
 
 class DeploymentRepository {
+  updateProgress = async (db: D1Database, id: string, stage: string): Promise<void> => {
+    await db.prepare("UPDATE deployment_attempts SET stage = ?, build_mode = 'static' WHERE id = ? AND status IN ('started','accepted')").bind(stage, id).run();
+  };
+
   findByProviderId = async (db: D1Database, providerId: string): Promise<AcceptedDeployment | null> => {
     await this.ensureSchema(db);
     return db.prepare(`SELECT id, project_id, owner_id, provider_deployment_id, started_at, status, stage, build_mode, error_message, error_code, result_url

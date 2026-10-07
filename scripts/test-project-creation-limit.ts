@@ -16,21 +16,20 @@ const bundle = await build({
   entryPoints: ['workers/api/src/index.ts'], bundle: true, write: false,
   format: 'esm', platform: 'browser',
 });
-let failDeletion = false;
-const mf = new Miniflare({
-  modules: true, script: bundle.outputFiles[0].text,
+const options = {
+  modules: [{ type: 'ESModule', path: 'project-limit-test.js', contents: bundle.outputFiles[0].text }],
   d1Databases: { PROJECTS_DB: 'project-limit-test' },
-  bindings: { DEPLOY_TARGET: 'r2', APPS_ROOT_DOMAIN: 'gemigo.app', DEPLOY_SERVICE_BASE_URL: 'https://builder.test/api/v1' },
+  bindings: { DEPLOY_TARGET: 'r2', APPS_ROOT_DOMAIN: 'gemigo.app' },
   durableObjects: { APP_GATEWAY: { className: 'AppGateway', useSQLite: true } },
   r2Buckets: ['ASSETS'], compatibilityDate: '2026-09-18',
-  outboundService: async (request: Request) => {
-    if (new URL(request.url).pathname === '/api/v1/projects/delete-storage') return failDeletion ? Response.json({ error: 'storage unavailable' }, { status: 503 }) : Response.json({ complete: true });
+  outboundService: async () => {
     throw new Error('Unexpected external request');
   },
-});
+};
+const mf = new Miniflare(options);
 
 try {
-  const db = await mf.getD1Database('PROJECTS_DB');
+  let db = await mf.getD1Database('PROJECTS_DB');
   await db.exec(readFileSync('workers/api/migrations/0007_app_api_gateway.sql', 'utf8').replace(/\n/g, ' '));
   const owner = await authRepository.createUser(db, { id: crypto.randomUUID() });
   const other = await authRepository.createUser(db, { id: crypto.randomUUID() });
@@ -119,7 +118,8 @@ try {
   // Actual authenticated deletion restores exactly one slot and allows the old address to be reused.
   const extraId = (await replacement.json() as { id: string }).id;
   const remove = (id: string) => mf.dispatchFetch(`https://gemigo.test/api/v1/projects/${id}`, { method: 'DELETE', headers: { Cookie: `session_id=${session.id}`, Connection: 'close' } });
-  failDeletion = true;
+  await mf.setOptions({ ...options, r2Buckets: [] });
+  db = await mf.getD1Database('PROJECTS_DB');
   const pending = await remove(extraId);
   assert.equal(pending.status, 503);
   assert.equal((await pending.json()).code, 'STORAGE_DELETE_PENDING');
@@ -128,7 +128,8 @@ try {
   assert.equal(blockedPatch.status, 404);
   await blockedPatch.text();
   assert.equal(await count(owner.id), FREE_PROJECT_LIMIT + 1);
-  failDeletion = false;
+  await mf.setOptions(options);
+  db = await mf.getD1Database('PROJECTS_DB');
   assert.equal((await remove(extraId)).status, 204);
   assert.equal((await call('/projects/draft', { slug: 'still-full' })).status, 403);
   assert.equal((await remove(project.id)).status, 204);

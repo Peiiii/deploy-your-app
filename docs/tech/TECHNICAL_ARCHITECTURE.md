@@ -269,15 +269,15 @@ extension/
 ### 应用发布流程
 
 ```
-创作者提交 GitHub 仓库
+创作者提交 HTML、静态 ZIP 或静态 GitHub 仓库
          ↓
 API 接收请求，验证权限
          ↓
-触发部署服务
+AppGateway 持久排队与 alarm 分批发布
          ↓
-拉取代码，构建
+读取静态产物（不安装或构建）
          ↓
-上传到 R2 (gemigo-apps/{slug}/)
+完整上传 R2 release 后切换 deployment.json
          ↓
 生成截图/缩略图
          ↓

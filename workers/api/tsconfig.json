@@ -30,6 +30,9 @@
   "references": [
     {
       "path": "../../packages/product-analytics"
+    },
+    {
+      "path": "../../packages/deployment-assets"
     }
   ]
 }

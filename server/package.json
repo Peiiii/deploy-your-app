@@ -4,7 +4,7 @@
   "version": "0.1.2",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "pnpm --filter @gemigo/deployment-assets build && tsx watch src/index.ts",
     "build": "tsc -b",
     "start": "node dist/index.js"
   },
@@ -14,7 +14,8 @@
     "adm-zip": "^0.5.16",
     "blake3-wasm": "^2.1.5",
     "cors": "^2.8.5",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "@gemigo/deployment-assets": "workspace:*"
   },
   "devDependencies": {
     "tsx": "^4.21.0"

@@ -1,3 +1,4 @@
+import { staticPublication } from '../services/static-publication.service';
 import { projectsController } from '../controllers/projects.controller';
 import { deployController } from '../controllers/deploy.controller';
 import { projectService } from '../services/project.service';
@@ -40,6 +41,11 @@ export class AppGateway {
       const repo = new GatewayRepository(this.env.PROJECTS_DB, projectId);
       const [operation, rawName] = new URL(request.url).pathname.slice(1).split('/');
       const name = rawName ? connectionName(decodeURIComponent(rawName)) : '';
+      if (operation === 'recover-publication') return this.serialize(async () => {
+        const pending = (await this.state.storage.list({ prefix: 'publication:', limit: 1 })).size > 0;
+        if (pending && await this.state.storage.getAlarm() === null) await this.state.storage.setAlarm(Date.now() + 1);
+        return gatewayJson({ pending });
+      });
       if (['delete-project', 'update-project', 'update-deployment', 'upload-thumbnail', 'upload-source', 'deploy'].includes(operation)) {
         return await this.serialize(async () => {
           const project = await projectService.getProjectById(this.env.PROJECTS_DB, projectId);
@@ -48,6 +54,7 @@ export class AppGateway {
             this.deleted = true;
             this.stopCalls(() => true);
             await this.state.storage.put('deleted', true);
+            await staticPublication.cancel(this.env, this.state.storage);
             await repo.purge();
             await projectService.deleteProject(this.env, this.env.PROJECTS_DB, projectId, project.ownerId);
             return new Response(null, { status: 204 });
@@ -57,7 +64,7 @@ export class AppGateway {
           if (operation === 'update-deployment') return projectsController.updateProjectDeployment(request, this.env, this.env.PROJECTS_DB, projectId, true);
           if (operation === 'upload-thumbnail') return projectsController.uploadThumbnail(request, this.env, this.env.PROJECTS_DB, projectId, true);
           if (operation === 'upload-source') return deployController.uploadSource(request, this.env, this.env.PROJECTS_DB, projectId, true);
-          return deployController.startDeployment(request, this.env, this.env.PROJECTS_DB, true);
+          return deployController.startDeployment(request, this.env, this.env.PROJECTS_DB, true, this.state.storage);
         });
       }
       if (this.deleted || (await this.state.storage.get('deleted')))
@@ -113,6 +120,10 @@ export class AppGateway {
         error instanceof AppError ? error.statusCode : 502
       );
     }
+  }
+
+  async alarm(): Promise<void> {
+    await this.serialize(() => staticPublication.runNext(this.env, this.state.storage));
   }
 
   private stopCalls(predicate: (call: ActiveCall) => boolean): void {

@@ -46,7 +46,7 @@ GemiGo 是一个面向非专业用户的前端应用一键部署平台。通过�
 ### 核心能力
 
 - 🚀 **一键部署** - 支持 GitHub 仓库、ZIP 文件和 HTML 代码部署
-- 🔒 **安全可靠** - 自动构建和部署到 Cloudflare Pages/R2
+- 🔒 **安全可靠** - 静态产物直接发布到 Cloudflare R2
 - 📊 **实时监控** - 通过 SSE 实时查看部署日志和状态
 - 🎨 **现代 UI** - 响应式设计，支持深色模式
 - 👥 **用户体系** - 支持邮箱、Google、GitHub 登录
@@ -60,9 +60,9 @@ GemiGo 是一个面向非专业用户的前端应用一键部署平台。通过�
 - ✅ 上传 ZIP 文件部署
 - ✅ 粘贴 HTML 代码直接部署
 - ✅ 自动识别构建输出目录（`dist/`、`build/`、`out/`）
-- ✅ 自动执行依赖安装和项目构建
+- ✅ HTML、静态 ZIP 和静态 GitHub 直接发布；需要编译的源码在本地构建后上传产物
 - ✅ 部署到 Cloudflare Pages 或 R2 存储
-- ✅ 自动修复常见构建问题
+- ✅ 保留静态 GenAI 代理规则修复、发布状态恢复和失败保护
 
 ### 前端界面
 
@@ -92,7 +92,7 @@ GemiGo 是一个面向非专业用户的前端应用一键部署平台。通过�
 
 - Node.js 18+ 和 pnpm
 - Cloudflare 账号（用于部署）
-- （可选）阿里云服务器（用于 Node 部署服务）
+- 生产静态发布无需 VPS；Node 服务仅用于可选本地开发
 
 ### 安装
 
@@ -159,7 +159,7 @@ VITE_API_BASE_URL=http://localhost:8787/api/v1
 ### 后端
 
 - **API Worker**: Cloudflare Workers (TypeScript)
-- **部署服务**: Node.js + Express
+- **部署服务**: Cloudflare AppGateway alarm + R2（Node/Express 为可选开发工具）
 - **数据库**: Cloudflare D1
 - **存储**: Cloudflare R2 / Pages
 - **认证**: OAuth 2.0 (Google, GitHub) + Session

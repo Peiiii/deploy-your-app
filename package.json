@@ -50,6 +50,7 @@
     "test:public-author": "./server/node_modules/.bin/tsx scripts/test-public-author.ts",
     "test:profile-name": "./server/node_modules/.bin/tsx --tsconfig frontend/tsconfig.app.json scripts/test-profile-name.ts",
     "test:deployment-metadata": "./server/node_modules/.bin/tsx scripts/test-deployment-metadata-policy.ts",
+    "test:static-publication": "pnpm --filter deploy-your-app-api-worker exec wrangler deploy --dry-run --outdir tmp/deployment-worker-test && ./server/node_modules/.bin/tsx scripts/test-deployment-worker.ts && ./server/node_modules/.bin/tsx scripts/test-static-publication-recovery.ts",
     "test:deployment-metadata:http": "./server/node_modules/.bin/tsx scripts/test-deployment-metadata-http.ts",
     "test:app-storage": "./server/node_modules/.bin/tsx scripts/test-app-storage-cleanup.ts",
     "test:project-creation-limit": "./server/node_modules/.bin/tsx scripts/test-project-creation-limit.ts && node scripts/test-homepage-publishing.mjs",

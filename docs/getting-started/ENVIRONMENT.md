@@ -6,7 +6,7 @@
 
 ## 一、本地开发环境
 
-### 1.1 后端（Node / Express）
+### 1.1 可选开发后端（Node / Express，非生产依赖）
 
 后端默认从 `server/.env` 加载配置（通过 `loadBackendEnv`），环境变量也可以直接从 shell 注入。
 
@@ -50,7 +50,7 @@
 
 ## 二、生产部署（GitHub Actions + 阿里云 Docker）
 
-### 2.1 GitHub Actions – 服务器连接（SSH）
+### 2.1 历史 Node 发布环境（SSH，生产已停用）
 
 workflow 文件：`.github/workflows/deploy.yml`  
 在 GitHub 仓库的 **Settings → Secrets and variables → Actions** 中配置。
@@ -177,7 +177,7 @@ bucket_name = "gemigo-apps"
 该 Worker 负责：
 
 - 直接读写 D1（`/api/v1/projects` CRUD）
-- 代理部署相关接口（`/api/v1/deploy`、`/api/v1/deployments/:id/stream`），再由 Node 服务执行真实构建
+- 沿原部署接口发布 HTML/静态 ZIP/静态 GitHub，AppGateway alarm 分批写 R2，D1 保存结果；不执行源码 build
 
 `wrangler.toml` 里需要注意的字段：
 
@@ -185,12 +185,11 @@ bucket_name = "gemigo-apps"
 |------|------|
 | `PROJECTS_DB`（D1 binding） | 绑定到 D1 中的 `projects` 数据库，供 Worker 直接 CRUD。`database_id` / `preview_database_id` 指向对应实例。 |
 | `APPS_ROOT_DOMAIN`、`DEPLOY_TARGET`、`PLATFORM_AI_*`、`AUTH_REDIRECT_BASE` | 与后端保持一致，用于 Worker 自身返回 URL、构造 OAuth 回调地址以及调用 DashScope。`AUTH_REDIRECT_BASE` 通常为 `https://gemigo.io`。 |
-| `DEPLOY_SERVICE_BASE_URL` | Worker 内部访问 Node 部署服务的地址，形如 `https://<你的服务器>/api/v1`。本地 `wrangler dev` 会回退到 `http://127.0.0.1:4173/api/v1`。**线上必须在 `workers/api/wrangler.toml` 的 `[vars]` 或 Cloudflare Dashboard → Worker → Settings → Variables/Secrets 中设置为真实 Node API**（例如 `https://backend.gemigo.io/api/v1`），否则部署相关接口会找不到目标。 |
 | `PASSWORD_SALT`、`GOOGLE_CLIENT_ID/SECRET`、`GITHUB_CLIENT_ID/SECRET` | 供 API Worker 的用户体系使用：邮箱密码哈希与 Google / GitHub OAuth。**建议在 Cloudflare Dashboard 中作为 Secrets 配置**，本地开发时则放在 `workers/api/.dev.vars`。详细步骤见 `docs/AUTH_SETUP.md`。 |
 | `ADMIN_EMAILS`（可选） | 管理员邮箱白名单（逗号分隔，不区分大小写）。用于访问 `/api/v1/admin/*` 相关接口与后台页面。示例：`admin@example.com,ops@example.com`。 |
 | `ADMIN_USER_IDS`（可选） | 管理员 user id 白名单（逗号分隔）。示例：`uuid-1,uuid-2`。 |
 
-前端在 `.env` 里配置 `VITE_API_BASE_URL=https://<worker-domain>/api/v1` 后，即可完全通过 Worker 访问后端，Node 服务只作为内部部署引擎。
+前端在 `.env` 里配置 `VITE_API_BASE_URL=https://<worker-domain>/api/v1` 后，即可完全通过 Worker 访问后端，生产不再使用 Node 部署引擎。
 
 ---
 
@@ -201,13 +200,12 @@ bucket_name = "gemigo-apps"
 - `server/.env` 中：`DASHSCOPE_API_KEY`（如果你要用后端 AI 能力），`DEPLOY_TARGET` 一般为 `local`。
 - `frontend/.env` 中：`GEMINI_API_KEY`（如果你要演示前端直接调用 Gemini）。
 
-**生产部署（R2 模式）推荐配置：**
+**生产部署（Cloudflare 静态发布）推荐配置：**
 
-- GitHub Secrets：`ALIYUN_*` 系列、`DASHSCOPE_API_KEY`、`CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_PAGES_API_TOKEN`、`R2_*` 全套。如果使用 D1 存储，还需添加 `CLOUDFLARE_D1_DATABASE_ID` 和 `CLOUDFLARE_D1_API_TOKEN`。
-- GitHub Variables：`DEPLOY_TARGET=r2`、`STORAGE_TYPE`（如 `d1` 或 `file`，可选）、`APPS_ROOT_DOMAIN`（如 `gemigo.app`）、`CLOUDFLARE_PAGES_PROJECT_PREFIX`（可保留默认）。
-- Cloudflare：创建名为 `R2_BUCKET_NAME` 的 R2 bucket；在 Worker `wrangler.toml` 中配置相同的 `bucket_name` 和匹配的 `APPS_ROOT_DOMAIN`；DNS 中为 `*.APPS_ROOT_DOMAIN` 配置到该 Worker。如果使用 D1 存储，需要在 Cloudflare 控制台创建 D1 数据库。
+- Cloudflare 原 ASSETS、PROJECTS_DB、APP_GATEWAY bindings 与应用网关域名保持，账号/模型 Secrets 保留。
+- 不再需要生产 ALIYUN_*、DEPLOY_SERVICE_* 或 R2 S3 上传密钥。旧 Node 章节仅供独立开发环境参考，不能用于恢复已改作闲鱼专用机的 builder。
+- 前端发布仍用 pnpm deploy:pages；静态发布和恢复见[部署指南](../deployment/DEPLOY.md)。
 - API Worker（部署 & 项目）：在 Cloudflare Worker（`gemigo-api`）中配置：
-  - `DEPLOY_SERVICE_BASE_URL`：指向阿里云 Node API（例如 `https://<你的服务器>/api/v1`），可在 `workers/api/wrangler.toml` 的 `[vars]` 中设置，或在 Dashboard → Workers → Variables/Secrets 中配置同名变量。
   - `APPS_ROOT_DOMAIN`、`DEPLOY_TARGET`、`PLATFORM_AI_*`、`AUTH_REDIRECT_BASE`：与后端保持一致，一般通过 `wrangler.toml` 的 `[vars]` 配置。
 - API Worker（用户体系）：在 `gemigo-api` Worker 的 Variables/Secrets 中配置 `PASSWORD_SALT`、`GOOGLE_CLIENT_ID/SECRET`、`GITHUB_CLIENT_ID/SECRET` 等敏感字段，具体见 `docs/AUTH_SETUP.md`。没有这些变量，邮箱/Google/GitHub 登录会拒绝或降级。
 

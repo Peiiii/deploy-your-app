@@ -18,8 +18,6 @@ export interface ApiWorkerEnv {
   DASHSCOPE_API_KEY?: string;
   /** Temporary bounded legacy backfill; absent means three per cron. */
   DESCRIPTION_TRANSLATION_BATCH_SIZE?: string;
-  DEPLOY_SERVICE_BASE_URL?: string;
-  DEPLOY_SERVICE_TOKEN?: string;
   /**
    * Comma-separated admin allowlist (emails, case-insensitive).
    * Example: "admin@example.com,ops@example.com"

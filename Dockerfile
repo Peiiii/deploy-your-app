@@ -11,12 +11,14 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Copy server package manifest
 COPY server/package.json server/package.json
+COPY packages/deployment-assets/package.json packages/deployment-assets/package.json
 
 # Install dependencies for the server workspace only
 RUN pnpm install --frozen-lockfile --filter deploy-your-app-server
 
 # Copy server source code only
 COPY server/ server/
+COPY packages/deployment-assets/ packages/deployment-assets/
 
 # Build the backend server only
 RUN pnpm --filter deploy-your-app-server build
@@ -33,4 +35,3 @@ EXPOSE 4173
 
 # Start the backend server
 CMD ["node", "server/dist/index.js"]
-

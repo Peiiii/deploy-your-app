@@ -1,124 +1,20 @@
-name: Cleanup Remote Storage
+name: Validate storage cleanup
 
+# Production storage cleanup belongs to Cloudflare. Never SSH into the
+# repurposed Xianyu host or delete its retained builder backup.
 on:
   workflow_dispatch:
-    inputs:
-      cleanup_type:
-        description: '清理类型'
-        required: true
-        type: choice
-        options:
-          - builds-only
-          - apps-only
-          - projects-only
-          - all
-        default: 'builds-only'
-      dry_run:
-        description: '预览模式（不实际删除）'
-        required: false
-        type: boolean
-        default: true
 
 jobs:
-  cleanup:
-    name: Cleanup Remote Storage
+  validate:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Upload cleanup script
-        uses: appleboy/scp-action@v0.1.7
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          host: ${{ secrets.ALIYUN_HOST }}
-          username: ${{ secrets.ALIYUN_USER }}
-          key: ${{ secrets.ALIYUN_SSH_KEY }}
-          port: ${{ secrets.ALIYUN_PORT || 22 }}
-          source: "scripts/cleanup-storage.sh"
-          target: "/tmp/deploy-your-app"
-          strip_components: 0
-
-      - name: Execute cleanup script
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.ALIYUN_HOST }}
-          username: ${{ secrets.ALIYUN_USER }}
-          key: ${{ secrets.ALIYUN_SSH_KEY }}
-          port: ${{ secrets.ALIYUN_PORT || 22 }}
-          script: |
-            set -e
-            
-            echo "🧹 === 远程存储清理工具 ==="
-            echo "清理类型: ${{ github.event.inputs.cleanup_type }}"
-            echo "预览模式: ${{ github.event.inputs.dry_run }}"
-            echo ""
-            
-            # 设置数据目录（服务器上的实际路径）
-            DATA_DIR="/opt/deploy-your-app/data"
-            
-            # 确保清理脚本有执行权限
-            chmod +x /tmp/deploy-your-app/scripts/cleanup-storage.sh
-            
-            # 构建清理命令
-            CLEANUP_CMD="/tmp/deploy-your-app/scripts/cleanup-storage.sh"
-            CLEANUP_CMD="$CLEANUP_CMD --${{ github.event.inputs.cleanup_type }}"
-            
-            if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-              CLEANUP_CMD="$CLEANUP_CMD --dry-run"
-            fi
-            
-            # 设置数据目录环境变量
-            export DATA_DIR="$DATA_DIR"
-            # 设置跳过确认（用于 CI/CD）
-            export SKIP_CONFIRM="true"
-            
-            echo "📊 清理前存储使用情况:"
-            if [ -d "$DATA_DIR" ]; then
-              echo "数据目录: $DATA_DIR"
-              echo "总大小: $(du -sh $DATA_DIR 2>/dev/null | cut -f1 || echo 'N/A')"
-              echo ""
-              echo "子目录大小:"
-              du -sh $DATA_DIR/* 2>/dev/null || echo "无子目录"
-              echo ""
-            else
-              echo "⚠️  数据目录不存在: $DATA_DIR"
-              exit 1
-            fi
-            
-            echo "🚀 执行清理命令..."
-            echo "命令: $CLEANUP_CMD"
-            echo ""
-            
-            # 执行清理（不设置 set -e，以便捕获输出）
-            $CLEANUP_CMD || {
-              EXIT_CODE=$?
-              echo ""
-              echo "❌ 清理脚本执行失败，退出码: $EXIT_CODE"
-              exit $EXIT_CODE
-            }
-            
-            echo ""
-            echo "📊 清理后存储使用情况:"
-            if [ -d "$DATA_DIR" ]; then
-              echo "数据目录: $DATA_DIR"
-              echo "总大小: $(du -sh $DATA_DIR 2>/dev/null | cut -f1 || echo 'N/A')"
-              echo ""
-              echo "子目录大小:"
-              du -sh $DATA_DIR/* 2>/dev/null || echo "无子目录"
-            fi
-            
-            echo ""
-            echo "✅ 清理操作完成"
-
-      - name: Show cleanup summary
-        if: always()
-        run: |
-          echo "## 🧹 存储清理完成" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **清理类型**: ${{ github.event.inputs.cleanup_type }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **预览模式**: ${{ github.event.inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **执行时间**: $(date)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "查看上方日志了解详细信息。" >> $GITHUB_STEP_SUMMARY
-
+          node-version: 22
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test:app-storage
+      - run: pnpm test:static-publication

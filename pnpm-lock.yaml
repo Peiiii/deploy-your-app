@@ -302,6 +302,8 @@ importers:
         specifier: ^4.5.4
         version: 4.5.4(@types/node@24.10.1)(rolldown-vite@7.2.5(@types/node@24.10.1)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.9.1))(rollup@4.54.0)(typescript@5.9.3)
 
+  packages/deployment-assets: {}
+
   packages/gemigo-cli:
     dependencies:
       adm-zip:
@@ -335,6 +337,9 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3.723.0
         version: 3.943.0
+      '@gemigo/deployment-assets':
+        specifier: workspace:*
+        version: link:../packages/deployment-assets
       '@google/genai':
         specifier: ^1.30.0
         version: 1.30.0
@@ -373,12 +378,18 @@ importers:
 
   workers/api:
     dependencies:
+      '@gemigo/deployment-assets':
+        specifier: workspace:*
+        version: link:../../packages/deployment-assets
       '@gemigo/product-analytics':
         specifier: workspace:*
         version: link:../../packages/product-analytics
       '@gemigo/public-author':
         specifier: workspace:*
         version: link:../../packages/public-author
+      '@zip.js/zip.js':
+        specifier: ^2.23.0
+        version: 2.23.0
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20250109.0
@@ -2786,6 +2797,10 @@ packages:
 
   '@zeit/schemas@2.36.0':
     resolution: {integrity: sha512-7kjMwcChYEzMKjeex9ZFXkt1AyNov9R5HZtjBKVsmVpw7pa7ZtlCGvCBC2vnnXctaYN+aRI61HjIqeetZW5ROg==}
+
+  '@zip.js/zip.js@2.23.0':
+    resolution: {integrity: sha512-K5obAqfrO7zhycnCupM9aaoZ9kx0SA0kv7+Z2oOUsdpWquv4s/Z4zyD7AdTqxrK3pgPM+ozaUi8kdRQbCWaIrQ==}
+    engines: {bun: '>=0.7.0', deno: '>=1.0.0', node: '>=18.0.0'}
 
   abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
@@ -9106,6 +9121,8 @@ snapshots:
   '@xmldom/xmldom@0.8.11': {}
 
   '@zeit/schemas@2.36.0': {}
+
+  '@zip.js/zip.js@2.23.0': {}
 
   abbrev@1.1.1: {}
 

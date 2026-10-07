@@ -390,6 +390,7 @@
       "build_timeout": "The build took too long. Reduce dependencies or upload the built static folder.",
       "result_unavailable": "The deployment result could not be recovered. Please deploy again.",
       "missing_build_script": "This source requires a build. Add a build script or upload the built dist/build/out folder.",
+      "source_build_unavailable": "This project needs a build. Build it locally and upload the dist/build/out folder as a ZIP. HTML and ready static assets can still be published directly.",
       "sandbox_unavailable": "The isolated builder is unavailable. Retry later or upload prebuilt static assets."
     },
     "latestResult": "View latest deployment result",

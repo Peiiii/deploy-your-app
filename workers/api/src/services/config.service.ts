@@ -14,14 +14,6 @@ class ConfigService {
     return 'r2';
   }
 
-  getDeployServiceBaseUrl(env: ApiWorkerEnv): string {
-    const raw = env.DEPLOY_SERVICE_BASE_URL?.trim();
-    if (raw && raw.length > 0) {
-      return raw.replace(/\/+$/, '');
-    }
-    return 'http://127.0.0.1:4173/api/v1';
-  }
-
   getAuthRedirectBase(env: ApiWorkerEnv): string {
     return env.AUTH_REDIRECT_BASE?.trim() || 'https://gemigo.io';
   }

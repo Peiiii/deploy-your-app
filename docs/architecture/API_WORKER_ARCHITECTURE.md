@@ -24,21 +24,20 @@
   - 这是一个「面向产品」的 API 层：
     - 负责账号体系（邮箱 / Google / GitHub 登录）；
     - 负责项目列表 / 创建 / 更新（`projects`）；
-    - 负责把 `/api/v1/deploy` 请求代理到 Node 部署引擎；
+    - 负责原 `/api/v1/deploy` 的静态产物发布，AppGateway alarm 持久排队，R2 保存版本；
     - 使用 Cloudflare D1 作为数据库（`PROJECTS_DB`）。
 
-- Node 部署服务（Aliyun 上的 Node 服务）
-  - 只负责部署逻辑（打包、推 Pages / 压缩包、SSE 日志等）；
-  - 内部提供 `/api/v1/deploy`、持久结果查询和 SSE 日志接口；浏览器访问由 Worker 验证项目归属后代理；
-  - `gemigo-api` 通过 HTTPS `DEPLOY_SERVICE_BASE_URL` 和 `DEPLOY_SERVICE_TOKEN` 访问它，Node 的作业接口禁止匿名访问，健康检查公开；
-  - 用户构建脚本运行在独立容器，不能读取控制器凭据和共享数据；
-  - Worker/D1 拥有产品发布终态，日志断线和关页后由查询/定时对账恢复。上传、结果与资产切换的具体合同见[部署指南](../deployment/DEPLOY.md)。
+- 静态发布（同一 Cloudflare API Worker）
+  - HTML、ZIP 与公开静态 GitHub 输入保持原 API；不执行安装与源码 build。
+  - AppGateway 的 storage/alarm 拥有工作游标，D1 deployment_attempts 拥有发布结果。
+  - 完整新版本上传 R2 后切换原 deployment.json；SSE/reconcile/删除和过期源清理直接在 Worker 完成。
+  - Node server 仅保留独立开发工具，不属于生产依赖。具体合同见[部署指南](../deployment/DEPLOY.md)。
 
 推荐的请求链路：
 
 ```text
 Browser (gemigo.io) → Pages _worker.js → gemigo-api (Workers)
-  → （部署相关）→ Node 部署服务
+  → （静态发布）→ AppGateway alarm → R2 / D1
   → （账号/项目）→ D1 数据库 PROJECTS_DB
 ```
 
@@ -59,7 +58,7 @@ Browser (gemigo.io) → Pages _worker.js → gemigo-api (Workers)
   - `src/controllers/projects.controller.ts`
     - 项目 CRUD：`GET/POST /api/v1/projects`，`PATCH /api/v1/projects/:id`
   - `src/controllers/deploy.controller.ts`
-    - 部署相关代理：`POST /api/v1/deploy`，`GET /api/v1/deployments/:id/stream`
+    - 持久静态发布：`POST /api/v1/deploy`，`GET /api/v1/deployments/:id/stream`
 
 - 服务（Service）
   - `src/services/project.service.ts`：项目业务逻辑（调用 AI 生成元数据、生成 URL 等）
@@ -217,7 +216,6 @@ Worker 的环境变量类型定义在：`src/types/env.ts`。
 
 - `getAppsRootDomain(env)`：Apps 的根域名（默认 `gemigo.app`）
 - `getDeployTarget(env)`：`'cloudflare' | 'local' | 'r2'`
-- `getDeployServiceBaseUrl(env)`：Node 部署服务地址（默认本地 dev）
 - `getAuthRedirectBase(env)`：OAuth 回调和登录后跳转基准（默认 `https://gemigo.io`）
 - `getGoogleClientId/Secret`、`getGithubClientId/Secret`：OAuth 配置
 

@@ -2,13 +2,12 @@ import type { ApiWorkerEnv } from '../types/env';
 import { appGatewayController } from '../app-gateway/controller';
 import { deploymentSourceService } from '../services/deployment-source.service';
 import { readJson, jsonResponse } from '../utils/http';
-import { configService } from '../services/config.service';
-import { NotFoundError, UnauthorizedError, ValidationError } from '../utils/error-handler';
+import { staticPublication } from '../services/static-publication.service';
+import { NotFoundError, UnauthorizedError, ValidationError, ConfigurationError } from '../utils/error-handler';
 import { getSessionIdFromRequest } from '../utils/auth';
 import { authRepository } from '../repositories/auth.repository';
 import { projectService } from '../services/project.service';
 import { deployService } from '../services/deploy.service';
-import { deployProxyService } from '../services/deploy-proxy.service';
 import { deploymentRepository } from '../repositories/deployment.repository';
 
 /**
@@ -16,7 +15,7 @@ import { deploymentRepository } from '../repositories/deployment.repository';
  * 
  * This controller is intentionally thin. Business logic lives in:
  * - deployService: validation, enrichment, monitoring
- * - deployProxyService: communication with Node.js deploy server
+ * - staticPublication: durable static asset publication
  */
 class DeployController {
   /**
@@ -28,6 +27,7 @@ class DeployController {
     env: ApiWorkerEnv,
     db: D1Database,
     serialized = false,
+    storage?: DurableObjectStorage,
   ): Promise<Response> {
     // 1. Authenticate
     const user = await this.requireAuth(request, db);
@@ -69,34 +69,7 @@ class DeployController {
     const htmlContent = input.htmlContent || project.htmlContent;
     deployService.validateSourceInputs(sourceType, project, { ...input, htmlContent });
 
-    // 5. Fill missing discovery metadata via source analysis and AI.
-    const enrichResult = await deployService.enrichProjectMetadata(
-      env,
-      db,
-      request,
-      project,
-      sourceType,
-      input,
-    );
-    const enrichedProject = enrichResult.project;
-    const analysisId = enrichResult.analysisId;
-
-    // 6. Validate slug exists
-    if (!enrichedProject.slug?.trim()) {
-      throw new ValidationError(
-        'Slug is required but could not be derived. Please set a slug manually.',
-      );
-    }
-
-    // 7. Build payload and deploy
-    const deployTarget = configService.getDeployTarget(env);
-    const payload = deployService.buildDeployPayload(
-      enrichedProject,
-      sourceType,
-      analysisId,
-      htmlContent,
-      deployTarget,
-    );
+    if (!storage) throw new ConfigurationError('Deployment queue is unavailable.');
 
     const attemptId = crypto.randomUUID();
     const startedAtMs = Date.now();
@@ -117,79 +90,24 @@ class DeployController {
           : undefined),
       startedAt,
     });
-    await projectService.updateProject(db, project.id, { sourceType });
+    await projectService.updateProject(db, project.id, { sourceType, ...(sourceType === 'html' && htmlContent ? { htmlContent } : {}) });
     await projectService.updateProjectDeployment(db, project.id, {
       status: 'Building',
       sourceType,
     }, attemptId);
 
-    let response: Response;
     let dispatched = false;
     try {
-      let zipSourceKey = input.zipSourceKey;
-      if (input.zipData && env.ASSETS) {
-        const bytes = Uint8Array.from(atob(input.zipData), character => character.charCodeAt(0));
-        zipSourceKey = `deployment-sources/${new Date().toISOString().slice(0, 10)}/${project.id}/${crypto.randomUUID()}.zip`;
-        await env.ASSETS.put(zipSourceKey, bytes, { customMetadata: { projectId: project.id }, httpMetadata: { contentType: 'application/zip' } });
-      }
-      const forwardBody = zipSourceKey ? { ...payload, zipSourceKey } : input.zipData ? { ...payload, zipData: input.zipData } : payload;
+      await staticPublication.enqueue(env, storage, project, { ...input, sourceType, htmlContent }, attemptId, startedAt);
       dispatched = true;
-      response = await deployProxyService.proxyJson(env, request, '/deploy', { ...forwardBody, deploymentId: attemptId });
+      await deploymentRepository.markAccepted(db, attemptId, attemptId, new Date().toISOString());
     } catch (error) {
       if (dispatched) return jsonResponse({ deploymentId: attemptId, recovering: true });
-      await deploymentRepository.finishAttempt(
-        db,
-        attemptId,
-        'rejected',
-        new Date().toISOString(),
-        Date.now() - startedAtMs,
-        'upstream_unreachable',
-      );
-      await projectService.updateProjectDeployment(db, project.id, {
-        status: 'Failed',
-      }, attemptId);
+      await deploymentRepository.finishAttempt(db, attemptId, 'rejected', new Date().toISOString(), Date.now() - startedAtMs, 'queue_unavailable');
+      await projectService.updateProjectDeployment(db, project.id, { status: project.url && project.lastSuccessAt ? 'Live' : 'Failed', ...(project.url && project.lastSuccessAt ? { lastDeployed: project.lastSuccessAt } : {}) }, attemptId);
       throw error;
     }
-
-    // A failed HTTP hop cannot prove that the builder did not accept the job.
-    if (response.status >= 500) return jsonResponse({ deploymentId: attemptId, recovering: true });
-
-    // 8. Start background monitoring and inject enrichment logs
-    const deploymentId = await deployProxyService.parseDeploymentId(response);
-    if (deploymentId) {
-      await deploymentRepository.markAccepted(
-        db,
-        attemptId,
-        deploymentId,
-        new Date().toISOString(),
-      );
-      // Inject enrichment debug logs (will be queued if stream not yet created)
-      if (enrichResult.debugLogs.length > 0) {
-        const logHeader = '═══ Project Enrichment Debug ═══';
-        deployProxyService.injectLog(deploymentId, logHeader, 'info');
-
-        enrichResult.debugLogs.forEach(log => {
-          deployProxyService.injectLog(deploymentId, log, 'info');
-        });
-
-        deployProxyService.injectLog(deploymentId, '═══════════════════════════════', 'info');
-      }
-
-    } else {
-      await deploymentRepository.finishAttempt(
-        db,
-        attemptId,
-        'rejected',
-        new Date().toISOString(),
-        Date.now() - startedAtMs,
-        `upstream_${response.status}`,
-      );
-      await projectService.updateProjectDeployment(db, project.id, {
-        status: 'Failed',
-      }, attemptId);
-    }
-
-    return response;
+    return jsonResponse({ deploymentId: attemptId });
   }
 
   async latestResult(request: Request, _env: ApiWorkerEnv, db: D1Database, projectId: string): Promise<Response> {
@@ -232,14 +150,6 @@ class DeployController {
   };
 
   /**
-   * POST /api/v1/analyze
-   * Analyze source code to generate project metadata.
-   */
-  async analyzeSource(request: Request, env: ApiWorkerEnv): Promise<Response> {
-    return deployProxyService.proxyRequest(env, request, '/analyze');
-  }
-
-  /**
    * GET /api/v1/deployments/:id/stream
    * Stream deployment logs via SSE.
    */
@@ -250,11 +160,7 @@ class DeployController {
     db: D1Database,
   ): Promise<Response> {
     await this.requireDeploymentOwner(request, db, id);
-    // Use merged stream instead of simple proxy
-    // This allows Worker to inject its own logs
-    const handle = await deployService.statusHandler(env, db, id);
-    const { response } = await deployProxyService.createMergedStream(env, id, handle);
-    return response;
+    return staticPublication.stream(env, id);
   }
 
   // ─────────────────────────────────────────────────────────────

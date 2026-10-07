@@ -1,3 +1,4 @@
+import { deploymentStorage } from './deployment-storage.service';
 import { aiService } from './ai.service';
 import { AppError } from '../utils/error-handler';
 import type { AppLanguage } from '../utils/app-language';
@@ -371,16 +372,8 @@ class ProjectService {
 
     await projectRepository.markStorageDeletion(db, id, ownerId);
     if (project.slug) {
-      const response = await fetch(`${configService.getDeployServiceBaseUrl(env)}/projects/delete-storage`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', ...(env.DEPLOY_SERVICE_TOKEN ? { 'x-gemigo-builder-token': env.DEPLOY_SERVICE_TOKEN } : {}) },
-        body: JSON.stringify({ projectId: project.id, slug: project.slug }),
-        signal: AbortSignal.timeout(20000),
-      });
-      const result = await response.json() as { complete?: boolean };
-      if (!response.ok || result.complete !== true) {
-        throw new AppError('Application deletion is pending. Storage cleanup will retry automatically.', 503, 'STORAGE_DELETE_PENDING');
-      }
+      try { await deploymentStorage.deleteProject(env, project.slug, project.id); }
+      catch { throw new AppError('Application deletion is pending. Storage cleanup will retry automatically.', 503, 'STORAGE_DELETE_PENDING'); }
     }
 
     // Best-effort cleanup of engagement/analytics tied to this project.

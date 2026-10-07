@@ -6,6 +6,10 @@ IMAGE_NAME="deploy-your-app-server"
 CONTAINER_NAME="${DEPLOY_CONTAINER_NAME:-deploy-your-app}"
 PREVIOUS_NAME="${CONTAINER_NAME}-previous"
 DATA_DIR="${DEPLOY_DATA_DIR:-/opt/deploy-your-app/data}"
+if [ -f "${DATA_DIR%/data}/.retired-static-publication" ]; then
+  echo 'This builder host is retired and reserved for Xianyu. Use Cloudflare static publication.' >&2
+  exit 1
+fi
 HOST_PORT="${PORT:-80}"
 CONTAINER_PORT=4173
 if [ ! -f "$IMAGE_TAR" ]; then
