@@ -25,8 +25,12 @@ pnpm deploy:pages
 4. D1 `deployment_attempts` 是可见结果 owner。原 SSE、reconcile 与项目设置结果查询不变，发布成功先持久化结果；旧终态直接读取。
 5. 删除在同项目串行门内取消待办、清理本项目 R2 前缀，再完成数据库删除。存储失败仍返回 STORAGE_DELETE_PENDING，原定时重试保留；临时源过期清理由原 Worker cron 负责。
 
-回退时先核对新静态任务已终态与数据一致，再按交付状态中的上一 Worker 版本回退。旧 Node 镜像、容器和 `/opt/deploy-your-app` 数据留作恢复资料，默认保持停止且 restart=no。闲鱼迁移后的 Docker-fupf 不得自动恢复 builder；CI 不再 SSH 部署或清理该机器。
+回退时先核对新静态任务已终态与数据一致，再按交付状态中的上一 Worker 版本受控处理；旧版本依赖builder，必须先安排独立隔离的构建宿主并核验，不能只回退Worker就宣称服务恢复。旧 Node 镜像、容器和 `/opt/deploy-your-app` 数据留作恢复资料，默认保持停止且 restart=no。闲鱼迁移后的 Docker-fupf 不得自动恢复 builder；CI 不再 SSH 部署或清理该机器。
 
 ## 可选本地构建工具
 
 `server/` 的 Node 服务、Dockerfile 和 `scripts/deploy.sh` 仍保留用于独立开发环境，隔离构建合同仍由 `scripts/test-deployment-sandbox.mjs` 验证。生产 API 不再连接它；这不是重新开启云端源码构建的入口。默认的原 VPS 路径有退役标记时 deploy.sh 拒绝覆盖。需要本地源码构建时可自行在开发环境构建，再沿原 HTML/ZIP/静态 GitHub 发布。
+
+## 当前宿主退役事实（2026-10-07）
+
+原Docker-fupf（47.236.251.192）现为闲鱼专用机，旧builder容器停止/restart=no，业务上线与QA证据见上述交付状态。原NextClaw机不再运行闲鱼app/tunnel，但其它NextClaw/代理服务保持。不得按旧SSH CI或历史构建设计恢复专用机上的builder；后续GemiGo生产使用本页Cloudflare发布路径。

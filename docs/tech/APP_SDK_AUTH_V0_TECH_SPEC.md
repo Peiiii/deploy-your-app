@@ -61,10 +61,10 @@
 | `gemigo.io` | 平台 Web（含 broker UI） | Pages/静态站点 | broker 建议固定在 `https://gemigo.io/sdk/broker` |
 | `admin.gemigo.io` | 独立产品分析管理站 | `workers/admin` + `admin` 静态构建 | 独立账号及 host-only 会话，不接受主站登录；无自动轮询 |
 | `api.gemigo.io` | 平台 API（含 App SDK Auth） | `workers/api`（Cloudflare Worker） | **规划 canonical API（尚未启用）**：`https://api.gemigo.io/api/v1`（现阶段请用 `https://gemigo.io/api/v1`，见 4.3） |
-| `backend.gemigo.io` | Node 部署服务（内部/半内部） | `server`（Aliyun Docker） | Worker 通过 `DEPLOY_SERVICE_BASE_URL` 回源 |
+| `backend.gemigo.io` | 历史 Node 部署服务（已退役） | 原 Aliyun Docker 停止、备份保留 | 生产静态发布由 API Worker/DO/R2 完成，见 [部署指南](../deployment/DEPLOY.md) |
 | `openai-api.gemigo.io` | OpenAI-compatible 网关 | `workers/openai-gateway-worker` | 仅暴露允许的 `/v1/*` |
 | `genai-api.gemigo.io` | GenAI 兼容网关 | `workers/genai-proxy-worker` | 仅暴露允许的 `/v1beta/*` |
-| `builderapi.gemigo.io` | 构建/部署相关 Node API（历史/兼容） | 视部署而定 | 若继续使用，建议最终并入 `backend.gemigo.io` 或明确用途 |
+| `builderapi.gemigo.io` | 历史 VPS builder（已退役） | 保留 DNS/备份，服务停止 | 不得恢复闲鱼专用机上的 builder；生产不依赖该域名 |
 | `staging.gemigo.io` | 预发环境（可选） | 视部署而定 | 仅用于测试/灰度 |
 | `gemigo.app` | App 根域 | R2/Worker 网关体系 | 见 `workers/r2-gateway` |
 | `*.gemigo.app` | 单个 App 子域 | `workers/r2-gateway`（Cloudflare Worker） | `https://<slug>.gemigo.app` |
