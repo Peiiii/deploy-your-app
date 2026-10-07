@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "sourceDigest": "f05fc059da550cf4c705c6553c495e986a5a7c6027d542031d7d587a357c56f9",
-  "sourceCommit": "ef21f7d794d34bfb5635877b39aa65b78bbce3e3",
+  "sourceDigest": "814adb0726711ca15c5af3840b68e03b8dc1f1c26f4917739de5d7b8c6e3d111",
+  "sourceCommit": "c64485834473b8990cc9dd8dc6200d86f36ce0e0",
   "files": {
     ".agents/skills/development-delivery/SKILL.md": "1b4a211898b4b27fe518f191a501d52a0f0be70b50f15dca91acd907328989c7",
     ".agents/skills/development-delivery/references/release-evolution.md": "6a65a471aa350e6e172aa69dca48cb740900792191f49090f81c1e526322f144",
@@ -14,8 +14,9 @@
     ".agents/skills/development-design/references/technology-selection.md": "49b0fdde786190bfce03b2c6c90cfdfd2a2f74866077d4931837dde14a94de5d",
     ".agents/skills/development-implementation/SKILL.md": "a5eb655a9ab7cf7ee4867cff1e71961007bb8fa58d2d05d473a965a2dcd1524c",
     ".agents/skills/development-implementation/references/implementation-craft.md": "14dc3d8f2a67324a8b46fdba69f6c4cae325c83206fd1f6d5242d35f79cf8e76",
-    ".agents/skills/development-lifecycle/SKILL.md": "d39185116bf220fe8b34d9d26ab2675386821e3ae471d32097770d9ecf34b4aa",
+    ".agents/skills/development-lifecycle/SKILL.md": "869b3086594f48ed350a493e57d43f10c62267cb1b81678f440785257bf4ce05",
     ".agents/skills/development-lifecycle/references/major-delivery.md": "22aab96c14a502277c510218a5093b02315914dcc6b659743b476902e92a674f",
+    ".agents/skills/development-lifecycle/references/project-initialization.md": "e364a20847af55c39c18e5413ece4331f3a6f704c33f4c46a7e4cb3d7c4709dd",
     ".agents/skills/development-lifecycle/references/token-efficient-delegation.md": "fb8fddd2ca8cd4cc95db1b34f55e06e71333251261c2e44a44d9a4c1022564bb",
     ".agents/skills/development-retrospective/SKILL.md": "eed303d143c6998d1a5156e0c69c2ed396349aa7ace325d7c609e923fe592bea",
     ".agents/skills/development-retrospective/references/experience-abstraction-calibration.md": "c348221a5827c7b69e7452f0e153acd78a00cfeefa9988c4daf7b367f5123f09",
