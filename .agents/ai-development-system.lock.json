@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "sourceDigest": "814adb0726711ca15c5af3840b68e03b8dc1f1c26f4917739de5d7b8c6e3d111",
-  "sourceCommit": "c64485834473b8990cc9dd8dc6200d86f36ce0e0",
+  "sourceDigest": "9f24825bcbe6bc813d65e8b130f59f56c595a560365cec286ff0cc7d9ec11496",
+  "sourceCommit": "51f586ae8603bcf546dc6149dd8d968d80448e1a",
   "files": {
     ".agents/skills/development-delivery/SKILL.md": "1b4a211898b4b27fe518f191a501d52a0f0be70b50f15dca91acd907328989c7",
     ".agents/skills/development-delivery/references/release-evolution.md": "6a65a471aa350e6e172aa69dca48cb740900792191f49090f81c1e526322f144",
@@ -14,7 +14,7 @@
     ".agents/skills/development-design/references/technology-selection.md": "49b0fdde786190bfce03b2c6c90cfdfd2a2f74866077d4931837dde14a94de5d",
     ".agents/skills/development-implementation/SKILL.md": "a5eb655a9ab7cf7ee4867cff1e71961007bb8fa58d2d05d473a965a2dcd1524c",
     ".agents/skills/development-implementation/references/implementation-craft.md": "14dc3d8f2a67324a8b46fdba69f6c4cae325c83206fd1f6d5242d35f79cf8e76",
-    ".agents/skills/development-lifecycle/SKILL.md": "869b3086594f48ed350a493e57d43f10c62267cb1b81678f440785257bf4ce05",
+    ".agents/skills/development-lifecycle/SKILL.md": "7790c41d687d10e017694834f05def623ec4163480fec68c67fe245e4d498255",
     ".agents/skills/development-lifecycle/references/major-delivery.md": "22aab96c14a502277c510218a5093b02315914dcc6b659743b476902e92a674f",
     ".agents/skills/development-lifecycle/references/project-initialization.md": "e364a20847af55c39c18e5413ece4331f3a6f704c33f4c46a7e4cb3d7c4709dd",
     ".agents/skills/development-lifecycle/references/token-efficient-delegation.md": "fb8fddd2ca8cd4cc95db1b34f55e06e71333251261c2e44a44d9a4c1022564bb",
@@ -45,10 +45,12 @@
     ".agents/wiki/skills/process/iteration-work-notes/references/major-delivery-records.md": "820de8664f52872ccbbf516cf563b0677c46960ece01996fe02b5de7ce25230b",
     ".agents/wiki/skills/process/iterative-quality-convergence/SKILL.md": "dc317d3159977c9fe7edf0431fbf9a309ab3d8bdefea7a3577a68dfa7b30b096",
     ".agents/wiki/skills/process/iterative-quality-convergence/agents/openai.yaml": "9b772d246e9627ee8771a57d975db1bf351fcaef17dd2a96426512a59b6b81c3",
-    ".agents/wiki/skills/process/project-knowledge-governance/SKILL.md": "afafc56e5c611e6e528e81658649dfc151c226be1df71522a3f74aa4f5c72f74",
+    ".agents/wiki/skills/process/project-knowledge-governance/SKILL.md": "ccbb6547618bb79a5a370ccd5fdd961a658f0c4d08061e125741e6309aad7ce1",
     ".agents/wiki/skills/process/project-knowledge-governance/references/development-plan-contract.md": "f191318f23310aa85e180805b3da701e568a18eec91a5b4cd02a096553ebc2ea",
     ".agents/wiki/skills/process/project-knowledge-governance/references/fact-knowledge.md": "5a8e3ae45a9ab51242de11cb32813759a6b7dbb21a05eb6070b5df4d38e8a921",
-    ".agents/wiki/skills/process/project-knowledge-governance/references/long-term-tracks.md": "ddff2af721821543077006275c578cc7a58022b4c7954803f0b2a6c908305145"
+    ".agents/wiki/skills/process/project-knowledge-governance/references/long-term-tracks.md": "667e09612547a88cdc23158f832c6c741ccb5e695d9a6ad4675e87dc282ec3da",
+    ".agents/wiki/skills/process/project-knowledge-governance/references/recurring-items.md": "81dc5627ddcb4101fc987bd889bf8ece02147f61b558f6a754fea68d1b374ecb",
+    ".agents/wiki/skills/process/project-knowledge-governance/references/stagnation-reassessment.md": "55d9d8a00e52064fc95b7e21f00f4cc6edac3db3c972bb24446d0756ffb373b3"
   },
   "agents": {
     "mode": "managed",
