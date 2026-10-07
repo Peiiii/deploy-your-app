@@ -91,13 +91,10 @@ export const stageGithub = async (bucket: R2Bucket, projectId: string, repoUrl: 
   const [owner, rawRepo] = parts;
   const repo = rawRepo?.replace(/\.git$/, '');
   if (url.hostname !== 'github.com' || !owner || !repo || url.username || url.password) throw archiveError('Enter a public GitHub repository.', 'invalid_repository');
-  let branch = parts[2] === 'tree' ? decodeURIComponent(parts.slice(3).join('/')) : '';
-  if (!branch) {
-    const response = await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`, { headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'GemiGo-deployment' }, signal: AbortSignal.timeout(20000) });
-    if (!response.ok) throw archiveError('Could not read this public GitHub repository.', 'invalid_repository');
-    branch = (await response.json() as { default_branch: string }).default_branch;
-  }
-  const response = await fetch(`https://codeload.github.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/zip/refs/heads/${encodeURIComponent(branch)}`, { signal: AbortSignal.timeout(120000) });
+  const branch = parts[2] === 'tree' ? decodeURIComponent(parts.slice(3).join('/')) : '';
+  // HEAD follows the repository default branch without the shared unauthenticated REST quota.
+  const ref = branch ? `refs/heads/${encodeURIComponent(branch)}` : 'HEAD';
+  const response = await fetch(`https://codeload.github.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/zip/${ref}`, { signal: AbortSignal.timeout(120000) });
   if (!response.ok || !response.body) throw archiveError('Could not download the GitHub branch.', 'invalid_repository');
   const key = `deployment-sources/${new Date().toISOString().slice(0, 10)}/${projectId}/${crypto.randomUUID()}.zip`;
   const upload = await bucket.createMultipartUpload(key, { customMetadata: { projectId }, httpMetadata: { contentType: 'application/zip' } });

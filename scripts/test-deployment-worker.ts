@@ -23,8 +23,7 @@ const mf = new Miniflare({
   bindings: { DEPLOY_TARGET: 'r2', APPS_ROOT_DOMAIN: 'gemigo.app' },
   outboundService: async (request: Request) => {
     const url = new URL(request.url);
-    if (url.hostname === 'api.github.com') { githubCalls++; return new MfResponse(JSON.stringify({ default_branch: 'main' })); }
-    if (url.hostname === 'codeload.github.com') { githubCalls++; return new MfResponse(staticGithub); }
+    if (url.hostname === 'codeload.github.com') { assert.ok(url.pathname.endsWith(githubCalls === 0 ? '/zip/HEAD' : '/zip/refs/heads/feature%2Ftest')); githubCalls++; return new MfResponse(staticGithub); }
     throw new Error(`Unexpected external dependency: ${url.hostname}`);
   },
   compatibilityDate: '2026-09-18',
@@ -92,10 +91,10 @@ try {
   const github = await create(SourceType.GitHub, 'https://github.com/example/demo');
   await finish((await deploy(github, { sourceType: 'github' })).deploymentId);
   assert.match(await (await liveFile(github.slug!, 'index.html')).text(), /Static Github/);
-  assert.equal(githubCalls, 2);
+  assert.equal(githubCalls, 1);
   await projectRepository.updateProjectRecord(db, github.id, { repoUrl: 'https://github.com/example/demo/tree/feature/test' });
   await finish((await deploy(github, { sourceType: 'github' })).deploymentId);
-  assert.equal(githubCalls, 3);
+  assert.equal(githubCalls, 2);
   console.log('PASS original Github input / default and slash branch');
 
   const before = await (await bucket.get(`apps/${zipped.slug}/deployment.json`)).text();
