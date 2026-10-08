@@ -1,6 +1,6 @@
 {
   "action": "HTML guide non-brand acquisition optimization",
-  "status": "implementation_in_progress",
+  "status": "implementation_verified_effect_pending",
   "baseline": {
     "observedAt": "2026-10-08T12:05:52.999126+00:00",
     "publicGuides": [
@@ -52,5 +52,75 @@
       }
     ],
     "typescriptApplicability": "No TypeScript/types/imports changed; no separate tsc required for copy-only mjs change."
+  },
+  "productionVerification": {
+    "observedAt": "2026-10-08T12:12:55.964899+00:00",
+    "sourceCommit": "eea375c5d227eb7c6f3b273cef2c4e39cdfdfd93",
+    "pagesDeploymentId": "04ec8b81-8032-4b0b-9f4d-65ec5f15dfac",
+    "deploymentEnvironment": "Production",
+    "deploymentBranch": "gh-pages",
+    "ghPagesCommit": "472c9727d96a6a927b1e67c93895c68fbeec1b9a",
+    "rawGuideResponses": [
+      {
+        "url": "https://gemigo.io/guides/publish-html",
+        "title": "Host an HTML file online and share a link | GemiGo",
+        "directImportMentionPresent": true,
+        "canonical": [
+          "https://gemigo.io/guides/publish-html"
+        ],
+        "h1Count": 1
+      },
+      {
+        "url": "https://gemigo.io/guides/publish-html?lang=zh-CN",
+        "title": "HTML 文件如何发布成网页链接 | GemiGo",
+        "directImportMentionPresent": true,
+        "canonical": [
+          "https://gemigo.io/guides/publish-html?lang=zh-CN"
+        ],
+        "h1Count": 1
+      }
+    ],
+    "visibleUi": [
+      {
+        "language": "en",
+        "title": "Host an HTML file online and share a link | GemiGo",
+        "heading": "How to host an HTML file online",
+        "importInstructionsPresent": true,
+        "mobileHorizontalOverflow": false
+      },
+      {
+        "language": "zh-CN",
+        "title": "HTML 文件如何发布成网页链接 | GemiGo",
+        "heading": "HTML 文件如何发布成网页链接",
+        "importInstructionsPresent": true,
+        "mobileHorizontalOverflow": false
+      },
+      {
+        "journey": "Chinese guide → Publish → Import addition.html → matching input content",
+        "passed": true,
+        "productionPublication": false,
+        "qaSource": "qa_html_guide",
+        "measurementWarning": "Synthetic validation visit, not organic acquisition or conversion evidence"
+      }
+    ],
+    "mainAsset": {
+      "path": "/assets/index-BbyJoLnt.js",
+      "sha256": "376f02af1d552322ffc97d4f1637e145a99f317bcd02d40f0f041ca473fdc1f1",
+      "matchesLocalBuild": true
+    },
+    "canonicalHreflangAndArticleSchema": "passed",
+    "sitemapUnchangedAndMatchesLocal": "passed",
+    "screenshots": [
+      "html-guide-live-en-20261008.png",
+      "html-guide-live-zh-CN-20261008.png"
+    ]
+  },
+  "businessEffect": {
+    "status": "not_yet_measured",
+    "nonBrandImpressions": null,
+    "nonBrandClicks": null,
+    "registrations": null,
+    "sameSessionPublications": null,
+    "qaVisitsAreNotAcquisitionEvidence": true
   }
 }

@@ -11,4 +11,4 @@
 - 下一步：跟进软404验证最终状态，不重复已开始请求；Google快照更新后对齐总览与指南单页结果，继续目录与实际查询/AI展示观察。BingVerify确认和后台登录仍待原问题回复；10-08后台新标签为登录页并标记待接续，没有新获客报表/改密/绕过鉴权。站长状态仍未完整验收，只有Required全闭合才整体完成。
 - 长期事实owner：[长期关注事项](../../tracks/2026-10-03-search-ai-growth.track.md)、[指标合同](../../tech/PRODUCT_ANALYTICS.md)。已启用当前聊天的每日09:00 Asia/Shanghai续办自动化gemigo-ai；只有实质变化、完成、失败性质变化或需要用户动作时通知。调度owner为Codex自动化配置，文档只记录事实。
 
-- 10-08 19:59用户纠正完整Action边界后，当前增长工作项为“HTML指南非品牌获客优化”：发现实际已有直接导入HTML而指南未说明的缺口，改写中英文任务标题/首段/导入步骤/样例，前端构建、Pages边界、手机真实指南→部署→导入addition.html到输入框通过；未创建生产演练应用、不冒充注册或成功发布。具体HC验收与效果复查见原设计及[本批证据](../../logs/2026-10-03-search-growth/artifacts/html-guide-action-20261008.json)。当前实施待生产、效果待复查，不标整体Action或SG01完成。
+- 10-08 19:59用户纠正完整Action边界后，当前增长工作项为“HTML指南非品牌获客优化”：发现实际已有直接导入HTML而指南未说明的缺口，改写中英文任务标题/首段/导入步骤/样例，前端构建、Pages边界、手机真实指南→部署→导入addition.html到输入框通过；未创建生产演练应用、不冒充注册或成功发布。具体HC验收与效果复查见原设计及[本批证据](../../logs/2026-10-03-search-growth/artifacts/html-guide-action-20261008.json)。当前HC01—HC03实施/生产验收已通过：两语言原始HTML及手机渲染、实际文件导入、canonical/hreflang/schema/未变sitemap与构建资产hash吻合；生产部署04ec8b81-8032-4b0b-9f4d-65ec5f15dfac、gh-pages 472c972。HC04效果待复查，不标完整Action或SG01完成。

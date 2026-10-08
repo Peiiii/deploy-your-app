@@ -126,6 +126,8 @@
 
 完整工作项选择“HTML指南非品牌获客优化”，最小链路与HC01—HC04见[原设计本批段落](../../designs/2026-10-03-search-growth.design.md#2026-10-08-html-指南非品牌获客-action)。实际缺口为产品支持Import .html file，但线上旧英文/中文指南均未说明；两页面修前200/旧标题/无导入说明的真实证据已保存。实施改同一copy与示例owner，保留URL、权限、资源边界及原可用样例。
 
-前端构建、targeted ESLint、原Pages组装边界测试通过；Playwright真实手机窗口390×844的中英文渲染无横向溢出，从中文指南进入发布，实际导入addition.html后输入与文件字节相同。无TypeScript类型/导入改动，不跑独立tsc；本项目无diff-only维护性脚本，内容/代码Review核对实际按钮/能力、同源schema、权限及效果窗口，无未关闭finding。未创建生产演练应用，样例与自查不能冒充获客。初次urllib403沿正常curl公开200保存基线，不改安全防护。生产验收与交付证据待补。
+前端构建、targeted ESLint、原Pages组装边界测试通过；Playwright真实手机窗口390×844的中英文渲染无横向溢出，从中文指南进入发布，实际导入addition.html后输入与文件字节相同。无TypeScript类型/导入改动，不跑独立tsc；本项目无diff-only维护性脚本，内容/代码Review核对实际按钮/能力、同源schema、权限及效果窗口，无未关闭finding。未创建生产演练应用，样例与自查不能冒充获客。初次urllib403沿正常curl公开200保存基线，不改安全防护。HC01—HC03生产验收通过：原deploy:pages发布，生产环境gh-pages部署04ec8b81-8032-4b0b-9f4d-65ec5f15dfac（产物472c9727d96a6a927b1e67c93895c68fbeec1b9a）。官网两语言新标题/导入说明/单一H1/self canonical/三hreflang/同源Article schema通过；sitemap字节仍与构建一致，主资源/assets/index-BbyJoLnt.js SHA256 376f02af1d552322ffc97d4f1637e145a99f317bcd02d40f0f041ca473fdc1f1与本地构建一致。Playwright手机生产域名的可见渲染无横向溢出，从指南进入部署并实际导入示例，输入与文件字节相同；访问标记qa_html_guide，不计获客或转化。截图[英文](artifacts/html-guide-live-en-20261008.png)/[中文](artifacts/html-guide-live-zh-CN-20261008.png)与[完整证据](artifacts/html-guide-action-20261008.json)。
+
+本批可控交付复盘完成：方法缺口已回上游原owner并同步；实际内容改变与调查子步骤、生产验收和业务效果分开，不新增常驻规则或平行状态。整体retrospective_state仍pending/SG01仍开放，HC04按原窗口继续，不借本批交付关闭整体目标。
 
 效果第一检查点10-16 09:00：以可得完整UTC窗口目标7天、限定指南/语言/非品牌查询，复查展示点击及原归因口径可测的注册/成功发布；数据缺失为null，指南未测不以首页6/15冒充基线。实施与业务效果分开，SG01与整体增长继续未闭合。
