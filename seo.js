@@ -26,9 +26,9 @@ const copy = {
       'What is GemiGo?',
     ],
     html: [
-      'How to publish an HTML app and share its link | GemiGo',
-      'A practical guide to publishing HTML with GemiGo: paste your code, publish the app, check the public link, and update it when your content changes.',
-      'How to publish an HTML app',
+      'Host an HTML file online and share a link | GemiGo',
+      'Turn a local HTML file into a shareable website. Import your .html file or paste its code, publish with GemiGo, and check the live link. No Git repository needed.',
+      'How to host an HTML file online',
     ],
     zip: [
       'How to publish a ZIP web app | GemiGo',
@@ -86,12 +86,12 @@ const copy = {
       ],
       html: [
         [
-          'What you need',
-          'Use HTML content that runs in a browser. A self-contained HTML page is a convenient starting point for an interactive lesson, game, calculator or demo. If it depends on separate local files, package the files as a ZIP instead.',
+          'How do I turn an HTML file into a URL?',
+          'Open Publish an app and choose HTML. Use Import .html file to load your local file, or paste its HTML code. Sign in when asked, publish, then open and share the website URL after deployment succeeds. You do not need a GitHub repository for this publishing path.',
         ],
         [
-          '1. Paste your HTML',
-          'Open Publish an app, choose HTML, and paste the HTML into the code input. Sign in when the publishing flow asks you to. Review any external scripts and API calls before publishing.',
+          '1. Import your HTML file or paste its code',
+          'Choose Import .html file and select your .html file. Its contents appear in the HTML input so you can review or edit them before publishing. You can also paste the code directly. Review external scripts and API calls; keep private keys out of browser code.',
         ],
         [
           '2. Publish and check the result',
@@ -102,8 +102,8 @@ const copy = {
           'Share the resulting link with your audience. To publish a change, open the app in your dashboard and use its project settings to redeploy. Public discovery is a separate setting; an unlisted app can still be opened by anyone with its deployed URL.',
         ],
         [
-          'Why does my page fail after publishing?',
-          'Check browser errors, missing assets and unavailable external APIs. Local filesystem paths do not become public URLs. Never put private API keys into HTML or client-side JavaScript. Use the project’s latest deployment result when diagnosing a failed release.',
+          'Can the HTML file include CSS, JavaScript and images?',
+          'CSS in a style tag and JavaScript in a script tag travel with a self-contained HTML file. Separate local images, stylesheets and scripts are not imported with it; package those files together as a ZIP. Local filesystem paths do not become public URLs. Check the live page and any external APIs before sharing.',
         ],
       ],
       zip: [
@@ -147,9 +147,9 @@ const copy = {
       'GemiGo 是什么？',
     ],
     html: [
-      '如何发布 HTML 应用并分享链接 | GemiGo',
-      '使用 GemiGo 发布 HTML 应用：粘贴代码、发布应用、检查公开链接，并在内容变化后更新应用。',
-      '如何发布 HTML 应用',
+      'HTML 文件如何发布成网页链接 | GemiGo',
+      '将本地 HTML 文件发布成可分享的网页链接：直接导入 .html 文件或粘贴代码，在 GemiGo 发布并检查线上页面，无需 GitHub 仓库。',
+      'HTML 文件如何发布成网页链接',
     ],
     zip: [
       '如何发布 ZIP 网页应用 | GemiGo',
@@ -207,12 +207,12 @@ const copy = {
       ],
       html: [
         [
-          '需要准备什么？',
-          '准备可以在浏览器运行的 HTML。单个 HTML 页面适合发布互动练习、游戏、计算器或演示。如果依赖独立的本地资源文件，建议将文件一起打包为 ZIP。',
+          '怎样把本地 HTML 文件变成在线链接？',
+          '打开「发布应用」，选择 HTML，点击「导入 .html 文件」并选择本地文件，也可以直接粘贴 HTML 代码。按提示登录并发布；部署成功后打开生成的网址，检查页面再分享。这条发布路径不需要 GitHub 仓库。',
         ],
         [
-          '1. 粘贴 HTML',
-          '打开「发布应用」，选择 HTML，粘贴代码。按发布流程提示登录。发布前检查外部脚本和 API 调用，确认它们适合公开运行。',
+          '1. 导入 HTML 文件或粘贴代码',
+          '点击「导入 .html 文件」选择你的 .html 文件，文件内容会出现在 HTML 输入框中，可以在发布前检查和修改。已有代码也可以直接粘贴。检查外部脚本和 API 调用，不要在浏览器代码中放私有密钥。',
         ],
         [
           '2. 发布并检查结果',
@@ -223,8 +223,8 @@ const copy = {
           '将生成的链接分享给使用者。需要修改时，从仪表板打开项目设置并重新部署。公开展示是独立设置；即使未在探索页列出，持有部署链接的人仍能访问。',
         ],
         [
-          '发布后页面出错怎么办？',
-          '检查浏览器报错、缺失资源和外部 API。本地文件路径不会自动变为公网地址。不要将私有 API Key 放进 HTML 或前端 JavaScript。发布失败时，在项目设置查看最近发布结果并修正问题。',
+          'HTML 中的 CSS、JavaScript 和图片能一起发布吗？',
+          '写在 style 标签中的 CSS 和 script 标签中的 JavaScript 会随单个 HTML 文件一起发布；独立的本地图片、样式和脚本不会随它自动导入，需要将相关文件一起打包为 ZIP。本地文件路径不能作为公开图片地址。分享前检查线上页面和外部 API。',
         ],
       ],
       zip: [
