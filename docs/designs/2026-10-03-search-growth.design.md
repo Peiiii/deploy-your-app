@@ -66,3 +66,15 @@ mode=design Review SG05：从已确认用户目标和 acquisition/analytics/depl
 验证：真实D1复现二阶段拒绝后整个count仍占额；修后同场景只保留实际count+余量；成功结算/重复结算/并发预留/日桶隔离/未知读数/额度耗尽不进入聚合。原cohort/成长/基础报表回归、类型和lint通过；部署及公开资产/生产最小预算诊断，预算不够不重复重试、不清零历史；UI真实浏览器受并行操作限制时注明边界。
 
 mode=design Review：对照用户报表入口、三个现有调用者、原子bucket与D1结果metadata，确认固定桶和一次结算不会释放他人预留；失败未知保守保留、上限与指标不变、无新身份/权限/迁移；上述范围design-review: passed。实现后仍需实际回归与Review。
+
+## 2026-10-08 HTML 指南非品牌获客 Action
+
+来源：用户纠正排查只是Action子步骤；既有GSC只有极小品牌样本，两英文指南已收录，当前需要实际改善已收录入口。当前HTML指南只要求粘贴/在文本编辑器复制，未说明实际已有的“Import .html file / 导入 .html 文件”能力（HtmlSourceForm→deployment.storeActions.handleHtmlFileUpload→file.text写入htmlContent）。这是可控的内容与真实用户入口缺口；不是据极小样本推断SEO故障。
+
+采用最小完整工作项“HTML指南非品牌获客优化”：在现有中英文URL上改写标题/H1/首段，明确把本地HTML变成在线链接的任务；补直接导入文件、无需Git仓库、单文件内嵌资源与ZIP分流的答案；示例下载后优先导入文件，并保留粘贴路径。单一copy owner仍为seo.mjs，样例操作owner为guide-examples.mjs，schema自动取同源标题/描述；不新建页面、不更换URL、不堆关键字、不虚构免费/无需登录/后端能力。不改sitemap或重复索引请求。
+
+SEO方法按当前SEO Skill使用，既有站长/抓取/样例审计有效证据复用，不为文案调整全量审计。2026-10-08核验[Google标题建议](https://developers.google.com/search/docs/appearance/title-link)、[AI功能文档](https://developers.google.com/search/docs/appearance/ai-features)及[Netlify手工部署一手文档](https://docs.netlify.com/manage/projects/add-new-project/)：任务导向标题、可读正文与真实操作为参考；没有搜索量/难度工具证据，不声称该词高流量或保证排名/引用。Google AI文档不要求新增专用AI标记；本次不增加FAQ schema或llms文件。
+
+验收HC01：英文/中文原始HTML与真实渲染均展示新标题、导入步骤、资源分流和发布入口，既有canonical/hreflang/schema/样例/10URL sitemap通过原Pages边界测试。HC02：从指南到部署页面，用实际.html文件导入后输入框含样例内容；这不是新用户注册/线上成功发布经营证据，不为文案变化制造生产应用。HC03：精确提交、主区master同步、沿既有deploy:pages生产发布并以线上HTML/资源hash验收。HC04：实施验收与获客效果分开，实施通过后状态仍“效果待复查”；10-16 09:00为第一效果检查点，实际GSC处理和覆盖未知，以可得完整UTC窗口7天为目标，不写不可测为零。按本页/本地语言、非品牌查询/展示/点击，以及可测同会话注册/成功发布复查，极小样本不算增长。无曝光先核对新版本抓取和查询覆盖；有点击但未转化沿真实漏斗找障碍，而非无限改标题。
+
+standard；局部copy实施风险L1，生产交付按L4边界验证；plan=not-required。本部分设计Review从真实按钮/导入实现核对能力承诺、样例操作、渠道与数据口径，未关闭finding=0，design-review: passed；沿原合同新增子批证据，不将SG01或整体增长标记完成。

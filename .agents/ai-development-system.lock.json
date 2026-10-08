@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "sourceDigest": "d292bb17893fabb5a3338126adcbd773fb9c07e0440c1b4fb06cfe62be2dc6b9",
-  "sourceCommit": "ea14835a8e3b5e37ccf00873a03c615c0e0ab07c",
+  "sourceDigest": "dc43fc26b62e5a23d4f9185a7dbc71bd8363dd9a2de6b62f19ad125b38277537",
+  "sourceCommit": "5ea090b18c3209402d02a5b0acdb662cf7717d40",
   "files": {
     ".agents/skills/development-delivery/SKILL.md": "1b4a211898b4b27fe518f191a501d52a0f0be70b50f15dca91acd907328989c7",
     ".agents/skills/development-delivery/references/release-evolution.md": "6a65a471aa350e6e172aa69dca48cb740900792191f49090f81c1e526322f144",
@@ -18,7 +18,7 @@
     ".agents/skills/development-lifecycle/references/major-delivery.md": "22aab96c14a502277c510218a5093b02315914dcc6b659743b476902e92a674f",
     ".agents/skills/development-lifecycle/references/project-initialization.md": "e364a20847af55c39c18e5413ece4331f3a6f704c33f4c46a7e4cb3d7c4709dd",
     ".agents/skills/development-lifecycle/references/token-efficient-delegation.md": "fb8fddd2ca8cd4cc95db1b34f55e06e71333251261c2e44a44d9a4c1022564bb",
-    ".agents/skills/development-retrospective/SKILL.md": "2b7c8ec3ea7ec4b63af6e27f6f51fab0ae72607ed2fcf81df815c7aee22acb21",
+    ".agents/skills/development-retrospective/SKILL.md": "a797922868400f424a6559e066cd33e17f1da5fb6129eeb7cd7130add8a0ab05",
     ".agents/skills/development-retrospective/references/experience-abstraction-calibration.md": "c348221a5827c7b69e7452f0e153acd78a00cfeefa9988c4daf7b367f5123f09",
     ".agents/skills/development-review/SKILL.md": "f07c16245af46c4b2f9b84dcc11794e1f801beb9e4cf8c05bcf635d477423137",
     ".agents/skills/development-review/agents/openai.yaml": "e2938d95c193b031104461c76b2ca17bc49bfd9744878556c0dbca394f73ae85",
@@ -50,7 +50,7 @@
     ".agents/wiki/skills/process/project-knowledge-governance/references/fact-knowledge.md": "5a8e3ae45a9ab51242de11cb32813759a6b7dbb21a05eb6070b5df4d38e8a921",
     ".agents/wiki/skills/process/project-knowledge-governance/references/long-term-tracks.md": "28283ed5c592079685f738774712bb1f067789e6830cc22eb1c4c6be1076900d",
     ".agents/wiki/skills/process/project-knowledge-governance/references/recurring-items.md": "1a348c28de658b9ca950a2c327ecda8bbe6fb5ded8a672200a9fe1142e91f00f",
-    ".agents/wiki/skills/process/project-knowledge-governance/references/review-actions.md": "06fc40da282f924af1a0db3354f5137a74df98dff867633e235d1a1da2a8acda",
+    ".agents/wiki/skills/process/project-knowledge-governance/references/review-actions.md": "7db61fba7a9dad970aa9318a0c44fecb2e4eada691bf4e9c36ca37a8a3ab957b",
     ".agents/wiki/skills/process/project-knowledge-governance/references/stagnation-reassessment.md": "3f5590c0078ae71c63dea838da1e1435b6ccfd60270a93bc109b8495de998e89"
   },
   "agents": {

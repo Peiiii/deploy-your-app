@@ -1,0 +1,56 @@
+{
+  "action": "HTML guide non-brand acquisition optimization",
+  "status": "implementation_in_progress",
+  "baseline": {
+    "observedAt": "2026-10-08T12:05:52.999126+00:00",
+    "publicGuides": [
+      {
+        "url": "https://gemigo.io/guides/publish-html",
+        "status": 200,
+        "title": "How to publish an HTML app and share its link | GemiGo",
+        "directImportMentionPresent": false,
+        "sha256": "1b2c3316c36ffe21b7224d45d4c53580496d007ff88e5da2cd427222cf6eab22"
+      },
+      {
+        "url": "https://gemigo.io/guides/publish-html?lang=zh-CN",
+        "status": 200,
+        "title": "如何发布 HTML 应用并分享链接 | GemiGo",
+        "directImportMentionPresent": false,
+        "sha256": "3f2a27147b049fe85840f2109891e70d73d5185b1bc0e08db95e5ff5067705bf"
+      }
+    ],
+    "guideNonBrandImpressions": null,
+    "guideNonBrandClicks": null,
+    "registrationAndPublicationEffects": null,
+    "metricBoundary": "No fresh page-level Search Console or administrator cohort retrieved; unknowns remain null."
+  },
+  "effectCheckpointShanghai": "2026-10-16 09:00",
+  "effectWindow": "Use available complete UTC days after release, aim 7 days; provider lag and retention disclosed; no growth guarantee.",
+  "localVerification": {
+    "frontendBuild": "passed",
+    "pagesAssembledRuntime": "passed",
+    "targetedEslint": "passed",
+    "uiJourney": [
+      {
+        "language": "en",
+        "title": "Host an HTML file online and share a link | GemiGo",
+        "heading": "How to host an HTML file online",
+        "importInstructionsPresent": true,
+        "mobileHorizontalOverflow": false
+      },
+      {
+        "language": "zh-CN",
+        "title": "HTML 文件如何发布成网页链接 | GemiGo",
+        "heading": "HTML 文件如何发布成网页链接",
+        "importInstructionsPresent": true,
+        "mobileHorizontalOverflow": false
+      },
+      {
+        "journey": "Chinese guide → Publish → Import addition.html → matching input content",
+        "passed": true,
+        "productionPublication": false
+      }
+    ],
+    "typescriptApplicability": "No TypeScript/types/imports changed; no separate tsc required for copy-only mjs change."
+  }
+}
