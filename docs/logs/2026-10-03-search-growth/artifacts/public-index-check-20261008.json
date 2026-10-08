@@ -1,0 +1,87 @@
+{
+  "observed_at_utc": "2026-10-08T01:04:27.868745+00:00",
+  "agent": "Googlebot user-agent probe, not genuine Google fetch",
+  "results": [
+    {
+      "url": "https://gemigo.io/?utm_medium=Scamadviser.com&utm_campaign=Scamadviser.com",
+      "status": 200,
+      "final_url": "https://gemigo.io/?utm_medium=Scamadviser.com&utm_campaign=Scamadviser.com",
+      "bytes": 18632,
+      "title": [
+        "Publish and share web apps | GemiGo"
+      ],
+      "h1": [
+        "Publish and share web apps"
+      ],
+      "robots": [
+        "<meta data-seo name=\"robots\" content=\"index, follow, max-image-preview:large\">"
+      ],
+      "canonical": [
+        "<link data-seo rel=\"canonical\" href=\"https://gemigo.io/\" >"
+      ],
+      "has_public_content": true,
+      "has_error_text": false
+    },
+    {
+      "url": "https://gemigo.io/?lang=zh-CN",
+      "status": 200,
+      "final_url": "https://gemigo.io/?lang=zh-CN",
+      "bytes": 18599,
+      "title": [
+        "发布与分享网页应用 | GemiGo"
+      ],
+      "h1": [
+        "发布与分享网页应用"
+      ],
+      "robots": [
+        "<meta data-seo name=\"robots\" content=\"index, follow, max-image-preview:large\">"
+      ],
+      "canonical": [
+        "<link data-seo rel=\"canonical\" href=\"https://gemigo.io/?lang=zh-CN\" >"
+      ],
+      "has_public_content": true,
+      "has_error_text": false
+    },
+    {
+      "url": "https://gemigo.io/guides/publish-html",
+      "status": 200,
+      "final_url": "https://gemigo.io/guides/publish-html",
+      "bytes": 17325,
+      "title": [
+        "How to publish an HTML app and share its link | GemiGo"
+      ],
+      "h1": [
+        "How to publish an HTML app"
+      ],
+      "robots": [
+        "<meta data-seo name=\"robots\" content=\"index, follow, max-image-preview:large\">"
+      ],
+      "canonical": [
+        "<link data-seo rel=\"canonical\" href=\"https://gemigo.io/guides/publish-html\" >"
+      ],
+      "has_public_content": true,
+      "has_error_text": false
+    },
+    {
+      "url": "https://gemigo.io/guides/publish-zip",
+      "status": 200,
+      "final_url": "https://gemigo.io/guides/publish-zip",
+      "bytes": 17382,
+      "title": [
+        "How to publish a ZIP web app | GemiGo"
+      ],
+      "h1": [
+        "How to publish a ZIP web app"
+      ],
+      "robots": [
+        "<meta data-seo name=\"robots\" content=\"index, follow, max-image-preview:large\">"
+      ],
+      "canonical": [
+        "<link data-seo rel=\"canonical\" href=\"https://gemigo.io/guides/publish-zip\" >"
+      ],
+      "has_public_content": true,
+      "has_error_text": false
+    }
+  ],
+  "limitations": "Public HTTP/HTML alone does not establish current Google rendering/indexing or historical soft-404 cause."
+}
