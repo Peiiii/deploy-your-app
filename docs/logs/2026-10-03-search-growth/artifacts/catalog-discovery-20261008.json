@@ -1,0 +1,103 @@
+{
+  "observedAt": "2026-10-08T01:34:44.434938+00:00",
+  "scope": "Public raw response and discovery paths; no genuine Googlebot crawl or indexing proof",
+  "pages": [
+    {
+      "url": "https://gemigo.io/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "canonical": [
+        "https://gemigo.io/"
+      ],
+      "robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "h1Count": 1,
+      "catalogLinks": [
+        "/catalog",
+        "/catalog"
+      ]
+    },
+    {
+      "url": "https://gemigo.io/explore",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "canonical": [
+        "https://gemigo.io/explore"
+      ],
+      "robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "h1Count": 1,
+      "catalogLinks": [
+        "/catalog",
+        "/catalog"
+      ]
+    },
+    {
+      "url": "https://gemigo.io/catalog",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "canonical": [
+        "https://gemigo.io/catalog"
+      ],
+      "robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "h1Count": 1,
+      "catalogLinks": [
+        "/catalog",
+        "/catalog?page=2"
+      ]
+    },
+    {
+      "url": "https://gemigo.io/catalog?lang=zh-CN",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "canonical": [
+        "https://gemigo.io/catalog?lang=zh-CN"
+      ],
+      "robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "h1Count": 1,
+      "catalogLinks": [
+        "/catalog?lang=zh-CN",
+        "/catalog?lang=zh-CN&page=2"
+      ]
+    },
+    {
+      "url": "https://gemigo.io/robots.txt",
+      "status": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "canonical": [],
+      "robots": [],
+      "h1Count": 0,
+      "catalogLinks": [],
+      "body": "User-agent: *\nAllow: /\n\n# 禁止爬取 API 和内部路径\nDisallow: /api/\nDisallow: /_worker.js\n\n# Sitemap\nSitemap: https://gemigo.io/sitemap.xml\n\n"
+    },
+    {
+      "url": "https://gemigo.io/sitemap.xml",
+      "status": 200,
+      "contentType": "application/xml",
+      "canonical": [],
+      "robots": [],
+      "h1Count": 0,
+      "catalogLinks": [],
+      "locations": [
+        "https://gemigo.io/",
+        "https://gemigo.io/?lang=zh-CN",
+        "https://gemigo.io/explore",
+        "https://gemigo.io/explore?lang=zh-CN",
+        "https://gemigo.io/about",
+        "https://gemigo.io/about?lang=zh-CN",
+        "https://gemigo.io/guides/publish-html",
+        "https://gemigo.io/guides/publish-html?lang=zh-CN",
+        "https://gemigo.io/guides/publish-zip",
+        "https://gemigo.io/guides/publish-zip?lang=zh-CN"
+      ]
+    }
+  ],
+  "judgment": "No observed HTTP, robots, canonical or internal discovery link defect for catalog. Static sitemap intentionally retains 10 URLs per existing design; omission alone does not establish cause of Google unknown status.",
+  "executionWindowShanghai": "2026-10-08 09:33–09:36"
+}
