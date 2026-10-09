@@ -101,8 +101,10 @@ Active contract: admin-long-session-20261009，scope-revision: 1，parent-goal: 
 | --- | --- | --- | --- |
 | ALS01 | 新登录 Cookie 与服务端同为 90 天，跨 1/30/89 天有效，期限边界失效 | passed | test-admin-console.ts：组装 Worker 登录响应、真实 D1、受控时钟边界与不续期 |
 | ALS02 | 退出、改密、重置版本撤销及旧会话兼容保持 | passed | pnpm test:admin：退出/改密/竞态/旧会话/运维恢复全部通过 |
-| ALS03 | 普通提交推送、主线同步、部署，线上真实登录及撤销可用 | not-run | 待交付 |
+| ALS03 | 普通提交推送、主线同步、部署，线上真实登录及撤销可用 | blocked | 4087894 已推送并部署；线上首页 200、未认证 session 401；本机旧凭据登录 401、Chrome 已退出，待用户当前凭据登录 |
 
 契约 Review：上述覆盖用户完整目标与实际撤销边界，不另加 UI、RBAC 或无关运营优化。90 天时间边界通过受控时钟验证，不能冒充实际等待三个月；线上登录验证实际 Cookie，保留此验证边界。
 
 实现 Review：auth.ts 单一期限常量、服务端绝对到期判断、Cookie 安全属性和撤销链路保持；测试覆盖真实 D1 与组装 HTTP，时间替换以 finally 恢复。项目无独立 diff-only maintainability 脚本，人工 diff-only 审查 no findings；定向 tsc、ESLint、git diff --check 和管理回归通过。
+
+部署证据：2026-10-09 20:13（Asia/Shanghai），gemigo-admin 版本 122fe26e-e04b-4f05-9558-b240befda5e0，admin.gemigo.io；生产页面 200、未认证接口 401。没有重置密码或注入生产会话。实际生产新登录 Cookie/D1 TTL 及退出验收尚未完成，不能把本地通过视作线上已验收；已请用户在现有浏览器使用当前密码登录。复盘决定：已将期限选择和旧会话生效边界更新至本设计 owner，无新通用规则增量；整体仍待 ALS03 关闭。
