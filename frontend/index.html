@@ -184,14 +184,14 @@
         font-weight: 500; letter-spacing: .04em;
       }
       .seo-support h2 { margin: 0; font-size: 1.25rem; line-height: 1.4; font-weight: 650; }
-      .seo-support-actions { display: flex; flex-wrap: wrap; gap: .625rem; }
-      .seo-support-actions a {
+      .seo-support-actions, .seo-content .seo-guide-actions { display: flex; flex-wrap: wrap; gap: .625rem; }
+      .seo-support-actions a, .seo-guide-actions a {
         display: inline-flex; align-items: center; justify-content: center;
         min-height: 2.75rem; padding: .5rem 1rem; border-radius: .75rem;
         font-weight: 600; text-decoration: none; border: 1px solid var(--border-main);
       }
-      .seo-support a.seo-support-primary { background: #7c3aed; border-color: #7c3aed; color: #fff; }
-      .seo-support a.seo-support-primary:hover { background: #6d28d9; border-color: #6d28d9; }
+      .seo-support a.seo-support-primary, .seo-content a.seo-guide-primary { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+      .seo-support a.seo-support-primary:hover, .seo-content a.seo-guide-primary:hover { background: #6d28d9; border-color: #6d28d9; }
       .seo-support a.seo-support-secondary { color: var(--text-main); background: var(--bg-surface); }
       .seo-support a.seo-support-secondary:hover { background: var(--bg-highlight); }
       .seo-support-sections {
@@ -209,7 +209,7 @@
       .seo-support nav a { display: inline-flex; align-items: center; min-height: 2.75rem; }
       .seo-support nav a:hover, .seo-support .seo-policies a:hover { color: #7c3aed; text-decoration: underline; }
       .dark .seo-support nav a:hover, .dark .seo-support .seo-policies a:hover { color: #c4b5fd; }
-      .seo-support a:focus-visible { outline: 2px solid #8b5cf6; outline-offset: 4px; }
+      .seo-support a:focus-visible, .seo-guide-actions a:focus-visible { outline: 2px solid #8b5cf6; outline-offset: 4px; }
       .seo-support .seo-policies { margin: .75rem 0 0; color: var(--text-muted); font-size: .75rem; }
 
       .app-bootstrap { display: none; }

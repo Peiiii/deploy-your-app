@@ -384,6 +384,13 @@ export const renderSeoContent = (seo, includeHeading = true) => {
   const languageLink = `<a href="${escape(seo.path + (seo.language === 'en' ? '?lang=zh-CN' : '?lang=en'))}">${escape(text.language)}</a>`;
   const policies = `<p class="seo-policies"><a href="/privacy-policy">${chinese ? '隐私政策' : 'Privacy policy'}</a> · <a href="/acceptable-use">${chinese ? '使用规范' : 'Acceptable use'}</a></p>`;
   const support = !includeHeading && ['home', 'explore'].includes(seo.key);
+  const guide = ['html', 'zip'].includes(seo.key);
+  const publishHref = guide
+    ? `/deploy?source=${seo.key}${chinese ? '&lang=zh-CN' : ''}`
+    : localizedPath('/deploy', seo.language);
+  const guideActions = guide
+    ? `<nav class="seo-guide-actions" aria-label="${chinese ? '开始发布' : 'Start publishing'}"><a class="seo-guide-primary" href="${escape(publishHref)}">${chinese ? '发布' : 'Publish'} ${seo.key.toUpperCase()}</a><a href="/examples/addition.${seo.key}" download="addition.${seo.key}">${chinese ? '下载' : 'Download'} ${seo.key.toUpperCase()} ${chinese ? '示例' : 'example'}</a>${href(seo.key === 'html' ? '/guides/publish-zip' : '/guides/publish-html', seo.key === 'html' ? text.zipLink : text.htmlLink)}</nav>`
+    : '';
   const sections = text.sections[seo.key]
     .map(
       ([heading, paragraph]) =>
@@ -396,11 +403,11 @@ export const renderSeoContent = (seo, includeHeading = true) => {
     href('/guides/publish-html', text.htmlLink) +
     href('/guides/publish-zip', text.zipLink) +
     languageLink;
-  const navigation = `<nav aria-label="${chinese ? '发布帮助' : 'Publishing help'}">${support ? '' : href('/deploy', text.publish) + href('/explore', text.exploreLink)}${helpLinks}</nav>`;
+  const navigation = `<nav aria-label="${chinese ? '发布帮助' : 'Publishing help'}">${support ? '' : `<a href="${escape(publishHref)}">${escape(text.publish)}</a>` + href('/explore', text.exploreLink)}${helpLinks}</nav>`;
   if (support) {
     return `<article class="seo-content seo-support"><header class="seo-support-header"><div><p class="seo-support-label">GemiGo · ${chinese ? '发布帮助' : 'Publishing help'}</p><h2>${chinese ? '发布与分享，从这里开始' : 'Your next step: publish and share'}</h2></div><div class="seo-support-actions">${href('/deploy', text.publish, 'seo-support-primary')}${href('/explore', text.exploreLink, 'seo-support-secondary')}</div></header><div class="seo-support-sections">${sections}</div>${navigation}${seo.key === 'home' ? '' : policies}</article>`;
   }
-  return `<article class="seo-content">${includeHeading ? `<h1>${escape(seo.heading)}</h1><p>${escape(seo.description)}</p>` : ''}${sections}${renderGuideExamples(seo.key, seo.language)}${navigation}${policies}</article>`;
+  return `<article class="seo-content">${includeHeading ? `<h1>${escape(seo.heading)}</h1><p>${escape(seo.description)}</p>` : ''}${guideActions}${sections}${renderGuideExamples(seo.key, seo.language)}${navigation}${policies}</article>`;
 };
 export const renderSitemap = () =>
   `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">${PUBLIC_PATHS.flatMap((path) => ['en', 'zh-CN'].map((language) => `<url><loc>${escape(SITE + localizedPath(path, language))}</loc>${['en', 'zh-CN', 'x-default'].map((lang) => `<xhtml:link rel="alternate" hreflang="${lang}" href="${escape(SITE + localizedPath(path, lang))}"/>`).join('')}</url>`)).join('')}</urlset>`;

@@ -1,0 +1,19 @@
+[
+  {
+    "key": "html",
+    "guideUrl": "https://gemigo.io/guides/publish-html?lang=zh-CN&utm_source=qa_guide_entry",
+    "ctaHref": "/deploy?lang=zh-CN",
+    "ctaDocumentY": 2280.15625,
+    "viewportHeight": 844,
+    "ctaVisibleWithoutScrolling": false
+  },
+  {
+    "key": "zip",
+    "guideUrl": "https://gemigo.io/guides/publish-zip?lang=zh-CN&utm_source=qa_guide_entry",
+    "ctaHref": "/deploy?lang=zh-CN",
+    "ctaDocumentY": 2172.109375,
+    "viewportHeight": 844,
+    "ctaVisibleWithoutScrolling": false,
+    "zipGuideLandsOnHtml": true
+  }
+]

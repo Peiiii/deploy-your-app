@@ -143,3 +143,13 @@
 本轮实质复盘处置：**继续现有HTML指南非品牌获客完整Action**，不是把本轮检查独立标成改善完成。实施HC01—HC03保持通过，HC04效果窗口未到且新版抓取未确认；没有证据支持再改标题/其它源码，原指南没有可见搜索行不能冒充零转化。责任为AI，下一常规检查点10-10 09:00读取新版抓取/在途验证，Google处理完成未知；第一效果检查点10-16 09:00沿原窗口与继续/调整/停止分支。原后台/Bing输入依赖仍未解除，恢复触发为有效管理员会话/明确Verify确认；不可测不填零。SG01与整体retrospective仍开放，仅更新原owner，不制造新规则或产品发布。
 
 同一gemigo-ai自动化已更新最新观察，工具确认ACTIVE；ID、每日09:00、目标聊天保持，沿原owner续查。纯证据文档按项目知识治理、定向Validation与轻量Review完成JSON/计数/空值/截图引用、相对链接和diff-only检查；对照Chrome可见状态及截图，保留各来源观察日期和实施/效果边界，无未关闭finding。未改产品源码，不重跑无关build/部署；复盘仅更新原事实，无新全局方法沉淀。
+
+## 2026-10-09 09:40：指南发布承接改善
+
+用户要求“继续优化”。完整Action为指南搜索/AI访问→直接开始HTML/ZIP发布的承接改进；源事实/黄金链路/GC01—GC04归原设计新段落，原HTML文案Action效果仍待测。[修前实际手机与ZIP落地](artifacts/guide-entry-before-20261009.json)：HTML发布链接Y2280、ZIP Y2172px，都不在390×844首屏；ZIP原链接缺source，实际进入HTML。未将这一可用性缺口外推用户流失比例。
+
+实施沿seo.mjs共享SSR/React输出和index.html既有动作样式：指南开头发布对应格式、下载真实示例、切换另一格式指南，页底发布链接也传正确source和语言。不动标题/URL/canonical/hreflang/schema/sitemap、埋点、登录或部署manager。原源码已支持source参数，无新状态/依赖/组件。源码语法、targeted ESLint、前端构建和Pages真实组装回归通过；既有chunk/Browserslist提醒不由本批引入。没有TypeScript/类型/导入变更，不追加独立tsc。
+
+隔离Playwright真实手机浅深色与桌面两格式/语言共10组：首屏CTA、无横向溢出、键盘焦点、下载字节与示例一致、点击后格式aria-pressed为true、实际HTML内容/ZIP文件名正确。浏览器独立实例，无用户Chrome控制；qa_guide_entry合成访问不算搜索获客、注册或成功发布，没有创建生产项目。[本地链路证据](artifacts/guide-entry-local-20261009.json)。初次验收脚本使用缩写按钮名及鼠标模式下programmatic focus，按真实标签/键盘修正；深色快照处于300ms动画中，改在可观察的颜色稳定后采样，并未改产品主题。
+
+实现Review(mode=implementation)依据实际diff检查共享owner、源类型和语言编码、底部兼容、下载文件、手机/深色焦点、草稿/进行中发布的既有优先规则与SEO保护；项目无自动diff-only维护性脚本，已手工核对内容/diff，无未关闭finding。09:50为交付检查点，预计10:20前可控上线验收；效果需窗口，GC04第一检查点10-17 09:00，原HC04仍10-16但明确共变。
