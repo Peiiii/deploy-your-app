@@ -9,6 +9,7 @@ import {
   changePassword,
   credential,
   createSession,
+  authenticated,
 } from '../workers/admin/src/auth';
 import { authRepository } from '../workers/api/src/repositories/auth.repository';
 import { projectRepository } from '../workers/api/src/repositories/project.repository';
@@ -159,6 +160,7 @@ try {
     assert.equal(response.status, 200, await response.clone().text());
     const cookie = response.headers.get('set-cookie')!;
     assert.match(cookie, /HttpOnly; Secure; SameSite=Strict/);
+    assert.match(cookie, /Max-Age=7776000(?:;|$)/, 'login persists for 90 days');
     return cookie.split(';')[0];
   };
   for (const route of [
@@ -527,6 +529,41 @@ try {
     ASSETS: { fetch: async () => new Response() },
   };
   const old = await credential(env);
+  // Use the real D1 session and authentication owner at controlled time boundaries.
+  const realNow = Date.now;
+  const issuedAt = realNow();
+  const lifetime = 90 * 86400000;
+  let longCookie: string;
+  try {
+    Date.now = () => issuedAt;
+    longCookie = (await createSession(env, old.version)).split(';')[0];
+    const sessionRequest = new Request('https://admin.test/api/session', {
+      headers: { cookie: longCookie },
+    });
+    for (const elapsed of [86400000, 30 * 86400000, 89 * 86400000, lifetime - 1]) {
+      Date.now = () => issuedAt + elapsed;
+      assert.equal(await authenticated(sessionRequest, env), true, `valid after ${elapsed}ms`);
+    }
+    for (const elapsed of [lifetime, lifetime + 1]) {
+      Date.now = () => issuedAt + elapsed;
+      assert.equal(await authenticated(sessionRequest, env), false, 'absolute expiry is enforced');
+    }
+  } finally {
+    Date.now = realNow;
+  }
+  assert.equal((await request('session', longCookie)).status, 200);
+  const longHash = await hash(`${old.version}:${longCookie.split('=')[1]}`);
+  const longSession = await db.prepare('SELECT expires_at FROM admin_sessions WHERE token_hash=?')
+    .bind(longHash).first();
+  assert.equal(longSession.expires_at, issuedAt + lifetime, 'access never extends absolute expiry');
+  const exited = await request('logout', longCookie, {});
+  assert.equal(exited.status, 200);
+  assert.match(exited.headers.get('set-cookie')!, /Max-Age=0/);
+  assert.equal((await request('session', longCookie)).status, 401, 'logout revokes long session');
+  await db.prepare('UPDATE admin_sessions SET expires_at=? WHERE token_hash=?')
+    .bind(realNow() - 1, await hash(`${old.version}:${nextCookie.split('=')[1]}`)).run();
+  assert.equal((await request('session', nextCookie)).status, 401, 'HTTP denies expired session');
+  console.log('PASS: 90-day persistent login, time boundaries, absolute expiry and logout revocation.');
   const race = await Promise.all([
     changePassword(env, old, crypto.randomUUID()),
     changePassword(env, old, crypto.randomUUID()),

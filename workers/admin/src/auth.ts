@@ -9,6 +9,8 @@ export interface AdminEnv {
   GROWTH_APPS_SITE_TAG?: string;
 }
 const COOKIE = '__Host-gemigo_admin';
+// Fixed absolute lifetime: returning to the console does not extend a session.
+const SESSION_MAX_AGE_SECONDS = 90 * 24 * 60 * 60;
 const hex = (bytes: ArrayBuffer) =>
   [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, '0')).join('');
 export const hash = async (text: string) =>
@@ -87,9 +89,9 @@ export const authenticated = async (request: Request, env: AdminEnv) => {
 export const createSession = async (env: AdminEnv, version: number) => {
   const value = hex(crypto.getRandomValues(new Uint8Array(32)).buffer);
   await env.ANALYTICS_DB.prepare('INSERT INTO admin_sessions (token_hash,expires_at) VALUES (?,?)')
-    .bind(await sessionHash(value, version), Date.now() + 12 * 3600000)
+    .bind(await sessionHash(value, version), Date.now() + SESSION_MAX_AGE_SECONDS * 1000)
     .run();
-  return `${COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=43200`;
+  return `${COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${SESSION_MAX_AGE_SECONDS}`;
 };
 export const logout = async (request: Request, env: AdminEnv) => {
   const value = adminSessionToken(request);

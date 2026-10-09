@@ -83,3 +83,26 @@ owner复用projects当前元数据；不回推AI来源、不改分类/语言/公
 技术：在原projects列表响应中附当前库存聚合（公开/状态、主分类、语言三条SQL），UI应用库存组件与已有列表共用页面/刷新，无新BI、导航、泛CRUD框架。查询仅当前projects，有界返回分类与2/3位语言，不读流量明细或调外部服务。普通分页仍20；查询参数白名单与绑定值，组合筛选count与items同where；库存与列表均排除删除。
 
 设计Review(mode=design)：已反查用户要求及限制。关闭反例：所有公开和公开Live混淆、null冒充private、listing翻译等于UI语言、多语言相加冒充应用总数、分类发现game交叉归属重复、统计随筛选不明。统计与管理集中一页，无新模块扩散；no findings，design-review passed。验收：实际Worker+D1删除/公开0/1/null、Live/未上线、未知类别、重复多语言/未确认/畸形JSON、翻译字段不污染、过滤组合与分页、空库存；真实Chrome桌面手机交互与生产聚合对账。用户主观布局偏好待反馈，不新增批准门。
+
+
+## 2026-10-09 管理员长期登录
+
+用户要求登录至少保持几个月，授权直接落地上线。当前 auth.ts 同时把 D1 expires_at 和 Cookie Max-Age 固定为 12 小时。采用 standard 流程，认证生命周期风险 L3；沿用 auth.ts 唯一 owner、随机 token、服务端哈希存储、独立 host Cookie 和当前密码版本撤销机制。
+
+管理员从 https://admin.gemigo.io 登录后，关闭浏览器并在随后几个月返回，直接继续管理；满 90 天后重新登录。主动退出后旧 Cookie 无法再认证；改密或运维重置后所有设备旧会话失效。现有会话保留原到期时间，重新登录取得新期限，不复活过期 token，也不批量延长旧记录。
+
+采用固定 90 天绝对期限，用同一秒数常量计算数据库与 Cookie 寿命，不按访问无限续期。90 天是针对用户要求的产品选择，不是行业统一最佳期限；参考 [OWASP Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html) 的服务端控制期限、明确过期与主动撤销要求。此期限增加有效 token 被盗后的可利用窗口；保留 HttpOnly/Secure/SameSite=Strict、Origin 校验、改密校验当前密码及立即撤销。当前单管理员场景不引入额外 refresh token、迁移或并行凭据。
+
+方案 Review：核对新登录、旧会话、过期边界、退出、改密和版本竞态，方案与用户目标一致；no findings，design-review passed。plan: not-required，单批可闭环。
+
+Active contract: admin-long-session-20261009，scope-revision: 1，parent-goal: 管理平台正常登录后保持 90 天且可立即撤销，部署线上可用。单阶段，Required 均为 true。
+
+| ID | 合同 | Status | 当前证据 |
+| --- | --- | --- | --- |
+| ALS01 | 新登录 Cookie 与服务端同为 90 天，跨 1/30/89 天有效，期限边界失效 | passed | test-admin-console.ts：组装 Worker 登录响应、真实 D1、受控时钟边界与不续期 |
+| ALS02 | 退出、改密、重置版本撤销及旧会话兼容保持 | passed | pnpm test:admin：退出/改密/竞态/旧会话/运维恢复全部通过 |
+| ALS03 | 普通提交推送、主线同步、部署，线上真实登录及撤销可用 | not-run | 待交付 |
+
+契约 Review：上述覆盖用户完整目标与实际撤销边界，不另加 UI、RBAC 或无关运营优化。90 天时间边界通过受控时钟验证，不能冒充实际等待三个月；线上登录验证实际 Cookie，保留此验证边界。
+
+实现 Review：auth.ts 单一期限常量、服务端绝对到期判断、Cookie 安全属性和撤销链路保持；测试覆盖真实 D1 与组装 HTTP，时间替换以 finally 恢复。项目无独立 diff-only maintainability 脚本，人工 diff-only 审查 no findings；定向 tsc、ESLint、git diff --check 和管理回归通过。
