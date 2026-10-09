@@ -153,3 +153,9 @@
 隔离Playwright真实手机浅深色与桌面两格式/语言共10组：首屏CTA、无横向溢出、键盘焦点、下载字节与示例一致、点击后格式aria-pressed为true、实际HTML内容/ZIP文件名正确。浏览器独立实例，无用户Chrome控制；qa_guide_entry合成访问不算搜索获客、注册或成功发布，没有创建生产项目。[本地链路证据](artifacts/guide-entry-local-20261009.json)。初次验收脚本使用缩写按钮名及鼠标模式下programmatic focus，按真实标签/键盘修正；深色快照处于300ms动画中，改在可观察的颜色稳定后采样，并未改产品主题。
 
 实现Review(mode=implementation)依据实际diff检查共享owner、源类型和语言编码、底部兼容、下载文件、手机/深色焦点、草稿/进行中发布的既有优先规则与SEO保护；项目无自动diff-only维护性脚本，已手工核对内容/diff，无未关闭finding。09:50为交付检查点，预计10:20前可控上线验收；效果需窗口，GC04第一检查点10-17 09:00，原HC04仍10-16但明确共变。
+
+生产验收09:55完成：源码8971a4a普通推送并主区安全快进后，沿既有deploy:pages发布；gh-pages fefcd3ef047829a986c836ab814e0a42b4b98446，生产部署6a1fb2a0-ad29-4bc4-84f4-34c033878df1。四原始指南HTTP200/单H1/self canonical/三hreflang/schema一致，正确类型/语言href与示例下载，10URL sitemap与构建逐字一致。主JS /assets/index-DTJzzazk.js SHA256 a27d7be5601b94b7b078101ebf654a12bdd3c74780affc1100ec9aa75e21e215 与实际构建一致。[完整GC证据](artifacts/guide-entry-action-20261009.json)。
+
+隔离浏览器生产域名10组手机浅深色及桌面验收全部通过：无横向溢出、首屏按钮、键盘焦点、真实下载/格式选择/实际文件导入；中文HTML/ZIP按钮Y350/296px。[中文HTML深色](artifacts/guide-entry-live-html-zh-CN-dark-20261009.png)、[中文ZIP](artifacts/guide-entry-live-zip-zh-CN-20261009.png)、[英文ZIP](artifacts/guide-entry-live-zip-en-20261009.png)均人工查看。线上HTML示例含Cloudflare自动插入的一个beacon脚本，原内容移除该已知注入后精确一致，导入使用真实下载内容；ZIP字节完整一致。原断言要求线上与源文件完全一致而忽略HTML转换，修正验收识别边界后重跑，不更改产品/统计/安全设置。
+
+GC01—GC03通过，GC04仍待真实经营复查；没有真实新注册/应用或获客效果证据。复盘只回原owner补事实，未生成新全局规则；原整体SG01/retrospective仍开放。09:56同一gemigo-ai更新并确认ACTIVE，原每日09:00/目标聊天保持；接续HC04 10-16与GC04 10-17，并声明文案/入口共变与未测修前转化，后台登录/Bing原确认依赖不变。下一普通检查10-10 09:00，外部数据生成时刻未知。
