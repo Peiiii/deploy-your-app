@@ -159,3 +159,9 @@
 隔离浏览器生产域名10组手机浅深色及桌面验收全部通过：无横向溢出、首屏按钮、键盘焦点、真实下载/格式选择/实际文件导入；中文HTML/ZIP按钮Y350/296px。[中文HTML深色](artifacts/guide-entry-live-html-zh-CN-dark-20261009.png)、[中文ZIP](artifacts/guide-entry-live-zip-zh-CN-20261009.png)、[英文ZIP](artifacts/guide-entry-live-zip-en-20261009.png)均人工查看。线上HTML示例含Cloudflare自动插入的一个beacon脚本，原内容移除该已知注入后精确一致，导入使用真实下载内容；ZIP字节完整一致。原断言要求线上与源文件完全一致而忽略HTML转换，修正验收识别边界后重跑，不更改产品/统计/安全设置。
 
 GC01—GC03通过，GC04仍待真实经营复查；没有真实新注册/应用或获客效果证据。复盘只回原owner补事实，未生成新全局规则；原整体SG01/retrospective仍开放。09:56同一gemigo-ai更新并确认ACTIVE，原每日09:00/目标聊天保持；接续HC04 10-16与GC04 10-17，并声明文案/入口共变与未测修前转化，后台登录/Bing原确认依赖不变。下一普通检查10-10 09:00，外部数据生成时刻未知。
+
+## 2026-10-09 13:16：优化效果衡量明确到可用字段
+
+用户要求“优化的指标衡量要有”。复用客户分析Skill与原PRODUCT_ANALYTICS owner，核对contract.normalizePage、acquisitionSql的landings/eligible/converted/真实发布join和sql-report.paths，明确注册会话与账号数、来源会话与真人流量、注册到成功及入口到成功两种分母。数据字段与条件均来自现有实现，没有新采集/API/查询/身份，也不修改主区分析脚本WIP。目标窗口UTC10-10—16，第一复查10-17 09:00；修前完整7天注册受启用起点限制不可假装可比，文案/入口共变不隔离因果。已有后台登录依赖不变，未取得新经营快照，GC04仍待测。
+
+trivial/L0文档批次；定向校验字段/公式/窗口、JSON空值、相对链接与diff，轻量Review反查真实SQL：D1指南合并、paths仅次数/前20、零分母和可见非品牌查询边界均明确，无未关闭finding。纯文档不重跑产品build或重新部署。复盘增量只合入原指标owner及原Action，不新建平行状态/文档类型；同一gemigo-ai接续按此口径读数、比较和选Action。

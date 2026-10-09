@@ -275,7 +275,18 @@
     "measurableRegistrations": null,
     "sameSessionServerSuccessfulPublications": null,
     "baselineConversionMeasured": false,
-    "causalAttribution": "10-08文案与10-09入口共变，不能隔离归因；无访问先核对发现/覆盖，有访问无开始核对真实路径，有开始无注册/成功沿漏斗定位；证据到达后继续/调整/停止。"
+    "causalAttribution": "10-08文案与10-09入口共变，不能隔离归因；无访问先核对发现/覆盖，有访问无开始核对真实路径，有开始无注册/成功沿漏斗定位；证据到达后继续/调整/停止。",
+    "metricContract": "../../../tech/PRODUCT_ANALYTICS.md#seogeo-优化的效果衡量2026-10-09",
+    "targetPostUtcWindow": {
+      "from": "2026-10-10",
+      "to": "2026-10-16"
+    },
+    "candidatePreUtcWindow": {
+      "from": "2026-10-02",
+      "to": "2026-10-08",
+      "conversionFullyComparable": false
+    },
+    "measurementScope": "GSC按指南URL/语言/可见非品牌查询；现有D1 landings仅合并guide并按search/ai分组，使用S/E/R/P；paths是前20条跳转次数，没有开始率/CTA点击或单格式/语言转化。"
   },
   "nextRegularCheck": "2026-10-10T09:00:00+08:00",
   "externalCompletionTime": null,
