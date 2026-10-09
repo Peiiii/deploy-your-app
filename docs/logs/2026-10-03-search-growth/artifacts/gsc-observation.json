@@ -1,6 +1,6 @@
 {
   "property": "https://gemigo.io/",
-  "observed_date": "2026-10-08",
+  "observed_date": "2026-10-09",
   "ownership": {
     "status": "verified",
     "method": "HTML file",
@@ -34,15 +34,184 @@
     "independent_submission": {
       "url": "https://gemigo.io/sitemap.xml?fetch-test=20261003",
       "report_status": "success",
-      "last_read_date": "2026-10-04",
+      "last_read_date": "2026-10-07",
       "discovered_pages": 10
     },
-    "last_read_date": "2026-10-03",
+    "last_read_date": "2026-10-07",
     "discovered_pages": 10,
-    "report_screenshot": "gsc-sitemaps-20261005.png",
-    "report_observed_date": "2026-10-05"
+    "report_screenshot": "gsc-sitemaps-20261009.png",
+    "report_observed_date": "2026-10-09"
   },
   "performance": {
+    "status": "available",
+    "search_type": "web",
+    "selected_time_range": "3 months",
+    "displayed_chart_dates": [
+      "2026-09-30",
+      "2026-10-06"
+    ],
+    "last_updated_ui": "10.5 hours ago",
+    "clicks": 9,
+    "impressions": 27,
+    "ctr_percent": 33.3,
+    "average_position": 1.9,
+    "visible_queries": [
+      {
+        "query": "gemigo",
+        "clicks": 8,
+        "impressions": 21
+      },
+      {
+        "query": "gemoio",
+        "clicks": 0,
+        "impressions": 1
+      }
+    ],
+    "visible_pages": [
+      {
+        "url": "https://gemigo.io/",
+        "clicks": 9,
+        "impressions": 27
+      },
+      {
+        "url": "https://gemigo.io/about?lang=en",
+        "clicks": 0,
+        "impressions": 3
+      },
+      {
+        "url": "https://gemigo.io/about",
+        "clicks": 0,
+        "impressions": 2
+      }
+    ],
+    "screenshot": "gsc-performance-20261009.png",
+    "limitations": [
+      "Selected three-month filter and displayed chart dates are distinct; exact filter bounds not independently captured.",
+      "Visible queries cover eight of nine clicks and 22 of 27 impressions; omitted query attribution unknown, gemoio intent unknown.",
+      "Page rows sum to 32 impressions versus property total 27; preserve separate displayed values, do not add page/AI totals or infer a cause.",
+      "Chart coverage grew by two days since prior observation; tiny predominantly brand sample does not establish non-brand acquisition, conversion or growth.",
+      "All reported clicks are on homepage. No guide row appeared in unfiltered page table; guide/non-brand metrics remain unmeasured, not zero.",
+      "Data ends October 6, before October 8 guide release; cannot attribute these counts to that Action.",
+      "GSC counts are not admin complete-UTC acquisition sessions."
+    ],
+    "search_type_ui": "网络",
+    "observed_at_utc": "2026-10-09T01:03Z",
+    "pages_screenshot": "gsc-performance-pages-20261009.png"
+  },
+  "indexing": "Aggregate report still last updated 2026/10/4: one indexed and twelve not indexed. October 9 individual English/Chinese HTML checks are indexed, Chinese ZIP unknown; English ZIP latest valid individual observation remains October 8. Do not let stale aggregate override individual results.",
+  "backend_search_console_api_connected": false,
+  "manual_actions": {
+    "status": "no_issues_detected",
+    "screenshot": "gsc-manual-actions-20261004.png",
+    "observed_date": "2026-10-04"
+  },
+  "observed_at": "2026-10-09 09:02—09:08 Asia/Shanghai",
+  "security_issues": {
+    "status": "no_issues_detected",
+    "screenshot": "gsc-security-issues-20261004.png",
+    "observed_date": "2026-10-04"
+  },
+  "url_inspections": [
+    {
+      "url": "https://gemigo.io/",
+      "status": "indexed",
+      "screenshot": "gsc-home-index-20261004.png",
+      "observed_date": "2026-10-04"
+    },
+    {
+      "url": "https://gemigo.io/catalog",
+      "status": "unknown_to_google",
+      "screenshot": "gsc-catalog-20261008.png",
+      "index_request": "One request initiated 2026-10-04, final queue result never observed; no repeated submission. 2026-10-08 inspection still unknown to Google.",
+      "observed_date": "2026-10-08",
+      "screenshot_observed_date": "2026-10-08",
+      "last_crawl": null,
+      "referring_sitemap": null
+    },
+    {
+      "url": "https://gemigo.io/guides/publish-html",
+      "status": "indexed",
+      "observed_date": "2026-10-09",
+      "last_crawl": "2026-10-07 (UI time, no timezone normalization)",
+      "referring_sitemap": "https://gemigo.io/sitemap.xml?fetch-test=20261003",
+      "screenshot": "gsc-html-indexed-20261009.png",
+      "index_request": "not submitted; already indexed",
+      "last_crawl_ui": "2026年10月7日 02:49:14",
+      "referring_page": "https://gemigo.io/guides/publish-html?lang=en",
+      "user_canonical": "https://gemigo.io/guides/publish-html",
+      "google_canonical": "inspected URL",
+      "crawl_allowed": true,
+      "page_fetch": "successful",
+      "indexing_allowed": true,
+      "new_copy_crawl_confirmed": false
+    },
+    {
+      "url": "https://gemigo.io/guides/publish-zip",
+      "status": "indexed",
+      "observed_date": "2026-10-08",
+      "last_crawl": "2026-10-07 (UI time, no timezone normalization)",
+      "referring_sitemap": "https://gemigo.io/sitemap.xml?fetch-test=20261003",
+      "screenshot": "gsc-zip-indexed-20261008.png",
+      "index_request": "not submitted; already indexed",
+      "last_crawl_ui": "2026年10月7日 01:49:22",
+      "referring_page": "https://gemigo.io/guides/publish-html?lang=en",
+      "user_canonical": "https://gemigo.io/guides/publish-zip",
+      "google_canonical": "inspected URL",
+      "crawl_allowed": true,
+      "page_fetch": "successful",
+      "indexing_allowed": true
+    },
+    {
+      "url": "https://gemigo.io/guides/publish-html?lang=zh-CN",
+      "status": "indexed",
+      "observed_date": "2026-10-09",
+      "last_crawl_ui": "2026年10月7日 03:18:23",
+      "last_crawl": "2026-10-07 (UI time, no timezone normalization)",
+      "user_agent_ui": "Googlebot 智能手机版",
+      "crawl_allowed": true,
+      "page_fetch": "successful",
+      "indexing_allowed": true,
+      "user_canonical": "https://gemigo.io/guides/publish-html?lang=zh-CN",
+      "google_canonical": "inspected URL",
+      "sitemap_ui": "临时处理错误",
+      "referring_pages": [
+        "https://gemigo.io/guides/publish-html",
+        "https://gemigo.io/guides/publish-html?lang=en",
+        "https://gemigo.io/sitemap.xml?fetch-test=20261003"
+      ],
+      "screenshot": "gsc-html-zh-indexed-20261009.png",
+      "index_request": "not submitted; already indexed",
+      "new_copy_crawl_confirmed": false,
+      "interpretation": "Individual sitemap field shows temporary processing error; both sitemap reports inspected the same turn remain success with last read October 7. Do not promote this field to report failure or a diagnosed site fault."
+    },
+    {
+      "url": "https://gemigo.io/guides/publish-zip?lang=zh-CN",
+      "status": "unknown_to_google",
+      "observed_date": "2026-10-09",
+      "last_crawl": null,
+      "referring_sitemap": null,
+      "referring_page": null,
+      "user_canonical": null,
+      "google_canonical": null,
+      "screenshot": "gsc-zip-zh-index-20261009.png",
+      "index_request": "not submitted",
+      "interpretation": "First individual check; older aggregate discovered-not-indexed listing is retained as historical snapshot, not a new regression or diagnosed controllable failure."
+    }
+  ],
+  "inspection_availability": {
+    "observed_date": "2026-10-09",
+    "status": "available",
+    "interpretation": "Matching target URL results returned for English/Chinese HTML and Chinese ZIP; no request submitted."
+  },
+  "admin_followup": {
+    "observed_date": "2026-10-09",
+    "status": "Existing administrator tab remains login form; no valid administrator session",
+    "new_acquisition_metrics": null,
+    "latest_valid_metrics": "admin-acquisition-20261004.json",
+    "password_changed": false,
+    "pending_input": "Existing re-login question unanswered, not repeated; existing administrator tab re-marked handoff."
+  },
+  "previous_performance_observation": {
     "status": "available",
     "search_type": "web",
     "selected_time_range": "3 months",
@@ -84,151 +253,38 @@
     "search_type_ui": "网络",
     "observed_at_utc": "2026-10-08T01:06Z"
   },
-  "indexing": "aggregate report available; last updated UI 2026/10/4, one indexed and twelve not indexed in that snapshot. Individual HTML/ZIP guide inspections on 2026-10-08 are indexed; not interchangeable with the older aggregate snapshot.",
-  "backend_search_console_api_connected": false,
-  "manual_actions": {
-    "status": "no_issues_detected",
-    "screenshot": "gsc-manual-actions-20261004.png",
-    "observed_date": "2026-10-04"
-  },
-  "observed_at": "2026-10-08 09:02—09:09 Asia/Shanghai",
-  "security_issues": {
-    "status": "no_issues_detected",
-    "screenshot": "gsc-security-issues-20261004.png",
-    "observed_date": "2026-10-04"
-  },
-  "url_inspections": [
-    {
-      "url": "https://gemigo.io/",
-      "status": "indexed",
-      "screenshot": "gsc-home-index-20261004.png",
-      "observed_date": "2026-10-04"
-    },
-    {
-      "url": "https://gemigo.io/catalog",
-      "status": "unknown_to_google",
-      "screenshot": "gsc-catalog-20261008.png",
-      "index_request": "One request initiated 2026-10-04, final queue result never observed; no repeated submission. 2026-10-08 inspection still unknown to Google.",
-      "observed_date": "2026-10-08",
-      "screenshot_observed_date": "2026-10-08",
-      "last_crawl": null,
-      "referring_sitemap": null
-    },
-    {
-      "url": "https://gemigo.io/guides/publish-html",
-      "status": "indexed",
-      "observed_date": "2026-10-08",
-      "last_crawl": "2026-10-07 (UI time, no timezone normalization)",
-      "referring_sitemap": "https://gemigo.io/sitemap.xml?fetch-test=20261003",
-      "screenshot": "gsc-html-indexed-20261008.png",
-      "index_request": "not submitted; already indexed",
-      "last_crawl_ui": "2026年10月7日 02:49:14",
-      "referring_page": "https://gemigo.io/guides/publish-html?lang=en",
-      "user_canonical": "https://gemigo.io/guides/publish-html",
-      "google_canonical": "inspected URL",
-      "crawl_allowed": true,
-      "page_fetch": "successful",
-      "indexing_allowed": true
-    },
-    {
-      "url": "https://gemigo.io/guides/publish-zip",
-      "status": "indexed",
-      "observed_date": "2026-10-08",
-      "last_crawl": "2026-10-07 (UI time, no timezone normalization)",
-      "referring_sitemap": "https://gemigo.io/sitemap.xml?fetch-test=20261003",
-      "screenshot": "gsc-zip-indexed-20261008.png",
-      "index_request": "not submitted; already indexed",
-      "last_crawl_ui": "2026年10月7日 01:49:22",
-      "referring_page": "https://gemigo.io/guides/publish-html?lang=en",
-      "user_canonical": "https://gemigo.io/guides/publish-zip",
-      "google_canonical": "inspected URL",
-      "crawl_allowed": true,
-      "page_fetch": "successful",
-      "indexing_allowed": true
-    }
-  ],
-  "inspection_availability": {
-    "observed_date": "2026-10-08",
-    "status": "available",
-    "interpretation": "Guide and catalog inspections returned current matching URL results; prior October 7 tool error retained only in Git history."
-  },
-  "admin_followup": {
-    "observed_date": "2026-10-08",
-    "status": "new tab shows administrator login form; no valid administrator session",
-    "new_acquisition_metrics": null,
-    "latest_valid_metrics": "admin-acquisition-20261004.json",
-    "password_changed": false,
-    "pending_input": "Existing re-login question remains unanswered, not repeated; new login tab marked handoff."
-  },
-  "previous_performance_observation": {
-    "status": "available",
-    "search_type": "web",
-    "selected_time_range": "3 months",
-    "displayed_chart_dates": [
-      "2026-09-30",
-      "2026-10-04"
-    ],
-    "last_updated_ui": "9.5 hours ago",
-    "clicks": 6,
-    "impressions": 15,
-    "ctr_percent": 40,
-    "average_position": 2.4,
-    "visible_queries": [
-      {
-        "query": "gemigo",
-        "clicks": 6,
-        "impressions": 13
-      },
-      {
-        "query": "gemoio",
-        "clicks": 0,
-        "impressions": 1
-      }
-    ],
-    "visible_pages": null,
-    "screenshot": "gsc-performance-20261007-0958.png",
-    "limitations": [
-      "Selected three-month filter and displayed chart dates are recorded separately; exact filter bounds not independently captured.",
-      "Visible queries account for 14 of 15 impressions; omitted query unknown. All six observed clicks are on gemigo. gemoio intent is unconfirmed.",
-      "Fifteen impressions and six clicks, with one more covered chart day, do not establish non-brand acquisition, conversion or growth.",
-      "Page breakdown did not finish loading before the tab became unavailable; latest valid page breakdown remains the prior observation.",
-      "GSC counts are not the admin rolling UTC acquisition session counts."
-    ],
-    "search_type_ui": "网络",
-    "observed_at_utc": "2026-10-07T01:58Z"
-  },
   "ai_performance": {
     "status": "available",
     "report_ui": "Google 搜索生成式 AI 功能效果报告 / Beta 版",
     "report_url": "https://search.google.com/search-console/performance/search-analytics/ai?resource_id=https%3A%2F%2Fgemigo.io%2F",
-    "observed_date": "2026-10-08",
+    "observed_date": "2026-10-09",
     "search_type_ui": "网络",
     "selected_time_range": "3 months",
     "displayed_chart_dates": [
       "2026-09-30",
-      "2026-10-04"
+      "2026-10-06"
     ],
-    "last_updated_ui": "20 hours ago",
-    "impressions": 5,
+    "last_updated_ui": "10.5 hours ago",
+    "impressions": 6,
     "visible_pages": [
       {
         "url": "https://gemigo.io/",
-        "impressions": 5
+        "impressions": 6
       }
     ],
     "clicks": null,
     "registrations": null,
     "answer_citations": null,
-    "screenshot": "gsc-ai-performance-20261008.png",
+    "screenshot": "gsc-ai-performance-20261009.png",
     "limitations": [
-      "Platform-reported impressions, not five unique users or five independently observed answers/citations.",
+      "Platform-reported impressions, not six unique users or six independently observed answers/citations.",
       "No query, prompt, answer text or AI-specific clicks observed; does not establish non-brand discovery or conversions.",
       "Do not add to web impressions or replace the fixed Perplexity citation baseline; overlap semantics not confirmed."
     ]
   },
   "index_report": {
     "status": "available",
-    "observed_date": "2026-10-08",
+    "observed_date": "2026-10-09",
     "last_updated_ui": "2026/10/4",
     "filter_ui": "所有已知网页",
     "indexed": 1,
@@ -317,10 +373,11 @@
       "Report update date and example crawl dates are copied independently as displayed, not normalized or assumed equal.",
       "English guides now individually indexed; older aggregate categories are not current individual statuses.",
       "Totals include policy and parameter URLs, not thirteen distinct growth landing pages."
-    ]
+    ],
+    "screenshot_observed_date": "2026-10-08"
   },
   "soft404_validation": {
-    "observed_date": "2026-10-08",
+    "observed_date": "2026-10-09",
     "historical_root_cause": "unconfirmed; April crawl records predate current SEO publication",
     "live_tests": [
       {
@@ -340,17 +397,27 @@
     "request_count": 1,
     "status": "started",
     "ui_message": "验证 已开始 开始日期：2026/10/8",
-    "screenshot": "gsc-soft404-validation-20261008.png",
+    "screenshot": "gsc-soft404-validation-20261009.png",
     "official_process": "https://support.google.com/webmasters/answer/7440203?hl=en",
-    "interpretation": "Current live tests and public HTML support requesting one category revalidation; no new source change, no claim of historical cause, passed validation or indexing. Do not request again until final outcome."
+    "interpretation": "October 9 report remains started with start date October 8. No final outcome, no new submission or source change; live tests retain October 8 observation dates."
   },
   "bing_followup": {
-    "observed_date": "2026-10-08",
-    "status": "Existing verification URL opened; Add & verify site dialog still waiting for site details, no verification result loaded",
+    "observed_date": "2026-10-09",
+    "status": "Existing verification tab still shows Add & verify site / Please wait, checking your site details; no verification result",
     "ownership_verified": null,
     "verify_clicked": false,
     "sitemap_submitted": false,
     "pending_input": "Prior action-time ownership confirmation unanswered; not repeated",
     "tab_handoff": true
+  },
+  "html_guide_action_followup": {
+    "observed_date": "2026-10-09",
+    "status": "implementation_verified_effect_pending",
+    "guide_post_release_crawl_confirmed": false,
+    "guide_nonbrand_metrics": null,
+    "registrations": null,
+    "successful_publications": null,
+    "next_effect_check": "2026-10-16 09:00 Asia/Shanghai",
+    "decision": "Continue existing HC01—HC04 Action. English/Chinese HTML last crawls predate release; property data ends before release, effect window not mature. No new evidence supports another title rewrite or sitemap change. Next routine check October 10 09:00 for crawl/validation; effect check October 16 with available complete UTC days, preserving missing data and attribution boundaries."
   }
 }

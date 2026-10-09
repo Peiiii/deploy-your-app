@@ -16,7 +16,7 @@ SG06：适用检查、实现 Review、生产部署验收和主工作区 master �
 
 | ID | Required | Status | 当前证据 | 失效原因 |
 | --- | --- | --- | --- | --- |
-| SG01 | true | partial | Google已验证；[当前观察](../../logs/2026-10-03-search-growth/artifacts/gsc-observation.json)：两sitemap成功沿用10-05；10-08英文HTML/ZIP指南已收录、总览可读但快照10-04；网页6点击/15展示，AI Beta首页5展示；软404一次验证已开始；[Bing meta上线](../../logs/2026-10-03-search-growth/artifacts/bing-verification-20261005.json) | Bing最终Verify待确认、未提交sitemap；目录未知，旧请求最终排队结果未见。软404验证未完成，总览不能覆盖新单页结果；小样本/AI展示不代表增长或独立引用 |
+| SG01 | true | partial | Google已验证；[当前观察](../../logs/2026-10-03-search-growth/artifacts/gsc-observation.json)：10-09两sitemap成功/最后读取10-07；中英文HTML已收录、抓取早于新版，英文ZIP沿用10-08已收录、中文ZIP单页未知；总览仍快照10-04；网页9点击/27展示，AI Beta首页6展示；软404一次验证仍进行；[Bing meta上线](../../logs/2026-10-03-search-growth/artifacts/bing-verification-20261005.json) | Bing最终Verify待确认、未提交sitemap；目录未知，旧请求最终排队结果未见。软404验证未完成，总览不能覆盖新单页结果；小样本/AI展示不代表增长或独立引用 |
 | SG02 | true | passed | 中英文指南、HTML/ZIP样例已上线；生产ZIP根目录/资源匹配；指南手机UI与线上样例正确/错误答案、换题重置均已验收，见[截图](../../logs/2026-10-03-search-growth/artifacts/sample-interaction.jpg) | — |
 | SG03 | true | passed | [当前主线生产原始HTML](../../logs/2026-10-03-search-growth/artifacts/public-after-withdrawal.json)、真实目录分页UI、权限回归；app详情已按主线撤回，作品链接指向部署网址 | — |
 | SG04 | true | passed | [固定问题与回答来源](../../logs/2026-10-03-search-growth/artifacts/geo-observation.md) | 只有1条有效非品牌样本；品牌登录墙不计失败，不外推整体引用率 |
