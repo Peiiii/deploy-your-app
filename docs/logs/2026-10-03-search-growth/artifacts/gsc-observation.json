@@ -1,6 +1,6 @@
 {
   "property": "https://gemigo.io/",
-  "observed_date": "2026-10-09",
+  "observed_date": "2026-10-10",
   "ownership": {
     "status": "verified",
     "method": "HTML file",
@@ -40,7 +40,8 @@
     "last_read_date": "2026-10-07",
     "discovered_pages": 10,
     "report_screenshot": "gsc-sitemaps-20261009.png",
-    "report_observed_date": "2026-10-09"
+    "report_observed_date": "2026-10-10",
+    "report_screenshot_observed_date": "2026-10-09"
   },
   "performance": {
     "status": "available",
@@ -50,7 +51,7 @@
       "2026-09-30",
       "2026-10-06"
     ],
-    "last_updated_ui": "10.5 hours ago",
+    "last_updated_ui": "31 hours ago",
     "clicks": 9,
     "impressions": 27,
     "ctr_percent": 33.3,
@@ -95,8 +96,10 @@
       "GSC counts are not admin complete-UTC acquisition sessions."
     ],
     "search_type_ui": "网络",
-    "observed_at_utc": "2026-10-09T01:03Z",
-    "pages_screenshot": "gsc-performance-pages-20261009.png"
+    "observed_at_utc": "2026-10-10T01:03Z",
+    "pages_screenshot": "gsc-performance-pages-20261009.png",
+    "screenshot_observed_date": "2026-10-09",
+    "visible_pages_observed_date": "2026-10-09"
   },
   "indexing": "Aggregate report still last updated 2026/10/4: one indexed and twelve not indexed. October 9 individual English/Chinese HTML checks are indexed, Chinese ZIP unknown; English ZIP latest valid individual observation remains October 8. Do not let stale aggregate override individual results.",
   "backend_search_console_api_connected": false,
@@ -105,7 +108,7 @@
     "screenshot": "gsc-manual-actions-20261004.png",
     "observed_date": "2026-10-04"
   },
-  "observed_at": "2026-10-09 09:02—09:08 Asia/Shanghai",
+  "observed_at": "2026-10-10 09:03—09:06 Asia/Shanghai",
   "security_issues": {
     "status": "no_issues_detected",
     "screenshot": "gsc-security-issues-20261004.png",
@@ -131,9 +134,9 @@
     {
       "url": "https://gemigo.io/guides/publish-html",
       "status": "indexed",
-      "observed_date": "2026-10-09",
+      "observed_date": "2026-10-10",
       "last_crawl": "2026-10-07 (UI time, no timezone normalization)",
-      "referring_sitemap": "https://gemigo.io/sitemap.xml?fetch-test=20261003",
+      "referring_sitemap": null,
       "screenshot": "gsc-html-indexed-20261009.png",
       "index_request": "not submitted; already indexed",
       "last_crawl_ui": "2026年10月7日 02:49:14",
@@ -143,7 +146,10 @@
       "crawl_allowed": true,
       "page_fetch": "successful",
       "indexing_allowed": true,
-      "new_copy_crawl_confirmed": false
+      "new_copy_crawl_confirmed": false,
+      "screenshot_observed_date": "2026-10-09",
+      "sitemap_ui": "临时处理错误",
+      "interpretation": "English HTML indexed, last crawl remains October 7, before both changes. Individual sitemap field temporarily errored; October 10 sitemap reports remain successful, last read October 7. No diagnosed controllable fault or request."
     },
     {
       "url": "https://gemigo.io/guides/publish-zip",
@@ -199,17 +205,17 @@
     }
   ],
   "inspection_availability": {
-    "observed_date": "2026-10-09",
+    "observed_date": "2026-10-10",
     "status": "available",
-    "interpretation": "Matching target URL results returned for English/Chinese HTML and Chinese ZIP; no request submitted."
+    "interpretation": "Matching English HTML inspection returned; Chinese HTML/ZIP and catalog were not re-inspected today, prior individual dates preserved."
   },
   "admin_followup": {
-    "observed_date": "2026-10-09",
-    "status": "Existing administrator tab remains login form; no valid administrator session",
+    "observed_date": "2026-10-10",
+    "status": "Administrator page opened to #seo remains login form; no valid administrator session",
     "new_acquisition_metrics": null,
     "latest_valid_metrics": "admin-acquisition-20261004.json",
     "password_changed": false,
-    "pending_input": "Existing re-login question unanswered, not repeated; existing administrator tab re-marked handoff."
+    "pending_input": "Existing re-login question unanswered, not repeated; newly opened normal login page marked handoff after old tab absent from current browser inventory."
   },
   "previous_performance_observation": {
     "status": "available",
@@ -284,7 +290,7 @@
   },
   "index_report": {
     "status": "available",
-    "observed_date": "2026-10-09",
+    "observed_date": "2026-10-10",
     "last_updated_ui": "2026/10/4",
     "filter_ui": "所有已知网页",
     "indexed": 1,
@@ -377,7 +383,7 @@
     "screenshot_observed_date": "2026-10-08"
   },
   "soft404_validation": {
-    "observed_date": "2026-10-09",
+    "observed_date": "2026-10-10",
     "historical_root_cause": "unconfirmed; April crawl records predate current SEO publication",
     "live_tests": [
       {
@@ -399,7 +405,9 @@
     "ui_message": "验证 已开始 开始日期：2026/10/8",
     "screenshot": "gsc-soft404-validation-20261009.png",
     "official_process": "https://support.google.com/webmasters/answer/7440203?hl=en",
-    "interpretation": "October 9 report remains started with start date October 8. No final outcome, no new submission or source change; live tests retain October 8 observation dates."
+    "interpretation": "October 10 index overview still shows started; start date October 8 retained from prior detail, not re-read today. No final outcome or repeated request. Live tests retain October 8 observation dates.",
+    "screenshot_observed_date": "2026-10-09",
+    "start_date_observed_date": "2026-10-08"
   },
   "bing_followup": {
     "observed_date": "2026-10-09",
@@ -411,13 +419,61 @@
     "tab_handoff": true
   },
   "html_guide_action_followup": {
-    "observed_date": "2026-10-09",
+    "observed_date": "2026-10-10",
     "status": "implementation_verified_effect_pending",
     "guide_post_release_crawl_confirmed": false,
     "guide_nonbrand_metrics": null,
     "registrations": null,
     "successful_publications": null,
     "next_effect_check": "2026-10-16 09:00 Asia/Shanghai",
-    "decision": "Continue existing HC01—HC04 Action. English/Chinese HTML last crawls predate release; property data ends before release, effect window not mature. No new evidence supports another title rewrite or sitemap change. Next routine check October 10 09:00 for crawl/validation; effect check October 16 with available complete UTC days, preserving missing data and attribution boundaries."
+    "decision": "Continue existing HC01—HC04 and GC01—GC04. English HTML indexed but latest crawl still October 7; guide-filtered GSC reports 0/0 through October 6, before both releases. Effect window immature; no evidence for another title/sitemap modification. Next routine check October 11 09:00, original effect checkpoints October 16/17. Missing registration/publication metrics remain null."
+  },
+  "guide_search_baseline": {
+    "observed_date": "2026-10-10",
+    "observed_at_utc": "2026-10-10T01:05Z",
+    "report_url": "https://search.google.com/search-console/performance/search-analytics?resource_id=https%3A%2F%2Fgemigo.io%2F&page=*https%3A%2F%2Fgemigo.io%2Fguides%2F",
+    "selected_time_range": "3 months",
+    "search_type": "web",
+    "page_filter": {
+      "match": "contains",
+      "value": "https://gemigo.io/guides/",
+      "scope": "All guide URLs/languages, not an individual URL or query filter"
+    },
+    "displayed_chart_dates": [
+      "2026-09-30",
+      "2026-10-06"
+    ],
+    "exact_filter_from": null,
+    "exact_filter_to": null,
+    "last_updated_ui": "31小时前",
+    "reported_clicks": 0,
+    "reported_impressions": 0,
+    "reported_ctr_ui": "0%",
+    "reported_average_position_ui": "0",
+    "computed_ctr": null,
+    "rank": null,
+    "visible_queries": [],
+    "query_table_ui": "无数据",
+    "nonbrand_query_metrics": null,
+    "notice_ui": "应用过滤条件后，图表总计和表格结果可能不完整。",
+    "screenshot": "gsc-guide-performance-20261010.png",
+    "limitations": [
+      "First explicit guide page filter read; earlier absent unfiltered row was unmeasured, not a zero baseline.",
+      "Platform-reported zero with completeness warning, not proof of zero real searches/visits or zero conversions.",
+      "Reported data ends October 6 before October 8/9 improvements; not a post-release result or complete seven-day comparison.",
+      "No query exclusion or per-language/format measurement performed; visible queries unavailable.",
+      "No impressions means computed CTR/rank unavailable; preserve raw UI display separately."
+    ],
+    "action_decision": "Continue existing HC04/GC04 verification. Available data predates releases; do not rewrite titles or resubmit requests solely from this baseline."
+  },
+  "guide_entry_action_followup": {
+    "observed_date": "2026-10-10",
+    "status": "implementation_verified_effect_pending",
+    "evidence": "guide-entry-action-20261009.json",
+    "post_release_guide_search_window": null,
+    "registrations": null,
+    "successful_publications": null,
+    "effect_check": "2026-10-17 09:00 Asia/Shanghai",
+    "next_routine_check": "2026-10-11 09:00 Asia/Shanghai"
   }
 }
