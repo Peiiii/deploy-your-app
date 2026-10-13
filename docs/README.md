@@ -62,6 +62,7 @@
 |------|------|
 | [功能全集](./feature-universe.md) | 项目功能全集（按模块梳理） |
 | [功能说明](./FEATURES.md) | 产品功能介绍 |
+| [互动、消息与适度提醒设计](./designs/2026-10-13-engagement-notifications.design.md) | 成熟产品参考、统一消息中心、聚合频控、站外许可、可靠性与验收方案 |
 
 ---
 
