@@ -65,7 +65,7 @@ try {
     assert.match(await page.getByRole('status').innerText(), /加载中/);
     assert.equal(await state('loading').locator('h2').count(), 0, 'Normal waiting has no title or companion copy');
     assert.equal(await page.getByRole('status').evaluate(element => getComputedStyle(element).position), 'absolute', 'Loading text is only announced to assistive technology');
-    const spriteSize = await page.locator('.preview-sprite').boundingBox();
+    const spriteSize = await page.locator('[data-preview-state] .preview-sprite').boundingBox();
     assert.ok(spriteSize.width <= 80 && spriteSize.height <= 40, 'Loading animation stays compact');
     const frame = page.locator('iframe');
     const identity = await frame.elementHandle();
@@ -73,9 +73,9 @@ try {
     assert.equal(await frame.evaluate(element => getComputedStyle(element).opacity), '1');
     assert.equal(await frame.evaluate(element => getComputedStyle(element).transitionDuration), '0s');
     await page.screenshot({ path: join(screenshots, 'preview-loading-light.png') });
-    const jawStart = await page.locator('.preview-sprite-jaw').evaluate(element => getComputedStyle(element).clipPath);
+    const jawStart = await page.locator('[data-preview-state] .preview-sprite-jaw').evaluate(element => getComputedStyle(element).clipPath);
     await page.waitForTimeout(170);
-    assert.notEqual(await page.locator('.preview-sprite-jaw').evaluate(element => getComputedStyle(element).clipPath), jawStart, 'The single mouth opening actually animates');
+    assert.notEqual(await page.locator('[data-preview-state] .preview-sprite-jaw').evaluate(element => getComputedStyle(element).clipPath), jawStart, 'The single mouth opening actually animates');
 
     await page.getByRole('button', { name: '评论', exact: true }).click();
     await page.getByRole('button', { name: '全屏', exact: true }).click();
@@ -143,7 +143,7 @@ try {
     await b.click();
     await waitRequests(4);
     await state('loading').waitFor();
-    assert.equal(await page.locator('.preview-sprite-jaw').evaluate(element => getComputedStyle(element).animationName), 'none');
+    assert.equal(await page.locator('[data-preview-state] .preview-sprite-jaw').evaluate(element => getComputedStyle(element).animationName), 'none');
     await page.screenshot({ path: join(screenshots, 'preview-loading-dark.png') });
     await page.clock.fastForward(10_001);
     await state('slow').waitFor();

@@ -21,6 +21,8 @@ try {
   }));
   let items = apps;
   let user = null;
+  let holdNavigation = false;
+  const heldNavigations = [];
   await page.route('**/api/**', route => {
     const path = new URL(route.request().url()).pathname;
     const json = data => route.fulfill({ contentType: 'application/json', body: JSON.stringify(data) });
@@ -30,10 +32,11 @@ try {
     return json({ items: [], total: 0, page: 1, pageSize: 30 });
   });
   await page.route('**/favicon.ico', route => route.fulfill({ status: 404, body: '' }));
-  await page.route('**/fixture-*', route => {
+  await page.route('**/fixture-*', async route => {
     const id = new URL(route.request().url()).pathname.slice(-1);
     const icon = 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="${id === 'a' ? 'red' : id === 'b' ? 'green' : 'blue'}"/></svg>`);
-    return route.fulfill({ contentType: 'text/html', body: `<html><head><title>网站 ${id}</title><link rel="icon" href="${icon}"></head><body style="padding:100px"><button id="counter" onclick="this.textContent=Number(this.textContent)+1">0</button><script>addEventListener('message',event=>{if(event.data?.type==='gemigo:request-favicon')window.lastIconRequest=event.data.requestId});${faviconSource}</script></body></html>` });
+    if (holdNavigation) await new Promise(resolve => heldNavigations.push({ id, resolve }));
+    try { return await route.fulfill({ contentType: 'text/html', body: `<html><head><title>网站 ${id}</title><link rel="icon" href="${icon}"></head><body style="padding:100px"><button id="counter" onclick="this.textContent=Number(this.textContent)+1">0</button><script>addEventListener('message',event=>{if(event.data?.type==='gemigo:request-favicon')window.lastIconRequest=event.data.requestId});${faviconSource}</script></body></html>` }); } catch { /* A newer navigation can cancel this controlled request. */ }
   });
   const previous = page.getByRole('button', { name: '上一个网站', exact: true });
   const next = page.getByRole('button', { name: '下一个网站', exact: true });
@@ -156,7 +159,40 @@ try {
       await noOverlap(`${path} fullscreen ${width}x${height}`);
     }
     await page.setViewportSize({ width: 1440, height: 900 });
+    await noOverlap(`${path} viewport restored before navigation drag`);
+    const navigationIdentity = nav.getByRole('img', { name: `网站 ${order[0]}`, exact: true });
+    const initialNavigation = await nav.boundingBox();
+    const navHandle = await navigationIdentity.boundingBox();
+    const unchangedUrl = await page.locator('iframe').getAttribute('src');
+    await page.mouse.move(navHandle.x + navHandle.width / 2, navHandle.y + navHandle.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(1200, 620, { steps: 15 });
+    await noOverlap(`${path} lower dock while dragging`);
+    assert.ok((await nav.boundingBox()).y < initialNavigation.y, 'Navigation moves upward');
+    assert.ok(await nav.locator('[data-floating-dock-surface]').evaluate(element => parseFloat(getComputedStyle(element).borderTopLeftRadius) > 0 && parseFloat(getComputedStyle(element).borderTopRightRadius) > 0), 'Navigation uses the same detached rounding');
+    await page.mouse.up();
+    await noOverlap(`${path} navigation docked right`);
+    assert.ok((await nav.boundingBox()).x > 1300, 'Navigation settles on the right edge');
+    assert.equal(await page.locator('iframe').getAttribute('src'), unchangedUrl, 'Dragging never switches websites');
+    const settledNavigation = await nav.boundingBox();
+    const rightHandle = await navigationIdentity.boundingBox();
+    await page.mouse.move(rightHandle.x + 20, rightHandle.y + 20);
+    await page.mouse.down();
+    await page.mouse.move(500, 500, { steps: 8 });
+    await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+    await page.mouse.up();
+    await page.waitForTimeout(400);
+    assert.equal((await nav.boundingBox()).y, settledNavigation.y, 'Blur restores the lower dock position');
+    assert.ok((await nav.boundingBox()).x > 1300, 'Blur restores its previous docking side');
+    const restored = await navigationIdentity.boundingBox();
+    await page.mouse.move(restored.x + 20, restored.y + 20);
+    await page.mouse.down();
+    await page.mouse.move(20, 800, { steps: 12 });
+    await page.mouse.up();
+    await noOverlap(`${path} navigation returned left`);
+    assert.equal((await nav.boundingBox()).x, 0);
     const box = await handle.boundingBox();
+
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width / 2, 890, { steps: 15 });
@@ -244,6 +280,36 @@ try {
   await page.waitForTimeout(750);
   assert.equal(await next.evaluate(element => getComputedStyle(element, '::before').backgroundColor), 'rgba(0, 0, 0, 0)', 'Disabled action has no hover feedback');
   await page.screenshot({ path: join(tmpdir(), 'gemigo-preview-navigation-dark.png') });
+  // Actual document requests stay pending while feedback changes immediately.
+  await page.clock.install();
+  items = apps;
+  const loadingOrder = await open('/');
+  holdNavigation = true;
+  await next.click();
+  assert.equal(await nav.getAttribute('aria-busy'), 'true', 'The first switch render is already busy');
+  assert.equal(await nav.locator('[data-loading-sprite]').count(), 1, 'Compact sprite appears before document completion');
+  const jaw = nav.locator('.preview-sprite-jaw');
+  const openMouth = await jaw.evaluate(element => getComputedStyle(element).clipPath);
+  await page.waitForTimeout(170);
+  assert.notEqual(await jaw.evaluate(element => getComputedStyle(element).clipPath), openMouth, 'Compact mouth opens and closes');
+  assert.equal(await nav.locator('img').count(), 0, 'Favicon is replaced during loading');
+  await page.clock.fastForward(10_001);
+  await page.getByRole('button', { name: '收起提示', exact: true }).click();
+  assert.equal(await nav.getAttribute('aria-busy'), 'true', 'Hiding the page hint does not claim the website loaded');
+  assert.equal(await nav.locator('[data-loading-sprite]').count(), 1);
+  await next.click();
+  for (let attempt = 0; attempt < 100 && heldNavigations.length < 2; attempt++) await page.waitForTimeout(20);
+  assert.equal(heldNavigations.length, 2);
+  heldNavigations[0].resolve();
+  await page.waitForTimeout(200);
+  assert.equal(await nav.getAttribute('aria-busy'), 'true', 'An old completed request cannot stop the new loader');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  assert.equal(await jaw.evaluate(element => getComputedStyle(element).animationName), 'none');
+  heldNavigations[1].resolve();
+  await page.waitForFunction(() => document.querySelector('[role="toolbar"][aria-label="切换网站"]')?.getAttribute('aria-busy') === 'false');
+  await expectFrame(loadingOrder[2]);
+  assert.equal(await nav.locator('[data-loading-sprite]').count(), 0, 'Actual load completion restores the favicon');
+  holdNavigation = false;
   assert.deepEqual(errors, [], 'No browser runtime errors');
   console.log('PASS: home/explore/dashboard order, keyboard, boundaries, single/URL-less apps, fullscreen retention, iframe interaction, close, resize/expand/drag collision, dark mode');
 } finally {

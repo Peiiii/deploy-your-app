@@ -1,3 +1,4 @@
+import { LoadingSprite } from '@/components/loading-sprite';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -6,19 +7,21 @@ interface AppPreviewContentProps {
     url: string;
     onOpenInNewTab: (url: string) => void;
     onFavicon: (url: string, href: string) => void;
+    onLoadingChange: (url: string, loading: boolean) => void;
 }
 
 // Keep one browsing window: native navigation retains the old page until commit.
-export function AppPreviewContent({ name, url, onOpenInNewTab, onFavicon }: AppPreviewContentProps) {
+export function AppPreviewContent({ name, url, onOpenInNewTab, onFavicon, onLoadingChange }: AppPreviewContentProps) {
     const { t } = useTranslation();
-    const [session, setSession] = useState<{ url: string; status: 'loading' | 'slow' | 'visible'; attempt: number; requestId: string }>({ url, status: 'loading', attempt: 0, requestId: crypto.randomUUID() });
+    const [session, setSession] = useState<{ url: string; status: 'loading' | 'slow' | 'visible'; attempt: number; requestId: string; loaded: boolean }>({ url, status: 'loading', attempt: 0, requestId: crypto.randomUUID(), loaded: false });
     if (session.url !== url) {
-        setSession({ url, status: 'loading', attempt: session.attempt, requestId: crypto.randomUUID() });
+        setSession({ url, status: 'loading', attempt: session.attempt, requestId: crypto.randomUUID(), loaded: false });
     }
     const { status, attempt, requestId: faviconRequestId } = session;
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const loadingRef = useRef<HTMLDivElement>(null);
     const focusOnDismiss = useRef(false);
+    useEffect(() => { onLoadingChange(url, !session.loaded); }, [url, session.loaded, onLoadingChange]);
     const waiting = status !== 'visible';
 
     useEffect(() => {
@@ -58,19 +61,7 @@ export function AppPreviewContent({ name, url, onOpenInNewTab, onFavicon }: AppP
         <div className="absolute inset-0 bg-[#f8f6ff] dark:bg-[#141020]" data-preview-state={status}>
             {waiting && (
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                    <svg viewBox="0 0 112 64" className="preview-sprite h-10 w-20 shrink-0" aria-hidden="true">
-                        <g transform="translate(16 8) scale(1.5)">
-                            <g className="preview-sprite-jaw">
-                                <path d="M16 16 L16 4 A12 12 0 0 1 28 16 Z" fill="#a78bfa" />
-                                <path d="M16 16 L28 16 A12 12 0 0 1 16 28 Z" fill="#7c3aed" />
-                                <path d="M16 16 L16 28 A12 12 0 0 1 4 16 Z" fill="#5b21b6" />
-                                <path d="M16 16 L4 16 A12 12 0 0 1 16 4 Z" fill="#8b5cf6" />
-                            </g>
-                        </g>
-                        {[0, 1, 2].map(index => (
-                            <circle key={index} className="preview-sprite-dot" cx="102" cy="32" r="2.5" fill="#a78bfa" style={{ animationDelay: `${index * -0.6}s` }} />
-                        ))}
-                    </svg>
+                    <LoadingSprite />
                 </div>
             )}
             {/* Never gate app paint or interaction on load; feedback sits underneath. */}
@@ -85,6 +76,8 @@ export function AppPreviewContent({ name, url, onOpenInNewTab, onFavicon }: AppP
                 onLoad={event => {
                     if (event.currentTarget === iframeRef.current) {
                         dismissFeedback();
+                        setSession(current => ({ ...current, loaded: true }));
+                        onLoadingChange(url, false);
                         event.currentTarget.contentWindow?.postMessage({ type: 'gemigo:request-favicon', requestId: faviconRequestId }, new URL(url).origin);
                     }
                 }}
@@ -97,7 +90,7 @@ export function AppPreviewContent({ name, url, onOpenInNewTab, onFavicon }: AppP
                     {status === 'slow' && (
                         <div className="pointer-events-auto mt-1 flex max-w-full flex-wrap justify-center gap-1 rounded-md bg-white/90 dark:bg-slate-900/90">
                             <button type="button" onClick={() => {
-                                setSession(current => ({ ...current, status: 'loading', attempt: current.attempt + 1, requestId: crypto.randomUUID() }));
+                                setSession(current => ({ ...current, status: 'loading', attempt: current.attempt + 1, requestId: crypto.randomUUID(), loaded: false }));
                             }} className="rounded-md px-2 py-2 text-xs text-slate-500 hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-slate-400 dark:hover:bg-white/10">
                                 {t('common.retry')}
                             </button>

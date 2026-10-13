@@ -1,16 +1,15 @@
-import type { ComponentProps, CSSProperties, ReactNode, Ref, MouseEventHandler } from 'react';
+import type { ComponentProps, ReactNode, MouseEventHandler } from 'react';
 import { IconButton, Tooltip } from '@/components/icon-button';
-import type { DockSide } from './types';
+import { useFloatingDock, type UseFloatingDockOptions } from './use-floating-dock';
 
 interface FloatingDockProps {
   label: string;
-  dockSide: DockSide;
-  style: CSSProperties;
-  nodeRef?: Ref<HTMLDivElement>;
-  handle?: ReactNode;
+  dockOptions?: UseFloatingDockOptions;
+  identityLabel: string;
+  identity: ReactNode;
+  loading?: boolean;
   children: ReactNode;
   expanded?: boolean;
-  isDragging?: boolean;
   actionAreaId?: string;
   /** Preserve smooth docking when no neighboring control requires immediate avoidance. */
   animatePosition?: boolean;
@@ -19,16 +18,16 @@ interface FloatingDockProps {
 /** Shared geometry, surface, action layout and accessibility for floating controls. */
 export function FloatingDock({
   label,
-  dockSide,
-  style,
-  nodeRef,
-  handle,
+  dockOptions,
+  identityLabel,
+  identity,
+  loading = false,
   children,
   expanded = true,
-  isDragging = false,
   actionAreaId,
   animatePosition = false,
 }: FloatingDockProps) {
+  const { nodeRef, style, dockSide, isDragging, onMouseDown } = useFloatingDock(dockOptions);
   return (
     <div
       ref={nodeRef}
@@ -37,13 +36,16 @@ export function FloatingDock({
       aria-label={label}
       aria-orientation="vertical"
       data-floating-dock
+      aria-busy={loading}
       className={`absolute z-50 w-[41px] select-none ${isDragging ? 'cursor-grabbing' : animatePosition ? 'transition-[left,top] duration-500 linear' : ''}`}
     >
       <div
         data-floating-dock-surface
         className={`group/dock flex w-full flex-col items-center overflow-hidden border border-slate-200/60 bg-white/90 shadow-[0_4px_16px_rgba(0,0,0,0.1)] backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.22,1.3,0.36,1)] motion-reduce:transition-none dark:border-slate-700/60 dark:bg-slate-900/90 ${isDragging ? 'rounded-2xl border-l border-r' : dockSide === 'inside-left' ? 'rounded-r-xl rounded-l-none border-l-0' : 'rounded-l-xl rounded-r-none border-r-0'}`}
       >
-        {handle}
+        <FloatingDockIdentity label={identityLabel} onMouseDown={onMouseDown}>
+          {identity}
+        </FloatingDockIdentity>
         <div
           id={actionAreaId}
           data-floating-dock-actions
@@ -106,7 +108,12 @@ export function FloatingDockIdentity({
         role="img"
         aria-label={label}
         tabIndex={0}
+        onDragStart={(event) => event.preventDefault()}
         onMouseDown={onMouseDown}
+        onPointerDown={(event) => {
+          if (onMouseDown && event.button === 0)
+            event.currentTarget.setPointerCapture(event.pointerId);
+        }}
         className={`w-10 h-10 flex shrink-0 items-center justify-center [&_svg]:h-5 [&_svg]:w-5 [&_img]:h-5 [&_img]:w-5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-brand-500 ${onMouseDown ? 'cursor-grab' : 'cursor-default'}`}
       >
         {children}

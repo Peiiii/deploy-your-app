@@ -46,8 +46,23 @@ active contract `preview-dock-2026-10-13`，parent-goal 为同组件、一致且
 | PD-03 | favicon跨域来源／nonce验证、原图标／动态图标及失败恢复 | passed |
 | PD-04 | 拖离四角圆润，停靠恢复，短窗口两控件不重叠 | passed |
 | PD-05 | 原首页／探索／管理切换、评论、类型／lint／build回归 | passed |
-| PD-06 | 主线同步、frontend与gateway上线、真实网站验收 | passed |
+| PD-06 | 主线同步、frontend与gateway上线、真实网站验收 | stale |
 
 当前本地证据：扩展后的 preview 浏览器测试通过（24px反馈、对称padding、被动身份、名称tooltip、favicon切换、错误origin／旧nonce拒绝、坏图恢复、拖动形变／恢复、避让及三入口回归）；真实Miniflare gateway／Chromium 20类图标与3类跨域parent交换通过，并保留CSP、源码、缓存和重部署验证。frontend和favicon模块类型检查、定向ESLint、build、gateway dry-run、diff check通过；实现Review无未关闭finding。复盘：身份与操作语义在共同组件分开，favicon复用现有owner；本次事实已更新该设计及gateway README，无全局规则增量。
 
 生产验收（2026-10-13 23:57 Asia/Shanghai）：前端 `index-CZgveXI1.js`、gateway version `2db2584e-5f80-4ddf-9bc4-874ee743a350` 生效；真实 `wenyu-relay.gemigo.app` 加载且导航favicon与其标签页图标一致，名称tooltip、被动身份、24px反馈／对称padding、短视口避让、拖离圆角与松开停靠恢复、前后切换／全屏保持均通过。实现提交 `16c8cb8` 已进入远程及本地主线；所有 Required ID passed。旧版hash等待和一次SSH断连未作为成功证据，重试后新资源身份与真实链路已确认。
+
+## 2026-10-14 修正：统一拖拽与即时等待反馈
+
+用户要求左下角同样可拖动，所有代码复用；点击上下切换后，左下角身份槽立即显示与页面加载同源的张嘴／闭嘴小精灵，加载完成恢复favicon，反馈不占用网站区域。
+
+共享 FloatingDock 接管 useFloatingDock、身份拖动绑定、pointer capture、停靠与形变；指针捕获避免经过跨域iframe后丢失mousemove／mouseup，identity统一阻止原生HTML图片拖拽，避免favicon进入浏览器另一个拖动状态机；业务壳只给身份内容、操作内容和默认位置。hook 增加底部初始锚定和上下限，两个控件沿同一状态机；面板测量两个真实控件的位置／高度并保留12px间隔，固定上下顺序，拖动、展开与缩放都不会相交。默认导航贴左下，拖动后使用实际停靠位置并记忆；全屏禁止停靠到屏外。
+
+AppPreviewContent 保持唯一加载状态 owner，新增真实 loaded 状态，手动收起慢加载提示不代表网站已经加载。面板按URL映射此状态，URL切换时在首次渲染就显示加载图标，不等待iframe事件；onLoad后恢复favicon。共用 LoadingSprite 图形和张嘴动画，大图和身份槽仅布局不同。
+
+方案 Review passed：已检查两个当前消费者、共同拖拽生命周期、底部锚定、双方实时避让、点击不触发拖动、失焦取消、全屏／半屏记忆、URL即时反馈／慢加载／实际完成及减少动画。未增加第二个拖拽实现或独立加载状态来源。Required PD-01..06 在本次修订全部置 stale；PD-07 新增双方拖拽／停靠／避让，PD-08 新增即时小精灵／动画／实际完成恢复，均 Required、not-run。
+
+| PD-07 | 两处同一拖动／停靠／形变实现，导航底部默认、拖后记忆、互相避让 | passed |
+| PD-08 | 切换首次渲染立即显示张嘴精灵，等待时动画、实际onLoad恢复favicon | passed |
+
+修订本地证据：preview-navigation 浏览器回归验证双方拖动（包含favicon真实img的原生DND抑制）、跨iframe移动／mouseup、左右停靠、失焦取消、短窗口不相交；持有真实文档请求时验证首次渲染busy和紧凑精灵、张嘴clip-path动画、慢提示关闭仍busy、旧导航完成不清除新状态、减少动画及完成恢复favicon。原preview-loading真实UI延迟／重试／取消／非遮挡／内容保留／移动端回归通过；该脚本的页面精灵选择器现按页面loading owner定位，导航精灵另有定向验证。frontend tsc、定向ESLint、build、diff check通过，diff Review无未关闭finding。复盘：修复发生在共享拖动owner和加载owner，新增事实／测试更新原设计；没有跨项目规则增量。

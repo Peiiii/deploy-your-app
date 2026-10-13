@@ -7,12 +7,7 @@ import {
   type DockMode,
   type InitialPosition,
 } from './types';
-import {
-  determineDockSide,
-  getDockedStyle,
-  getDraggingStyle,
-  getRelativePosition,
-} from './utils';
+import { determineDockSide, getDockedStyle, getDraggingStyle, getRelativePosition } from './utils';
 
 // ============================================================================
 // FLOATING DOCK HOOK
@@ -24,6 +19,10 @@ type PersistedDockState = { dockSide: DockSide; y: number };
 const dockStateByKey = new Map<string, PersistedDockState>();
 
 export interface UseFloatingDockOptions {
+  nodeRef?: React.RefObject<HTMLDivElement | null>;
+  /** Only the initial position follows the bottom edge; established drags use pixel positions. */
+  initialAnchor?: 'top' | 'bottom';
+  topInset?: number;
   /** Reserve a bottom band for other floating controls. */
   bottomInset?: number;
   onDragStart?: () => void;
@@ -50,9 +49,7 @@ export interface UseFloatingDockReturn {
   dockSide: DockSide;
 }
 
-export const useFloatingDock = (
-  options: UseFloatingDockOptions = {},
-): UseFloatingDockReturn => {
+export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloatingDockReturn => {
   const {
     onDragStart,
     onDragEnd,
@@ -60,38 +57,58 @@ export const useFloatingDock = (
     allowOutsideLeft = true,
     stateKey,
     bottomInset,
+    topInset = 0,
+    initialAnchor = 'top',
   } = options;
 
   const [state, setState] = useState(() => {
     const persisted = stateKey ? dockStateByKey.get(stateKey) : undefined;
     return {
       mode: 'docked' as DockMode,
+      anchored: !persisted && initialAnchor === 'bottom',
       dockSide: persisted?.dockSide ?? initialPosition.dockSide,
       x: 0,
       y: persisted?.y ?? initialPosition.y,
     };
   });
 
-  const nodeRef = useRef<HTMLDivElement>(null);
+  const internalNodeRef = useRef<HTMLDivElement>(null);
+  const nodeRef = options.nodeRef ?? internalNodeRef;
   const [bounds, setBounds] = useState({ parentHeight: 0, widgetHeight: 0 });
   useLayoutEffect(() => {
-    if (bottomInset === undefined) return;
     const node = nodeRef.current;
     const parent = node?.offsetParent;
     if (!node || !(parent instanceof HTMLElement)) return;
-    const measure = () => setBounds(previous => {
-      const next = { parentHeight: parent.clientHeight, widgetHeight: node.firstElementChild instanceof HTMLElement ? node.firstElementChild.offsetHeight : node.offsetHeight };
-      return previous.parentHeight === next.parentHeight && previous.widgetHeight === next.widgetHeight ? previous : next;
-    });
+    const measure = () =>
+      setBounds((previous) => {
+        const next = {
+          parentHeight: parent.clientHeight,
+          widgetHeight:
+            node.firstElementChild instanceof HTMLElement
+              ? node.firstElementChild.offsetHeight
+              : node.offsetHeight,
+        };
+        return previous.parentHeight === next.parentHeight &&
+          previous.widgetHeight === next.widgetHeight
+          ? previous
+          : next;
+      });
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(parent);
     observer.observe(node);
     if (node.firstElementChild) observer.observe(node.firstElementChild);
     return () => observer.disconnect();
-  }, [bottomInset]);
+  }, [nodeRef]);
 
-  const dragStartRef = useRef({ mouseX: 0, mouseY: 0, widgetX: 0, widgetY: 0, started: false });
+  const dragStartRef = useRef({
+    mouseX: 0,
+    mouseY: 0,
+    widgetX: 0,
+    widgetY: 0,
+    started: false,
+    wasAnchored: false,
+  });
 
   // If the caller disallows "outside-left" (e.g. fullscreen), ensure the dock
   // is always visible even if it was previously parked outside the viewport.
@@ -103,9 +120,7 @@ export const useFloatingDock = (
         if (s.dockSide !== 'outside-left') return s;
 
         const nextDockSide: DockSide =
-          initialPosition.dockSide === 'outside-left'
-            ? 'inside-left'
-            : initialPosition.dockSide;
+          initialPosition.dockSide === 'outside-left' ? 'inside-left' : initialPosition.dockSide;
 
         return {
           ...s,
@@ -128,6 +143,7 @@ export const useFloatingDock = (
       widgetX: pos.x,
       widgetY: pos.y,
       started: false,
+      wasAnchored: state.anchored,
     };
     setState((s) => ({ ...s, mode: 'pending' }));
   });
@@ -152,6 +168,7 @@ export const useFloatingDock = (
       setState((s) => ({
         ...s,
         mode: 'dragging',
+        anchored: false,
         x: dragStartRef.current.widgetX + dx,
         y: Math.max(0, dragStartRef.current.widgetY + dy),
       }));
@@ -168,22 +185,22 @@ export const useFloatingDock = (
       const parentWidth = parent?.clientWidth ?? window.innerWidth;
       const widgetWidth = node?.offsetWidth ?? 0;
 
+      const settledY = getRelativePosition(node)?.y ?? 0;
       setState((s) => {
-        const nextDockSide = determineDockSide(
-          s.x + widgetWidth / 2,
-          parentWidth,
-          { allowOutsideLeft },
-        );
+        const nextDockSide = determineDockSide(s.x + widgetWidth / 2, parentWidth, {
+          allowOutsideLeft,
+        });
 
         if (stateKey) {
-          dockStateByKey.set(stateKey, { dockSide: nextDockSide, y: s.y });
+          dockStateByKey.set(stateKey, { dockSide: nextDockSide, y: settledY });
         }
 
         return {
           mode: 'docked',
+          anchored: false,
           dockSide: nextDockSide,
           x: 0,
-          y: s.y,
+          y: settledY,
         };
       });
       onDragEnd?.();
@@ -192,7 +209,12 @@ export const useFloatingDock = (
     const onCancel = () => {
       const wasDragging = dragStartRef.current.started;
       dragStartRef.current.started = false;
-      setState((s) => ({ ...s, mode: 'docked', y: dragStartRef.current.widgetY }));
+      setState((s) => ({
+        ...s,
+        mode: 'docked',
+        anchored: dragStartRef.current.wasAnchored,
+        y: dragStartRef.current.widgetY,
+      }));
       if (wasDragging) onDragEnd?.();
     };
 
@@ -204,24 +226,36 @@ export const useFloatingDock = (
       document.removeEventListener('mouseup', onUp);
       window.removeEventListener('blur', onCancel);
     };
-  }, [allowOutsideLeft, onDragStart, onDragEnd, state.mode, stateKey]);
+  }, [allowOutsideLeft, onDragStart, onDragEnd, state.mode, stateKey, nodeRef]);
 
   // --- Style ---
   const style = useMemo(() => {
-    const availableHeight = bottomInset === undefined ? undefined : Math.max(0, bounds.parentHeight - bottomInset);
-    const y = availableHeight === undefined
-      ? state.y
-      : Math.max(0, Math.min(state.y, availableHeight - bounds.widgetHeight));
-    const position = state.mode === 'dragging'
-      ? getDraggingStyle(state.x, y)
-      : getDockedStyle(state.dockSide, y);
-    return availableHeight === undefined ? position : {
+    const availableHeight = Math.max(0, bounds.parentHeight - (bottomInset ?? 0));
+    const maxY = Math.max(0, availableHeight - bounds.widgetHeight);
+    const minY = Math.min(topInset, maxY);
+    const preferredY = state.anchored
+      ? bounds.parentHeight - initialPosition.y - bounds.widgetHeight
+      : state.y;
+    const y = Math.max(minY, Math.min(preferredY, maxY));
+    const position =
+      state.mode === 'dragging' ? getDraggingStyle(state.x, y) : getDockedStyle(state.dockSide, y);
+    return {
       ...position,
       maxHeight: Math.max(0, availableHeight - y),
       overflowY: 'auto' as const,
       scrollbarWidth: 'none' as const,
     };
-  }, [state.mode, state.dockSide, state.x, state.y, bottomInset, bounds]);
+  }, [
+    state.mode,
+    state.dockSide,
+    state.x,
+    state.y,
+    state.anchored,
+    initialPosition.y,
+    bottomInset,
+    topInset,
+    bounds,
+  ]);
 
   return {
     nodeRef,

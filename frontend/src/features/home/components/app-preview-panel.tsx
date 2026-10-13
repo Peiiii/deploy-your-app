@@ -55,18 +55,34 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
     const [favicon, setFavicon] = useState<{ url: string; href: string } | null>(null);
     const receiveFavicon = React.useCallback((url: string, href: string) => setFavicon({ url, href }), []);
     const navigationRef = useRef<HTMLDivElement>(null);
-    const [navigationBottomInset, setNavigationBottomInset] = useState(0);
+    const actionsRef = useRef<HTMLDivElement>(null);
+    const [dockLimits, setDockLimits] = useState({ topInset: 0, bottomInset: 0 });
+    const [previewLoading, setPreviewLoading] = useState<{ url: string; loading: boolean } | null>(null);
+    const receiveLoading = React.useCallback((url: string, loading: boolean) => {
+        setPreviewLoading(previous => previous?.url === url && previous.loading === loading ? previous : { url, loading });
+    }, []);
+    const loading = !!app.url && (previewLoading?.url !== app.url || previewLoading.loading);
     useLayoutEffect(() => {
-        const node = navigationRef.current;
-        const parent = node?.offsetParent;
-        if (!node || !(parent instanceof HTMLElement)) return;
-        // Reserve the actual shared component footprint, including its bottom margin.
-        const measure = () => setNavigationBottomInset(parent.clientHeight - node.offsetTop + 12);
+        const navigation = navigationRef.current;
+        const actions = actionsRef.current;
+        const parent = navigation?.offsetParent;
+        if (!navigation || !actions || !(parent instanceof HTMLElement)) return;
+        const measure = () => setDockLimits(previous => {
+            const next = {
+                topInset: actions.offsetTop + actions.offsetHeight + 12,
+                bottomInset: parent.clientHeight - navigation.offsetTop + 12,
+            };
+            return previous.topInset === next.topInset && previous.bottomInset === next.bottomInset ? previous : next;
+        });
         measure();
         const observer = new ResizeObserver(measure);
-        observer.observe(node);
+        observer.observe(navigation);
+        observer.observe(actions);
         observer.observe(parent);
-        return () => observer.disconnect();
+        const movement = new MutationObserver(measure);
+        movement.observe(navigation, { attributes: true, attributeFilter: ['style'] });
+        movement.observe(actions, { attributes: true, attributeFilter: ['style'] });
+        return () => { observer.disconnect(); movement.disconnect(); };
     }, [isFullscreen]);
 
     useEffect(() => {
@@ -85,21 +101,35 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
     const dockOptionsHalf = useMemo(() => {
         return {
             stateKey: `${dockStateKeyBase}:half`,
-            bottomInset: navigationBottomInset,
+            bottomInset: dockLimits.bottomInset,
+            nodeRef: actionsRef,
         };
-    }, [dockStateKeyBase, navigationBottomInset]);
+    }, [dockStateKeyBase, dockLimits.bottomInset]);
 
     const dockOptionsFullscreen = useMemo(() => {
         return {
             stateKey: `${dockStateKeyBase}:fullscreen`,
-            bottomInset: navigationBottomInset,
+            bottomInset: dockLimits.bottomInset,
+            nodeRef: actionsRef,
             allowOutsideLeft: false,
             initialPosition: {
                 y: 16,
                 dockSide: 'inside-left' as const,
             },
         };
-    }, [dockStateKeyBase, navigationBottomInset]);
+    }, [dockStateKeyBase, dockLimits.bottomInset]);
+
+    const navigationOptions = useMemo(() => ({
+        nodeRef: navigationRef,
+        stateKey: `preview-navigation:${isFullscreen ? 'fullscreen' : 'half'}`,
+        initialAnchor: 'bottom' as const,
+        initialPosition: { y: 16, dockSide: isFullscreen ? 'inside-left' as const : 'outside-left' as const },
+        allowOutsideLeft: !isFullscreen,
+        topInset: dockLimits.topInset,
+        bottomInset: 16,
+        onDragStart: () => setIsDragging(true),
+        onDragEnd: () => setIsDragging(false),
+    }), [isFullscreen, dockLimits.topInset]);
 
     useEffect(() => {
         if (!isFullscreen && !commentsOpen) return;
@@ -159,6 +189,7 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
                                 name={app.name}
                                 onOpenInNewTab={onOpenInNewTab}
                                 onFavicon={receiveFavicon}
+                                onLoadingChange={receiveLoading}
                             />
                         ) : (
                             <div className="flex items-center justify-center h-full">
@@ -177,18 +208,19 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
             </div>
 
             <FloatingSiteNavigation
-                nodeRef={navigationRef}
+                key={isFullscreen ? 'navigation-fullscreen' : 'navigation-half'}
+                dockOptions={navigationOptions}
+                loading={loading}
                 appName={app.name}
                 appUrl={app.url}
                 faviconUrl={favicon && favicon.url === app.url ? favicon.href : undefined}
                 onPrevious={onPrevious}
                 onNext={onNext}
-                outsideLeft={!isFullscreen}
             />
 
             {/* Draggable Widget (Unified Dock) */}
             <PreviewFloatingDock
-                key={isFullscreen ? 'fullscreen' : 'half'}
+                key={isFullscreen ? 'actions-fullscreen' : 'actions-half'}
                 app={app}
                 onClose={onClose}
                 onOpenInNewTab={onOpenInNewTab}

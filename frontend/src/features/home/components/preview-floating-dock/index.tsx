@@ -1,9 +1,4 @@
-import {
-  FloatingDock,
-  FloatingDockAction,
-  FloatingDockDivider,
-  FloatingDockIdentity,
-} from '@/components/floating-dock';
+import { FloatingDock, FloatingDockAction, FloatingDockDivider } from '@/components/floating-dock';
 import React, { useId, useState } from 'react';
 import {
   ExternalLink,
@@ -17,7 +12,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ExploreAppCard } from '@/components/explore-app-card';
-import { useFloatingDock, type UseFloatingDockOptions } from './use-floating-dock';
+import { type UseFloatingDockOptions } from './use-floating-dock';
 import { BrandLogo } from './brand-logo';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
@@ -99,12 +94,6 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
     }
   };
 
-  const { nodeRef, style, onMouseDown, isDragging, dockSide } = useFloatingDock({
-    onDragStart,
-    onDragEnd,
-    ...dockOptions,
-  });
-
   const actionCount = 3 + (isOwner ? 1 : 0) + (app.url ? 1 : 0) + 2;
   const shouldAutoExpand =
     expandPolicy === 'always'
@@ -118,18 +107,11 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
   return (
     <FloatingDock
       label={t('previewActions.actions')}
-      nodeRef={nodeRef}
-      style={style}
-      dockSide={dockSide}
-      isDragging={isDragging}
-      animatePosition={dockOptions?.bottomInset === undefined}
+      dockOptions={{ ...dockOptions, onDragStart, onDragEnd }}
+      identityLabel="GemiGo"
+      identity={<BrandLogo />}
       expanded={expanded}
       actionAreaId={actionAreaId}
-      handle={
-        <FloatingDockIdentity label="GemiGo" onMouseDown={onMouseDown}>
-          <BrandLogo />
-        </FloatingDockIdentity>
-      }
     >
       {/* Divider */}
       <FloatingDockDivider />
