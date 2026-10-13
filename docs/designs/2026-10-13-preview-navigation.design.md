@@ -46,6 +46,8 @@ active contract `preview-dock-2026-10-13`，parent-goal 为同组件、一致且
 | PD-03 | favicon跨域来源／nonce验证、原图标／动态图标及失败恢复 | passed |
 | PD-04 | 拖离四角圆润，停靠恢复，短窗口两控件不重叠 | passed |
 | PD-05 | 原首页／探索／管理切换、评论、类型／lint／build回归 | passed |
-| PD-06 | 主线同步、frontend与gateway上线、真实网站验收 | not-run |
+| PD-06 | 主线同步、frontend与gateway上线、真实网站验收 | passed |
 
 当前本地证据：扩展后的 preview 浏览器测试通过（24px反馈、对称padding、被动身份、名称tooltip、favicon切换、错误origin／旧nonce拒绝、坏图恢复、拖动形变／恢复、避让及三入口回归）；真实Miniflare gateway／Chromium 20类图标与3类跨域parent交换通过，并保留CSP、源码、缓存和重部署验证。frontend和favicon模块类型检查、定向ESLint、build、gateway dry-run、diff check通过；实现Review无未关闭finding。复盘：身份与操作语义在共同组件分开，favicon复用现有owner；本次事实已更新该设计及gateway README，无全局规则增量。
+
+生产验收（2026-10-13 23:57 Asia/Shanghai）：前端 `index-CZgveXI1.js`、gateway version `2db2584e-5f80-4ddf-9bc4-874ee743a350` 生效；真实 `wenyu-relay.gemigo.app` 加载且导航favicon与其标签页图标一致，名称tooltip、被动身份、24px反馈／对称padding、短视口避让、拖离圆角与松开停靠恢复、前后切换／全屏保持均通过。实现提交 `16c8cb8` 已进入远程及本地主线；所有 Required ID passed。旧版hash等待和一次SSH断连未作为成功证据，重试后新资源身份与真实链路已确认。
