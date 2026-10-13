@@ -60,7 +60,9 @@
     "test:application-auth": "./server/node_modules/.bin/tsx scripts/test-application-authorization.ts && ./server/node_modules/.bin/tsx scripts/test-sdk-authorization.ts",
     "test:points": "./server/node_modules/.bin/tsx scripts/test-platform-points.ts",
     "build:docs": "pnpm build:sdk && node scripts/build-developer-docs.mjs",
-    "deploy:docs": "pnpm build:docs && pnpm --filter @gemigo/docs-worker run deploy"
+    "deploy:docs": "pnpm build:docs && pnpm --filter @gemigo/docs-worker run deploy",
+    "test:notifications": "./server/node_modules/.bin/tsx scripts/test-engagement-notifications.ts && ./server/node_modules/.bin/tsx scripts/test-notification-admin.ts && ./server/node_modules/.bin/tsx scripts/test-notification-delivery.ts && ./server/node_modules/.bin/tsx scripts/test-notification-scheduler.ts",
+    "check:notification-migration": "./server/node_modules/.bin/tsx scripts/prepare-notification-migration.ts --check"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

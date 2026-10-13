@@ -8,7 +8,7 @@ export interface FetchProjectCommentsParams {
 
 export async function fetchProjectComments(
   projectId: string,
-  params: FetchProjectCommentsParams = {},
+  params: FetchProjectCommentsParams = {}
 ): Promise<PaginatedResponse<ProjectComment>> {
   const query = new URLSearchParams();
   if (typeof params.page === 'number') query.set('page', String(params.page));
@@ -22,27 +22,25 @@ export async function fetchProjectComments(
 
   const res = await fetch(url, { method: 'GET', credentials: 'include' });
   if (!res.ok) {
-    throw new Error('Failed to load comments');
+    throw new Error('Failed to load comments',{cause:{status:res.status}});
   }
   return (await res.json()) as PaginatedResponse<ProjectComment>;
 }
 
 export async function createProjectComment(
   projectId: string,
-  input: { content: string; replyToCommentId?: string | null },
+  input: { content: string; replyToCommentId?: string | null; submissionId?: string }
 ): Promise<ProjectComment> {
-  const res = await fetch(
-    `${APP_CONFIG.API_BASE_URL}${API_ROUTES.PROJECT_COMMENTS(projectId)}`,
-    {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        content: input.content,
-        replyToCommentId: input.replyToCommentId ?? null,
-      }),
-    },
-  );
+  const res = await fetch(`${APP_CONFIG.API_BASE_URL}${API_ROUTES.PROJECT_COMMENTS(projectId)}`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      content: input.content,
+      submissionId: input.submissionId,
+      replyToCommentId: input.replyToCommentId ?? null,
+    }),
+  });
 
   if (res.status === 401) {
     throw new Error('unauthorized');
@@ -58,13 +56,10 @@ export async function createProjectComment(
 }
 
 export async function deleteComment(commentId: string): Promise<void> {
-  const res = await fetch(
-    `${APP_CONFIG.API_BASE_URL}${API_ROUTES.COMMENT_BY_ID(commentId)}`,
-    {
-      method: 'DELETE',
-      credentials: 'include',
-    },
-  );
+  const res = await fetch(`${APP_CONFIG.API_BASE_URL}${API_ROUTES.COMMENT_BY_ID(commentId)}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
 
   if (res.status === 401) {
     throw new Error('unauthorized');
@@ -74,4 +69,3 @@ export async function deleteComment(commentId: string): Promise<void> {
     throw new Error('Failed to delete comment');
   }
 }
-

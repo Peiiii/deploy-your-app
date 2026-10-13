@@ -1,3 +1,4 @@
+import { processNotificationsScheduled } from './notifications/delivery';
 import { appGatewayController } from './app-gateway/controller';
 import { projectRepository } from './repositories/project.repository';
 import { projectService } from './services/project.service';
@@ -21,7 +22,7 @@ import { buildApiRouter } from './routes';
 async function handleRequest(
   request: Request,
   env: ApiWorkerEnv,
-  ctx: ExecutionContext,
+  ctx: ExecutionContext
 ): Promise<Response> {
   const url = new URL(request.url);
   const pathname = normalizePath(url.pathname);
@@ -34,7 +35,8 @@ async function handleRequest(
   const router = buildApiRouter(env, url);
 
   try {
-    if (pathname.startsWith('/api/v1/points') || pathname.startsWith('/api/v1/sdk/points')) return await pointsController(request, env, env.PROJECTS_DB, ctx);
+    if (pathname.startsWith('/api/v1/points') || pathname.startsWith('/api/v1/sdk/points'))
+      return await pointsController(request, env, env.PROJECTS_DB, ctx);
     const match = await router.match(pathname, method);
     if (!match) {
       return jsonResponse({ error: 'Not Found' }, 404);
@@ -49,17 +51,33 @@ const worker: ExportedHandler<ApiWorkerEnv> = {
   async scheduled(_event, env) {
     await processPointsScheduled(env).catch(() => console.warn('Points maintenance failed'));
     if (env.PROJECTS_DB) await deployService.reconcilePending(env, env.PROJECTS_DB);
-    if (env.PROJECTS_DB && new Date(_event.scheduledTime).getUTCHours() === 3
-      && new Date(_event.scheduledTime).getUTCMinutes() === 0) await analyticsRepository.cleanup(env.PROJECTS_DB);
-    await scheduledRecommendation(env).catch(() => console.warn('Recommendation maintenance skipped'));
+    if (
+      env.PROJECTS_DB &&
+      new Date(_event.scheduledTime).getUTCHours() === 3 &&
+      new Date(_event.scheduledTime).getUTCMinutes() === 0
+    )
+      await analyticsRepository.cleanup(env.PROJECTS_DB);
+    await scheduledRecommendation(env).catch(() =>
+      console.warn('Recommendation maintenance skipped')
+    );
     for (const project of await projectRepository.pendingStorageDeletions(env.PROJECTS_DB)) {
       try {
         if (env.APP_GATEWAY) {
-          const response = await appGatewayController.deleteProject(env, project.id, project.ownerId);
+          const response = await appGatewayController.deleteProject(
+            env,
+            project.id,
+            project.ownerId
+          );
           if (!response.ok) console.warn('Application storage deletion will retry.');
-        } else await projectService.deleteProject(env, env.PROJECTS_DB, project.id, project.ownerId);
-      } catch { console.warn('Application storage deletion will retry.'); }
+        } else
+          await projectService.deleteProject(env, env.PROJECTS_DB, project.id, project.ownerId);
+      } catch {
+        console.warn('Application storage deletion will retry.');
+      }
     }
+    await processNotificationsScheduled(env).catch(() =>
+      console.warn('Notification delivery will retry')
+    );
     await deploymentSourceService.cleanup(env);
     await projectLanguageService.scanPending(env, env.PROJECTS_DB);
     await metadataService.translatePendingDescriptions(env, env.PROJECTS_DB);
@@ -77,7 +95,12 @@ const worker: ExportedHandler<ApiWorkerEnv> = {
         if (settings) {
           if (response.status !== 101) response = new Response(response.body, response);
           response.headers.set('x-gemigo-collection', settings.enabled ? '1' : '0');
-          if (settings.enabled) ctx.waitUntil(storeTelemetry(request, response, env, batch).catch(() => console.warn('Telemetry write skipped')));
+          if (settings.enabled)
+            ctx.waitUntil(
+              storeTelemetry(request, response, env, batch).catch(() =>
+                console.warn('Telemetry write skipped')
+              )
+            );
         }
       }
       return response;

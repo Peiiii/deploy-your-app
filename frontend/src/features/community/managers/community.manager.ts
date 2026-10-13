@@ -1,3 +1,5 @@
+import { notificationRequest } from '@/features/notifications/managers/notifications.manager';
+import type { FeedbackPost, FeedbackComment } from '@/types';
 import i18n from '@/i18n/config';
 import type { AuthManager } from '@/features/auth/managers/auth.manager';
 import { useCommunityStore } from '@/features/community/stores/community.store';
@@ -61,6 +63,31 @@ export class CommunityManager {
       if (requestId === this.loadRequestId) {
         useCommunityStore.getState().actions.setIsLoading(false);
       }
+    }
+  };
+
+  openFeedback = async (id: string): Promise<boolean> => {
+    const userId = this.authManager.getCurrentUser()?.id;
+    const requestId = this.loadRequestId;
+    if (!userId) return false;
+    try {
+      const data = await notificationRequest<{ post: FeedbackPost; comments: FeedbackComment[] }>(
+        '/me/feedback/' + encodeURIComponent(id)
+      );
+      if (this.authManager.getCurrentUser()?.id !== userId || requestId !== this.loadRequestId)
+        return false;
+      const state = useCommunityStore.getState();
+      state.actions.setPosts(
+        [data.post, ...state.posts.filter((post) => post.id !== id)],
+        Math.max(state.total, 1)
+      );
+      state.actions.setComments(id, data.comments);
+      state.actions.setExpandedPostId(id);
+      return true;
+    } catch (error) {
+      if (this.authManager.getCurrentUser()?.id === userId)
+        useCommunityStore.getState().actions.setError(this.getErrorMessage(error));
+      return false;
     }
   };
 

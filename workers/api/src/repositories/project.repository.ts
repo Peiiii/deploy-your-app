@@ -1,3 +1,4 @@
+import { ensureNotificationSchema, publicationStatement, revokeSubjectNotifications, revokeInaccessibleProjectNotifications } from '@gemigo/notifications/persistence';
 import { addressTakenError, addressLockedError } from '../utils/project-address';
 import { ProjectCountLimitError } from '../utils/error-handler';
 import { FREE_PROJECT_LIMIT } from '../utils/project-creation-limit';
@@ -791,7 +792,7 @@ class ProjectRepository {
       isPublic?: boolean;
       isExtensionSupported?: boolean;
       sourceType?: SourceType;
-    },
+    }
   ): Promise<Project | null> {
     await this.ensureSchema(db);
     const statements: string[] = [];
@@ -824,10 +825,7 @@ class ProjectRepository {
         statements.push('name = ?');
         params.push(localizedFlat.name);
       }
-      if (
-        localizedFlat.description !== undefined &&
-        patch.description === undefined
-      ) {
+      if (localizedFlat.description !== undefined && patch.description === undefined) {
         statements.push('description = ?');
         params.push(localizedFlat.description);
       }
@@ -871,22 +869,36 @@ class ProjectRepository {
     }
 
     params.push(id);
-    const slugGuard = patch.slug !== undefined
-      ? ` AND NOT EXISTS (SELECT 1 FROM projects WHERE slug = ? AND id <> ? AND (is_deleted = 0 OR is_deleted IS NULL))
+    const slugGuard =
+      patch.slug !== undefined
+        ? ` AND NOT EXISTS (SELECT 1 FROM projects WHERE slug = ? AND id <> ? AND (is_deleted = 0 OR is_deleted IS NULL))
           AND (slug = ? OR slug IS NULL OR slug = '' OR
             (status NOT IN ('Live', 'Building') AND (url IS NULL OR url = '') AND last_success_at IS NULL))`
-      : '';
+        : '';
     if (patch.slug !== undefined) params.push(patch.slug, id, patch.slug);
-    const row = await db
-      .prepare(
-        `UPDATE projects SET ${statements.join(', ')} WHERE id = ?${slugGuard} RETURNING *`,
-      )
-      .bind(...params)
-      .first<ProjectRow>();
+    await ensureNotificationSchema(db);
+    const changed = await db.batch([
+      db
+        .prepare(
+          `UPDATE projects SET ${statements.join(', ')} WHERE id = ?${slugGuard} RETURNING *`
+        )
+        .bind(...params),
+      publicationStatement(db, id),
+      revokeInaccessibleProjectNotifications(db,id),
+    ]);
+    const row = changed[0].results?.[0] as ProjectRow | undefined;
     if (!row && patch.slug !== undefined) {
       const current = await this.getProjectById(db, id);
       if (current) {
-        if (current.slug && current.slug !== patch.slug && (current.url || current.lastSuccessAt || current.status === 'Live' || current.status === 'Building')) throw addressLockedError();
+        if (
+          current.slug &&
+          current.slug !== patch.slug &&
+          (current.url ||
+            current.lastSuccessAt ||
+            current.status === 'Live' ||
+            current.status === 'Building')
+        )
+          throw addressLockedError();
         throw addressTakenError();
       }
     }
@@ -905,7 +917,7 @@ class ProjectRepository {
       cloudflareProjectName?: string;
       sourceType?: SourceType;
     },
-    expectedAttemptId?: string,
+    expectedAttemptId?: string
   ): Promise<Project | null> {
     await this.ensureSchema(db);
     const statements: string[] = [];
@@ -964,14 +976,21 @@ class ProjectRepository {
     }
 
     params.push(id);
-    const condition = expectedAttemptId ? ' AND ? = (SELECT id FROM deployment_attempts WHERE project_id = projects.id ORDER BY started_at DESC, rowid DESC LIMIT 1)' : '';
+    const condition = expectedAttemptId
+      ? ' AND ? = (SELECT id FROM deployment_attempts WHERE project_id = projects.id ORDER BY started_at DESC, rowid DESC LIMIT 1)'
+      : '';
     if (expectedAttemptId) params.push(expectedAttemptId);
-    const row = await db
-      .prepare(
-        `UPDATE projects SET ${statements.join(', ')} WHERE id = ?${condition} RETURNING *`,
-      )
-      .bind(...params)
-      .first<ProjectRow>();
+    await ensureNotificationSchema(db);
+    const changed = await db.batch([
+      db
+        .prepare(
+          `UPDATE projects SET ${statements.join(', ')} WHERE id = ?${condition} RETURNING *`
+        )
+        .bind(...params),
+      publicationStatement(db, id),
+      revokeInaccessibleProjectNotifications(db,id),
+    ]);
+    const row = changed[0].results?.[0] as ProjectRow | undefined;
     return row ? this.mapRowToProject(row) : null;
   }
 
@@ -1005,14 +1024,11 @@ class ProjectRepository {
 
   async softDeleteProject(db: D1Database, id: string): Promise<boolean> {
     await this.ensureSchema(db);
-    const result = await db
-      .prepare(
-        `UPDATE projects
-         SET is_deleted = 1, is_public = 0
-         WHERE id = ?`,
-      )
-      .bind(id)
-      .run();
+    await ensureNotificationSchema(db);
+    const [result] = await db.batch([
+      db.prepare('UPDATE projects SET is_deleted=1,is_public=0 WHERE id=?').bind(id),
+      revokeSubjectNotifications(db,id),
+    ]);
     const meta = (result as unknown as { meta?: { changes?: number } }).meta;
     return (meta?.changes ?? 0) > 0;
   }

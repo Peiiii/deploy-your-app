@@ -1,3 +1,4 @@
+import { NotificationBell } from '@/features/notifications/components/notification-bell';
 import { IconButton } from '@/components/icon-button';
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -71,6 +72,7 @@ export const Header: React.FC = () => {
                 >
                     {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                 </IconButton>
+                <NotificationBell />
                 <LanguageSwitcher />
                 <HelpResourcesMenu />
                 {user ? (

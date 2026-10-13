@@ -1,3 +1,4 @@
+import { handleNotifications } from './notifications/controller';
 import { appGatewayController } from './app-gateway/controller';
 import { handleFeed, handleRecommendationOperations } from './explore-recommendation/controller';
 import type { ApiWorkerEnv } from './types/env';
@@ -47,6 +48,91 @@ export function buildApiRouter(env: ApiWorkerEnv, url: URL): Router {
 
   router.add({path:'/api/v1/explore-feed',method:'POST',handler:req=>handleFeed(req,env)});
   router.add({path:'/api/v1/admin/explore-recommendation',method:'POST',handler:req=>handleRecommendationOperations(req,env)});
+
+  router.add({
+    path: '/api/v1/notifications',
+    method: 'GET',
+    handler: (req, params) => handleNotifications(req, env, 'list', params),
+  });
+  router.add({
+    path: '/api/v1/notifications/summary',
+    method: 'GET',
+    handler: (req, params) => handleNotifications(req, env, 'summary', params),
+  });
+  router.add({ path:'/api/v1/notifications/delivery-receipt',method:'POST',handler:(req)=>handleNotifications(req,env,'delivery-receipt') });
+  router.add({
+    path: '/api/v1/notifications/read',
+    method: 'POST',
+    handler: (req, params) => handleNotifications(req, env, 'read', params),
+  });
+  router.add({
+    path: '/api/v1/notification-preferences',
+    method: 'GET',
+    handler: (req, params) => handleNotifications(req, env, 'preferences', params),
+  });
+  router.add({
+    path: '/api/v1/notification-preferences',
+    method: 'PATCH',
+    handler: (req, params) => handleNotifications(req, env, 'preferences', params),
+  });
+  router.add({
+    path: '/api/v1/notification-mutes',
+    method: 'POST',
+    handler: (req, params) => handleNotifications(req, env, 'mute', params),
+  });
+  router.add({
+    path: '/api/v1/notification-mutes',
+    method: 'DELETE',
+    handler: (req, params) => handleNotifications(req, env, 'mute', params),
+  });
+  router.add({
+    path: '/api/v1/comments/:id/response-disposition',
+    method: 'POST',
+    handler: (req, params) => handleNotifications(req, env, 'disposition', params),
+  });
+  router.add({
+    path: '/api/v1/projects/:id/comments/context',
+    method: 'GET',
+    handler: (req, params) => handleNotifications(req, env, 'context', params),
+  });
+  router.add({
+    path: '/api/v1/me/favorites',
+    method: 'GET',
+    handler: (req, params) => handleNotifications(req, env, 'favorites', params),
+  });
+  router.add({
+    path: '/api/v1/me/followers',
+    method: 'GET',
+    handler: (req, params) => handleNotifications(req, env, 'followers', params),
+  });
+  router.add({
+    path: '/api/v1/me/following',
+    method: 'GET',
+    handler: (req, params) => handleNotifications(req, env, 'following', params),
+  });
+  router.add({
+    path: '/api/v1/me/following/publications',
+    method: 'GET',
+    handler: (req, params) => handleNotifications(req, env, 'publications', params),
+  });
+
+  router.add({
+    path: '/api/v1/me/feedback/:id',
+    method: 'GET',
+    handler: (req, params) => handleNotifications(req, env, 'feedback-context', params),
+  });
+
+  router.add({
+    path: '/api/v1/notifications/push-key',
+    method: 'GET',
+    handler: (req) => handleNotifications(req, env, 'push-key'),
+  });
+  for (const method of ['GET', 'POST', 'DELETE'] as const)
+    router.add({
+      path: '/api/v1/notifications/push-subscription',
+      method,
+      handler: (req) => handleNotifications(req, env, 'push-subscription'),
+    });
 
   // --------------------
   // Deploy routes (proxy to Node deploy service)

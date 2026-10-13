@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LayoutGrid } from 'lucide-react';
@@ -42,6 +43,17 @@ export function MyProfile() {
     );
   return (
     <ProfileLayout>
+      <nav className="flex flex-wrap gap-3 text-sm">
+        {['favorites', 'following', 'publications'].map((tab) => (
+          <Link
+            key={tab}
+            to={'/me?tab=' + tab}
+            className="min-h-11 rounded-xl border border-slate-200 px-4 py-3 dark:border-slate-700"
+          >
+            {t('notifications.library.' + tab)}
+          </Link>
+        ))}
+      </nav>
       <details className="creator-editor overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <summary className="cursor-pointer px-5 py-5 text-sm font-semibold text-slate-800 hover:text-brand-600 focus-visible:outline-brand-500 dark:text-slate-100 sm:px-6">
           {t('profile.editProfile')}

@@ -1,7 +1,7 @@
 export const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Gemigo-Ticket',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Gemigo-Ticket, X-Gemigo-Viewer, X-Gemigo-Visible',
 };
 
 export function jsonResponse(body: unknown, status = 200): Response {

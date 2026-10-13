@@ -8,7 +8,7 @@
       "WebWorker",
       "DOM.Iterable"
     ],
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": false,
@@ -33,6 +33,12 @@
     },
     {
       "path": "../../packages/deployment-assets"
+    },
+    {
+      "path": "../../packages/notifications"
+    },
+    {
+      "path": "../../packages/public-author"
     }
   ]
 }

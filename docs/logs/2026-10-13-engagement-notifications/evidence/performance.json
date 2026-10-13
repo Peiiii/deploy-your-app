@@ -1,0 +1,12 @@
+{
+  "environment": "Local Miniflare D1 SQLite; SQL query and serialization, without WAN",
+  "totalRows": 1000000,
+  "userRows": 10000,
+  "groups": 100,
+  "pageSize": 30,
+  "samples": 21,
+  "coldMs": 78,
+  "warmMedianMs": 32,
+  "warmP95Ms": 39,
+  "limitMs": 500
+}

@@ -1,5 +1,9 @@
 import { createStore } from 'zustand/vanilla';
-import { createProjectComment, deleteComment, fetchProjectComments } from '@/services/http/comments-api';
+import {
+  createProjectComment,
+  deleteComment,
+  fetchProjectComments,
+} from '@/services/http/comments-api';
 import type { ProjectComment } from '@/types';
 
 interface PreviewCommentsState {
@@ -17,14 +21,22 @@ interface PreviewCommentsState {
 /** One preview session; request generations prevent late reads replacing newer state. */
 export class PreviewCommentsManager {
   readonly store = createStore<PreviewCommentsState>(() => ({
-    items: [], total: 0, page: 0, loading: false, submitting: false,
-    deletingId: null, error: false, draft: '', replyTo: null,
+    items: [],
+    total: 0,
+    page: 0,
+    loading: false,
+    submitting: false,
+    deletingId: null,
+    error: false,
+    draft: '',
+    replyTo: null,
   }));
   private generation = 0;
+  private submission: { key: string; id: string } | null = null;
 
   constructor(
     private readonly projectId: string,
-    private readonly requireLogin: (force?: boolean) => boolean,
+    private readonly requireLogin: (force?: boolean) => boolean
   ) {}
 
   setDraft = (draft: string) => this.store.setState({ draft });
@@ -32,7 +44,7 @@ export class PreviewCommentsManager {
 
   load = async (append = false) => {
     const state = this.store.getState();
-    if (state.submitting || state.deletingId || (append && state.loading)) return;
+    if (state.submitting || state.deletingId || state.loading) return;
     const generation = ++this.generation;
     const page = append ? state.page + 1 : 1;
     this.store.setState({ loading: true, error: false });
@@ -41,12 +53,21 @@ export class PreviewCommentsManager {
       if (generation !== this.generation) return;
       this.store.setState((current) => ({
         items: append
-          ? [...current.items, ...data.items.filter(item => !current.items.some(existing => existing.id === item.id))]
+          ? [
+              ...current.items,
+              ...data.items.filter(
+                (item) => !current.items.some((existing) => existing.id === item.id)
+              ),
+            ]
           : data.items,
-        total: data.total, page,
+        total: data.total,
+        page,
       }));
-    } catch {
-      if (generation === this.generation) this.store.setState({ error: true });
+    } catch (error) {
+      if (generation === this.generation) {
+        const unavailable=error instanceof Error && (error.cause as {status?:number}|undefined)?.status===404;
+        this.store.setState({ error: true,...(unavailable?{items:[],total:0,page:0}:{}) });
+      }
     } finally {
       if (generation === this.generation) this.store.setState({ loading: false });
     }
@@ -55,18 +76,26 @@ export class PreviewCommentsManager {
   submit = async () => {
     const state = this.store.getState();
     const content = state.draft.trim();
-    if (!content || content.length > 500 || state.submitting || state.loading || state.deletingId) return;
+    if (!content || content.length > 500 || state.submitting || state.loading || state.deletingId)
+      return;
     if (!this.requireLogin()) return;
+    const key = JSON.stringify([content, state.replyTo?.id ?? null]);
+    if (this.submission?.key !== key) this.submission = { key, id: crypto.randomUUID() };
     const generation = ++this.generation;
     this.store.setState({ submitting: true, error: false });
     try {
       const created = await createProjectComment(this.projectId, {
-        content, replyToCommentId: state.replyTo?.id ?? null,
+        content,
+        replyToCommentId: state.replyTo?.id ?? null,
+        submissionId: this.submission!.id,
       });
       if (generation !== this.generation) return;
-      this.store.setState(current => ({
-        items: [created, ...current.items], total: current.total + 1,
-        draft: '', replyTo: null,
+      this.submission = null;
+      this.store.setState((current) => ({
+        items: [created, ...current.items],
+        total: current.total + 1,
+        draft: '',
+        replyTo: null,
       }));
     } catch (error) {
       if (generation !== this.generation) return;
@@ -86,15 +115,20 @@ export class PreviewCommentsManager {
     try {
       await deleteComment(comment.id);
       if (generation !== this.generation) return;
-      this.store.setState(current => ({
-        items: current.items.filter(item => item.id !== comment.id),
+      this.store.setState((current) => ({
+        items: current.items.filter((item) => item.id !== comment.id),
         total: Math.max(0, current.total - 1),
         replyTo: current.replyTo?.id === comment.id ? null : current.replyTo,
         deletingId: null,
       }));
       await this.load();
     } catch (error) {
-      if (generation === this.generation && error instanceof Error && error.message === 'unauthorized') this.requireLogin(true);
+      if (
+        generation === this.generation &&
+        error instanceof Error &&
+        error.message === 'unauthorized'
+      )
+        this.requireLogin(true);
       if (generation === this.generation) this.store.setState({ error: true });
     } finally {
       if (generation === this.generation) this.store.setState({ deletingId: null });
@@ -103,6 +137,17 @@ export class PreviewCommentsManager {
 
   invalidate = () => {
     ++this.generation;
-    this.store.setState({ items: [], total: 0, page: 0, loading: false, submitting: false, deletingId: null, replyTo: null, error: false });
+    this.submission = null;
+    this.store.setState({
+      items: [],
+      total: 0,
+      page: 0,
+      loading: false,
+      submitting: false,
+      deletingId: null,
+      replyTo: null,
+      error: false,
+      draft: '',
+    });
   };
 }

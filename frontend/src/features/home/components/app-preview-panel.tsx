@@ -1,3 +1,5 @@
+import { useStore } from 'zustand';
+import { PreviewCommentsManager } from '../managers/preview-comments.manager';
 import React, { useEffect, useLayoutEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
@@ -30,6 +32,22 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
     const navigate = useNavigate();
     const presenter = usePresenter();
     const userId = useAuthStore(s => s.user?.id);
+  const commentsManager = useMemo(
+    () =>
+      new PreviewCommentsManager(app.id, (force = false) => {
+        if (!force && userId && presenter.auth.getCurrentUser()?.id === userId) return true;
+        presenter.auth.openAuthModal('login');
+        return false;
+      }),
+    [app.id, userId, presenter]
+  );
+  const commentCount = useStore(commentsManager.store, (state) =>
+    state.page > 0 ? state.total : undefined
+  );
+  useEffect(() => {
+    void commentsManager.load();
+    return commentsManager.invalidate;
+  }, [commentsManager]);
     const activeAppId = useRef<string | null>(app.id);
     const [pendingSettingsAppId, setPendingSettingsAppId] = useState<string | null>(null);
     const settingsPending = pendingSettingsAppId === app.id;
@@ -86,7 +104,7 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
     }, [isFullscreen]);
 
     useEffect(() => {
-        void presenter.reaction.loadReactionsForProject(app.id);
+        if (userId) void presenter.reaction.loadReactionsForProject(app.id);
     }, [app.id, userId, presenter.reaction]);
 
     useEffect(() => {
@@ -164,6 +182,7 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
                 >
                     <PreviewCommentsPanel
                         key={app.id}
+                        manager={commentsManager}
                         projectId={app.id}
                         panelId={commentsPanelId}
                         appName={app.name}
@@ -231,6 +250,7 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
                 dockOptions={isFullscreen ? dockOptionsFullscreen : dockOptionsHalf}
                 expandPolicy={isFullscreen && !commentsOpen ? 'hover' : 'always'}
                 commentsOpen={commentsOpen}
+                commentsCount={commentCount}
                 commentsPanelId={commentsPanelId}
                 commentsButtonRef={commentsButtonRef}
                 onOpenComments={() => setCommentsAppId(current => current === app.id ? null : app.id)}

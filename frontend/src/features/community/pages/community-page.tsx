@@ -1,3 +1,5 @@
+import { notificationReceipt } from '@/features/notifications/managers/notifications.manager';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { IconButton } from '@/components/icon-button';
 import {
@@ -35,6 +37,9 @@ const STATUS_FILTERS: Array<FeedbackStatus | null> = [
 
 export const CommunityPage: React.FC = () => {
   const { t } = useTranslation();
+  const [query] = useSearchParams();
+  const feedbackId = query.get('feedbackId');
+  const location = useLocation();
   const { isBelow } = useBreakpoint();
   const presenter = usePresenter();
   const authUser = useAuthStore((state) => state.user);
@@ -53,18 +58,42 @@ export const CommunityPage: React.FC = () => {
   useEffect(() => {
     presenter.community.clearPrivateFeedback();
     if (authLoading || !authUserId) return;
-    void presenter.community.loadPosts();
-  }, [authLoading, authUserId, categoryFilter, isAdmin, presenter.community, statusFilter]);
+    let active = true;
+    void presenter.community.loadPosts().then(async () => {
+      if (!active || !feedbackId) return;
+      const success = await presenter.community.openFeedback(feedbackId);
+      const receipt = notificationReceipt(location.state,query);
+      if (success && active && receipt)
+        await presenter.notifications
+          .read(receipt.groupKey, receipt.throughSeq)
+          .catch(() => undefined);
+    });
+    return () => {
+      active = false;
+    };
+  }, [
+    authLoading,
+    authUserId,
+    categoryFilter,
+    isAdmin,
+    presenter,
+    statusFilter,
+    feedbackId,
+    query,
+    location.state,
+  ]);
 
   return (
     <PageLayout
       title={t('community.title')}
       actions={
         authUser ? (
-          <IconButton label={t('community.newFeedback')} showTooltip={isBelow('sm')} size="auto"
+          <IconButton
+            label={t('community.newFeedback')}
+            showTooltip={isBelow('sm')}
+            size="auto"
             type="button"
             onClick={presenter.community.openComposer}
-
             className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/20 transition hover:bg-brand-700"
           >
             <MessageSquarePlus className="h-4 w-4" />
@@ -121,9 +150,7 @@ export const CommunityPage: React.FC = () => {
               </div>
               <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-400">
                 {t(
-                  isAdmin
-                    ? 'community.adminInbox.description'
-                    : 'community.myFeedback.description'
+                  isAdmin ? 'community.adminInbox.description' : 'community.myFeedback.description'
                 )}
               </p>
             </div>
@@ -150,9 +177,7 @@ export const CommunityPage: React.FC = () => {
                 <select
                   value={statusFilter ?? ''}
                   onChange={(event) =>
-                    actions.setStatusFilter(
-                      (event.target.value || null) as FeedbackStatus | null
-                    )
+                    actions.setStatusFilter((event.target.value || null) as FeedbackStatus | null)
                   }
                   aria-label={t('community.filterStatus')}
                   className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"

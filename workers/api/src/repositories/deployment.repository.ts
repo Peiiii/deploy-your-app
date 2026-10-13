@@ -1,11 +1,7 @@
+import { ensureNotificationSchema, notificationStatement } from '@gemigo/notifications/persistence';
 import type { SourceType } from '../types/project';
 
-export type DeploymentAttemptStatus =
-  | 'started'
-  | 'accepted'
-  | 'succeeded'
-  | 'failed'
-  | 'rejected';
+export type DeploymentAttemptStatus = 'started' | 'accepted' | 'succeeded' | 'failed' | 'rejected';
 
 export interface CreateDeploymentAttemptInput {
   id: string;
@@ -39,42 +35,72 @@ export interface AcceptedDeployment {
 
 class DeploymentRepository {
   updateProgress = async (db: D1Database, id: string, stage: string): Promise<void> => {
-    await db.prepare("UPDATE deployment_attempts SET stage = ?, build_mode = 'static' WHERE id = ? AND status IN ('started','accepted')").bind(stage, id).run();
+    await db
+      .prepare(
+        "UPDATE deployment_attempts SET stage = ?, build_mode = 'static' WHERE id = ? AND status IN ('started','accepted')"
+      )
+      .bind(stage, id)
+      .run();
   };
 
-  findByProviderId = async (db: D1Database, providerId: string): Promise<AcceptedDeployment | null> => {
+  findByProviderId = async (
+    db: D1Database,
+    providerId: string
+  ): Promise<AcceptedDeployment | null> => {
     await this.ensureSchema(db);
-    return db.prepare(`SELECT id, project_id, owner_id, provider_deployment_id, started_at, status, stage, build_mode, error_message, error_code, result_url
-      FROM deployment_attempts WHERE provider_deployment_id = ? ORDER BY started_at DESC LIMIT 1`)
-      .bind(providerId).first<AcceptedDeployment>();
+    return db
+      .prepare(
+        `SELECT id, project_id, owner_id, provider_deployment_id, started_at, status, stage, build_mode, error_message, error_code, result_url
+      FROM deployment_attempts WHERE provider_deployment_id = ? ORDER BY started_at DESC LIMIT 1`
+      )
+      .bind(providerId)
+      .first<AcceptedDeployment>();
   };
 
   isLatest = async (db: D1Database, attempt: AcceptedDeployment): Promise<boolean> => {
-    const row = await db.prepare(`SELECT id FROM deployment_attempts
-      WHERE project_id = ? ORDER BY started_at DESC, rowid DESC LIMIT 1`)
-      .bind(attempt.project_id).first<{ id: string }>();
+    const row = await db
+      .prepare(
+        `SELECT id FROM deployment_attempts
+      WHERE project_id = ? ORDER BY started_at DESC, rowid DESC LIMIT 1`
+      )
+      .bind(attempt.project_id)
+      .first<{ id: string }>();
     return row?.id === attempt.id;
   };
 
   listPending = async (db: D1Database): Promise<AcceptedDeployment[]> => {
     await this.ensureSchema(db);
-    const rows = await db.prepare(`SELECT a.id, a.project_id, a.provider_deployment_id, a.started_at, a.status
+    const rows = await db
+      .prepare(
+        `SELECT a.id, a.project_id, a.provider_deployment_id, a.started_at, a.status
       FROM deployment_attempts a WHERE a.status IN ('started', 'accepted') AND a.provider_deployment_id IS NOT NULL
-      ORDER BY a.started_at ASC LIMIT 20`)
+      ORDER BY a.started_at ASC LIMIT 20`
+      )
       .all<AcceptedDeployment>();
     return rows.results;
   };
 
   findByFlow = async (db: D1Database, flowId: string): Promise<AcceptedDeployment | null> => {
     await this.ensureSchema(db);
-    return db.prepare('SELECT id, project_id, owner_id, provider_deployment_id, started_at, status FROM deployment_attempts WHERE flow_id = ?')
-      .bind(flowId).first<AcceptedDeployment>();
+    return db
+      .prepare(
+        'SELECT id, project_id, owner_id, provider_deployment_id, started_at, status FROM deployment_attempts WHERE flow_id = ?'
+      )
+      .bind(flowId)
+      .first<AcceptedDeployment>();
   };
 
-  latestForProject = async (db: D1Database, projectId: string): Promise<AcceptedDeployment | null> => {
+  latestForProject = async (
+    db: D1Database,
+    projectId: string
+  ): Promise<AcceptedDeployment | null> => {
     await this.ensureSchema(db);
-    return db.prepare('SELECT id, project_id, provider_deployment_id, started_at, finished_at, status, stage, build_mode, error_message, error_code FROM deployment_attempts WHERE project_id = ? ORDER BY started_at DESC, rowid DESC LIMIT 1')
-      .bind(projectId).first<AcceptedDeployment>();
+    return db
+      .prepare(
+        'SELECT id, project_id, provider_deployment_id, started_at, finished_at, status, stage, build_mode, error_message, error_code FROM deployment_attempts WHERE project_id = ? ORDER BY started_at DESC, rowid DESC LIMIT 1'
+      )
+      .bind(projectId)
+      .first<AcceptedDeployment>();
   };
 
   private ensureSchema = async (db: D1Database): Promise<void> => {
@@ -97,49 +123,51 @@ class DeploymentRepository {
           accepted_at TEXT,
           finished_at TEXT,
           duration_ms INTEGER
-        )`,
+        )`
       )
       .run();
     await db
       .prepare(
         `CREATE UNIQUE INDEX IF NOT EXISTS idx_deployment_attempts_flow
-         ON deployment_attempts(flow_id) WHERE flow_id IS NOT NULL`,
+         ON deployment_attempts(flow_id) WHERE flow_id IS NOT NULL`
       )
       .run();
     await db
       .prepare(
         `CREATE INDEX IF NOT EXISTS idx_deployment_attempts_project_started
-         ON deployment_attempts(project_id, started_at DESC)`,
+         ON deployment_attempts(project_id, started_at DESC)`
       )
       .run();
     await db
       .prepare(
         `CREATE INDEX IF NOT EXISTS idx_deployment_attempts_started_status
-         ON deployment_attempts(started_at, status)`,
+         ON deployment_attempts(started_at, status)`
       )
       .run();
-    const columns = await db.prepare('PRAGMA table_info(deployment_attempts)').all<{ name: string }>();
+    const columns = await db
+      .prepare('PRAGMA table_info(deployment_attempts)')
+      .all<{ name: string }>();
     for (const name of ['stage', 'build_mode', 'error_message', 'result_url']) {
-      if (!columns.results.some(column => column.name === name)) {
-        await db.prepare(`ALTER TABLE deployment_attempts ADD COLUMN ${name} TEXT`).run().catch(error => {
-          if (!String(error).includes('duplicate column')) throw error;
-        });
+      if (!columns.results.some((column) => column.name === name)) {
+        await db
+          .prepare(`ALTER TABLE deployment_attempts ADD COLUMN ${name} TEXT`)
+          .run()
+          .catch((error) => {
+            if (!String(error).includes('duplicate column')) throw error;
+          });
       }
     }
     deploymentSchemaEnsured = true;
   };
 
-  createAttempt = async (
-    db: D1Database,
-    input: CreateDeploymentAttemptInput,
-  ): Promise<void> => {
+  createAttempt = async (db: D1Database, input: CreateDeploymentAttemptInput): Promise<void> => {
     await this.ensureSchema(db);
     await db
       .prepare(
         `INSERT INTO deployment_attempts (
           id, project_id, owner_id, flow_id, source_type, client_channel,
           file_extension, payload_bytes, status, started_at, provider_deployment_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'started', ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'started', ?, ?)`
       )
       .bind(
         input.id,
@@ -151,7 +179,7 @@ class DeploymentRepository {
         input.fileExtension ?? null,
         input.payloadBytes ?? null,
         input.startedAt,
-        input.providerDeploymentId ?? null,
+        input.providerDeploymentId ?? null
       )
       .run();
   };
@@ -160,14 +188,14 @@ class DeploymentRepository {
     db: D1Database,
     id: string,
     providerDeploymentId: string,
-    acceptedAt: string,
+    acceptedAt: string
   ): Promise<void> => {
     await this.ensureSchema(db);
     await db
       .prepare(
         `UPDATE deployment_attempts
          SET status = 'accepted', provider_deployment_id = ?, accepted_at = ?
-         WHERE id = ?`,
+         WHERE id = ?`
       )
       .bind(providerDeploymentId, acceptedAt, id)
       .run();
@@ -180,17 +208,54 @@ class DeploymentRepository {
     finishedAt: string,
     durationMs: number,
     errorCode?: string,
-    detail?: { stage?: string; buildMode?: string; errorMessage?: string; projectMetadata?: { url?: string } },
+    detail?: {
+      stage?: string;
+      buildMode?: string;
+      errorMessage?: string;
+      projectMetadata?: { url?: string };
+    }
   ): Promise<void> => {
     await this.ensureSchema(db);
-    await db
-      .prepare(
-        `UPDATE deployment_attempts
-         SET status = ?, finished_at = ?, duration_ms = ?, error_code = ?, stage = ?, build_mode = ?, error_message = ?, result_url = ?
-         WHERE id = ?`,
-      )
-      .bind(status, finishedAt, durationMs, errorCode ?? null, detail?.stage ?? null, detail?.buildMode ?? null, detail?.errorMessage?.slice(0, 2000) ?? null, detail?.projectMetadata?.url ?? null, id)
-      .run();
+    await ensureNotificationSchema(db);
+    const attempt = await db
+      .prepare('SELECT project_id,owner_id FROM deployment_attempts WHERE id=?')
+      .bind(id)
+      .first<{ project_id: string; owner_id: string }>();
+    await db.batch([
+      db
+        .prepare(
+          `UPDATE deployment_attempts SET status=?,finished_at=?,duration_ms=?,error_code=?,stage=?,build_mode=?,error_message=?,result_url=? WHERE id=? AND status IN ('started','accepted')`
+        )
+        .bind(
+          status,
+          finishedAt,
+          durationMs,
+          errorCode ?? null,
+          detail?.stage ?? null,
+          detail?.buildMode ?? null,
+          detail?.errorMessage?.slice(0, 2000) ?? null,
+          detail?.projectMetadata?.url ?? null,
+          id
+        ),
+      ...(attempt && status !== 'rejected'
+        ? [
+            notificationStatement(
+              db,
+              {
+                key: 'deployment:' + id + ':' + status,
+                actorId: null,
+                recipientId: attempt.owner_id,
+                kind: status === 'succeeded' ? 'deployment_success' : 'deployment_failure',
+                subjectId: attempt.project_id,
+                groupKey: 'deployment:' + id,
+                priority: status === 'succeeded' ? 'normal' : 'important',
+              },
+              'EXISTS(SELECT 1 FROM deployment_attempts WHERE id=? AND status=? AND finished_at=?)',
+              [id, status, finishedAt]
+            ),
+          ]
+        : []),
+    ]);
   };
 
   finishAttemptByFlow = async (
@@ -199,19 +264,24 @@ class DeploymentRepository {
     flowId: string,
     status: Extract<DeploymentAttemptStatus, 'succeeded' | 'failed'>,
     finishedAt: string,
-    errorCode?: string,
+    errorCode?: string
   ): Promise<void> => {
     await this.ensureSchema(db);
-    await db
+    const attempts = await db
       .prepare(
-        `UPDATE deployment_attempts
-         SET status = ?, finished_at = ?,
-             duration_ms = CAST((julianday(?) - julianday(started_at))*86400000 AS INTEGER),
-             error_code = ?
-         WHERE project_id = ? AND flow_id = ? AND status IN ('started','accepted')`,
+        "SELECT id,started_at FROM deployment_attempts WHERE project_id=? AND flow_id=? AND status IN ('started','accepted')"
       )
-      .bind(status, finishedAt, finishedAt, errorCode ?? null, projectId, flowId)
-      .run();
+      .bind(projectId, flowId)
+      .all<{ id: string; started_at: string }>();
+    for (const attempt of attempts.results ?? [])
+      await this.finishAttempt(
+        db,
+        attempt.id,
+        status,
+        finishedAt,
+        Date.parse(finishedAt) - Date.parse(attempt.started_at),
+        errorCode
+      );
   };
 }
 

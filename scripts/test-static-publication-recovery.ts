@@ -28,20 +28,24 @@ const bundle = await build({ stdin: { resolveDir: process.cwd(), contents: `
         };
       }});
       const database = env.PROJECTS_DB;
+      const statementSql = new WeakMap();
+      const isCompletion = sql => sql.includes('UPDATE deployment_attempts') && sql.includes('SET status') && sql.includes('finished_at');
+      const failCompletion = async () => { if (await env.FAULTS.get('finish')) { await env.FAULTS.delete('finish'); throw new Error('Completion database temporarily unavailable'); } };
       env.PROJECTS_DB = new Proxy(database, {get(target, name) {
+        if (name === 'batch') return async statements => { if (statements.some(statement => isCompletion(statementSql.get(statement) || ''))) await failCompletion(); return target.batch(statements); };
         if (name !== 'prepare') { const member = Reflect.get(target,name); return typeof member === 'function' ? member.bind(target) : member; }
         return sql => {
-          const wrap = statement => new Proxy(statement, {get(target,name) {
+          const wrap = statement => { const proxy = new Proxy(statement, {get(target,name) {
             const member = Reflect.get(target,name);
             if (name === 'bind') return (...args) => wrap(member.apply(target,args));
             if (name === 'run') return async (...args) => {
-              if (sql.includes('SET status = ?, finished_at') && await env.FAULTS.get('finish')) {
+              if (isCompletion(sql) && await env.FAULTS.get('finish')) {
                 await env.FAULTS.delete('finish'); throw new Error('Completion database temporarily unavailable');
               }
               return member.apply(target,args);
             };
             return typeof member === 'function' ? member.bind(target) : member;
-          }});
+          }}); statementSql.set(proxy,sql); return proxy; };
           return wrap(target.prepare(sql));
         };
       }});

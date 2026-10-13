@@ -37,22 +37,44 @@ const openDesktopOAuth = (url: string): boolean => {
 // Manager for auth-related actions. State is kept in the auth store; this
 // class only coordinates side-effects and updates the store.
 export class AuthManager {
+  beforeLogout?: () => Promise<void>;
+  private sessionGeneration = 0;
+  constructor() {
+    const refresh = () => { useAuthStore.setState({user:null}); void this.loadCurrentUser(); };
+    window.addEventListener('gemigo-session-refresh',refresh);
+    if ('BroadcastChannel' in window) {
+      const channel = new BroadcastChannel('gemigo-session');
+      let receiving = false;
+      useAuthStore.subscribe((state,previous) => {
+        if (!receiving && state.user?.id !== previous.user?.id) channel.postMessage({id:state.user?.id??null});
+      });
+      channel.onmessage = event => {
+        if (event.data?.id === (useAuthStore.getState().user?.id??null)) return;
+        receiving = true;
+        useAuthStore.setState({user:null});
+        void this.loadCurrentUser().finally(() => { receiving = false; });
+      };
+    }
+  }
   // -------------------
   // Session / identity
   // -------------------
 
   loadCurrentUser = async (includeProjects = false): Promise<{ user: User | null; projects?: PaginatedResponse<Project> } | null> => {
+    const generation = ++this.sessionGeneration;
     useAuthStore.setState({ isLoading: true, error: null });
     try {
       const res = await fetch(`${API_BASE}/me${includeProjects ? '?include=projects' : ''}`, {
         credentials: 'include',
       });
+      if (generation !== this.sessionGeneration) return null;
       if (!res.ok) {
         // Treat non-OK as "not logged in" for now.
         useAuthStore.setState({ user: null, isLoading: false });
         return null;
       }
       const data = (await res.json()) as { user: User | null; projects?: PaginatedResponse<Project> };
+      if (generation !== this.sessionGeneration) return null;
       useAuthStore.setState({
         user: data.user ?? null,
         isLoading: false,
@@ -60,6 +82,7 @@ export class AuthManager {
       });
       return data;
     } catch (err) {
+      if (generation !== this.sessionGeneration) return null;
       console.error('Failed to load current user', err);
       useAuthStore.setState({
         user: null,
@@ -132,7 +155,9 @@ export class AuthManager {
   };
 
   logout = async (): Promise<void> => {
+    ++this.sessionGeneration;
     try {
+      await this.beforeLogout?.().catch(() => undefined);
       await fetch(`${API_BASE}/logout`, {
         method: 'POST',
         credentials: 'include',

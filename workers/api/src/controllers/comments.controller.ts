@@ -9,11 +9,7 @@ import { commentService } from '../services/comment.service';
 
 type Viewer = { userId: string; isAdmin: boolean } | null;
 
-async function resolveViewer(
-  request: Request,
-  env: ApiWorkerEnv,
-  db: D1Database,
-): Promise<Viewer> {
+async function resolveViewer(request: Request, env: ApiWorkerEnv, db: D1Database): Promise<Viewer> {
   const sessionId = getSessionIdFromRequest(request);
   if (!sessionId) return null;
 
@@ -30,13 +26,13 @@ class CommentsController {
     request: Request,
     env: ApiWorkerEnv,
     db: D1Database,
-    projectId: string,
+    projectId: string
   ): Promise<Response> {
     const url = new URL(request.url);
     const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
     const pageSize = Math.min(
       50,
-      Math.max(1, parseInt(url.searchParams.get('pageSize') || '20', 10)),
+      Math.max(1, parseInt(url.searchParams.get('pageSize') || '20', 10))
     );
 
     const viewer = await resolveViewer(request, env, db);
@@ -53,7 +49,7 @@ class CommentsController {
     request: Request,
     env: ApiWorkerEnv,
     db: D1Database,
-    projectId: string,
+    projectId: string
   ): Promise<Response> {
     const viewer = await resolveViewer(request, env, db);
     if (!viewer) {
@@ -62,18 +58,20 @@ class CommentsController {
 
     const body = await readJson(request);
     const content = validateRequiredString(body.content, 'content');
-    const replyToCommentId =
-      validateOptionalString(body.replyToCommentId) ?? null;
+    const replyToCommentId = validateOptionalString(body.replyToCommentId) ?? null;
 
     if (replyToCommentId && replyToCommentId.length > 128) {
       throw new ValidationError('replyToCommentId is invalid');
     }
 
+    if (body.submissionId && !/^[0-9a-f-]{36}$/i.test(String(body.submissionId)))
+      throw new ValidationError('submissionId is invalid');
     const comment = await commentService.createProjectComment(db, projectId, {
       userId: viewer.userId,
       isAdmin: viewer.isAdmin,
       content,
       replyToCommentId,
+      submissionId: validateOptionalString(body.submissionId) ?? undefined,
     });
     return jsonResponse({ comment });
   }
@@ -83,7 +81,7 @@ class CommentsController {
     request: Request,
     env: ApiWorkerEnv,
     db: D1Database,
-    commentId: string,
+    commentId: string
   ): Promise<Response> {
     const viewer = await resolveViewer(request, env, db);
     if (!viewer) {
@@ -96,4 +94,3 @@ class CommentsController {
 }
 
 export const commentsController = new CommentsController();
-

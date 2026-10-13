@@ -215,6 +215,9 @@ importers:
 
   frontend:
     dependencies:
+      '@gemigo/notifications':
+        specifier: workspace:*
+        version: link:../packages/notifications
       '@gemigo/product-analytics':
         specifier: workspace:*
         version: link:../packages/product-analytics
@@ -317,6 +320,15 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  packages/notifications:
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20250109.0
+        version: 4.20251205.0
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+
   packages/product-analytics:
     devDependencies:
       '@cloudflare/workers-types':
@@ -362,6 +374,9 @@ importers:
 
   workers/admin:
     dependencies:
+      '@gemigo/notifications':
+        specifier: workspace:*
+        version: link:../../packages/notifications
       '@gemigo/product-analytics':
         specifier: workspace:*
         version: link:../../packages/product-analytics
@@ -381,6 +396,9 @@ importers:
       '@gemigo/deployment-assets':
         specifier: workspace:*
         version: link:../../packages/deployment-assets
+      '@gemigo/notifications':
+        specifier: workspace:*
+        version: link:../../packages/notifications
       '@gemigo/product-analytics':
         specifier: workspace:*
         version: link:../../packages/product-analytics

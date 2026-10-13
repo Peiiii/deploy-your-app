@@ -1,3 +1,6 @@
+import { useAuthStore } from '@/features/auth/stores/auth.store';
+import i18n from '@/i18n/config';
+import { NotificationsManager } from '@/features/notifications/managers/notifications.manager';
 import { DeploymentManager } from '@/features/deployment/managers/deployment.manager';
 import { ProjectManager } from './managers/project.manager';
 import { UIManager } from './managers/ui.manager';
@@ -28,6 +31,7 @@ export class Presenter {
   publicProfile: PublicProfileManager;
   explore: ExploreManager;
   community: CommunityManager;
+  notifications: NotificationsManager;
 
   constructor() {
     // 1. Get Providers via Factory (Configuration driven)
@@ -39,26 +43,31 @@ export class Presenter {
     // 2. Initialize Managers with dependencies
     this.ui = new UIManager();
     this.project = new ProjectManager(projectProvider);
-    this.deployment = new DeploymentManager(
-      deploymentProvider,
-      this.project,
-    );
+    this.deployment = new DeploymentManager(deploymentProvider, this.project);
     this.auth = new AuthManager();
     this.analytics = new AnalyticsManager(analyticsProvider);
-    this.reaction = new ReactionManager(reactionProvider);
+    this.reaction = new ReactionManager(reactionProvider, () =>
+      this.ui.showToast(i18n.t('common.error'), 'error')
+    );
     this.projectSettings = new ProjectSettingsManager(
       this.project,
       this.deployment,
       this.ui,
       this.auth,
       this.reaction,
-      this.analytics,
+      this.analytics
     );
     this.myProfile = new MyProfileManager(this.auth, this.ui);
     this.dashboard = new DashboardManager(this.ui, this.auth);
     this.publicProfile = new PublicProfileManager(this.auth, this.reaction);
     this.explore = new ExploreManager(this.auth, this.ui, this.reaction);
     this.community = new CommunityManager(this.auth, this.ui);
+    this.notifications = new NotificationsManager();
+    this.auth.beforeLogout = this.notifications.detachDevice;
+    this.notifications.start(useAuthStore.getState().user?.id ?? null);
+    useAuthStore.subscribe((state, previous) => {
+      if (state.user?.id !== previous.user?.id) this.notifications.start(state.user?.id ?? null);
+    });
   }
 }
 

@@ -1,3 +1,9 @@
+import {
+  ensureFeedbackNotificationSource,
+  notificationStatement,
+  revokeSubjectNotifications,
+  revokeCommentNotifications,
+} from '@gemigo/notifications/persistence';
 import { authRepository } from './auth.repository';
 import { FEEDBACK_TEAM_ID } from '../types/community';
 import type {
@@ -38,7 +44,7 @@ interface FeedbackCommentRow {
 let communitySchemaEnsured = false;
 
 class CommunityRepository {
-  private ensureSchema = async (db: D1Database): Promise<void> => {
+  ensureSchema = async (db: D1Database): Promise<void> => {
     if (communitySchemaEnsured) return;
 
     await authRepository.ensureAuthSchema(db);
@@ -119,6 +125,7 @@ class CommunityRepository {
       )
       .run();
 
+    await ensureFeedbackNotificationSource(db);
     communitySchemaEnsured = true;
   };
 
@@ -297,27 +304,45 @@ class CommunityRepository {
 
   updateStatus = async (db: D1Database, postId: string, status: FeedbackStatus): Promise<void> => {
     await this.ensureSchema(db);
-    await db
-      .prepare(
-        `UPDATE community_feedback_posts
-       SET status = ?, updated_at = ?
-       WHERE id = ? AND deleted_at IS NULL`
-      )
-      .bind(status, new Date().toISOString(), postId)
-      .run();
+    const token = crypto.randomUUID();
+    const source = await db
+      .prepare('SELECT user_id FROM community_feedback_posts WHERE id=?')
+      .bind(postId)
+      .first<{ user_id: string }>();
+    await db.batch([
+      db
+        .prepare(
+          'UPDATE community_feedback_posts SET status=?,updated_at=?,notification_version=notification_version+1,notification_mutation=? WHERE id=? AND deleted_at IS NULL AND status<>?'
+        )
+        .bind(status, new Date().toISOString(), token, postId, status),
+      ...(source
+        ? [
+            notificationStatement(
+              db,
+              {
+                key: 'feedback-status:' + token,
+                actorId: 'gemigo-admin-team',
+                recipientId: source.user_id,
+                kind: 'feedback_status',
+                subjectId: postId,
+                groupKey: 'feedback:' + postId,
+                priority: 'important',
+              },
+              'EXISTS(SELECT 1 FROM community_feedback_posts WHERE id=? AND notification_mutation=?)',
+              [postId, token]
+            ),
+          ]
+        : []),
+    ]);
   };
 
   softDeletePost = async (db: D1Database, postId: string): Promise<void> => {
     await this.ensureSchema(db);
     const now = new Date().toISOString();
-    await db
-      .prepare(
-        `UPDATE community_feedback_posts
-       SET deleted_at = ?, updated_at = ?
-       WHERE id = ?`
-      )
-      .bind(now, now, postId)
-      .run();
+    await db.batch([
+      db.prepare('UPDATE community_feedback_posts SET deleted_at=?,updated_at=? WHERE id=?').bind(now,now,postId),
+      revokeSubjectNotifications(db,postId),
+    ]);
   };
 
   listComments = async (db: D1Database, postId: string): Promise<FeedbackComment[]> => {
@@ -350,6 +375,7 @@ class CommunityRepository {
   ): Promise<void> => {
     await this.ensureSchema(db);
     const now = new Date().toISOString();
+    const post = await this.getPostById(db, input.postId);
     await db.batch([
       db
         .prepare(
@@ -365,6 +391,20 @@ class CommunityRepository {
          WHERE id = ? AND deleted_at IS NULL`
         )
         .bind(now, input.postId),
+      ...(post && post.author.id !== input.userId
+        ? [
+            notificationStatement(db, {
+              key: 'feedback-reply:' + input.id,
+              actorId: 'gemigo-admin-team',
+              recipientId: post.author.id,
+              kind: 'feedback_reply',
+              subjectId: input.postId,
+              commentId: input.id,
+              groupKey: 'feedback:' + input.postId,
+              priority: 'important',
+            }),
+          ]
+        : []),
     ]);
   };
 
@@ -413,14 +453,10 @@ class CommunityRepository {
   softDeleteComment = async (db: D1Database, commentId: string): Promise<void> => {
     await this.ensureSchema(db);
     const now = new Date().toISOString();
-    await db
-      .prepare(
-        `UPDATE community_feedback_comments
-       SET deleted_at = ?, updated_at = ?
-       WHERE id = ?`
-      )
-      .bind(now, now, commentId)
-      .run();
+    await db.batch([
+      db.prepare('UPDATE community_feedback_comments SET deleted_at=?,updated_at=? WHERE id=?').bind(now,now,commentId),
+      revokeCommentNotifications(db,commentId),
+    ]);
   };
 }
 

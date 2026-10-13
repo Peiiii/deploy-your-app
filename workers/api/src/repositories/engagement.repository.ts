@@ -1,3 +1,4 @@
+import { ensureNotificationSchema, notificationStatement } from '@gemigo/notifications/persistence';
 type FavoriteRow = {
   project_id: string;
   user_id: string;
@@ -22,14 +23,14 @@ class EngagementRepository {
           user_id TEXT NOT NULL,
           created_at TEXT NOT NULL,
           PRIMARY KEY (project_id, user_id)
-        )`,
+        )`
       )
       .run();
 
     await db
       .prepare(
         `CREATE INDEX IF NOT EXISTS idx_project_likes_project
-         ON project_likes(project_id)`,
+         ON project_likes(project_id)`
       )
       .run();
 
@@ -40,58 +41,84 @@ class EngagementRepository {
           user_id TEXT NOT NULL,
           created_at TEXT NOT NULL,
           PRIMARY KEY (project_id, user_id)
-        )`,
+        )`
       )
       .run();
 
     await db
       .prepare(
         `CREATE INDEX IF NOT EXISTS idx_project_favorites_user
-         ON project_favorites(user_id)`,
+         ON project_favorites(user_id)`
       )
       .run();
 
+    await ensureNotificationSchema(db);
+    try {
+      await db.prepare('ALTER TABLE project_likes ADD COLUMN activation_id TEXT').run();
+    } catch (error) {
+      if (!String(error).includes('duplicate column')) throw error;
+    }
+    try {
+      await db.prepare('ALTER TABLE project_favorites ADD COLUMN activation_id TEXT').run();
+    } catch (error) {
+      if (!String(error).includes('duplicate column')) throw error;
+    }
     engagementSchemaEnsured = true;
   }
 
   // ---- Likes ----
 
-  async likeProject(
-    db: D1Database,
-    projectId: string,
-    userId: string,
-  ): Promise<void> {
+  async likeProject(db: D1Database, projectId: string, userId: string): Promise<void> {
     await this.ensureSchema(db);
-    const now = new Date().toISOString();
-    await db
-      .prepare(
-        `INSERT INTO project_likes (project_id, user_id, created_at)
-         VALUES (?, ?, ?)
-         ON CONFLICT(project_id, user_id) DO NOTHING`,
-      )
-      .bind(projectId, userId, now)
-      .run();
+    const activation = crypto.randomUUID();
+    const project = await db
+      .prepare('SELECT owner_id FROM projects WHERE id=?')
+      .bind(projectId)
+      .first<{ owner_id: string | null }>();
+    const event = project?.owner_id
+      ? notificationStatement(
+          db,
+          {
+            key: 'like:' + activation,
+            actorId: userId,
+            recipientId: project.owner_id,
+            kind: 'like',
+            subjectId: projectId,
+            groupKey: 'like:' + projectId + ':' + new Date().toISOString().slice(0, 10),
+            priority: 'light',
+          },
+          'EXISTS(SELECT 1 FROM project_likes WHERE project_id=? AND user_id=? AND activation_id=?)',
+          [projectId, userId, activation]
+        )
+      : null;
+    await db.batch([
+      db
+        .prepare(
+          'INSERT OR IGNORE INTO project_likes(project_id,user_id,created_at,activation_id) VALUES(?,?,?,?)'
+        )
+        .bind(projectId, userId, new Date().toISOString(), activation),
+      ...(event ? [event] : []),
+    ]);
   }
 
-  async unlikeProject(
-    db: D1Database,
-    projectId: string,
-    userId: string,
-  ): Promise<void> {
+  async unlikeProject(db: D1Database, projectId: string, userId: string): Promise<void> {
     await this.ensureSchema(db);
-    await db
-      .prepare(
-        `DELETE FROM project_likes
-         WHERE project_id = ? AND user_id = ?`,
-      )
-      .bind(projectId, userId)
-      .run();
+    await db.batch([
+      db
+        .prepare(
+          "UPDATE notifications SET revoked_at=? WHERE event_key IN(SELECT 'like:'||activation_id FROM project_likes WHERE project_id=? AND user_id=?)"
+        )
+        .bind(Date.now(), projectId, userId),
+      db
+        .prepare('DELETE FROM project_likes WHERE project_id=? AND user_id=?')
+        .bind(projectId, userId),
+    ]);
   }
 
   async getLikeStatusAndCount(
     db: D1Database,
     projectId: string,
-    userId: string,
+    userId: string
   ): Promise<{ liked: boolean; likesCount: number }> {
     await this.ensureSchema(db);
 
@@ -99,7 +126,7 @@ class EngagementRepository {
       .prepare(
         `SELECT COUNT(*) as cnt
          FROM project_likes
-         WHERE project_id = ?`,
+         WHERE project_id = ?`
       )
       .bind(projectId)
       .first<{ cnt: number }>();
@@ -111,7 +138,7 @@ class EngagementRepository {
         `SELECT 1 as liked
          FROM project_likes
          WHERE project_id = ? AND user_id = ?
-         LIMIT 1`,
+         LIMIT 1`
       )
       .bind(projectId, userId)
       .first<{ liked: number }>();
@@ -123,42 +150,57 @@ class EngagementRepository {
 
   // ---- Favorites ----
 
-  async favoriteProject(
-    db: D1Database,
-    projectId: string,
-    userId: string,
-  ): Promise<void> {
+  async favoriteProject(db: D1Database, projectId: string, userId: string): Promise<void> {
     await this.ensureSchema(db);
-    const now = new Date().toISOString();
-    await db
-      .prepare(
-        `INSERT INTO project_favorites (project_id, user_id, created_at)
-         VALUES (?, ?, ?)
-         ON CONFLICT(project_id, user_id) DO NOTHING`,
-      )
-      .bind(projectId, userId, now)
-      .run();
+    const activation = crypto.randomUUID();
+    const project = await db
+      .prepare('SELECT owner_id FROM projects WHERE id=?')
+      .bind(projectId)
+      .first<{ owner_id: string | null }>();
+    const event = project?.owner_id
+      ? notificationStatement(
+          db,
+          {
+            key: 'favorite:' + activation,
+            actorId: userId,
+            recipientId: project.owner_id,
+            kind: 'favorite',
+            subjectId: projectId,
+            groupKey: 'favorite:' + projectId + ':' + new Date().toISOString().slice(0, 10),
+            priority: 'light',
+          },
+          'EXISTS(SELECT 1 FROM project_favorites WHERE project_id=? AND user_id=? AND activation_id=?)',
+          [projectId, userId, activation]
+        )
+      : null;
+    await db.batch([
+      db
+        .prepare(
+          'INSERT OR IGNORE INTO project_favorites(project_id,user_id,created_at,activation_id) VALUES(?,?,?,?)'
+        )
+        .bind(projectId, userId, new Date().toISOString(), activation),
+      ...(event ? [event] : []),
+    ]);
   }
 
-  async unfavoriteProject(
-    db: D1Database,
-    projectId: string,
-    userId: string,
-  ): Promise<void> {
+  async unfavoriteProject(db: D1Database, projectId: string, userId: string): Promise<void> {
     await this.ensureSchema(db);
-    await db
-      .prepare(
-        `DELETE FROM project_favorites
-         WHERE project_id = ? AND user_id = ?`,
-      )
-      .bind(projectId, userId)
-      .run();
+    await db.batch([
+      db
+        .prepare(
+          "UPDATE notifications SET revoked_at=? WHERE event_key IN(SELECT 'favorite:'||activation_id FROM project_favorites WHERE project_id=? AND user_id=?)"
+        )
+        .bind(Date.now(), projectId, userId),
+      db
+        .prepare('DELETE FROM project_favorites WHERE project_id=? AND user_id=?')
+        .bind(projectId, userId),
+    ]);
   }
 
   async getFavoriteStatus(
     db: D1Database,
     projectId: string,
-    userId: string,
+    userId: string
   ): Promise<{ favorited: boolean }> {
     await this.ensureSchema(db);
     const row = await db
@@ -166,7 +208,7 @@ class EngagementRepository {
         `SELECT 1 as favorited
          FROM project_favorites
          WHERE project_id = ? AND user_id = ?
-         LIMIT 1`,
+         LIMIT 1`
       )
       .bind(projectId, userId)
       .first<{ favorited: number }>();
@@ -177,7 +219,7 @@ class EngagementRepository {
   async getFavoriteStatusAndCount(
     db: D1Database,
     projectId: string,
-    userId: string,
+    userId: string
   ): Promise<{ favorited: boolean; favoritesCount: number }> {
     await this.ensureSchema(db);
 
@@ -185,7 +227,7 @@ class EngagementRepository {
       .prepare(
         `SELECT COUNT(*) as cnt
          FROM project_favorites
-         WHERE project_id = ?`,
+         WHERE project_id = ?`
       )
       .bind(projectId)
       .first<{ cnt: number }>();
@@ -200,17 +242,14 @@ class EngagementRepository {
     };
   }
 
-  async getFavoriteProjectIdsForUser(
-    db: D1Database,
-    userId: string,
-  ): Promise<string[]> {
+  async getFavoriteProjectIdsForUser(db: D1Database, userId: string): Promise<string[]> {
     await this.ensureSchema(db);
     const result = await db
       .prepare(
         `SELECT project_id
          FROM project_favorites
          WHERE user_id = ?
-         ORDER BY created_at DESC`,
+         ORDER BY created_at DESC`
       )
       .bind(userId)
       .all<FavoriteRow>();
@@ -224,7 +263,7 @@ class EngagementRepository {
    */
   async getEngagementCountsForProjects(
     db: D1Database,
-    projectIds: string[],
+    projectIds: string[]
   ): Promise<Record<string, { likesCount: number; favoritesCount: number }>> {
     await this.ensureSchema(db);
 
@@ -251,7 +290,7 @@ class EngagementRepository {
             `SELECT project_id, COUNT(*) as cnt
              FROM project_likes
              WHERE project_id IN (${placeholders})
-             GROUP BY project_id`,
+             GROUP BY project_id`
           )
           .bind(...batch)
           .all<CountRow>(),
@@ -260,7 +299,7 @@ class EngagementRepository {
             `SELECT project_id, COUNT(*) as cnt
              FROM project_favorites
              WHERE project_id IN (${placeholders})
-             GROUP BY project_id`,
+             GROUP BY project_id`
           )
           .bind(...batch)
           .all<CountRow>(),
@@ -285,19 +324,10 @@ class EngagementRepository {
     return map;
   }
 
-  async deleteEngagementForProject(
-    db: D1Database,
-    projectId: string,
-  ): Promise<void> {
+  async deleteEngagementForProject(db: D1Database, projectId: string): Promise<void> {
     await this.ensureSchema(db);
-    await db
-      .prepare(`DELETE FROM project_likes WHERE project_id = ?`)
-      .bind(projectId)
-      .run();
-    await db
-      .prepare(`DELETE FROM project_favorites WHERE project_id = ?`)
-      .bind(projectId)
-      .run();
+    await db.prepare(`DELETE FROM project_likes WHERE project_id = ?`).bind(projectId).run();
+    await db.prepare(`DELETE FROM project_favorites WHERE project_id = ?`).bind(projectId).run();
   }
 }
 

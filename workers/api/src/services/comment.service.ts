@@ -1,26 +1,18 @@
+import { notificationStatement } from '@gemigo/notifications/persistence';
 import { commentRepository } from '../repositories/comment.repository';
 import { projectService } from './project.service';
-import {
-  NotFoundError,
-  RateLimitError,
-  ValidationError,
-} from '../utils/error-handler';
+import { NotFoundError, RateLimitError, ValidationError } from '../utils/error-handler';
 import type { ProjectComment } from '../types/comment';
 
-type ViewerContext =
-  | {
-      userId: string;
-      isAdmin: boolean;
-    }
-  | null;
+type ViewerContext = {
+  userId: string;
+  isAdmin: boolean;
+} | null;
 
 const MAX_COMMENT_LENGTH = 500;
 const MIN_SECONDS_BETWEEN_COMMENTS = 2;
 
-function applyViewerPermissions(
-  comment: ProjectComment,
-  viewer: ViewerContext,
-): ProjectComment {
+function applyViewerPermissions(comment: ProjectComment, viewer: ViewerContext): ProjectComment {
   if (!viewer) {
     return { ...comment, canDelete: false };
   }
@@ -34,7 +26,7 @@ class CommentService {
   async listProjectComments(
     db: D1Database,
     projectId: string,
-    input: { page: number; pageSize: number; viewer: ViewerContext },
+    input: { page: number; pageSize: number; viewer: ViewerContext }
   ): Promise<{
     items: ProjectComment[];
     page: number;
@@ -46,6 +38,8 @@ class CommentService {
       throw new NotFoundError('Project not found');
     }
 
+    if (!project.isPublic && input.viewer?.userId !== project.ownerId && !input.viewer?.isAdmin)
+      throw new NotFoundError('Project not found');
     const page = Math.max(1, input.page);
     const pageSize = Math.min(50, Math.max(1, input.pageSize));
     const offset = (page - 1) * pageSize;
@@ -74,58 +68,98 @@ class CommentService {
       isAdmin: boolean;
       content: string;
       replyToCommentId: string | null;
-    },
+      submissionId?: string;
+    }
   ): Promise<ProjectComment> {
     const project = await projectService.getProjectById(db, projectId);
     if (!project) {
       throw new NotFoundError('Project not found');
     }
 
+    if (!project.isPublic && input.userId !== project.ownerId && !input.isAdmin)
+      throw new NotFoundError('Project not found');
     const content = input.content.trim();
     if (!content) {
       throw new ValidationError('content cannot be empty');
     }
     if (content.length > MAX_COMMENT_LENGTH) {
-      throw new ValidationError(
-        `content must be at most ${MAX_COMMENT_LENGTH} characters`,
-      );
+      throw new ValidationError(`content must be at most ${MAX_COMMENT_LENGTH} characters`);
     }
 
-    const latest = await commentRepository.getLatestCommentTimestampForUser(
-      db,
-      input.userId,
-    );
+    const replay = async () => {
+      if (!input.submissionId) return null;
+      const prior = await commentRepository.getSubmission(db,input.submissionId);
+      if (!prior) return null;
+      if (prior.user_id!==input.userId || prior.project_id!==projectId || prior.content!==content || prior.reply_to_comment_id!==(input.replyToCommentId??null)) throw new ValidationError('Submission ID conflict');
+      if (prior.deleted_at) throw new NotFoundError('Comment has been deleted');
+      const comment = await commentRepository.getCommentById(db,input.submissionId);
+      return comment ? applyViewerPermissions(comment,{userId:input.userId,isAdmin:input.isAdmin}) : null;
+    };
+    const prior = await replay();
+    if (prior) return prior;
+    const latest = await commentRepository.getLatestCommentTimestampForUser(db, input.userId);
     if (latest) {
       const latestMs = Date.parse(latest);
       if (Number.isFinite(latestMs)) {
         const secondsSince = (Date.now() - latestMs) / 1000;
         if (secondsSince < MIN_SECONDS_BETWEEN_COMMENTS) {
+          const concurrent = await replay();
+          if (concurrent) return concurrent;
           throw new RateLimitError('Please wait before posting again.');
         }
       }
     }
 
     let replyToCommentId: string | null = null;
+    let replyRecipient: string | null = null;
     if (input.replyToCommentId) {
-      const target = await commentRepository.findCommentForReplyValidation(
-        db,
-        { commentId: input.replyToCommentId, projectId },
-      );
+      const target = await commentRepository.findCommentForReplyValidation(db, {
+        commentId: input.replyToCommentId,
+        projectId,
+      });
       if (!target) {
         throw new ValidationError('replyToCommentId is invalid');
       }
       replyToCommentId = input.replyToCommentId;
+      replyRecipient = target.userId;
     }
 
-    const id = crypto.randomUUID();
+    const id = input.submissionId ?? crypto.randomUUID();
+    const targets = new Map<
+      string,
+      { kind: 'comment' | 'reply'; priority: 'important' | 'normal' }
+    >();
+    if (project.ownerId)
+      targets.set(project.ownerId, {
+        kind: replyToCommentId ? 'reply' : 'comment',
+        priority: replyToCommentId ? 'normal' : 'important',
+      });
+    if (replyRecipient) targets.set(replyRecipient, { kind: 'reply', priority: 'important' });
+    const notifications = [...targets]
+      .filter(([recipient]) => recipient !== input.userId)
+      .map(([recipient, rule]) =>
+        notificationStatement(db, {
+          key: 'comment:' + id,
+          actorId: input.userId,
+          recipientId: recipient,
+          kind: rule.kind,
+          priority: rule.priority,
+          subjectId: projectId,
+          commentId: id,
+          groupKey: replyToCommentId ? 'replies:' + replyToCommentId : 'comment:' + id,
+        }, 'EXISTS(SELECT 1 FROM project_comments WHERE id=? AND project_id=? AND user_id=? AND content=? AND reply_to_comment_id IS ? AND deleted_at IS NULL)', [id,projectId,input.userId,content,replyToCommentId])
+      );
     await commentRepository.insertComment(db, {
       id,
       projectId,
       userId: input.userId,
       content,
       replyToCommentId,
+      notifications,
     });
 
+    const completedReplay = await replay();
+    if (completedReplay) return completedReplay;
     const comment = await commentRepository.getCommentById(db, id);
     if (!comment) {
       throw new Error('Failed to create comment');
@@ -140,7 +174,7 @@ class CommentService {
   async deleteComment(
     db: D1Database,
     commentId: string,
-    input: { userId: string; isAdmin: boolean },
+    input: { userId: string; isAdmin: boolean }
   ): Promise<void> {
     const owner = await commentRepository.getCommentOwner(db, commentId);
     if (!owner) {
@@ -154,4 +188,3 @@ class CommentService {
 }
 
 export const commentService = new CommentService();
-

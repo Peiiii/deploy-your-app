@@ -1,7 +1,8 @@
+import { notificationReceipt } from '@/features/notifications/managers/notifications.manager';
 import { ProjectSettingsSkeleton } from '@/features/project-settings/components/project-settings-skeleton';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
 import { ProjectSettingsCard } from '@/features/project-settings/components/project-settings-card';
 import { URLS } from '@/constants';
 import { usePresenter } from '@/contexts/presenter-context';
@@ -20,6 +21,8 @@ export const ProjectSettings: React.FC = () => {
   const [retry, setRetry] = useState(0);
   const params = useParams<{ id: string }>();
   const projectId = params.id ?? null;
+  const location = useLocation();
+  const [query] = useSearchParams();
 
   // Subscribe to error from settings store
   const error = useProjectSettingsStore((s) => s.error);
@@ -44,6 +47,12 @@ export const ProjectSettings: React.FC = () => {
       presenter.projectSettings.initializeForm(project);
     }
   }, [project, presenter.projectSettings]);
+
+  useEffect(() => {
+    if (!project || !user) return;
+    const receipt = notificationReceipt(location.state,query);
+    if (receipt) void presenter.notifications.read(receipt.groupKey,receipt.throughSeq).catch(() => undefined);
+  }, [project,user,location.state,query,presenter]);
 
   // Load reactions once the project is available.
   useEffect(() => {

@@ -6,18 +6,12 @@ import { projectService } from '../services/project.service';
 import { engagementService } from '../services/engagement.service';
 
 class EngagementController {
-  private async requireUser(
-    request: Request,
-    db: D1Database,
-  ): Promise<{ userId: string }> {
+  private async requireUser(request: Request, db: D1Database): Promise<{ userId: string }> {
     const sessionId = getSessionIdFromRequest(request);
     if (!sessionId) {
       throw new UnauthorizedError('Login required.');
     }
-    const sessionWithUser = await authRepository.getSessionWithUser(
-      db,
-      sessionId,
-    );
+    const sessionWithUser = await authRepository.getSessionWithUser(db, sessionId);
     if (!sessionWithUser) {
       throw new UnauthorizedError('Login required.');
     }
@@ -28,26 +22,19 @@ class EngagementController {
   async getReactionsForProject(
     request: Request,
     db: D1Database,
-    projectId: string,
+    projectId: string
   ): Promise<Response> {
     const { userId } = await this.requireUser(request, db);
     const project = await projectService.getProjectById(db, projectId);
     if (!project) {
       throw new ValidationError('Project not found');
     }
-    const reactions = await engagementService.getReactionsForProject(
-      db,
-      projectId,
-      userId,
-    );
+    const reactions = await engagementService.getReactionsForProject(db, projectId, userId);
     return jsonResponse(reactions);
   }
 
   // GET /api/v1/projects/reactions?ids=1,2,3
-  async getReactionsForProjectsBulk(
-    request: Request,
-    db: D1Database,
-  ): Promise<Response> {
+  async getReactionsForProjectsBulk(request: Request, db: D1Database): Promise<Response> {
     const { userId } = await this.requireUser(request, db);
     const url = new URL(request.url);
     const idsParam = url.searchParams.get('ids');
@@ -66,26 +53,19 @@ class EngagementController {
       return jsonResponse({});
     }
 
-    const result: Record<string, Awaited<
-      ReturnType<typeof engagementService.getReactionsForProject>
-    >> = {};
+    const result: Record<
+      string,
+      Awaited<ReturnType<typeof engagementService.getReactionsForProject>>
+    > = {};
 
     for (const projectId of uniqueIds) {
       try {
-        const reactions = await engagementService.getReactionsForProject(
-          db,
-          projectId,
-          userId,
-        );
+        const reactions = await engagementService.getReactionsForProject(db, projectId, userId);
         result[projectId] = reactions;
       } catch (error) {
         // Swallow errors for individual projects so that one bad ID
         // doesn't break the whole batch.
-        console.error(
-          'Failed to load reactions for project in bulk call',
-          projectId,
-          error,
-        );
+        console.error('Failed to load reactions for project in bulk call', projectId, error);
       }
     }
 
@@ -93,93 +73,61 @@ class EngagementController {
   }
 
   // POST /api/v1/projects/:id/like
-  async likeProject(
-    request: Request,
-    db: D1Database,
-    projectId: string,
-  ): Promise<Response> {
+  async likeProject(request: Request, db: D1Database, projectId: string): Promise<Response> {
     const { userId } = await this.requireUser(request, db);
     const project = await projectService.getProjectById(db, projectId);
     if (!project) {
       throw new ValidationError('Project not found');
     }
-    const reactions = await engagementService.setLike(
-      db,
-      projectId,
-      userId,
-      true,
-    );
+    if (!project.isPublic && project.ownerId !== userId)
+      throw new ValidationError('Project not found');
+    const reactions = await engagementService.setLike(db, projectId, userId, true);
     return jsonResponse(reactions);
   }
 
   // DELETE /api/v1/projects/:id/like
-  async unlikeProject(
-    request: Request,
-    db: D1Database,
-    projectId: string,
-  ): Promise<Response> {
+  async unlikeProject(request: Request, db: D1Database, projectId: string): Promise<Response> {
     const { userId } = await this.requireUser(request, db);
     const project = await projectService.getProjectById(db, projectId);
     if (!project) {
       throw new ValidationError('Project not found');
     }
-    const reactions = await engagementService.setLike(
-      db,
-      projectId,
-      userId,
-      false,
-    );
+    if (!project.isPublic && project.ownerId !== userId)
+      throw new ValidationError('Project not found');
+    const reactions = await engagementService.setLike(db, projectId, userId, false);
     return jsonResponse(reactions);
   }
 
   // POST /api/v1/projects/:id/favorite
-  async favoriteProject(
-    request: Request,
-    db: D1Database,
-    projectId: string,
-  ): Promise<Response> {
+  async favoriteProject(request: Request, db: D1Database, projectId: string): Promise<Response> {
     const { userId } = await this.requireUser(request, db);
     const project = await projectService.getProjectById(db, projectId);
     if (!project) {
       throw new ValidationError('Project not found');
     }
-    const reactions = await engagementService.setFavorite(
-      db,
-      projectId,
-      userId,
-      true,
-    );
+    if (!project.isPublic && project.ownerId !== userId)
+      throw new ValidationError('Project not found');
+    const reactions = await engagementService.setFavorite(db, projectId, userId, true);
     return jsonResponse(reactions);
   }
 
   // DELETE /api/v1/projects/:id/favorite
-  async unfavoriteProject(
-    request: Request,
-    db: D1Database,
-    projectId: string,
-  ): Promise<Response> {
+  async unfavoriteProject(request: Request, db: D1Database, projectId: string): Promise<Response> {
     const { userId } = await this.requireUser(request, db);
     const project = await projectService.getProjectById(db, projectId);
     if (!project) {
       throw new ValidationError('Project not found');
     }
-    const reactions = await engagementService.setFavorite(
-      db,
-      projectId,
-      userId,
-      false,
-    );
+    if (!project.isPublic && project.ownerId !== userId)
+      throw new ValidationError('Project not found');
+    const reactions = await engagementService.setFavorite(db, projectId, userId, false);
     return jsonResponse(reactions);
   }
 
   // GET /api/v1/me/favorites
-  async listFavoritesForCurrentUser(
-    request: Request,
-    db: D1Database,
-  ): Promise<Response> {
+  async listFavoritesForCurrentUser(request: Request, db: D1Database): Promise<Response> {
     const { userId } = await this.requireUser(request, db);
-    const projectIds =
-      await engagementService.getFavoriteProjectIdsForUser(db, userId);
+    const projectIds = await engagementService.getFavoriteProjectIdsForUser(db, userId);
     return jsonResponse({ projectIds });
   }
 }

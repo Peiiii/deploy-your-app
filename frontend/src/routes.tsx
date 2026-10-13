@@ -1,3 +1,8 @@
+import { DiscussionPage } from '@/features/notifications/pages/discussion-page';
+import { LibraryPage } from '@/features/notifications/pages/library-page';
+import { useSearchParams } from 'react-router-dom';
+import { NotificationsPage } from '@/features/notifications/pages/notifications-page';
+import { NotificationSettings } from '@/features/notifications/pages/notification-settings';
 import { WalletPage } from '@/features/points/points-pages';
 import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
@@ -21,6 +26,17 @@ const AdminRedirect = () => {
   return <a href="https://admin.gemigo.io">GemiGo Admin ↗</a>;
 };
 
+const ProfileEntry = () => {
+  const [query] = useSearchParams();
+  return ['favorites', 'following', 'followers', 'publications'].includes(
+    query.get('tab') ?? ''
+  ) ? (
+    <LibraryPage />
+  ) : (
+    <MyProfile />
+  );
+};
+
 export const AppRoutes = () => (
     <Routes>
         <Route path="/" element={<Home />} />
@@ -32,12 +48,15 @@ export const AppRoutes = () => (
         <Route path="/guides/publish-zip" element={<PublicInfo />} />
         <Route path="/catalog" element={<PublicCatalog />} />
         <Route path="/explore" element={<ExploreApps />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/notifications/settings" element={<NotificationSettings />} />
+        <Route path="/apps/:id/discussion" element={<DiscussionPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/projects/:id" element={<ProjectSettings />} />
         <Route path="/admin" element={<AdminRedirect />} />
         <Route path="/admin/projects" element={<AdminProjectsPage />} />
         <Route path="/design/branding" element={<BrandingDesignPage />} />
-        <Route path="/me" element={<MyProfile />} />
+        <Route path="/me" element={<ProfileEntry />} />
         <Route path="/u/:id" element={<PublicProfile />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />

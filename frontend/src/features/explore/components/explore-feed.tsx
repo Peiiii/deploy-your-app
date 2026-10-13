@@ -322,39 +322,46 @@ const FeedItem: React.FC<FeedItemProps> = ({ app, isRendered, isActive, onEnterS
         setCommentsError(null);
     };
 
-    const handleAddComment = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const content = newComment.trim();
-        if (!content) return;
+  const commentSubmission = useRef<{ key: string; id: string } | null>(null);
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const content = newComment.trim();
+    if (!content) return;
 
-        const user = presenter.auth.getCurrentUser();
-        if (!user) {
-            presenter.auth.openAuthModal('login');
-            return;
-        }
+    const user = presenter.auth.getCurrentUser();
+    if (!user) {
+      presenter.auth.openAuthModal('login');
+      return;
+    }
 
-        setIsSubmittingComment(true);
-        setCommentsError(null);
-        try {
-            const created = await createProjectComment(app.id, {
-                content,
-                replyToCommentId: replyTo?.id ?? null,
-            });
-            setComments((prev) => [created, ...prev]);
-            setCommentsTotal((prev) => prev + 1);
-            setNewComment('');
-            setReplyTo(null);
-        } catch (err) {
-            console.error('Failed to create comment', err);
-            if (err instanceof Error && err.message === 'unauthorized') {
-                presenter.auth.openAuthModal('login');
-                return;
-            }
-            setCommentsError(err instanceof Error ? err.message : 'Failed to create comment');
-        } finally {
-            setIsSubmittingComment(false);
-        }
-    };
+    if (isSubmittingComment) return;
+    const key = JSON.stringify([app.id, content, replyTo?.id ?? null]);
+    if (commentSubmission.current?.key !== key)
+      commentSubmission.current = { key, id: crypto.randomUUID() };
+    setIsSubmittingComment(true);
+    setCommentsError(null);
+    try {
+      const created = await createProjectComment(app.id, {
+        content,
+        replyToCommentId: replyTo?.id ?? null,
+        submissionId: commentSubmission.current!.id,
+      });
+      commentSubmission.current = null;
+      setComments((prev) => [created, ...prev]);
+      setCommentsTotal((prev) => prev + 1);
+      setNewComment('');
+      setReplyTo(null);
+    } catch (err) {
+      console.error('Failed to create comment', err);
+      if (err instanceof Error && err.message === 'unauthorized') {
+        presenter.auth.openAuthModal('login');
+        return;
+      }
+      setCommentsError(err instanceof Error ? err.message : 'Failed to create comment');
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
 
     const handleDeleteComment = async (commentId: string) => {
         setCommentsError(null);

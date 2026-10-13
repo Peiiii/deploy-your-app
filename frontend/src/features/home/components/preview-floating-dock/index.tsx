@@ -1,4 +1,5 @@
 import { FloatingDock, FloatingDockAction, FloatingDockDivider } from '@/components/floating-dock';
+import { ActionCount } from '@/components/action-count';
 import React, { useId, useState } from 'react';
 import {
   ExternalLink,
@@ -34,6 +35,7 @@ interface PreviewFloatingDockProps {
   onToggleFullscreen: () => void;
   onOpenComments: () => void;
   commentsOpen: boolean;
+  commentsCount?: number;
   commentsPanelId: string;
   commentsButtonRef: React.RefObject<HTMLButtonElement | null>;
   onOpenSettings: () => void;
@@ -65,6 +67,7 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
   dockOptions,
   onOpenComments,
   commentsOpen,
+  commentsCount,
   commentsPanelId,
   commentsButtonRef,
   onOpenSettings,
@@ -117,35 +120,45 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
       <FloatingDockDivider />
 
       <FloatingDockAction
-        tooltip={String(reactions?.likesCount ?? 0)}
+        tooltip={reactions?.hasCounts ? reactions.likesCount.toLocaleString() : undefined}
+        aria-description={reactions?.hasCounts ? reactions.likesCount.toLocaleString() : undefined}
+        className="relative"
         label={t('previewActions.like')}
         type="button"
         onClick={() => toggleReaction('like')}
         disabled={reactionPending || reactions?.isLoading}
         aria-pressed={reactions?.likedByCurrentUser ?? false}
       >
+        <ActionCount count={reactions?.hasCounts ? reactions.likesCount : undefined} />
         <ThumbsUp className={reactions?.likedByCurrentUser ? 'fill-rose-500 text-rose-500' : ''} />
       </FloatingDockAction>
       <FloatingDockAction
-        tooltip={String(reactions?.favoritesCount ?? 0)}
+        tooltip={reactions?.hasCounts ? reactions.favoritesCount.toLocaleString() : undefined}
+        aria-description={reactions?.hasCounts ? reactions.favoritesCount.toLocaleString() : undefined}
+        className="relative"
         label={t('previewActions.favorite')}
         type="button"
         onClick={() => toggleReaction('favorite')}
         disabled={reactionPending || reactions?.isLoading}
         aria-pressed={reactions?.favoritedByCurrentUser ?? false}
       >
+        <ActionCount count={reactions?.hasCounts ? reactions.favoritesCount : undefined} />
         <Star
           className={reactions?.favoritedByCurrentUser ? 'fill-amber-400 text-amber-500' : ''}
         />
       </FloatingDockAction>
       <FloatingDockAction
         label={t('previewActions.comments')}
+        tooltip={commentsCount?.toLocaleString()}
+        aria-description={commentsCount?.toLocaleString()}
+        className="relative"
         ref={commentsButtonRef}
         type="button"
         onClick={onOpenComments}
         aria-expanded={commentsOpen}
         aria-controls={commentsPanelId}
       >
+        <ActionCount count={commentsCount} />
         <MessageCircle />
       </FloatingDockAction>
       {isOwner && (

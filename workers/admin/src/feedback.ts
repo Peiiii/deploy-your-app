@@ -1,3 +1,8 @@
+import {
+  ensureFeedbackNotificationSource,
+  notificationStatement,
+  revokeSubjectNotifications,
+} from '@gemigo/notifications/persistence';
 import type { AdminEnv } from './auth';
 import { AdminInputError } from './operations';
 
@@ -106,7 +111,8 @@ export const manageFeedback = async (env: AdminEnv, input: Record<string, unknow
     throw new AdminInputError('反馈 ID 无效');
   const db = env.ANALYTICS_DB;
   const now = new Date().toISOString();
-  await post(db, input.id);
+  const sourcePost = await post(db, input.id);
+  await ensureFeedbackNotificationSource(db);
   if (input.action === 'status') {
     if (
       typeof input.status !== 'string' ||
@@ -115,13 +121,28 @@ export const manageFeedback = async (env: AdminEnv, input: Record<string, unknow
       !statuses.includes(input.expected)
     )
       throw new AdminInputError('反馈状态无效');
+    const mutation = crypto.randomUUID();
     const results = await db.batch([
       db
         .prepare(
-          'UPDATE community_feedback_posts SET status=?,updated_at=? WHERE id=? AND status=? AND deleted_at IS NULL'
+          'UPDATE community_feedback_posts SET status=?,updated_at=?,notification_version=notification_version+1,notification_mutation=? WHERE id=? AND status=? AND status<>? AND deleted_at IS NULL'
         )
-        .bind(input.status, now, input.id, input.expected),
+        .bind(input.status, now, mutation, input.id, input.expected, input.status),
       audit(env, 'feedback_status', input.id, `${input.expected} → ${input.status}`),
+      notificationStatement(
+        db,
+        {
+          key: 'feedback-status:' + mutation,
+          actorId: teamId,
+          recipientId: String(sourcePost.user_id),
+          kind: 'feedback_status',
+          subjectId: input.id,
+          groupKey: 'feedback:' + input.id,
+          priority: 'important',
+        },
+        'EXISTS(SELECT 1 FROM community_feedback_posts WHERE id=? AND notification_mutation=?)',
+        [input.id, mutation]
+      ),
     ]);
     if (!results[0].meta.changes) throw new AdminInputError('反馈状态已变化，请刷新后重试', 409);
   } else if (input.action === 'reply') {
@@ -163,6 +184,21 @@ export const manageFeedback = async (env: AdminEnv, input: Record<string, unknow
         )
         .bind(now, input.id),
       audit(env, 'feedback_reply', input.id, input.replyId),
+      notificationStatement(
+        db,
+        {
+          key: 'feedback-reply:' + input.replyId,
+          actorId: teamId,
+          recipientId: String(sourcePost.user_id),
+          kind: 'feedback_reply',
+          subjectId: input.id,
+          commentId: input.replyId,
+          groupKey: 'feedback:' + input.id,
+          priority: 'important',
+        },
+        'EXISTS(SELECT 1 FROM community_feedback_comments WHERE id=? AND deleted_at IS NULL)',
+        [input.replyId]
+      ),
     ]);
     if (!results[0].meta.changes) {
       const existing = await db
@@ -188,6 +224,7 @@ export const manageFeedback = async (env: AdminEnv, input: Record<string, unknow
         )
         .bind(now, now, input.id),
       audit(env, 'feedback_delete', input.id, 'soft delete'),
+      revokeSubjectNotifications(db,input.id),
     ]);
     if (!results[0].meta.changes) throw new AdminInputError('反馈已删除，请刷新', 409);
   } else throw new AdminInputError('反馈操作无效');

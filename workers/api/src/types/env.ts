@@ -1,4 +1,7 @@
 export interface ApiWorkerEnv {
+  NOTIFICATION_VAPID_JWK?: string;
+  NOTIFICATION_VAPID_PUBLIC_KEY?: string;
+  NOTIFICATION_SEND_ENABLED?: string;
   APP_GATEWAY?: DurableObjectNamespace;
   APP_SECRETS_KEYS?: string;
   APP_GATEWAY_PUBLIC_ORIGIN?: string;

@@ -1,3 +1,4 @@
+import { ensureNotificationSchema, revokeNotification } from '@gemigo/notifications/persistence';
 import type { ProjectComment } from '../types/comment';
 import { authRepository } from './auth.repository';
 
@@ -21,7 +22,7 @@ type CommentRow = {
 let commentSchemaEnsured = false;
 
 class CommentRepository {
-  private async ensureSchema(db: D1Database): Promise<void> {
+  async ensureSchema(db: D1Database): Promise<void> {
     if (commentSchemaEnsured) return;
 
     // Comments need to join author info from users table even for public reads.
@@ -38,49 +39,48 @@ class CommentRepository {
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL,
           deleted_at TEXT
-        )`,
+        )`
       )
       .run();
 
     await db
       .prepare(
         `CREATE INDEX IF NOT EXISTS idx_project_comments_project_created
-         ON project_comments(project_id, created_at DESC)`,
+         ON project_comments(project_id, created_at DESC)`
       )
       .run();
 
     await db
       .prepare(
         `CREATE INDEX IF NOT EXISTS idx_project_comments_user_created
-         ON project_comments(user_id, created_at DESC)`,
+         ON project_comments(user_id, created_at DESC)`
       )
       .run();
 
     // Backfill reply_to_comment_id for older databases (best-effort).
     try {
-      await db
-        .prepare(`ALTER TABLE project_comments ADD COLUMN reply_to_comment_id TEXT`)
-        .run();
+      await db.prepare(`ALTER TABLE project_comments ADD COLUMN reply_to_comment_id TEXT`).run();
     } catch {
       // ignore
     }
 
     // Backfill deleted_at for older databases (best-effort).
     try {
-      await db
-        .prepare(`ALTER TABLE project_comments ADD COLUMN deleted_at TEXT`)
-        .run();
+      await db.prepare(`ALTER TABLE project_comments ADD COLUMN deleted_at TEXT`).run();
     } catch {
       // ignore
     }
 
+    await ensureNotificationSchema(db);
+    try {
+      await db.prepare('ALTER TABLE project_comments ADD COLUMN submission_id TEXT').run();
+    } catch (error) {
+      if (!String(error).includes('duplicate column')) throw error;
+    }
     commentSchemaEnsured = true;
   }
 
-  async getLatestCommentTimestampForUser(
-    db: D1Database,
-    userId: string,
-  ): Promise<string | null> {
+  async getLatestCommentTimestampForUser(db: D1Database, userId: string): Promise<string | null> {
     await this.ensureSchema(db);
     const row = await db
       .prepare(
@@ -88,7 +88,7 @@ class CommentRepository {
          FROM project_comments
          WHERE user_id = ? AND deleted_at IS NULL
          ORDER BY created_at DESC
-         LIMIT 1`,
+         LIMIT 1`
       )
       .bind(userId)
       .first<{ created_at: string }>();
@@ -97,7 +97,7 @@ class CommentRepository {
 
   async findCommentForReplyValidation(
     db: D1Database,
-    input: { commentId: string; projectId: string },
+    input: { commentId: string; projectId: string }
   ): Promise<{ id: string; userId: string } | null> {
     await this.ensureSchema(db);
     const row = await db
@@ -105,12 +105,17 @@ class CommentRepository {
         `SELECT id, user_id
          FROM project_comments
          WHERE id = ? AND project_id = ? AND deleted_at IS NULL
-         LIMIT 1`,
+         LIMIT 1`
       )
       .bind(input.commentId, input.projectId)
       .first<{ id: string; user_id: string }>();
     if (!row) return null;
     return { id: String(row.id), userId: String(row.user_id) };
+  }
+
+  async getSubmission(db:D1Database,id:string) {
+    await this.ensureSchema(db);
+    return db.prepare('SELECT project_id,user_id,content,reply_to_comment_id,deleted_at FROM project_comments WHERE id=?').bind(id).first<{project_id:string;user_id:string;content:string;reply_to_comment_id:string|null;deleted_at:string|null}>();
   }
 
   async insertComment(
@@ -121,33 +126,32 @@ class CommentRepository {
       userId: string;
       content: string;
       replyToCommentId: string | null;
-    },
+      notifications?: D1PreparedStatement[];
+    }
   ): Promise<void> {
     await this.ensureSchema(db);
     const now = new Date().toISOString();
-    await db
-      .prepare(
-        `INSERT INTO project_comments (
-          id, project_id, user_id, content, reply_to_comment_id,
-          created_at, updated_at, deleted_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)`,
-      )
-      .bind(
-        input.id,
-        input.projectId,
-        input.userId,
-        input.content,
-        input.replyToCommentId,
-        now,
-        now,
-      )
-      .run();
+    await db.batch([
+      db
+        .prepare(
+          `INSERT OR IGNORE INTO project_comments(id,project_id,user_id,content,reply_to_comment_id,created_at,updated_at,deleted_at,submission_id)
+        VALUES(?,?,?,?,?,?,?,NULL,?)`
+        )
+        .bind(
+          input.id,
+          input.projectId,
+          input.userId,
+          input.content,
+          input.replyToCommentId,
+          now,
+          now,
+          input.id
+        ),
+      ...(input.notifications ?? []),
+    ]);
   }
 
-  async getCommentById(
-    db: D1Database,
-    commentId: string,
-  ): Promise<ProjectComment | null> {
+  async getCommentById(db: D1Database, commentId: string): Promise<ProjectComment | null> {
     await this.ensureSchema(db);
     const row = await db
       .prepare(
@@ -171,7 +175,7 @@ class CommentRepository {
          LEFT JOIN project_comments parent ON parent.id = c.reply_to_comment_id
          LEFT JOIN users pu ON pu.id = parent.user_id
          WHERE c.id = ?
-         LIMIT 1`,
+         LIMIT 1`
       )
       .bind(commentId)
       .first<CommentRow>();
@@ -203,16 +207,13 @@ class CommentRepository {
     };
   }
 
-  async countCommentsForProject(
-    db: D1Database,
-    projectId: string,
-  ): Promise<number> {
+  async countCommentsForProject(db: D1Database, projectId: string): Promise<number> {
     await this.ensureSchema(db);
     const row = await db
       .prepare(
         `SELECT COUNT(*) as cnt
          FROM project_comments
-         WHERE project_id = ? AND deleted_at IS NULL`,
+         WHERE project_id = ? AND deleted_at IS NULL`
       )
       .bind(projectId)
       .first<{ cnt: number }>();
@@ -222,7 +223,7 @@ class CommentRepository {
   async listCommentsForProject(
     db: D1Database,
     projectId: string,
-    input: { offset: number; limit: number },
+    input: { offset: number; limit: number }
   ): Promise<ProjectComment[]> {
     await this.ensureSchema(db);
     const result = await db
@@ -248,7 +249,7 @@ class CommentRepository {
          LEFT JOIN users pu ON pu.id = parent.user_id
          WHERE c.project_id = ? AND c.deleted_at IS NULL
          ORDER BY c.created_at DESC
-         LIMIT ? OFFSET ?`,
+         LIMIT ? OFFSET ?`
       )
       .bind(projectId, input.limit, input.offset)
       .all<CommentRow>();
@@ -278,10 +279,7 @@ class CommentRepository {
     }));
   }
 
-  async getCommentOwner(
-    db: D1Database,
-    commentId: string,
-  ): Promise<{ userId: string } | null> {
+  async getCommentOwner(db: D1Database, commentId: string): Promise<{ userId: string } | null> {
     await this.ensureSchema(db);
     const row = await db
       .prepare(`SELECT user_id FROM project_comments WHERE id = ? LIMIT 1`)
@@ -291,20 +289,15 @@ class CommentRepository {
     return { userId: String(row.user_id) };
   }
 
-  async softDeleteComment(
-    db: D1Database,
-    commentId: string,
-  ): Promise<void> {
+  async softDeleteComment(db: D1Database, commentId: string): Promise<void> {
     await this.ensureSchema(db);
     const now = new Date().toISOString();
-    await db
-      .prepare(
-        `UPDATE project_comments
-         SET deleted_at = ?, updated_at = ?
-         WHERE id = ?`,
-      )
-      .bind(now, now, commentId)
-      .run();
+    await db.batch([
+      db
+        .prepare('UPDATE project_comments SET deleted_at=?,updated_at=? WHERE id=?')
+        .bind(now, now, commentId),
+      revokeNotification(db, 'comment:' + commentId),
+    ]);
   }
 }
 

@@ -1,0 +1,219 @@
+{
+  "before": {
+    "buttons": [
+      {
+        "count": "1",
+        "label": "点赞",
+        "rect": {
+          "bottom": 82,
+          "height": 32,
+          "left": 638,
+          "right": 670,
+          "top": 50,
+          "width": 32,
+          "x": 638,
+          "y": 50
+        }
+      },
+      {
+        "count": "1",
+        "label": "收藏",
+        "rect": {
+          "bottom": 118,
+          "height": 32,
+          "left": 638,
+          "right": 670,
+          "top": 86,
+          "width": 32,
+          "x": 638,
+          "y": 86
+        }
+      },
+      {
+        "count": "1",
+        "label": "评论",
+        "rect": {
+          "bottom": 154,
+          "height": 32,
+          "left": 638,
+          "right": 670,
+          "top": 122,
+          "width": 32,
+          "x": 638,
+          "y": 122
+        }
+      },
+      {
+        "label": "应用设置",
+        "rect": {
+          "bottom": 195,
+          "height": 32,
+          "left": 638,
+          "right": 670,
+          "top": 163,
+          "width": 32,
+          "x": 638,
+          "y": 163
+        }
+      },
+      {
+        "label": "在新窗口打开",
+        "rect": {
+          "bottom": 236,
+          "height": 32,
+          "left": 638,
+          "right": 670,
+          "top": 204,
+          "width": 32,
+          "x": 638,
+          "y": 204
+        }
+      },
+      {
+        "label": "全屏",
+        "rect": {
+          "bottom": 272,
+          "height": 32,
+          "left": 638,
+          "right": 670,
+          "top": 240,
+          "width": 32,
+          "x": 638,
+          "y": 240
+        }
+      },
+      {
+        "label": "关闭",
+        "rect": {
+          "bottom": 308,
+          "height": 32,
+          "left": 638,
+          "right": 670,
+          "top": 276,
+          "width": 32,
+          "x": 638,
+          "y": 276
+        }
+      }
+    ],
+    "rect": {
+      "bottom": 313,
+      "height": 313,
+      "left": 633,
+      "right": 674,
+      "top": 0,
+      "width": 41,
+      "x": 633,
+      "y": 0
+    }
+  },
+  "after": {
+    "buttons": [
+      {
+        "count": "1",
+        "label": "点赞",
+        "rect": {
+          "bottom": 82,
+          "height": 32,
+          "left": 638,
+          "right": 670,
+          "top": 50,
+          "width": 32,
+          "x": 638,
+          "y": 50
+        }
+      },
+      {
+        "count": "1",
+        "label": "收藏",
+        "rect": {
+          "bottom": 118,
+          "height": 32,
+          "left": 638,
+          "right": 670,
+          "top": 86,
+          "width": 32,
+          "x": 638,
+          "y": 86
+        }
+      },
+      {
+        "count": "1",
+        "label": "评论",
+        "rect": {
+          "bottom": 154,
+          "height": 32,
+          "left": 638,
+          "right": 670,
+          "top": 122,
+          "width": 32,
+          "x": 638,
+          "y": 122
+        }
+      },
+      {
+        "label": "应用设置",
+        "rect": {
+          "bottom": 195,
+          "height": 32,
+          "left": 638,
+          "right": 670,
+          "top": 163,
+          "width": 32,
+          "x": 638,
+          "y": 163
+        }
+      },
+      {
+        "label": "在新窗口打开",
+        "rect": {
+          "bottom": 236,
+          "height": 32,
+          "left": 638,
+          "right": 670,
+          "top": 204,
+          "width": 32,
+          "x": 638,
+          "y": 204
+        }
+      },
+      {
+        "label": "全屏",
+        "rect": {
+          "bottom": 272,
+          "height": 32,
+          "left": 638,
+          "right": 670,
+          "top": 240,
+          "width": 32,
+          "x": 638,
+          "y": 240
+        }
+      },
+      {
+        "label": "关闭",
+        "rect": {
+          "bottom": 308,
+          "height": 32,
+          "left": 638,
+          "right": 670,
+          "top": 276,
+          "width": 32,
+          "x": 638,
+          "y": 276
+        }
+      }
+    ],
+    "rect": {
+      "bottom": 313,
+      "height": 313,
+      "left": 633,
+      "right": 674,
+      "top": 0,
+      "width": 41,
+      "x": 633,
+      "y": 0
+    }
+  },
+  "stable": true
+}

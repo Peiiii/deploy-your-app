@@ -3,6 +3,7 @@ import type { ProjectReactions } from '../types';
 
 interface ReactionEntry extends ProjectReactions {
   isLoading: boolean;
+  hasCounts: boolean;
 }
 
 interface ReactionState {
@@ -34,6 +35,7 @@ export const useReactionStore = create<ReactionState>((set) => ({
           [projectId]: {
             ...(state.byProjectId[projectId] ?? {
               ...DEFAULT_REACTIONS,
+              hasCounts: false,
             }),
             isLoading,
           },
@@ -46,6 +48,7 @@ export const useReactionStore = create<ReactionState>((set) => ({
           [projectId]: {
             ...reactions,
             isLoading: false,
+            hasCounts: true,
           },
         },
       })),
@@ -56,9 +59,11 @@ export const useReactionStore = create<ReactionState>((set) => ({
           [projectId]: {
             ...(state.byProjectId[projectId] ?? {
               ...DEFAULT_REACTIONS,
+              hasCounts: false,
               isLoading: false,
             }),
             ...patch,
+            ...((patch.likesCount!==undefined||patch.favoritesCount!==undefined)?{hasCounts:true}:{}),
           },
         },
       })),

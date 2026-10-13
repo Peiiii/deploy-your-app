@@ -16,6 +16,7 @@
     "@gemigo/product-analytics": "workspace:*",
     "@gemigo/public-author": "workspace:*",
     "@zip.js/zip.js": "^2.23.0",
-    "@gemigo/deployment-assets": "workspace:*"
+    "@gemigo/deployment-assets": "workspace:*",
+    "@gemigo/notifications": "workspace:*"
   }
 }

@@ -2,6 +2,9 @@
   "files": [],
   "references": [
     {
+      "path": "./packages/notifications"
+    },
+    {
       "path": "./packages/public-author"
     },
     {

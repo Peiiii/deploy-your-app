@@ -1,3 +1,8 @@
+import {
+  ensureNotificationSchema,
+  publicationStatement,
+  revokeInaccessibleProjectNotifications,
+} from '@gemigo/notifications/persistence';
 import type { AdminEnv } from './auth';
 import {
   categorySql,
@@ -291,6 +296,7 @@ export const listOperations = async (db: D1Database, kind: string, url: URL) => 
 export const manageOperation = async (env: AdminEnv, input: Record<string, unknown>) => {
   const { action, id } = input;
   if (typeof id !== 'string' || !id || id.length > 200) throw new AdminInputError('资源 ID 无效');
+  await ensureNotificationSchema(env.ANALYTICS_DB);
   if (action === 'visibility') {
     if (
       typeof input.expected !== 'boolean' ||
@@ -309,6 +315,8 @@ export const manageOperation = async (env: AdminEnv, input: Record<string, unkno
         input.isPublic ? '设为公开展示' : '取消公开展示',
         'WHERE changes()=1'
       ),
+      publicationStatement(env.ANALYTICS_DB, id),
+      revokeInaccessibleProjectNotifications(env.ANALYTICS_DB, id),
     ]);
     if (!results[0].meta.changes)
       throw new AdminInputError('应用已被更改或不存在，请刷新后再试', 409);
@@ -319,6 +327,7 @@ export const manageOperation = async (env: AdminEnv, input: Record<string, unkno
       throw new AdminInputError('用户不存在', 404);
     const results = await env.ANALYTICS_DB.batch([
       env.ANALYTICS_DB.prepare('DELETE FROM sessions WHERE user_id=?').bind(id),
+      env.ANALYTICS_DB.prepare('DELETE FROM notification_push_subscriptions WHERE user_id=?').bind(id),
       audit(env, 'revoke_sessions', id, '撤销主站登录会话'),
     ]);
     return { ok: true, revoked: results[0].meta.changes };
