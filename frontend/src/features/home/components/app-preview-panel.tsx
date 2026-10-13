@@ -1,8 +1,8 @@
-import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import type { ExploreAppCard } from '@/components/explore-app-card';
-import { FloatingSiteNavigation, SITE_NAVIGATION_BOTTOM_INSET } from '@/components/floating-site-navigation';
+import { FloatingSiteNavigation } from '@/components/floating-site-navigation';
 import { PreviewFloatingDock } from './preview-floating-dock';
 import { useUIStore } from '@/stores/ui.store';
 import { useNavigate } from 'react-router-dom';
@@ -52,6 +52,20 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
     const toggleRightPanelLayout = useUIStore((s) => s.actions.toggleRightPanelLayout);
     const setRightPanelLayout = useUIStore((s) => s.actions.setRightPanelLayout);
     const isFullscreen = rightPanelLayout === 'fullscreen';
+    const navigationRef = useRef<HTMLDivElement>(null);
+    const [navigationBottomInset, setNavigationBottomInset] = useState(0);
+    useLayoutEffect(() => {
+        const node = navigationRef.current;
+        const parent = node?.offsetParent;
+        if (!node || !(parent instanceof HTMLElement)) return;
+        // Reserve the actual shared component footprint, including its bottom margin.
+        const measure = () => setNavigationBottomInset(parent.clientHeight - node.offsetTop + 12);
+        measure();
+        const observer = new ResizeObserver(measure);
+        observer.observe(node);
+        observer.observe(parent);
+        return () => observer.disconnect();
+    }, [isFullscreen]);
 
     useEffect(() => {
         void presenter.reaction.loadReactionsForProject(app.id);
@@ -69,21 +83,21 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
     const dockOptionsHalf = useMemo(() => {
         return {
             stateKey: `${dockStateKeyBase}:half`,
-            bottomInset: SITE_NAVIGATION_BOTTOM_INSET,
+            bottomInset: navigationBottomInset,
         };
-    }, [dockStateKeyBase]);
+    }, [dockStateKeyBase, navigationBottomInset]);
 
     const dockOptionsFullscreen = useMemo(() => {
         return {
             stateKey: `${dockStateKeyBase}:fullscreen`,
-            bottomInset: SITE_NAVIGATION_BOTTOM_INSET,
+            bottomInset: navigationBottomInset,
             allowOutsideLeft: false,
             initialPosition: {
                 y: 16,
                 dockSide: 'inside-left' as const,
             },
         };
-    }, [dockStateKeyBase]);
+    }, [dockStateKeyBase, navigationBottomInset]);
 
     useEffect(() => {
         if (!isFullscreen && !commentsOpen) return;
@@ -160,6 +174,7 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
             </div>
 
             <FloatingSiteNavigation
+                nodeRef={navigationRef}
                 onPrevious={onPrevious}
                 onNext={onNext}
                 outsideLeft={!isFullscreen}

@@ -30,7 +30,7 @@ try {
   await page.route('**/fixture-*', route => route.fulfill({ contentType: 'text/html', body: '<html><body style="padding:100px"><button id="counter" onclick="this.textContent=Number(this.textContent)+1">0</button></body></html>' }));
   const previous = page.getByRole('button', { name: '上一个网站', exact: true });
   const next = page.getByRole('button', { name: '下一个网站', exact: true });
-  const nav = page.locator('[data-site-navigation]');
+  const nav = page.getByRole('toolbar', { name: '切换网站', exact: true });
   const handle = page.getByRole('button', { name: '应用操作', exact: true });
   const dock = handle.locator('..').locator('..');
   const expectFrame = async id => {
@@ -47,6 +47,40 @@ try {
     assert.ok(d.y + d.height <= n.y - 8, `${label}: dock ${JSON.stringify(d)} above navigation ${JSON.stringify(n)}`);
     assert.ok(n.y >= 0 && n.y + n.height <= page.viewportSize().height, `${label}: navigation visible`);
   };
+  const sameAppearance = async label => {
+    await page.mouse.move(600, 400);
+    await page.waitForTimeout(750);
+    assert.equal(await dock.getAttribute('role'), 'toolbar', `${label}: matching semantics`);
+    assert.equal(await nav.getAttribute('aria-orientation'), 'vertical');
+    assert.equal((await nav.boundingBox()).width, (await dock.boundingBox()).width, `${label}: identical outer width`);
+    const surfaceStyle = locator => locator.evaluate(element => {
+      const style = getComputedStyle(element);
+      return Object.fromEntries(['width', 'borderTopWidth', 'borderLeftWidth', 'borderRightWidth', 'borderColor', 'borderTopLeftRadius', 'borderTopRightRadius', 'backgroundColor', 'boxShadow', 'backdropFilter'].map(key => [key, style[key]]));
+    });
+    assert.deepEqual(await surfaceStyle(nav.locator('[data-floating-dock-surface]')), await surfaceStyle(dock.locator('[data-floating-dock-surface]')), `${label}: shared surface`);
+    const topAction = dock.getByRole('button', { name: '评论', exact: true });
+    const bottomAction = next;
+    const buttonStyle = locator => locator.evaluate(element => {
+      const style = getComputedStyle(element);
+      const icon = element.querySelector('svg').getBoundingClientRect();
+      return Object.fromEntries(['width', 'height', 'paddingLeft', 'paddingRight', 'borderRadius', 'color', 'backgroundColor', 'outlineStyle', 'boxShadow'].map(key => [key, style[key]]).concat([['iconWidth', icon.width], ['iconHeight', icon.height]]));
+    });
+    assert.deepEqual(await buttonStyle(topAction), await buttonStyle(bottomAction), `${label}: shared action geometry and resting feedback`);
+    await topAction.hover();
+    await page.waitForTimeout(750);
+    const topHover = await buttonStyle(topAction);
+    await bottomAction.hover();
+    await page.waitForTimeout(750);
+    assert.deepEqual(topHover, await buttonStyle(bottomAction), `${label}: identical hover feedback`);
+    await page.mouse.move(600, 400);
+    await topAction.focus();
+    await page.waitForTimeout(750);
+    const topFocus = await buttonStyle(topAction);
+    await bottomAction.focus();
+    await page.waitForTimeout(750);
+    assert.deepEqual(topFocus, await buttonStyle(bottomAction), `${label}: identical keyboard focus feedback`);
+    await bottomAction.evaluate(element => element.blur());
+  };
   const open = async path => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(`${baseUrl}${path}?lang=zh-CN`);
@@ -60,6 +94,7 @@ try {
     const order = await open(path);
     assert.equal(await previous.isDisabled(), true);
     await noOverlap(`${path} half`);
+    await sameAppearance(`${path} half`);
     const frameIdentity = await page.locator('iframe').elementHandle();
     await page.getByRole('button', { name: '评论', exact: true }).click();
     await page.locator('[data-preview-comments="open"]').waitFor();
@@ -79,6 +114,10 @@ try {
     await previous.click();
     await expectFrame(order[0]);
     await handle.click(); // Pin expanded in fullscreen.
+    await sameAppearance(`${path} fullscreen`);
+    await page.evaluate(() => document.documentElement.classList.add('dark'));
+    await sameAppearance(`${path} dark`);
+    await page.evaluate(() => document.documentElement.classList.remove('dark'));
     for (const [width, height] of [[1440, 900], [1100, 360], [1100, 240], [800, 300]]) {
       await page.setViewportSize({ width, height });
       await noOverlap(`${path} fullscreen ${width}x${height}`);
@@ -130,6 +169,8 @@ try {
   await handle.click();
   await page.evaluate(() => document.documentElement.classList.add('dark'));
   await noOverlap('dark expanded');
+  const disabledOpacity = await next.evaluate(element => getComputedStyle(element).opacity);
+  assert.equal(disabledOpacity, '0.4', 'Shared disabled style');
   await page.screenshot({ path: join(tmpdir(), 'gemigo-preview-navigation-dark.png') });
   assert.deepEqual(errors, [], 'No browser runtime errors');
   console.log('PASS: home/explore/dashboard order, keyboard, boundaries, single/URL-less apps, fullscreen retention, iframe interaction, close, resize/expand/drag collision, dark mode');

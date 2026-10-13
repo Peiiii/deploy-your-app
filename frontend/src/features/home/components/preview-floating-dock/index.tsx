@@ -1,6 +1,20 @@
-import { IconButton } from '@/components/icon-button';
+import {
+  FloatingDock,
+  FloatingDockAction,
+  FloatingDockDivider,
+  FloatingDockHandle,
+} from '@/components/floating-dock';
 import React, { useId, useRef, useState } from 'react';
-import { ExternalLink, ThumbsUp, MessageCircle, Star, Settings, Maximize2, Minimize2, X } from 'lucide-react';
+import {
+  ExternalLink,
+  ThumbsUp,
+  MessageCircle,
+  Star,
+  Settings,
+  Maximize2,
+  Minimize2,
+  X,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ExploreAppCard } from '@/components/explore-app-card';
 import { useFloatingDock, type UseFloatingDockOptions } from './use-floating-dock';
@@ -17,204 +31,212 @@ import { DOCK_DRAG_THRESHOLD_PX } from '@/components/floating-dock/types';
 // Uses CSS transforms for robust docking alignment.
 
 interface PreviewFloatingDockProps {
-    app: ExploreAppCard;
-    onClose: () => void;
-    onOpenInNewTab: (url: string) => void;
-    onDragStart: () => void;
-    onDragEnd: () => void;
-    isFullscreen: boolean;
-    onToggleFullscreen: () => void;
-    onOpenComments: () => void;
-    commentsOpen: boolean;
-    commentsPanelId: string;
-    commentsButtonRef: React.RefObject<HTMLButtonElement | null>;
-    onOpenSettings: () => void;
-    settingsPending: boolean;
-    dockOptions?: Omit<UseFloatingDockOptions, 'onDragStart' | 'onDragEnd'>;
-    /**
-     * Controls whether the dock action area is expanded by default.
-     * - 'always': always expanded (unless dragging state overrides visuals)
-     * - 'hover': collapsed by default, expands on hover
-     * - 'auto': expands by default only when actionCount <= autoExpandMaxActions
-     * @default 'auto'
-     */
-    expandPolicy?: 'always' | 'hover' | 'auto';
-    /**
-     * Threshold for expandPolicy='auto'.
-     * @default 5
-     */
-    autoExpandMaxActions?: number;
+  app: ExploreAppCard;
+  onClose: () => void;
+  onOpenInNewTab: (url: string) => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+  isFullscreen: boolean;
+  onToggleFullscreen: () => void;
+  onOpenComments: () => void;
+  commentsOpen: boolean;
+  commentsPanelId: string;
+  commentsButtonRef: React.RefObject<HTMLButtonElement | null>;
+  onOpenSettings: () => void;
+  settingsPending: boolean;
+  dockOptions?: Omit<UseFloatingDockOptions, 'onDragStart' | 'onDragEnd'>;
+  /**
+   * Controls whether the dock action area is expanded by default.
+   * - 'always': always expanded (unless dragging state overrides visuals)
+   * - 'hover': collapsed by default, expands on hover
+   * - 'auto': expands by default only when actionCount <= autoExpandMaxActions
+   * @default 'auto'
+   */
+  expandPolicy?: 'always' | 'hover' | 'auto';
+  /**
+   * Threshold for expandPolicy='auto'.
+   * @default 5
+   */
+  autoExpandMaxActions?: number;
 }
 
 export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
-    app,
-    onClose,
-    onOpenInNewTab,
-    onDragStart,
-    onDragEnd,
-    isFullscreen,
-    onToggleFullscreen,
-    dockOptions,
-    onOpenComments,
-    commentsOpen,
-    commentsPanelId,
-    commentsButtonRef,
-    onOpenSettings,
-    settingsPending,
-    expandPolicy = 'auto',
-    autoExpandMaxActions = 5,
+  app,
+  onClose,
+  onOpenInNewTab,
+  onDragStart,
+  onDragEnd,
+  isFullscreen,
+  onToggleFullscreen,
+  dockOptions,
+  onOpenComments,
+  commentsOpen,
+  commentsPanelId,
+  commentsButtonRef,
+  onOpenSettings,
+  settingsPending,
+  expandPolicy = 'auto',
+  autoExpandMaxActions = 5,
 }) => {
-    const { t } = useTranslation();
-    const presenter = usePresenter();
-    const user = useAuthStore(s => s.user);
-    const reactions = useReactionStore(s => s.byProjectId[app.id]);
-    const [pinnedOpen, setPinnedOpen] = useState(false);
-    const [reactionPending, setReactionPending] = useState(false);
-    const pointerStart = useRef<{ x: number; y: number } | null>(null);
-    const draggedHandle = useRef(false);
-    const actionAreaId = useId();
-    const isOwner = !!user && !!app.ownerId && user.id === app.ownerId;
-    const toggleReaction = async (kind: 'like' | 'favorite') => {
-        if (!presenter.auth.getCurrentUser()) {
-            presenter.auth.openAuthModal('login');
-            return;
-        }
-        if (reactionPending || reactions?.isLoading) return;
-        setReactionPending(true);
-        try {
-            if (kind === 'like') await presenter.reaction.toggleLike(app.id);
-            else await presenter.reaction.toggleFavorite(app.id);
-        } finally {
-            setReactionPending(false);
-        }
-    };
+  const { t } = useTranslation();
+  const presenter = usePresenter();
+  const user = useAuthStore((s) => s.user);
+  const reactions = useReactionStore((s) => s.byProjectId[app.id]);
+  const [pinnedOpen, setPinnedOpen] = useState(false);
+  const [reactionPending, setReactionPending] = useState(false);
+  const pointerStart = useRef<{ x: number; y: number } | null>(null);
+  const draggedHandle = useRef(false);
+  const actionAreaId = useId();
+  const isOwner = !!user && !!app.ownerId && user.id === app.ownerId;
+  const toggleReaction = async (kind: 'like' | 'favorite') => {
+    if (!presenter.auth.getCurrentUser()) {
+      presenter.auth.openAuthModal('login');
+      return;
+    }
+    if (reactionPending || reactions?.isLoading) return;
+    setReactionPending(true);
+    try {
+      if (kind === 'like') await presenter.reaction.toggleLike(app.id);
+      else await presenter.reaction.toggleFavorite(app.id);
+    } finally {
+      setReactionPending(false);
+    }
+  };
 
-    const { nodeRef, style, onMouseDown, isDragging, dockSide } = useFloatingDock({
-        onDragStart: () => {
-            draggedHandle.current = true;
-            onDragStart();
-        },
-        onDragEnd,
-        ...dockOptions,
-    });
+  const { nodeRef, style, onMouseDown, isDragging, dockSide } = useFloatingDock({
+    onDragStart: () => {
+      draggedHandle.current = true;
+      onDragStart();
+    },
+    onDragEnd,
+    ...dockOptions,
+  });
 
-    const actionCount = 3 + (isOwner ? 1 : 0) + (app.url ? 1 : 0) + 2;
-    const shouldAutoExpand =
-        expandPolicy === 'always'
-            ? true
-            : expandPolicy === 'auto'
-                ? actionCount <= autoExpandMaxActions
-                : false;
+  const actionCount = 3 + (isOwner ? 1 : 0) + (app.url ? 1 : 0) + 2;
+  const shouldAutoExpand =
+    expandPolicy === 'always'
+      ? true
+      : expandPolicy === 'auto'
+        ? actionCount <= autoExpandMaxActions
+        : false;
 
-    const expanded = pinnedOpen || shouldAutoExpand;
-    const actionClass = 'rounded-md text-slate-500 transition-colors hover:bg-brand-50 hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-800';
+  const expanded = pinnedOpen || shouldAutoExpand;
 
-    return (
-        <div
-            ref={nodeRef}
-            style={style}
-          className={`
-                absolute z-50 select-none
-                ${isDragging ? 'cursor-grabbing' : dockOptions?.bottomInset === undefined ? 'transition-[left,top] duration-500 linear' : ''}
-            `}
+  return (
+    <FloatingDock
+      label={t('previewActions.actions')}
+      nodeRef={nodeRef}
+      style={style}
+      dockSide={dockSide}
+      isDragging={isDragging}
+      animatePosition={dockOptions?.bottomInset === undefined}
+      expanded={expanded}
+      actionAreaId={actionAreaId}
+      handle={
+        <FloatingDockHandle
+          label={t('previewActions.actions')}
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={actionAreaId}
+          onMouseDown={onMouseDown}
+          onPointerDown={(event) => {
+            draggedHandle.current = false;
+            pointerStart.current = { x: event.clientX, y: event.clientY };
+          }}
+          onClick={(event) => {
+            const start = pointerStart.current;
+            pointerStart.current = null;
+            if (
+              !draggedHandle.current &&
+              (event.detail === 0 ||
+                !start ||
+                Math.hypot(event.clientX - start.x, event.clientY - start.y) <
+                  DOCK_DRAG_THRESHOLD_PX)
+            ) {
+              setPinnedOpen((value) => !value);
+            }
+          }}
         >
-            {/* Unified Capsule Container */}
-            <div className={`
-                flex flex-col items-center
-                bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl
-                border border-slate-200/60 dark:border-slate-700/60 shadow-[0_4px_16px_rgba(0,0,0,0.1)]
-                transition-all duration-300 ease-out overflow-hidden
-                group/dock
-                ${dockSide === 'inside-left'
-                    ? 'rounded-r-xl rounded-l-none border-l-0'
-                    : 'rounded-l-xl rounded-r-none border-r-0'}
-            `}>
+          <BrandLogo />
+        </FloatingDockHandle>
+      }
+    >
+      {/* Divider */}
+      <FloatingDockDivider />
 
-                {/* 1. Main Icon (Always Visible) - Serves as Handle */}
-                <IconButton label={t('previewActions.actions')} size="auto" tooltipSide="right"
-                    type="button"
-
-                  aria-expanded={expanded}
-                  aria-controls={actionAreaId}
-
-                    onMouseDown={onMouseDown}
-                    onPointerDown={event => {
-                        draggedHandle.current = false;
-                        pointerStart.current = { x: event.clientX, y: event.clientY };
-                    }}
-                    onClick={event => {
-                        const start = pointerStart.current;
-                        pointerStart.current = null;
-                        if (!draggedHandle.current && (event.detail === 0 || !start || Math.hypot(event.clientX - start.x, event.clientY - start.y) < DOCK_DRAG_THRESHOLD_PX)) {
-                            setPinnedOpen(value => !value);
-                        }
-                    }}
-                  className="w-10 h-10 flex items-center justify-center flex-shrink-0 relative z-20 cursor-grab focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500"
-                >
-                    <BrandLogo className="w-5 h-5" />
-                </IconButton>
-
-                {/* 2. Expanded Action Area */}
-                <div id={actionAreaId} className={`
-                    flex flex-col items-center gap-1 w-full
-                    transition-all duration-300 ease-in-out origin-top px-1
-                    ${isDragging || expanded
-                        ? 'max-h-[340px] pb-2 opacity-100 visible'
-                        : 'max-h-0 opacity-0 pb-0 invisible group-hover/dock:max-h-[340px] group-hover/dock:pb-2 group-hover/dock:opacity-100 group-hover/dock:visible group-focus-within/dock:max-h-[340px] group-focus-within/dock:pb-2 group-focus-within/dock:opacity-100 group-focus-within/dock:visible'}
-                `}>
-
-                    {/* Divider */}
-                    <div className="w-3 h-px bg-slate-200 dark:bg-slate-700"></div>
-
-                    <IconButton tooltip={String(reactions?.likesCount ?? 0)} label={t('previewActions.like')} size="sm" tooltipSide="right" type="button" onMouseDown={e => e.stopPropagation()} onClick={() => toggleReaction('like')}
-                        disabled={reactionPending || reactions?.isLoading} aria-pressed={reactions?.likedByCurrentUser ?? false} className={actionClass}>
-                        <ThumbsUp className={`w-4 h-4 ${reactions?.likedByCurrentUser ? 'fill-rose-500 text-rose-500' : ''}`} />
-                    </IconButton>
-                    <IconButton tooltip={String(reactions?.favoritesCount ?? 0)} label={t('previewActions.favorite')} size="sm" tooltipSide="right" type="button" onMouseDown={e => e.stopPropagation()} onClick={() => toggleReaction('favorite')}
-                        disabled={reactionPending || reactions?.isLoading} aria-pressed={reactions?.favoritedByCurrentUser ?? false} className={actionClass}>
-                        <Star className={`w-4 h-4 ${reactions?.favoritedByCurrentUser ? 'fill-amber-400 text-amber-500' : ''}`} />
-                    </IconButton>
-                    <IconButton label={t('previewActions.comments')} size="sm" tooltipSide="right" ref={commentsButtonRef} type="button" onMouseDown={e => e.stopPropagation()} onClick={onOpenComments} aria-expanded={commentsOpen} aria-controls={commentsPanelId} className={`${actionClass} ${commentsOpen ? 'bg-brand-50 !text-brand-600 dark:bg-slate-800 dark:!text-brand-400' : ''}`}>
-                        <MessageCircle className="w-4 h-4" />
-                    </IconButton>
-                    {isOwner && <>
-                        <div className="w-3 h-px bg-slate-200 dark:bg-slate-700" />
-                        <IconButton label={t('previewActions.settings')} size="sm" tooltipSide="right" type="button" onMouseDown={e => e.stopPropagation()} onClick={onOpenSettings} disabled={settingsPending} aria-busy={settingsPending} className={actionClass}>
-                            <Settings className="w-4 h-4" />
-                        </IconButton>
-                    </>}
-                    <div className="w-3 h-px bg-slate-200 dark:bg-slate-700" />
-                    {/* Browsing */}
-                    {app.url && (
-                        <IconButton label={t('common.openInNewTab')} size="sm" tooltipSide="right"
-                            onMouseDown={(e) => e.stopPropagation()}
-                            data-event="app_visit" onClick={() => onOpenInNewTab(app.url!)}
-                          className={actionClass}
-                        >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                        </IconButton>
-                    )}
-                    <IconButton label={isFullscreen ? t('common.exitFullscreen') : t('common.fullscreen')} size="sm" tooltipSide="right"
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={onToggleFullscreen}
-                      className={actionClass}
-
-                    >
-                        {isFullscreen ? (
-                            <Minimize2 className="w-3.5 h-3.5" />
-                        ) : (
-                            <Maximize2 className="w-3.5 h-3.5" />
-                        )}
-                    </IconButton>
-                    <IconButton label={t('common.close')} size="sm" tooltipSide="right"
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={onClose}
-                      className={`${actionClass} hover:!bg-red-50 hover:!text-red-600`}
-                    >
-                        <X className="w-3.5 h-3.5" />
-                    </IconButton>
-                </div>
-            </div>
-        </div>
-    );
+      <FloatingDockAction
+        tooltip={String(reactions?.likesCount ?? 0)}
+        label={t('previewActions.like')}
+        type="button"
+        onClick={() => toggleReaction('like')}
+        disabled={reactionPending || reactions?.isLoading}
+        aria-pressed={reactions?.likedByCurrentUser ?? false}
+      >
+        <ThumbsUp className={reactions?.likedByCurrentUser ? 'fill-rose-500 text-rose-500' : ''} />
+      </FloatingDockAction>
+      <FloatingDockAction
+        tooltip={String(reactions?.favoritesCount ?? 0)}
+        label={t('previewActions.favorite')}
+        type="button"
+        onClick={() => toggleReaction('favorite')}
+        disabled={reactionPending || reactions?.isLoading}
+        aria-pressed={reactions?.favoritedByCurrentUser ?? false}
+      >
+        <Star
+          className={reactions?.favoritedByCurrentUser ? 'fill-amber-400 text-amber-500' : ''}
+        />
+      </FloatingDockAction>
+      <FloatingDockAction
+        label={t('previewActions.comments')}
+        ref={commentsButtonRef}
+        type="button"
+        onClick={onOpenComments}
+        aria-expanded={commentsOpen}
+        aria-controls={commentsPanelId}
+        className={
+          commentsOpen ? 'bg-brand-50 !text-brand-600 dark:bg-slate-800 dark:!text-brand-400' : ''
+        }
+      >
+        <MessageCircle />
+      </FloatingDockAction>
+      {isOwner && (
+        <>
+          <FloatingDockDivider />
+          <FloatingDockAction
+            label={t('previewActions.settings')}
+            type="button"
+            onClick={onOpenSettings}
+            disabled={settingsPending}
+            aria-busy={settingsPending}
+          >
+            <Settings />
+          </FloatingDockAction>
+        </>
+      )}
+      <FloatingDockDivider />
+      {/* Browsing */}
+      {app.url && (
+        <FloatingDockAction
+          label={t('common.openInNewTab')}
+          data-event="app_visit"
+          onClick={() => onOpenInNewTab(app.url!)}
+        >
+          <ExternalLink />
+        </FloatingDockAction>
+      )}
+      <FloatingDockAction
+        label={isFullscreen ? t('common.exitFullscreen') : t('common.fullscreen')}
+        onClick={onToggleFullscreen}
+      >
+        {isFullscreen ? <Minimize2 /> : <Maximize2 />}
+      </FloatingDockAction>
+      <FloatingDockAction
+        label={t('common.close')}
+        onClick={onClose}
+        className="hover:!bg-red-50 hover:!text-red-600"
+      >
+        <X />
+      </FloatingDockAction>
+    </FloatingDock>
+  );
 };
