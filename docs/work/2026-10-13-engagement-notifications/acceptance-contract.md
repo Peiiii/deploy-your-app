@@ -19,7 +19,7 @@
 | A5 | true | passed | HTTP：读取 N 后 N+1 保留未读、单调水位、列表冻结 snapshotSeq | — |
 | A6 | true | passed | HTTP：他人作品收藏；CUA 预览真实收藏/取消及计数 | — |
 | A7 | true | passed | HTTP：首次公开成功、失败/私有/重复发布/取消关注；管理台 visibility 首次事实与冻结作者 | — |
-| A8 | true | passed | HTTP：非首页目标与父评论；CUA 390px 上下文；X-Gemigo-Viewer 身份冲突拒绝 | — |
+| A8 | true | passed | HTTP：非首页目标与父评论；CUA 390px 上下文及本地讨论直达/刷新；local-discussion-refresh.png；X-Gemigo-Viewer 身份冲突拒绝 | — |
 | A9 | true | passed | HTTP：注入 D1 通知写失败证明 source 回滚；稳定 submissionId 并发与重试 | — |
 | A10 | true | passed | HTTP + scheduler：删除/私有/所有权变化/过期；共享批处理撤销与待发取消 trigger | — |
 | A11 | true | passed | CUA：390×844 页面宽390、主要动作44px、输入框可见、草稿 Tab→发送；可见轮询与错误状态代码审查 | — |

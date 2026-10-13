@@ -41,3 +41,5 @@
 
 - 01:44 补充前端重试成功，真实线上4条入口均200，返回 no-store/noindex/no-referrer，JS 为最终构建 index-DCkbFtlF.js。CUA 线上匿名入口按钮显示「登录」，无需测试开关；正式消息入口留在浏览器。production-routes.json / production-entry.png 已保存。浅色实际 DOM 主题及计算样式再核对（背景 rgba(255,255,255,.95)，文字 rgb(71,85,105)），保存 interaction-badges-light.png / detail.png；深色截图为独立此前证据。
 - 收尾：所有 Required IDs passed；retrospective_decision=no-increment，parent_status=ready-for-completion-check。最终结论是已发布并具备验收条件，用户未确认体验偏好，未测得留存或活跃度提升。P1 为本地数据库代表负载，未称线上 WAN p95 39ms。真实 FCM 设备回执不等于读消息或目视 OS 横幅。此前一轮线上 smoke 用错 likesCount/favoritesCount 测试字段，已修正测试断言并重新通过全部真实链路，不把该 harness 失败记作产品失败。
+
+- 01:48 收尾日志暴露本地 Vite `/apps` 旧静态代理会拦截讨论页刷新：原代理明确排除 `:id/discussion` 前端路径，其它 legacy app 资源继续走原 owner。定向 lint、root typecheck、构建通过；重启最新源码隔离 API+Vite，经 CUA 从真实通知链接取目标、直接打开、刷新，原评论与回复输入区正常，local-discussion-refresh.png。该改动仅开发代理，生产构建仍 index-DCkbFtlF.js，与已验收线上资产一致；无需重复生产发布。Review 检查代理边界无新 finding。

@@ -80,7 +80,8 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy: {
         '/api': devApiProxyTarget,
-        '/apps': 'http://localhost:4173',
+        // Discussion is a frontend route; only legacy app assets use the local host.
+        '^/apps/(?![^/]+/discussion(?:[/?]|$))': 'http://localhost:4173',
       },
     },
     define: {
