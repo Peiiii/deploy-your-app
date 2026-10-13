@@ -152,7 +152,9 @@ export default {
     headers.delete('content-length');
     headers.delete('etag');
     headers.set('Cache-Control', dynamic ? 'no-store' : 'public, max-age=0, must-revalidate');
-    if (path === '/auth/authorize' || path === '/sdk/broker') {
+    if (path === '/auth/authorize' || path === '/sdk/broker' ||
+      path === '/notifications' || path === '/notifications/settings' ||
+      path === '/me/library' || /^\/apps\/[^/]+\/discussion$/.test(path)) {
       headers.set('Cache-Control', 'no-store');
       headers.set('Referrer-Policy', 'no-referrer');
     }

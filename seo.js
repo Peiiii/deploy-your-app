@@ -281,6 +281,9 @@ export const getSeo = (url) => {
       '/dashboard',
       '/deploy',
       '/community',
+      '/notifications',
+      '/notifications/settings',
+      '/me/library',
       '/admin',
       '/admin/projects',
       '/design/branding',
@@ -295,7 +298,7 @@ export const getSeo = (url) => {
       '/cli/login',
       '/cli/login/success',
     ].includes(path) ||
-    path === '/catalog' || /^\/(projects|u)\/[^/]+$/.test(path);
+    path === '/catalog' || /^\/(projects|u)\/[^/]+$/.test(path) || /^\/apps\/[^/]+\/discussion$/.test(path);
   const structuredData = key
     ? {
         '@context': 'https://schema.org',
