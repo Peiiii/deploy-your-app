@@ -55,7 +55,7 @@ export function NotificationsPage() {
           onClick={() => presenter.auth.openAuthModal('login')}
           className="rounded-xl bg-brand-600 px-5 py-3 text-white"
         >
-          {t('auth.login')}
+          {t('common.signIn')}
         </button>
       </div>
     );

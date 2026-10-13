@@ -60,7 +60,7 @@ export function DiscussionPage() {
           onClick={() => presenter.auth.openAuthModal('login')}
           className="mt-4 rounded-xl bg-brand-600 px-5 py-3 text-white"
         >
-          {t('auth.login')}
+          {t('common.signIn')}
         </button>
       </div>
     );
