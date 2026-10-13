@@ -6,7 +6,7 @@
 
 ## 当前状态与恢复
 
-- delivery-mode=major；flow=standard；risk=L3/L4；phase=delivery；retrospective_state=pending。
+- delivery-mode=major；flow=standard；risk=L3/L4；phase=delivered-awaiting-user-acceptance；retrospective_state=completed。
 - 开始：2026-10-13 22:52 CST；预计完成 2026-10-14 00:52–01:52 CST，外部阻塞单列。
 - 工作区：`/Users/peiwang/.codex/worktrees/engagement-notifications/deploy-your-app`，主工作区有其它任务修改，不覆盖。
 - active-contract：[合同](../../work/2026-10-13-engagement-notifications/acceptance-contract.md)。
@@ -17,9 +17,9 @@
 
 ## 当前待关闭
 
-A1–A11、B1–B5、P1、D1；各项尚无实现证据。后续每批更新本记录和合同，不重抄设计。
+此段为启动时的恢复记录；最终 Required 项与当前证据以合同 active ledger 为准，均已通过。
 
-最近验证：共享包/API/admin 的 tsc -b 与 frontend tsc 通过；新增模块定向 ESLint 通过。HTTP 集成脚本 scripts/test-engagement-notifications.ts 正在运行，测试未通过前不记完成。
+启动阶段验证：共享包/API/admin 的 tsc -b 与 frontend tsc 通过；新增模块定向 ESLint 通过。HTTP 集成脚本 scripts/test-engagement-notifications.ts 正在运行，测试未通过前不记完成。
 
 2026-10-13 用户纠正：明确「别发邮件」「抖音不会发邮件」。邮件是 AI 扩大的触达选择，现已移除所有邮件代码、API、env 字段、token 表与 UI；没有发送过邮件。合同 rev=2。后续只完成站内与明确许可的设备推送。
 
@@ -38,3 +38,6 @@ A1–A11、B1–B5、P1、D1；各项尚无实现证据。后续每批更新本�
 - 主工作区 master 已快进 eb5297a；仅隔离两份冲突预览草稿并原样恢复相对主线的改动，其余导航/分析/文档草稿未提交。安装锁定依赖后主工作区全量 typecheck 通过，暂存区仍为空。
 
 - 01:40 匿名线上界面核验补正登录按钮原不存在的翻译 key（auth.login→现有 common.signIn）。前端补充发布第一次被 GitHub 远端临时 pack 文件写入错误拒绝，未重复数据库迁移或其它已成功发布；将沿原 gh-pages 流程重新发布修正后构建。
+
+- 01:44 补充前端重试成功，真实线上4条入口均200，返回 no-store/noindex/no-referrer，JS 为最终构建 index-DCkbFtlF.js。CUA 线上匿名入口按钮显示「登录」，无需测试开关；正式消息入口留在浏览器。production-routes.json / production-entry.png 已保存。浅色实际 DOM 主题及计算样式再核对（背景 rgba(255,255,255,.95)，文字 rgb(71,85,105)），保存 interaction-badges-light.png / detail.png；深色截图为独立此前证据。
+- 收尾：所有 Required IDs passed；retrospective_decision=no-increment，parent_status=ready-for-completion-check。最终结论是已发布并具备验收条件，用户未确认体验偏好，未测得留存或活跃度提升。P1 为本地数据库代表负载，未称线上 WAN p95 39ms。真实 FCM 设备回执不等于读消息或目视 OS 横幅。此前一轮线上 smoke 用错 likesCount/favoritesCount 测试字段，已修正测试断言并重新通过全部真实链路，不把该 harness 失败记作产品失败。

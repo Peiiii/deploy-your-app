@@ -30,11 +30,11 @@
 | B5 | true | passed | scheduler：7天忽略且≥3发送降频；明确恢复只接未来事件；设置说明已实现 | — |
 | U1 | true | passed | CUA：真实 0/1/2 增删、120→99+；几何不变/41px栏/32px按钮、绝对定位、明暗主题；第二轮视觉Review无P1/P2 | — |
 | P1 | true | passed | performance.json：本地 D1 代表负载 100万总记录/用户1万/100组；p95 39ms（21次，不含 WAN） | — |
-| D1 | true | not-run | — | — |
+| D1 | true | passed | findings-first Review 无未关闭项；实现 eb5297a / 入口 b649283 普通推送 master，主工作区同步且草稿恢复已比对；增量迁移、API/admin/Pages 发布成功；production.json 真实双账号链路 + production-routes.json 4条线上200/no-store/noindex/no-referrer/当前构建 + production-entry.png | — |
 
 ## 当前阶段门
 
-完成站内事件、双 Worker 写入、消息中心及回访入口，保持现有部署、评论、导航与其它任务改动。后续渠道仍在整体范围内，只有真实凭据／设备条件能阻止相应步骤。
+Required A1–A11、B1–B5、U1、P1、D1 均通过，acceptance-ready。已线上交付，待用户确认体验偏好；本记录不把技术验证等同于用户验收或留存增长。设备端实际 showNotification 回执在本地真实 FCM 链路完成；生产端已配置并验证默认关闭、公开 key 和核心通知链路，未向真实用户额外发送推送。
 
 ## 生效记录
 
