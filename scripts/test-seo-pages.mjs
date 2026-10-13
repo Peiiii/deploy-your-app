@@ -95,6 +95,13 @@ const mf = new Miniflare({
   },
 });
 try {
+  for (const path of ['/notifications', '/notifications/settings', '/me/library', '/apps/controlled/discussion?commentId=test']) {
+    const response = await mf.dispatchFetch('https://gemigo.io' + path);
+    assert.equal(response.status, 200, path);
+    assert.equal(response.headers.get('Cache-Control'), 'no-store');
+    assert.equal(response.headers.get('Referrer-Policy'), 'no-referrer');
+    assert.equal(response.headers.get('X-Robots-Tag'), 'noindex, follow');
+  }
   for (const path of PUBLIC_PATHS)
     for (const language of ['en', 'zh-CN']) {
       const url =

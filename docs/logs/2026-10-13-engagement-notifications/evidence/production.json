@@ -1,0 +1,20 @@
+{
+  "environment": "production",
+  "startedAt": "2026-10-13T17:36:18.026Z",
+  "checks": [
+    "production channel ready; every external category defaults off",
+    "production VAPID public key exposed without private key",
+    "real HTML source → durable deployment → Live completion",
+    "follow before first publication sees the new public work",
+    "reader comment appears once in author inbox despite replay",
+    "author reply → reader exact target/parent → watermark clears important badge",
+    "likes/favorites counts, aggregated notifications and other-author library",
+    "actual reaction removal resets counts and revokes corresponding notification facts",
+    "visibility change immediately denies old private target",
+    "controlled work removed through real product deletion including R2 cleanup"
+  ],
+  "externalSending": "not enabled for controlled accounts; actual device proof is separate local FCM receipt",
+  "status": "passed",
+  "completedAt": "2026-10-13T17:36:41.415Z",
+  "cleanup": "test project soft-deleted, deployment assets removed, both temporary sessions revoked; labeled QA users retained for traceable audit"
+}
