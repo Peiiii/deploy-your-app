@@ -32,7 +32,7 @@ export const useAppPreviewPanel = (options?: UseAppPreviewPanelOptions) => {
   }, []);
 
   const openAppPreview = useCallback(
-    (app: ExploreAppCard) => {
+    (app: ExploreAppCard, apps: readonly ExploreAppCard[] = [app]) => {
       if (!app.url) return;
 
       if (!isDesktop) {
@@ -40,14 +40,30 @@ export const useAppPreviewPanel = (options?: UseAppPreviewPanelOptions) => {
         return;
       }
 
-      openRightPanel(
-        <AppPreviewPanel
-          app={app}
-          onClose={closeRightPanel}
-          onOpenInNewTab={openInNewTab}
-        />,
-        { closeOnUnmount: options?.closeOnUnmount ?? false, appId: app.id },
-      );
+      // Keep the displayed order stable for this browsing session.
+      const seen = new Set<string>();
+      const sequence = apps.filter(item => {
+        if (!item.url || seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+      });
+      if (!seen.has(app.id)) sequence.unshift(app);
+      const show = (index: number, switching = false) => {
+        const current = sequence[index];
+        if (!current) return;
+        openRightPanel(
+          <AppPreviewPanel
+            app={current}
+            onClose={closeRightPanel}
+            onOpenInNewTab={openInNewTab}
+            onPrevious={index > 0 ? () => show(index - 1, true) : undefined}
+            onNext={index < sequence.length - 1 ? () => show(index + 1, true) : undefined}
+          />,
+          { closeOnUnmount: options?.closeOnUnmount ?? false, appId: current.id,
+            layout: switching ? useUIStore.getState().rightPanelLayout : 'half' },
+        );
+      };
+      show(sequence.findIndex(item => item.id === app.id));
 
       const shouldCollapse = options?.collapseSidebar ?? true;
       if (shouldCollapse && !sidebarCollapsed) {

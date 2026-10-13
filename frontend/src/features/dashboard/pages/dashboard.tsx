@@ -11,6 +11,7 @@ import { usePresenter } from '@/contexts/presenter-context';
 import { useCopyToClipboardWithKey } from '@/hooks/use-copy-to-clipboard-with-key';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { useAppPreviewPanel } from '@/hooks/use-app-preview-panel';
+import { mapProjectsToApps } from '@/components/explore-app-card';
 import { ProjectCard } from '@/features/dashboard/components/project-card';
 import { DashboardLayout } from '@/features/dashboard/components/dashboard-layout';
 import { DashboardFilters } from '@/features/dashboard/components/dashboard-filters';
@@ -204,7 +205,7 @@ export const Dashboard: React.FC = () => {
                 onCopyUrl={handleCopyUrl}
                 isCopied={isCopied}
                 priority={index < 3}
-                onPreview={openAppPreview}
+                onPreview={app => openAppPreview(app, mapProjectsToApps(filteredAndSortedProjects))}
               />
             ))}
           </div>

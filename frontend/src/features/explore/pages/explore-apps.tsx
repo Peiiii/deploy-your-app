@@ -228,7 +228,7 @@ export const ExploreApps: React.FC = () => {
                   activeTag={activeTag}
                   setActiveTag={handleSetActiveTag}
                   imagePriority={index < 3}
-                  onCardClick={() => openAppPreview(app)}
+                  onCardClick={() => openAppPreview(app, apps)}
                 />
               ))}
             </div>

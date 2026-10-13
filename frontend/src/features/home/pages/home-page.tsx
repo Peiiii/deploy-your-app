@@ -17,8 +17,8 @@ export const Home: React.FC = () => {
     navigate(`/deploy?source=${sourceType}`);
   };
 
-  const handleCardClick = (app: ExploreAppCard) => {
-    openAppPreview(app);
+  const handleCardClick = (app: ExploreAppCard, apps: readonly ExploreAppCard[]) => {
+    openAppPreview(app, apps);
   };
 
   return (

@@ -124,7 +124,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 
 interface HomeExploreSectionProps {
   compact: boolean;
-  onCardClick: (app: ExploreAppCard) => void;
+  onCardClick: (app: ExploreAppCard, apps: readonly ExploreAppCard[]) => void;
 }
 
 export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
@@ -209,7 +209,7 @@ export const HomeExploreSection: React.FC<HomeExploreSectionProps> = ({
                 activeTag={activeTag}
                 setActiveTag={setActiveTag}
                 imagePriority={index < 3}
-                onCardClick={() => onCardClick(app)}
+                onCardClick={() => onCardClick(app, apps)}
               />
             ))}
           </div>

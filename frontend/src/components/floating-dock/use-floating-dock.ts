@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect, useMemo } from 'react';
 import { useMemoizedFn } from 'ahooks';
 import {
   DEFAULT_INITIAL_POSITION,
@@ -24,6 +24,8 @@ type PersistedDockState = { dockSide: DockSide; y: number };
 const dockStateByKey = new Map<string, PersistedDockState>();
 
 export interface UseFloatingDockOptions {
+  /** Reserve a bottom band for other floating controls. */
+  bottomInset?: number;
   onDragStart?: () => void;
   onDragEnd?: () => void;
   initialPosition?: InitialPosition;
@@ -57,6 +59,7 @@ export const useFloatingDock = (
     initialPosition = DEFAULT_INITIAL_POSITION,
     allowOutsideLeft = true,
     stateKey,
+    bottomInset,
   } = options;
 
   const [state, setState] = useState(() => {
@@ -70,6 +73,24 @@ export const useFloatingDock = (
   });
 
   const nodeRef = useRef<HTMLDivElement>(null);
+  const [bounds, setBounds] = useState({ parentHeight: 0, widgetHeight: 0 });
+  useLayoutEffect(() => {
+    if (bottomInset === undefined) return;
+    const node = nodeRef.current;
+    const parent = node?.offsetParent;
+    if (!node || !(parent instanceof HTMLElement)) return;
+    const measure = () => setBounds(previous => {
+      const next = { parentHeight: parent.clientHeight, widgetHeight: node.firstElementChild instanceof HTMLElement ? node.firstElementChild.offsetHeight : node.offsetHeight };
+      return previous.parentHeight === next.parentHeight && previous.widgetHeight === next.widgetHeight ? previous : next;
+    });
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(parent);
+    observer.observe(node);
+    if (node.firstElementChild) observer.observe(node.firstElementChild);
+    return () => observer.disconnect();
+  }, [bottomInset]);
+
   const dragStartRef = useRef({ mouseX: 0, mouseY: 0, widgetX: 0, widgetY: 0, started: false });
 
   // If the caller disallows "outside-left" (e.g. fullscreen), ensure the dock
@@ -105,7 +126,7 @@ export const useFloatingDock = (
       mouseX: e.clientX,
       mouseY: e.clientY,
       widgetX: pos.x,
-      widgetY: state.y,
+      widgetY: pos.y,
       started: false,
     };
     setState((s) => ({ ...s, mode: 'pending' }));
@@ -186,13 +207,21 @@ export const useFloatingDock = (
   }, [allowOutsideLeft, onDragStart, onDragEnd, state.mode, stateKey]);
 
   // --- Style ---
-  const style = useMemo(
-    () =>
-      state.mode === 'dragging'
-        ? getDraggingStyle(state.x, state.y)
-        : getDockedStyle(state.dockSide, state.y),
-    [state.mode, state.dockSide, state.x, state.y],
-  );
+  const style = useMemo(() => {
+    const availableHeight = bottomInset === undefined ? undefined : Math.max(0, bounds.parentHeight - bottomInset);
+    const y = availableHeight === undefined
+      ? state.y
+      : Math.max(0, Math.min(state.y, availableHeight - bounds.widgetHeight));
+    const position = state.mode === 'dragging'
+      ? getDraggingStyle(state.x, y)
+      : getDockedStyle(state.dockSide, y);
+    return availableHeight === undefined ? position : {
+      ...position,
+      maxHeight: Math.max(0, availableHeight - y),
+      overflowY: 'auto' as const,
+      scrollbarWidth: 'none' as const,
+    };
+  }, [state.mode, state.dockSide, state.x, state.y, bottomInset, bounds]);
 
   return {
     nodeRef,

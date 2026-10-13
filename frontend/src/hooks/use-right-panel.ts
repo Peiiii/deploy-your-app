@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
-import { useUIStore } from '@/stores/ui.store';
+import { useUIStore, type RightPanelLayout } from '@/stores/ui.store';
 
 export interface OpenRightPanelOptions {
   appId?: string;
+  layout?: RightPanelLayout;
   /**
    * If true, the panel will automatically close when the component that opened it unmounts.
    * @default true
@@ -42,7 +43,7 @@ export const useRightPanel = () => {
       const id = `panel-${Date.now()}-${Math.random().toString(36).slice(2)}`;
       ownPanelIdRef.current = id;
       closeOnUnmountRef.current = options?.closeOnUnmount ?? true;
-      openRightPanelAction(content, id, options?.appId);
+      openRightPanelAction(content, id, options?.appId, options?.layout);
     },
     [openRightPanelAction]
   );

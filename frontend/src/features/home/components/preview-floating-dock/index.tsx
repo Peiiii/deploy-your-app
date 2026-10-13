@@ -115,7 +115,7 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
             style={style}
           className={`
                 absolute z-50 select-none
-                ${isDragging ? 'cursor-grabbing' : 'transition-[left,top] duration-500 linear'}
+                ${isDragging ? 'cursor-grabbing' : dockOptions?.bottomInset === undefined ? 'transition-[left,top] duration-500 linear' : ''}
             `}
         >
             {/* Unified Capsule Container */}

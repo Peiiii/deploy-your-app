@@ -30,6 +30,9 @@
     "showApp": "收起提示"
   },
   "previewActions": {
+    "previousSite": "上一个网站",
+    "nextSite": "下一个网站",
+    "siteNavigation": "切换网站",
     "actions": "应用操作",
     "like": "点赞",
     "favorite": "收藏",

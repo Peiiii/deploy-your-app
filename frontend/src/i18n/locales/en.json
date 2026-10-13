@@ -30,6 +30,9 @@
     "showApp": "Hide loading hint"
   },
   "previewActions": {
+    "previousSite": "Previous website",
+    "nextSite": "Next website",
+    "siteNavigation": "Switch website",
     "actions": "App actions",
     "like": "Like",
     "favorite": "Favorite",

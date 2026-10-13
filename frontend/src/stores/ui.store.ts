@@ -42,7 +42,7 @@ interface UIState {
     openConfirmDialog: (dialog: ConfirmDialogState) => void;
     closeConfirmDialog: () => void;
     // Right Panel Service
-    openRightPanel: (content: ReactNode, id: string, appId?: string) => void;
+    openRightPanel: (content: ReactNode, id: string, appId?: string, layout?: RightPanelLayout) => void;
     closeRightPanel: (id?: string) => void;
     setRightPanelLayout: (layout: RightPanelLayout) => void;
     toggleRightPanelLayout: () => void;
@@ -88,8 +88,8 @@ export const useUIStore = create<UIState>()(persist((set) => ({
     },
     openConfirmDialog: (dialog) => set({ confirmDialog: dialog }),
     closeConfirmDialog: () => set({ confirmDialog: null }),
-    openRightPanel: (content, id, appId) =>
-      set({ rightPanelContent: content, rightPanelId: id, rightPanelAppId: appId ?? null, rightPanelLayout: 'half' }),
+    openRightPanel: (content, id, appId, layout = 'half') =>
+      set({ rightPanelContent: content, rightPanelId: id, rightPanelAppId: appId ?? null, rightPanelLayout: layout }),
     closeRightPanel: (id) =>
       set((state) => {
         // If no id provided, force close. If id provided, only close if it matches.

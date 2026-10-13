@@ -2,6 +2,7 @@ import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import type { ExploreAppCard } from '@/components/explore-app-card';
+import { FloatingSiteNavigation, SITE_NAVIGATION_BOTTOM_INSET } from '@/components/floating-site-navigation';
 import { PreviewFloatingDock } from './preview-floating-dock';
 import { useUIStore } from '@/stores/ui.store';
 import { useNavigate } from 'react-router-dom';
@@ -13,12 +14,16 @@ import { AppPreviewContent } from './app-preview-content';
 interface AppPreviewPanelProps {
     app: ExploreAppCard;
     onClose: () => void;
+    onPrevious?: () => void;
+    onNext?: () => void;
     onOpenInNewTab: (url: string) => void;
 }
 
 export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
     app,
     onClose,
+    onPrevious,
+    onNext,
     onOpenInNewTab,
 }) => {
     const { t } = useTranslation();
@@ -64,12 +69,14 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
     const dockOptionsHalf = useMemo(() => {
         return {
             stateKey: `${dockStateKeyBase}:half`,
+            bottomInset: SITE_NAVIGATION_BOTTOM_INSET,
         };
     }, [dockStateKeyBase]);
 
     const dockOptionsFullscreen = useMemo(() => {
         return {
             stateKey: `${dockStateKeyBase}:fullscreen`,
+            bottomInset: SITE_NAVIGATION_BOTTOM_INSET,
             allowOutsideLeft: false,
             initialPosition: {
                 y: 16,
@@ -151,6 +158,12 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
                     </div>
                 </div>
             </div>
+
+            <FloatingSiteNavigation
+                onPrevious={onPrevious}
+                onNext={onNext}
+                outsideLeft={!isFullscreen}
+            />
 
             {/* Draggable Widget (Unified Dock) */}
             <PreviewFloatingDock
