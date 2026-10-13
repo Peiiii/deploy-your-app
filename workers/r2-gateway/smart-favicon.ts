@@ -6,6 +6,20 @@ export const SMART_FAVICON_RUNTIME = String.raw`(() => {
   const seen = new WeakSet();
   const invalid = new Set();
   let observer, timer, running = false, dirty = false, stopped = false, rootChecked = false, rootOriginal = false;
+  let previewRequest = null, previewIcon = null;
+  const publish = href => {
+    if (!allowed(href)) return;
+    previewIcon = href;
+    if (previewRequest) parent.postMessage({ type: 'gemigo:favicon', requestId: previewRequest.id, href }, previewRequest.origin);
+  };
+  addEventListener('message', event => {
+    if (parent === window || event.source !== parent || event.data?.type !== 'gemigo:request-favicon' ||
+        typeof event.data.requestId !== 'string' || event.data.requestId.length > 100 || !/^https?:/.test(event.origin)) return;
+    previewRequest = { id: event.data.requestId, origin: event.origin };
+    const icon = previewIcon || Array.from(document.querySelectorAll('link[rel]')).find(link =>
+      link.rel.toLowerCase().split(/\s+/).includes('icon') && (!link.media || matchMedia(link.media).matches))?.href || new URL('/favicon.ico', location.origin).href;
+    publish(icon);
+  });
   let lastMode = '';
   const mark = mode => { document.documentElement.dataset.gemigoFavicon = mode; lastMode = mode; };
   const stop = () => { stopped = true; clearTimeout(timer); if (observer) observer.disconnect(); document.removeEventListener('load', imageLoaded, true); };
@@ -27,7 +41,7 @@ export const SMART_FAVICON_RUNTIME = String.raw`(() => {
     if (!link) { link = document.createElement('link'); link.dataset.gemigoFavicon = ''; document.head.append(link); }
     for (const broken of invalid) broken.remove();
     link.rel = 'icon'; link.removeAttribute('type'); link.removeAttribute('sizes'); link.href = href;
-    mark(mode);
+    mark(mode); publish(href);
   };
   const canvas = () => { const c = document.createElement('canvas'); c.width = c.height = 64; return c; };
   const imageIcon = image => {
@@ -116,7 +130,7 @@ export const SMART_FAVICON_RUNTIME = String.raw`(() => {
       if (link.media && !matchMedia(link.media).matches) continue;
       const url = new URL(link.href, document.baseURI);
       if (url.origin === location.origin && url.pathname === '/favicon.ico' && !await originalRoot()) { invalid.add(link); continue; }
-      if (await decode(link.href)) { document.querySelector(platform)?.remove(); mark('original'); stop(); return true; }
+      if (await decode(link.href)) { document.querySelector(platform)?.remove(); mark('original'); publish(link.href); stop(); return true; }
       invalid.add(link);
     }
     return false;

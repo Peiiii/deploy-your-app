@@ -88,6 +88,8 @@ The gateway injects a same-origin async script from `/__gemigo/favicon-runtime.v
 
 Missing `/favicon.ico` serves an SVG instead of the SPA homepage. Original icons come only from the active publication, so deleting an icon on redeploy does not resurrect its previous version. Pages with CSP metadata or response headers receive no icon script/head injection; their existing policies remain authoritative. They can still receive the root default icon if their browser requests it and the policy allows it. Smart extraction has been verified in Chromium; other browsers and exceptionally slow dynamic rendering are compatibility boundaries.
 
+The preview requests the selected favicon with a per-document request ID. The existing runtime replies only to its embedding parent, using that parent’s exact origin, and publishes later identification results to the same request. GemiGo checks the iframe source, site origin, request ID and image URL before displaying it; no customer source or CSP policy is changed. Pages without this helper use the root favicon or a generic website marker in the preview.
+
 Tests: `node scripts/test-app-delivery-runtime.mjs`, `./server/node_modules/.bin/tsx scripts/test-app-delivery-cache.ts`, and `node scripts/test-smart-favicon.mjs` (requires Playwright/Chromium; `PLAYWRIGHT_MODULE` and `CHROME_EXECUTABLE` can point to the installed desktop dependencies). The last test serves the actual Miniflare Worker over local HTTP without network interception, because Playwright's request routing aborts `/favicon.ico`. It checks both DOM output and Chrome's stored favicon bitmaps.
 
 From repo root:

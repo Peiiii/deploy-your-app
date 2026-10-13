@@ -24,3 +24,28 @@ flow=standard，risk=L2，plan=not-required（单批闭环）。设计 Review：
 验收新增：半屏／全屏／深色／禁用／hover／focus 状态，实际 DOM 的两个外壳宽度、surface computed styles、action bounds 与 computed styles一致；上方展开／收起／拖动及原网站切换回归。方案 Review passed：共用边界覆盖两个真实消费者，没有引入第二份 dock 状态或改变导航含义。
 
 修正后的验证：扩展后的浏览器回归通过，逐项比较两处外宽、边框、圆角、背景、阴影、模糊、按钮／图标宽高、间距，以及 resting／hover／focus 的计算样式；覆盖半屏、全屏、深色、禁用。导航占用空间通过实际 DOM 测量，窗口缩放和上方展开／拖动避让回归通过。frontend tsc、变更文件 ESLint、build 和 diff check 通过。实现 Review 未发现未关闭 finding；复盘修正已归入现有设计和回归测试，不新增长期规则。
+
+## 2026-10-13 用户修正：反馈面积与上下留白
+
+截图确认导航首项紧贴上边，操作区仅有下内边距；IconButton ghost 和 dock hover 都作用在32px按钮本体，导致反馈显大。共用组件保留32px点击区，用居中24px伪元素承载 hover／active／selected／focus反馈；handle也复用同一反馈规则。操作区改为上下各4px，折叠时同时归零；导航总高度保持78px，避让仍测量真实组件。禁用项不显示 hover／active反馈。选中评论和关闭的危险色统一在组件内部表达，不保留调用方的大块背景。
+
+方案 Review passed：共同组件唯一 owner、点击与键盘命名保持、既有切换和避让范围不变。验收覆盖真实伪元素尺寸／背景／focus、上下padding相等、disabled，以及浅深主题、两个控件与线上真实切换。
+
+## 当前完整修订：网站身份与弹性停靠
+
+用户追加要求：导航顶部显示当前网站标签页图标，hover显示应用名称；两处顶部身份图标不应作为可点击按钮或显示背景反馈；上方操作条拖离时四角圆润，重新停靠恢复贴边形状。
+
+复用 gateway smart-favicon runtime 选出的原始／恢复／动态图标，通过 parent request（带本次文档 nonce）返回给预览。前端验证 iframe source、origin、nonce 和图像 URL；同源不同路径的旧回复也不能串到新网站。仅分享公开图标，既有 CSP 不改写；没有 runtime 的外站／受限页面尝试根 favicon，加载失败显示通用网站图标。两处身份槽使用同一非按钮 div + image语义和 tooltip；上方保留鼠标拖动，hover/focus展开，取消点击 pin。下方身份图标无操作，悬停和键盘聚焦显示当前应用名称。导航真实高度测量自动适配新增图标及divider。拖动时完整圆角和边框，松开恢复停靠边缘；圆角300ms回弹曲线，减少动画时禁用过渡。
+
+active contract `preview-dock-2026-10-13`，parent-goal 为同组件、一致且合理的反馈、当前网站身份和弹性停靠，单阶段交付；risk=L3（跨iframe/runtime消息边界）。方案 Review passed：复用图标 owner，来源与nonce验证、无点击身份语义、既有CSP保持、无图标可观察恢复、整体避让和发布入口均覆盖。
+
+| Required ID | 标准 | 状态 |
+| --- | --- | --- |
+| PD-01 | 共享组件、对称留白、24px反馈、32px点击区，禁用无hover | passed |
+| PD-02 | 当前favicon随网站切换，hover/focus显示当前名称，无按钮身份反馈 | passed |
+| PD-03 | favicon跨域来源／nonce验证、原图标／动态图标及失败恢复 | passed |
+| PD-04 | 拖离四角圆润，停靠恢复，短窗口两控件不重叠 | passed |
+| PD-05 | 原首页／探索／管理切换、评论、类型／lint／build回归 | passed |
+| PD-06 | 主线同步、frontend与gateway上线、真实网站验收 | not-run |
+
+当前本地证据：扩展后的 preview 浏览器测试通过（24px反馈、对称padding、被动身份、名称tooltip、favicon切换、错误origin／旧nonce拒绝、坏图恢复、拖动形变／恢复、避让及三入口回归）；真实Miniflare gateway／Chromium 20类图标与3类跨域parent交换通过，并保留CSP、源码、缓存和重部署验证。frontend和favicon模块类型检查、定向ESLint、build、gateway dry-run、diff check通过；实现Review无未关闭finding。复盘：身份与操作语义在共同组件分开，favicon复用现有owner；本次事实已更新该设计及gateway README，无全局规则增量。

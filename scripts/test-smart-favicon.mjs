@@ -20,6 +20,12 @@ const profile = mkdtempSync(path.join(tmpdir(), 'gemigo-smart-favicon-test-'));
 let context, externalBytes, delayedRuntimeSent = false;
 const server = createServer(async (request, outgoing) => {
   try {
+    if (request.headers.host.startsWith('preview.')) {
+      const slug = new URL(request.url, 'http://preview.test').searchParams.get('site') || 'original';
+      outgoing.writeHead(200, { 'content-type': 'text/html' });
+      outgoing.end(`<html><script>window.icons=[];addEventListener('message',event=>{if(event.data?.type==='gemigo:favicon')icons.push({origin:event.origin,...event.data})})</script><iframe id="app" src="${origin(slug)}/" onload="this.contentWindow.postMessage({type:'gemigo:request-favicon',requestId:'test-icon'},new window.URL(this.src).origin)"></iframe></html>`);
+      return;
+    }
     if (request.headers.host.startsWith('images.')) {
       if (request.url === '/slow-logo') await new Promise(resolve => setTimeout(resolve, 4200));
       outgoing.writeHead(200, { 'content-type': 'application/octet-stream' }); outgoing.end(externalBytes); return;
@@ -132,6 +138,20 @@ try {
     await page.waitForTimeout(500);
     await page.close();
     console.log('PASS browser ' + slug + ': ' + expected);
+  }
+
+  // The actual injected runtime sends the same icon used by the embedded site's tab.
+  for (const slug of ['original', 'dynamic', 'none']) {
+    const parent = await context.newPage();
+    await parent.goto(origin('preview') + '/?site=' + slug);
+    await parent.waitForFunction(() => window.icons?.length > 0);
+    const child = parent.frames().find(frame => frame.parentFrame() === parent.mainFrame());
+    await child.waitForFunction(() => document.documentElement.dataset.gemigoFavicon);
+    const expected = await child.evaluate(() => Array.from(document.querySelectorAll('link[rel]')).find(link => link.rel.toLowerCase().split(/\s+/).includes('icon')).href);
+    await parent.waitForFunction(href => window.icons.some(icon => icon.href === href && icon.requestId === 'test-icon'), expected);
+    assert.equal(await parent.evaluate(() => window.icons.at(-1).origin), new URL(origin(slug)).origin);
+    console.log('PASS cross-origin favicon bridge ' + slug);
+    await parent.close();
   }
 
   const page = await context.newPage();

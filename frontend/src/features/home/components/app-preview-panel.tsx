@@ -52,6 +52,8 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
     const toggleRightPanelLayout = useUIStore((s) => s.actions.toggleRightPanelLayout);
     const setRightPanelLayout = useUIStore((s) => s.actions.setRightPanelLayout);
     const isFullscreen = rightPanelLayout === 'fullscreen';
+    const [favicon, setFavicon] = useState<{ url: string; href: string } | null>(null);
+    const receiveFavicon = React.useCallback((url: string, href: string) => setFavicon({ url, href }), []);
     const navigationRef = useRef<HTMLDivElement>(null);
     const [navigationBottomInset, setNavigationBottomInset] = useState(0);
     useLayoutEffect(() => {
@@ -156,6 +158,7 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
                                 url={app.url}
                                 name={app.name}
                                 onOpenInNewTab={onOpenInNewTab}
+                                onFavicon={receiveFavicon}
                             />
                         ) : (
                             <div className="flex items-center justify-center h-full">
@@ -175,6 +178,9 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
 
             <FloatingSiteNavigation
                 nodeRef={navigationRef}
+                appName={app.name}
+                appUrl={app.url}
+                faviconUrl={favicon && favicon.url === app.url ? favicon.href : undefined}
                 onPrevious={onPrevious}
                 onNext={onNext}
                 outsideLeft={!isFullscreen}

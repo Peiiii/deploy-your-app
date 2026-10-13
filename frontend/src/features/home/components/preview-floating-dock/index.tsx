@@ -2,9 +2,9 @@ import {
   FloatingDock,
   FloatingDockAction,
   FloatingDockDivider,
-  FloatingDockHandle,
+  FloatingDockIdentity,
 } from '@/components/floating-dock';
-import React, { useId, useRef, useState } from 'react';
+import React, { useId, useState } from 'react';
 import {
   ExternalLink,
   ThumbsUp,
@@ -22,7 +22,6 @@ import { BrandLogo } from './brand-logo';
 import { usePresenter } from '@/contexts/presenter-context';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { useReactionStore } from '@/stores/reaction.store';
-import { DOCK_DRAG_THRESHOLD_PX } from '@/components/floating-dock/types';
 
 // ============================================================================
 // PREVIEW FLOATING DOCK COMPONENT
@@ -82,10 +81,7 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
   const presenter = usePresenter();
   const user = useAuthStore((s) => s.user);
   const reactions = useReactionStore((s) => s.byProjectId[app.id]);
-  const [pinnedOpen, setPinnedOpen] = useState(false);
   const [reactionPending, setReactionPending] = useState(false);
-  const pointerStart = useRef<{ x: number; y: number } | null>(null);
-  const draggedHandle = useRef(false);
   const actionAreaId = useId();
   const isOwner = !!user && !!app.ownerId && user.id === app.ownerId;
   const toggleReaction = async (kind: 'like' | 'favorite') => {
@@ -104,10 +100,7 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
   };
 
   const { nodeRef, style, onMouseDown, isDragging, dockSide } = useFloatingDock({
-    onDragStart: () => {
-      draggedHandle.current = true;
-      onDragStart();
-    },
+    onDragStart,
     onDragEnd,
     ...dockOptions,
   });
@@ -120,7 +113,7 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
         ? actionCount <= autoExpandMaxActions
         : false;
 
-  const expanded = pinnedOpen || shouldAutoExpand;
+  const expanded = shouldAutoExpand;
 
   return (
     <FloatingDock
@@ -133,32 +126,9 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
       expanded={expanded}
       actionAreaId={actionAreaId}
       handle={
-        <FloatingDockHandle
-          label={t('previewActions.actions')}
-          type="button"
-          aria-expanded={expanded}
-          aria-controls={actionAreaId}
-          onMouseDown={onMouseDown}
-          onPointerDown={(event) => {
-            draggedHandle.current = false;
-            pointerStart.current = { x: event.clientX, y: event.clientY };
-          }}
-          onClick={(event) => {
-            const start = pointerStart.current;
-            pointerStart.current = null;
-            if (
-              !draggedHandle.current &&
-              (event.detail === 0 ||
-                !start ||
-                Math.hypot(event.clientX - start.x, event.clientY - start.y) <
-                  DOCK_DRAG_THRESHOLD_PX)
-            ) {
-              setPinnedOpen((value) => !value);
-            }
-          }}
-        >
+        <FloatingDockIdentity label="GemiGo" onMouseDown={onMouseDown}>
           <BrandLogo />
-        </FloatingDockHandle>
+        </FloatingDockIdentity>
       }
     >
       {/* Divider */}
@@ -193,9 +163,6 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
         onClick={onOpenComments}
         aria-expanded={commentsOpen}
         aria-controls={commentsPanelId}
-        className={
-          commentsOpen ? 'bg-brand-50 !text-brand-600 dark:bg-slate-800 dark:!text-brand-400' : ''
-        }
       >
         <MessageCircle />
       </FloatingDockAction>
@@ -230,11 +197,7 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
       >
         {isFullscreen ? <Minimize2 /> : <Maximize2 />}
       </FloatingDockAction>
-      <FloatingDockAction
-        label={t('common.close')}
-        onClick={onClose}
-        className="hover:!bg-red-50 hover:!text-red-600"
-      >
+      <FloatingDockAction label={t('common.close')} onClick={onClose} feedbackTone="danger">
         <X />
       </FloatingDockAction>
     </FloatingDock>

@@ -5,20 +5,34 @@ interface AppPreviewContentProps {
     name: string;
     url: string;
     onOpenInNewTab: (url: string) => void;
+    onFavicon: (url: string, href: string) => void;
 }
 
 // Keep one browsing window: native navigation retains the old page until commit.
-export function AppPreviewContent({ name, url, onOpenInNewTab }: AppPreviewContentProps) {
+export function AppPreviewContent({ name, url, onOpenInNewTab, onFavicon }: AppPreviewContentProps) {
     const { t } = useTranslation();
-    const [session, setSession] = useState<{ url: string; status: 'loading' | 'slow' | 'visible'; attempt: number }>({ url, status: 'loading', attempt: 0 });
+    const [session, setSession] = useState<{ url: string; status: 'loading' | 'slow' | 'visible'; attempt: number; requestId: string }>({ url, status: 'loading', attempt: 0, requestId: crypto.randomUUID() });
     if (session.url !== url) {
-        setSession({ url, status: 'loading', attempt: session.attempt });
+        setSession({ url, status: 'loading', attempt: session.attempt, requestId: crypto.randomUUID() });
     }
-    const { status, attempt } = session;
+    const { status, attempt, requestId: faviconRequestId } = session;
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const loadingRef = useRef<HTMLDivElement>(null);
     const focusOnDismiss = useRef(false);
     const waiting = status !== 'visible';
+
+    useEffect(() => {
+        const origin = new URL(url).origin;
+        const onMessage = (event: MessageEvent) => {
+            if (event.source !== iframeRef.current?.contentWindow || event.origin !== origin ||
+                event.data?.type !== 'gemigo:favicon' || event.data.requestId !== faviconRequestId ||
+                typeof event.data.href !== 'string' || event.data.href.length > 100_000) return;
+            const href = event.data.href;
+            if (/^https?:/i.test(href) || /^data:image\/(?:png|jpeg|gif|webp|svg\+xml|x-icon)[;,]/i.test(href)) onFavicon(url, href);
+        };
+        window.addEventListener('message', onMessage);
+        return () => window.removeEventListener('message', onMessage);
+    }, [url, faviconRequestId, onFavicon]);
 
     useEffect(() => {
         if (status !== 'loading') return;
@@ -69,7 +83,10 @@ export function AppPreviewContent({ name, url, onOpenInNewTab }: AppPreviewConte
                 allow="camera; microphone"
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
                 onLoad={event => {
-                    if (event.currentTarget === iframeRef.current) dismissFeedback();
+                    if (event.currentTarget === iframeRef.current) {
+                        dismissFeedback();
+                        event.currentTarget.contentWindow?.postMessage({ type: 'gemigo:request-favicon', requestId: faviconRequestId }, new URL(url).origin);
+                    }
                 }}
             />
             {waiting && (
@@ -80,7 +97,7 @@ export function AppPreviewContent({ name, url, onOpenInNewTab }: AppPreviewConte
                     {status === 'slow' && (
                         <div className="pointer-events-auto mt-1 flex max-w-full flex-wrap justify-center gap-1 rounded-md bg-white/90 dark:bg-slate-900/90">
                             <button type="button" onClick={() => {
-                                setSession(current => ({ ...current, status: 'loading', attempt: current.attempt + 1 }));
+                                setSession(current => ({ ...current, status: 'loading', attempt: current.attempt + 1, requestId: crypto.randomUUID() }));
                             }} className="rounded-md px-2 py-2 text-xs text-slate-500 hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-slate-400 dark:hover:bg-white/10">
                                 {t('common.retry')}
                             </button>
