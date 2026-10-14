@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode, MouseEventHandler } from 'react';
+import type { ComponentProps, ReactNode, PointerEventHandler } from 'react';
 import { IconButton, Tooltip } from '@/components/icon-button';
 import { useFloatingDock, type UseFloatingDockOptions } from './use-floating-dock';
 
@@ -27,7 +27,7 @@ export function FloatingDock({
   actionAreaId,
   animatePosition = false,
 }: FloatingDockProps) {
-  const { nodeRef, style, dockSide, isDragging, onMouseDown } = useFloatingDock(dockOptions);
+  const { nodeRef, style, dockSide, isDragging, onPointerDown } = useFloatingDock(dockOptions);
   return (
     <div
       ref={nodeRef}
@@ -43,7 +43,7 @@ export function FloatingDock({
         data-floating-dock-surface
         className={`group/dock flex w-full flex-col items-center overflow-hidden border border-slate-200/60 bg-white/90 shadow-[0_4px_16px_rgba(0,0,0,0.1)] backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.22,1.3,0.36,1)] motion-reduce:transition-none dark:border-slate-700/60 dark:bg-slate-900/90 ${isDragging ? 'rounded-2xl border-l border-r' : dockSide === 'inside-left' ? 'rounded-r-xl rounded-l-none border-l-0' : 'rounded-l-xl rounded-r-none border-r-0'}`}
       >
-        <FloatingDockIdentity label={identityLabel} onMouseDown={onMouseDown}>
+        <FloatingDockIdentity label={identityLabel} onPointerDown={onPointerDown}>
           {identity}
         </FloatingDockIdentity>
         <div
@@ -60,7 +60,7 @@ export function FloatingDock({
 
 type FloatingDockActionProps = Omit<
   ComponentProps<typeof IconButton>,
-  'size' | 'tooltipSide' | 'onMouseDown' | 'variant'
+  'size' | 'tooltipSide' | 'onPointerDown' | 'variant'
 > & { feedbackTone?: 'default' | 'danger' };
 
 // Keep the feedback smaller than the hit area, including for the leading handle.
@@ -82,7 +82,7 @@ export function FloatingDockAction({
       variant="plain"
       size="sm"
       tooltipSide="right"
-      onMouseDown={(event) => event.stopPropagation()}
+      onPointerDown={(event) => event.stopPropagation()}
       className={`h-8 w-8 [&_svg]:h-4 [&_svg]:w-4 text-slate-500 transition-colors disabled:opacity-40 dark:text-slate-400 ${feedbackClass} ${feedbackTone === 'danger' ? 'enabled:hover:before:bg-red-50 enabled:hover:text-red-600 enabled:active:before:bg-red-100 dark:enabled:hover:before:bg-red-950 dark:enabled:active:before:bg-red-900' : defaultFeedbackClass} ${selected ? 'before:bg-brand-50 text-brand-600 dark:before:bg-slate-800 dark:text-brand-400' : ''} ${className}`}
     />
   );
@@ -96,11 +96,11 @@ export function FloatingDockDivider() {
 export function FloatingDockIdentity({
   label,
   children,
-  onMouseDown,
+  onPointerDown,
 }: {
   label: string;
   children: ReactNode;
-  onMouseDown?: MouseEventHandler<HTMLDivElement>;
+  onPointerDown?: PointerEventHandler<HTMLDivElement>;
 }) {
   return (
     <Tooltip label={label} side="right">
@@ -109,12 +109,13 @@ export function FloatingDockIdentity({
         aria-label={label}
         tabIndex={0}
         onDragStart={(event) => event.preventDefault()}
-        onMouseDown={onMouseDown}
         onPointerDown={(event) => {
-          if (onMouseDown && event.button === 0)
+          if (onPointerDown && event.button === 0) {
             event.currentTarget.setPointerCapture(event.pointerId);
+            onPointerDown(event);
+          }
         }}
-        className={`w-10 h-10 flex shrink-0 items-center justify-center [&_svg]:h-5 [&_svg]:w-5 [&_img]:h-5 [&_img]:w-5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-brand-500 ${onMouseDown ? 'cursor-grab' : 'cursor-default'}`}
+        className={`w-10 h-10 touch-none flex shrink-0 items-center justify-center [&_svg]:h-5 [&_svg]:w-5 [&_img]:h-5 [&_img]:w-5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-brand-500 ${onPointerDown ? 'cursor-grab' : 'cursor-default'}`}
       >
         {children}
       </div>

@@ -25,8 +25,8 @@ export interface UseFloatingDockOptions {
   topInset?: number;
   /** Reserve a bottom band for other floating controls. */
   bottomInset?: number;
-  onDragStart?: () => void;
-  onDragEnd?: () => void;
+  onInteractionStart?: () => void;
+  onInteractionEnd?: () => void;
   initialPosition?: InitialPosition;
   /**
    * Optional in-memory persistence key. When provided, the dock will remember
@@ -44,15 +44,15 @@ export interface UseFloatingDockOptions {
 export interface UseFloatingDockReturn {
   nodeRef: React.RefObject<HTMLDivElement | null>;
   style: React.CSSProperties;
-  onMouseDown: (e: React.MouseEvent) => void;
+  onPointerDown: (e: React.PointerEvent) => void;
   isDragging: boolean;
   dockSide: DockSide;
 }
 
 export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloatingDockReturn => {
   const {
-    onDragStart,
-    onDragEnd,
+    onInteractionStart,
+    onInteractionEnd,
     initialPosition = DEFAULT_INITIAL_POSITION,
     allowOutsideLeft = true,
     stateKey,
@@ -108,6 +108,7 @@ export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloati
     widgetY: 0,
     started: false,
     wasAnchored: false,
+    pointerId: 0,
   });
 
   // If the caller disallows "outside-left" (e.g. fullscreen), ensure the dock
@@ -132,7 +133,7 @@ export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloati
   }, [allowOutsideLeft, initialPosition.dockSide, initialPosition.y]);
 
   // --- Start Dragging ---
-  const onMouseDown = useMemoizedFn((e: React.MouseEvent) => {
+  const onPointerDown = useMemoizedFn((e: React.PointerEvent) => {
     if (e.button !== 0) return;
     const pos = getRelativePosition(nodeRef.current);
     if (!pos) return;
@@ -144,7 +145,9 @@ export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloati
       widgetY: pos.y,
       started: false,
       wasAnchored: state.anchored,
+      pointerId: e.pointerId,
     };
+    onInteractionStart?.();
     setState((s) => ({ ...s, mode: 'pending' }));
   });
 
@@ -152,7 +155,8 @@ export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloati
   useEffect(() => {
     if (state.mode === 'docked') return;
 
-    const onMove = (e: MouseEvent) => {
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerId !== dragStartRef.current.pointerId) return;
       if ((e.buttons & 1) === 0) {
         onUp();
         return;
@@ -162,7 +166,6 @@ export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloati
       if (!dragStartRef.current.started) {
         if (Math.hypot(dx, dy) < DOCK_DRAG_THRESHOLD_PX) return;
         dragStartRef.current.started = true;
-        onDragStart?.();
       }
       e.preventDefault();
       setState((s) => ({
@@ -174,9 +177,11 @@ export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloati
       }));
     };
 
-    const onUp = () => {
+    const onUp = (event?: PointerEvent) => {
+      if (event && event.pointerId !== dragStartRef.current.pointerId) return;
       if (!dragStartRef.current.started) {
         setState((s) => ({ ...s, mode: 'docked' }));
+        onInteractionEnd?.();
         return;
       }
       dragStartRef.current.started = false;
@@ -203,11 +208,12 @@ export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloati
           y: settledY,
         };
       });
-      onDragEnd?.();
+      onInteractionEnd?.();
     };
 
-    const onCancel = () => {
-      const wasDragging = dragStartRef.current.started;
+    const onCancel = (event?: Event) => {
+      if (event instanceof PointerEvent && event.pointerId !== dragStartRef.current.pointerId)
+        return;
       dragStartRef.current.started = false;
       setState((s) => ({
         ...s,
@@ -215,18 +221,20 @@ export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloati
         anchored: dragStartRef.current.wasAnchored,
         y: dragStartRef.current.widgetY,
       }));
-      if (wasDragging) onDragEnd?.();
+      onInteractionEnd?.();
     };
 
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
     window.addEventListener('blur', onCancel);
+    document.addEventListener('pointercancel', onCancel);
     return () => {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
       window.removeEventListener('blur', onCancel);
+      document.removeEventListener('pointercancel', onCancel);
     };
-  }, [allowOutsideLeft, onDragStart, onDragEnd, state.mode, stateKey, nodeRef]);
+  }, [allowOutsideLeft, onInteractionStart, onInteractionEnd, state.mode, stateKey, nodeRef]);
 
   // --- Style ---
   const style = useMemo(() => {
@@ -260,7 +268,7 @@ export const useFloatingDock = (options: UseFloatingDockOptions = {}): UseFloati
   return {
     nodeRef,
     style,
-    onMouseDown,
+    onPointerDown,
     isDragging: state.mode === 'dragging',
     dockSide: state.dockSide,
   };

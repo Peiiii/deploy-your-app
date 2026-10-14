@@ -65,7 +65,7 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
         }
         setCommentsAppId(null);
     }, [commentsPanelId]);
-    const [isDragging, setIsDragging] = useState(false);
+    const [isDockInteracting, setIsDockInteracting] = useState(false);
     const rightPanelLayout = useUIStore((s) => s.rightPanelLayout);
     const toggleRightPanelLayout = useUIStore((s) => s.actions.toggleRightPanelLayout);
     const setRightPanelLayout = useUIStore((s) => s.actions.setRightPanelLayout);
@@ -108,7 +108,7 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
     }, [app.id, userId, presenter.reaction]);
 
     useEffect(() => {
-        queueMicrotask(() => setIsDragging(false));
+        queueMicrotask(() => setIsDockInteracting(false));
     }, [isFullscreen]);
 
     const dockStateKeyBase = useMemo(() => {
@@ -145,8 +145,8 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
         allowOutsideLeft: !isFullscreen,
         topInset: dockLimits.topInset,
         bottomInset: 16,
-        onDragStart: () => setIsDragging(true),
-        onDragEnd: () => setIsDragging(false),
+        onInteractionStart: () => setIsDockInteracting(true),
+        onInteractionEnd: () => setIsDockInteracting(false),
     }), [isFullscreen, dockLimits.topInset]);
 
     useEffect(() => {
@@ -201,7 +201,7 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
                     )}
 
                     {/* Iframe Content */}
-                    <div className={`absolute inset-0 z-0 bg-slate-100 dark:bg-slate-950 ${isDragging ? 'pointer-events-none' : ''}`}>
+                    <div className={`absolute inset-0 z-0 bg-slate-100 dark:bg-slate-950 ${isDockInteracting ? 'pointer-events-none' : ''}`}>
                         {app.url ? (
                             <AppPreviewContent
                                 url={app.url}
@@ -226,6 +226,8 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
                 </div>
             </div>
 
+            {isDockInteracting && <div aria-hidden="true" className="absolute inset-0 z-40 cursor-grabbing" />}
+
             <FloatingSiteNavigation
                 key={isFullscreen ? 'navigation-fullscreen' : 'navigation-half'}
                 dockOptions={navigationOptions}
@@ -243,8 +245,8 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
                 app={app}
                 onClose={onClose}
                 onOpenInNewTab={onOpenInNewTab}
-                onDragStart={() => setIsDragging(true)}
-                onDragEnd={() => setIsDragging(false)}
+                onInteractionStart={() => setIsDockInteracting(true)}
+                onInteractionEnd={() => setIsDockInteracting(false)}
                 isFullscreen={isFullscreen}
                 onToggleFullscreen={toggleRightPanelLayout}
                 dockOptions={isFullscreen ? dockOptionsFullscreen : dockOptionsHalf}

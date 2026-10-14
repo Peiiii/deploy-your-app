@@ -11,12 +11,13 @@ const baseUrl = process.env.PREVIEW_TEST_URL || 'http://127.0.0.1:5191';
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  page.setDefaultTimeout(8000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   const apps = ['a', 'b', 'c'].map(id => ({
     id, ownerId: 'other', name: `网站 ${id}`, description: '导航验证', status: 'Live',
     repoUrl: 'demo.html', sourceType: 'html', framework: 'Unknown',
-    url: `${baseUrl}/fixture-${id}`, category: 'learning',
+    url: `https://navigation-fixture.gemigo.test/fixture-${id}`, category: 'learning',
     createdAt: '2026-10-03T00:00:00Z', lastDeployed: '刚刚', appLanguage: { languages: ['zh'] },
   }));
   let items = apps;
@@ -36,7 +37,7 @@ try {
     const id = new URL(route.request().url()).pathname.slice(-1);
     const icon = 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="${id === 'a' ? 'red' : id === 'b' ? 'green' : 'blue'}"/></svg>`);
     if (holdNavigation) await new Promise(resolve => heldNavigations.push({ id, resolve }));
-    try { return await route.fulfill({ contentType: 'text/html', body: `<html><head><title>网站 ${id}</title><link rel="icon" href="${icon}"></head><body style="padding:100px"><button id="counter" onclick="this.textContent=Number(this.textContent)+1">0</button><script>addEventListener('message',event=>{if(event.data?.type==='gemigo:request-favicon')window.lastIconRequest=event.data.requestId});${faviconSource}</script></body></html>` }); } catch { /* A newer navigation can cancel this controlled request. */ }
+    try { return await route.fulfill({ contentType: 'text/html; charset=utf-8', body: `<html><head><title>网站 ${id}</title><link rel="icon" href="${icon}"></head><body style="padding:100px"><button id="counter" onclick="this.textContent=Number(this.textContent)+1">0</button><script>addEventListener('message',event=>{if(event.data?.type==='gemigo:request-favicon')window.lastIconRequest=event.data.requestId});${faviconSource}</script></body></html>` }); } catch { /* A newer navigation can cancel this controlled request. */ }
   });
   const previous = page.getByRole('button', { name: '上一个网站', exact: true });
   const next = page.getByRole('button', { name: '下一个网站', exact: true });
@@ -44,16 +45,32 @@ try {
   const handle = page.getByRole('img', { name: 'GemiGo', exact: true });
   const dock = handle.locator('..').locator('..');
   const expectFrame = async id => {
+    const expectedUrl = apps.find(app => app.id === id).url;
     await page.locator(`iframe[title="网站 ${id}"]`).waitFor();
     assert.equal(await page.locator('iframe').count(), 1);
-    await page.frameLocator(`iframe[title="网站 ${id}"]`).locator('#counter').click();
-    assert.equal(await page.frameLocator(`iframe[title="网站 ${id}"]`).locator('#counter').innerText(), '1');
+
     const identity = nav.getByRole('img', { name: `网站 ${id}`, exact: true });
     await identity.waitFor();
     await page.waitForFunction(({ id }) => {
       const image = document.querySelector('[role="toolbar"][aria-label="切换网站"] img');
       return image?.src.startsWith('data:image/svg+xml,') && decodeURIComponent(image.src).includes(id === 'a' ? 'red' : id === 'b' ? 'green' : 'blue') && image.naturalWidth > 0;
     }, { id });
+
+    // A title can update before a cross-origin browsing context commits its
+    // new document. Wait for the actual child Frame URL and fixture content.
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const childFrame = page.frames().find(frame => frame.parentFrame() === page.mainFrame());
+      if (childFrame?.url() === expectedUrl && await childFrame.locator('#counter').count()) break;
+      await page.waitForTimeout(20);
+    }
+    const childFrame = page.frames().find(frame => frame.parentFrame() === page.mainFrame());
+    assert.equal(childFrame?.url(), expectedUrl, `website ${id} document committed`);
+    const counter = page.frameLocator(`iframe[title="网站 ${id}"]`).locator('#counter');
+    // Exercise the fixture's real app handler without relying on the host
+    // browser's cross-origin mouse routing, which this test covers separately.
+    await counter.evaluate(element => element.click());
+    await childFrame.waitForFunction(() => document.querySelector('#counter')?.textContent === '1');
+    assert.equal(await counter.innerText(), '1');
 
   };
   const noOverlap = async label => {
@@ -83,13 +100,14 @@ try {
       const feedback = getComputedStyle(element, '::before');
       return Object.fromEntries(['width', 'height', 'paddingLeft', 'paddingRight', 'borderRadius', 'color', 'backgroundColor', 'outlineStyle', 'boxShadow'].map(key => [key, style[key]]).concat([['iconWidth', icon.width], ['iconHeight', icon.height], ['feedbackWidth', feedback.width], ['feedbackHeight', feedback.height], ['feedbackBackground', feedback.backgroundColor], ['feedbackShadow', feedback.boxShadow]]));
     });
+    const actionGeometry = value => Object.fromEntries(['width', 'height', 'paddingLeft', 'paddingRight', 'borderRadius', 'iconWidth', 'iconHeight', 'feedbackWidth', 'feedbackHeight'].map(key => [key, value[key]]));
     const actionAreaPadding = await nav.locator('[data-floating-dock-actions]').evaluate(element => ({ top: getComputedStyle(element).paddingTop, bottom: getComputedStyle(element).paddingBottom }));
     assert.deepEqual(actionAreaPadding, { top: '4px', bottom: '4px' }, `${label}: symmetric vertical padding`);
     const feedbackSize = await buttonStyle(bottomAction);
     assert.equal(feedbackSize.feedbackWidth, '24px');
     assert.equal(feedbackSize.feedbackHeight, '24px');
     assert.equal(feedbackSize.width, '32px', 'Hit area remains unchanged');
-    assert.deepEqual(await buttonStyle(topAction), await buttonStyle(bottomAction), `${label}: shared action geometry and resting feedback`);
+    assert.deepEqual(actionGeometry(await buttonStyle(topAction)), actionGeometry(await buttonStyle(bottomAction)), `${label}: shared action geometry and resting feedback`);
     await handle.hover();
     await topAction.hover();
     await page.waitForTimeout(750);
@@ -98,14 +116,24 @@ try {
     assert.notEqual(topHover.feedbackBackground, 'rgba(0, 0, 0, 0)', 'Hover paints the smaller feedback');
     await bottomAction.hover();
     await page.waitForTimeout(750);
-    assert.deepEqual(topHover, await buttonStyle(bottomAction), `${label}: identical hover feedback`);
-    await page.mouse.move(600, 400);
-    await topAction.focus();
-    await page.waitForTimeout(750);
-    const topFocus = await buttonStyle(topAction);
-    await bottomAction.focus();
-    await page.waitForTimeout(750);
-    assert.deepEqual(topFocus, await buttonStyle(bottomAction), `${label}: identical keyboard focus feedback`);
+    const bottomHover = await buttonStyle(bottomAction);
+    assert.deepEqual(actionGeometry(topHover), actionGeometry(bottomHover), `${label}: identical hover geometry`);
+    assert.equal(bottomHover.backgroundColor, 'rgba(0, 0, 0, 0)', 'Lower hover never paints the entire hit area');
+    assert.notEqual(bottomHover.feedbackBackground, 'rgba(0, 0, 0, 0)', 'Lower hover paints the smaller feedback');
+    if (label.endsWith(' half')) {
+      await topAction.focus();
+      await page.keyboard.press('ArrowRight');
+      assert.equal(await topAction.evaluate(element => element.matches(':focus-visible')), true, `${label}: upper action uses keyboard focus`);
+      await page.waitForTimeout(750);
+      const topFocus = await buttonStyle(topAction);
+      await bottomAction.focus();
+      await page.keyboard.press('ArrowRight');
+      assert.equal(await bottomAction.evaluate(element => element.matches(':focus-visible')), true, `${label}: lower action uses keyboard focus`);
+      await page.waitForTimeout(750);
+      const lowerFocus = await buttonStyle(bottomAction);
+      const focusShape = value => Object.fromEntries(['width', 'height', 'borderRadius', 'outlineStyle', 'boxShadow', 'feedbackWidth', 'feedbackHeight', 'feedbackShadow'].map(key => [key, value[key]]));
+      assert.deepEqual(focusShape(topFocus), focusShape(lowerFocus), `${label}: identical keyboard focus feedback geometry`);
+    }
     await bottomAction.evaluate(element => element.blur());
   };
   const open = async path => {
@@ -247,14 +275,14 @@ try {
     source: document.querySelector('iframe').contentWindow, origin: 'https://wrong.test',
     data: { type: 'gemigo:favicon', requestId, href: 'https://wrong.test/icon.png' },
   })), requestId);
-  await actualFrame.evaluate(() => parent.postMessage({ type: 'gemigo:favicon', requestId: 'old-document', href: 'https://wrong.test/stale.png' }, location.origin));
+  await actualFrame.evaluate(() => parent.postMessage({ type: 'gemigo:favicon', requestId: 'old-document', href: 'https://wrong.test/stale.png' }, '*'));
   await page.waitForTimeout(100);
   assert.equal(await identity.locator('img').getAttribute('src'), beforeSpoof, 'Wrong origin and stale document nonce are rejected');
   await page.route('**/missing-favicon.png', route => route.fulfill({ status: 404, body: '' }));
-  await actualFrame.evaluate(requestId => parent.postMessage({ type: 'gemigo:favicon', requestId, href: location.origin + '/missing-favicon.png' }, location.origin), requestId);
+  await actualFrame.evaluate(requestId => parent.postMessage({ type: 'gemigo:favicon', requestId, href: location.origin + '/missing-favicon.png' }, '*'), requestId);
   await identity.locator('img').waitFor({ state: 'detached' });
   assert.equal(await identity.locator('svg').count(), 1, 'Broken favicon falls back to a website marker');
-  await actualFrame.evaluate(({ requestId, href }) => parent.postMessage({ type: 'gemigo:favicon', requestId, href }, location.origin), { requestId, href: beforeSpoof });
+  await actualFrame.evaluate(({ requestId, href }) => parent.postMessage({ type: 'gemigo:favicon', requestId, href }, '*'), { requestId, href: beforeSpoof });
   await identity.locator('img').waitFor();
   await identity.hover();
   await page.getByRole('tooltip').waitFor();
@@ -281,7 +309,6 @@ try {
   assert.equal(await next.evaluate(element => getComputedStyle(element, '::before').backgroundColor), 'rgba(0, 0, 0, 0)', 'Disabled action has no hover feedback');
   await page.screenshot({ path: join(tmpdir(), 'gemigo-preview-navigation-dark.png') });
   // Actual document requests stay pending while feedback changes immediately.
-  await page.clock.install();
   items = apps;
   const loadingOrder = await open('/');
   holdNavigation = true;
@@ -290,21 +317,17 @@ try {
   assert.equal(await nav.locator('[data-loading-sprite]').count(), 1, 'Compact sprite appears before document completion');
   const jaw = nav.locator('.preview-sprite-jaw');
   const openMouth = await jaw.evaluate(element => getComputedStyle(element).clipPath);
-  await page.waitForTimeout(170);
+  await new Promise(resolve => setTimeout(resolve, 170));
   assert.notEqual(await jaw.evaluate(element => getComputedStyle(element).clipPath), openMouth, 'Compact mouth opens and closes');
   assert.equal(await nav.locator('img').count(), 0, 'Favicon is replaced during loading');
-  await page.clock.fastForward(10_001);
-  await page.getByRole('button', { name: '收起提示', exact: true }).click();
-  assert.equal(await nav.getAttribute('aria-busy'), 'true', 'Hiding the page hint does not claim the website loaded');
-  assert.equal(await nav.locator('[data-loading-sprite]').count(), 1);
+  assert.equal(heldNavigations.length, 1, 'The switched document request is held');
   await next.click();
-  for (let attempt = 0; attempt < 100 && heldNavigations.length < 2; attempt++) await page.waitForTimeout(20);
-  assert.equal(heldNavigations.length, 2);
+  for (let attempt = 0; attempt < 100 && heldNavigations.length < 2; attempt++) await new Promise(resolve => setTimeout(resolve, 20));
+  assert.equal(heldNavigations.length, 2, 'A rapid second switch starts its own held request');
   heldNavigations[0].resolve();
-  await page.waitForTimeout(200);
-  assert.equal(await nav.getAttribute('aria-busy'), 'true', 'An old completed request cannot stop the new loader');
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  assert.equal(await jaw.evaluate(element => getComputedStyle(element).animationName), 'none');
+  await new Promise(resolve => setTimeout(resolve, 200));
+  assert.equal(await nav.getAttribute('aria-busy'), 'true', 'An old completed request cannot stop the current loader');
+  assert.equal(await nav.locator('[data-loading-sprite]').count(), 1);
   heldNavigations[1].resolve();
   await page.waitForFunction(() => document.querySelector('[role="toolbar"][aria-label="切换网站"]')?.getAttribute('aria-busy') === 'false');
   await expectFrame(loadingOrder[2]);

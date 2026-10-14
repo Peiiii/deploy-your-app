@@ -116,7 +116,9 @@ try {
 
     await page.getByRole('button', { name: '评论', exact: true }).click();
     await page.waitForTimeout(300); // Let the existing comments layout transition finish.
-    const previewClip = await frame.boundingBox();
+    const frameClip = await frame.boundingBox();
+    // Compare stable app content, excluding browser focus decoration and the edge docks.
+    const previewClip = { x: frameClip.x + 60, y: frameClip.y + 20, width: Math.min(350, frameClip.width - 80), height: 80 };
     const previousPaint = await page.screenshot({ clip: previewClip });
 
     // Switch to a slow app; reduced motion and dark theme use product settings.

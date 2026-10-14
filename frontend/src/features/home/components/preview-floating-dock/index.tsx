@@ -29,8 +29,8 @@ interface PreviewFloatingDockProps {
   app: ExploreAppCard;
   onClose: () => void;
   onOpenInNewTab: (url: string) => void;
-  onDragStart: () => void;
-  onDragEnd: () => void;
+  onInteractionStart: () => void;
+  onInteractionEnd: () => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
   onOpenComments: () => void;
@@ -40,7 +40,7 @@ interface PreviewFloatingDockProps {
   commentsButtonRef: React.RefObject<HTMLButtonElement | null>;
   onOpenSettings: () => void;
   settingsPending: boolean;
-  dockOptions?: Omit<UseFloatingDockOptions, 'onDragStart' | 'onDragEnd'>;
+  dockOptions?: Omit<UseFloatingDockOptions, 'onInteractionStart' | 'onInteractionEnd'>;
   /**
    * Controls whether the dock action area is expanded by default.
    * - 'always': always expanded (unless dragging state overrides visuals)
@@ -60,8 +60,8 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
   app,
   onClose,
   onOpenInNewTab,
-  onDragStart,
-  onDragEnd,
+  onInteractionStart,
+  onInteractionEnd,
   isFullscreen,
   onToggleFullscreen,
   dockOptions,
@@ -110,7 +110,7 @@ export const PreviewFloatingDock: React.FC<PreviewFloatingDockProps> = ({
   return (
     <FloatingDock
       label={t('previewActions.actions')}
-      dockOptions={{ ...dockOptions, onDragStart, onDragEnd }}
+      dockOptions={{ ...dockOptions, onInteractionStart, onInteractionEnd }}
       identityLabel="GemiGo"
       identity={<BrandLogo />}
       expanded={expanded}
