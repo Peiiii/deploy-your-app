@@ -149,6 +149,10 @@ try {
     const order = await open(path);
     assert.equal(await previous.isDisabled(), true);
     await noOverlap(`${path} half`);
+    if (path === '/') {
+      const bottom = await nav.boundingBox();
+      assert.ok(Math.abs(bottom.y + bottom.height - page.viewportSize().height) <= 1, 'Default navigation sits flush with the bottom in half view');
+    }
     await sameAppearance(`${path} half`);
     const frameIdentity = await page.locator('iframe').elementHandle();
     await page.getByRole('button', { name: '评论', exact: true }).click();
@@ -188,6 +192,10 @@ try {
     }
     await page.setViewportSize({ width: 1440, height: 900 });
     await noOverlap(`${path} viewport restored before navigation drag`);
+    if (path === '/') {
+      const bottom = await nav.boundingBox();
+      assert.ok(Math.abs(bottom.y + bottom.height - page.viewportSize().height) <= 1, 'Default navigation stays flush with the bottom after fullscreen resize');
+    }
     const navigationIdentity = nav.getByRole('img', { name: `网站 ${order[0]}`, exact: true });
     const initialNavigation = await nav.boundingBox();
     const navHandle = await navigationIdentity.boundingBox();

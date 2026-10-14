@@ -72,3 +72,7 @@ AppPreviewContent 保持唯一加载状态 owner，新增真实 loaded 状态，
 跨域iframe的拖动防护在pointer down（pending）即启用，Pointer Events保持同一pointerId和capture，面板只在该用户接触期间覆盖透明事件层；up／cancel／blur立即释放。旧before/after位图验收避开浏览器焦点装饰和边缘控件，只比较真实应用的稳定内容区域，应用窗口身份和counter连续性仍单独断言。
 
 2026-10-14 本轮交付验收：定向 tsc、ESLint、frontend production build、preview-loading 与 preview-navigation 浏览器回归、diff check 全部通过。生产 `https://gemigo.io/` 已加载新资源 `index-DX3LQ3wt.js`；实际应用 iframe `https://app-3c0ce80b.gemigo.app/#/workspace` 可用，前后切换与全屏保持通过，导航图标与该 iframe 的标签页 favicon 一致，应用名称 tooltip 与被动 hover 通过。生产中将左下身份拖过真实跨域 iframe 后停靠右边（`x=1399`），再拖回左边（`x=0`）；宽度41px、顶部动作宽度和图标尺寸、24px反馈及上下4px留白、短视口避让、上方拖离圆角与停靠恢复通过。生产截图保存在系统临时目录 `gemigo-navigation-production.png`。实现提交 `f8c21b0` 已推送；最终远端主线与本地主线核对见后续交付记录。
+
+## 2026-10-14 用户修正：导航默认贴底
+
+导航初始底部偏移与拖动范围的底部保留空间均改为0，默认紧贴预览面板底边；共用定位、拖动记忆和上下控件避让继续由现有owner处理。新增半屏初始位置及全屏缩放后底边坐标断言，导航浏览器回归、frontend tsc、定向ESLint、生产build和diff Review通过。

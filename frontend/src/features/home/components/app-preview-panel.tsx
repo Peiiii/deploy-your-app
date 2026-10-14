@@ -141,10 +141,10 @@ export const AppPreviewPanel: React.FC<AppPreviewPanelProps> = ({
         nodeRef: navigationRef,
         stateKey: `preview-navigation:${isFullscreen ? 'fullscreen' : 'half'}`,
         initialAnchor: 'bottom' as const,
-        initialPosition: { y: 16, dockSide: isFullscreen ? 'inside-left' as const : 'outside-left' as const },
+        initialPosition: { y: 0, dockSide: isFullscreen ? 'inside-left' as const : 'outside-left' as const },
         allowOutsideLeft: !isFullscreen,
         topInset: dockLimits.topInset,
-        bottomInset: 16,
+        bottomInset: 0,
         onInteractionStart: () => setIsDockInteracting(true),
         onInteractionEnd: () => setIsDockInteracting(false),
     }), [isFullscreen, dockLimits.topInset]);
