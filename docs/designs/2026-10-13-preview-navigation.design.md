@@ -46,7 +46,7 @@ active contract `preview-dock-2026-10-13`，parent-goal 为同组件、一致且
 | PD-03 | favicon跨域来源／nonce验证、原图标／动态图标及失败恢复 | passed |
 | PD-04 | 拖离四角圆润，停靠恢复，短窗口两控件不重叠 | passed |
 | PD-05 | 原首页／探索／管理切换、评论、类型／lint／build回归 | passed |
-| PD-06 | 主线同步、frontend与gateway上线、真实网站验收 | not-run |
+| PD-06 | 主线同步、frontend与gateway上线、真实网站验收 | passed |
 
 当前本地证据：扩展后的 preview 浏览器测试通过（24px反馈、对称padding、被动身份、名称tooltip、favicon切换、错误origin／旧nonce拒绝、坏图恢复、拖动形变／恢复、避让及三入口回归）；真实Miniflare gateway／Chromium 20类图标与3类跨域parent交换通过，并保留CSP、源码、缓存和重部署验证。frontend和favicon模块类型检查、定向ESLint、build、gateway dry-run、diff check通过；实现Review无未关闭finding。复盘：身份与操作语义在共同组件分开，favicon复用现有owner；本次事实已更新该设计及gateway README，无全局规则增量。
 
@@ -70,3 +70,5 @@ AppPreviewContent 保持唯一加载状态 owner，新增真实 loaded 状态，
 线上跨源iframe暴露兼容MouseEvent边界：共享拖动改为完整PointerEvent（down／move／up／cancel），以同一pointerId过滤并保持原生图片DND抑制；避免仅捕获pointer却消费compat mouse事件。当前涉及拖动的旧证据重新验证，生产验收未通过前不标完成。
 
 跨域iframe的拖动防护在pointer down（pending）即启用，Pointer Events保持同一pointerId和capture，面板只在该用户接触期间覆盖透明事件层；up／cancel／blur立即释放。旧before/after位图验收避开浏览器焦点装饰和边缘控件，只比较真实应用的稳定内容区域，应用窗口身份和counter连续性仍单独断言。
+
+2026-10-14 本轮交付验收：定向 tsc、ESLint、frontend production build、preview-loading 与 preview-navigation 浏览器回归、diff check 全部通过。生产 `https://gemigo.io/` 已加载新资源 `index-DX3LQ3wt.js`；实际应用 iframe `https://app-3c0ce80b.gemigo.app/#/workspace` 可用，前后切换与全屏保持通过，导航图标与该 iframe 的标签页 favicon 一致，应用名称 tooltip 与被动 hover 通过。生产中将左下身份拖过真实跨域 iframe 后停靠右边（`x=1399`），再拖回左边（`x=0`）；宽度41px、顶部动作宽度和图标尺寸、24px反馈及上下4px留白、短视口避让、上方拖离圆角与停靠恢复通过。生产截图保存在系统临时目录 `gemigo-navigation-production.png`。实现提交 `f8c21b0` 已推送；最终远端主线与本地主线核对见后续交付记录。
