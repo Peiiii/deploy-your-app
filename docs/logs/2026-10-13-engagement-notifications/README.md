@@ -48,4 +48,6 @@
 
 08:32开始。用户要求数字与留白覆盖图标右上角；原实现仅上方分隔，不满足该空间关系。沿共享 ActionCount 调整相对位置、opaque底和2px同色ring，保留pointer-events:none、准确辅助说明、零/未知隐藏和99+阈值。窄栏大数遮挡过多时上移边缘，最终top=0/right=3px，使留白切开角部而保留主轮廓。
 
-实际完整产品与隔离D1（真实反应/评论manager，非DOM/store注入）验证1、12、99+明暗截图，数值扩展时栏41/按钮32不变，几何证据记录icon与badge相交。fixture 原大数入口增加0–200 actors校验参数，用同一来源生成两位数，无生产数据变更。主Agent看过每个最终截图，无未关闭finding；本次为局部低风险修正，不派独立评审。lint、root typecheck和发布用构建通过。待本轮发布和线上资产核对完成关闭交付。复盘无新的全局规则增量，修正设计owner与U1证据即可。
+实际完整产品与隔离D1（真实反应/评论manager，非DOM/store注入）验证1、12、99+明暗截图，数值扩展时栏41/按钮32不变，几何证据记录icon与badge相交。fixture 原大数入口增加0–200 actors校验参数，用同一来源生成两位数，无生产数据变更。主Agent看过每个最终截图，无未关闭finding；本次为局部低风险修正，不派独立评审。lint、root typecheck和发布用构建通过。本轮发布与线上核对已完成。复盘无新的全局规则增量，修正设计owner与U1证据即可。
+
+08:44交付核对：实现6a39a97普通推送并快进主工作区；受影响目标仅前端，原gh-pages发布成功，线上返回本轮 index-HTUzCMJj.js / index-nf0zN8g5.css（200且包含同色halo样式）。CUA在真实公开作品「音乐播放器」的普通预览中读取absolute top0/right3、不透明白底/2px白色ring；icon右上与遮罩相交，按钮32/栏41。context-light.png为线上全景，online-detail.png与online-geometry.json为线上局部；不对该真实作品产生点赞、收藏或评论写入。临时fixture与Vite已清理，正式线上预览留在浏览器。U1当前证据有效，其他范围未变；已交付待用户确认视觉偏好，非用户验收已通过。

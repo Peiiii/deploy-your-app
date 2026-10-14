@@ -28,7 +28,7 @@
 | B3 | true | passed | delivery + scheduler：实际 D1 并发原子 claim、unknown 不盲重试、冻结 endpoint、429 确认失败后退避 | — |
 | B4 | true | passed | scheduler：读/静音/权限/撤销/410 重新确认和取消；CUA 实际退订；无邮件路径 | — |
 | B5 | true | passed | scheduler：7天忽略且≥3发送降频；明确恢复只接未来事件；设置说明已实现 | — |
-| U1 | true | passed | 原真实增删与读取证据继续适用；2026-10-14按用户纠正改为角部覆盖及2px同色留白；refinement-20261014 的1/12/99+明暗实际截图与geometry；32px按钮、41px栏不变；局部主Agent审查无finding | — |
+| U1 | true | passed | 原真实增删与读取证据继续适用；2026-10-14按用户纠正改为角部覆盖及2px同色留白；refinement-20261014 的1/12/99+明暗实际截图与geometry；32px按钮、41px栏不变；局部主Agent审查无finding；线上当前资产及online-geometry.json确认同色2px遮罩 | — |
 | P1 | true | passed | performance.json：本地 D1 代表负载 100万总记录/用户1万/100组；p95 39ms（21次，不含 WAN） | — |
 | D1 | true | passed | findings-first Review 无未关闭项；实现 eb5297a / 入口 b649283 普通推送 master，主工作区同步且草稿恢复已比对；增量迁移、API/admin/Pages 发布成功；production.json 真实双账号链路 + production-routes.json 4条线上200/no-store/noindex/no-referrer/当前构建 + production-entry.png | — |
 
