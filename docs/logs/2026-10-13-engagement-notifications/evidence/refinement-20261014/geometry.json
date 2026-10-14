@@ -1,0 +1,79 @@
+{
+  "actions": [
+    {
+      "badge": {
+        "height": 10,
+        "width": 18.25,
+        "x": 648.75,
+        "y": 50
+      },
+      "button": {
+        "height": 32,
+        "width": 32,
+        "x": 638,
+        "y": 50
+      },
+      "halo": "rgb(255, 255, 255) 0px 0px 0px 0px, rgb(15, 23, 42) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "icon": {
+        "height": 16,
+        "width": 16,
+        "x": 646,
+        "y": 58
+      },
+      "label": "点赞",
+      "pointerEvents": "none"
+    },
+    {
+      "badge": {
+        "height": 10,
+        "width": 18.25,
+        "x": 648.75,
+        "y": 86
+      },
+      "button": {
+        "height": 32,
+        "width": 32,
+        "x": 638,
+        "y": 86
+      },
+      "halo": "rgb(255, 255, 255) 0px 0px 0px 0px, rgb(15, 23, 42) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "icon": {
+        "height": 16,
+        "width": 16,
+        "x": 646,
+        "y": 94
+      },
+      "label": "收藏",
+      "pointerEvents": "none"
+    },
+    {
+      "badge": {
+        "height": 10,
+        "width": 18.25,
+        "x": 648.75,
+        "y": 122
+      },
+      "button": {
+        "height": 32,
+        "width": 32,
+        "x": 638,
+        "y": 122
+      },
+      "halo": "rgb(255, 255, 255) 0px 0px 0px 0px, rgb(15, 23, 42) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "icon": {
+        "height": 16,
+        "width": 16,
+        "x": 646,
+        "y": 130
+      },
+      "label": "评论",
+      "pointerEvents": "none"
+    }
+  ],
+  "rail": {
+    "height": 272,
+    "width": 41,
+    "x": 633,
+    "y": 0
+  }
+}

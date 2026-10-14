@@ -123,9 +123,15 @@ const server = createServer(async (req, res) => {
       return;
     }
     if (url.pathname === '/fixture/large' && req.method === 'POST') {
+      const actors = Number(url.searchParams.get('actors') ?? 120);
+      if (!Number.isSafeInteger(actors) || actors < 0 || actors > 200) {
+        res.writeHead(400);
+        res.end('invalid fixture actor count');
+        return;
+      }
       const now = new Date().toISOString();
       await db.batch(
-        Array.from({ length: 120 }, (_, i) =>
+        Array.from({ length: actors }, (_, i) =>
           db
             .prepare(
               'INSERT OR IGNORE INTO project_likes(project_id,user_id,created_at,activation_id) VALUES(?,?,?,?)'
@@ -134,7 +140,7 @@ const server = createServer(async (req, res) => {
         )
       );
       await db.batch(
-        Array.from({ length: 120 }, (_, i) =>
+        Array.from({ length: actors }, (_, i) =>
           db
             .prepare(
               'INSERT OR IGNORE INTO project_favorites(project_id,user_id,created_at,activation_id) VALUES(?,?,?,?)'
@@ -143,7 +149,7 @@ const server = createServer(async (req, res) => {
         )
       );
       await db.batch(
-        Array.from({ length: 120 }, (_, i) =>
+        Array.from({ length: actors }, (_, i) =>
           db
             .prepare(
               'INSERT OR IGNORE INTO project_comments(id,project_id,user_id,content,created_at,updated_at) VALUES(?,?,?,?,?,?)'

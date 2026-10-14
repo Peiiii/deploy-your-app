@@ -2,7 +2,7 @@
 
 - contract-id: gemigo-engagement-20261013
 - parent-goal: 用户能够及时知道真实互动、直达上下文回应和回访，并能控制打扰；适用改动线上生效且经验证。
-- scope-revision: 3；用户来源见 [工作记录](../../logs/2026-10-13-engagement-notifications/README.md)。
+- scope-revision: 4；用户来源见 [工作记录](../../logs/2026-10-13-engagement-notifications/README.md)。
 - 原授权：用户「落地验证」与项目全托管；各批次是实施顺序，不是缩小最终结果。
 - 设计与标准：[统一设计 §12–14](../../designs/2026-10-13-engagement-notifications.design.md)。A/B IDs 沿用原文；P1 为原文代表负载性能，D1 为 Review、精确 Git 主线交付、迁移、部署及线上用户链路。
 - 不变量：业务与接收者事实原子写入；服务端当前权限、读取水位和全渠道预算唯一；无虚假红点、跨账号泄露或未经许可外发。
@@ -28,7 +28,7 @@
 | B3 | true | passed | delivery + scheduler：实际 D1 并发原子 claim、unknown 不盲重试、冻结 endpoint、429 确认失败后退避 | — |
 | B4 | true | passed | scheduler：读/静音/权限/撤销/410 重新确认和取消；CUA 实际退订；无邮件路径 | — |
 | B5 | true | passed | scheduler：7天忽略且≥3发送降频；明确恢复只接未来事件；设置说明已实现 | — |
-| U1 | true | passed | CUA：真实 0/1/2 增删、120→99+；几何不变/41px栏/32px按钮、绝对定位、明暗主题；第二轮视觉Review无P1/P2 | — |
+| U1 | true | passed | 原真实增删与读取证据继续适用；2026-10-14按用户纠正改为角部覆盖及2px同色留白；refinement-20261014 的1/12/99+明暗实际截图与geometry；32px按钮、41px栏不变；局部主Agent审查无finding | — |
 | P1 | true | passed | performance.json：本地 D1 代表负载 100万总记录/用户1万/100组；p95 39ms（21次，不含 WAN） | — |
 | D1 | true | passed | findings-first Review 无未关闭项；实现 eb5297a / 入口 b649283 普通推送 master，主工作区同步且草稿恢复已比对；增量迁移、API/admin/Pages 发布成功；production.json 真实双账号链路 + production-routes.json 4条线上200/no-store/noindex/no-referrer/当前构建 + production-entry.png | — |
 
@@ -41,3 +41,5 @@ Required A1–A11、B1–B5、U1、P1、D1 均通过，acceptance-ready。已线
 用户于 2026-10-13 明确纠正「别发邮件」「抖音不会发邮件」：排除邮件及其配置、验证、退订和发送，scope-revision=2，scope-confirmation=user-confirmed；B1–B5 按设备推送适用场景验证，保持静默、许可和频控。
 
 用户于 2026-10-13 23:50 补充截图与抖音参考：预览操作栏三种互动的数量置于图标右上角，不占布局、不挤动原控件；scope-revision=3，scope-confirmation=user-confirmed。U1 覆盖零／未知／大数、真实增删、作品及账号切换、主题、窄屏和操作可达性。
+
+2026-10-14 用户明确纠正：数字及周围留白覆盖图标右上角，不能分离在图标上方。scope-revision=4，scope-confirmation=user-confirmed；旧角标视觉截图由 refinement-20261014 证据替代，其余通知逻辑未改，原对应证据仍有效。

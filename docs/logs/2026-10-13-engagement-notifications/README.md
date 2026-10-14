@@ -43,3 +43,9 @@
 - 收尾：所有 Required IDs passed；retrospective_decision=no-increment，parent_status=ready-for-completion-check。最终结论是已发布并具备验收条件，用户未确认体验偏好，未测得留存或活跃度提升。P1 为本地数据库代表负载，未称线上 WAN p95 39ms。真实 FCM 设备回执不等于读消息或目视 OS 横幅。此前一轮线上 smoke 用错 likesCount/favoritesCount 测试字段，已修正测试断言并重新通过全部真实链路，不把该 harness 失败记作产品失败。
 
 - 01:48 收尾日志暴露本地 Vite `/apps` 旧静态代理会拦截讨论页刷新：原代理明确排除 `:id/discussion` 前端路径，其它 legacy app 资源继续走原 owner。定向 lint、root typecheck、构建通过；重启最新源码隔离 API+Vite，经 CUA 从真实通知链接取目标、直接打开、刷新，原评论与回复输入区正常，local-discussion-refresh.png。该改动仅开发代理，生产构建仍 index-DCkbFtlF.js，与已验收线上资产一致；无需重复生产发布。Review 检查代理边界无新 finding。
+
+## 2026-10-14 角标视觉纠正
+
+08:32开始。用户要求数字与留白覆盖图标右上角；原实现仅上方分隔，不满足该空间关系。沿共享 ActionCount 调整相对位置、opaque底和2px同色ring，保留pointer-events:none、准确辅助说明、零/未知隐藏和99+阈值。窄栏大数遮挡过多时上移边缘，最终top=0/right=3px，使留白切开角部而保留主轮廓。
+
+实际完整产品与隔离D1（真实反应/评论manager，非DOM/store注入）验证1、12、99+明暗截图，数值扩展时栏41/按钮32不变，几何证据记录icon与badge相交。fixture 原大数入口增加0–200 actors校验参数，用同一来源生成两位数，无生产数据变更。主Agent看过每个最终截图，无未关闭finding；本次为局部低风险修正，不派独立评审。lint、root typecheck和发布用构建通过。待本轮发布和线上资产核对完成关闭交付。复盘无新的全局规则增量，修正设计owner与U1证据即可。
