@@ -15,7 +15,8 @@ concurrency:
 
 jobs:
   repair:
-    runs-on: ubuntu-latest
+    # Playwright 1.57.0 supports Ubuntu 24.04; keep OS upgrades explicit.
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
