@@ -1,7 +1,7 @@
 import type { ApiWorkerEnv } from '../types/env';
 import type { Project } from '../types/project';
 import { projectRepository } from '../repositories/project.repository';
-import { aiService } from './ai.service';
+import { detectStaticAppLanguages, readStaticHtml } from '../utils/static-app-language';
 
 class ProjectLanguageService {
   async scanProject(
@@ -9,7 +9,7 @@ class ProjectLanguageService {
     db: D1Database,
     project: Project
   ): Promise<{
-    status: 'skipped' | 'detected' | 'unknown' | 'content_unavailable' | 'classifier_unavailable';
+    status: 'skipped' | 'detected' | 'unknown' | 'content_unavailable';
     contentStatus?: number;
     contentStage?: string;
     appStatus?: number;
@@ -38,39 +38,40 @@ class ProjectLanguageService {
         await projectRepository.deferLanguageScan(db, project);
         return { status: 'skipped' };
       }
-      const response = await env.APP_CONTENT.fetch('https://app-content.internal/content', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-gemigo-content-token': env.APP_CONTENT_TOKEN,
-        },
-        body: JSON.stringify({ url: project.url }),
-        signal: AbortSignal.timeout(45000),
+      const response = await fetch(project.url, {
+        headers: { Accept: 'text/html' },
+        redirect: 'error',
+        signal: AbortSignal.timeout(10000),
       });
       if (!response.ok) {
-        const detail = await response.json().catch(() => null) as { stage?: string; appStatus?: number } | null;
         await projectRepository.deferLanguageScan(db, project);
-        return { status: 'content_unavailable', contentStatus: response.status, contentStage: detail?.stage, appStatus: detail?.appStatus };
+        return {
+          status: 'content_unavailable',
+          contentStatus: response.status,
+          contentStage: 'fetch',
+        };
       }
-      const data = (await response.json()) as {
-        text?: string;
-        controls?: string;
-        htmlLang?: string;
-      };
-      const classified = await aiService.detectAppLanguage(env, {
-        text: typeof data.text === 'string' ? data.text.slice(0, 6000) : '',
-        controls: typeof data.controls === 'string' ? data.controls.slice(0, 2000) : '',
-        htmlLang: typeof data.htmlLang === 'string' ? data.htmlLang.slice(0, 32) : '',
-      });
-      if (classified === null) {
+      const contentType = response.headers.get('content-type')?.toLowerCase() ?? '';
+      if (!contentType.includes('text/html') && !contentType.includes('application/xhtml+xml')) {
         await projectRepository.deferLanguageScan(db, project);
-        return { status: 'classifier_unavailable' };
+        return {
+          status: 'content_unavailable',
+          contentStatus: response.status,
+          contentStage: 'content-type',
+        };
       }
-      languages = classified;
+      languages = detectStaticAppLanguages(await readStaticHtml(response));
     } catch (error) {
-      console.warn('App content request failed', error instanceof Error ? error.message.slice(0, 200) : 'Error');
+      console.warn(
+        'App content request failed',
+        error instanceof Error ? error.message.slice(0, 200) : 'Error'
+      );
       await projectRepository.deferLanguageScan(db, project);
-      return { status: 'content_unavailable', failureReason: error instanceof Error && error.name === 'TimeoutError' ? 'timeout' : 'request_failed' };
+      return {
+        status: 'content_unavailable',
+        failureReason:
+          error instanceof Error && error.name === 'TimeoutError' ? 'timeout' : 'request_failed',
+      };
     }
     await projectRepository.saveDetectedLanguage(db, project, {
       languages,
@@ -82,7 +83,7 @@ class ProjectLanguageService {
   }
 
   async scanPending(env: ApiWorkerEnv, db: D1Database): Promise<void> {
-    if (!db || !env.APP_CONTENT || !env.APP_CONTENT_TOKEN || !aiService.isEnabled(env)) return;
+    if (!db) return;
     for (const project of await projectRepository.languageScanCandidates(db)) {
       await this.scanProject(env, db, project);
     }

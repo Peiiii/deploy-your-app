@@ -5,7 +5,11 @@ const { browserAppLanguages, readLanguagePreference } = languagePreference;
 import { projectRepository } from '../workers/api/src/repositories/project.repository.ts';
 import { authRepository } from '../workers/api/src/repositories/auth.repository.ts';
 import { projectLanguageService } from '../workers/api/src/services/project-language.service.ts';
-import { aiService } from '../workers/api/src/services/ai.service.ts';
+import {
+  detectStaticAppLanguages,
+  readStaticHtml,
+} from '../workers/api/src/utils/static-app-language.ts';
+import retiredBrowser from '../workers/screenshot-service/worker.ts';
 import {
   matchesAppLanguages,
   normalizeAppLanguages,
@@ -47,8 +51,7 @@ const require = createRequire(import.meta.url);
 const wranglerRequire = createRequire(require.resolve('wrangler/package.json'));
 const { Miniflare } = wranglerRequire('miniflare');
 const mf = new Miniflare({
-  modules: true,
-  scriptPath: 'workers/api/tmp/language-worker-test/index.js',
+  modules: [{ type: 'ESModule', path: 'workers/api/tmp/language-worker-test/index.js' }],
   d1Databases: { PROJECTS_DB: 'app-languages' },
   bindings: { APP_CONTENT_TOKEN: 'scoped-test' },
   compatibilityDate: '2026-09-18',
@@ -135,38 +138,53 @@ try {
   );
 
   const project = await projectRepository.getProjectById(db, projects[0].id);
-  const env = {
-    PROJECTS_DB: db,
-    APP_CONTENT_TOKEN: 'fixture',
-    DASHSCOPE_API_KEY: 'fixture',
-    APP_CONTENT: {
-      fetch: async (_url: string, options: RequestInit) => {
-        assert.equal(new Headers(options.headers).get('x-gemigo-content-token'), 'fixture');
-        return Response.json({
-          text: 'เครื่องมือสำหรับการเรียนรู้ กรุณาเลือกบทเรียน',
-          controls: 'เริ่มเรียน เลือกบทเรียน',
-          htmlLang: 'en',
-        });
-      },
-    },
-  } as unknown as ApiWorkerEnv;
-  globalThis.fetch = async (_url, options) => {
-    const body = JSON.parse(options.body as string);
-    assert.ok(body.messages[0].content.includes('exercise'));
-    return Response.json({
-      choices: [{ message: { content: JSON.stringify({ language: 'th', confidence: 0.96 }) } }],
-    });
+  const env = { PROJECTS_DB: db, APPS_ROOT_DOMAIN: 'gemigo.app' } as ApiWorkerEnv;
+  const thaiHtml =
+    '<html lang="en"><head><title>เครื่องมือสำหรับการเรียนรู้</title><meta name="description" content="เลือกบทเรียนและเรียนรู้ด้วยเครื่องมือออนไลน์"></head><body><button>เริ่มเรียน เลือกบทเรียน</button></body></html>';
+  const goodFetch: typeof fetch = async (input, options) => {
+    assert.equal(
+      String(input),
+      project.url,
+      'only static app HTML is requested, never a model or rendering endpoint'
+    );
+    assert.equal(options?.redirect, 'error');
+    assert.equal(new Headers(options?.headers).has('Authorization'), false);
+    assert.equal(new Headers(options?.headers).has('Cookie'), false);
+    return new Response(thaiHtml, { headers: { 'content-type': 'text/html; charset=utf-8' } });
   };
-  globalThis.fetch = async () => new Response('Unavailable', { status: 503 });
-  assert.equal((await projectLanguageService.scanProject(env, db, project)).status, 'classifier_unavailable');
-  assert.equal((await projectRepository.getProjectById(db, project.id)).appLanguage, undefined, 'classifier failure never stamps unknown');
-  assert.equal((await projectRepository.languageScanCandidates(db)).length, 0, 'failed classification backs off so it cannot starve the queue');
-  await db.prepare("UPDATE projects SET app_language=json_set(app_language, '$.retryAfter', '2000-01-01T00:00:00Z') WHERE id=?").bind(project.id).run();
-  assert.equal((await projectRepository.languageScanCandidates(db)).length, 1, 'failed classification becomes retryable after backoff');
-  const unavailableEnv = { ...env, APP_CONTENT: { fetch: async () => new Response('Unavailable', { status: 503 }) } } as unknown as ApiWorkerEnv;
-  assert.equal((await projectLanguageService.scanProject(unavailableEnv, db, project)).status, 'content_unavailable');
-  assert.equal((await projectRepository.getProjectById(db, project.id)).appLanguage, undefined, 'render failure never stamps unknown');
-  globalThis.fetch = async () => Response.json({ choices: [{ message: { content: '{"language":"th","confidence":0.96}' } }] });
+  const unavailableFetch: typeof fetch = async () => new Response('Unavailable', { status: 503 });
+  globalThis.fetch = unavailableFetch;
+  assert.equal(
+    (await projectLanguageService.scanProject(env, db, project)).status,
+    'content_unavailable'
+  );
+  assert.equal(
+    (await projectRepository.getProjectById(db, project.id)).appLanguage,
+    undefined,
+    'fetch failure never stamps unknown'
+  );
+  assert.equal(
+    (await projectRepository.languageScanCandidates(db)).length,
+    0,
+    'failed fetch backs off so it cannot starve the queue'
+  );
+  await db
+    .prepare(
+      "UPDATE projects SET app_language=json_set(app_language, '$.retryAfter', '2000-01-01T00:00:00Z') WHERE id=?"
+    )
+    .bind(project.id)
+    .run();
+  assert.equal(
+    (await projectRepository.languageScanCandidates(db)).length,
+    1,
+    'failed fetch becomes retryable after backoff'
+  );
+  globalThis.fetch = async () => Response.json({ text: 'not HTML' });
+  assert.equal(
+    (await projectLanguageService.scanProject(env, db, project)).contentStage,
+    'content-type'
+  );
+  globalThis.fetch = goodFetch;
   await projectLanguageService.scanProject(env, db, project);
   assert.deepEqual((await projectRepository.getProjectById(db, project.id)).appLanguage.languages, [
     'th',
@@ -176,8 +194,14 @@ try {
     0,
     'only once per successful release'
   );
-  await projectLanguageService.scanProject(unavailableEnv, db, project);
-  assert.deepEqual((await projectRepository.getProjectById(db, project.id)).appLanguage.languages, ['th'], 'failed rescan preserves the last valid language');
+  globalThis.fetch = unavailableFetch;
+  await projectLanguageService.scanProject(env, db, project);
+  assert.deepEqual(
+    (await projectRepository.getProjectById(db, project.id)).appLanguage.languages,
+    ['th'],
+    'failed rescan preserves the last valid language'
+  );
+  globalThis.fetch = goodFetch;
   await projectRepository.updateProjectRecord(db, project.id, {
     appLanguage: { languages: ['zh'], source: 'author' },
   });
@@ -187,8 +211,14 @@ try {
     ['zh'],
     'manual declaration wins over in-flight scan'
   );
-  await projectLanguageService.scanProject(unavailableEnv, db, project);
-  assert.equal((await projectRepository.getProjectById(db, project.id)).appLanguage.source, 'author', 'retry metadata cannot override an author declaration');
+  globalThis.fetch = unavailableFetch;
+  await projectLanguageService.scanProject(env, db, project);
+  globalThis.fetch = goodFetch;
+  assert.equal(
+    (await projectRepository.getProjectById(db, project.id)).appLanguage.source,
+    'author',
+    'retry metadata cannot override an author declaration'
+  );
   await projectRepository.updateProjectRecord(db, project.id, { appLanguage: null });
   await projectRepository.updateProjectDeploymentRecord(db, project.id, {
     lastDeployed: '2026-10-02T12:00:00Z',
@@ -209,21 +239,60 @@ try {
     'private app never written'
   );
   assert.deepEqual(
-    await aiService.detectAppLanguage(env, { text: 'Short', controls: '', htmlLang: 'en' }),
-    []
+    detectStaticAppLanguages(thaiHtml),
+    ['th'],
+    'static Thai interface overrides a template html lang'
   );
-  globalThis.fetch = async () =>
-    Response.json({ choices: [{ message: { content: '{"language":"en","confidence":0.6}' } }] });
   assert.deepEqual(
-    await aiService.detectAppLanguage(env, {
-      text: 'Ambiguous text with enough characters',
-      controls: '',
-      htmlLang: 'en',
-    }),
-    []
+    detectStaticAppLanguages(
+      '<html lang="fr"><title>Calculateur de dépenses</title><meta name="description" content="Calculez vos dépenses et gérez votre budget facilement"></html>'
+    ),
+    ['fr']
   );
+  assert.deepEqual(
+    detectStaticAppLanguages(
+      '<html><meta property="og:locale" content="pt_BR"><meta name="description" content="Uma ferramenta para organizar suas despesas e tarefas"></html>'
+    ),
+    ['pt']
+  );
+  assert.deepEqual(
+    detectStaticAppLanguages(
+      '<html><meta name="description" content="这是一个帮助用户管理日常工作任务和安排生活计划的在线工具"></html>'
+    ),
+    ['zh']
+  );
+  assert.deepEqual(
+    detectStaticAppLanguages(
+      '<html lang="en"><title>App</title><body><div id="root"></div><script>const text="这是用于脚本的很多很多中文，不是网页界面文字";</script></body></html>'
+    ),
+    [],
+    'script contents and empty shells are not UI evidence'
+  );
+  assert.deepEqual(
+    detectStaticAppLanguages(
+      '<html><body>A long ambiguous application without any reliable language declaration</body></html>'
+    ),
+    [],
+    'Latin text alone does not imply English'
+  );
+  let cancelled = false;
+  const bounded = new Response(
+    new ReadableStream({
+      pull(controller) {
+        controller.enqueue(new TextEncoder().encode('x'.repeat(64 * 1024)));
+      },
+      cancel() {
+        cancelled = true;
+      },
+    })
+  );
+  assert.equal((await readStaticHtml(bounded)).length, 128 * 1024);
+  assert.equal(cancelled, true, 'oversized source reads stop without downloading the remainder');
+  const retired = retiredBrowser.fetch();
+  assert.equal(retired.status, 410);
+  assert.equal((await retired.json()).code, 'BROWSER_SERVICE_RETIRED');
   console.log(
-    'PASS app-language browser preferences, real API/D1 filters and auth, detection and release/manual guards'
+    'PASS app-language browser preferences, real API/D1 filters and auth, static detection without browser/model calls and release/manual guards'
   );
 } finally {
   globalThis.fetch = originalFetch;

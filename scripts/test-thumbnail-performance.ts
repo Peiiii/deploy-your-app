@@ -218,9 +218,6 @@ const explorePageSource = await import('node:fs/promises').then((fs) =>
 const infiniteScrollSource = await import('node:fs/promises').then((fs) =>
   fs.readFile(new URL('../frontend/src/hooks/use-infinite-scroll.ts', import.meta.url), 'utf8'),
 );
-const screenshotSource = await import('node:fs/promises').then((fs) =>
-  fs.readFile(new URL('../workers/screenshot-service/worker.ts', import.meta.url), 'utf8'),
-);
 
 assert.match(gatewaySource, /MAX_OPTIMIZED_THUMBNAIL_BYTES = 300 \* 1024/);
 assert.match(cardSource, /loading="eager"/);
@@ -241,7 +238,5 @@ assert.match(
 );
 assert.match(infiniteScrollSource, /getScrollParent\(target\)/);
 assert.match(infiniteScrollSource, /root: observerRoot/);
-assert.match(screenshotSource, /waitUntil: 'domcontentloaded'/);
-assert.match(screenshotSource, /WEBP_CAPTURE_STEPS/);
 
 console.log('thumbnail performance tests passed');

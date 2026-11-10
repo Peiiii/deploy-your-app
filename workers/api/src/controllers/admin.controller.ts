@@ -38,8 +38,6 @@ class AdminController {
       request.headers.get('x-gemigo-content-token') !== env.APP_CONTENT_TOKEN
     )
       await this.requireAdmin(request, env, db);
-    if (!env.APP_CONTENT || !env.APP_CONTENT_TOKEN)
-      throw new ValidationError('App content service unavailable');
     const project = await projectService.getProjectById(db, id);
     if (!project || project.status !== 'Live' || project.isPublic === false)
       throw new NotFoundError('Public live project not found');

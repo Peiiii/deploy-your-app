@@ -47,11 +47,6 @@ database_id = "e1e28d75-d0a0-4f8e-9b5d-714454686a4f"
 [triggers]
 crons = ["*/2 * * * *"]
 
-# Internal rendered text extraction for language matching.
-[[services]]
-binding = "APP_CONTENT"
-service = "gemigo-screenshot-service"
-
 # Application-scoped in-flight calls, revocation and transport lifecycle.
 [[durable_objects.bindings]]
 name = "APP_GATEWAY"

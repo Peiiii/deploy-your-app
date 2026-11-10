@@ -1,15 +1,4 @@
 name = "gemigo-screenshot-service"
 main = "worker.ts"
 compatibility_date = "2026-09-18"
-# @cloudflare/puppeteer 1.0.x expects ArrayBuffer WebSocket frames.
-# https://github.com/cloudflare/puppeteer/issues/193
-compatibility_flags = ["nodejs_compat", "no_websocket_standard_binary_type"]
-
-# Cloudflare Browser Rendering binding.
-# After deploying, go to Cloudflare Dashboard → Workers & Pages → this Worker,
-# and enable Browser Rendering so that the BROWSER binding is available.
-[browser]
-binding = "BROWSER"
-
-[vars]
-APPS_ROOT_DOMAIN = "gemigo.app"
+# Retired endpoint: no Browser binding or browser execution is permitted.

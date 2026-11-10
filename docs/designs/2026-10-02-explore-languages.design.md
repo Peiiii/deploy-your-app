@@ -1,5 +1,7 @@
 # Explore language matching
 
+Current runtime revision (2026-11-11): [static application language detection](2026-11-11-static-language-cost.design.md) replaces the browser-rendering and model-classification parts of EL04/EL06 below by explicit owner request. The earlier rendering description is historical; do not re-enable that paid path. Author declarations, release guards and feed contracts remain effective.
+
 ## Goal and sources
 User asks to implement the discussed language solution, with the expected language selected on first visit and a prominent, easy-to-find switch on desktop and mobile. Project managed delivery authorization includes commit, push and online acceptance. Flow standard; risk L3 (persistent app language and cross-runtime detection); design-document required; plan not-required (one cohesive delivery).
 
